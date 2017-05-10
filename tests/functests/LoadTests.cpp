@@ -107,7 +107,7 @@ class LoadTests : public Test,
 		PdhCollectQueryData(cpuQuery);
 
 		PdhOpenQuery(NULL, NULL, &diskQuery);
-		PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\% Disk Read Time", NULL, &diskTotal);
+		PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
 		PdhCollectQueryData(diskQuery);
 
         recordsReceived = 0;
@@ -163,8 +163,8 @@ bool isRequiredAvailableMemory()
 	MEMORYSTATUSEX memInfo;
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&memInfo);
-	DWORDLONG twoGB = 2147483648;
-	if (memInfo.ullAvailPhys > twoGB)
+	DWORDLONG fourGB = 4294967296;
+	if (memInfo.ullAvailPhys > fourGB)
 	{
 		return true;
 	}
@@ -187,44 +187,43 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
 
 	unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
 
-	PDH_FMT_COUNTERVALUE counterVal;
+	double avgCpuLoad = 0;
+	PDH_FMT_COUNTERVALUE counterVal;	
+	PDH_FMT_COUNTERVALUE diskVal;
+	double avgDiskLoad = 0;
+	
 
+    int64_t time = PAL::getMonotonicTimeMs();
+    for (unsigned i = 0; i < RESTART_COUNT; i++)
+	{
+        logManager.reset();
+        logManager.reset(ILogManager::Create(configuration));
+    }
+
+    time = PAL::getMonotonicTimeMs() - time;
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
-	
-	PDH_FMT_COUNTERVALUE diskVal;
 	PdhCollectQueryData(diskQuery);
-	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &diskVal);
-	
-	if (counterVal.doubleValue > 75)
+	PdhGetFormattedCounterValue(diskTotal, PDH_FMT_DOUBLE, NULL, &diskVal);
+	avgCpuLoad = avgCpuLoad + counterVal.doubleValue;
+	avgDiskLoad = avgDiskLoad + diskVal.doubleValue;
+
+	//printf("\nAvg Processor (_Total) Processor Time = %f", NULL, avgCpuLoad);
+	//printf("\navg PhysicalDisk (_Total)  Disk Read Timee = %f", NULL, avgDiskLoad);
+
+	if (avgCpuLoad > 75)
 	{
 		maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
 	}
-	else if (counterVal.doubleValue > 40)
+	else if (avgCpuLoad > 40)
 	{
 		maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
-	}
-
-	if (diskVal.doubleValue > 75)
-	{
-		maxtimeperrestart = maxtimeperrestart + MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
-	}
-	else if (diskVal.doubleValue > 20)
-	{
-		maxtimeperrestart = maxtimeperrestart + MAX_TIME_PER_RESTART_MS;
 	}
 	
 	if (!isRequiredAvailableMemory())
 	{
 		maxtimeperrestart = maxtimeperrestart + MAX_TIME_PER_RESTART_MS;
-	}
-
-    int64_t time = PAL::getMonotonicTimeMs();
-    for (unsigned i = 0; i < RESTART_COUNT; i++) {
-        logManager.reset();
-        logManager.reset(ILogManager::Create(configuration));
-    }
-    time = PAL::getMonotonicTimeMs() - time;
+	}	
 	
     EXPECT_THAT(time / RESTART_COUNT, Lt(maxtimeperrestart));
 
