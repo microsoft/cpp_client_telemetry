@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="225" failures="0" disabled="0" errors="0" timestamp="2017-03-07T14:32:45" time="36.879" name="AllTests">
+  <testsuite name="BondSplicerTests" tests="5" failures="0" disabled="0" errors="0" time="0.002">
+    <testcase name="Empty" status="run" time="0" classname="BondSplicerTests" />
+    <testcase name="OneEmptyDataPackage" status="run" time="0" classname="BondSplicerTests" />
+    <testcase name="OneDataPackageWithOneEmptyRecord" status="run" time="0.001" classname="BondSplicerTests" />
+    <testcase name="MultipleDataPackagesWithRecords" status="run" time="0" classname="BondSplicerTests" />
+    <testcase name="MultipleEverything" status="run" time="0.001" classname="BondSplicerTests" />
+  </testsuite>
+  <testsuite name="ContextFieldsProviderTests" tests="2" failures="0" disabled="0" errors="0" time="0.004">
+    <testcase name="SetProperties" status="run" time="0.003" classname="ContextFieldsProviderTests" />
+    <testcase name="UsesPalValues" status="run" time="0.001" classname="ContextFieldsProviderTests" />
+  </testsuite>
+  <testsuite name="EventPropertiesTests" tests="7" failures="0" disabled="0" errors="0" time="0.003">
+    <testcase name="Construction" status="run" time="0" classname="EventPropertiesTests" />
+    <testcase name="Name" status="run" time="0" classname="EventPropertiesTests" />
+    <testcase name="Timestamp" status="run" time="0" classname="EventPropertiesTests" />
+    <testcase name="Priority" status="run" time="0" classname="EventPropertiesTests" />
+    <testcase name="Properties" status="run" time="0" classname="EventPropertiesTests" />
+    <testcase name="NumericProperties" status="run" time="0.002" classname="EventPropertiesTests" />
+    <testcase name="PiiProperties" status="run" time="0" classname="EventPropertiesTests" />
+  </testsuite>
+  <testsuite name="BackoffTests_ExponentialWithJitter" tests="12" failures="0" disabled="0" errors="0" time="0.351">
+    <testcase name="ValidatesArguments" status="run" time="0" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="StartsAtInitialValue" status="run" time="0" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="IncreasesExponentially" status="run" time="0" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="StopsAtMaximumValue" status="run" time="0" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="StopsAtUnevenMaximumValue" status="run" time="0.001" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="SupportsArbitraryMultiplier" status="run" time="0" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="AddsFullStepJitter" status="run" time="0.051" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="JitterStopsAtMaximumValue" status="run" time="0.044" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="JitterStopsAtUnevenMaximumValue" status="run" time="0.047" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="JitterDoesNotGoBelowInitialValue" status="run" time="0.017" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="AddsArbitrarySizedJitter" status="run" time="0.094" classname="BackoffTests_ExponentialWithJitter" />
+    <testcase name="CanBeCreatedFromConfig" status="run" time="0.095" classname="BackoffTests_ExponentialWithJitter" />
+  </testsuite>
+  <testsuite name="HttpClientTests" tests="9" failures="0" disabled="0" errors="0" time="20.972">
+    <testcase name="HandlesSimpleRequest" status="run" time="1.525" classname="HttpClientTests" />
+    <testcase name="HandlesErrorRequest" status="run" time="0.504" classname="HttpClientTests" />
+    <testcase name="HandlesPostRequest" status="run" time="0.507" classname="HttpClientTests" />
+    <testcase name="HandlesLocalErrors" status="run" time="0.502" classname="HttpClientTests" />
+    <testcase name="HandlesDnsError" status="run" time="0.502" classname="HttpClientTests" />
+    <testcase name="HandlesConnectionError" status="run" time="3.504" classname="HttpClientTests" />
+    <testcase name="HandlesCancellation" status="run" time="0.502" classname="HttpClientTests" />
+    <testcase name="Handles100Continue" status="run" time="1.509" classname="HttpClientTests" />
+    <testcase name="SurvivesManyRequests" status="run" time="11.916" classname="HttpClientTests" />
+  </testsuite>
+  <testsuite name="HttpClientManagerTests" tests="2" failures="0" disabled="0" errors="0" time="0.204">
+    <testcase name="HandlesRequestFlow" status="run" time="0.202" classname="HttpClientManagerTests" />
+    <testcase name="CancelAbortsRequests" status="run" time="0.001" classname="HttpClientManagerTests" />
+  </testsuite>
+  <testsuite name="HttpDeflateCompressionTests" tests="4" failures="0" disabled="0" errors="0" time="0.01">
+    <testcase name="DoesNothingWhenTurnedOff" status="run" time="0.002" classname="HttpDeflateCompressionTests" />
+    <testcase name="CompressesCorrectly" status="run" time="0.002" classname="HttpDeflateCompressionTests" />
+    <testcase name="WorksMultipleTimes" status="run" time="0.003" classname="HttpDeflateCompressionTests" />
+    <testcase name="HasReasonableCompressionRatio" status="run" time="0.002" classname="HttpDeflateCompressionTests" />
+  </testsuite>
+  <testsuite name="HttpRequestEncoderTests" tests="3" failures="0" disabled="0" errors="0" time="0.007">
+    <testcase name="SetsAllParameters" status="run" time="0.003" classname="HttpRequestEncoderTests" />
+    <testcase name="AddsCompressionHeader" status="run" time="0.002" classname="HttpRequestEncoderTests" />
+    <testcase name="BuildsApiKeyCorrectly" status="run" time="0.002" classname="HttpRequestEncoderTests" />
+  </testsuite>
+  <testsuite name="HttpResponseDecoderTests" tests="5" failures="0" disabled="0" errors="0" time="0.004">
+    <testcase name="AcceptsAccepted" status="run" time="0" classname="HttpResponseDecoderTests" />
+    <testcase name="RejectsRejected" status="run" time="0.001" classname="HttpResponseDecoderTests" />
+    <testcase name="UnderstandsTemporaryServerFailures" status="run" time="0.001" classname="HttpResponseDecoderTests" />
+    <testcase name="UnderstandsTemporaryNetworkFailures" status="run" time="0.001" classname="HttpResponseDecoderTests" />
+    <testcase name="SkipsAbortedRequests" status="run" time="0.001" classname="HttpResponseDecoderTests" />
+  </testsuite>
+  <testsuite name="HttpServerTestsSimple" tests="8" failures="0" disabled="0" errors="0" time="4.072">
+    <testcase name="HandlesSimpleRequest" status="run" time="0.505" classname="HttpServerTestsSimple" />
+    <testcase name="HandlesRequestWithContent" status="run" time="0.504" classname="HttpServerTestsSimple" />
+    <testcase name="CombinesReceivedPackets" status="run" time="0.504" classname="HttpServerTestsSimple" />
+    <testcase name="AddsResponseMessagePerResponseCode" status="run" time="0.508" classname="HttpServerTestsSimple" />
+    <testcase name="PipeliningWorks" status="run" time="0.506" classname="HttpServerTestsSimple" />
+    <testcase name="LongContentIsTransferredProperly" status="run" time="0.535" classname="HttpServerTestsSimple" />
+    <testcase name="SupportsExpect100Continue" status="run" time="0.504" classname="HttpServerTestsSimple" />
+    <testcase name="FailsOnUnknownExpect" status="run" time="0.505" classname="HttpServerTestsSimple" />
+  </testsuite>
+  <testsuite name="LoggerTests" tests="15" failures="0" disabled="0" errors="0" time="0.334">
+    <testcase name="LogAggregatedMetric" status="run" time="0.049" classname="LoggerTests" />
+    <testcase name="LogAppLifecycle" status="run" time="0.007" classname="LoggerTests" />
+    <testcase name="LogEvent" status="run" time="0.01" classname="LoggerTests" />
+    <testcase name="CustomEventNameValidation" status="run" time="0.016" classname="LoggerTests" />
+    <testcase name="CustomPropertyNameValidation" status="run" time="0.017" classname="LoggerTests" />
+    <testcase name="CustomEventPropertiesCanOverrideOrEraseContextOnes" status="run" time="0.005" classname="LoggerTests" />
+    <testcase name="LogFailure" status="run" time="0.013" classname="LoggerTests" />
+    <testcase name="LogPageAction" status="run" time="0.019" classname="LoggerTests" />
+    <testcase name="LogPageView" status="run" time="0.014" classname="LoggerTests" />
+    <testcase name="LogSampledMetric" status="run" time="0.015" classname="LoggerTests" />
+    <testcase name="LogTrace" status="run" time="0.008" classname="LoggerTests" />
+    <testcase name="LogUserState" status="run" time="0.01" classname="LoggerTests" />
+    <testcase name="RuntimeConfigPriorityIsForced" status="run" time="0.144" classname="LoggerTests" />
+    <testcase name="SubmitIgnoresPriorityOff" status="run" time="0.002" classname="LoggerTests" />
+    <testcase name="SubmitSendsEventContext" status="run" time="0.002" classname="LoggerTests" />
+  </testsuite>
+  <testsuite name="MetaStatsTests" tests="4" failures="0" disabled="0" errors="0" time="0.044">
+    <testcase name="NoInputGeneratesNoEvents" status="run" time="0.001" classname="MetaStatsTests" />
+    <testcase name="GenerateStartEvent" status="run" time="0.028" classname="MetaStatsTests" />
+    <testcase name="GenerateStopEvent" status="run" time="0.01" classname="MetaStatsTests" />
+    <testcase name="NoNewDataOrMetastatsOnlyGenerateNoEvents" status="run" time="0.005" classname="MetaStatsTests" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests" tests="7" failures="0" disabled="0" errors="0" time="0.006">
+    <testcase name="StartInitializes" status="run" time="0.001" classname="OfflineStorageTests" />
+    <testcase name="StopShutsDown" status="run" time="0" classname="OfflineStorageTests" />
+    <testcase name="StoreRecordIsForwarded" status="run" time="0.003" classname="OfflineStorageTests" />
+    <testcase name="RetrieveEventsPassesRecordsThrough" status="run" time="0.001" classname="OfflineStorageTests" />
+    <testcase name="RetrieveEventsFailureAborts" status="run" time="0" classname="OfflineStorageTests" />
+    <testcase name="DeleteRecordsIsForwarded" status="run" time="0.001" classname="OfflineStorageTests" />
+    <testcase name="ReleaseRecordsIsForwarded" status="run" time="0" classname="OfflineStorageTests" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests_SQLite" tests="24" failures="0" disabled="0" errors="0" time="3.873">
+    <testcase name="InitializeAndShutdownCreateFileThatCanBeDeleted" status="run" time="0.033" classname="OfflineStorageTests_SQLite" />
+    <testcase name="StorageRecordConstructorSetsAllFields" status="run" time="0.028" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReservedReturnsStoredRecord" status="run" time="0.065" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReservedRecordIsNotReturned" status="run" time="0.038" classname="OfflineStorageTests_SQLite" />
+    <testcase name="DeletedRecordsAreNotReturned" status="run" time="0.037" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReservedRecordsAreReleasedAfterTimeout" status="run" time="2.549" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReserveRecordsReservesRecordsSortedByTimestamp" status="run" time="0.039" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReserveRecordsReturnsOnlyHighestPriority" status="run" time="0.037" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReserveRecordsReturnsLowerPriorityIfHighestReserved" status="run" time="0.038" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReserveRecordsReservesOnlyReturnedRecordsWhenLimited" status="run" time="0.043" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReleaseRecordsMakesThemAvailableAgain" status="run" time="0.043" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReleaseRecordsIncrementsRetryCount" status="run" time="0.044" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReleaseUnreservedRecordsDoesntIncrementRetryCount" status="run" time="0.04" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ReleaseRecordsDeletesRecordsOverMaxRetryCount" status="run" time="0.078" classname="OfflineStorageTests_SQLite" />
+    <testcase name="GetAndReserveRecordsReturnsRecordsSortedByTimestamp" status="run" time="0.034" classname="OfflineStorageTests_SQLite" />
+    <testcase name="StoreThousandEventsTakesLessThanASecond" status="run" time="0.141" classname="OfflineStorageTests_SQLite" />
+    <testcase name="OnInvalidFilenameInitializeCreatesTemporaryDb" status="run" time="0.032" classname="OfflineStorageTests_SQLite" />
+    <testcase name="InitializeDeletesFileAndCreatesNewIfFailed" status="run" time="0.061" classname="OfflineStorageTests_SQLite" />
+    <testcase name="AbsentSettingsAreRerturnedAsEmpty" status="run" time="0.029" classname="OfflineStorageTests_SQLite" />
+    <testcase name="StoredSettingsSurviveDbReopen" status="run" time="0.046" classname="OfflineStorageTests_SQLite" />
+    <testcase name="UpdatedSettingsAreCorrectlyStored" status="run" time="0.046" classname="OfflineStorageTests_SQLite" />
+    <testcase name="APICallsAreHarmlessAfterStorageIsShutdown" status="run" time="0.042" classname="OfflineStorageTests_SQLite" />
+    <testcase name="ExceededStorageSizeCausesDbToDropOldestEventsWithLowestPriority" status="run" time="0.283" classname="OfflineStorageTests_SQLite" />
+    <testcase name="TrimmingAlwaysDropsAtLeastOneEvent" status="run" time="0.043" classname="OfflineStorageTests_SQLite" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests_SQLiteWithMock" tests="12" failures="0" disabled="0" errors="0" time="0.381">
+    <testcase name="AllSqliteFunctionCallsAreDeferred" status="run" time="0.001" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="InitializeCreatesNewDatabase" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="NoInitializationMeansNoDatabase" status="run" time="0.003" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="InitializationErrorsFallbackToRecreatedDatabaseFile" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="InitializationErrorsFallbackToTemporaryDatabaseFile" status="run" time="0.018" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="InitializationErrorsFallbackToInMemoryDatabase" status="run" time="0.02" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="CompletelyFailedInitializationMeansNoDatabase" status="run" time="0.005" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="initializeDatabase_FailsOnErrors" status="run" time="0.216" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="initializeDatabase_UpgradesOlderDatabase" status="run" time="0.033" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="initializeDatabase_recreatesNewerDatabase" status="run" time="0.025" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="DoubleShutdownIsHarmless" status="run" time="0.014" classname="OfflineStorageTests_SQLiteWithMock" />
+    <testcase name="CommitFailureDuringShutdownIsIgnored" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMock" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests_SQLiteWithMockInitialized" tests="46" failures="0" disabled="0" errors="0" time="1.31">
+    <testcase name="StoreRecord_Succeeds" status="run" time="0.024" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreRecord_FailsWithInvalidInput" status="run" time="0.017" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreRecord_RetriesOnceOnError" status="run" time="0.06" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreRecord_AbortsIfDbCannotBeRecreated" status="run" time="0.02" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_Succeeds" status="run" time="0.04" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_SucceedsWithNoOutput" status="run" time="0.031" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesCommitPreviousFailure" status="run" time="0.034" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesReleaseExpiredFailure" status="run" time="0.031" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesBeginTransactionFailure" status="run" time="0.034" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesSelectFailure" status="run" time="0.038" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesGetRowFailure" status="run" time="0.047" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesRollbackFailure" status="run" time="0.038" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesReserveFailure" status="run" time="0.042" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetAndReserveRecords_HandlesCommitFailure" status="run" time="0.047" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="DeleteRecords_Succeeds" status="run" time="0.02" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="DeleteRecords_DoesNothingWithEmptyInput" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="DeleteRecords_HandlesCommitFailure" status="run" time="0.031" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="DeleteRecords_HandlesDeletionFalure" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_Succeeds" status="run" time="0.026" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_SucceedsAndIncreasesRetryCount" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_DoesNothingWithEmptyInput" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_HandlesCommitPreviousFailure" status="run" time="0.028" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_HandlesBeginTransactionFailure" status="run" time="0.03" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_HandlesReleaseFailure" status="run" time="0.032" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_HandlesDeletionFailure" status="run" time="0.034" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="ReleaseRecords_HandlesFinalCommitFailure" status="run" time="0.037" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_StoringSucceeds" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_DeletionSucceeds" status="run" time="0.018" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_FailsWithInvalidInput" status="run" time="0.015" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_HandlesCommitPreviousFailure" status="run" time="0.03" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_HandlesStoringFailure" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="StoreSetting_HandlesDeletionFailure" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetSetting_Succeeds" status="run" time="0.019" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetSetting_FailsWithInvalidInput" status="run" time="0.014" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetSetting_HandlesCommitPreviousFailure" status="run" time="0.03" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="GetSetting_HandlesSelectFailure" status="run" time="0.03" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="autoCommitTransaction_HandlesCommitFailure" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_SucceedsUnderLimit" status="run" time="0.018" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_SucceedsWithTrimming" status="run" time="0.026" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesCurrentPageCountFailure" status="run" time="0.017" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesCommitPreviousFailure" status="run" time="0.019" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesDeleteFailure" status="run" time="0.019" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesVacuumFailure" status="run" time="0.023" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesVacuumStepFailure" status="run" time="0.023" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_HandlesNewPageCountFailure" status="run" time="0.025" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+    <testcase name="trimDbIfNeeded_FailsIfNewSizeIsStillOverLimit" status="run" time="0.029" classname="OfflineStorageTests_SQLiteWithMockInitialized" />
+  </testsuite>
+  <testsuite name="PackagerTests" tests="7" failures="0" disabled="0" errors="0" time="0.012">
+    <testcase name="EmptyInputResultsInEmptyPackage" status="run" time="0.001" classname="PackagerTests" />
+    <testcase name="PackagesEventsByTenant" status="run" time="0.002" classname="PackagerTests" />
+    <testcase name="UsesPriorityOfTheFirstEvent" status="run" time="0.001" classname="PackagerTests" />
+    <testcase name="HonorsMaximumPackageSize" status="run" time="0.001" classname="PackagerTests" />
+    <testcase name="PackagesAtLeastOneEventEvenIfOverSizeLimit" status="run" time="0.001" classname="PackagerTests" />
+    <testcase name="SetsRequestBondFieldsCorrectly" status="run" time="0.002" classname="PackagerTests" />
+    <testcase name="ForcedTenantIsForced" status="run" time="0.002" classname="PackagerTests" />
+  </testsuite>
+  <testsuite name="PalTests" tests="15" failures="0" disabled="0" errors="0" time="4.724">
+    <testcase name="Logging" status="run" time="0" classname="PalTests" />
+    <testcase name="RefCountedCreateForwardsArguments" status="run" time="0" classname="PalTests" />
+    <testcase name="RefCountedPtrConstruction" status="run" time="0" classname="PalTests" />
+    <testcase name="RefCountedOperators" status="run" time="0" classname="PalTests" />
+    <testcase name="WorkerThreadCallsMethod" status="run" time="0.602" classname="PalTests" />
+    <testcase name="WorkerThreadCallsMethodWithDelay" status="run" time="1.004" classname="PalTests" />
+    <testcase name="WorkerThreadIsSerialized" status="run" time="0.9" classname="PalTests" />
+    <testcase name="WorkerThreadDeferredCallbackIsCancellable" status="run" time="0.5" classname="PalTests" />
+    <testcase name="UuidGeneration" status="run" time="0.001" classname="PalTests" />
+    <testcase name="PseudoRandomGenerator" status="run" time="0.048" classname="PalTests" />
+    <testcase name="SystemTime" status="run" time="0.37" classname="PalTests" />
+    <testcase name="FormatUtcTimestampMsAsISO8601" status="run" time="0" classname="PalTests" />
+    <testcase name="MonotonicTime" status="run" time="0.79" classname="PalTests" />
+    <testcase name="SemanticContextPopulation" status="run" time="0.506" classname="PalTests" />
+    <testcase name="SdkVersion" status="run" time="0" classname="PalTests" />
+  </testsuite>
+  <testsuite name="RouteTests" tests="7" failures="0" disabled="0" errors="0" time="0.009">
+    <testcase name="SinkPassesArgsAsDefined" status="run" time="0.001" classname="RouteTests" />
+    <testcase name="SourceIsNoopWhenUnbound" status="run" time="0" classname="RouteTests" />
+    <testcase name="SourceCallsSink" status="run" time="0.001" classname="RouteTests" />
+    <testcase name="PassThroughsAreInvokedInBetween" status="run" time="0.002" classname="RouteTests" />
+    <testcase name="PassThroughsWithoutSinkAreOk" status="run" time="0.001" classname="RouteTests" />
+    <testcase name="PassThroughCanStopTheFlow" status="run" time="0.001" classname="RouteTests" />
+    <testcase name="RoutesCanCoexistsAcrossTheSamePath" status="run" time="0.002" classname="RouteTests" />
+  </testsuite>
+  <testsuite name="TransmissionPolicyManagerTests" tests="19" failures="0" disabled="0" errors="0" time="0.033">
+    <testcase name="StartSchedulesUploadImmediately" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="StopCancelsScheduledUploads" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="IncomingEventDoesNothingWhenPaused" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="IncomingEventSchedulesUpload" status="run" time="0.004" classname="TransmissionPolicyManagerTests" />
+    <testcase name="ImmediateIncomingEventStartsUploadImmediately" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="UploadDoesNothingWhenPaused" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="UploadDoesNothingWithActiveUploads" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="UploadPostponedWithInsufficientAvailableBandwidth" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="UploadInitiatesUpload" status="run" time="0.003" classname="TransmissionPolicyManagerTests" />
+    <testcase name="EmptyUploadCeasesUploading" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="FailedUploadPackagingSchedulesNextOneWithDelay" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="SuccessfulUploadSchedulesNextOneImmediately" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="RejectedUploadSchedulesNextOneWithLargerDelay" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="FailedUploadSchedulesNextOneWithLargerDelay" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="SuccessfulUploadResetsBackoffDelay" status="run" time="0.002" classname="TransmissionPolicyManagerTests" />
+    <testcase name="InvalidUploadRetryBackoffConfigKeepsUsingThePreviousOne" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="AbortedUploadDoesNotScheduleNextOne" status="run" time="0" classname="TransmissionPolicyManagerTests" />
+    <testcase name="FinishAllUploadsWhenIdleIsSynchronous" status="run" time="0.001" classname="TransmissionPolicyManagerTests" />
+    <testcase name="FinishAllUploadsWhenBusyWaitsForAllUploads" status="run" time="0" classname="TransmissionPolicyManagerTests" />
+  </testsuite>
+  <testsuite name="UtilsTests" tests="1" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="ToString" status="run" time="0" classname="UtilsTests" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests_SQLite/GoodRecordsTests" tests="6" failures="0" disabled="0" errors="0" time="0.368">
+    <testcase name="RecordStoredAndRetrievedCorrectly/0" value_param="104-byte object &lt;60-AA 79-00 7B-20 67-75 69-64 2D-22 27-20 00-CD CD-CD CD-CD 0A-00 00-00 0F-00 00-00 A0-AF 79-00 74-65 6E-61 6E-74 20-2D 74-6F 22-6B 65-6E 27-00 0F-00 00-00 0F-00 00-00 02-00 00-00 CD-CD CD-CD FF-FF FF-FF FF-FF FF-7F 28-B1 79-00 98-AA 79-00 9F-AA 79-00 9F-AA 79-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.034" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+    <testcase name="RecordStoredAndRetrievedCorrectly/1" value_param="104-byte object &lt;40-AB 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 A0-AF 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 04-00 00-00 CD-CD CD-CD 01-00 00-00 00-00 00-00 28-B1 79-00 60-90 65-01 60-90 75-01 60-90 75-01 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.093" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+    <testcase name="RecordStoredAndRetrievedCorrectly/2" value_param="104-byte object &lt;A0-AF 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 98-AA 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 00-00 00-00 CD-CD CD-CD 01-00 00-00 00-00 00-00 40-AB 79-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.036" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+    <testcase name="RecordStoredAndRetrievedCorrectlyAfterDbReopen/0" value_param="104-byte object &lt;E0-AD 79-00 7B-20 67-75 69-64 2D-22 27-20 00-CD CD-CD CD-CD 0A-00 00-00 0F-00 00-00 60-AA 79-00 74-65 6E-61 6E-74 20-2D 74-6F 22-6B 65-6E 27-00 0F-00 00-00 0F-00 00-00 02-00 00-00 CD-CD CD-CD FF-FF FF-FF FF-FF FF-7F 48-B0 79-00 98-AA 79-00 9F-AA 79-00 9F-AA 79-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.051" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+    <testcase name="RecordStoredAndRetrievedCorrectlyAfterDbReopen/1" value_param="104-byte object &lt;90-AC 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 70-AD 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 04-00 00-00 CD-CD CD-CD 01-00 00-00 00-00 00-00 48-B0 79-00 60-60 65-01 60-60 75-01 60-60 75-01 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.103" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+    <testcase name="RecordStoredAndRetrievedCorrectlyAfterDbReopen/2" value_param="104-byte object &lt;48-B0 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 70-AD 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 00-00 00-00 CD-CD CD-CD 01-00 00-00 00-00 00-00 90-AC 79-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.05" classname="OfflineStorageTests_SQLite/GoodRecordsTests" />
+  </testsuite>
+  <testsuite name="OfflineStorageTests_SQLite/BadRecordsTests" tests="5" failures="0" disabled="0" errors="0" time="0.151">
+    <testcase name="BadRecordStoredIsNotFoundInDb/0" value_param="104-byte object &lt;30-AF 79-00 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD CD-CD CD-CD 00-00 00-00 0F-00 00-00 70-B4 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 01-00 00-00 CD-CD CD-CD 02-00 00-00 00-00 00-00 20-BA 79-00 D8-D1 79-00 DB-D1 79-00 DB-D1 79-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.028" classname="OfflineStorageTests_SQLite/BadRecordsTests" />
+    <testcase name="BadRecordStoredIsNotFoundInDb/1" value_param="104-byte object &lt;30-AF 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 E0-AD 79-00 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD CD-CD CD-CD 00-00 00-00 0F-00 00-00 01-00 00-00 CD-CD CD-CD 02-00 00-00 00-00 00-00 70-B4 79-00 E8-D6 79-00 EB-D6 79-00 EB-D6 79-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.028" classname="OfflineStorageTests_SQLite/BadRecordsTests" />
+    <testcase name="BadRecordStoredIsNotFoundInDb/2" value_param="104-byte object &lt;C0-FE 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 78-FB 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 FF-FF FF-FF CD-CD CD-CD 00-00 00-00 00-00 00-00 D0-01 7A-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.029" classname="OfflineStorageTests_SQLite/BadRecordsTests" />
+    <testcase name="BadRecordStoredIsNotFoundInDb/3" value_param="104-byte object &lt;10-00 7A-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 00-FD 79-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 DB-03 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00 D8-FF 79-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.038" classname="OfflineStorageTests_SQLite/BadRecordsTests" />
+    <testcase name="BadRecordStoredIsNotFoundInDb/4" value_param="104-byte object &lt;F8-FE 79-00 67-75 69-64 00-CD CD-CD CD-CD CD-CD CD-CD CD-CD 04-00 00-00 0F-00 00-00 10-00 7A-00 74-65 6E-61 6E-74 2D-74 6F-6B 65-6E 00-CD CD-CD 0C-00 00-00 0F-00 00-00 02-00 00-00 CD-CD CD-CD FF-FF FF-FF FF-FF FF-FF A8-FD 79-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 CD-CD CD-CD 00-00 00-00 00-00 00-00&gt;" status="run" time="0.028" classname="OfflineStorageTests_SQLite/BadRecordsTests" />
+  </testsuite>
+</testsuites>

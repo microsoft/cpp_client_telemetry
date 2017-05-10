@@ -1,0 +1,6 @@
+win10-dll/Win32/
+win10-dll/64/
+win32-dll/Win32/
+win32-dll/x64/
+
+out/

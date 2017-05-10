@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="17" failures="0" disabled="0" errors="0" timestamp="2017-03-07T14:33:22" time="97.078" name="AllTests">
+  <testsuite name="BasicFuncTests" tests="13" failures="0" disabled="0" errors="0" time="58.756">
+    <testcase name="doNothing" status="run" time="0.515" classname="BasicFuncTests" />
+    <testcase name="sendOneEvent_immediatelyStop" status="run" time="0.507" classname="BasicFuncTests" />
+    <testcase name="sendNoPriorityEvents" status="run" time="3.58" classname="BasicFuncTests" />
+    <testcase name="sendSamePriorityNormalEvents" status="run" time="2.548" classname="BasicFuncTests" />
+    <testcase name="sendDifferentPriorityEvents" status="run" time="2.574" classname="BasicFuncTests" />
+    <testcase name="sendMultipleTenantsTogether" status="run" time="2.548" classname="BasicFuncTests" />
+    <testcase name="configDecorations" status="run" time="2.543" classname="BasicFuncTests" />
+    <testcase name="restartRecoversEventsFromStorage" status="run" time="0.853" classname="BasicFuncTests" />
+    <testcase name="storageFileSizeDoesntExceedConfiguredSize" status="run" time="9.205" classname="BasicFuncTests" />
+    <testcase name="sendMetaStatsOnStart" status="run" time="0.844" classname="BasicFuncTests" />
+    <testcase name="networkProblemsDoNotDropEvents" status="run" time="10.763" classname="BasicFuncTests" />
+    <testcase name="serverProblemsDropEventsAfterMaxRetryCount" status="run" time="9.744" classname="BasicFuncTests" />
+    <testcase name="metaStatsAreSentOnlyWhenNewDataAreAvailable" status="run" time="12.527" classname="BasicFuncTests" />
+  </testsuite>
+  <testsuite name="LoadTests" tests="3" failures="0" disabled="0" errors="0" time="35.713">
+    <testcase name="StartupAndShutdownIsFast" status="run" time="1.507" classname="LoadTests" />
+    <testcase name="ManyStartupsAndShutdownsAreHandledSafely" status="run" time="3.713" classname="LoadTests" />
+    <testcase name="ManyEventsFromManyThreadsAreHandledSafely" status="run" time="30.491" classname="LoadTests" />
+  </testsuite>
+  <testsuite name="MultipleLogManagersTests" tests="1" failures="0" disabled="0" errors="0" time="2.609">
+    <testcase name="TwoInstancesCoexist" status="run" time="2.607" classname="MultipleLogManagersTests" />
+  </testsuite>
+</testsuites>

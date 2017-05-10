@@ -1,0 +1,1112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug.vs2013.MT-sqlite|Win32">
+      <Configuration>Debug.vs2013.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2013.MT-sqlite|x64">
+      <Configuration>Debug.vs2013.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2013.MT|Win32">
+      <Configuration>Debug.vs2013.MT</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2013.MT|x64">
+      <Configuration>Debug.vs2013.MT</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2013|Win32">
+      <Configuration>Debug.vs2013</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2013|x64">
+      <Configuration>Debug.vs2013</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|Win32">
+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|x64">
+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013.MT-sqlite|Win32">
+      <Configuration>Release.vs2013.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013.MT-sqlite|x64">
+      <Configuration>Release.vs2013.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013.MT|Win32">
+      <Configuration>Release.vs2013.MT</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013.MT|x64">
+      <Configuration>Release.vs2013.MT</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013|Win32">
+      <Configuration>Release.vs2013</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2013|x64">
+      <Configuration>Release.vs2013</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|Win32">
+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|x64">
+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(SolutionDir)\VersionInfo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)\PAL\win32\WindowsEnvironmentInfo.h" />
+    <ClInclude Include="..\net40\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
+      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{82C8EE9A-F706-4A97-9EEA-1D7B5FC9E6DB}</ProjectGuid>
+    <Keyword>Win32DllProj</Keyword>
+    <RootNamespace>ClientTelemetry</RootNamespace>
+    <ProjectName>win32-static</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.15005.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2015-crtdynamic-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-crtdynamic-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2015-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2015-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x86_vs2013-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-crtdynamic-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-debug</QBConfigId>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2013-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="$(SolutionDir)\ssl-stubs\ssl-stubs.vcxitems" Label="Shared" />
+    <Import Project="$(SolutionDir)\PAL\win32\win32.vcxitems" Label="Shared" />
+    <Import Project="..\..\clienttelemetry.vcxitems" Label="Shared" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>ClientTelemetry</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4503</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4503</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
+    </Bscmake>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2013'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</PreserveSbr>
+    </Bscmake>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2013.MT'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|Win32'">true</PreserveSbr>
+    </Bscmake>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2013.MT-sqlite'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|Win32'">true</PreserveSbr>
+    </Bscmake>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.MT-sqlite|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2015.MT-sqlite'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</PreserveSbr>
+    </Bscmake>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <!-- FIXME: x64 bit - no optimizations -->
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <!-- x86: optimize for size -->
+      <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4503</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4503</DisableSpecificWarnings>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2013.MT'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">OldStyle</DebugInformationFormat>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2013.MT-sqlite'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">OldStyle</DebugInformationFormat>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.MT-sqlite|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2015.MT-sqlite'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">OldStyle</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">OldStyle</DebugInformationFormat>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2013'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</GenerateXMLDocumentationFiles>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</BrowseInformation>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">NoListing</AssemblerOutput>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</CompileAsManaged>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</CompileAsWinRT>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">MultiThreadedDLL</RuntimeLibrary>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</TurnOffAssemblyGeneration>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(SolutionDir)\build.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

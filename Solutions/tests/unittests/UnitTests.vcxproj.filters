@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\ContextFieldsProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\EventPropertiesTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BackoffTests_ExponentialWithJitter.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpDeflateCompressionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpRequestEncoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpResponseDecoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpServerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\LoggerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\MetaStatsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests_SQLite.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests_SQLiteWithMock.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\PackagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\RouteTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\TransmissionPolicyManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Common.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Mocks.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\HttpServer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIHttpClient.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockILogManagerInternal.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIOfflineStorage.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIOfflineStorageObserver.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIRuntimeConfig.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISemanticContext.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISqlite3Proxy.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\SocketTools.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include=" ">
+      <UniqueIdentifier>{785D8461-1CA4-30CA-9A64-692B8A3A06A7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{F910581B-17A7-3DD0-AEFD-1B8C0A922D49}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

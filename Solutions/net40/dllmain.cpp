@@ -1,0 +1,49 @@
+#include "targetver.h"
+
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+
+// Windows Header Files:
+#include <windows.h>
+#include <Objbase.h>
+
+//#include "api\LogManager.hpp"
+
+//using namespace Microsoft::Applications::Telemetry;
+
+/// <summary>
+/// Prevent unloading DLL until we finalized FlushAndTeardown
+/// </summary>
+/// <returns></returns>
+HRESULT __stdcall DllCanUnloadNow(void)
+{
+ //   LogManager::FlushAndTeardown();
+    return S_OK;
+}
+
+/// <summary>
+/// Lock ARIA DLL in memory until process shutdown
+/// </summary>
+void LockInMemory()
+{
+#ifndef _WINRT_DLL
+    HMODULE ariaModule;
+    ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"ClientTelemetry.dll", &ariaModule);
+#endif
+}
+
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+					 )
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+        LockInMemory();
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
