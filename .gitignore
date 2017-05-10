@@ -1,0 +1,24 @@
+bondlite/external/bond/
+bondlite/external/rapidjson/
+bondlite/generated/bond/
+bondlite/generated/bond-aria/
+
+Solutions/
+dev_buildtools/
+ivy.dependency.report/
+skype-ant/
+staging.d/
+sysroot/
+skype-ant.zip
+zlib/
+uap-cpp/
+Win32/
+Debug/
+
+lib/include/aria/Version.hpp
+lib/jni/gen/
+
+# Eclipse
+.cproject
+.project
+.settings
