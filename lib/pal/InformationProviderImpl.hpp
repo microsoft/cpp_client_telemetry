@@ -1,0 +1,31 @@
+#pragma once
+#include "..\include\aria\\Version.hpp"
+#include "..\include\aria\IInformationProvider.hpp"
+#include "..\include\aria\IPropertyChangedCallback.hpp"
+
+#include <vector>
+#include <mutex>
+
+namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace PAL {
+
+    class InformatonProviderImpl : public IInformationProvider
+    {
+    public:
+        InformatonProviderImpl();
+        ~InformatonProviderImpl();
+
+        // IInformationProvider API
+        int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback);
+        void UnRegisterInformationChangedCallback(int callbackToken);
+
+        // Helper
+        void OnChanged(std::string const& propertyName, std::string const& propertyValue);
+
+    private:
+        std::mutex m_lock;
+        std::vector<IPropertyChangedCallback*> m_callbacks;
+    };
+
+} // PlatformAbstraction
+}}}

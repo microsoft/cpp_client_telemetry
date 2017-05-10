@@ -1,0 +1,162 @@
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Statistics.hpp"
+#include "utils/Common.hpp"
+
+namespace ARIASDK_NS_BEGIN {
+
+
+Statistics::Statistics(IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext)
+  : m_metaStats(runtimeConfig, globalContext),
+    m_runtimeConfig(runtimeConfig),
+    m_isStarted(false)
+{
+}
+
+Statistics::~Statistics()
+{
+}
+
+void Statistics::scheduleSend()
+{
+    if (!m_isStarted) {
+        return;
+    }
+
+    unsigned intervalMs = m_runtimeConfig.GetMetaStatsSendIntervalSec() * 1000;
+    if (!m_isScheduled && intervalMs != 0) {
+        m_isScheduled = true;
+        m_scheduledSend = PAL::scheduleOnWorkerThread(intervalMs, self(), &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
+        ARIASDK_LOG_DETAIL("Ongoing stats event generation scheduled in %u msec", intervalMs);
+    }
+}
+
+void Statistics::send(ActRollUpKind rollupKind)
+{
+    m_isScheduled = false;
+
+    std::vector< ::AriaProtocol::Record> records = m_metaStats.generateStatsEvent(rollupKind);
+
+    std::string tenantToken = m_runtimeConfig.GetMetaStatsTenantToken();
+
+    for (auto& record : records) {
+        IncomingEventContextPtr event = IncomingEventContext::create(record.Id, tenantToken, EventPriority_High, &record);
+        eventGenerated(event);
+    }
+}
+
+bool Statistics::handleOnStart()
+{
+    send(ACT_STATS_ROLLUP_KIND_START);
+
+    m_isStarted = true;
+    return true;
+}
+
+bool Statistics::handleOnStop()
+{
+    m_isStarted = false;
+
+    if (m_isScheduled) {
+        m_scheduledSend.cancel();
+        m_isScheduled = false;
+    }
+
+    send(ACT_STATS_ROLLUP_KIND_STOP);
+    return true;
+}
+
+bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx)
+{
+    bool metastats = (ctx->record.tenantToken == m_runtimeConfig.GetMetaStatsTenantToken());
+    m_metaStats.updateOnEventIncoming(static_cast<unsigned>(ctx->record.blob.size()), ctx->record.priority, metastats);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnIncomingEventFailed(IncomingEventContextPtr const& ctx)
+{
+	UNREFERENCED_PARAMETER(ctx);
+    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, 1);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnUploadStarted(EventsUploadContextPtr const& ctx)
+{
+    bool metastatsOnly = (ctx->packageIds.count(m_runtimeConfig.GetMetaStatsTenantToken()) == ctx->packageIds.size());
+    m_metaStats.updateOnPostData(static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()), metastatsOnly);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnPackagingFailed(EventsUploadContextPtr const& ctx)
+{
+	UNREFERENCED_PARAMETER(ctx);
+    return true;
+}
+
+bool Statistics::handleOnUploadSuccessful(EventsUploadContextPtr const& ctx)
+{
+    int64_t now = PAL::getUtcSystemTimeMs();
+    std::vector<unsigned> latencyToSendMs;
+    latencyToSendMs.reserve(ctx->recordTimestamps.size());
+    for (int64_t ts : ctx->recordTimestamps) {
+        latencyToSendMs.push_back(static_cast<unsigned>(std::max<int64_t>(0, std::min<int64_t>(0xFFFFFFFFu, now - ts))));
+    }
+
+    bool metastatsOnly = (ctx->packageIds.count(m_runtimeConfig.GetMetaStatsTenantToken()) == ctx->packageIds.size());
+    m_metaStats.updateOnPackageSentSucceeded(ctx->priority, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnUploadRejected(EventsUploadContextPtr const& ctx)
+{
+    unsigned status = ctx->httpResponse->GetStatusCode();
+    m_metaStats.updateOnPackageFailed(status);
+
+    auto reason = (status >= 400 && status < 500) ? DROPPED_REASON_SERVER_DECLINED_4XX
+        : (status >= 500 && status < 600) ? DROPPED_REASON_SERVER_DECLINED_5XX
+        : DROPPED_REASON_SERVER_DECLINED_OTHER;
+    m_metaStats.updateOnRecordsDropped(reason, static_cast<unsigned>(ctx->recordIds.size()));
+
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnUploadFailed(EventsUploadContextPtr const& ctx)
+{
+    m_metaStats.updateOnPackageRetry(ctx->httpResponse->GetStatusCode(), ctx->maxRetryCountSeen);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnStorageOpened(StorageNotificationContext const* ctx)
+{
+    m_metaStats.updateOnStorageOpened(ctx->str);
+    return true;
+}
+
+bool Statistics::handleOnStorageFailed(StorageNotificationContext const* ctx)
+{
+    m_metaStats.updateOnStorageFailed(ctx->str);
+    return true;
+}
+
+bool Statistics::handleOnStorageTrimmed(StorageNotificationContext const* ctx)
+{
+    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW, ctx->count);
+    scheduleSend();
+    return true;
+}
+
+bool Statistics::handleOnStorageRecordsDropped(StorageNotificationContext const* ctx)
+{
+    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, ctx->count);
+    scheduleSend();
+    return true;
+}
+
+
+} ARIASDK_NS_END

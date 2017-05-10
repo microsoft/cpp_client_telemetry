@@ -1,0 +1,41 @@
+<project name="build-jars">
+  <path id="compile_classpath">
+    <fileset dir="${android_sdk_path}">
+      <include name="android.jar" />
+    </fileset>
+  </path>
+
+  <target name="compile-class">
+    <javac destdir="${build_dir}" debug="${debug_build}" source="1.6" target="1.6" includeAntRuntime="false">
+      <src path="${java_src_dir}" />
+      <classpath refid="compile_classpath" />
+    </javac>
+
+    <mkdir dir="${java_src_dir}/gen" />
+    <javah destdir="${java_src_dir}/gen" force="yes">
+      <class name="com.microsoft.applications.telemetry.AriaProxy" />
+      <classpath>
+        <pathelement path="${build_dir}" />
+        <pathelement path="${lib_path}/${android_lib}" />
+      </classpath>
+    </javah>
+  </target>
+
+  <target name="build-jni-jar-debug">
+    <antcall target="compile-class">
+      <param name="debug_build" value="true" />
+    </antcall>
+    <jar destfile="${build_dir}/telemetryclient-debug.jar">
+      <fileset dir="${build_dir}" includes="com/" />
+    </jar>
+  </target>
+
+  <target name="build-jni-jar-release">
+    <antcall target="compile-class">
+      <param name="debug_build" value="false" />
+    </antcall>
+    <jar destfile="${build_dir}/telemetryclient-release.jar">
+      <fileset dir="${build_dir}" includes="com/" />
+    </jar>
+  </target>
+</project>

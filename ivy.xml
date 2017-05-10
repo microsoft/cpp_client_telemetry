@@ -1,0 +1,47 @@
+<!DOCTYPE project [
+  <!ENTITY dependency-android-sdk     SYSTEM "dev_buildtools/masterIvy/ivy-dependency-android-sdk.xml">
+  <!ENTITY dependency-buildtools      SYSTEM "dev_buildtools/masterIvy/ivy-dependency-buildtools.xml">
+  <!ENTITY dependency-ecsclient       SYSTEM "dev_buildtools/masterIvy/ivy-dependency-ecsclient.xml">
+  <!ENTITY dependency-httpstack       SYSTEM "dev_buildtools/masterIvy/ivy-dependency-httpstack.xml">
+  <!ENTITY dependency-json            SYSTEM "dev_buildtools/masterIvy/ivy-dependency-json.xml">
+  <!ENTITY dependency-logmap          SYSTEM "dev_buildtools/masterIvy/ivy-dependency-logmap.xml">
+  <!ENTITY dependency-resourcemanager SYSTEM "dev_buildtools/masterIvy/ivy-dependency-resourcemanager-csc.xml">
+  <!ENTITY dependency-roottools       SYSTEM "dev_buildtools/masterIvy/ivy-dependency-roottools-csc.xml">
+  <!ENTITY dependency-sqlite          SYSTEM "dev_buildtools/masterIvy/ivy-dependency-sqlite.xml">
+  <!ENTITY dependency-zlib            SYSTEM "dev_buildtools/masterIvy/ivy-dependency-zlib.xml">
+]>
+<ivy-module version="2.2" xmlns:e="http://ant.apache.org/ivy/extra">
+  <info organisation="${qb.org}" e:group="${qb.group}" module="${qb.module}" e:variant="${qb.publishBranch}" e:target="${build.config}-${qb.flavor}" />
+
+  <configurations>
+    <include file="dev_buildtools/masterIvy/configurations.xml" />
+
+    <conf name="linux-x64_gcc-tests-build"                       extends="linux-x64_gcc-build" />
+    <conf name="linux-x64_gcc-tests-debug"                       extends="linux-x64_gcc-debug" />
+    <conf name="win-x86_vs2015-crtdynamic-appverifier-build"     extends="win-x86_vs2015-crtdynamic-build,win-appverifier-build" />
+    <conf name="win-x86_vs2015-crtdynamic-appverifier-debug"     extends="win-x86_vs2015-crtdynamic-debug" />
+    <conf name="win-x86_vs2015-crtdynamic-oacr-build"            extends="win-x86_vs2015-crtdynamic-build,win-oacr-build" />
+    <conf name="win-x86_vs2015-crtdynamic-oacr-debug"            extends="win-x86_vs2015-crtdynamic-debug" />
+    <conf name="win-x86_vs2015-crtdynamic-tests-build"           extends="win-x86_vs2015-crtdynamic-build,win-bullseye-build" />
+    <conf name="win-x86_vs2015-crtdynamic-tests-debug"           extends="win-x86_vs2015-crtdynamic-debug" />
+    <conf name="win-x86_vs2015-crtdynamic-win32pal-tests-build"  extends="win-x86_vs2015-crtdynamic-build,win-bullseye-build" />
+    <conf name="win-x86_vs2015-crtdynamic-win32pal-tests-debug"  extends="win-x86_vs2015-crtdynamic-debug" />
+  </configurations>
+
+  <publications>
+    <artifact name="${qb.module}" ext="tgz" />
+  </publications>
+
+  <dependencies>
+    &dependency-android-sdk;
+    &dependency-buildtools;
+    &dependency-ecsclient;
+    &dependency-httpstack;
+    &dependency-json;
+    &dependency-logmap;
+    &dependency-resourcemanager;
+    &dependency-roottools;
+    &dependency-sqlite;
+    &dependency-zlib;
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,12 @@
+bondlite/external/bond/
+bondlite/external/rapidjson/
+bondlite/generated/
+
+lib/bond/generated/
+
+build.d/
+dev_buildtools/
+ivy.dependency.report/
+skype-ant/
+staging.d/
+sysroot/

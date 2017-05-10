@@ -1,0 +1,40 @@
+// Copyright (c) Microsoft. All rights reserved.
+// This file has been automatically generated, manual changes will be lost.
+
+#pragma once
+#include <stdint.h>
+
+
+//#define Telemetry Telemetry_v@BUILD_VERSION_MAJOR@
+
+#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Telemetry
+#define ARIASDK_NS_END   }}
+#define ARIASDK_NS       Microsoft::Applications::Telemetry
+
+
+namespace Microsoft { namespace Applications { namespace Telemetry {
+
+
+uint64_t const Version =
+    (@BUILD_VERSION_MAJOR@ull << 48) |
+    (@BUILD_VERSION_MINOR@ull << 32) |
+    (@BUILD_VERSION_PATCH@ull << 16) |
+     @BUILD_NUMBER@ull;
+
+char const VersionString[] =
+    "@BUILD_VERSION_MAJOR@.@BUILD_VERSION_MINOR@.@BUILD_VERSION_PATCH@.@BUILD_NUMBER@";
+
+
+namespace {
+#ifdef __GNUC__
+    #define ARIASDK_UNUSED __attribute__((unused))
+#else
+    #define ARIASDK_UNUSED
+#endif
+}
+
+
+#define ARIASDK_PAL_@PAL_IMPLEMENTATION_UPPER@ 1
+
+
+}}} // namespace Microsoft::Applications::Telemetry

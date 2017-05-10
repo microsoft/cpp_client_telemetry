@@ -1,0 +1,197 @@
+	// *****************************************************************************
+//
+// This class contains the only accepted format for the Skype Data RV
+// Collector servers. Client libraries should use *only* this schema to send
+// logs to the Skype Data RV.
+//
+// Some important rules updating this file:
+//  - All member fields that are of type struct should be
+//    nullable<T>.
+//  - All member fieds that are strings should be set to default value 'nothing'.
+//  - None of the container types should be nullable<T>.
+//  - No enum type should be nullable<T>.
+//  - strings or structs that are used as the template types for containers
+//    should not be nullable<T>
+//  - We deliberately void id=0 to keep ids in sync with the proto version of
+//    this schema.
+//
+// *****************************************************************************
+
+namespace Skype.Data.Models.Server.Bond
+
+struct BondExceptionInfo
+{
+  1: optional string Type = nothing;
+  2: optional string Message = nothing;
+  3: optional string FullInfo = nothing;
+}
+
+struct BondPstn
+{
+  1: optional string PstnNumber = nothing;
+  2: optional string HashedPstn = nothing;
+};
+
+struct BondEndpoint
+{
+  1: optional string EndpointValue = nothing;
+  2: optional string EndpointType = nothing;
+  3: optional string HashedEndpoint = nothing;
+};
+
+struct BondUser
+{
+  1: optional string Username = nothing;
+  2: optional string Prefix = nothing;
+  3: optional string UiVersion = nothing;
+  4: optional string Endpoint = nothing;
+  5: optional string EndpointType = nothing;
+  6: optional nullable<BondPstn> Pstn;
+  7: optional nullable<BondEndpoint> EndpointComposite;
+  8: optional map<string, string> UserExtension;
+  9: optional string Email = nothing;
+};
+
+struct BondConference 
+{
+  1: optional string ConferenceUri = nothing;
+  2: optional string DomainName = nothing;
+  3: optional string UriScheme = nothing;
+};
+
+// An enum with all the supported types for a record.
+enum BondRecordType
+{
+  NotSet = 0,
+  Event = 1,
+  PerformanceCounter = 2,
+  Anomaly = 3,
+  Prediction = 4,
+  TraceLog = 5,
+  EventSourceLog = 6,
+  HttpLog = 7,
+  PerformanceCounterAzure = 8,
+  PerformanceCounterGfs = 9
+};
+
+// The various PII Scrubbers that we support. 
+enum BondPIIScrubber
+{
+  NotSet = 0,
+  O365 = 1,
+  SkypeBI = 2,
+  SkypeData = 3
+}
+
+enum BondPIIKind
+{
+  NotSet = 0,
+  DistinguishedName = 1,
+  GenericData = 2,
+  IPV4Address = 3,
+  IPv6Address = 4,
+  MailSubject = 5,
+  PhoneNumber = 6,
+  QueryString = 7,
+  SipAddress = 8,
+  SmtpAddress = 9,
+  Identity = 10,
+  Uri = 11,
+  Fqdn = 12,
+  IPV4AddressLegacy = 13
+}
+
+struct BondO365ScrubberOptions
+{
+  // Specifies the Obfuscation Type. For e.g. look at the options in Microsoft.Exchange.Management.DataMining.ObfuscationProvider
+  1: optional int32 ObfuscationType = 0;
+	
+  // ReplacementStrategy is one of the strategies supported by the specified scrubber.
+  // For e.g. the O365 scrubber supports the ones in Microsoft.Exchange.Management.DataMining.PIIReplacementStrategy
+  // This is a flags enum in O365 and so has to be int here.
+  2: optional int32 PIIReplacementStrategy = 0;	
+}
+
+// Contains information on how to scrub and what the content is 
+struct BondPII
+{
+  // This specifies whether we should use a O365Scrubber or SkypeBIScrubber or DataRVScrubber and any others that we might support.
+  1: optional BondPIIScrubber ScrubType = NotSet;
+
+  // Specifies what type of PII is being sent. 
+  2: optional BondPIIKind Kind = NotSet;
+
+  // This content will be PII when its sent to the collector. 
+  3: optional string RawContent = nothing;
+
+  // In the collector we will apply the scrubber as specified by the user
+  // on RawContent, blank out RawContent and populate ScrubbedContent
+  4: optional string ScrubbedContent = nothing;
+
+  // Not including the SkypeBIScrubbing options or the SkypeDataScrubberOptions for now. 
+  // The design allows for it to be added later if required.
+  5: optional nullable<BondO365ScrubberOptions> O365Ops;
+}
+
+// One instance of a log Record.
+struct BondRecord
+{
+  1: optional string Id = nothing;
+  2: optional vector<string> Context;
+  3: optional int64 Timestamp = 0;
+  4: optional map<string, string> ConfigurationIds;
+  5: optional string Type = nothing;
+  6: optional string EventType = nothing;
+  7: optional int32 ResultCode = 0;
+  8: optional string ResultDetail = nothing;
+  9: optional string ResultValue = nothing;
+  10: optional string InitiatingUser = nothing;
+  11: optional string InitiatingUserEndpoint = nothing;
+  12: optional vector<string> TargetUsers;
+  13: optional map<string, string> Extension;
+  14: optional int64 SampleTimestamp = 0;
+  15: optional string SampleRate = nothing;
+  16: optional map<string, vector<int64>> SamplingData;
+  17: optional string InitiatingUiVersion = nothing;
+  18: optional map<string, string> PstnNumbers;
+  19: optional map<string, string> ContextIds;
+  20: optional string InitiatingUserEndpointType = nothing;
+  21: optional nullable<BondUser> InitiatingUserComposite;
+  22: optional vector<BondUser> TargetUsersComposite;
+  23: optional map<string, BondPstn> PstnNumbersComposite;
+  24: optional BondRecordType RecordType = NotSet;
+  25: optional map<string, int64> ExtensionInt64;
+  26: optional map<string, double> ExtensionDouble;
+  27: optional bool HasBeenScrubbed;
+  28: optional nullable<BondConference> ConferenceComposite;
+  29: optional nullable<BondExceptionInfo> ExceptionInfo;
+  30: optional map<string, BondPII> PIIExtensions;
+  31: optional map<string, bool> ExtensionBoolean;
+  32: optional map<string, int64> ExtensionDateTime;
+};
+
+// Container for a group of Records from the same Source.
+struct BondDataPackage
+{
+  1: optional string Type = nothing;
+  2: optional string Source = nothing;
+  3: optional string Version = nothing;
+  4: optional map<string, string> Ids;
+  5: optional string DataPackageId = nothing;
+  6: optional int64 Timestamp = 0;
+  // This name deliberately does not match the one in protobuf (Schema),
+  // as this would cause a clash in Bond generated code...
+  7: optional int32 SchemaVersion = 0;
+  8: optional vector<BondRecord> Records;
+  9: optional vector<BondRecord> Receipts;
+  // 10: optional bool HasBeenScrubbed;  DON'T REUSE ID AS SOME DATA IS ALREADY AVAILABLE IN INTEGRATION.
+  11: optional string TenantIdentifier = nothing;
+};
+
+// The top-level struct that is used between clients and the Collectors.
+struct BondClientToCollectorRequest
+{
+  1: optional vector<BondDataPackage> DataPackages;
+  2: optional int32 RequestRetryCount;
+  3: optional map<string, vector<BondDataPackage>> TokenToDataPackagesMap;
+};

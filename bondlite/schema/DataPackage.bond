@@ -1,0 +1,212 @@
+// Copy from $Skype_Data_RV\Clients\Main\Telemetry.Client\Models\Clients.bond
+// Rev: 21782   edit    Steve Wilson (SKYPE)    11/19/2014 2:11:00 PM
+// Base on above copy there are some changes. All the "nothing" and "nullable"
+// are removed so that the consumers do not need to introduce BOND dependency.
+
+// *****************************************************************************
+//
+// This class contains the only accepted format for the Skype Data RV
+// Collector servers. Client libraries should use *only* this schema to send
+// logs to the Skype Data RV.
+//
+// Some important rules updating this file:
+//  - All member fields that are of type struct should be
+//    nullable<T>.
+//  - All member fieds that are strings should be set to default value 'nothing'.
+//  - None of the container types should be nullable<T>.
+//  - No enum type should be nullable<T>.
+//  - strings or structs that are used as the template types for containers
+//    should not be nullable<T>
+//  - We deliberately void id=0 to keep ids in sync with the proto version of
+//    this schema.
+//
+// *****************************************************************************
+
+namespace clienttelemetry.data.v3
+
+struct ExceptionInfo
+{
+  1: optional string Type;
+  2: optional string Message;
+  3: optional string FullInfo;
+}
+
+struct Pstn
+{
+  1: optional string PstnNumber;
+  2: optional string HashedPstn;
+};
+
+struct Endpoint
+{
+  1: optional string EndpointValue;
+  2: optional string EndpointType;
+  3: optional string HashedEndpoint;
+};
+
+struct User
+{
+  1: optional string Username;
+  2: optional string Prefix;
+  3: optional string UiVersion;
+  // Deprecated
+  4: optional string Endpoint; 
+  // Deprecated
+  5: optional string EndpointType; 
+  6: optional Pstn Pstn;
+  7: optional Endpoint EndpointComposite;
+  8: optional map<string, string> UserExtension;
+  9: optional string Email;
+};
+
+struct UserV1
+{
+  1: optional string Username;
+  2: optional string Prefix;
+  3: optional string UiVersion;
+  // Deprecated
+  4: optional string Endpoint; 
+  // Deprecated
+  5: optional string EndpointType; 
+  6: optional Pstn Pstn;
+  7: optional Endpoint EndpointComposite;
+  8: optional map<string, string> UserExtension;
+};
+
+struct Conference 
+{
+  1: optional string ConferenceUri;
+  2: optional string DomainName;
+  3: optional string UriScheme;
+};
+
+// An enum with all the supported types for a record.
+enum RecordType
+{
+  NotSet = 0,
+  Event = 1,
+  // Deprecated, please use PerformanceCounterAzure and PerformanceCounterGfs instead
+  PerformanceCounter = 2,
+  Anomaly = 3,
+  Prediction = 4,
+  TraceLog = 5,
+  EventSourceLog = 6,
+  HttpLog = 7,
+  PerformanceCounterAzure = 8,
+  PerformanceCounterGfs = 9,
+};
+
+// The various PII Scrubbers that we support. 
+enum PIIScrubber
+{
+	NotSet = 0,
+	O365 = 1,
+	SkypeBI = 2,
+	SkypeData = 3
+}
+
+enum PIIKind
+{
+	NotSet = 0,
+    DistinguishedName = 1,
+    GenericData = 2,
+    IPV4Address = 3,
+    IPv6Address = 4,
+    MailSubject = 5,
+    PhoneNumber = 6,
+    QueryString = 7,
+    SipAddress = 8,
+    SmtpAddress = 9,
+    Identity = 10,
+    Uri = 11,
+    Fqdn = 12,
+
+	// Supports scrubbing of the last octet in a IPV4 address. E.g. 10.121.227.147 becomes 10.121.227.*
+	IPV4AddressLegacy = 13
+}
+
+// Contains information on how to scrub and what the content is 
+struct PII
+{
+	// This specifies whether we should use a O365Scrubber or SkypeBIScrubber or DataRVScrubber and any others that we might support.
+	1: optional PIIScrubber ScrubType = NotSet;
+
+	// Specifies what type of PII is being sent. 
+	2: optional PIIKind Kind = NotSet;
+
+	// This content will be PII when its sent to the collector. 
+	3: optional string RawContent;
+
+	// Ordinals 4 and 5 are populated on the service side. Please check BondDataPackage.bond in Services
+}
+
+// One instance of a log Record.
+struct Record
+{
+  1: optional string Id;
+  // Deprecated
+  2: optional vector<string> Context;
+  3: optional int64 Timestamp = 0;
+  4: optional map<string, string> ConfigurationIds;
+  5: optional string Type;
+  6: optional string EventType;
+  7: optional int32 ResultCode = 0;
+  8: optional string ResultDetail;
+  9: optional string ResultValue;
+  // Deprecated 
+  10: optional string InitiatingUser;
+  // Deprecated
+  11: optional string InitiatingUserEndpoint;
+  // Deprecated
+  12: optional vector<string> TargetUsers;
+  13: optional map<string, string> Extension;
+  14: optional int64 SampleTimestamp = 0;
+  15: optional string SampleRate;
+  16: optional map<string, vector<int64>> SamplingData;
+  // Deprecated
+  17: optional string InitiatingUiVersion;
+  // Deprecated
+  18: optional map<string, string> PstnNumbers;
+  19: optional map<string, string> ContextIds;
+  // Deprecated
+  20: optional string InitiatingUserEndpointType;
+  // Use InitiatingUserComposite instead
+  21: optional UserV1 DeprecatedInitiatingUserComposite;
+  // Use TargetUsersComposite instead
+  22: optional vector<UserV1> DeprecatedTargetUsersComposite;
+  23: optional map<string, Pstn> PstnNumbersComposite;
+  24: optional RecordType RecordType = NotSet;
+  25: optional map<string, int64> ExtensionInt64;
+  // Placeholder, don't use it for now.
+  26: optional map<string, double> _reserved;
+  // 27 is reserved on server side
+  28: optional Conference ConferenceComposite;
+  29: optional ExceptionInfo ExceptionInfo;
+  30: optional map<string, PII> PIIExtensions;
+  
+  31: optional User InitiatingUserComposite;
+  32: optional vector<User> TargetUsersComposite;
+};
+
+// Container for a group of Records from the same Source.
+struct DataPackage
+{
+  1: optional string Type;
+  2: optional string Source;
+  3: optional string Version;
+  4: optional map<string, string> Ids;
+  5: optional string DataPackageId;
+  6: optional int64 Timestamp = 0;
+  // This name deliberately does not match the one in protobuf (Schema),
+  // as this would cause a clash in Bond generated code...
+  7: optional int32 SchemaVersion = 0;
+  8: optional vector<Record> Records;
+  9: optional vector<Record> Receipts;
+};
+
+// The top-level struct that is used between clients and the Collectors.
+struct ClientToCollectorRequest
+{
+  1: optional vector<DataPackage> DataPackages;
+  2: optional int32 RequestRetryCount;
+};
