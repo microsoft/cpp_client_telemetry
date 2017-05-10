@@ -9,4 +9,4 @@ dev_buildtools/
 ivy.dependency.report/
 skype-ant/
 staging.d/
-sysroot/
+Solutions/out/
