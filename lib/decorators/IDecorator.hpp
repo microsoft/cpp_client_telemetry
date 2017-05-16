@@ -8,7 +8,7 @@ namespace ARIASDK_NS_BEGIN {
 
 
 // Not an interface per se, rather a collection of static utility methods.
-class ARIASDK_LIBABI IDecorator {
+class ARIASDK_LIBABI DecoratorBase {
   public:
     // bool decorate(::AriaProtocol::Record& record, ...)
     // {
@@ -41,11 +41,25 @@ class ARIASDK_LIBABI IDecorator {
         }
     }
 
-    template<typename T>
-    static void setOtherValue(std::map<std::string, std::string>& dest, std::string const& key, T const& value)
+    static void setBoolValue(std::map<std::string, bool>& dest, std::string const& key, bool const& value)
     {
-        dest[key] = toString(value);
+        dest[key] = value;
     }
+
+	static void setDateTimeValue(std::map<std::string, int64_t>& dest, std::string const& key, int64_t const& value)
+	{
+		dest[key] = value;
+	}
+
+	static void setInt64Value(std::map<std::string, int64_t>& dest, std::string const& key, int64_t const& value)
+	{
+		dest[key] = value;
+	}
+
+	static void setDoubleValue(std::map<std::string, double>& dest, std::string const& key, double const& value)
+	{
+		dest[key] = value;
+	}
 
     struct EnumValueName {
         char const* name;

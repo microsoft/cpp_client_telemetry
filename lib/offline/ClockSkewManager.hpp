@@ -29,12 +29,12 @@ namespace ARIASDK_NS_BEGIN {
 			{
 				SetDelta("");
 			}
+			m_resumeTransmissionAfterClockSkew = true;
 		}
 
 		void SetDelta(std::string delta)
 		{
 			{
-				std::lock_guard<std::mutex> guard(m_lock);
 				m_deltaReceived = true;
 				m_delta = delta;
 			}
@@ -43,7 +43,6 @@ namespace ARIASDK_NS_BEGIN {
 		bool isClockSkewOn()
 		{
 			{
-				std::lock_guard<std::mutex> guard(m_lock);
 				if (!m_pingSent || (m_deltaReceived && !m_delta.empty()))
 				{
 					return true;
@@ -55,7 +54,6 @@ namespace ARIASDK_NS_BEGIN {
 		bool isWaitingForClockSkew()
 		{
 			{
-				std::lock_guard<std::mutex> guard(m_lock);
 				if (!m_deltaReceived && m_pingSent)
 				{
 					int64_t timeSincePing = (PAL::getUtcSystemTimeMs() / 1000) - m_pingSendTime;
@@ -73,7 +71,6 @@ namespace ARIASDK_NS_BEGIN {
 		std::string GetDelta()
 		{
 			{
-				std::lock_guard<std::mutex> guard(m_lock);
 				if (m_pingSent == false)
 				{
 					m_pingSent = true;
@@ -96,7 +93,6 @@ namespace ARIASDK_NS_BEGIN {
 		}
 
     private:
-        std::mutex				m_lock;
         std::string				m_delta;
         bool					m_pingSent;
         bool					m_deltaReceived;

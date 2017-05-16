@@ -14,8 +14,9 @@ namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
 
-			std::mutex*  our_lockP = new std::mutex();
-			ILogManager* our_pLogManagerSingletonInstanceP = NULL;
+			std::mutex*          our_lockP = new std::mutex();
+			ILogManager*         our_pLogManagerSingletonInstanceP = NULL;
+			LogSessionData*      our_LogSessionDataP = NULL;
 
             static volatile std::atomic_bool isInited = ATOMIC_VAR_INIT(false);
 
@@ -32,6 +33,11 @@ namespace Microsoft {
 				if (our_pLogManagerSingletonInstanceP == NULL)
 				{
 					our_pLogManagerSingletonInstanceP = ILogManager::Create(configuration);
+				}
+
+				if (our_LogSessionDataP == NULL)
+				{
+					our_LogSessionDataP = new LogSessionData(configuration.cacheFilePath);
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
@@ -272,6 +278,10 @@ namespace Microsoft {
                 return debugEventSource.DispatchEvent(evt);
             }
 
+			LogSessionData* LogManager::GetLogSessionData() 
+			{
+				return our_LogSessionDataP;;
+			}
         }
     }
 }

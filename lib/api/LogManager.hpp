@@ -1,5 +1,6 @@
 #pragma once
 #include "Logger.hpp"
+#include "LogSessionData.hpp"
 #include "aria/LogConfiguration.hpp"
 #include "tpm/TransmitProfiles.hpp"
 #include "aria/DebugEvents.hpp"
@@ -257,6 +258,11 @@ namespace Microsoft {
                 /// Dispatch debug event
                 /// </summary>
                 static bool ARIASDK_LIBABI_CDECL DispatchEvent(DebugEvent &evt);
+
+				/// <summary>
+				/// Get Session data
+				/// </summary>
+				static LogSessionData* GetLogSessionData();
 
             protected:
 

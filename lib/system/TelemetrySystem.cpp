@@ -103,7 +103,7 @@ void TelemetrySystem::stop()
 
 void TelemetrySystem::UploadNow()
 {
-	tpm.scheduleUpload(0);
+    tpm.scheduleUpload(0);
 }
 
 void TelemetrySystem::pauseTransmission()

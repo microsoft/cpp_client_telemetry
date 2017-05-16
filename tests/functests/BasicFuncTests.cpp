@@ -141,8 +141,6 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_THAT(actual.Type, Eq("Custom"));
         EXPECT_THAT(actual.EventType, expected.GetName());
         EXPECT_THAT(actual.RecordType, AriaProtocol::RecordType::Event);
-        EXPECT_THAT(actual.Extension, Contains(Pair("eventpriority",
-            ARIASDK_NS::toString((expected.GetPriority() == EventPriority_Unspecified) ? EventPriority_Normal : expected.GetPriority()))));
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
 		{
 			if (prop.second.piiKind == PiiKind_None)

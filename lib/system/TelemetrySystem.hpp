@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
+#include "ITelemetrySystem.hpp"
 #include <aria/Version.hpp>
 #include "bond/BondSerializer.hpp"
 #include "compression/HttpDeflateCompression.hpp"
@@ -19,7 +20,9 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem> {
+class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
+                        public ITelemetrySystem
+{
   public:
     TelemetrySystem(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
         IHttpClient& httpClient, ContextFieldsProvider const& globalContext, IBandwidthController* bandwidthController);
@@ -30,7 +33,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem> {
     void stop();
     void pauseTransmission();
     void resumeTransmission();
-	void UploadNow();
+    void UploadNow();
 
   protected:
     void startAsync();
@@ -55,7 +58,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem> {
     Packager                  packager;
     Statistics                stats;
     TransmissionPolicyManager tpm;
-	ClockSkewDelta            clockSkewDelta;
+    ClockSkewDelta            clockSkewDelta;
 #if ARIASDK_UTC_ENABLED
     UtcForwarder              utcForwarder;
 #endif

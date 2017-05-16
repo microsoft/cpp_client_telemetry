@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage_SQLite.hpp"
+#include "api\LogManager.hpp"
 #include "SQLiteWrapper.hpp"
 #include "utils/Common.hpp"
 #include <algorithm>
@@ -134,6 +135,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
 	
 	if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
 	{
+		//LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
 		return false;
 	}
     SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
@@ -154,9 +156,10 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         }
         // The record ID needs to be saved before std::move() below.
 		if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
-		{
+		{			
 			consumedIds.push_back(record.id);
 		}
+		
         if (!consumer(std::move(record))) {
             consumedIds.pop_back();
             selectStmt.reset();
@@ -193,10 +196,13 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         return false;
     }
 
-	if (!consumedIds.empty())
+	if (m_runtimeConfig.IsClockSkewEnabled() &&
+		!m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
+		!consumedIds.empty())
 	{
 		m_clockSkewManager.GetDelta();
 	}
+
     return true;
 }
 

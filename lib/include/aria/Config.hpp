@@ -253,17 +253,8 @@ const unsigned int STORAGE_NEAR_FULL_PCT = 75;
  */
 const unsigned int UPLOAD_NOW_LIMITER = 30; // 30 seconds
 
-
-const char* const EVENTRECORD_TYPE_AGGREGATEDMETRIC = "AggregatedMetric";
-const char* const EVENTRECORD_TYPE_APPLIFECYCLE     = "AppLifecycle";
-const char* const EVENTRECORD_TYPE_FAILURE          = "Failure";
-const char* const EVENTRECORD_TYPE_PAGEVIEW         = "PageView";
-const char* const EVENTRECORD_TYPE_PAGEACTION       = "PageAction";
-const char* const EVENTRECORD_TYPE_SAMPLEDMETRIC    = "SampledMetric";
 const char* const EVENTRECORD_TYPE_CUSTOM_EVENT     = "custom";
-const char* const EVENTRECORD_TYPE_ARIASDK_LOG_DETAIL            = "ARIASDK_LOG_DETAIL";
-const char* const EVENTRECORD_TYPE_USERSTATE        = "UserInfo_UserState";
-const char* const EVENTRECORD_TYPE_SESSION          = "Session";
+const char* const EVENTRECORD_TYPE_ARIASDK_LOG_DETAIL  = "ARIASDK_LOG_DETAIL";
 
 const char* const COMMONFIELDS_APP_ID               = "AppInfo.Id";
 const char* const COMMONFIELDS_APP_VERSION          = "AppInfo.Version";
@@ -302,30 +293,13 @@ const char* const COMMONFIELDS_PIPELINEINFO_ACCOUNT = "PipelineInfo.AccountId";
 const char* const  CUSTOMFIELD_EVENT_PRIORITY       = "eventpriority";
 
 const char* const LOG_SESSION                       = "LogSession";
-const char* const SESSION_BUCKET_UNDEFINED          = "Undefined";
-const char* const SESSION_BUCKET_UP_TO_3_SEC        = "UpTo3Sec";
-const char* const SESSION_BUCKET_UP_TO_10_SEC       = "UpTo10Sec";
-const char* const SESSION_BUCKET_UP_TO_30_SEC       = "UpTo30Sec";
-const char* const SESSION_BUCKET_UP_TO_60_SEC       = "UpTo60Sec";
-const char* const SESSION_BUCKET_UP_TO_3_MIN        = "UpTo3Min";
-const char* const SESSION_BUCKET_UP_TO_10_MIN       = "UpTo3Min";
-const char* const SESSION_BUCKET_UP_TO_30_MIN       = "UpTo30Min";
-const char* const SESSION_BUCKET_ABOVE_30_MIN       = "Above30Min";
 const char* const SESSION_SDKU_ID                   = "SessionSDKUid";
-
+const char* const SESSION_FIRST_TIME                = "Session.FirstLaunchTime";
 
 const char* const EventInfo_Source                  = "EventInfo.Source";
 const char* const EventInfo_Name                    = "EventInfo.Name";
 const char* const EventInfo_InitId                  = "EventInfo.InitId";
 const char* const EventInfo_Sequence                = "EventInfo.Sequence";
-
-
-const char* const SESSION_STATE                     = "Session.State";
-const char* const SESSION_ID                        = "Session.Id";
-const char* const SESSION_DURATION                  = "Session.Duration";
-const char* const SESSION_DURATION_BUCKET           = "Session.DurationBucket";
-const char* const SESSION_FIRST_TIME                = "Session.FirstLaunchTime";
-const char* const SESSION_SDKUID                    = "DeviceInfo.SDKUid";
 
 bool  const ENABLE_HMAC_SHA256                      = true;
 const char* const HMAC_ENCRYPTION_KEY               = "bdyt7XVQVWYzXCviDbKMDktZZBIbjA7g9pdjXEYtsSUNPQHpBPofMgx9SrFFNZI9";

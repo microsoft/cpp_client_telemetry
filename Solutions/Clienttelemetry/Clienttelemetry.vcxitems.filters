@@ -141,6 +141,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\win32\WindowsEnvironmentInfo.cpp">
       <Filter>pal</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
+      <Filter>offline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -345,6 +348,18 @@
       <Filter>pal</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.hpp">
+      <Filter>offline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp">
+      <Filter>offline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.hpp">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp">
       <Filter>system</Filter>
     </ClInclude>
   </ItemGroup>

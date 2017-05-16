@@ -265,6 +265,7 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\tests\unittests\FIFOOfflineStorageTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\HttpServer.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIHttpClient.hpp" />

@@ -51,11 +51,11 @@ extern "C" void SendTelemetryEvents() {
 	logger->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
 	logger2->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
 
-//	logger->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
-//	logger->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
+	logger->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
+	logger->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
 
-//	logger2->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
-//	logger2->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
+	logger2->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
+	logger2->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
 
 	try {
 		EventProperties properties2("Bad_Event");

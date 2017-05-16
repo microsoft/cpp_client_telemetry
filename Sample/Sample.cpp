@@ -338,7 +338,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 	/* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
 	EventProperties props(name,
 	{
-		{ "_MSC_VER", _MSC_VER },
+		{ "MSC_VER", _MSC_VER },
 
 		{ "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
 		{ "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
@@ -614,6 +614,7 @@ void run(ILogger* logger, int maxStressRuns) {
 			_sleep(sleepTime);
 #endif
 
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
 	}
 }
@@ -656,6 +657,11 @@ int main(int argc, char* argv[])
 
 	ILogger* logger = init();
 	ILogger* logger2 = LogManager::GetLogger(TOKEN2, "tenant2");
+
+	{
+		EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+		logger->LogEvent(props);
+    }
 
 #if 0
 	printf("test_ProfileSwitch\n");

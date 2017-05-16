@@ -100,6 +100,8 @@ class ARIASDK_LIBABI Logger : public ILogger
     RuntimeConfigDecorator   m_runtimeConfigDecorator;
     SemanticContextDecorator m_semanticContextDecorator;
     SemanticApiDecorators    m_semanticApiDecorators;
+	int64_t                  m_sessionStartTime;
+	std::string*             m_sessionIdP;
 };
 
 

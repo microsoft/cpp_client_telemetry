@@ -94,9 +94,9 @@ class LoggerTests : public Test {
         EXPECT_THAT(submittedRecord.Extension, Contains(Pair("EventInfo.Source",     "test-source")));
         EXPECT_THAT(submittedRecord.Extension, Contains(Pair("EventInfo.Time",       PAL::formatUtcTimestampMsAsISO8601(submittedRecord.Timestamp))));
         EXPECT_THAT(submittedRecord.Extension, Contains(Pair("EventInfo.InitId",     MatchesRegex(R"(........-....-....-....-............)"))));
-        EXPECT_THAT(submittedRecord.Extension, Contains(Pair("EventInfo.Sequence",   toString(++sequenceId))));
+        EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("EventInfo.Sequence",   ++sequenceId)));
         EXPECT_THAT(submittedRecord.Extension, Contains(Pair("EventInfo.SdkVersion", PAL::getSdkVersion())));
-        EXPECT_THAT(submittedRecord.Extension, Contains(Pair("eventpriority",        toString(priority))));
+        EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("eventpriority",        priority)));
 
         // Context
         EXPECT_THAT(submittedRecord.Extension, Contains(Pair("contextvalue", "info")));
@@ -115,8 +115,8 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     checkBaseAndContextAndRuntimeConfigProps();
     EXPECT_THAT(submittedRecord.EventType, Eq("AggregatedMetric"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Duration",                "60000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Count",                   "60")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",      60000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",         60)));
 
     expectSubmit();
     AggregatedMetricData amd("speed", 60000, 60);
@@ -140,17 +140,17 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectId",                "car-1")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.InstanceName",            "Ferda")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Duration",                "60000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Count",                   "60")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",       60000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",          60)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Units",                   "km/h")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Aggregates.Sum",          "2400.000000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Aggregates.Maximum",      "45.000000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Aggregates.Minimum",      "35.000000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Aggregates.SumOfSquares", "97000.000000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Buckets.0",               "0")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Buckets.1",               "40")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Buckets.2",               "20")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Buckets.3",               "0")));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Sum", 2400.000000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Maximum",45.000000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Minimum",35.000000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.SumOfSquares", 97000.000000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.0",               0)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.1",               40)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.2",               20)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.3",               0)));
 
     expectSubmit();
     AggregatedMetricData amd2("speed", 60000, 60);
@@ -168,8 +168,8 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectId",                "car-2")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.InstanceName",            "Adref")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Duration",                "60000")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Count",                   "60")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",       60000)));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",          60)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("AggregatedMetric.Units",                   "km/h")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("test",                                     "value")));
 
@@ -487,7 +487,7 @@ TEST_F(LoggerTests, LogPageAction)
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.PageViewId",                      "/index.html")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.RawActionType",                   "Unspecified")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.InputDeviceType",                 "Unspecified")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemLayout.Rank",           "0")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 0)));
 
     expectSubmit();
     PageActionData pad("/eshop/cart.aspx", ActionType_Zoom);
@@ -501,7 +501,7 @@ TEST_F(LoggerTests, LogPageAction)
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.PageViewId",                      "/eshop/cart.aspx")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.RawActionType",                   "TouchZoom")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.InputDeviceType",                 "Touch")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemLayout.Rank",           "0")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 0)));
 
     expectSubmit();
     PageActionData pad2("SendMessage.action", ActionType_Other);
@@ -530,7 +530,7 @@ TEST_F(LoggerTests, LogPageAction)
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemDataSource.Category",   "form")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemDataSource.Collection", "buttons")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemLayout.Container",      "message-entry")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("PageAction.TargetItemLayout.Rank",           "123")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 123)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("test",                                       "value")));
 
     expectNoSubmit();
@@ -586,7 +586,7 @@ TEST_F(LoggerTests, LogSampledMetric)
     checkBaseAndContextAndRuntimeConfigProps();
     EXPECT_THAT(submittedRecord.EventType, Eq("SampledMetric"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "measurement")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Value",        "1.200000")));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",1.200000)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "ms")));
 
     expectSubmit();
@@ -595,7 +595,7 @@ TEST_F(LoggerTests, LogSampledMetric)
     checkBaseAndContextAndRuntimeConfigProps();
     EXPECT_THAT(submittedRecord.EventType, Eq("SampledMetric"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "speed")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Value",        "67.890000")));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",        67.890000)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "km/h")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.InstanceName", "Ferda")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectClass",  "vehicle")));
@@ -608,7 +608,7 @@ TEST_F(LoggerTests, LogSampledMetric)
     checkBaseAndContextAndRuntimeConfigProps();
     EXPECT_THAT(submittedRecord.EventType, Eq("SampledMetric"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "speed")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Value",        "89.010000")));
+    EXPECT_THAT(submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",        89.010000)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "km/h")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.InstanceName", "Adref")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectClass",  "vehicle")));
@@ -658,8 +658,8 @@ TEST_F(LoggerTests, LogUserState)
     EXPECT_THAT(submittedRecord.EventType, Eq("UserInfo_UserState"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.Name",         "UserState")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.Value",        "Connected")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.TimeToLive",   "12345")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.IsTransition", "true")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("State.TimeToLive",   12345)));
+    EXPECT_THAT(submittedRecord.TypedExtensionBoolean, Contains(Pair("State.IsTransition", true)));
 
     expectSubmit();
     EventProperties props("app_login_state");
@@ -670,8 +670,8 @@ TEST_F(LoggerTests, LogUserState)
     EXPECT_THAT(submittedRecord.EventType, Eq("UserInfo_UserState"));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.Name",         "UserState")));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.Value",        "SignedIn")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.TimeToLive",   "67890")));
-    EXPECT_THAT(submittedRecord.Extension, Contains(Pair("State.IsTransition", "true")));
+    EXPECT_THAT(submittedRecord.TypedExtensionInt64, Contains(Pair("State.TimeToLive",   67890)));
+    EXPECT_THAT(submittedRecord.TypedExtensionBoolean, Contains(Pair("State.IsTransition", true)));
     EXPECT_THAT(submittedRecord.Extension, Contains(Pair("test",               "value")));
 }
 

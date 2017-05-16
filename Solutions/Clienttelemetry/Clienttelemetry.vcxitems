@@ -27,6 +27,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.cpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\Backoff_ExponentialWithJitter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.hpp" />
@@ -90,7 +92,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Utils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Version.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ClockSkewManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
@@ -108,6 +112,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Contexts.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Route.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />

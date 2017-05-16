@@ -7,7 +7,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
+class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
   public:
     SemanticApiDecorators()
     {
@@ -20,30 +20,30 @@ class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
         }
 
         record.EventType = "AggregatedMetric";
-        setIfNotEmpty(record.Extension, "AggregatedMetric.ObjectClass",  metricData.objectClass);
-        setIfNotEmpty(record.Extension, "AggregatedMetric.ObjectId",     metricData.objectId);
-        setIfNotEmpty(record.Extension, "AggregatedMetric.Name",         metricData.name);
-        setIfNotEmpty(record.Extension, "AggregatedMetric.InstanceName", metricData.instanceName);
-        setOtherValue(record.Extension, "AggregatedMetric.Duration",     metricData.duration);
-        setOtherValue(record.Extension, "AggregatedMetric.Count",        metricData.count);
-        setIfNotEmpty(record.Extension, "AggregatedMetric.Units",        metricData.units);
+        setIfNotEmpty(record.Extension,           "AggregatedMetric.ObjectClass",  metricData.objectClass);
+        setIfNotEmpty(record.Extension,           "AggregatedMetric.ObjectId",     metricData.objectId);
+        setIfNotEmpty(record.Extension,           "AggregatedMetric.Name",         metricData.name);
+        setIfNotEmpty(record.Extension,           "AggregatedMetric.InstanceName", metricData.instanceName);
+        setInt64Value(record.TypedExtensionInt64, "AggregatedMetric.Duration",     metricData.duration);
+        setInt64Value(record.TypedExtensionInt64, "AggregatedMetric.Count",        metricData.count);
+        setIfNotEmpty(record.Extension,           "AggregatedMetric.Units",        metricData.units);
 
         for (auto const& aggr : metricData.aggregates) {
             switch (aggr.first) {
                 case AggregateType_Sum:
-                    setOtherValue(record.Extension, "AggregatedMetric.Aggregates.Sum", aggr.second);
+                    setDoubleValue(record.TypedExtensionDouble, "AggregatedMetric.Aggregates.Sum", aggr.second);
                     break;
 
                 case AggregateType_Maximum:
-                    setOtherValue(record.Extension, "AggregatedMetric.Aggregates.Maximum", aggr.second);
+                    setDoubleValue(record.TypedExtensionDouble, "AggregatedMetric.Aggregates.Maximum", aggr.second);
                     break;
 
                 case AggregateType_Minimum:
-                    setOtherValue(record.Extension, "AggregatedMetric.Aggregates.Minimum", aggr.second);
+                    setDoubleValue(record.TypedExtensionDouble, "AggregatedMetric.Aggregates.Minimum", aggr.second);
                     break;
 
                 case AggregateType_SumOfSquares:
-                    setOtherValue(record.Extension, "AggregatedMetric.Aggregates.SumOfSquares", aggr.second);
+                    setDoubleValue(record.TypedExtensionDouble, "AggregatedMetric.Aggregates.SumOfSquares", aggr.second);
                     break;
 
                 default:
@@ -52,7 +52,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
         }
 
         for (auto const& bucket : metricData.buckets) {
-            setOtherValue(record.Extension, "AggregatedMetric.Buckets." + toString(bucket.first), bucket.second);
+            setInt64Value(record.TypedExtensionInt64, "AggregatedMetric.Buckets." + toString(bucket.first), bucket.second);
         }
 
         return true;
@@ -151,17 +151,17 @@ class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
         };
 
         record.EventType = "PageAction";
-        setEnumValue(record.Extension,  "PageAction.ActionType",                      pageActionData.actionType,      names_ActionType);
-        setIfNotEmpty(record.Extension, "PageAction.PageViewId",                      pageActionData.pageViewId);
-        setEnumValue(record.Extension,  "PageAction.RawActionType",                   pageActionData.rawActionType,   names_RawActionType);
-        setEnumValue(record.Extension,  "PageAction.InputDeviceType",                 pageActionData.inputDeviceType, names_InputDeviceType);
-        setIfNotEmpty(record.Extension, "PageAction.DestinationUri",                  pageActionData.destinationUri);
-        setIfNotEmpty(record.Extension, "PageAction.TargetItemId",                    pageActionData.targetItemId);
-        setIfNotEmpty(record.Extension, "PageAction.TargetItemDataSource.Name",       pageActionData.targetItemDataSourceName);
-        setIfNotEmpty(record.Extension, "PageAction.TargetItemDataSource.Category",   pageActionData.targetItemDataSourceCategory);
-        setIfNotEmpty(record.Extension, "PageAction.TargetItemDataSource.Collection", pageActionData.targetItemDataSourceCollection);
-        setIfNotEmpty(record.Extension, "PageAction.TargetItemLayout.Container",      pageActionData.targetItemLayoutContainer);
-        setOtherValue(record.Extension, "PageAction.TargetItemLayout.Rank",           pageActionData.targetItemLayoutRank);
+        setEnumValue(record.Extension,            "PageAction.ActionType",                      pageActionData.actionType,      names_ActionType);
+        setIfNotEmpty(record.Extension,           "PageAction.PageViewId",                      pageActionData.pageViewId);
+        setEnumValue(record.Extension,            "PageAction.RawActionType",                   pageActionData.rawActionType,   names_RawActionType);
+        setEnumValue(record.Extension,            "PageAction.InputDeviceType",                 pageActionData.inputDeviceType, names_InputDeviceType);
+        setIfNotEmpty(record.Extension,           "PageAction.DestinationUri",                  pageActionData.destinationUri);
+        setIfNotEmpty(record.Extension,           "PageAction.TargetItemId",                    pageActionData.targetItemId);
+        setIfNotEmpty(record.Extension,           "PageAction.TargetItemDataSource.Name",       pageActionData.targetItemDataSourceName);
+        setIfNotEmpty(record.Extension,           "PageAction.TargetItemDataSource.Category",   pageActionData.targetItemDataSourceCategory);
+        setIfNotEmpty(record.Extension,           "PageAction.TargetItemDataSource.Collection", pageActionData.targetItemDataSourceCollection);
+        setIfNotEmpty(record.Extension,           "PageAction.TargetItemLayout.Container",      pageActionData.targetItemLayoutContainer);
+        setInt64Value(record.TypedExtensionInt64, "PageAction.TargetItemLayout.Rank",           pageActionData.targetItemLayoutRank);
 
         return true;
     }
@@ -191,12 +191,12 @@ class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
         }
 
         record.EventType = "SampledMetric";
-        setIfNotEmpty(record.Extension, "SampledMetric.Name",         name);
-        setOtherValue(record.Extension, "SampledMetric.Value",        value);
-        setIfNotEmpty(record.Extension, "SampledMetric.Units",        units);
-        setIfNotEmpty(record.Extension, "SampledMetric.InstanceName", instanceName);
-        setIfNotEmpty(record.Extension, "SampledMetric.ObjectClass",  objectClass);
-        setIfNotEmpty(record.Extension, "SampledMetric.ObjectId",     objectId);
+        setIfNotEmpty(record.Extension,            "SampledMetric.Name",         name);
+        setDoubleValue(record.TypedExtensionDouble, "SampledMetric.Value", value);
+        setIfNotEmpty(record.Extension,            "SampledMetric.Units",        units);
+        setIfNotEmpty(record.Extension,            "SampledMetric.InstanceName", instanceName);
+        setIfNotEmpty(record.Extension,            "SampledMetric.ObjectClass",  objectClass);
+        setIfNotEmpty(record.Extension,            "SampledMetric.ObjectId",     objectId);
 
         return true;
     }
@@ -233,13 +233,63 @@ class ARIASDK_LIBABI SemanticApiDecorators : public IDecorator {
         };
 
         record.EventType = "UserInfo_UserState";
-        setIfNotEmpty(record.Extension, "State.Name",         "UserState");
-        setEnumValue(record.Extension,  "State.Value",        state, names_UserState);
-        setOtherValue(record.Extension, "State.TimeToLive",   expiry);
-        setOtherValue(record.Extension, "State.IsTransition", true);
+        setIfNotEmpty(record.Extension,             "State.Name",         "UserState");
+        setEnumValue(record.Extension,              "State.Value",        state, names_UserState);
+        setInt64Value(record.TypedExtensionInt64,   "State.TimeToLive",   expiry);
+        setBoolValue(record.TypedExtensionBoolean, "State.IsTransition", true);
 
         return true;
     }
+
+    std::string SessionDurationBucket(const int64_t time_in_seconds)
+    {
+        if (time_in_seconds < 0)
+            return "Undefined";
+        if (time_in_seconds <= 3)
+            return "UpTo3Sec";
+        if (time_in_seconds <= 10)
+            return "UpTo10Sec";
+        if (time_in_seconds <= 30)
+            return "UpTo30Sec";
+        if (time_in_seconds <= 60)
+            return "UpTo60Sec";
+        if (time_in_seconds <= 180)
+            return "UpTo3Min";
+        if (time_in_seconds <= 600)
+            return "UpTo10Min";
+        if (time_in_seconds <= 1800)
+            return "UpTo30Min";
+
+        return "Above30Min";
+    }
+
+
+    bool decorateSessionMessage(::AriaProtocol::Record& record,
+                                SessionState state, 
+                                std::string const& id,
+                                std::string const& firstTime,
+                                std::string const& sdkuid,
+                                int64_t duration)
+    {
+        std::string stateString = (state == SessionState::Session_Started) ? "Started" : "Ended";
+
+        record.EventType = "Session";
+        setIfNotEmpty(record.Extension, "Session.State", stateString);
+        setIfNotEmpty(record.Extension, "Session.Id", id);
+        setIfNotEmpty(record.Extension, SESSION_FIRST_TIME, firstTime);
+        setIfNotEmpty(record.Extension, "DeviceInfo.SDKUid", sdkuid);
+
+        if (duration >  0)
+        {   // This fields are added only for the ended session
+            setInt64Value(record.TypedExtensionInt64, "Session.Duration", duration);
+            setIfNotEmpty(record.Extension,           "Session.DurationBucket", SessionDurationBucket(duration));
+        }
+                    
+        return true;
+    }
+
+
+
 };
 
 

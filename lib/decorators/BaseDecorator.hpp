@@ -8,14 +8,14 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI BaseDecorator : public IDecorator {
+class ARIASDK_LIBABI BaseDecorator : public DecoratorBase {
   public:
-	BaseDecorator()
-		  : m_sourceP(new std::string("")),
-		  m_initIdP(new std::string(PAL::generateUuidString())),
-		  m_sequenceId(0)
-	{
-	}
+    BaseDecorator()
+          : m_sourceP(new std::string("")),
+          m_initIdP(new std::string(PAL::generateUuidString())),
+          m_sequenceId(0)
+    {
+    }
     BaseDecorator(std::string const& source)
       : m_sourceP(new std::string(source)),
         m_initIdP(new std::string(PAL::generateUuidString())),
@@ -23,24 +23,24 @@ class ARIASDK_LIBABI BaseDecorator : public IDecorator {
     {
     }
 
-	BaseDecorator(BaseDecorator const& copy)
-	{
-		m_sourceP = new std::string(*copy.m_sourceP);
-		m_initIdP = new std::string(*copy.m_initIdP);
-	}
+    BaseDecorator(BaseDecorator const& copy)
+    {
+        m_sourceP = new std::string(*copy.m_sourceP);
+        m_initIdP = new std::string(*copy.m_initIdP);
+    }
 
-	BaseDecorator& operator=(BaseDecorator const& copy)
-	{
-		m_sourceP = new std::string(*copy.m_sourceP);
-		m_initIdP = new std::string(*copy.m_initIdP);
-		return *this;
-	}
+    BaseDecorator& operator=(BaseDecorator const& copy)
+    {
+        m_sourceP = new std::string(*copy.m_sourceP);
+        m_initIdP = new std::string(*copy.m_initIdP);
+        return *this;
+    }
 
-	~BaseDecorator()
-	{
-		if (m_sourceP) delete m_sourceP;
-		if (m_initIdP) delete m_initIdP;
-	}
+    ~BaseDecorator()
+    {
+        if (m_sourceP) delete m_sourceP;
+        if (m_initIdP) delete m_initIdP;
+    }
 
     bool decorate(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
     {
@@ -51,14 +51,14 @@ class ARIASDK_LIBABI BaseDecorator : public IDecorator {
         }
         record.RecordType = AriaProtocol::RecordType::Event;
 
-        setIfNotEmpty(record.Extension, "EventInfo.Name",       record.EventType);
-        setIfNotEmpty(record.Extension, "EventInfo.Source",     *m_sourceP);
-        setIfNotEmpty(record.Extension, "EventInfo.Time",       PAL::formatUtcTimestampMsAsISO8601(record.Timestamp));
-        setIfNotEmpty(record.Extension, "EventInfo.InitId",     *m_initIdP);
-        setOtherValue(record.Extension, "EventInfo.Sequence",   ++m_sequenceId);
-        setIfNotEmpty(record.Extension, "EventInfo.SdkVersion", PAL::getSdkVersion());
+        setIfNotEmpty(record.Extension,           "EventInfo.Name",       record.EventType);
+        setIfNotEmpty(record.Extension,           "EventInfo.Source",     *m_sourceP);
+        setIfNotEmpty(record.Extension,           "EventInfo.Time",       PAL::formatUtcTimestampMsAsISO8601(record.Timestamp));
+        setIfNotEmpty(record.Extension,           "EventInfo.InitId",     *m_initIdP);
+        setInt64Value(record.TypedExtensionInt64, "EventInfo.Sequence",   ++m_sequenceId);
+        setIfNotEmpty(record.Extension,           "EventInfo.SdkVersion", PAL::getSdkVersion());
 
-        setOtherValue(record.Extension, "eventpriority",  std::max<int>(0, priority));
+        setInt64Value(record.TypedExtensionInt64, "eventpriority",  std::max<int>(0, priority));
 
         return true;
     }

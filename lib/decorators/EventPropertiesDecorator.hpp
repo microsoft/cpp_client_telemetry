@@ -9,7 +9,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI EventPropertiesDecorator : public IDecorator {
+class ARIASDK_LIBABI EventPropertiesDecorator : public DecoratorBase {
   public:
     EventPropertiesDecorator()
     {
