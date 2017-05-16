@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BondSplicerTests.cpp" />
@@ -20,6 +20,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\PalTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\RouteTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\SingleControlPlaneTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\TransmissionPolicyManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Common.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISemanticContext.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISqlite3Proxy.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\SocketTools.hpp" />
+    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockILocalStorageReader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include=" ">

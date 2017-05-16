@@ -77,7 +77,7 @@ namespace Microsoft {
             /// Customers need to provide their own converter from RPC GUID type to ARIA portable GUID type.
             /// </remarks>
             struct ARIASDK_LIBABI GUID_t {
-
+            private:
                 /// <summary>Specifies the first 8 hexadecimal digits of the GUID.</summary>
                 uint32_t Data1;
 
@@ -91,6 +91,7 @@ namespace Microsoft {
                 /// The remaining 6 bytes contain the final 12 hexadecimal digits.</summary>
                 uint8_t  Data4[8];
 
+            public:
                 /// <summary>
                 /// Create an empty Nil instance of GUID_t object (initialized to all 0)
                 /// {00000000-0000-0000-0000-000000000000}
@@ -153,17 +154,50 @@ namespace Microsoft {
 
                 void to_bytes(uint8_t (&guid_bytes) [16]);
 
-				std::string to_string() const
-				{
-					std::string result(36 + 1, ' '); // 36 + sprintf null-terminates
-					char *buff = (char *)(result.c_str());
-					snprintf(buff,36,
-						"%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
-						this->Data1, this->Data2, this->Data3,
-						this->Data4[0], this->Data4[1], this->Data4[2], this->Data4[3],
-						this->Data4[4], this->Data4[5], this->Data4[6], this->Data4[7]);
-					return result;
-				}
+                std::string to_string() const
+                {
+                    std::string result(36 + 1, ' '); // 36 + sprintf null-terminates
+                    char *buff = (char *)(result.c_str());
+                    snprintf(buff,36,
+                        "%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
+                        this->Data1, this->Data2, this->Data3,
+                        this->Data4[0], this->Data4[1], this->Data4[2], this->Data4[3],
+                        this->Data4[4], this->Data4[5], this->Data4[6], this->Data4[7]);
+                    return result;
+                }
+
+                // The output from this method is compatible with std::unordered_map.
+                std::size_t HashForMap() const
+                {
+                    // Compute individual hash values for Data1, Data2, Data3, and parts of Data4
+                    // http://stackoverflow.com/a/1646913/126995
+                    size_t res = 17;
+                    res = res * 31 + Data1;
+                    res = res * 31 + Data2;
+                    res = res * 31 + Data3;
+                    res = res * 31 + (Data4[0] << 24 | Data4[1] << 16 | Data4[6] << 8 | Data4[7]);
+                    return res;
+                }
+
+                // Are 2 GUID_t objects equivalent? (needed for maps)
+                bool operator==(GUID_t const& other) const
+                {
+                    return Data1 == other.Data1 &&
+                        Data2 == other.Data2 &&
+                        Data3 == other.Data3 &&
+                        (0 == memcmp(Data4, other.Data4, sizeof(Data4)));
+                }
+            };
+
+            /// <summary>
+            /// Declare this struct as the hasher when using GUID_t as a key in an unordered_map
+            /// </summary>
+            struct GuidMapHasher
+            {
+                inline std::size_t operator()(GUID_t const& key) const
+                {
+                    return key.HashForMap();
+                }
             };
 
             /// <summary>
@@ -281,11 +315,11 @@ namespace Microsoft {
                 }
 
 
-				/// <summary>
-				/// EventProperty equalto operator
-				/// </summary>
-				bool operator==(const EventProperty& source) const
-				{
+                /// <summary>
+                /// EventProperty equalto operator
+                /// </summary>
+                bool operator==(const EventProperty& source) const
+                {
                     if (type == source.type)
                     {
                         switch (type)
@@ -337,8 +371,8 @@ namespace Microsoft {
                             
                         }
                     }                    
-					return false;
-				}
+                    return false;
+                }
 
                 /// <summary>
                 /// EventProperty assignment operator
@@ -440,20 +474,20 @@ namespace Microsoft {
                 /// Clears value object, deallocating memory if needed
                 /// </summary>
                 void clear() {
-					if (type == TYPE_STRING) {
-						if (as_string != NULL) {
-							free((void *)as_string);
-							as_string = NULL;
-						}
-					}
-				}
+                    if (type == TYPE_STRING) {
+                        if (as_string != NULL) {
+                            free((void *)as_string);
+                            as_string = NULL;
+                        }
+                    }
+                }
 
                 /// EventProperty destructor
                 /// </summary>
                 virtual ~EventProperty()
-				{
-					clear();
-				}
+                {
+                    clear();
+                }
 
                 /// <summary>
                 /// EventProperty default constructor for empty string value
@@ -542,33 +576,33 @@ namespace Microsoft {
 
                 /// <summary>Return a string representation of this value object</summary>
                 virtual std::string to_string() const {
-					std::string result;
-					switch (type) {
-					case TYPE_STRING:
-						result = as_string;
-						break;
-					case TYPE_INT64:
-						result = std::to_string(as_int64);
-						break;
-					case TYPE_DOUBLE:
-						result = std::to_string(as_double);
-						break;
-					case TYPE_TIME:
-						// Note that we do not format time as time, we return it as raw number of .NET ticks
-						result = std::to_string(as_time_ticks.ticks);
-						break;
-					case TYPE_BOOLEAN:
-						result = ((as_bool) ? "true" : "false");
-						break;
-					case TYPE_GUID:
-						result = as_guid.to_string();
-						break;
-					default:
-						result = "";
-						break;
-					}
-					return result;
-				}
+                    std::string result;
+                    switch (type) {
+                    case TYPE_STRING:
+                        result = as_string;
+                        break;
+                    case TYPE_INT64:
+                        result = std::to_string(as_int64);
+                        break;
+                    case TYPE_DOUBLE:
+                        result = std::to_string(as_double);
+                        break;
+                    case TYPE_TIME:
+                        // Note that we do not format time as time, we return it as raw number of .NET ticks
+                        result = std::to_string(as_time_ticks.ticks);
+                        break;
+                    case TYPE_BOOLEAN:
+                        result = ((as_bool) ? "true" : "false");
+                        break;
+                    case TYPE_GUID:
+                        result = as_guid.to_string();
+                        break;
+                    default:
+                        result = "";
+                        break;
+                    }
+                    return result;
+                }
 
             };
 
