@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -24,6 +24,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
@@ -59,6 +60,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\BondConstTypes.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ConcurrentObservable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ILocalStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />
@@ -76,6 +80,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\EventProperties.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\EventProperty.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IBandwidthController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IHttpClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp" />

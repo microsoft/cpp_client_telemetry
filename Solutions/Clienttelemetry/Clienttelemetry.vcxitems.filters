@@ -52,6 +52,9 @@
     <Filter Include="pal">
       <UniqueIdentifier>{5f958c3d-fa9e-444e-b2bd-976a2420f957}</UniqueIdentifier>
     </Filter>
+    <Filter Include="controlplane">
+      <UniqueIdentifier>{e58972e8-1026-45d4-85ff-e2017d74e69c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp">
@@ -140,6 +143,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\win32\WindowsEnvironmentInfo.cpp">
       <Filter>pal</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp">
+      <Filter>controlplane</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -346,6 +352,18 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h">
       <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ConcurrentObservable.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ILocalStorage.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp">
+      <Filter>controlplane</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
