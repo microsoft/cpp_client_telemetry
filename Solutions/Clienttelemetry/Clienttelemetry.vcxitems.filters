@@ -146,6 +146,7 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
       <Filter>offline</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp">
       <Filter>controlplane</Filter>
     </ClCompile>
