@@ -74,6 +74,9 @@ namespace Microsoft {
 				m_eventNameP = new std::string(*(copy.m_eventNameP));
 				m_eventTypeP = new std::string(*(copy.m_eventTypeP));
 				m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+				m_eventPriority = copy.m_eventPriority;
+				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
+				m_timestampInMillis = copy.m_timestampInMillis;
 			}
 
 			EventProperties& EventProperties::operator=(EventProperties const& copy)
@@ -81,6 +84,9 @@ namespace Microsoft {
 				m_eventNameP = new std::string(*(copy.m_eventNameP));
 				m_eventTypeP = new std::string(*(copy.m_eventTypeP));
 				m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+				m_eventPriority = copy.m_eventPriority;
+				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
+				m_timestampInMillis = copy.m_timestampInMillis;
 
 				return *this;
 			}
