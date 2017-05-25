@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>

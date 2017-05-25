@@ -19,6 +19,7 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeDeviceInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeNetworkInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />

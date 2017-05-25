@@ -16,6 +16,7 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
   public:
     ::AriaProtocol::Record * source;
     StorageRecord            record;
+    std::uint64_t            policyBitFlags;
 
   public:
     IncomingEventContext()

@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Packager.hpp"
-#include "utils/Common.hpp"
+#include "api\LogManager.hpp"
+#include "utils\Common.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
-
 
 Packager::Packager(LogConfiguration const& configuration, IRuntimeConfig const& runtimeConfig)
   : m_runtimeConfig(runtimeConfig),
@@ -73,6 +73,11 @@ void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     ctx->splicer.clear();
 
     packagedEvents(ctx);
+    
+    DebugEvent evt;
+    evt.type = EVT_SENT;
+    evt.size = ctx->recordIds.size();
+    LogManager::DispatchEvent(evt);
 }
 
 

@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "pal\PAL.hpp"
-#include <aria/ISemanticContext.hpp>
+#include "api\LogManager.hpp"
+#include <aria\ISemanticContext.hpp>
 #include <IPHlpApi.h>
 #include <algorithm>
 #include <list>
@@ -16,7 +17,7 @@ ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.PAL", "Aria telemetry client - platform a
 
 
 namespace detail {
-
+	
 LogLevel g_logLevel = LogLevel::Detail;
 
 void log(LogLevel level, char const* component, char const* fmt, ...)
@@ -69,6 +70,7 @@ class WorkerThread
     std::list<detail::WorkerThreadItemPtr> m_queue;
     std::list<detail::WorkerThreadItemPtr> m_timerQueue;
     Event                                  m_event;
+	int count = 0;
 
   public:
     WorkerThread()
@@ -121,6 +123,15 @@ class WorkerThread
         } else {
             m_queue.push_back(item);
         }
+		count++;
+		if (count == (count / 100) * 100)
+		{
+            DebugEvent evt;
+            evt.type = EVT_UNKNOWN;
+            evt.param1 = m_timerQueue.size();
+            evt.param2 = m_queue.size();
+            LogManager::DispatchEvent(evt);
+		}
         m_event.post();
     }
 

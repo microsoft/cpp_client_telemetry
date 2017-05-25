@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -22,6 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Utils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp" />
@@ -42,6 +43,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.cpp" />
@@ -112,6 +114,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\win32\WindowsEnvironmentInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.hpp" />
@@ -120,6 +123,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Route.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.hpp" />

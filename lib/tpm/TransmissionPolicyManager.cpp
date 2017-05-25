@@ -53,7 +53,6 @@ void TransmissionPolicyManager::scheduleUpload(int delayInMs)
 {
     ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec", delayInMs);
 
-    assert(!m_isUploadScheduled);
     m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync);
     m_isUploadScheduled = true;
 }
@@ -91,7 +90,6 @@ void TransmissionPolicyManager::uploadAsync()
     ctx->requestedMinPriority = EventPriority_Low;
     m_activeUploads.insert(ctx);
     initiateUpload(ctx);
-	LogManager::DispatchEvent(DebugEventType::EVT_SENT);
 }
 
 void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)

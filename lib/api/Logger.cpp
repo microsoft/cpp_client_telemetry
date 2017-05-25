@@ -22,8 +22,8 @@ Logger::Logger(std::string const& tenantToken, std::string const& source, std::s
     m_baseDecorator(source),
     m_runtimeConfigDecorator(m_runtimeConfig, tenantTokenToId(tenantToken), experimentationProject),
     m_semanticContextDecorator(m_context),
-	m_sessionStartTime(0),
-	m_sessionIdP( new std::string(""))
+    m_sessionStartTime(0),
+    m_sessionIdP( new std::string(""))
 {
     ARIASDK_LOG_DETAIL("%p: New instance (tenantId=%s)", this, tenantTokenToId(*m_tenantTokenP).c_str());
 }
@@ -31,10 +31,10 @@ Logger::Logger(std::string const& tenantToken, std::string const& source, std::s
 Logger::~Logger()
 {
     ARIASDK_LOG_DETAIL("%p: Destructed", this);
-	if (m_tenantTokenP) delete m_tenantTokenP;
-	if (m_sourceP) delete m_sourceP;
-	if (m_lockP) delete m_lockP;
-	if (m_sessionIdP) delete m_sessionIdP;
+    if (m_tenantTokenP) delete m_tenantTokenP;
+    if (m_sourceP) delete m_sourceP;
+    if (m_lockP) delete m_lockP;
+    if (m_sessionIdP) delete m_sessionIdP;
 }
 
 ISemanticContext& Logger::GetSemanticContext()
@@ -53,19 +53,19 @@ ISemanticContext& Logger::GetSemanticContext()
 ******************************************************************************/
 void Logger::SetContext(const std::string& name, EventProperty prop)
 {
-	ARIASDK_LOG_DETAIL("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
-		this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
+    ARIASDK_LOG_DETAIL("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
+        this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
 
-	if (!validatePropertyName(name)) 
-	{
-		LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
-		ARIASDK_LOG_ERROR("Context name is invalid: %s", name.c_str());
-		return;
-	}
-	// Always overwrite the stored value. 
-	// Empty string is alowed to remove the previously set value.
-	// If the value is empty, the context will not be added to event.
-	m_context.setCustomField(name, prop);
+    if (!validatePropertyName(name)) 
+    {
+        LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
+        ARIASDK_LOG_ERROR("Context name is invalid: %s", name.c_str());
+        return;
+    }
+    // Always overwrite the stored value. 
+    // Empty string is alowed to remove the previously set value.
+    // If the value is empty, the context will not be added to event.
+    m_context.setCustomField(name, prop);
 }
 
 void Logger::SetContext(const std::string& k, const char       v[], PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
@@ -93,7 +93,7 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogEvent(std::string const& name)
@@ -107,13 +107,13 @@ void Logger::LogEvent(EventProperties const& properties)
     ARIASDK_LOG_DETAIL("%p: LogEvent(properties.name=\"%s\", ...)",
         this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-	EventPriority priority = EventPriority_Normal;
-	if (properties.GetPriority() > EventPriority_Unspecified)
-	{
-		priority = properties.GetPriority();
-	}
+    EventPriority priority = EventPriority_Normal;
+    if (properties.GetPriority() > EventPriority_Unspecified)
+    {
+        priority = properties.GetPriority();
+    }
     
-	::AriaProtocol::Record record;
+    ::AriaProtocol::Record record;
 
     if (!applyCommonDecorators(record, properties, priority)) {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -121,7 +121,7 @@ void Logger::LogEvent(EventProperties const& properties)
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogFailure(
@@ -145,7 +145,7 @@ void Logger::LogFailure(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogFailure(
@@ -178,7 +178,7 @@ void Logger::LogPageView(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogPageView(
@@ -216,7 +216,7 @@ void Logger::LogPageAction(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogSampledMetric(
@@ -242,7 +242,7 @@ void Logger::LogSampledMetric(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogSampledMetric(
@@ -282,7 +282,7 @@ void Logger::LogAggregatedMetric(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogTrace(
@@ -304,7 +304,7 @@ void Logger::LogTrace(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 void Logger::LogUserState(
@@ -326,7 +326,7 @@ void Logger::LogUserState(
         return;
     }
 
-    submit(record, priority);
+    submit(record, priority, properties.GetPolicyBitFlags());
 }
 
 bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
@@ -337,15 +337,18 @@ bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperti
            m_baseDecorator.decorate(record, priority);
 }
 
-void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
+void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
 {
-    if (priority == EventPriority_Off) {
+    if (priority == EventPriority_Off)
+    {
+        LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
         ARIASDK_LOG_INFO("Event %s/%s dropped because of calculated priority 0 (Off)",
             tenantTokenToId(*m_tenantTokenP).c_str(), record.EventType.c_str());
         return;
     }
 
     IncomingEventContextPtr event = IncomingEventContext::create(record.Id, *m_tenantTokenP, priority, &record);
+    event->policyBitFlags = policyBitFlags;
     m_logManager.addIncomingEvent(event);
 }
 
@@ -357,63 +360,62 @@ void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::T
 ******************************************************************************/
 void Logger::LogSession(SessionState state, const EventProperties& prop)
 {
-	LogSessionData* logSessionData = LogManager::GetLogSessionData();
-	std::string sessionSDKUid = logSessionData->getSessionSDKUid();
-	unsigned long long sessionFirstTime = logSessionData->getSesionFirstTime();
+    LogSessionData* logSessionData = LogManager::GetLogSessionData();
+    std::string sessionSDKUid = logSessionData->getSessionSDKUid();
+    unsigned long long sessionFirstTime = logSessionData->getSesionFirstTime();
 
-	if (sessionSDKUid == "" || sessionFirstTime == 0)
-	{
-		ARIASDK_LOG_WARNING("We don't have a first time so no session logged");
-		return;
-	}
-	
-	if (!validateEventName(prop.GetName()))
-	{
-		ARIASDK_LOG_ERROR("Invalid event properties!");
-		LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
-		return;
-	}
+    if (sessionSDKUid == "" || sessionFirstTime == 0)
+    {
+        ARIASDK_LOG_WARNING("We don't have a first time so no session logged");
+        return;
+    }
+    
+    if (!validateEventName(prop.GetName()))
+    {
+        ARIASDK_LOG_ERROR("Invalid event properties!");
+        LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
+        return;
+    }
 
-	int64_t sessionDuration = 0;
-	switch (state)
-	{
-		case SessionState::Session_Started:
-		{
-			if (m_sessionStartTime > 0)
-			{
-				ARIASDK_LOG_ERROR("LogSession The order is not the correct one in calling LogSession");
-				return;
-			}
-			m_sessionStartTime = PAL::getUtcSystemTimeMs();
-			if (m_sessionIdP) delete m_sessionIdP;
-			m_sessionIdP = new std::string(PAL::generateUuidString());
-			break;
-		}
-		case SessionState::Session_Ended:
-		{
-			if (m_sessionStartTime == 0)
-			{
-				ARIASDK_LOG_WARNING("LogSession We don't have session start time");
-				return;
-			}
-			sessionDuration = (PAL::getUtcSystemTimeMs() - m_sessionStartTime) / 1000;
-			break;
-		}
-	}
-	EventPriority priority = EventPriority_High;
-	::AriaProtocol::Record record;
+    int64_t sessionDuration = 0;
+    switch (state)
+    {
+        case SessionState::Session_Started:
+        {
+            if (m_sessionStartTime > 0)
+            {
+                ARIASDK_LOG_ERROR("LogSession The order is not the correct one in calling LogSession");
+                return;
+            }
+            m_sessionStartTime = PAL::getUtcSystemTimeMs();
+            if (m_sessionIdP) delete m_sessionIdP;
+            m_sessionIdP = new std::string(PAL::generateUuidString());
+            break;
+        }
+        case SessionState::Session_Ended:
+        {
+            if (m_sessionStartTime == 0)
+            {
+                ARIASDK_LOG_WARNING("LogSession We don't have session start time");
+                return;
+            }
+            sessionDuration = (PAL::getUtcSystemTimeMs() - m_sessionStartTime) / 1000;
+            break;
+        }
+    }
+    EventPriority priority = EventPriority_High;
+    ::AriaProtocol::Record record;
 
-	if (!m_semanticApiDecorators.decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration) ||
-	    !applyCommonDecorators(record, prop, priority))
-	{
-	   ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-		   "Trace", tenantTokenToId(*m_tenantTokenP).c_str(), prop.GetName().empty() ? "<unnamed>" : prop.GetName().c_str());
-	   return;
-	}
-
-	
-	submit(record, priority);
-	LogManager::DispatchEvent(DebugEventType::EVT_LOG_SESSION);
+    if (!m_semanticApiDecorators.decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration) ||
+        !applyCommonDecorators(record, prop, priority))
+    {
+       ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
+           "Trace", tenantTokenToId(*m_tenantTokenP).c_str(), prop.GetName().empty() ? "<unnamed>" : prop.GetName().c_str());
+       return;
+    }
+        
+    submit(record, priority, prop.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_SESSION);
 }
 
 }}} // namespace Microsoft::Applications::Telemetry

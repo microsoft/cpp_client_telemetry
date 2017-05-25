@@ -77,6 +77,12 @@ namespace Microsoft {
 				m_eventPriority = copy.m_eventPriority;
 				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
 				m_timestampInMillis = copy.m_timestampInMillis;
+                
+                std::map<std::string, EventProperty>::iterator iter;
+                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); iter++)
+                {
+                    (*m_propertiesP)[iter->first] = iter->second;
+                }
 			}
 
 			EventProperties& EventProperties::operator=(EventProperties const& copy)
@@ -87,6 +93,12 @@ namespace Microsoft {
 				m_eventPriority = copy.m_eventPriority;
 				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
 				m_timestampInMillis = copy.m_timestampInMillis;
+
+                std::map<std::string, EventProperty>::iterator iter;
+                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); iter++)
+                {
+                    (*m_propertiesP)[iter->first] = iter->second;
+                }
 
 				return *this;
 			}

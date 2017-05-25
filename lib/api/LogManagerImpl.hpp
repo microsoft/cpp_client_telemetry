@@ -13,7 +13,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class TelemetrySystem;
+class ITelemetrySystem;
 
 class ILogManagerInternal : public ILogManager {
   public:
@@ -72,7 +72,7 @@ class LogManagerImpl : public ILogManagerInternal {
 
     std::unique_ptr<IOfflineStorage>       m_offlineStorage;
 
-    PAL::RefCountedPtr<TelemetrySystem>    m_system;
+    ITelemetrySystem*                      m_system;
 
     bool                                   m_alive;
 };

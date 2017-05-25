@@ -24,6 +24,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp">
       <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp">
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopDeviceInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopNetworkInformationImpl.cpp">
       <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>

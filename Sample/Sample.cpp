@@ -11,6 +11,7 @@ int main()
 
 */
 #include <aria/ILogManager.hpp>
+//#include <aria/DebugEvents.hpp>
 #include "api/LogManager.hpp"
 #include "Aria/Enums.hpp"
 #include <iostream>
@@ -100,6 +101,7 @@ const char* networkCostNames[] = {
 std::atomic<unsigned>   eps = 0;
 std::atomic<unsigned>   numLogged0 = 0;
 std::atomic<unsigned>   numLogged = 0;
+std::atomic<unsigned>   numRejected = 0;
 std::atomic<unsigned>   numSent = 0;
 std::atomic<unsigned>   numDropped = 0;
 std::atomic<unsigned>   numCached = 0;
@@ -189,24 +191,27 @@ public:
 			}
 			break;
 		case EVT_REJECTED:
-			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+            numRejected++;
+			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numRejected, evt.param2);
 			break;
 		case EVT_ADDED:
-			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+            numLogged++;
+			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged, evt.param2);
 			break;
 		case EVT_CACHED:
-			numCached += evt.param1;
-			// printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			numCached += evt.size;
+			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached, evt.param2);
 			break;
 		case EVT_DROPPED:
-			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+            numDropped += evt.size;
+			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numDropped, evt.param2);
 			break;
 		case EVT_SENT:
-			numSent += evt.param1;
-			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			numSent += evt.size;
+			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent, evt.param2);
 			break;
 		case EVT_STORAGE_FULL:
-			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent, evt.param2);
 			if (evt.param1 >= 75) {
 				// UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
 				// or notify the main app that it has to do the profile timers housekeeping / force the upload...
@@ -225,8 +230,8 @@ public:
 				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
 			break;
 		case EVT_HTTP_OK:
-			printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+			//printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+			//	evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
 			break;
 		case EVT_SEND_RETRY:
 			printf("OnSendRetry:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
@@ -246,7 +251,7 @@ public:
 			break;
 		case EVT_UNKNOWN:
 		default:
-			printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, Timerqueue=%u, ExecuteQueue=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
 			break;
 		};
 #endif
@@ -256,7 +261,7 @@ public:
 MyDebugEventListener listener;
 
 #define MAX_STRESS_COUNT            100
-#define MAX_STRESS_THREADS          200
+#define MAX_STRESS_THREADS          32
 
 /// <summary>
 /// New fluent syntax
@@ -432,16 +437,16 @@ LogConfiguration configuration;
 ILogManager* lm;
 
 ILogger* init() {
-	configuration.cacheFilePath = "offlinestorage.db";
+	configuration.cacheFilePath = ":memory:"; //"offlinestorage.db";
 	configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
 													 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
 	//configuration.multiTenantEnabled = true;
-	configuration.cacheFileSizeLimitInBytes = 100000000;
+	configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
 	configuration.maxTeardownUploadTimeInSec = 5;
 
 	// Force UTC uploader on Windows 10 even if it's not RS2
-	// configuration.sdkmode = (SdkModeTypes)(-SdkModeTypes::SdkModeTypes_UTCAriaBackCompat);
+	 //configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
 
 #ifdef USE_INT
 	configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
@@ -517,6 +522,7 @@ ILogger* init() {
 	LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
 	LogManager::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
 	LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
 
 	std::cout << "LogManager::Initialize..." << endl;
 
@@ -614,8 +620,9 @@ void run(ILogger* logger, int maxStressRuns) {
 			_sleep(sleepTime);
 #endif
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
+		LogManager::UploadNow();
 	}
 }
 
@@ -681,6 +688,18 @@ int main(int argc, char* argv[])
 		}));
 	}
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(90000));
+
+	for (int i = 0; i < MAX_STRESS_THREADS; i++) {
+		workers.push_back(std::thread([i, logger, logger2]()
+		{
+			std::string threadName = "test_thread_";
+			threadName += std::to_string(i);
+			SetThreadName(threadName.c_str());
+			run(logger, MAX_STRESS_COUNT);
+			run(logger2, MAX_STRESS_COUNT);
+		}));
+	}
 
 	// Wait for completion of all worker threads
 	std::for_each(workers.begin(), workers.end(), [](std::thread &t)
@@ -710,9 +729,14 @@ int main(int argc, char* argv[])
 	{		
 		printf("Reinitialize test...\n");
 		LogConfiguration configuration;
+		configuration.cacheFilePath = ":memory:"; //"offlinestorage.db";
 		configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
 														 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
 		configuration.minimumTraceLevel = ACTTraceLevel_Trace;
+		configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
+		configuration.maxTeardownUploadTimeInSec = 5;
+
+		
 #ifdef USE_INT
 		configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
 #endif
@@ -722,10 +746,10 @@ int main(int argc, char* argv[])
 		std::map<std::string, ILogger*> loggers;
 		//loggers["logger.noparam"] = LogManager::GetLogger();
 		//loggers["logger.blank"] = LogManager::GetLogger("");
-		loggers["logger.blank.s1"] = LogManager::GetLogger("", "s1");
-		loggers["logger.blank.s2"] = LogManager::GetLogger("", "s2");
-		loggers["logger.invalid"] = LogManager::GetLogger("s3", "12345");
-		loggers["logger.invalid"] = LogManager::GetLogger("12345", "s3");
+		//loggers["logger.blank.s1"] = LogManager::GetLogger("", "s1");
+		//loggers["logger.blank.s2"] = LogManager::GetLogger("", "s2");
+		//loggers["logger.invalid"] = LogManager::GetLogger("s3", "12345");
+		//loggers["logger.invalid"] = LogManager::GetLogger("12345", "s3");
 		//loggers["logger.primary"] = LogManager::Initialize(TOKEN, configuration);
 		loggers["logger.t1s1"] = LogManager::GetLogger(TOKEN, "s1");
 		loggers["logger.t1s2"] = LogManager::GetLogger(TOKEN, "s2");

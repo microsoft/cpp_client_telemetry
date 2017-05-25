@@ -9,5 +9,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopSystemInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,8 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include <aria/Enums.hpp>
+#include "aria\Config.hpp"
+#include <aria\Enums.hpp>
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
@@ -51,12 +52,13 @@ class ARIASDK_LIBABI BaseDecorator : public DecoratorBase {
         }
         record.RecordType = AriaProtocol::RecordType::Event;
 
-        setIfNotEmpty(record.Extension,           "EventInfo.Name",       record.EventType);
-        setIfNotEmpty(record.Extension,           "EventInfo.Source",     *m_sourceP);
-        setIfNotEmpty(record.Extension,           "EventInfo.Time",       PAL::formatUtcTimestampMsAsISO8601(record.Timestamp));
-        setIfNotEmpty(record.Extension,           "EventInfo.InitId",     *m_initIdP);
-        setInt64Value(record.TypedExtensionInt64, "EventInfo.Sequence",   ++m_sequenceId);
-        setIfNotEmpty(record.Extension,           "EventInfo.SdkVersion", PAL::getSdkVersion());
+        
+        setIfNotEmpty(record.Extension,            EventInfo_Name,       record.EventType);
+        setIfNotEmpty(record.Extension,            EventInfo_Source,     *m_sourceP);
+        setIfNotEmpty(record.Extension,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.Timestamp));
+        setIfNotEmpty(record.Extension,            EventInfo_InitId,     *m_initIdP);
+        setInt64Value(record.TypedExtensionInt64,  EventInfo_Sequence,   ++m_sequenceId);
+        setIfNotEmpty(record.Extension,            COMMONFIELDS_EVENT_SDKVERSION, PAL::getSdkVersion());
 
         setInt64Value(record.TypedExtensionInt64, "eventpriority",  std::max<int>(0, priority));
 

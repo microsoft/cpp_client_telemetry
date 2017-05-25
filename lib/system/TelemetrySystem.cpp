@@ -13,7 +13,7 @@ TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntime
     httpEncoder(httpClient, runtimeConfig),
     storage(offlineStorage),
     packager(configuration, runtimeConfig),
-    stats(runtimeConfig, globalContext),
+    stats(runtimeConfig, globalContext, nullptr),
     tpm(runtimeConfig, bandwidthController)
 {
     //
@@ -167,6 +167,11 @@ void TelemetrySystem::resumeTransmissionAsync()
 void TelemetrySystem::preparedIncomingEventAsync(IncomingEventContextPtr const& event)
 {
     preparedIncomingEvent(event);
+}
+
+void TelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& event)
+{
+    addIncomingEvent(event);
 }
 
 

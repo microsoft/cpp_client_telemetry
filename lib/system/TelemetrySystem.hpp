@@ -34,6 +34,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
     void pauseTransmission();
     void resumeTransmission();
     void UploadNow();
+    void addIncomingEventSystem(IncomingEventContextPtr const& event);
 
   protected:
     void startAsync();

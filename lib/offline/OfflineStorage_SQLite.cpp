@@ -18,11 +18,11 @@ static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_SETTINGS "settings"
 
 OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig)
-	: m_databasePath(configuration.cacheFilePath),
-	m_runtimeConfig(runtimeConfig),
-	m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown)
-	, m_killSwitchManager()
-	, m_clockSkewManager()
+    : m_databasePath(configuration.cacheFilePath),
+    m_runtimeConfig(runtimeConfig),
+    m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown),
+    m_killSwitchManager(),
+    m_clockSkewManager()
 {
 }
 
@@ -132,12 +132,11 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         recreate(203);
         return false;
     }
-	
-	if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
-	{
-		//LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
-		return false;
-	}
+    
+    if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
+    {
+        return false;
+    }
     SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
     if (!selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1)) {
         ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
@@ -155,11 +154,11 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
             record.priority = static_cast<EventPriority>(priority);
         }
         // The record ID needs to be saved before std::move() below.
-		if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
-		{			
-			consumedIds.push_back(record.id);
-		}
-		
+        if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
+        {			
+            consumedIds.push_back(record.id);
+        }
+        
         if (!consumer(std::move(record))) {
             consumedIds.pop_back();
             selectStmt.reset();
@@ -196,23 +195,23 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         return false;
     }
 
-	if (m_runtimeConfig.IsClockSkewEnabled() &&
-		!m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
-		!consumedIds.empty())
-	{
-		m_clockSkewManager.GetDelta();
-	}
+    if (m_runtimeConfig.IsClockSkewEnabled() &&
+        !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
+        !consumedIds.empty())
+    {
+        m_clockSkewManager.GetDelta();
+    }
 
     return true;
 }
 
 void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers)
 {
-	m_killSwitchManager.handleResponse(headers);
-	if (m_clockSkewManager.isWaitingForClockSkew())
-	{
-		m_clockSkewManager.handleResponse(headers);
-	}
+    m_killSwitchManager.handleResponse(headers);
+    if (m_clockSkewManager.isWaitingForClockSkew())
+    {
+        m_clockSkewManager.handleResponse(headers);
+    }
 
     if (ids.empty()) {
         return;
@@ -243,11 +242,11 @@ void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& id
 
 void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers)
 {
-	m_killSwitchManager.handleResponse(headers);
-	if (m_clockSkewManager.isWaitingForClockSkew())
-	{
-		m_clockSkewManager.handleResponse(headers);
-	}
+    m_killSwitchManager.handleResponse(headers);
+    if (m_clockSkewManager.isWaitingForClockSkew())
+    {
+        m_clockSkewManager.handleResponse(headers);
+    }
 
     if (ids.empty()) {
         return;
@@ -296,7 +295,8 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
         }
 
         unsigned droppedCount = deleteStmt.changes();
-        if (droppedCount > 0) {
+        if (droppedCount > 0)
+        {
             ARIASDK_LOG_ERROR("Deleted %u events over maximum retry count %u",
                 droppedCount, maxRetryCount);
             m_observer->OnStorageRecordsDropped(droppedCount);

@@ -17,11 +17,11 @@ class Logger4Test : public Logger {
     {
     }
 
-    MOCK_METHOD2(submit, void(::AriaProtocol::Record &, ::Microsoft::Applications::Telemetry::EventPriority));
+    MOCK_METHOD3(submit, void(::AriaProtocol::Record &, ::Microsoft::Applications::Telemetry::EventPriority, std::uint64_t  const& ));
 
-    void submit_(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
+    void submit_(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
     {
-        return Logger::submit(record, priority);
+        return Logger::submit(record, priority, policyBitFlags);
     }
 };
 
@@ -65,7 +65,7 @@ class LoggerTests : public Test {
     void expectSubmit()
     {
         submitted = false;
-        EXPECT_CALL(logger, submit(_, _)).
+        EXPECT_CALL(logger, submit(_, _, _)).
             WillOnce(DoAll(
             Assign(&submitted, true),
             SaveArg<0>(&submittedRecord),
@@ -76,7 +76,7 @@ class LoggerTests : public Test {
     void expectNoSubmit()
     {
         submitted = false;
-        EXPECT_CALL(logger, submit(_, _)).
+        EXPECT_CALL(logger, submit(_, _, _)).
             Times(0);
     }
 
@@ -285,7 +285,7 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     EXPECT_THAT(submittedRecord.EventType, Eq("0123456789_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz"));
 
     std::string banned("\x01" R"( !"#$%&'()*+,-./:;<=>?@[\]^`{|}~)" "\x81");
-    EXPECT_CALL(logger, submit(_, _)).WillRepeatedly(Assign(&submitted, true));
+    EXPECT_CALL(logger, submit(_, _, _)).WillRepeatedly(Assign(&submitted, true));
     for (char ch : banned) {
         EventProperties props(std::string("test") + ch + "char");
         submitted = false;
@@ -388,7 +388,7 @@ TEST_F(LoggerTests, CustomPropertyNameValidation)
 #else
     std::string banned("\x01" R"( !"#$%&'()*+,-/:;<=>?@[\]^`{|}~)" "\x81");
 #endif
-    EXPECT_CALL(logger, submit(_, _)).WillRepeatedly(Assign(&submitted, true));
+    EXPECT_CALL(logger, submit(_, _, _)).WillRepeatedly(Assign(&submitted, true));
     for (char ch : banned) {
         EventProperties props("test");
         props.SetProperty(std::string("test") + ch + "char", std::string(200, 'x'));
@@ -741,7 +741,9 @@ TEST_F(LoggerTests, SubmitIgnoresPriorityOff)
 {
     ::AriaProtocol::Record record;
     record.EventType = "off";
-    logger.submit_(record, EventPriority_Off);
+	std::string name("test");
+	std::uint64_t flags = 0;
+    logger.submit_(record, EventPriority_Off, flags);
 }
 
 TEST_F(LoggerTests, SubmitSendsEventContext)
@@ -754,7 +756,7 @@ TEST_F(LoggerTests, SubmitSendsEventContext)
     ARIASDK_NS::IncomingEventContextPtr event;
     EXPECT_CALL(logManagerMock, addIncomingEvent(_))
         .WillOnce(SaveArg<0>(&event));
-    logger.submit_(record, EventPriority_Unspecified);
+    logger.submit_(record, EventPriority_Unspecified,0);
 
     EXPECT_THAT(event->record.id,          Eq("guid"));
     EXPECT_THAT(event->record.tenantToken, Eq("testtenantid-tenanttoken"));

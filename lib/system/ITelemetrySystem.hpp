@@ -18,6 +18,8 @@ class ITelemetrySystem
     virtual void resumeTransmission() = 0;
     virtual void UploadNow() = 0;
 
+    virtual void addIncomingEventSystem(IncomingEventContextPtr const& event) = 0;
+
   protected:
     virtual void startAsync() = 0;
     virtual void stopAsync() = 0;

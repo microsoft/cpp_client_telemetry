@@ -55,6 +55,9 @@
     <Filter Include="controlplane">
       <UniqueIdentifier>{e58972e8-1026-45d4-85ff-e2017d74e69c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="callbacks">
+      <UniqueIdentifier>{add8b6cf-18a5-43a4-b745-2c68460501ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp">
@@ -149,7 +152,13 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp">
       <Filter>controlplane</Filter>
-    </ClCompile>   
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp">
+      <Filter>callbacks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -379,7 +388,13 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp">
       <Filter>controlplane</Filter>
-    </ClInclude>   
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp">
+      <Filter>pal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Version.hpp.template">
