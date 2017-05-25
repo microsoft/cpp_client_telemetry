@@ -15,8 +15,8 @@ namespace Microsoft {
         namespace Telemetry {
 
 			std::mutex*          our_lockP = new std::mutex();
-			ILogManager*         our_pLogManagerSingletonInstanceP = NULL;
-			LogSessionData*      our_LogSessionDataP = NULL;
+			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
+			LogSessionData*      our_LogSessionDataP = nullptr;
 
             static volatile std::atomic_bool isInited = ATOMIC_VAR_INIT(false);
 
@@ -30,12 +30,12 @@ namespace Microsoft {
 				ARIASDK_LOG_DETAIL("Initialize[2]: tenantToken=%s, configuration=0x%X", tenantToken.c_str(), &configuration);
 				std::lock_guard<std::mutex> lock(*our_lockP);
 
-				if (our_pLogManagerSingletonInstanceP == NULL)
+				if (nullptr == our_pLogManagerSingletonInstanceP)
 				{
 					our_pLogManagerSingletonInstanceP = ILogManager::Create(configuration);
 				}
 
-				if (our_LogSessionDataP == NULL)
+				if (nullptr == our_LogSessionDataP)
 				{
 					our_LogSessionDataP = new LogSessionData(configuration.cacheFilePath);
 				}
@@ -49,7 +49,11 @@ namespace Microsoft {
             {
                 if (isInited.exchange(false)) {
                     ARIASDK_LOG_DETAIL("FlushAndTeardown()");
-                    our_pLogManagerSingletonInstanceP->FlushAndTeardown();
+                   
+                    if (nullptr != our_pLogManagerSingletonInstanceP)
+                    {
+                        our_pLogManagerSingletonInstanceP->FlushAndTeardown();
+                    }
                 }
                 else {
                     ARIASDK_LOG_DETAIL("FlushAndTeardown() has been already called.");
@@ -59,7 +63,10 @@ namespace Microsoft {
             void LogManager::UploadNow()
             {
                 ARIASDK_LOG_DETAIL("UploadNow()");
-                our_pLogManagerSingletonInstanceP->UploadNow();
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->UploadNow();
+                }
             }
 
             /// <summary>
@@ -68,7 +75,10 @@ namespace Microsoft {
             void LogManager::Flush()
             {
                 ARIASDK_LOG_DETAIL("Flush()");
-                our_pLogManagerSingletonInstanceP->Flush();
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->Flush();
+                }
             }
 
             /// <summary>
@@ -77,7 +87,10 @@ namespace Microsoft {
             void LogManager::PauseTransmission()
             {
                 ARIASDK_LOG_DETAIL("PauseTransmission()");
-                our_pLogManagerSingletonInstanceP->PauseTransmission();
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->PauseTransmission();
+                }
             }
 
             /// <summary>
@@ -86,7 +99,10 @@ namespace Microsoft {
             void LogManager::ResumeTransmission()
             {
                 ARIASDK_LOG_DETAIL("ResumeTransmission()");
-                our_pLogManagerSingletonInstanceP->ResumeTransmission();
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->ResumeTransmission();
+                }
             }
 
             /// <summary>
@@ -96,7 +112,10 @@ namespace Microsoft {
             void LogManager::SetTransmitProfile(TransmitProfile profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%d", profile);
-                our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
+                }
             }
 
             /// <summary>
@@ -106,7 +125,14 @@ namespace Microsoft {
             bool LogManager::SetTransmitProfile(const std::string& profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%s", profile.c_str());
-                return our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    return our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             /// <summary>
@@ -142,8 +168,15 @@ namespace Microsoft {
 			ISemanticContext* LogManager::GetSemanticContext()
             {
                 ARIASDK_LOG_DETAIL("GetSemanticContext()");
-				ISemanticContext& semanticContext = our_pLogManagerSingletonInstanceP->GetSemanticContext();
-                return &semanticContext;
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    ISemanticContext& semanticContext = our_pLogManagerSingletonInstanceP->GetSemanticContext();
+                    return &semanticContext;
+                }
+                else
+                {
+                    return nullptr;
+                }
             }
 
             /// <summary>
@@ -157,7 +190,10 @@ namespace Microsoft {
             void LogManager::_SetContext(const string& name, T value, PiiKind piiKind)
             {
                 ARIASDK_LOG_DETAIL("SetContext");
-                our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
             }
 
             /// <summary>
@@ -169,7 +205,10 @@ namespace Microsoft {
             void LogManager::SetContext(const std::string& name, const std::string& value, PiiKind piiKind) 
 			{
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind); 
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             /// <summary>
@@ -180,7 +219,10 @@ namespace Microsoft {
             /// <param name="piiKind"></param>
             void LogManager::SetContext(const std::string& name, double value, PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             /// <summary>
@@ -191,7 +233,10 @@ namespace Microsoft {
             /// <param name="piiKind"></param>
             void LogManager::SetContext(const std::string& name, int64_t value,            PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             /// <summary>
@@ -202,7 +247,10 @@ namespace Microsoft {
             /// <param name="piiKind"></param>
             void LogManager::SetContext(const std::string& name, bool value,               PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             /// <summary>
@@ -213,7 +261,10 @@ namespace Microsoft {
             /// <param name="piiKind"></param>
             void LogManager::SetContext(const std::string& name, time_ticks_t value,       PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             /// <summary>
@@ -224,25 +275,42 @@ namespace Microsoft {
             /// <param name="piiKind"></param>
             void LogManager::SetContext(const std::string& name, GUID_t value,             PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
-				our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
+                }
 			}
 
             ILogger* LogManager::GetLogger()
             {
                 ARIASDK_LOG_DETAIL("GetLogger()");
-                return our_pLogManagerSingletonInstanceP->GetLogger("test");
+                return nullptr;
             }
 
             ILogger* LogManager::GetLogger(const string& source)
             {
                 ARIASDK_LOG_DETAIL("GetLogger[1]: source=%s", source.c_str() );
-                return our_pLogManagerSingletonInstanceP->GetLogger(source);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    return our_pLogManagerSingletonInstanceP->GetLogger(source);
+                }
+                else
+                {
+                    return nullptr;
+                }
             }
 
             ILogger* LogManager::GetLogger(const std::string& tenantToken, const string& source)
             {
                 ARIASDK_LOG_DETAIL("GetLogger[2]: tenantToken=%s, source=%s", tenantToken.c_str(), source.c_str() );
-                return our_pLogManagerSingletonInstanceP->GetLogger(tenantToken, source);
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
+                    return our_pLogManagerSingletonInstanceP->GetLogger(tenantToken, source);
+                }
+                else
+                {
+                    return nullptr;
+                }
             }
 
             __inline void LogManager::checkup() { };
