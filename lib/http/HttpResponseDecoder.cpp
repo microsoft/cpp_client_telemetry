@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpResponseDecoder.hpp"
-#include <aria/IHttpClient.hpp>
-#include "utils/Common.hpp"
+#include "api\LogManager.hpp"
+#include <aria\IHttpClient.hpp>
+#include "utils\Common.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
@@ -47,6 +48,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             ARIASDK_LOG_INFO("HTTP request %s finished after %d ms, events were successfully uploaded to the server",
                 response.GetId().c_str(), ctx->durationMs);
             eventsAccepted(ctx);
+            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_OK);
             break;
         }
 
@@ -56,6 +58,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
             ARIASDK_LOG_DETAIL("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
             eventsRejected(ctx);
+            LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
             break;
         }
 

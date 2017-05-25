@@ -34,7 +34,7 @@ class RuntimeConfig_Default : public IRuntimeConfig {
 
   protected:
     std::string m_collectorUrl                    = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
-    std::string m_metaStatsTenantToken            = "d83bb8665b214f2280911be943f4ba38-cc380754-b7e4-4994-a4c1-417994a95905-7007";
+	std::string m_metaStatsTenantToken            = "ead4d35d9f17486581d6c09afbe41263-01b1a12d-a157-460b-8efd-af9a10b09682-7259";
     std::string m_uploadRetryBackoffConfig        = "E,3000,300000,2,1";
     unsigned    m_metaStatsSendIntervalSec        = 300;
     unsigned    m_offlineStorageMaximumSize       = 3 * 1024 * 1024;
