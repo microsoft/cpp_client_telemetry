@@ -90,7 +90,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
@@ -98,7 +98,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <GenerateManifest>false</GenerateManifest>
@@ -106,6 +106,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>false</GenerateManifest>
@@ -113,6 +114,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
@@ -120,6 +122,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
@@ -127,6 +130,7 @@
     <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
