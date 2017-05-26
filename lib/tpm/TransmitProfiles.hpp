@@ -81,6 +81,11 @@ namespace ARIASDK_NS_BEGIN {
                 /// </summary>
                 static PowerSource      currPowState;
 
+                /// <summary>
+                /// is timer updated
+                /// </summary>
+                static bool         isTimerUpdated;
+
             public:
 
                 TransmitProfiles();
@@ -162,6 +167,11 @@ namespace ARIASDK_NS_BEGIN {
                 /// 
                 /// </summary>
                 static void onTimersUpdated();
+
+                /// <summary>
+                /// 
+                /// </summary>
+                static bool isTimerUpdateRequired();                
 
                 /// <summary>
                 /// Select profile rule based on current device state

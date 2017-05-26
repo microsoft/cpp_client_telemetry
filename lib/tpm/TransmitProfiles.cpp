@@ -113,6 +113,7 @@ namespace Microsoft {
             size_t      TransmitProfiles::currRule        = 0;
             NetworkCost TransmitProfiles::currNetCost     = NetworkCost::NetworkCost_Any;
             PowerSource TransmitProfiles::currPowState    = PowerSource::PowerSource_Any;
+            bool        TransmitProfiles::isTimerUpdated  = true;
 
             /// <summary>
             /// Get current transmit profile name
@@ -222,89 +223,94 @@ namespace Microsoft {
             size_t TransmitProfiles::parse(const std::string& profiles_json)
 			{
                 size_t numProfilesParsed = 0;
-              //  json::Variant result;
-
                 // Temporary storage for the new profiles that we use before we copy to current profiles
                 std::vector<TransmitProfileRules> newProfiles;
 
-				json temp = json::parse(profiles_json.c_str());
+                try
+                {
+                    json temp = json::parse(profiles_json.c_str());
 
-                // Try to parse the JSON string into result variant
-				if (temp.is_array())
-				{
-					size_t numProfiles = temp.size();
-					if (numProfiles > MAX_TRANSMIT_PROFILES) {
-						goto parsing_failed;
+                    // Try to parse the JSON string into result variant
+                    if (temp.is_array())
+                    {
+                        size_t numProfiles = temp.size();
+                        if (numProfiles > MAX_TRANSMIT_PROFILES) {
+                            goto parsing_failed;
 
-					}
-					ARIASDK_LOG_DETAIL("got %u profiles", numProfiles);
-					for (auto it = temp.begin(); it != temp.end(); ++it)
-					{
-						TransmitProfileRules profile;
-						json rulesObj = it.value();
-						if (rulesObj.is_object())
-						{
-							std::string name = rulesObj[ATTR_NAME];
+                        }
+                        ARIASDK_LOG_DETAIL("got %u profiles", numProfiles);
+                        for (auto it = temp.begin(); it != temp.end(); ++it)
+                        {
+                            TransmitProfileRules profile;
+                            json rulesObj = it.value();
+                            if (rulesObj.is_object())
+                            {
+                                std::string name = rulesObj[ATTR_NAME];
 
-							profile.name = name;
-							json rules = rulesObj[ATTR_RULES];
+                                profile.name = name;
+                                json rules = rulesObj[ATTR_RULES];
 
-							if (rules.is_array())
-							{
-								size_t numRules = rules.size();
-								if (numRules > MAX_TRANSMIT_RULES)
-								{
-									ARIASDK_LOG_ERROR("Exceeded max transmit rules %d>%d for profile",
-										numRules, MAX_TRANSMIT_RULES);
-									goto parsing_failed;
-								}
+                                if (rules.is_array())
+                                {
+                                    size_t numRules = rules.size();
+                                    if (numRules > MAX_TRANSMIT_RULES)
+                                    {
+                                        ARIASDK_LOG_ERROR("Exceeded max transmit rules %d>%d for profile",
+                                            numRules, MAX_TRANSMIT_RULES);
+                                        goto parsing_failed;
+                                    }
 
-								profile.rules.clear();
-								for (auto itRule = rules.begin(); itRule != rules.end(); ++itRule)
-								{
-									if (itRule.value().is_object())
-									{
-										TransmitProfileRule rule;
-										auto itnetCost = itRule.value().find("netCost");
-										if (itRule.value().end() != itnetCost)
-										{
-											std::string netCost = itRule.value()["netCost"];
-											std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
-											if (iter != transmitProfileNetCost.end())
-											{
-												rule.netCost = static_cast<NetworkCost>(iter->second);
-											}
-										}
+                                    profile.rules.clear();
+                                    for (auto itRule = rules.begin(); itRule != rules.end(); ++itRule)
+                                    {
+                                        if (itRule.value().is_object())
+                                        {
+                                            TransmitProfileRule rule;
+                                            auto itnetCost = itRule.value().find("netCost");
+                                            if (itRule.value().end() != itnetCost)
+                                            {
+                                                std::string netCost = itRule.value()["netCost"];
+                                                std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
+                                                if (iter != transmitProfileNetCost.end())
+                                                {
+                                                    rule.netCost = static_cast<NetworkCost>(iter->second);
+                                                }
+                                            }
 
-										auto itpowerState = itRule.value().find("powerState");
-										if (itRule.value().end() != itpowerState)
-										{
-											std::string powerState = itRule.value()["powerState"];
-											std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
-											if (iter != transmitProfilePowerState.end())
-											{
-												rule.powerState = static_cast<PowerSource>(iter->second);
-											}
-										}
+                                            auto itpowerState = itRule.value().find("powerState");
+                                            if (itRule.value().end() != itpowerState)
+                                            {
+                                                std::string powerState = itRule.value()["powerState"];
+                                                std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
+                                                if (iter != transmitProfilePowerState.end())
+                                                {
+                                                    rule.powerState = static_cast<PowerSource>(iter->second);
+                                                }
+                                            }
 
-										auto timers = itRule.value()["timers"];
+                                            auto timers = itRule.value()["timers"];
 
-										for (auto i : timers)
-										{
-											if (i.is_number())
-											{
-												rule.timers.push_back(i);
-											}
-										}
-										profile.rules.push_back(rule);
-									}
+                                            for (auto i : timers)
+                                            {
+                                                if (i.is_number())
+                                                {
+                                                    rule.timers.push_back(i);
+                                                }
+                                            }
+                                            profile.rules.push_back(rule);
+                                        }
 
-								}
-							}
-						}
-						newProfiles.push_back(profile);
-					}
-				}
+                                    }
+                                }
+                            }
+                            newProfiles.push_back(profile);
+                        }
+                    }
+                }
+                catch (...)
+                {
+                    ARIASDK_LOG_ERROR("JSON parsing failed miserably! Please check your config to fix above errors.");
+                }
 
                 numProfilesParsed = newProfiles.size();
                 {
@@ -445,13 +451,23 @@ parsing_failed:
                     for (int timer : (it->second).rules[currRule].timers) {
                         out.push_back(timer * 1000);// convert time in milisec
                     }
+                    isTimerUpdated = false;
                 }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            bool TransmitProfiles::isTimerUpdateRequired()
+            {
+                return isTimerUpdated;
             }
 
             /// <summary>
             /// This function is called only from updateStates
             /// </summary>
             void TransmitProfiles::onTimersUpdated() {
+                isTimerUpdated = true;
                 auto it = profiles.find(currProfileName);
                 if (it != profiles.end()) {
 #if 1   /* Debug routine to print the list of currently selected timers */

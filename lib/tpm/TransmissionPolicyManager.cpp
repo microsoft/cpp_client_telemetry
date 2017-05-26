@@ -152,14 +152,23 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
         m_activeUploads.insert(ctx);
         initiateUpload(ctx);
     } 
-	else if (!m_isUploadScheduled) 
+	else if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
 	{
-		std::vector<int> timers;
-		TransmitProfiles::getTimers(timers);
-		if(timers.size() > 2)
-		{
-			m_timerdelay = timers[2];
-		}
+        if (m_isUploadScheduled)
+        {
+            m_scheduledUpload.cancel();
+            m_isUploadScheduled = false;
+        }
+
+        if (TransmitProfiles::isTimerUpdateRequired())
+        {
+            std::vector<int> timers;
+            TransmitProfiles::getTimers(timers);
+            if (timers.size() > 2)
+            {
+                m_timerdelay = timers[2];
+            }
+        }
 		scheduleUpload(m_timerdelay);
     }
 }
