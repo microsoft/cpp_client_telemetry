@@ -87,7 +87,7 @@ class UtcTelemetrySystem : public PAL::RefCountedImpl<UtcTelemetrySystem>,
     void handleIncomingEventPrepared(IncomingEventContextPtr const& event);
     void preparedIncomingEventAsync(IncomingEventContextPtr const& event);
     int sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx);
-    ProviderData getProviderFortoken(const std::string& tenantToken, const std::string& providerName);
+    ProviderData getProviderFortoken(const std::string& tenantToken);
 
   protected:
     bool                      m_isPaused;

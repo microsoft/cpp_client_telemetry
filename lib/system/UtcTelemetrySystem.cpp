@@ -272,7 +272,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     std::string appInfoAppName = eventCtx->source->Extension[COMMONFIELDS_APP_ID];
     eventCtx->source->Extension.erase(COMMONFIELDS_APP_ID);
 
-    ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken, appInfoAppName);
+    ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);
     if (0 == providerdata.providerHandle)
     { // invalid handle for provider, no need to log event for this token
         return -1;
@@ -744,7 +744,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
 }
 
 
-ProviderData UtcTelemetrySystem::getProviderFortoken(const std::string& tenantToken, const std::string& providerName)
+ProviderData UtcTelemetrySystem::getProviderFortoken(const std::string& tenantToken)
 {
     ProviderData  temp;
     temp.providerHandle = 0;

@@ -84,6 +84,7 @@ LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
         ARIASDK_LOG_DETAIL("Initializing UTC physical layer...");
         m_system = new UtcTelemetrySystem(configuration, *m_runtimeConfig, *m_context);
         m_system->start();
+        m_alive = true;
         return;
     }
 

@@ -41,7 +41,7 @@ bool IsUtcRegistrationEnabledinWindows()
 	return false;
 }
 
-bool RegisterIkeyWithWindowsTelemetry(std::string ikeyin, int storageSize, int uploadQuotaSize)
+bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize)
 {
 	// Initialize the Windows Runtime.
 	RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);

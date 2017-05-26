@@ -91,7 +91,6 @@ App::App()
 	configuration.traceLevelMask = 0xFFFFFFFF; // API calls + Global mask for general messages
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
 	configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
-	// configuration.useWindowsSamplinginUtcMode = true;
 
 #if 1 /* Use INT */
 	configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
