@@ -486,7 +486,7 @@ namespace Microsoft {
                 /// </summary>
                 void NetworkDetector::Stop()
                 {
-                    PostThreadMessage(m_listener_tid, -1, 0, NULL);
+                    PostThreadMessage(m_listener_tid, (UINT)-1, 0, NULL);
                     if ( isRunning && netDetectThread.joinable() )
                     {
                         std::unique_lock<std::mutex> lock(m_lock);
