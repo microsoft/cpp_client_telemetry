@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
 			m_delta = delta;
 		}
 
-		bool isClockSkewOn()
+		bool isClockSkewOn() const
 		{
 			if (!m_pingSent || (m_deltaReceived && !m_delta.empty()))
 			{
@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
 			return false;
 		}
 
-		bool isWaitingForClockSkew()
+		bool isWaitingForClockSkew() const
 		{
 			if (!m_deltaReceived && m_pingSent)
 			{

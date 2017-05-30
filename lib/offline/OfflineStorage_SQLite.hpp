@@ -39,7 +39,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     virtual void scheduleAutoCommitTransaction();
     void autoCommitTransaction();
     bool trimDbIfNeeded(size_t justAddedBytes);
-    std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
+    static std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
 
   protected:
     IOfflineStorageObserver*    m_observer;

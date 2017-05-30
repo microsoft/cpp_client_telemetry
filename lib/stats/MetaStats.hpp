@@ -62,7 +62,7 @@ class MetaStats
     /// <summary>
     /// Check if there's any stats data available to be sent.
     /// </summary>
-    bool hasStatsDataAvailable();
+    bool hasStatsDataAvailable() const;
 
     /// <summary>
     /// Reset TelemetryStats

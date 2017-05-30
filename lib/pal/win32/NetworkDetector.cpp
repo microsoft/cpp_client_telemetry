@@ -54,7 +54,7 @@ namespace Microsoft {
                     return result;
                 }
 
-                NetworkCost const& NetworkDetector::GetNetworkCost() {
+                NetworkCost const& NetworkDetector::GetNetworkCost() const {
                     return (NetworkCost const &)m_currentNetworkCost;
                 }
 
@@ -106,7 +106,7 @@ namespace Microsoft {
                 /// Get current network connectivity state
                 /// </summary>
                 /// <returns>Value of enum NLM_CONNECTIVITY</returns>
-                int NetworkDetector::GetConnectivity()
+                int NetworkDetector::GetConnectivity() const
                 {
                     return m_connectivity;
                 }
@@ -505,37 +505,37 @@ namespace Microsoft {
                     ARIASDK_LOG_DETAIL("NetworkDetector destroyed.");
                 }
 
-                /// <summary>
-                /// Get network cost name
-                /// </summary>
-                /// <param name="type"></param>
-                /// <returns></returns>
-                const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
-                {
-                    char *typeName;
-                    switch (type) {
-                    case NetworkCostType_Unrestricted:
-                        typeName = "Unrestricted";
-                        break;
-                    case NetworkCostType_Fixed:
-                        typeName = "Fixed";
-                        break;
-                    case NetworkCostType_Variable:
-                        typeName = "Variable";
-                    case NetworkCostType_Unknown:
-                    default:
-                        typeName = "Unknown";
-                        break;
-                    }
-                    return typeName;
-                }
+                ///// <summary>
+                ///// Get network cost name
+                ///// </summary>
+                ///// <param name="type"></param>
+                ///// <returns></returns>
+                //const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
+                //{
+                //    char *typeName;
+                //    switch (type) {
+                //    case NetworkCostType_Unrestricted:
+                //        typeName = "Unrestricted";
+                //        break;
+                //    case NetworkCostType_Fixed:
+                //        typeName = "Fixed";
+                //        break;
+                //    case NetworkCostType_Variable:
+                //        typeName = "Variable";
+                //    case NetworkCostType_Unknown:
+                //    default:
+                //        typeName = "Unknown";
+                //        break;
+                //    }
+                //    return typeName;
+                //}
 
-                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity()
+                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity() const
                 {
                     return m_networks_connectivity;
                 }
 
-                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity()
+                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity() const
                 {
                     return m_connections_connectivity;
                 }

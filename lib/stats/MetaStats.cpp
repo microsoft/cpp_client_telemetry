@@ -604,7 +604,7 @@ static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::Record& rec
 /// <param name="record">BondTypes::Record</param>
 /// <param name="prefix">prefix of the key name in record extension map</param>
 /// <param name="recordsRejectedCountReasonDistribution">count of rejected records by reason due to which records were rejected</param>
-static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::Record& record, std::string const& prefix, unsigned int recordsRejectedCountByReasonDistribution[])
+static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::Record& record, std::string const& prefix, const unsigned int recordsRejectedCountByReasonDistribution[])
 {
     std::map<std::string, std::string>& extension = record.Extension;
 
@@ -798,7 +798,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     }
 
     //RecordStats
-    TelemetryStats::RecordStats& recordStats = m_telemetryStats->recordStats;
+    const TelemetryStats::RecordStats& recordStats = m_telemetryStats->recordStats;
 
     insertNonZero(ext, "records_banned_count", recordStats.bannedCount);
 
@@ -975,7 +975,7 @@ void MetaStats::clearStats()
     storageStats.overwrittenSizeInKBytesDistribution.clear();
 }
 
-bool MetaStats::hasStatsDataAvailable()
+bool MetaStats::hasStatsDataAvailable() const
 {
     return (m_telemetryStats->recordStats.rejectedCount > 0 ||   // not used
            m_telemetryStats->recordStats.bannedCount > 0 ||      // not used

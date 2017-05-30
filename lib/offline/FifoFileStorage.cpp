@@ -543,7 +543,7 @@ LOAD_FAILED:
         }
 
         //return ALIGN_TO_POWER(uSize, alignSize);
-        return AlignToPower(uSize, alignSize);
+        return FIFOFileStorage::AlignToPower(uSize, alignSize);
     }
 
 	int FIFOFileStorage::GenerateFile()

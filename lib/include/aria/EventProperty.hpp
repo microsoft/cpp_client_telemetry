@@ -166,7 +166,7 @@ namespace Microsoft {
 				}
 #endif
 
-                void to_bytes(uint8_t (&guid_bytes) [16]);
+                void to_bytes(uint8_t(&guid_bytes)[16]) const;
 
                 std::string to_string() const
                 {

@@ -40,7 +40,7 @@ namespace ARIASDK_NS_BEGIN {
 			}
 		}
 
-		bool isClockSkewOn()
+		bool isClockSkewOn() const
 		{
 			{
 				if (!m_pingSent || (m_deltaReceived && !m_delta.empty()))
@@ -82,7 +82,7 @@ namespace ARIASDK_NS_BEGIN {
 			}
 		}
 
-		bool GetResumeTransmissionAfterClockSkew()
+		bool GetResumeTransmissionAfterClockSkew() const
 		{
 			return m_resumeTransmissionAfterClockSkew;
 		}

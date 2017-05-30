@@ -304,7 +304,7 @@ namespace Microsoft {
             /// <param name="guid_string"></param>
             GUID_t::GUID_t(const char* guid_string)
             {
-                char *str = (char *)(guid_string);
+                const char *str = (char *)(guid_string);
                 // Skip curly brace
                 if (str[0] == '{') {
                     str++;
@@ -361,7 +361,7 @@ namespace Microsoft {
                 }
             }
 
-            void GUID_t::to_bytes(uint8_t(&guid_bytes)[16])
+            void GUID_t::to_bytes(uint8_t(&guid_bytes)[16]) const
             {
                 // Part 1
                 guid_bytes[0] = (uint8_t)((Data1) & 0xFF);

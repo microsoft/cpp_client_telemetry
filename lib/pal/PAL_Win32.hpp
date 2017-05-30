@@ -536,7 +536,7 @@ inline void sleep(unsigned delayMs)
 
 // Populate per-platform fields in ISemanticContext and keep them updated during runtime.
 void registerSemanticContext(ISemanticContext * context);
-void unregisterSemanticContext(const ISemanticContext * context);
+void unregisterSemanticContext(ISemanticContext * context);
 
 // Convert various numeric types and bool to string in an uniform manner.
 template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>

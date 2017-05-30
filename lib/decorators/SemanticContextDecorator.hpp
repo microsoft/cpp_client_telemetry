@@ -22,7 +22,7 @@ class ARIASDK_LIBABI SemanticContextDecorator : public DecoratorBase {
 	{
 	}
 
-    bool decorate(::AriaProtocol::Record& record)
+    bool decorate(::AriaProtocol::Record& record) const
     {
         m_provider.writeToRecord(record);
         return true;

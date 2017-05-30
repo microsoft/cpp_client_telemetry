@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        unsigned long long getSesionFirstTime()
+        unsigned long long getSesionFirstTime() const
         {
             //LOG_DEBUG("ENTER/EXIT %s", __FUNCTION__);
             return m_sessionFirstTimeLaunch;
@@ -78,7 +78,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         /******************************************************************************
-        * LogManagerImpl::_PopulateSession
+        * LogSessionData::_PopulateSession
         *
         * Populate Session SDKUid or create it if it doesn't exist
         * Populate FirstTimeLauch or create it if it doesn't exist
@@ -87,7 +87,7 @@ namespace ARIASDK_NS_BEGIN {
         *
         ******************************************************************************/
 
-        unsigned long long to_long(char *string, size_t size)
+        static unsigned long long to_long(const char *string, size_t size)
         {
             unsigned long long number = 0;
 
@@ -139,7 +139,7 @@ namespace ARIASDK_NS_BEGIN {
 
                 if (strcmp(findItemInfo.Key.CustomProperty3, SESSION_FIRST_TIME) == 0)
                 {
-                    m_sessionFirstTimeLaunch = to_long(buffer, resultSize);
+                    m_sessionFirstTimeLaunch = LogSessionData::to_long(buffer, resultSize);
                     timeFound = (m_sessionFirstTimeLaunch != 0);
                 }
                 else if (strcmp(findItemInfo.Key.CustomProperty3, SESSION_SDKU_ID) == 0)

@@ -2608,7 +2608,7 @@ namespace tld
             Init(szUtf8Name, pGroupId);
         }
 
-        HRESULT InitializationResult()
+        HRESULT InitializationResult() const
         {
             return m_hrInitialization;
         }

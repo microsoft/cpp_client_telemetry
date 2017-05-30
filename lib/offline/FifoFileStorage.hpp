@@ -303,7 +303,7 @@ namespace ARIASDK_NS_BEGIN {
 		int  ReadFileInfo();
         void CheckBlockInfo();
         void BuildIndexInfo();
-        std::uint64_t CalculateFileSize(std::uint64_t fileSize, size_t alignSize);
+        static std::uint64_t CalculateFileSize(std::uint64_t fileSize, size_t alignSize);
 		int  GenerateFile();
 		int  UpdateBlockToDisk(LogicalBlockInfo& idx, const char *buffer, size_t buffSize);
 		size_t  FillFileHeader(size_t size, size_t block_size);
@@ -380,7 +380,7 @@ namespace ARIASDK_NS_BEGIN {
         */
 		int  PrepareFileForWrite();
 		int  AdjustFileSize(size_t newFileSize);
-        std::uint64_t  AlignToPower(std::uint64_t size, std::uint64_t alignSize);
+        static std::uint64_t  AlignToPower(std::uint64_t size, std::uint64_t alignSize);
 
         // Replica created for find operation
         // std::list<LogicalBlockInfo> m_LogicalBlocksReplica;

@@ -163,7 +163,7 @@ namespace Microsoft {
                     /// <summary>
                     /// 
                     /// </summary>
-                    bool isUp() { return isRunning; };
+                    bool isUp() const { return isRunning; };
 
                     /// <summary>
                     /// Createa network status listener
@@ -210,7 +210,7 @@ namespace Microsoft {
                     /// Get last cached network cost
                     /// </summary>
                     /// <returns></returns>
-                    NetworkCost const& NetworkDetector::GetNetworkCost();
+                    NetworkCost const& NetworkDetector::GetNetworkCost() const;
 
 
                     /// <summary>
@@ -220,10 +220,10 @@ namespace Microsoft {
                     /// <returns></returns>
                     std::string GetAdapterId(IConnectionProfile *profile);
 
-                    int NetworkDetector::GetConnectivity();
+                    int NetworkDetector::GetConnectivity() const;
 
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity();
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity();
+                    const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity() const;
+                    const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity() const;
 
                     void GetNetworkDetails();
 

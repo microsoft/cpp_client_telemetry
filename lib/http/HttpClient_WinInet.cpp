@@ -130,7 +130,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         }
     }
 
-    static void CALLBACK winInetCallback(const HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
+    static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);
 
