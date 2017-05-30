@@ -207,7 +207,7 @@ namespace Microsoft {
                 while (it != profiles.end())
                 {
                     if (defaultProfileNames.find((*it).first) != defaultProfileNames.end()) {
-                        it++;
+                        ++it;
                         continue;
                     }
                     it = profiles.erase(it);

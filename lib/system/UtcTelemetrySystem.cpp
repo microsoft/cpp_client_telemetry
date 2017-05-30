@@ -507,7 +507,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->ConfigurationIds.size() > 0)
     {
         std::map<std::string, std::string>::iterator iterConfigId;
-        for (iterConfigId = eventCtx->source->ConfigurationIds.begin(); iterConfigId != eventCtx->source->ConfigurationIds.end(); iterConfigId++)
+        for (iterConfigId = eventCtx->source->ConfigurationIds.begin(); iterConfigId != eventCtx->source->ConfigurationIds.end(); ++iterConfigId)
         {
             if (!iterConfigId->second.empty())
             {
@@ -523,7 +523,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->Extension.size() > 0)
     {
         std::map<std::string, std::string>::iterator iterExtension;
-        for (iterExtension = eventCtx->source->Extension.begin(); iterExtension != eventCtx->source->Extension.end(); iterExtension++)
+        for (iterExtension = eventCtx->source->Extension.begin(); iterExtension != eventCtx->source->Extension.end(); ++iterExtension)
         {
             if (!iterExtension->second.empty())
             {
@@ -539,7 +539,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->ContextIds.size() > 0)
     {
         std::map<std::string, std::string>::iterator iterContextIds;
-        for (iterContextIds = eventCtx->source->ContextIds.begin(); iterContextIds != eventCtx->source->ContextIds.end(); iterContextIds++)
+        for (iterContextIds = eventCtx->source->ContextIds.begin(); iterContextIds != eventCtx->source->ContextIds.end(); ++iterContextIds)
         {
             if (!iterContextIds->second.empty())
             {
@@ -555,7 +555,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->PIIExtensions.size() > 0)
     {
         std::map<std::string, AriaProtocol::PII>::iterator iterPii;
-        for (iterPii = eventCtx->source->PIIExtensions.begin(); iterPii != eventCtx->source->PIIExtensions.end(); iterPii++)
+        for (iterPii = eventCtx->source->PIIExtensions.begin(); iterPii != eventCtx->source->PIIExtensions.end(); ++iterPii)
         {
             if (!iterPii->second.RawContent.empty())
             {
@@ -584,7 +584,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->TypedExtensionBoolean.size() > 0)
     {
         std::map<std::string, bool>::iterator iterExtensionBooleanMap;
-        for (iterExtensionBooleanMap = eventCtx->source->TypedExtensionBoolean.begin(); iterExtensionBooleanMap != eventCtx->source->TypedExtensionBoolean.end(); iterExtensionBooleanMap++)
+        for (iterExtensionBooleanMap = eventCtx->source->TypedExtensionBoolean.begin(); iterExtensionBooleanMap != eventCtx->source->TypedExtensionBoolean.end(); ++iterExtensionBooleanMap)
         {
             std::string name = iterExtensionBooleanMap->first;
 
@@ -603,7 +603,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->TypedExtensionDateTime.size() > 0)
     {
         std::map<std::string, INT64>::iterator iterExtensionDateTimeMap;
-        for (iterExtensionDateTimeMap = eventCtx->source->TypedExtensionDateTime.begin(); iterExtensionDateTimeMap != eventCtx->source->TypedExtensionDateTime.end(); iterExtensionDateTimeMap++)
+        for (iterExtensionDateTimeMap = eventCtx->source->TypedExtensionDateTime.begin(); iterExtensionDateTimeMap != eventCtx->source->TypedExtensionDateTime.end(); ++iterExtensionDateTimeMap)
         {
             UINT64 temp = iterExtensionDateTimeMap->second;
             if (temp > 0)
@@ -627,7 +627,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->TypedExtensionInt64.size() > 0)
     {
         std::map<std::string, INT64>::iterator iterExtensionInt64Map;
-        for (iterExtensionInt64Map = eventCtx->source->TypedExtensionInt64.begin(); iterExtensionInt64Map != eventCtx->source->TypedExtensionInt64.end(); iterExtensionInt64Map++)
+        for (iterExtensionInt64Map = eventCtx->source->TypedExtensionInt64.begin(); iterExtensionInt64Map != eventCtx->source->TypedExtensionInt64.end(); ++iterExtensionInt64Map)
         {
             std::string name = iterExtensionInt64Map->first;
 
@@ -647,7 +647,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->TypedExtensionDouble.size() > 0)
     {
         std::map<std::string, double>::iterator iterExtensionDoubleMap;
-        for (iterExtensionDoubleMap = eventCtx->source->TypedExtensionDouble.begin(); iterExtensionDoubleMap != eventCtx->source->TypedExtensionDouble.end(); iterExtensionDoubleMap++)
+        for (iterExtensionDoubleMap = eventCtx->source->TypedExtensionDouble.begin(); iterExtensionDoubleMap != eventCtx->source->TypedExtensionDouble.end(); ++iterExtensionDoubleMap)
         {
             std::string name = iterExtensionDoubleMap->first;
 
@@ -667,7 +667,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     if (eventCtx->source->TypedExtensionGuid.size() > 0)
     {
         std::map<std::string, std::vector<uint8_t>>::iterator iterExtensionGuidMap;
-        for (iterExtensionGuidMap = eventCtx->source->TypedExtensionGuid.begin(); iterExtensionGuidMap != eventCtx->source->TypedExtensionGuid.end(); iterExtensionGuidMap++)
+        for (iterExtensionGuidMap = eventCtx->source->TypedExtensionGuid.begin(); iterExtensionGuidMap != eventCtx->source->TypedExtensionGuid.end(); ++iterExtensionGuidMap)
         {
             bool error = false;
             GUID temp = GUID_t::convertUintVectorToGUID(iterExtensionGuidMap->second);
@@ -693,7 +693,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         auto  structPartAExtsMD = builder.AddStruct(UTC_PARTA_ARIA_METADATA);
         structPartAExtsMD.AddFieldFixedArray(UTC_PARTA_ARIA_METADATA_FIELDS, static_cast<UINT16>(MD.size()), TypeMbcsString);
         std::vector<std::string>::iterator iterMD;
-        for (iterMD = MD.begin(); iterMD != MD.end(); iterMD++)
+        for (iterMD = MD.begin(); iterMD != MD.end(); ++iterMD)
         {
             dbuilder.AddString(iterMD->c_str());
         }
