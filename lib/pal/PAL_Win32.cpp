@@ -311,7 +311,7 @@ void registerSemanticContext(ISemanticContext* context)
 	}   
 }
 
-void unregisterSemanticContext(ISemanticContext* context)
+void unregisterSemanticContext(const ISemanticContext* context)
 {
 	UNREFERENCED_PARAMETER(context);
 }

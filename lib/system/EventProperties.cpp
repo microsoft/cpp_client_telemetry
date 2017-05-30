@@ -79,7 +79,7 @@ namespace Microsoft {
 				m_timestampInMillis = copy.m_timestampInMillis;
                 
                 std::map<std::string, EventProperty>::iterator iter;
-                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); iter++)
+                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
                 {
                     (*m_propertiesP)[iter->first] = iter->second;
                 }
@@ -95,7 +95,7 @@ namespace Microsoft {
 				m_timestampInMillis = copy.m_timestampInMillis;
 
                 std::map<std::string, EventProperty>::iterator iter;
-                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); iter++)
+                for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
                 {
                     (*m_propertiesP)[iter->first] = iter->second;
                 }
@@ -285,7 +285,7 @@ namespace Microsoft {
             const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties() const
             {
 				std::map<string, pair<string, PiiKind> > pIIExtensions;
-				for (auto &kv : (*m_propertiesP))
+				for (const auto &kv : (*m_propertiesP))
 				{
 					auto k = kv.first;
 					auto v = kv.second;

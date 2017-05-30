@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
 		{
 		}
 
-		void handleResponse(HttpHeaders& headers)
+		void handleResponse(const HttpHeaders& headers)
 		{
 			std::string timeString = headers.get("time-delta-millis");
 			if (!timeString.empty())

@@ -528,7 +528,7 @@ static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::
 
     // ext field will be in format distributionName_i_j
     for (it = distribution.begin(), next = it; it != distribution.end(); ++it) {
-        next++;
+        ++next;
         if (next == distribution.end()) {
             if (range) {
                 fieldValue += ">" + toString(it->first) + ":" + toString(it->second);
@@ -569,7 +569,7 @@ static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::
     for (std::map<std::string, unsigned int>::const_iterator it = distribution.begin(), next = it;
         it != distribution.end(); ++it)
     {
-        next++;
+        ++next;
         if (next == distribution.end()) {
             fieldValue += it->first + ":" + toString(it->second);
         } else {
@@ -749,7 +749,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     insertNonZero(ext, "stats_send_frequency_secs", m_runtimeConfig.GetMetaStatsSendIntervalSec());
 
     if (m_telemetryStats->offlineStorageEnabled) {
-        TelemetryStats::OfflineStorageStats& storageStats = m_telemetryStats->offlineStorageStats;
+        const TelemetryStats::OfflineStorageStats& storageStats = m_telemetryStats->offlineStorageStats;
         ext["offline_storage_format_type"] = storageStats.storageFormat;
         if (!storageStats.lastFailureReason.empty()) {
             ext["offline_storage_last_failure"] = storageStats.lastFailureReason;
@@ -758,7 +758,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     }
 
     //package stats
-    TelemetryStats::PackageStats& packageStats = m_telemetryStats->packageStats;
+    const TelemetryStats::PackageStats& packageStats = m_telemetryStats->packageStats;
     insertNonZero(ext, "requests_not_to_be_acked", packageStats.totalPkgsNotToBeAcked);
     insertNonZero(ext, "requests_to_be_acked", packageStats.totalPkgsToBeAcked);
     insertNonZero(ext, "requests_acked", packageStats.totalPkgsAcked);
@@ -771,7 +771,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     insertNonZero(ext, "rm_bw_bytes_consumed_count", packageStats.totalBandwidthConsumedInBytes);
 
     //bandwidth stats
-    TelemetryStats::BandwidthStats& bandwidthStats = m_telemetryStats->bandwidthStats;
+    const TelemetryStats::BandwidthStats& bandwidthStats = m_telemetryStats->bandwidthStats;
     if (bandwidthStats.bwChangedCount > 0) {
         ARIASDK_LOG_DETAIL("max, min, avg bandwidth are added to record extension field");
 
@@ -791,7 +791,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     //RTTStats
     if (packageStats.successPkgsAcked > 0) {
         ARIASDK_LOG_DETAIL("rttStats is added to record ext field");
-        TelemetryStats::LatencyStats& rttStats = m_telemetryStats->rttStats;
+        const TelemetryStats::LatencyStats& rttStats = m_telemetryStats->rttStats;
         insertNonZero(ext, "rtt_millisec_max", rttStats.maxOfLatencyInMilliSecs);
         insertNonZero(ext, "rtt_millisec_min", rttStats.minOfLatencyInMilliSecs);
         addAggregatedMapToRecordFields(record, "rtt_millisec_distribution", rttStats.latencyDistribution);
@@ -835,7 +835,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     // per priority RecordStats
 
     // Low priority RecordStats
-    TelemetryStats::RecordStats& lowPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Low];
+    const TelemetryStats::RecordStats& lowPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Low];
     insertNonZero(ext, "low_priority_records_banned_count",                 lowPriorityrecordStats.bannedCount);
     insertNonZero(ext, "low_priority_records_received_count",               lowPriorityrecordStats.receivedCount);
     insertNonZero(ext, "low_priority_records_sent_count",                   lowPriorityrecordStats.sentCount);
@@ -849,14 +849,14 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
         insertNonZero(ext, "low_priority_records_received_size_bytes",      lowPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (lowPriorityrecordStats.sentCount > 0) {
-        TelemetryStats::LatencyStats& logToSuccessfulSendLatencyLow = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Low];
+        const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyLow = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Low];
         insertNonZero(ext, "low_priority_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyLow.maxOfLatencyInMilliSecs);
         insertNonZero(ext, "low_priority_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyLow.minOfLatencyInMilliSecs);
         addAggregatedMapToRecordFields(record, "low_priority_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyLow.latencyDistribution);
     }
 
     // Normal priority RecordStats
-    TelemetryStats::RecordStats& normalPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Normal];
+    const TelemetryStats::RecordStats& normalPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Normal];
     insertNonZero(ext, "normal_priority_records_banned_count",                 normalPriorityrecordStats.bannedCount);
     insertNonZero(ext, "normal_priority_records_received_count",               normalPriorityrecordStats.receivedCount);
     insertNonZero(ext, "normal_priority_records_sent_count",                   normalPriorityrecordStats.sentCount);
@@ -870,14 +870,14 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
         insertNonZero(ext, "normal_priority_records_received_size_bytes",      normalPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (normalPriorityrecordStats.sentCount > 0) {
-        TelemetryStats::LatencyStats& logToSuccessfulSendLatencyNormal = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Normal];
+        const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyNormal = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Normal];
         insertNonZero(ext, "normal_priority_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyNormal.maxOfLatencyInMilliSecs);
         insertNonZero(ext, "normal_priority_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyNormal.minOfLatencyInMilliSecs);
         addAggregatedMapToRecordFields(record, "normal_priority_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyNormal.latencyDistribution);
     }
 
     // High priority RecordStats
-    TelemetryStats::RecordStats& highPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_High];
+    const TelemetryStats::RecordStats& highPriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_High];
     insertNonZero(ext, "high_priority_records_banned_count",                 highPriorityrecordStats.bannedCount);
     insertNonZero(ext, "high_priority_records_received_count",               highPriorityrecordStats.receivedCount);
     insertNonZero(ext, "high_priority_records_sent_count",                   highPriorityrecordStats.sentCount);
@@ -891,14 +891,14 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
         insertNonZero(ext, "high_priority_records_received_size_bytes",      highPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (highPriorityrecordStats.sentCount > 0) {
-        TelemetryStats::LatencyStats& logToSuccessfulSendLatencyHigh = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_High];
+        const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyHigh = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_High];
         insertNonZero(ext, "high_priority_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyHigh.maxOfLatencyInMilliSecs);
         insertNonZero(ext, "high_priority_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyHigh.minOfLatencyInMilliSecs);
         addAggregatedMapToRecordFields(record, "high_priority_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyHigh.latencyDistribution);
     }
 
     // Immediate priority RecordStats
-    TelemetryStats::RecordStats& immediatePriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Immediate];
+    const TelemetryStats::RecordStats& immediatePriorityrecordStats = m_telemetryStats->recordStatsPerPriority[EventPriority_Immediate];
     insertNonZero(ext, "immediate_priority_records_banned_count",                 immediatePriorityrecordStats.bannedCount);
     insertNonZero(ext, "immediate_priority_records_received_count",               immediatePriorityrecordStats.receivedCount);
     insertNonZero(ext, "immediate_priority_records_sent_count",                   immediatePriorityrecordStats.sentCount);
@@ -911,7 +911,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
         insertNonZero(ext, "immediate_priority_records_received_size_bytes",      immediatePriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (immediatePriorityrecordStats.sentCount > 0) {
-        TelemetryStats::LatencyStats& logToSuccessfulSendLatencyImmediate = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Immediate];
+        const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyImmediate = m_telemetryStats->logToSuccessfulSendLatencyPerPriority[EventPriority_Immediate];
         insertNonZero(ext, "immediate_priority_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyImmediate.maxOfLatencyInMilliSecs);
         insertNonZero(ext, "immediate_priority_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyImmediate.minOfLatencyInMilliSecs);
         addAggregatedMapToRecordFields(record, "immediate_priority_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyImmediate.latencyDistribution);

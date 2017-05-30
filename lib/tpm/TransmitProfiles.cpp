@@ -329,7 +329,7 @@ namespace Microsoft {
                     // Print combined list of profiles: default + custom
                     ARIASDK_LOG_DETAIL("Profiles:");
                     size_t i = 0;
-                    for (auto &kv : profiles) {
+                    for (const auto &kv : profiles) {
                         ARIASDK_LOG_DETAIL("[%d] %s%s", i, kv.first.c_str(),
                             (!kv.first.compare(currProfileName))?
                             " [active]":""
@@ -499,7 +499,7 @@ parsing_failed:
                         // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
                         currRule = 0;
                         for (size_t i = 0; i < profile.rules.size(); i++) {
-                            auto &rule = profile.rules[i];
+                            const auto &rule = profile.rules[i];
                             if ((
                                 (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
                                 ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))

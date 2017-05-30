@@ -749,7 +749,7 @@ LOAD_FAILED:
                 }
                 else 
                 {
-                    PhysicalBlockInfo& nextBlock = m_PhysicalBlocks[block.NextBlockId];
+                    const PhysicalBlockInfo& nextBlock = m_PhysicalBlocks[block.NextBlockId];
                     if (!nextBlock.IsBlockInUse() || nextBlock.PreviousBlockId != static_cast<int>(i))
                     {
                         ///< these two blocks are all broken and need be reclaimed
@@ -766,7 +766,7 @@ LOAD_FAILED:
                 }
                 else 
                 {
-                    PhysicalBlockInfo& prevBlock = m_PhysicalBlocks[block.PreviousBlockId];
+                    const PhysicalBlockInfo& prevBlock = m_PhysicalBlocks[block.PreviousBlockId];
                     if (!prevBlock.IsBlockInUse() || prevBlock.NextBlockId != static_cast<int>(i))
                     {
                         block.SizeInBytes = 0;
@@ -808,7 +808,7 @@ LOAD_FAILED:
             blockMap.insert(std::make_pair(physicalBlockKey, pCurrentBlock));
         }
         // Build logical blocks from physical blocks
-        for (std::map<BlockKey, PhysicalBlockInfo*, BlockKeyComparer>::iterator iter = blockMap.begin(); iter != blockMap.end(); iter++)
+        for (std::map<BlockKey, PhysicalBlockInfo*, BlockKeyComparer>::iterator iter = blockMap.begin(); iter != blockMap.end(); ++iter)
         {
             LogicalBlockInfo logicalBlockInfo = {};
 
@@ -863,11 +863,11 @@ LOAD_FAILED:
         if (logicalBlockCount != indexedBlocksCount)
         {
             std::vector<bool> isPhysicalBlockIndexed(m_FileHeader.physicalBlockCount);
-            for (LogicalBlockIterator iter = m_LogicalBlocks.begin(); iter != m_LogicalBlocks.end(); iter++)
+            for (LogicalBlockIterator iter = m_LogicalBlocks.begin(); iter != m_LogicalBlocks.end(); ++iter)
             {
                 LogicalBlockInfo logicalBlockInfo = iter->second;
 				size_t physicalBlockIndex = logicalBlockInfo.FirstPhysicalBlockIndex;
-                PhysicalBlockInfo* pPhysicalBlockInfo = &m_PhysicalBlocks[physicalBlockIndex];
+                const PhysicalBlockInfo* pPhysicalBlockInfo = &m_PhysicalBlocks[physicalBlockIndex];
 
                 while (1)
                 {
@@ -1099,7 +1099,7 @@ LOAD_FAILED:
         }
         else
         {
-            m_findIter++;
+            ++m_findIter;
         }
 
         if (m_findIter == m_LogicalBlocks.end())
@@ -1351,7 +1351,7 @@ LOAD_FAILED:
     {
         size_t contentsSize = 0;
 
-        for (LogicalBlockIterator iter = m_LogicalBlocks.begin(); iter != m_LogicalBlocks.end(); iter++)
+        for (LogicalBlockIterator iter = m_LogicalBlocks.begin(); iter != m_LogicalBlocks.end(); ++iter)
         {
             const LogicalBlockInfo& logicalBlockInfo = iter->second;
             contentsSize += logicalBlockInfo.SizeInBytes;

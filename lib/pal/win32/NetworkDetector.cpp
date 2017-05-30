@@ -28,7 +28,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name"></param>
                 /// <returns></returns>
-                std::string to_string(HString *name)
+                std::string to_string(const HString *name)
                 {
                     UINT32 length;
                     PCWSTR rawString = name->GetRawBuffer(&length);
