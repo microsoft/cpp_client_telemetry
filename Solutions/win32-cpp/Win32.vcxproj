@@ -111,7 +111,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <Profile>true</Profile>
     </Link>
     <ProjectReference>
@@ -142,7 +143,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <Profile>true</Profile>
     </Link>
     <ProjectReference>
@@ -174,7 +176,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -205,7 +208,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>

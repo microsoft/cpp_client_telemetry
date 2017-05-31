@@ -141,7 +141,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
@@ -215,7 +216,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>

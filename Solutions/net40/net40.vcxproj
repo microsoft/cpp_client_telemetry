@@ -148,7 +148,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
@@ -216,7 +216,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
