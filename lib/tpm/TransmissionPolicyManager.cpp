@@ -53,6 +53,12 @@ void TransmissionPolicyManager::scheduleUpload(int delayInMs)
 {
     ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec", delayInMs);
 
+    if (m_isUploadScheduled)
+    {
+        m_scheduledUpload.cancel();
+        m_isUploadScheduled = false;
+    }
+
     m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync);
     m_isUploadScheduled = true;
 }

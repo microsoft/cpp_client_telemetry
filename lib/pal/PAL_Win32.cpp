@@ -277,9 +277,9 @@ int64_t getMonotonicTimeMs()
     static int64_t ticksPerMillisecond;
     if (!frequencyQueried) {
         // There is no harm in querying twice in case of a race condition.
-        LARGE_INTEGER ticksPerSecond;
-        ::QueryPerformanceFrequency(&ticksPerSecond);
-        ticksPerMillisecond = ticksPerSecond.QuadPart / 1000;
+        LARGE_INTEGER ticksPerSecondl;
+        ::QueryPerformanceFrequency(&ticksPerSecondl);
+        ticksPerMillisecond = ticksPerSecondl.QuadPart / 1000;
         frequencyQueried = true;
     }
 
