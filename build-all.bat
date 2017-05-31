@@ -31,7 +31,7 @@ msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsumm
 
 echo ***************************************************************************************************
 echo ***************************************************************************************************
-echo ** Creating Win32 Release ...                                                                   **
+echo ** Creating Win32 Release ...                                                                    **
 echo ***************************************************************************************************
 echo ***************************************************************************************************
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32

@@ -149,7 +149,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>Mfplat.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Bscmake>
@@ -191,7 +192,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>Mfplat.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -211,7 +213,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>Mfplat.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
@@ -231,7 +234,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(Configuration)\$(Platform)\sqliteUWP.lib;msxml6.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>Mfplat.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
