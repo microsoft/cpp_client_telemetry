@@ -454,7 +454,7 @@ namespace tld
     */
     inline HRESULT RegisterProvider(
         _Out_ REGHANDLE* phProvider,
-        _In_ GUID* pProviderId,
+        _In_ const GUID* pProviderId,
         _In_count_x_((UINT16*)pProviderMetadata) UINT8 const* pProviderMetadata,
         _In_opt_ PENABLECALLBACK pEnableCallback = 0,
         _In_opt_ void* pEnableCallbackContext = 0);
@@ -1739,7 +1739,7 @@ namespace tld
 
     inline HRESULT RegisterProvider(
         _Out_ REGHANDLE* phProvider,
-        _In_ GUID* pProviderId,
+        _In_ const GUID* pProviderId,
         _In_count_x_((UINT16*)pProviderMetadata) UINT8 const* pProviderMetadata,
         _In_opt_ PENABLECALLBACK pEnableCallback,
         _In_opt_ void* pEnableCallbackContext)
@@ -2608,7 +2608,7 @@ namespace tld
             Init(szUtf8Name, pGroupId);
         }
 
-        HRESULT InitializationResult()
+        HRESULT InitializationResult() const
         {
             return m_hrInitialization;
         }

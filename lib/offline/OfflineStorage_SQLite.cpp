@@ -182,7 +182,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
 
     ARIASDK_LOG_DETAIL("Reserving %u event(s) {%s%s} for %u milliseconds",
         static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
-    std::vector<uint8_t> idList = packageIdList(consumedIds);
+    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(consumedIds);
     if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
         ARIASDK_LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
         recreate(207);
@@ -231,7 +231,7 @@ void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& id
         return;
     }
 
-    std::vector<uint8_t> idList = packageIdList(ids);
+    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(ids);
     if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
         ARIASDK_LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
             static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
@@ -273,7 +273,7 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
         return;
     }
 
-    std::vector<uint8_t> idList = packageIdList(ids);
+    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(ids);
     SqliteStatement releaseStmt(*m_db, m_stmtReleaseEvents_ids_retryCountDelta);
     if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0)) {
         ARIASDK_LOG_ERROR("Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",

@@ -78,7 +78,7 @@ bool HttpClientManager::handleCancelAllRequestsAsync()
         ARIASDK_LOG_DETAIL("Cancelling %u outstanding HTTP requests...",
             static_cast<unsigned>(m_httpCallbacks.size()));
 
-        for (HttpCallback* callback : m_httpCallbacks) {
+        for (const HttpCallback* callback : m_httpCallbacks) {
             m_httpClient.CancelRequestAsync(callback->m_ctx->httpRequestId);
         }
         // Requests will be cancelled asynchronously.

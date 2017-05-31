@@ -138,7 +138,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
             {"KeyboardEnter",      101}
         };
 
-        EnumValueName const names_InputDeviceType[] = {
+        static EnumValueName const names_InputDeviceType[] = {
             {"Unspecified",          0},
             {"Unknown",              1},
             {"Other",                2},
@@ -242,7 +242,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
         return true;
     }
 
-    std::string SessionDurationBucket(const int64_t time_in_seconds)
+    static std::string SessionDurationBucket(const int64_t time_in_seconds)
     {
         if (time_in_seconds < 0)
             return "Undefined";
@@ -283,7 +283,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
         if (duration >  0)
         {   // This fields are added only for the ended session
             setInt64Value(record.TypedExtensionInt64, SESSION_DURATION, duration);
-            setIfNotEmpty(record.Extension,           SESSION_DURATION_BUCKET, SessionDurationBucket(duration));
+            setIfNotEmpty(record.Extension,           SESSION_DURATION_BUCKET, SemanticApiDecorators::SessionDurationBucket(duration));
         }
                     
         return true;

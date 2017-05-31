@@ -33,7 +33,7 @@ class Backoff_ExponentialWithJitter : public IBackoff {
         m_multiplier(multiplier),
         m_jitter(jitter)
     {
-        reset();
+        reset_private();
     }
 
     bool good() const
@@ -43,27 +43,12 @@ class Backoff_ExponentialWithJitter : public IBackoff {
 
     virtual void reset() override
     {
-        m_currentBase  = 0.0;
-        m_currentRange = 0.0;
-        m_step         = 0.0;
-        increase();
+        reset_private();
     }
 
     virtual void increase() override
     {
-        if (m_currentBase + m_currentRange >= m_maximumValue) {
-            return;
-        }
-
-        m_currentBase  =                    floor(m_initialValue * pow(m_multiplier, m_step));
-        m_currentRange = (m_jitter > 0.0) ? floor(m_initialValue * pow(m_multiplier, m_step + m_jitter) - m_currentBase) : 0.0;
-
-        if (m_currentBase + m_currentRange > m_maximumValue) {
-            m_currentBase  = std::max(m_initialValue, m_maximumValue - m_currentRange);
-            m_currentRange = std::min(m_currentRange, m_maximumValue - m_currentBase);
-        }
-
-        m_step += 1.0;
+        increase_private();
     }
 
     virtual int getValue() override
@@ -81,6 +66,34 @@ class Backoff_ExponentialWithJitter : public IBackoff {
     double m_initialValue, m_maximumValue, m_multiplier, m_jitter;
     double m_currentBase, m_currentRange, m_step;
     PAL::PseudoRandomGenerator m_rand;
+
+private:
+    // Private implementation of reset--exists to avoid calling virtual methods in ctor
+    void reset_private()
+    {
+        m_currentBase = 0.0;
+        m_currentRange = 0.0;
+        m_step = 0.0;
+        increase_private();
+    }
+
+    // Private implementation of increase--exists to avoid calling virtual methods in ctor
+    void increase_private()
+    {
+        if (m_currentBase + m_currentRange >= m_maximumValue) {
+            return;
+        }
+
+        m_currentBase = floor(m_initialValue * pow(m_multiplier, m_step));
+        m_currentRange = (m_jitter > 0.0) ? floor(m_initialValue * pow(m_multiplier, m_step + m_jitter) - m_currentBase) : 0.0;
+
+        if (m_currentBase + m_currentRange > m_maximumValue) {
+            m_currentBase = std::max(m_initialValue, m_maximumValue - m_currentRange);
+            m_currentRange = std::min(m_currentRange, m_maximumValue - m_currentBase);
+        }
+
+        m_step += 1.0;
+    }
 };
 
 

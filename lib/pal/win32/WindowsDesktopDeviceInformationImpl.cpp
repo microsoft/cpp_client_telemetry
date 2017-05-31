@@ -59,7 +59,7 @@ namespace Microsoft {
                             if (pAdapterInfo->AdapterName != NULL)
                             {
                                 netIfGuid = _strdup(pAdapterInfo->AdapterName);
-                                _strlwr(netIfGuid);
+                                _strlwr_s(netIfGuid, lstrlen(netIfGuid) + 1);
                             }
                             FREE(pAdapterInfo);
                         }
