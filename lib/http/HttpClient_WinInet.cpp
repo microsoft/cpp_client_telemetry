@@ -60,6 +60,11 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         m_hWinInetRequest = NULL;
     }
 
+#ifndef _DEBUG
+// bResult is only used inside an assertion
+#pragma warning(push)
+#pragma warning(disable:4189)
+#endif
     void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
@@ -130,9 +135,15 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             onRequestComplete(dwError);
         }
     }
+#ifndef _DEBUG
+#pragma warning(pop)
+#endif
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
+#ifndef DEBUG
+        UNREFERENCED_PARAMETER(dwStatusInformationLength);  // Only used inside an assertion
+#endif
         OACR_USE_PTR(hInternet);
 
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);
