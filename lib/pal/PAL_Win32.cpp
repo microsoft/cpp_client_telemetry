@@ -8,6 +8,7 @@
 #include <list>
 #include <memory>
 #include <Objbase.h>
+#include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
 namespace PAL {
@@ -314,6 +315,7 @@ void registerSemanticContext(ISemanticContext* context)
 void unregisterSemanticContext(ISemanticContext* context)
 {
 	UNREFERENCED_PARAMETER(context);
+    OACR_USE_PTR(this);
 }
 
 //---

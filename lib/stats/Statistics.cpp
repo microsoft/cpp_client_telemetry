@@ -3,6 +3,7 @@
 #include "Statistics.hpp"
 #include "api\LogManager.hpp"
 #include "utils\Common.hpp"
+#include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
         
@@ -122,6 +123,7 @@ bool Statistics::handleOnUploadStarted(EventsUploadContextPtr const& ctx)
 bool Statistics::handleOnPackagingFailed(EventsUploadContextPtr const& ctx)
 {
     UNREFERENCED_PARAMETER(ctx);
+    OACR_USE_PTR(this);
     return true;
 }
 

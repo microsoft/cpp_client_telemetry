@@ -8,6 +8,7 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -77,7 +78,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         char path[1024];
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlA(request->m_url.data(), request->m_url.size(), 0, &urlc)) {
+        if (!::InternetCrackUrlA(request->m_url.data(), (DWORD)request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
             ARIASDK_LOG_WARNING("InternetCrackUrl() failed: %d", dwError);
             onRequestComplete(dwError);
@@ -119,7 +120,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         // Take over the body buffer ownership, it must stay alive until
         // the async operation finishes.
         m_bodyBuffer.swap(request->m_body);
-        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), m_bodyBuffer.size());
+        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
 
         DWORD dwError = GetLastError();
         assert(!bResult);
@@ -132,6 +133,8 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
+        OACR_USE_PTR(hInternet);
+
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);
 
         ARIASDK_LOG_DETAIL("winInetCallback: hInternet %p, dwContext %p, dwInternetStatus %u", hInternet, dwContext, dwInternetStatus);

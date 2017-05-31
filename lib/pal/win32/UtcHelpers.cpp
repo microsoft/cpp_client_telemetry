@@ -62,7 +62,7 @@ bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize
 	std::wstring wstrTo(size, 0);
 	MultiByteToWideChar(CP_UTF8, 0, ikeyin.c_str(), (int)ikeyin.size(), &wstrTo[0], size);
 	HString ikey;
-	hr = ikey.Set(wstrTo.c_str(), wstrTo.size());
+	hr = ikey.Set(wstrTo.c_str(), (DWORD)wstrTo.size());
 
 
 	PlatformTelemetryRegistrationStatus status = PlatformTelemetryRegistrationStatus_UnknownFailure;
