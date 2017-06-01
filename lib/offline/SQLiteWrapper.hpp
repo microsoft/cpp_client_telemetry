@@ -3,6 +3,7 @@
 #pragma once
 #include <aria/Version.hpp>
 #include "pal/PAL.hpp"
+#include "../../sqlite/sqlite3.h"
 #include "ISqlite3Proxy.hpp"
 #include <algorithm>
 #include <map>

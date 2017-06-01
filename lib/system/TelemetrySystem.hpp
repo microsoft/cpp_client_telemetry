@@ -60,6 +60,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
     Statistics                stats;
     TransmissionPolicyManager tpm;
     ClockSkewDelta            clockSkewDelta;
+    LogConfiguration          configuration;
 #if ARIASDK_UTC_ENABLED
     UtcForwarder              utcForwarder;
 #endif

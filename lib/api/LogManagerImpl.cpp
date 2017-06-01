@@ -372,7 +372,6 @@ ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, std::string c
 
 void LogManagerImpl::addIncomingEvent(IncomingEventContextPtr const& event)
 {
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
     if (m_system)
     {
         m_system->addIncomingEventSystem(event);

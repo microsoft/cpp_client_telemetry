@@ -20,13 +20,14 @@ TransmissionPolicyManager::TransmissionPolicyManager(IRuntimeConfig& runtimeConf
     m_isPaused(true),
     m_isUploadScheduled(false),
     m_finishing(false),
-	m_timerdelay(DEFAULT_DELAY_SEND_HTTP)
+	m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
+    m_uploadInProgress(false)
 {
     m_backoffConfig = "E,3000,300000,2,1";
     m_backoff = IBackoff::createFromConfig(m_backoffConfig);
     assert(m_backoff);
-	TransmitProfiles::setDefaultProfile(TransmitProfile::TransmitProfile_RealTime);
-	TransmitProfiles::updateStates(NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging);
+	//TransmitProfiles::setDefaultProfile(TransmitProfile::TransmitProfile_RealTime);
+	//TransmitProfiles::updateStates(NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging);
 	m_deviceStateHandler.Start();
 }
 
@@ -61,6 +62,7 @@ void TransmissionPolicyManager::scheduleUpload(int delayInMs)
 
     m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync);
     m_isUploadScheduled = true;
+    m_uploadInProgress = true;
 }
 
 void TransmissionPolicyManager::uploadAsync()
@@ -101,6 +103,10 @@ void TransmissionPolicyManager::uploadAsync()
 void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
 {
     m_activeUploads.erase(ctx);
+    if (m_activeUploads.empty())
+    {
+        m_uploadInProgress = false;
+    }
 
     if (m_finishing) {
         if (m_activeUploads.empty()) {

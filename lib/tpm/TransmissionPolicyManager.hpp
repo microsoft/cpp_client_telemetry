@@ -19,6 +19,7 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     TransmissionPolicyManager(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController);
     virtual ~TransmissionPolicyManager();
 	virtual void scheduleUpload(int delayInMs);
+    virtual bool isUploadInProgress() { return m_uploadInProgress; }
 
   protected:
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
@@ -55,6 +56,7 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
 
     std::set<EventsUploadContextPtr> m_activeUploads;
 	int                              m_timerdelay;
+    bool                             m_uploadInProgress;
 
   public:
     RoutePassThrough<TransmissionPolicyManager>                          start{this, &TransmissionPolicyManager::handleStart};

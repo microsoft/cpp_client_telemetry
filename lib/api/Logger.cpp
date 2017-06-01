@@ -37,9 +37,9 @@ Logger::~Logger()
     if (m_sessionIdP) delete m_sessionIdP;
 }
 
-ISemanticContext& Logger::GetSemanticContext()
+ISemanticContext* Logger::GetSemanticContext() const
 {
-    return m_context;
+    return (ISemanticContext*)&m_context;
 }
 
 /******************************************************************************
@@ -94,6 +94,7 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
 }
 
 void Logger::LogEvent(std::string const& name)
@@ -122,6 +123,7 @@ void Logger::LogEvent(EventProperties const& properties)
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
 }
 
 void Logger::LogFailure(
@@ -146,6 +148,7 @@ void Logger::LogFailure(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
 }
 
 void Logger::LogFailure(
@@ -179,6 +182,7 @@ void Logger::LogPageView(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
 }
 
 void Logger::LogPageView(
@@ -217,6 +221,7 @@ void Logger::LogPageAction(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
 }
 
 void Logger::LogSampledMetric(
@@ -243,6 +248,7 @@ void Logger::LogSampledMetric(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
 }
 
 void Logger::LogSampledMetric(
@@ -283,6 +289,7 @@ void Logger::LogAggregatedMetric(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
 }
 
 void Logger::LogTrace(
@@ -305,6 +312,7 @@ void Logger::LogTrace(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_TRACE);
 }
 
 void Logger::LogUserState(
@@ -327,6 +335,7 @@ void Logger::LogUserState(
     }
 
     submit(record, priority, properties.GetPolicyBitFlags());
+    LogManager::DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
 }
 
 bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)

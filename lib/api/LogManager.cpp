@@ -18,8 +18,6 @@ namespace Microsoft {
 			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
 			LogSessionData*      our_LogSessionDataP = nullptr;
 
-            static volatile std::atomic_bool isInited = ATOMIC_VAR_INIT(false);
-
 			ILogger* LogManager::Initialize(const std::string& tenantToken)
 			{
 				return LogManager::Initialize(tenantToken, LogConfiguration());
@@ -41,18 +39,23 @@ namespace Microsoft {
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
-				//isInited = result->IsInitialized();
+				
 				return result;
 			}
 
             void LogManager::FlushAndTeardown()
             {
-                if (isInited.exchange(false)) {
+                if (nullptr != our_pLogManagerSingletonInstanceP)
+                {
                     ARIASDK_LOG_DETAIL("FlushAndTeardown()");
                    
+                    std::lock_guard<std::mutex> lock(*our_lockP);
+
                     if (nullptr != our_pLogManagerSingletonInstanceP)
                     {
                         our_pLogManagerSingletonInstanceP->FlushAndTeardown();
+                        delete our_pLogManagerSingletonInstanceP;
+                        our_pLogManagerSingletonInstanceP = nullptr;
                     }
                 }
                 else {
@@ -125,14 +128,7 @@ namespace Microsoft {
             bool LogManager::SetTransmitProfile(const std::string& profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%s", profile.c_str());
-                if (nullptr != our_pLogManagerSingletonInstanceP)
-                {
-                    return our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
-                }
-                else
-                {
-                    return false;
-                }
+				return TransmitProfiles::setProfile(profile);
             }
 
             /// <summary>

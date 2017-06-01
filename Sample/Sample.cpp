@@ -24,6 +24,40 @@ int main()
 #include <ctime>
 
 
+// OTEL profile example
+const char* transmitProfileDefinitions = R"(
+[{
+    "name": "Office_Telemetry_OneSecond",
+    "rules": [
+    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
+    { "netCost": "high",       "timers": [ -1, -1, 1 ] },
+    { "netCost": "low",        "timers": [ 1, 1, 1 ] },
+    { "netCost": "unknown",    "timers": [ 1, 1, 1 ] },
+    {                          "timers": [ 1, 1, 1 ] }
+    ]
+},
+{
+    "name": "Office_Telemetry_TenSeconds",
+    "rules": [
+    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
+    { "netCost": "high",       "timers": [ -1, -1, 10 ] },
+    { "netCost": "low",        "timers": [ 10, 10, 10 ] },
+    { "netCost": "unknown",    "timers": [ 10, 10, 10 ] },
+    {                          "timers": [ 10, 10, 10 ] }
+    ]
+},
+{
+    "name": "Office_Telemetry_OneMinute",
+    "rules": [
+    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
+    { "netCost": "high",       "timers": [ -1, -1, 60 ] },
+    { "netCost": "low",        "timers": [ 60, 60, 60 ] },
+    { "netCost": "unknown",    "timers": [ 60, 60, 60 ] },
+    {                          "timers": [ 60, 60, 60 ] }
+    ]
+}]
+)";
+
 #include <windows.h>  
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 #pragma pack(push,8)  
@@ -109,6 +143,7 @@ unsigned long testStartMs;
 
 class MyDebugEventListener : public DebugEventListener {
 public:
+    bool print = false;
 	virtual void OnDebugEvent(DebugEvent &evt)
 	{
 #ifdef USE_ECG
@@ -175,8 +210,12 @@ public:
 		case EVT_LOG_TRACE:
 		case EVT_LOG_USERSTATE:
 		case EVT_LOG_SESSION:
-			// printf("OnEventLogged:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			
 			numLogged++;
+            if (print)
+            {
+                printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged, evt.param2);
+            }
 			ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 			{
 				int temp = (ms - testStartMs);
@@ -196,10 +235,12 @@ public:
 			break;
 		case EVT_ADDED:
             numLogged++;
+            if(print)
 			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged, evt.param2);
 			break;
 		case EVT_CACHED:
 			numCached += evt.size;
+            if(print)
 			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached, evt.param2);
 			break;
 		case EVT_DROPPED:
@@ -208,6 +249,7 @@ public:
 			break;
 		case EVT_SENT:
 			numSent += evt.size;
+            if(print)
 			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent, evt.param2);
 			break;
 		case EVT_STORAGE_FULL:
@@ -230,8 +272,9 @@ public:
 				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
 			break;
 		case EVT_HTTP_OK:
-			//printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-			//	evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+            if(print)
+			printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
 			break;
 		case EVT_SEND_RETRY:
 			printf("OnSendRetry:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
@@ -260,8 +303,8 @@ public:
 
 MyDebugEventListener listener;
 
-#define MAX_STRESS_COUNT            100
-#define MAX_STRESS_THREADS          32
+#define MAX_STRESS_COUNT            32
+#define MAX_STRESS_THREADS          100
 
 /// <summary>
 /// New fluent syntax
@@ -397,8 +440,8 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 
 void test_ProfileSwitch(ILogger *logger)
 {
-	//printf("switching profile to Office_Telemetry_OneMinute\n");
-	//LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
+	printf("switching profile to Office_Telemetry_OneMinute\n");
+	LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
 	for (int i = 0; i < 10; i++)
 	{
 		std::string eventName = "eventName_5min_";
@@ -412,7 +455,7 @@ void test_ProfileSwitch(ILogger *logger)
 #endif
 
 	printf("switching profile to Office_Telemetry_TenSeconds\n");
-	//LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
+	LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
 	for (int i = 0; i < 10; i++)
 	{
 		std::string eventName = "eventName_10sec_";
@@ -437,7 +480,7 @@ LogConfiguration configuration;
 ILogManager* lm;
 
 ILogger* init() {
-	configuration.cacheFilePath = ":memory:"; //"offlinestorage.db";
+    configuration.cacheFilePath = "offlinestorage.db"; //":memory:"; //"offlinestorage.db";
 	configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
 													 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
@@ -474,39 +517,7 @@ ILogger* init() {
 )";
 #endif
 
-	// OTEL profile example
-	const char* transmitProfileDefinitions = R"(
-[{
-    "name": "Office_Telemetry_OneSecond",
-    "rules": [
-    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",       "timers": [ -1, -1, 1 ] },
-    { "netCost": "low",        "timers": [ 1, 1, 1 ] },
-    { "netCost": "unknown",    "timers": [ 1, 1, 1 ] },
-    {                          "timers": [ 1, 1, 1 ] }
-    ]
-},
-{
-    "name": "Office_Telemetry_TenSeconds",
-    "rules": [
-    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",       "timers": [ -1, -1, 10 ] },
-    { "netCost": "low",        "timers": [ 10, 10, 10 ] },
-    { "netCost": "unknown",    "timers": [ 10, 10, 10 ] },
-    {                          "timers": [ 10, 10, 10 ] }
-    ]
-},
-{
-    "name": "Office_Telemetry_OneMinute",
-    "rules": [
-    { "netCost": "restricted", "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",       "timers": [ -1, -1, 60 ] },
-    { "netCost": "low",        "timers": [ 60, 60, 60 ] },
-    { "netCost": "unknown",    "timers": [ 60, 60, 60 ] },
-    {                          "timers": [ 60, 60, 60 ] }
-    ]
-}]
-)";
+	
 
 	
 	LogManager::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
@@ -529,7 +540,7 @@ ILogger* init() {
 	std::cout << "LogManager::Initialize..." << endl;
 
 	// Apply the profile before initialize
-	// LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
+	LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
 	ILogger *result = LogManager::Initialize(cTenantToken, configuration);
 
 	// TC for SetContext(<const char*,const char*, PiiKind>)
@@ -622,7 +633,7 @@ void run(ILogger* logger, int maxStressRuns) {
 
 		//std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
-		LogManager::UploadNow();
+		//LogManager::UploadNow();
 	}
 }
 
@@ -659,6 +670,9 @@ int main(int argc, char* argv[])
 	std::atexit(DumpMemoryLeaks);
 #endif
 
+	LogManager::LoadTransmitProfiles(transmitProfileDefinitions);
+	LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
+
 	std::vector<std::thread> workers;
 	std::thread t[MAX_STRESS_THREADS];
 
@@ -670,10 +684,9 @@ int main(int argc, char* argv[])
 		logger->LogEvent(props);
     }
 
-#if 0
+
 	printf("test_ProfileSwitch\n");
 	test_ProfileSwitch(logger);
-#endif
 
 	// Run multi-threaded stress for multi-tenant
 	testStartMs = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
@@ -687,7 +700,7 @@ int main(int argc, char* argv[])
 			run(logger2, MAX_STRESS_COUNT);
 		}));
 	}
-
+/*
 	std::this_thread::sleep_for(std::chrono::milliseconds(90000));
 
 	for (int i = 0; i < MAX_STRESS_THREADS; i++) {
@@ -700,7 +713,7 @@ int main(int argc, char* argv[])
 			run(logger2, MAX_STRESS_COUNT);
 		}));
 	}
-
+*/
 	// Wait for completion of all worker threads
 	std::for_each(workers.begin(), workers.end(), [](std::thread &t)
 	{
@@ -721,15 +734,22 @@ int main(int argc, char* argv[])
 		fflush(stdout);
 		fgetc(stdin);
 	}
+
+    listener.print = true;
+    {
+        EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+        logger->LogEvent(props);
+    }
 	// Flush and Teardown
 	done();
 
+    listener.print = false;
 	delete lm;
 	// 2nd run after initialize
 	{		
 		printf("Reinitialize test...\n");
 		LogConfiguration configuration;
-		configuration.cacheFilePath = ":memory:"; //"offlinestorage.db";
+        configuration.cacheFilePath = "offlinestorage.db";// ":memory:"; //"offlinestorage.db";
 		configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
 														 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
 		configuration.minimumTraceLevel = ACTTraceLevel_Trace;
@@ -750,7 +770,7 @@ int main(int argc, char* argv[])
 		//loggers["logger.blank.s2"] = LogManager::GetLogger("", "s2");
 		//loggers["logger.invalid"] = LogManager::GetLogger("s3", "12345");
 		//loggers["logger.invalid"] = LogManager::GetLogger("12345", "s3");
-		//loggers["logger.primary"] = LogManager::Initialize(TOKEN, configuration);
+		loggers["logger.primary"] = LogManager::Initialize(TOKEN, configuration);
 		loggers["logger.t1s1"] = LogManager::GetLogger(TOKEN, "s1");
 		loggers["logger.t1s2"] = LogManager::GetLogger(TOKEN, "s2");
 		loggers["logger.t2s1"] = LogManager::GetLogger(TOKEN2, "s1");
@@ -769,6 +789,12 @@ int main(int argc, char* argv[])
 			}
 		};
 		LogManager::UploadNow();
+
+        listener.print = true;
+        {
+            EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+            loggers["logger.primary"]->LogEvent(props);
+        }
 		done();
 		delete lm;
 	}

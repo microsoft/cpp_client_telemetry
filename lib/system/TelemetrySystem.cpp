@@ -14,7 +14,8 @@ TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntime
     storage(offlineStorage),
     packager(configuration, runtimeConfig),
     stats(runtimeConfig, globalContext, nullptr),
-    tpm(runtimeConfig, bandwidthController)
+    tpm(runtimeConfig, bandwidthController),
+    configuration(configuration)
 {
     //
     // Management
@@ -96,6 +97,32 @@ void TelemetrySystem::start()
 
 void TelemetrySystem::stop()
 {
+    if (configuration.maxTeardownUploadTimeInSec > 0)
+    {
+        unsigned int timeoutInSec = configuration.maxTeardownUploadTimeInSec;
+        std::uint64_t shutdownStartSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+        std::uint64_t nowSec = 0;
+        UploadNow();
+        PAL::sleep(1000);
+        timeoutInSec = timeoutInSec - 1;
+        bool isuploadinProgress = true;
+        ARIASDK_LOG_DETAIL("Shutdown timer started.");
+        // Repeat this loop while we still have events to send OR while there are requests still pending
+        while (isuploadinProgress)
+        {
+            //isuploadinProgress = tpm.isUploadInProgress();
+            nowSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+            if ((nowSec - shutdownStartSec) >= timeoutInSec)
+            { // Hard-stop if it takes longer than planned
+                ARIASDK_LOG_DETAIL("Shutdown timer expired, exiting...");
+                break;
+            }
+            UploadNow();
+            PAL::sleep(25);  // Sleep in 25 ms increments
+            isuploadinProgress = tpm.isUploadInProgress();
+        }        
+    }
+
     PAL::executeOnWorkerThread(self(), &TelemetrySystem::stopAsync);
     ARIASDK_LOG_DETAIL("Waiting for all queued callbacks...");
     m_doneEvent.wait();

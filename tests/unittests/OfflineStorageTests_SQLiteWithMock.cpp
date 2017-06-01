@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <regex>
 #include "pal/PAL_Win32.hpp"
-//#include <sqlite/sqlite3.h>
+#include "../../sqlite/sqlite3.h"
 
 using namespace testing;
 using namespace ARIASDK_NS;
