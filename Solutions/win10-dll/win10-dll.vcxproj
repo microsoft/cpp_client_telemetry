@@ -143,6 +143,7 @@
       <BrowseInformation>true</BrowseInformation>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -168,6 +169,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -186,6 +188,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -207,6 +211,8 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -229,6 +235,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -251,7 +258,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
-      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
