@@ -117,7 +117,7 @@ void TelemetrySystem::stop()
                 ARIASDK_LOG_DETAIL("Shutdown timer expired, exiting...");
                 break;
             }
-            UploadNow();
+            //UploadNow();
             PAL::sleep(25);  // Sleep in 25 ms increments
             isuploadinProgress = tpm.isUploadInProgress();
         }        
