@@ -6,7 +6,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    class FIFOFileStorage;
+    class IStorage;
     class LogSessionData
     {
     public:
@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch;
-        FIFOFileStorage*                    m_sessionStorage;
+        IStorage*                           m_sessionStorage;
 
         bool StartSessionStorage(std::string const& sessionpath);
         void StopSessionStorage();

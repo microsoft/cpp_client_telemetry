@@ -27,17 +27,7 @@ md %NativeSDKFolder%\content\Debug64
 md %NativeSDKFolder%\content\Release32
 md %NativeSDKFolder%\content\Release64
 
-
-xcopy %LibFolder%\api\LogSessionData.hpp                %NativeSDKFolder%\include\ /Y
-xcopy %LibFolder%\api\LogManager.hpp                    %NativeSDKFolder%\include\ /Y
-xcopy %LibFolder%\include\aria\*.hpp                    %NativeSDKFolder%\include\ /Y
-REM xcopy %LibFolder%\bond\*.hpp                      	%NativeSDKFolder%\include\ /Y
-REM xcopy %LibFolder%\bond\generated\*.hpp                  %NativeSDKFolder%\include\ /Y
-REM xcopy %LibFolder%\decorators\*.hpp                  %NativeSDKFolder%\include\decorators\ /Y
-REM xcopy %LibFolder%\pal\*.hpp                      	%NativeSDKFolder%\include\pal\ /Y
-xcopy %LibFolder%\tpm\TransmitProfiles.hpp              %NativeSDKFolder%\include\ /Y
-REM xcopy %LibFolder%\utils\*.hpp                      	%NativeSDKFolder%\include\ /Y
-
+xcopy %LibFolder%\include\public\*.hpp                    %NativeSDKFolder%\include\ /Y
 
 xcopy %OUTDIR%\Debug\Win32\Clie*.*                  	%NativeSDKFolder%\content\Debug32\ /Y
 xcopy %OUTDIR%\Debug\Win32\Ari*.*                  	%NativeSDKFolder%\content\Debug32\ /Y
