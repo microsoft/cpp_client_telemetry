@@ -2,7 +2,7 @@
 
 #if defined(ARIASDK_PLATFORM_WINDOWS)
 
-#define ARIASDK_LIBABI_CDECL __cdecl
+#define ARIASDK_LIBABI_CDECL __stdcall
 
 #if defined(ARIASDK_SHARED_LIB)
 #define ARIASDK_LIBABI __declspec(dllexport)

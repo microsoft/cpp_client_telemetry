@@ -2,7 +2,7 @@
 
 #include "Statistics.hpp"
 #include "LogManager.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {

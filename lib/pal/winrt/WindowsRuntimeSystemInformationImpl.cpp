@@ -2,8 +2,8 @@
 #include <collection.h>
 
 #include "ISystemInformation.hpp"
-#include "SystemInformationImpl.hpp"
-#include "win32\WindowsEnvironmentInfo.h"
+#include "pal/SystemInformationImpl.hpp"
+#include "pal/win32/WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
 
 namespace Microsoft {

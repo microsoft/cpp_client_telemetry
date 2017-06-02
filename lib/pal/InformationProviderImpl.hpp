@@ -1,7 +1,7 @@
 #pragma once
-#include "..\include\aria\\Version.hpp"
-#include "..\include\aria\IInformationProvider.hpp"
-#include "..\include\aria\IPropertyChangedCallback.hpp"
+#include "Version.hpp"
+#include "IInformationProvider.hpp"
+#include "IPropertyChangedCallback.hpp"
 
 #include <vector>
 #include <mutex>

@@ -1,8 +1,8 @@
 #include "Version.hpp"
 #include "TransmitProfiles.hpp"
 #include "DeviceStateHandler.hpp"
-#include "Utils.hpp"
-#include "PAL.hpp"
+#include "utils/Utils.hpp"
+#include "pal/PAL.hpp"
 #include <iterator>
 #include <stdio.h>
 #include <math.h>

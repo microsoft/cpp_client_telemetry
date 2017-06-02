@@ -1,5 +1,5 @@
 #define LOG_MODULE DBG_PAL
-#include "..\NetworkInformationImpl.hpp"
+#include "pal/NetworkInformationImpl.hpp"
 
 #include <Windows.h>
 #include <Wininet.h>

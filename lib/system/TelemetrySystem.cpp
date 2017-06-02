@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "TelemetrySystem.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClientManager.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <assert.h>
 
 namespace ARIASDK_NS_BEGIN {

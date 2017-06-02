@@ -3,7 +3,7 @@
 #include "HttpResponseDecoder.hpp"
 #include "LogManager.hpp"
 #include <IHttpClient.hpp>
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

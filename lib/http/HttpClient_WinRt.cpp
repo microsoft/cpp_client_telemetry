@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 
-#include "HttpClient_WinRt.hpp"
-#include "Utils.hpp"
-#include <Utils.hpp>
+#include "http/HttpClient_WinRt.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 #include <memory>
 #include <sstream>

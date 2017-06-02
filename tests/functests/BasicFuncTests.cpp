@@ -3,11 +3,11 @@
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <ILogManager.hpp>
 #include <bond_lite/All.hpp>
-#include "AriaProtocol_types.hpp"
-#include "AriaProtocol_readers.hpp"
+#include "bond/generated/AriaProtocol_types.hpp"
+#include "bond/generated/AriaProtocol_readers.hpp"
 #include <fstream>
 
 using namespace testing;

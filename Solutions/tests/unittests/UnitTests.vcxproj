@@ -84,7 +84,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include\public;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -129,7 +129,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include\public;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -174,7 +174,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include\public;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -220,7 +220,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include\public;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

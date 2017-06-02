@@ -2,11 +2,11 @@
 
 #pragma once
 #include <IRuntimeConfig.hpp>
-#include "ITelemetrySystem.hpp"
+#include "system/ITelemetrySystem.hpp"
 #include "MetaStats.hpp"
-#include "Route.hpp"
-#include "Contexts.hpp"
-#include "PAL.hpp"
+#include "system/Route.hpp"
+#include "system/Contexts.hpp"
+#include "pal/PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

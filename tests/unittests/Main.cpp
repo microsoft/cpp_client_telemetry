@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 
 #ifdef ARIASDK_PAL_SKYPE
 #include <auf/auf_log2_utils.hpp>

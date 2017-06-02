@@ -1,6 +1,6 @@
 #include "DebugEvents.hpp"
-#include "Utils.hpp"
-#include "PAL.hpp"
+#include "utils/Utils.hpp"
+#include "pal/PAL.hpp"
 
 #include <atomic>
 

@@ -1,5 +1,5 @@
-#include "..\include\\aria\Version.hpp"
-#include "..\pal\InformationProviderImpl.hpp"
+#include "Version.hpp"
+#include "pal\InformationProviderImpl.hpp"
 
 #include <vector>
 #ifdef _WIN32

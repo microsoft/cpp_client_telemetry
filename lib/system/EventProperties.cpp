@@ -1,8 +1,8 @@
 
-#include "AriaProtocol_types.hpp"
+#include "bond/generated/AriaProtocol_types.hpp"
 #include "EventProperty.hpp"
 #include "EventProperties.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <string>
 #include <map>
 

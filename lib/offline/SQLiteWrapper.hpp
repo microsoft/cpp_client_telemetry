@@ -2,7 +2,7 @@
 
 #pragma once
 #include <Version.hpp>
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 #include "../../sqlite/sqlite3.h"
 #include "ISqlite3Proxy.hpp"
 #include <algorithm>

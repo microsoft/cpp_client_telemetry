@@ -3,7 +3,7 @@
 #include "Logger.hpp"
 #include "LogManager.hpp"
 #include "LogManagerImpl.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 
 // *INDENT-OFF*

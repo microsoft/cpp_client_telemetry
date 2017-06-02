@@ -3,7 +3,7 @@
 #include "OfflineStorage_SQLite.hpp"
 #include "LogManager.hpp"
 #include "SQLiteWrapper.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>

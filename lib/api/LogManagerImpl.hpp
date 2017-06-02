@@ -2,8 +2,8 @@
 
 #pragma once
 #include "Logger.hpp"
-#include "RuntimeConfig_Default.hpp"
-#include "Contexts.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+#include "system/Contexts.hpp"
 #include <IHttpClient.hpp>
 #include <ILogManager.hpp>
 #include <LogConfiguration.hpp>

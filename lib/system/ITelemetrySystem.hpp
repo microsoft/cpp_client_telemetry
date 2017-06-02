@@ -2,7 +2,7 @@
 
 #pragma once
 #include <Version.hpp>
-#include "BondSerializer.hpp"
+#include "bond/BondSerializer.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

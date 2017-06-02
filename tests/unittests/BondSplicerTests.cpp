@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "BondSplicer.hpp"
+#include "packager/BondSplicer.hpp"
 #include <bond_lite/All.hpp>
-#include "AriaProtocol_writers.hpp"
+#include "bond/generated/AriaProtocol_writers.hpp"
 #include "../bondlite/tests/FullDumpBinaryBlob.hpp"
 
 using namespace testing;

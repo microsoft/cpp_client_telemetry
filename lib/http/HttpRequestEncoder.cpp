@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpRequestEncoder.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {

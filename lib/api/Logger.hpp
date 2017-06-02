@@ -4,11 +4,11 @@
 #include <IRuntimeConfig.hpp>
 #include <ILogger.hpp>
 #include "ContextFieldsProvider.hpp"
-#include "BaseDecorator.hpp"
-#include "EventPropertiesDecorator.hpp"
-#include "RuntimeConfigDecorator.hpp"
-#include "SemanticApiDecorators.hpp"
-#include "SemanticContextDecorator.hpp"
+#include "decorators/BaseDecorator.hpp"
+#include "decorators/EventPropertiesDecorator.hpp"
+#include "decorators/RuntimeConfigDecorator.hpp"
+#include "decorators/SemanticApiDecorators.hpp"
+#include "decorators/SemanticContextDecorator.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

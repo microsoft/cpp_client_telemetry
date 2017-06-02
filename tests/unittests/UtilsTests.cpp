@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include <Utils.hpp>
+#include <utils/Utils.hpp>
 
 using namespace testing;
 

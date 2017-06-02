@@ -2,8 +2,8 @@
 
 #include "UtcTelemetrySystem.hpp"
 #include "LogManager.hpp"
-#include "UtcHelpers.hpp"
-#include "Utils.hpp"
+#include "pal/UtcHelpers.hpp"
+#include "utils/Utils.hpp"
 #include "MicrosoftTelemetry.h"
 #include "traceloggingdynamic.h"
 

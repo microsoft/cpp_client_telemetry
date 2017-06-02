@@ -3,8 +3,8 @@
 #pragma once
 #include <IHttpClient.hpp>
 #include <IOfflineStorage.hpp>
-#include "BondSplicer.hpp"
-#include "PAL.hpp"
+#include "packager/BondSplicer.hpp"
+#include "pal/PAL.hpp"
 #include <map>
 #include <memory>
 #include <vector>

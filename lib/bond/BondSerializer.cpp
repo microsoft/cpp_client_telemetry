@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "BondSerializer.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include <bond_lite/All.hpp>
-#include "AriaProtocol_writers.hpp"
+#include "bond/generated/AriaProtocol_writers.hpp"
 #include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {

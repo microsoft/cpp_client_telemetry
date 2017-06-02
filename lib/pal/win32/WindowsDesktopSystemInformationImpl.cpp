@@ -1,8 +1,8 @@
 #pragma warning( disable : 4996 )
-#include "..\..\include\aria\Version.hpp"
+#include "Version.hpp"
 #include <Windows.h>
-#include "..\..\lib\include\aria\ISystemInformation.hpp"
-#include "..\..\lib\pal\SystemInformationImpl.hpp"
+#include "ISystemInformation.hpp"
+#include "pal/SystemInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
 #include <string>

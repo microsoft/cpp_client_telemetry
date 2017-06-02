@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "IBackoff.hpp"
-#include "PAL.hpp"
+#include "backoff/IBackoff.hpp"
+#include "pal/PAL.hpp"
 #include <algorithm>
 #include <assert.h>
 #include <math.h>

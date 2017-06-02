@@ -3,7 +3,7 @@
 #include "TransmitProfiles.hpp"
 #include "json.hpp"
 #include <set>
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 using namespace std;

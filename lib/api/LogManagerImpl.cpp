@@ -2,14 +2,14 @@
 
 #include "LogManagerImpl.hpp"
 #include "LogManager.hpp"
-#include "RuntimeConfig_Default.hpp"
-#include "OfflineStorage_SQLite.hpp"
-#include "TelemetrySystem.hpp"
-#include "UtcTelemetrySystem.hpp"
-#include "Utils.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+#include "offline/OfflineStorage_SQLite.hpp"
+#include "system/TelemetrySystem.hpp"
+#include "system/UtcTelemetrySystem.hpp"
+#include "utils/Utils.hpp"
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
-#include "UtcHelpers.hpp"
+#include "pal/UtcHelpers.hpp"
 
 #if ARIASDK_PAL_SKYPE
     #include "bwcontrol/BandwidthController_ResourceManager.hpp"
@@ -19,9 +19,9 @@
 
 #if ARIASDK_PAL_WIN32
 #ifdef _WINRT_DLL
-#include "HttpClient_WinRt.hpp"
+#include "http/HttpClient_WinRt.hpp"
 #else 
-#include "HttpClient_WinInet.hpp"
+#include "http/HttpClient_WinInet.hpp"
 #endif
 //    #include "http/HttpClient_WinInet.hpp"
 #endif

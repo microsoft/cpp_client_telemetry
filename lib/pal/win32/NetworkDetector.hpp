@@ -42,7 +42,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "lib\include\aria\Enums.hpp"
+#include "Enums.hpp"
 
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;

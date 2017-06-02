@@ -2,7 +2,7 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include "ContextFieldsProvider.hpp"
+#include "api/ContextFieldsProvider.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

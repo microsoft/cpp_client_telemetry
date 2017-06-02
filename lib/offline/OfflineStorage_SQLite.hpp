@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 #include <IOfflineStorage.hpp>
 #include <IRuntimeConfig.hpp>
 #include <LogConfiguration.hpp>

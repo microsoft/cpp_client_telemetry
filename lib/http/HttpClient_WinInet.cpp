@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClient_WinInet.hpp"
-#include <Utils.hpp>
+#include <utils/Utils.hpp>
 #include <WinInet.h>
 #include <algorithm>
 #include <memory>

@@ -1,9 +1,9 @@
 #pragma once
 #include "Enums.hpp"
 #include "IPropertyChangedCallback.hpp"
-#include "SystemInformationImpl.hpp"
-#include "NetworkInformationImpl.hpp"
-#include "DeviceInformationImpl.hpp"
+#include "pal/SystemInformationImpl.hpp"
+#include "pal/NetworkInformationImpl.hpp"
+#include "pal/DeviceInformationImpl.hpp"
 
 #include <vector>
 #include <list>

@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "LogSessionData.hpp"
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 #include "Logger.hpp"
 #include "DebugEvents.hpp"
-#include "FifoFileSTorage.hpp"
+#include "offline/FifoFileSTorage.hpp"
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {

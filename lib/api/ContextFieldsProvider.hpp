@@ -2,7 +2,7 @@
 
 #pragma once
 #include <ILogger.hpp>
-#include "AriaProtocol_types.hpp"
+#include "bond/generated/AriaProtocol_types.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

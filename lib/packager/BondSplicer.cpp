@@ -2,7 +2,7 @@
 
 #include "BondSplicer.hpp"
 #include <bond_lite/All.hpp>
-#include "AriaProtocol_writers.hpp"
+#include "bond/generated/AriaProtocol_writers.hpp"
 #include <assert.h>
 
 namespace ARIASDK_NS_BEGIN {

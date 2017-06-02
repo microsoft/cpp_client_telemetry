@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "PAL.hpp"
-#include <Enums.hpp>
+#include "pal/PAL.hpp"
+#include "include\public\Enums.hpp"
 #include <Config.hpp>
 
 

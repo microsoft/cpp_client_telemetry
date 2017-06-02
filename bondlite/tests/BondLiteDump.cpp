@@ -1,5 +1,5 @@
 #include <bond_lite/All.hpp>
-#include <BondConstTypes.hpp>
+#include <bond/generated/BondConstTypes.hpp>
 #include <fstream>
 #include <stdio.h>
 

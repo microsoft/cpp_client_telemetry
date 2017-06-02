@@ -3,11 +3,10 @@
 #pragma once
 #include "ITelemetrySystem.hpp"
 #include <Version.hpp>
-#include "BondSerializer.hpp"
-#include "HttpDeflateCompression.hpp"
+#include "bond/BondSerializer.hpp"
 #include <LogConfiguration.hpp>
-#include "Contexts.hpp"
-#include "Statistics.hpp"
+#include "system/Contexts.hpp"
+#include "stats/Statistics.hpp"
 #if ARIASDK_UTC_ENABLED
     #include "utc/UtcForwarder.hpp"
 #endif

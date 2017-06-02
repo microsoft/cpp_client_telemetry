@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "BaseDecorator.hpp"
-#include "SemanticContextDecorator.hpp"
+#include "decorators/BaseDecorator.hpp"
+#include "decorators/SemanticContextDecorator.hpp"
 #include <Enums.hpp>
 #include <IRuntimeConfig.hpp>
-#include "AriaProtocol_types.hpp"
+#include "bond/generated/AriaProtocol_types.hpp"
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {

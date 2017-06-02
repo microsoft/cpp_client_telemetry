@@ -5,8 +5,8 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include <ILogManager.hpp>
 #include <bond_lite/All.hpp>
-#include "AriaProtocol_types.hpp"
-#include "AriaProtocol_readers.hpp"
+#include "bond/generated/AriaProtocol_types.hpp"
+#include "bond/generated/AriaProtocol_readers.hpp"
 #include "../../sqlite/sqlite3.h"
 
 using namespace testing;
