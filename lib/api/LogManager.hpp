@@ -1,9 +1,9 @@
 #pragma once
-#include "Logger.hpp"
+#include "ILogger.hpp"
 #include "LogSessionData.hpp"
-#include "aria/LogConfiguration.hpp"
-#include "tpm/TransmitProfiles.hpp"
-#include "aria/DebugEvents.hpp"
+#include "LogConfiguration.hpp"
+#include "TransmitProfiles.hpp"
+#include "DebugEvents.hpp"
 
 
 #include <climits>

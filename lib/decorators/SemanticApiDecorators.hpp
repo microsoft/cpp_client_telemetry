@@ -2,8 +2,8 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include "aria\Config.hpp"
-#include <aria\ILogger.hpp>
+#include "Config.hpp"
+#include <ILogger.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 

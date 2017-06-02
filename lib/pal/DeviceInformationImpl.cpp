@@ -1,4 +1,4 @@
-#include "pal\DeviceInformationImpl.hpp"
+#include "DeviceInformationImpl.hpp"
 
 namespace Microsoft { namespace Applications { namespace Telemetry {
 namespace PAL {

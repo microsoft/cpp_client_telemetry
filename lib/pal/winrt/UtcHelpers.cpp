@@ -1,5 +1,5 @@
 #pragma once
-#include "pal\UtcHelpers.hpp"
+#include "UtcHelpers.hpp"
 #include <string>
 #include <PlatformHelpers.h>
 using namespace ::Windows::System::Diagnostics::Telemetry;

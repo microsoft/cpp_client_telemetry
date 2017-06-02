@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -103,10 +103,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\lib;$(ProjectDir)..\..\..\lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -148,10 +148,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -176,7 +176,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -193,10 +193,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -221,7 +221,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -237,10 +237,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\bondlite\tests\..\include;$(ProjectDir)..\..\..\bondlite\tests\..\generated;$(ProjectDir)..\..\..\sysroot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>

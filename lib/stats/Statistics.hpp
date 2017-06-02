@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IRuntimeConfig.hpp>
-#include "system\ITelemetrySystem.hpp"
+#include <IRuntimeConfig.hpp>
+#include "ITelemetrySystem.hpp"
 #include "MetaStats.hpp"
-#include "system/Route.hpp"
-#include "system/Contexts.hpp"
-#include "pal/PAL.hpp"
+#include "Route.hpp"
+#include "Contexts.hpp"
+#include "PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

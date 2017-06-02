@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "ContextFieldsProvider.hpp"
-#include "aria/Config.hpp"
-#include "utils/Common.hpp"
+#include "Config.hpp"
+#include "Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpDeflateCompression.hpp"
-#include "utils/Common.hpp"
+#include "Utils.hpp"
 #define ZLIB_CONST
 #include <zlib.h>
 

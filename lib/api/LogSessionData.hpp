@@ -2,7 +2,7 @@
 
 #pragma once
 #include "string"
-#include "aria\Version.hpp"
+#include "Version.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

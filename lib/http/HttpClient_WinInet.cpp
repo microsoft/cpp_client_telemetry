@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClient_WinInet.hpp"
-#include "utils/Common.hpp"
-#include <aria/Utils.hpp>
+#include <Utils.hpp>
 #include <WinInet.h>
 #include <algorithm>
 #include <memory>
@@ -11,7 +10,6 @@
 #include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
-
 
 class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 {

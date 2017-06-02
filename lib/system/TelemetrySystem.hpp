@@ -2,16 +2,16 @@
 
 #pragma once
 #include "ITelemetrySystem.hpp"
-#include <aria/Version.hpp>
-#include "bond/BondSerializer.hpp"
-#include "compression/HttpDeflateCompression.hpp"
-#include "http/HttpClientManager.hpp"
-#include "http/HttpRequestEncoder.hpp"
-#include "http/HttpResponseDecoder.hpp"
-#include "offline/OfflineStorage.hpp"
-#include "packager/Packager.hpp"
-#include "stats/Statistics.hpp"
-#include "tpm/TransmissionPolicyManager.hpp"
+#include <Version.hpp>
+#include "BondSerializer.hpp"
+#include "HttpDeflateCompression.hpp"
+#include "HttpClientManager.hpp"
+#include "HttpRequestEncoder.hpp"
+#include "HttpResponseDecoder.hpp"
+#include "OfflineStorage.hpp"
+#include "Packager.hpp"
+#include "Statistics.hpp"
+#include "TransmissionPolicyManager.hpp"
 #include "ClockSkewDelta.h"
 #if ARIASDK_UTC_ENABLED
     #include "utc/UtcForwarder.hpp"

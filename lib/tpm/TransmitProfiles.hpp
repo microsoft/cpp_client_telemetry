@@ -1,7 +1,7 @@
 #pragma once
 
-#include <aria/Enums.hpp>
-#include <aria/ILogManager.hpp>
+#include <Enums.hpp>
+#include <ILogManager.hpp>
 
 #include <cstdint>
 #include <vector>

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "Common.hpp"
-#include <aria/IBandwidthController.hpp>
+#include "Utils.hpp"
+#include <IBandwidthController.hpp>
 
 namespace testing {
 

@@ -6,7 +6,6 @@
 #include "ILogger.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
-#include "Utils.hpp"
 #include <string>
 
 // *INDENT-OFF*
@@ -137,7 +136,7 @@ class ILogManager
 	/// <param name="name">Name of the context property</param>
 	/// <param name="value">Value of the context property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); SetContext(name, val, piiKind); };
+	virtual void SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.
@@ -159,7 +158,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit Integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -167,7 +166,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit Integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -175,7 +174,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit Integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual  void SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -183,7 +182,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit unsigned integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual  void SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -191,7 +190,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit unsigned integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual  void SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -199,7 +198,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit unsigned integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual  void SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -207,7 +206,7 @@ class ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">64-bit unsigned integer value of the property</param>
-	virtual inline void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual  void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.

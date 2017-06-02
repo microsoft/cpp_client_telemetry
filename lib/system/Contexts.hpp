@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IHttpClient.hpp>
-#include <aria/IOfflineStorage.hpp>
-#include "packager/BondSplicer.hpp"
-#include "pal/PAL.hpp"
+#include <IHttpClient.hpp>
+#include <IOfflineStorage.hpp>
+#include "BondSplicer.hpp"
+#include "PAL.hpp"
 #include <map>
 #include <memory>
 #include <vector>

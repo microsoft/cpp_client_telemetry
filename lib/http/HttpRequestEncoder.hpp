@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
-#include <aria/IHttpClient.hpp>
-#include <aria/IRuntimeConfig.hpp>
-#include "system/Route.hpp"
-#include "system/Contexts.hpp"
+#include <Version.hpp>
+#include <IHttpClient.hpp>
+#include <IRuntimeConfig.hpp>
+#include "Route.hpp"
+#include "Contexts.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

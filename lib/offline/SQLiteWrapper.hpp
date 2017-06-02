@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
-#include "pal/PAL.hpp"
+#include <Version.hpp>
+#include "PAL.hpp"
 #include "../../sqlite/sqlite3.h"
 #include "ISqlite3Proxy.hpp"
 #include <algorithm>

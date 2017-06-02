@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
+#include <Version.hpp>
+#include "AriaProtocol_types.hpp"
 #include <list>
 
 namespace ARIASDK_NS_BEGIN {

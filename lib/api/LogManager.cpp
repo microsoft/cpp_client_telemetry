@@ -3,7 +3,7 @@
 #include "LogManager.hpp"
 #include "LogManagerImpl.hpp"
 
-#include "tpm/TransmitProfiles.hpp"
+#include "TransmitProfiles.hpp"
 
 
 #include <atomic>

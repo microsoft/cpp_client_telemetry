@@ -4,8 +4,8 @@
 #pragma comment(lib, "windowsapp")
 #pragma comment(lib, "runtimeobject")
 
-#include <aria/IHttpClient.hpp>
-#include "pal/PAL.hpp"
+#include <IHttpClient.hpp>
+#include "PAL.hpp"
 #include <ppltasks.h>
 
 namespace ARIASDK_NS_BEGIN {

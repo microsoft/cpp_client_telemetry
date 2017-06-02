@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IHttpClient.hpp>
-#include "pal/PAL.hpp"
-#include "system/Contexts.hpp"
-#include "system/Route.hpp"
+#include <IHttpClient.hpp>
+#include "PAL.hpp"
+#include "Contexts.hpp"
+#include "Route.hpp"
 #include <list>
 
 namespace ARIASDK_NS_BEGIN {

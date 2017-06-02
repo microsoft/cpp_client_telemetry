@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IRuntimeConfig.hpp>
-#include <aria/ILogger.hpp>
-#include "api/ContextFieldsProvider.hpp"
-#include "decorators/BaseDecorator.hpp"
-#include "decorators/EventPropertiesDecorator.hpp"
-#include "decorators/RuntimeConfigDecorator.hpp"
-#include "decorators/SemanticApiDecorators.hpp"
-#include "decorators/SemanticContextDecorator.hpp"
+#include <IRuntimeConfig.hpp>
+#include <ILogger.hpp>
+#include "ContextFieldsProvider.hpp"
+#include "BaseDecorator.hpp"
+#include "EventPropertiesDecorator.hpp"
+#include "RuntimeConfigDecorator.hpp"
+#include "SemanticApiDecorators.hpp"
+#include "SemanticContextDecorator.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

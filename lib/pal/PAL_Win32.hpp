@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "pal\SystemInformationImpl.hpp"
-#include "pal\NetworkInformationImpl.hpp"
-#include "pal\DeviceInformationImpl.hpp"
-#include <aria/ISemanticContext.hpp>
+#include "SystemInformationImpl.hpp"
+#include "NetworkInformationImpl.hpp"
+#include "DeviceInformationImpl.hpp"
+#include <ISemanticContext.hpp>
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
 #endif

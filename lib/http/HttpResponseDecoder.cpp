@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpResponseDecoder.hpp"
-#include "api\LogManager.hpp"
-#include <aria\IHttpClient.hpp>
-#include "utils\Common.hpp"
+#include "LogManager.hpp"
+#include <IHttpClient.hpp>
+#include "Utils.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

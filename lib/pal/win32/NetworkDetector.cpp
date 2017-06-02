@@ -6,8 +6,9 @@
 #include "NetworkDetector.hpp"
 #include <algorithm>
 
-#include "api/LogManager.hpp"
-#include "include\aria\DebugEvents.hpp"
+#include "LogManager.hpp"
+#include "DebugEvents.hpp"
+#include "Utils.hpp"
 
 // Define a GUID that is only available in Windows 8.x+ SDK . We are using Windows 7.1A SDK for Win32 SDK build,
 // so we cannot easily add an extra dependency on Windows 8 or later functionality project-wide. It'd be error-prone,

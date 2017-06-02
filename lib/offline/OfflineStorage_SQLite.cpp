@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage_SQLite.hpp"
-#include "api\LogManager.hpp"
+#include "LogManager.hpp"
 #include "SQLiteWrapper.hpp"
-#include "utils/Common.hpp"
+#include "Utils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>

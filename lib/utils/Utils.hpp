@@ -1,16 +1,28 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "pal/PAL.hpp"
-#include <aria/Enums.hpp>
-#include <Aria/Config.hpp>
+#include "PAL.hpp"
+#include <Enums.hpp>
+#include <Config.hpp>
 
 
 namespace ARIASDK_NS_BEGIN {
 
-
 ARIASDK_LOG_DECL_COMPONENT_NS();
 
+std::string toString(char const*        value);
+std::string toString(bool               value);
+std::string toString(char               value);
+std::string toString(int                value);
+std::string toString(long               value);
+std::string toString(long long          value);
+std::string toString(unsigned char      value);
+std::string toString(unsigned int       value);
+std::string toString(unsigned long      value);
+std::string toString(unsigned long long value);
+std::string toString(float              value);
+std::string toString(double             value);
+std::string toString(long double        value);
 
 std::string toLower(std::string str);
 std::string sanitizeIdentifier(std::string buff);

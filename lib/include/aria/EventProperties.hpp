@@ -5,7 +5,6 @@
 #include "Version.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
-#include "Utils.hpp"
 #include <stdint.h>
 #include <string>
 #include <map>

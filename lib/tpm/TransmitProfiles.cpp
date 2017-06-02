@@ -1,9 +1,9 @@
 #define LOG_MODULE DBG_CONFIG
 
 #include "TransmitProfiles.hpp"
-#include "aria/json.hpp"
+#include "json.hpp"
 #include <set>
-#include "utils/Common.hpp"
+#include "Utils.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 using namespace std;
@@ -100,9 +100,8 @@ static void initTransmitProfileFields()
 
 #define LOCK_PROFILES       std::lock_guard<std::mutex> lock(profiles_mtx)
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Telemetry {
+namespace ARIASDK_NS_BEGIN {
+
 
             static const char* ATTR_NAME  = "name";     /// <summary>name  attribute</summary>
             static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
@@ -437,9 +436,13 @@ parsing_failed:
             /// </summary>
             /// <returns></returns>
             void TransmitProfiles::getTimers(std::vector<int>& out) {
-                {
-                    LOCK_PROFILES;
+                {                    
                     out.clear();
+					if (profiles.size() == 0) {
+						// Load default profiles if nothing is loaded yet
+						reset();
+					}
+					LOCK_PROFILES;
                     auto it = profiles.find(currProfileName);
                     if (it == profiles.end()) {
                         for (size_t i = 0; i < MAX_TIMERS_SIZE; i++) {
@@ -540,7 +543,4 @@ parsing_failed:
             // Make sure we populate transmitProfileFields dynamically before start
             static TransmitProfiles __profiles;
 
-        } /* end of NS Telemetry */
-    }
-
-}
+} ARIASDK_NS_END

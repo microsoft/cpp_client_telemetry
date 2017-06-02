@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "pal\PAL.hpp"
-#include "api\LogManager.hpp"
-#include <aria\ISemanticContext.hpp>
+#include "PAL.hpp"
+#include "LogManager.hpp"
+#include <ISemanticContext.hpp>
 #include <IPHlpApi.h>
 #include <algorithm>
 #include <list>

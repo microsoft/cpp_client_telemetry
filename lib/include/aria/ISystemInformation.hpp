@@ -1,5 +1,5 @@
 #pragma once
-#include "aria\IInformationProvider.hpp"
+#include "IInformationProvider.hpp"
 #include <string>
 
 namespace Microsoft { namespace Applications { namespace Telemetry {

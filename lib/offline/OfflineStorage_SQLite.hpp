@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "pal/PAL.hpp"
-#include <aria/IOfflineStorage.hpp>
-#include <aria/IRuntimeConfig.hpp>
-#include <aria/LogConfiguration.hpp>
+#include "PAL.hpp"
+#include <IOfflineStorage.hpp>
+#include <IRuntimeConfig.hpp>
+#include <LogConfiguration.hpp>
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 #include <memory>

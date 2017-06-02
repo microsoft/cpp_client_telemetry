@@ -1,6 +1,6 @@
 #define LOG_MODULE DBG_API
-#include "pal\PAL.hpp"
-#include "..\DeviceInformationImpl.hpp"
+#include "PAL.hpp"
+#include "DeviceInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
 #include <winsock2.h>

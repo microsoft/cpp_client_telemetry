@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/ILogger.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
+#include <ILogger.hpp>
+#include "AriaProtocol_types.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

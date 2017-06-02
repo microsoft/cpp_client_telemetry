@@ -1,8 +1,8 @@
-#include "..\..\include\aria\Version.hpp"
-#include "tpm\TransmitProfiles.hpp"
-#include "tpm\DeviceStateHandler.hpp"
-#include "utils/Common.hpp"
-#include "pal\PAL.hpp"
+#include "Version.hpp"
+#include "TransmitProfiles.hpp"
+#include "DeviceStateHandler.hpp"
+#include "Utils.hpp"
+#include "PAL.hpp"
 #include <iterator>
 #include <stdio.h>
 #include <math.h>

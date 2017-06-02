@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Packager.hpp"
-#include "api\LogManager.hpp"
-#include "utils\Common.hpp"
+#include "LogManager.hpp"
+#include "Utils.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

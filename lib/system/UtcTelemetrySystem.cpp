@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "UtcTelemetrySystem.hpp"
-#include "api\LogManager.hpp"
-#include "pal\UtcHelpers.hpp"
-#include "utils/Common.hpp"
-#include "system\MicrosoftTelemetry.h"
-#include "system\traceloggingdynamic.h"
+#include "LogManager.hpp"
+#include "UtcHelpers.hpp"
+#include "Utils.hpp"
+#include "MicrosoftTelemetry.h"
+#include "traceloggingdynamic.h"
 
 using namespace tld;
 

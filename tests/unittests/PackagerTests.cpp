@@ -2,10 +2,11 @@
 
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include "packager/Packager.hpp"
+#include "Utils.hpp"
+#include "Packager.hpp"
 #include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "AriaProtocol_types.hpp"
+#include "AriaProtocol_readers.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;

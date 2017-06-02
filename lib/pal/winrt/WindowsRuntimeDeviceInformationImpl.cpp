@@ -1,7 +1,7 @@
 #include <collection.h>
-#include "pal\PAL.hpp"
-#include "..\DeviceInformationImpl.hpp"
-#include "pal\win32\WindowsEnvironmentInfo.h"
+#include "PAL.hpp"
+#include "DeviceInformationImpl.hpp"
+#include "win32\WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
 
 #define LOG_MODULE DBG_PAL

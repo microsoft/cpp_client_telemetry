@@ -78,9 +78,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp">
       <Filter>tpm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Common.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp">
       <Filter>http</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
       <Filter>api</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.cpp">
-      <Filter>api</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Utils.cpp">
       <Filter>api</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.cpp">
@@ -162,6 +156,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.cpp">
       <Filter>api</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -184,9 +181,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp">
       <Filter>tpm</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Common.hpp">
-      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.hpp">
       <Filter>http</Filter>
@@ -397,6 +391,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp">
       <Filter>pal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

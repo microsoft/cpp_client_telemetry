@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
-#include "system/Route.hpp"
-#include "system/Contexts.hpp"
+#include <Version.hpp>
+#include "Route.hpp"
+#include "Contexts.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

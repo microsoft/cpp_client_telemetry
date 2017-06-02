@@ -15,8 +15,7 @@
 
 namespace testing {
 
-
-ARIASDK_LOG_DECL_COMPONENT_NS();
+	ARIASDK_LOG_DECL_COMPONENT_NS();
 
 
 class OutsideSequence {

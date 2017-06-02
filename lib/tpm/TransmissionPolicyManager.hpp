@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IBandwidthController.hpp>
-#include <aria/IRuntimeConfig.hpp>
-#include "backoff/IBackoff.hpp"
-#include "pal/PAL.hpp"
-#include "system/Contexts.hpp"
-#include "system/Route.hpp"
-#include "tpm\DeviceStateHandler.hpp"
+#include <IBandwidthController.hpp>
+#include <IRuntimeConfig.hpp>
+#include "IBackoff.hpp"
+#include "PAL.hpp"
+#include "Contexts.hpp"
+#include "Route.hpp"
+#include "DeviceStateHandler.hpp"
 #include <set>
 
 namespace ARIASDK_NS_BEGIN {

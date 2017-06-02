@@ -3,7 +3,7 @@
 #pragma once
 #include "Version.hpp"
 #include "Enums.hpp"
-#include "aria/IHttpClient.hpp"
+#include "IHttpClient.hpp"
 #include <functional>
 #include <string>
 #include <vector>

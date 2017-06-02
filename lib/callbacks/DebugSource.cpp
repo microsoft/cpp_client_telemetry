@@ -1,6 +1,6 @@
-#include "aria\DebugEvents.hpp"
-#include "utils\Common.hpp"
-#include "pal\PAL.hpp"
+#include "DebugEvents.hpp"
+#include "Utils.hpp"
+#include "PAL.hpp"
 
 #include <atomic>
 

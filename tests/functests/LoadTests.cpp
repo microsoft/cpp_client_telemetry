@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "common/Common.hpp"
+#include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include <aria/ILogManager.hpp>
+#include "Utils.hpp"
+#include <ILogManager.hpp>
 #include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "AriaProtocol_types.hpp"
+#include "AriaProtocol_readers.hpp"
 #include <fstream>
 
 #ifndef ARIASDK_PAL_SKYPE

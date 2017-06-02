@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage.hpp"
-#include "api\LogManager.hpp"
+#include "LogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

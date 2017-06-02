@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IRuntimeConfig.hpp>
-#include "system/Route.hpp"
-#include "system/Contexts.hpp"
+#include <IRuntimeConfig.hpp>
+#include "Route.hpp"
+#include "Contexts.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

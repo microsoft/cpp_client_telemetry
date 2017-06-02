@@ -20,7 +20,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Utils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
@@ -48,7 +47,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Common.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
@@ -128,7 +127,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Common.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Version.hpp.template" />

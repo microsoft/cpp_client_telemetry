@@ -2,7 +2,7 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include <aria/IRuntimeConfig.hpp>
+#include <IRuntimeConfig.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 

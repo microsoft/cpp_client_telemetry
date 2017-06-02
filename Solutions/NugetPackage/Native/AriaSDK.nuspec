@@ -13,7 +13,7 @@
         <tags>"MS Internal Only" ARIA Windows Desltop Mobile Telemetry SDK</tags>
     </metadata>
     <files>
-        <file src="include\**\*.*" target="include" />
+        <file src="include\*.*" target="include" />
         <file src="content\**\*.*" target="content" />     
      </files>
 </package>

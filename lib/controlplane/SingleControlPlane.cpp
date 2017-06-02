@@ -1,7 +1,7 @@
 #include <exception>
 
 #include "SingleControlPlane.hpp"
-#include "utils/Common.hpp"
+#include "Utils.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 

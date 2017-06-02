@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IRuntimeConfig.hpp>
-#include <aria/LogConfiguration.hpp>
+#include <IRuntimeConfig.hpp>
+#include <LogConfiguration.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 

@@ -137,7 +137,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <BrowseInformation>true</BrowseInformation>
@@ -163,7 +163,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -185,7 +185,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;ENABLE_ECSCLIENT;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
@@ -206,7 +206,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;ENABLE_ECSCLIENT;_WINRT_DLL;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -230,7 +230,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria2";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;WINAPI_FAMILY=WINAPI_FAMILY_APP;ENABLE_ECSCLIENT;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -252,7 +252,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;ENABLE_ECSCLIENT;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>

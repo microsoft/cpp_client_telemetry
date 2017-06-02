@@ -2,8 +2,8 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include "aria\Config.hpp"
-#include <aria\Enums.hpp>
+#include "Config.hpp"
+#include <Enums.hpp>
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

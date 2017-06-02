@@ -6,7 +6,6 @@
 #include "Enums.hpp"
 #include "EventProperties.hpp"
 #include "ISemanticContext.hpp"
-#include "Utils.hpp"
 #include <stdint.h>
 #include <string>
 #include <vector>

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
-#include "bond/BondSerializer.hpp"
+#include <Version.hpp>
+#include "BondSerializer.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

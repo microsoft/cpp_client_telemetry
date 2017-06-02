@@ -132,7 +132,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
       <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsWinRT>
@@ -207,7 +207,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AssemblerOutput>All</AssemblerOutput>

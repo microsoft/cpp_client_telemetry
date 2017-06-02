@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IOfflineStorage.hpp>
-#include "system/Contexts.hpp"
-#include "system/Route.hpp"
+#include <IOfflineStorage.hpp>
+#include "Contexts.hpp"
+#include "Route.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

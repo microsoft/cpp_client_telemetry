@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -84,7 +84,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -101,10 +101,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -129,7 +129,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -146,10 +146,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -174,7 +174,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -191,10 +191,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -220,7 +220,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\tests;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -236,10 +236,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir)..\..\..\lib\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir)..\..\..\sysroot\include\sqlite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\..\tests\.;$(ProjectDir)..\..\..\tests\..\lib;$(ProjectDir)..\..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>

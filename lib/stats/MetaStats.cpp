@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "MetaStats.hpp"
-#include <aria/Utils.hpp>
+#include <Utils.hpp>
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

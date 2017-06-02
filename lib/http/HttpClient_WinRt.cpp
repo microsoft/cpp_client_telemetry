@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include "pal\PAL.hpp"
+#include "PAL.hpp"
 
 #include "HttpClient_WinRt.hpp"
-#include "utils/Common.hpp"
-#include <aria/Utils.hpp>
+#include "Utils.hpp"
+#include <Utils.hpp>
 #include <algorithm>
 #include <memory>
 #include <sstream>

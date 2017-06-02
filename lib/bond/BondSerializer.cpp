@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "BondSerializer.hpp"
-#include "utils/Common.hpp"
+#include "Utils.hpp"
 #include <bond_lite/All.hpp>
-#include "generated/AriaProtocol_writers.hpp"
+#include "AriaProtocol_writers.hpp"
 #include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
-
 
 bool BondSerializer::handleSerialize(IncomingEventContextPtr const& ctx)
 {

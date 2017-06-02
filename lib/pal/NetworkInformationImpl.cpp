@@ -1,4 +1,4 @@
-#include "pal\NetworkInformationImpl.hpp"
+#include "NetworkInformationImpl.hpp"
 
 namespace Microsoft { namespace Applications { namespace Telemetry {
 namespace PAL {

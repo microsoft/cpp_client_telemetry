@@ -2,12 +2,12 @@
 
 #pragma once
 #include "ITelemetrySystem.hpp"
-#include <aria/Version.hpp>
-#include "bond/BondSerializer.hpp"
-#include "compression/HttpDeflateCompression.hpp"
-#include <aria/LogConfiguration.hpp>
-#include "system/Contexts.hpp"
-#include "stats/Statistics.hpp"
+#include <Version.hpp>
+#include "BondSerializer.hpp"
+#include "HttpDeflateCompression.hpp"
+#include <LogConfiguration.hpp>
+#include "Contexts.hpp"
+#include "Statistics.hpp"
 #if ARIASDK_UTC_ENABLED
     #include "utc/UtcForwarder.hpp"
 #endif

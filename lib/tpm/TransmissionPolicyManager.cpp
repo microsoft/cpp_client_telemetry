@@ -2,8 +2,8 @@
 
 #include "TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
-#include "utils/Common.hpp"
-#include "api\LogManager.hpp"
+#include "Utils.hpp"
+#include "LogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
