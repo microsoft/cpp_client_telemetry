@@ -10,10 +10,10 @@ int main()
 }
 
 */
-#include <aria/ILogManager.hpp>
+#include <public/ILogManager.hpp>
 //#include <aria/DebugEvents.hpp>
-#include "api/LogManager.hpp"
-#include "Aria/Enums.hpp"
+#include "public/LogManager.hpp"
+#include "public/Enums.hpp"
 #include <iostream>
 
 #include <time.h>

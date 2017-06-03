@@ -5,7 +5,7 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
-#include "api/LogManager.hpp"
+#include "public/LogManager.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 
