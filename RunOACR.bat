@@ -9,9 +9,9 @@ echo.
 goto :EOF
 )
 
-if /i '%ARIAROOT%' == '' (
+if /i '%ARIA_Root%' == '' (
 echo.
-echo ERROR! ARIAROOT variable must be set to generate OACR files!
+echo ERROR! ARIA_Root variable must be set to generate OACR files!
 echo.
 goto :EOF
 )
@@ -24,7 +24,7 @@ call oacr clean /all
 call oacr stop
 call oacr set on
 
-rd /s /q %ARIAROOT%\solutions\out\oacr
+if exist %ARIA_Root%\solutions\out\oacr rd /s /q %ARIA_Root%\solutions\out\oacr
 
 echo ***************************************************************************************************
 echo ***************************************************************************************************
