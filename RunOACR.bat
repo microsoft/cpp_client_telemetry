@@ -48,5 +48,9 @@ msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p
 
 call oacr showqueue all
 call oacr check all
+
+if /i '%OACR_ShowErrors%' == 'Yes' (
 call oacr view /errors
+)
+
 call oacr set off
