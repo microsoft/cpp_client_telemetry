@@ -20,11 +20,15 @@ set Path=%Path%;%OACR_Path%;
 set ClToolExe=oacrcl.exe
 set CscToolExe=oacrcsc.exe
 
+if /i '%ARIA_OutputRoot%' == '' (
+set ARIA_OutputRoot=%Aria_Root%\solutions\out
+)
+
 call oacr clean /all
 call oacr stop
 call oacr set on
 
-if exist %ARIA_Root%\solutions\out\oacr rd /s /q %ARIA_Root%\solutions\out\oacr
+if exist %ARIA_OutputRoot%\oacr rd /s /q %ARIA_OutputRoot%\oacr
 
 echo ***************************************************************************************************
 echo ***************************************************************************************************

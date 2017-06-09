@@ -21,12 +21,12 @@ set OACR_Binaries=%OACR_Root%\%OACR_Version%\%OACR_Flavor%
 set
 
 if exist %TempBuildPath% rd /s /q %TempBuildPath%
-robocopy /e /nfl /ndl /np %OACR_Binaries% %OACR_Path%
+robocopy /e /nfl /ndl /np /A-:R %OACR_Binaries% %OACR_Path%
 copy %BUILD_REPOSITORY_LOCALPATH%\tools\OACR\oacr.ini %OACR_Path%
 call %ARIA_Root%\RunOACR.bat
 
 if not exist %OACR_OutputRoot% md %OACR_OutputRoot%
 if exist %OACR_OutputFile% copy %OACR_OutputFile% %OACR_OutputRoot%\%BUILD_BUILDNUMBER%.OacrWarnings.xml
 
-rd /s /q %TempBuildPath%
-rd /s /q %ARIA_OutputRoot%
+if exist %TempBuildPath%   rd /s /q %TempBuildPath%
+if exist %ARIA_OutputRoot% rd /s /q %ARIA_OutputRoot%
