@@ -54,3 +54,4 @@ call oacr view /errors
 )
 
 call oacr set off
+call oacr stop
