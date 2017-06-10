@@ -134,8 +134,9 @@ TEST_F(OfflineStorageTests_SQLite, DeletedRecordsAreNotReturned)
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventPriority_Low, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventPriority_Low, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid3", "token", EventPriority_Low, 1, {}}), true);
-	HttpHeaders test;
-    offlineStorage->DeleteRecords({"guid1", "guid3"}, test);
+    HttpHeaders test;
+    bool fromMemory = false;
+    offlineStorage->DeleteRecords({"guid1", "guid3"}, test, fromMemory);
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
@@ -272,8 +273,9 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsMakesThemAvailableAgain)
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
     ASSERT_THAT(consumer.records.size(), 1);
     EXPECT_THAT(consumer.records[0].retryCount, 0);
-	HttpHeaders test;
-    offlineStorage->ReleaseRecords({ "guid" }, false, test);
+    HttpHeaders test;
+    bool fromMemory = false;
+    offlineStorage->ReleaseRecords({ "guid" }, false, test, fromMemory);
 
     consumer.records.clear();
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
@@ -293,8 +295,9 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsIncrementsRetryCount)
 
     EXPECT_CALL(configMock, GetMaximumRetryCount())
         .WillOnce(Return(2));
-	HttpHeaders test;
-    offlineStorage->ReleaseRecords({ "guid" }, true, test);
+    HttpHeaders test;
+    bool fromMemory = false;
+    offlineStorage->ReleaseRecords({ "guid" }, true, test, fromMemory);
 
     consumer.records.clear();
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
@@ -309,8 +312,9 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseUnreservedRecordsDoesntIncrementRetryC
 
     EXPECT_CALL(configMock, GetMaximumRetryCount())
         .WillOnce(Return(2));
-	HttpHeaders test;
-    offlineStorage->ReleaseRecords({ "guid" }, true, test);
+    HttpHeaders test;
+    bool fromMemory = false;
+    offlineStorage->ReleaseRecords({ "guid" }, true, test, fromMemory);
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
@@ -335,8 +339,9 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount
         EXPECT_THAT(consumer.records[0].retryCount, i);
         EXPECT_CALL(observerMock, OnStorageRecordsDropped(1))
             .Times((i == MaxRetryCount) ? 1 : 0);
-		HttpHeaders test;
-        offlineStorage->ReleaseRecords({ "guid" }, true, test);
+        HttpHeaders test;
+        bool fromMemory = false;
+        offlineStorage->ReleaseRecords({ "guid" }, true, test, fromMemory);
     }
 
     consumer.records.clear();
@@ -548,11 +553,13 @@ TEST_F(OfflineStorageTests_SQLite, APICallsAreHarmlessAfterStorageIsShutdown)
     offlineStorage->Shutdown();
 
     offlineStorage->Shutdown();
-	HttpHeaders test;
-    offlineStorage->DeleteRecords({ "1", "2", "" }, test);
+    HttpHeaders test;
+    bool fromMemory = false;
+    offlineStorage->DeleteRecords({ "1", "2", "" }, test, fromMemory);
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), false);
-    offlineStorage->ReleaseRecords({ "1", "2", "" }, true, test);
+    fromMemory = false;
+    offlineStorage->ReleaseRecords({ "1", "2", "" }, true, test, fromMemory);
     offlineStorage->StoreRecord({"guid-1", "token", EventPriority_Low, 1, {}});
     offlineStorage->StoreSetting("name", "value");
     EXPECT_THAT(offlineStorage->GetSetting("name"), StrEq(""));

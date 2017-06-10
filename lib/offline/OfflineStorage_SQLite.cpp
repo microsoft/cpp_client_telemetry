@@ -22,7 +22,8 @@ OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration const& configurati
     m_runtimeConfig(runtimeConfig),
     m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown),
     m_killSwitchManager(),
-    m_clockSkewManager()
+    m_clockSkewManager(),
+    m_lastReadCount(0)
 {
 }
 
@@ -100,113 +101,163 @@ bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
     return false;
 }
 
-bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority /* =EventPriority_Unspecified */, unsigned maxCount /* =0 */)
+bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority, unsigned maxCount)
 {
+	m_lastReadCount = 0;
     if (!m_db) {
         ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database is not open");
         return false;
-    }
+	}
 
-    ARIASDK_LOG_DETAIL("Retrieving max. %u%s events of priority at least %d (%s)",
-        maxCount, (maxCount > 0) ? "" : " (unlimited)", minPriority, priorityToStr(static_cast<EventPriority>(minPriority)));
+	ARIASDK_LOG_DETAIL("Retrieving max. %u%s events of priority at least %d (%s)",
+		maxCount, (maxCount > 0) ? "" : " (unlimited)", minPriority, priorityToStr(static_cast<EventPriority>(minPriority)));
 
-    if (!commitIfInTransaction()) {
-        ARIASDK_LOG_ERROR("Failed to commit queued events: Database error has occurred, recreating database");
-        recreate(201);
-        return false;
-    }
+	if (!commitIfInTransaction()) {
+		ARIASDK_LOG_ERROR("Failed to commit queued events: Database error has occurred, recreating database");
+		recreate(201);
+		return false;
+	}
 
-    SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
-    if (!releaseStmt.execute(PAL::getUtcSystemTimeMs())) {
-        ARIASDK_LOG_ERROR("Failed to release expired reserved events: Database error occurred, recreating database");
-        recreate(202);
-        return false;
-    }
-    if (releaseStmt.changes() > 0) {
-        ARIASDK_LOG_DETAIL("Released %u expired reserved events",
-            static_cast<unsigned>(releaseStmt.changes()));
-    }
+	SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
+	if (!releaseStmt.execute(PAL::getUtcSystemTimeMs())) {
+		ARIASDK_LOG_ERROR("Failed to release expired reserved events: Database error occurred, recreating database");
+		recreate(202);
+		return false;
+	}
+	if (releaseStmt.changes() > 0) {
+		ARIASDK_LOG_DETAIL("Released %u expired reserved events",
+			static_cast<unsigned>(releaseStmt.changes()));
+	}
 
-    if (!beginIfNotInTransaction()) {
-        ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
-        recreate(203);
-        return false;
-    }
-    
-    if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
-    {
-        return false;
-    }
-    SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
-    if (!selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1)) {
-        ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
-        recreate(204);
-        return false;
-    }
+	if (!beginIfNotInTransaction()) {
+		ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
+		recreate(203);
+		return false;
+	}
 
-    std::vector<StorageRecordId> consumedIds;
-    StorageRecord record;
-    int priority;
-    while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob)) {
-        if (priority < EventPriority_Off || priority > EventPriority_Immediate) {
-            record.priority = EventPriority_Normal;
-        } else {
-            record.priority = static_cast<EventPriority>(priority);
-        }
-        // The record ID needs to be saved before std::move() below.
-        if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
-        {			
-            consumedIds.push_back(record.id);
-        }
-        
-        if (!consumer(std::move(record))) {
-            consumedIds.pop_back();
-            selectStmt.reset();
-            break;
-        }
-    }
-    if (selectStmt.error()) {
-        ARIASDK_LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
-        recreate(205);
-        return false;
-    }
+	if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
+	{
+		return false;
+	}
+	SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
+	if (!selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1)) {
+		ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
+		recreate(204);
+		return false;
+	}
 
-    if (consumedIds.empty()) {
-        if (!rollbackIfInTransaction()) {
-            ARIASDK_LOG_ERROR("Failed to rollback event search: Database error has occurred, recreating database");
-            recreate(206);
-            return false;
-        }
-        return true;
-    }
+	std::vector<StorageRecordId> consumedIds;
+	StorageRecord record;
+	int priority;
+	while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob)) {
+		if (priority < EventPriority_Off || priority > EventPriority_Immediate) {
+			record.priority = EventPriority_Normal;
+		}
+		else {
+			record.priority = static_cast<EventPriority>(priority);
+		}
+		// The record ID needs to be saved before std::move() below.
+		if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
+		{
+			consumedIds.push_back(record.id);
+		}
 
-    ARIASDK_LOG_DETAIL("Reserving %u event(s) {%s%s} for %u milliseconds",
-        static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
-    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(consumedIds);
-    if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
-        ARIASDK_LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
-        recreate(207);
-        return false;
-    }
+		if (!consumer(std::move(record))) {
+			consumedIds.pop_back();
+			selectStmt.reset();
+			break;
+		}
+	}
+	if (selectStmt.error()) {
+		ARIASDK_LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
+		recreate(205);
+		return false;
+	}
 
-    if (!commitIfInTransaction()) {
-        ARIASDK_LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
-        recreate(208);
-        return false;
-    }
+	if (consumedIds.empty()) {
+		if (!rollbackIfInTransaction()) {
+			ARIASDK_LOG_ERROR("Failed to rollback event search: Database error has occurred, recreating database");
+			recreate(206);
+			return false;
+		}
+		return true;
+	}
 
-    if (m_runtimeConfig.IsClockSkewEnabled() &&
-        !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
-        !consumedIds.empty())
-    {
-        m_clockSkewManager.GetDelta();
-    }
+	ARIASDK_LOG_DETAIL("Reserving %u event(s) {%s%s} for %u milliseconds",
+		static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
+	std::vector<uint8_t> idList = packageIdList(consumedIds);
+	if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
+		ARIASDK_LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
+		recreate(207);
+		return false;
+	}
 
-    return true;
+	if (!commitIfInTransaction()) {
+		ARIASDK_LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
+		recreate(208);
+		return false;
+	}
+
+	if (m_runtimeConfig.IsClockSkewEnabled() &&
+		!m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
+		!consumedIds.empty())
+	{
+		m_clockSkewManager.GetDelta();
+	}
+	m_lastReadCount = consumedIds.size();
+
+	return true;
 }
 
-void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers)
+bool OfflineStorage_SQLite::IsLastReadFromMemory()
 {
+	return false;
+}
+unsigned OfflineStorage_SQLite::LastReadRecordCount()
+{
+	return  m_lastReadCount;
+}
+
+std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, EventPriority minPriority, unsigned maxCount) 
+{
+	std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
+	StorageRecord record;
+
+	if (shutdown)
+	{
+		SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
+		if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+		{
+			int priority;
+			while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+			{
+				record.priority = static_cast<EventPriority>(priority);
+				records->push_back(record);
+			}
+			selectStmt.reset();
+		}
+	}
+	else
+	{
+		SqliteStatement selectStmt(*m_db, m_stmtSelectEventsMinPriority);
+		if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+		{
+			int priority;
+			while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+			{
+				record.priority = static_cast<EventPriority>(priority);
+				records->push_back(record);
+			}
+			selectStmt.reset();
+		}
+	}	
+	return records;
+}
+
+
+void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
+{
+	UNREFERENCED_PARAMETER(fromMemory);
     m_killSwitchManager.handleResponse(headers);
     if (m_clockSkewManager.isWaitingForClockSkew())
     {
@@ -231,7 +282,7 @@ void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& id
         return;
     }
 
-    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(ids);
+    std::vector<uint8_t> idList = packageIdList(ids);
     if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
         ARIASDK_LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
             static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
@@ -240,8 +291,9 @@ void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& id
     }
 }
 
-void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers)
+void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
 {
+	UNREFERENCED_PARAMETER(fromMemory);
     m_killSwitchManager.handleResponse(headers);
     if (m_clockSkewManager.isWaitingForClockSkew())
     {
@@ -273,7 +325,7 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
         return;
     }
 
-    std::vector<uint8_t> idList = OfflineStorage_SQLite::packageIdList(ids);
+    std::vector<uint8_t> idList = packageIdList(ids);
     SqliteStatement releaseStmt(*m_db, m_stmtReleaseEvents_ids_retryCountDelta);
     if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0)) {
         ARIASDK_LOG_ERROR("Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",
@@ -516,6 +568,13 @@ bool OfflineStorage_SQLite::initializeDatabase()
         " FROM " TABLE_NAME_EVENTS
         " WHERE priority=(SELECT MAX(priority) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND priority>=?) AND reserved_until=0"
         " ORDER BY timestamp ASC LIMIT ?");
+
+	PREPARE_SQL(m_stmtSelectEventsMinPriority,
+		"SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+		" FROM " TABLE_NAME_EVENTS
+		" WHERE priority=(SELECT MIN(priority) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND priority>=?) AND reserved_until=0"
+		" ORDER BY timestamp ASC LIMIT ?");
+
     PREPARE_SQL(m_stmtReserveEvents,
         SQL_SUPPLY_PACKAGED_IDS
         "UPDATE " TABLE_NAME_EVENTS
@@ -616,23 +675,36 @@ void OfflineStorage_SQLite::autoCommitTransaction()
     }
 }
 
+unsigned OfflineStorage_SQLite::GetSize() 
+{
+	unsigned pageCount;
+	SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
+	if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
+		ARIASDK_LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
+		return 0;
+	}
+	pageCountStmt.reset();
+
+	return pageCount * m_pageSize;
+}
+
 bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
 {
-    m_currentlyAddedBytes += justAddedBytes;
-    if (m_currentlyAddedBytes < 10240) {
-        return true;
-    }
-    m_currentlyAddedBytes = 0;
+	m_currentlyAddedBytes += justAddedBytes;
+	if (m_currentlyAddedBytes < 10240) {
+		return true;
+	}
+	m_currentlyAddedBytes = 0;
 
-    unsigned pageCount;
-    SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
-    if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
-        ARIASDK_LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-        return false;
-    }
-    pageCountStmt.reset();
+	unsigned pageCount;
+	SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
+	if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
+		ARIASDK_LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
+		return false;
+	}
+	pageCountStmt.reset();
 
-    unsigned previousDbSize = pageCount * m_pageSize;
+	unsigned previousDbSize = pageCount * m_pageSize;
     unsigned maxSize = m_runtimeConfig.GetOfflineStorageMaximumSizeBytes();
     if (previousDbSize <= maxSize) {
         ARIASDK_LOG_DETAIL("Database size (%u bytes) is below the maximum allowed size (%u bytes), no trimming necessary",

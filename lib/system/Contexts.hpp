@@ -60,6 +60,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     // Receiving
     std::unique_ptr<IHttpResponse const> httpResponse;
     int                                  durationMs = -1;
+    bool                                 fromMemory;
 };
 
 using EventsUploadContextPtr = PAL::RefCountedPtr<EventsUploadContext>;

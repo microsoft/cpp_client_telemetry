@@ -299,15 +299,31 @@ void registerSemanticContext(ISemanticContext* context)
 	{
 		context->SetDeviceId(g_DeviceInformation->GetDeviceId());
 		context->SetDeviceModel(g_DeviceInformation->GetModel());
+		context->SetDeviceMake(g_DeviceInformation->GetManufacturer());
 	}
 
 	if (g_SystemInformation != nullptr)
 	{
+		// Get SystemInfo common fields
 		context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
 		context->SetOsName(g_SystemInformation->GetOsName());
+		context->SetOsName(g_SystemInformation->GetOsFullVersion());
+
+		// AppInfo fields
+		context->SetAppId(g_SystemInformation->GetAppId());
+		context->SetAppVersion(g_SystemInformation->GetAppVersion());
+		context->SetAppLanguage(g_SystemInformation->GetAppLanguage());
+
+		// UserInfo fields.
+		context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
+		context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
+		context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
 	}
 	if(g_NetworkInformation != nullptr)
-	{
+	{		
+		// Get NetworkInfo common fields
+		context->SetNetworkProvider(g_NetworkInformation->GetNetworkProvider());
+		context->SetNetworkCost(g_NetworkInformation->GetNetworkCost());
 		context->SetNetworkType(g_NetworkInformation->GetNetworkType());
 	}   
 }

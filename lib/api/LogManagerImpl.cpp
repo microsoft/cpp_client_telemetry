@@ -3,7 +3,7 @@
 #include "LogManagerImpl.hpp"
 #include "LogManager.hpp"
 #include "config/RuntimeConfig_Default.hpp"
-#include "offline/OfflineStorage_SQLite.hpp"
+#include "offline/OfflineStorageHandler.hpp"
 #include "system/TelemetrySystem.hpp"
 #include "system/UtcTelemetrySystem.hpp"
 #include "utils/Utils.hpp"
@@ -54,6 +54,8 @@ LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
 {
     ARIASDK_LOG_DETAIL("New LogManager instance");
 
+    ARIASDK_NS::PAL::initialize();
+
     m_context.reset(new ContextFieldsProvider(nullptr));
 
     m_defaultRuntimeConfig.initialize(configuration);
@@ -87,8 +89,6 @@ LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
         m_alive = true;
         return;
     }
-
-    ARIASDK_NS::PAL::initialize();
 
     if (m_httpClient == nullptr) {
 #if ARIASDK_PAL_SKYPE
@@ -126,7 +126,7 @@ LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
         ARIASDK_LOG_DETAIL("BandwidthController: None");
     }
 
-    m_offlineStorage.reset(new OfflineStorage_SQLite(configuration, *m_runtimeConfig));
+    m_offlineStorage.reset(new OfflineStorageHandler(configuration, *m_runtimeConfig));
 
     m_system = new TelemetrySystem(configuration, *m_runtimeConfig, *m_offlineStorage, *m_httpClient, *m_context, m_bandwidthController);
     ARIASDK_LOG_DETAIL("Telemetry system created, starting up...");

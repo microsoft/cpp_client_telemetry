@@ -20,20 +20,20 @@ TransmissionPolicyManager::TransmissionPolicyManager(IRuntimeConfig& runtimeConf
     m_isPaused(true),
     m_isUploadScheduled(false),
     m_finishing(false),
-	m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
+    m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
     m_uploadInProgress(false)
 {
     m_backoffConfig = "E,3000,300000,2,1";
     m_backoff = IBackoff::createFromConfig(m_backoffConfig);
     assert(m_backoff);
-	//TransmitProfiles::setDefaultProfile(TransmitProfile::TransmitProfile_RealTime);
-	//TransmitProfiles::updateStates(NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging);
-	m_deviceStateHandler.Start();
+    //TransmitProfiles::setDefaultProfile(TransmitProfile::TransmitProfile_RealTime);
+    //TransmitProfiles::updateStates(NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging);
+    m_deviceStateHandler.Start();
 }
 
 TransmissionPolicyManager::~TransmissionPolicyManager()
 {
-	m_deviceStateHandler.Stop();
+    m_deviceStateHandler.Stop();
 }
 
 void TransmissionPolicyManager::checkBackoffConfigUpdate()
@@ -160,12 +160,12 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
 
     if (event->record.priority >= EventPriority_Immediate) {
         EventsUploadContextPtr ctx = EventsUploadContext::create();
-        ctx->requestedMinPriority = event->record.priority;
+        ctx->requestedMinPriority = event->record.priority;//EventPriority_Low
         m_activeUploads.insert(ctx);
         initiateUpload(ctx);
     } 
-	else if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
-	{
+    else if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
+    {
         if (m_isUploadScheduled)
         {
             m_scheduledUpload.cancel();
@@ -181,15 +181,22 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
                 m_timerdelay = timers[2];
             }
         }
-		scheduleUpload(m_timerdelay);
+        scheduleUpload(m_timerdelay);
     }
 }
 
 void TransmissionPolicyManager::handleNothingToUpload(EventsUploadContextPtr const& ctx)
 {
-    ARIASDK_LOG_DETAIL("No stored events to send at the moment");
+    ARIASDK_LOG_DETAIL("No stored events to send at the moment");	
     m_backoff->reset();
-    finishUpload(ctx, -1);
+    if (ctx->requestedMinPriority == EventPriority::EventPriority_Immediate)
+    {
+        finishUpload(ctx, 0);
+    }
+    else
+    {
+        finishUpload(ctx, -1);
+    }
 }
 
 void TransmissionPolicyManager::handlePackagingFailed(EventsUploadContextPtr const& ctx)

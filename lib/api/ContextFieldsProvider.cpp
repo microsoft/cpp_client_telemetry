@@ -3,14 +3,15 @@
 #include "ContextFieldsProvider.hpp"
 #include "Config.hpp"
 #include "utils/Utils.hpp"
+#include "LogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
 
 ContextFieldsProvider::ContextFieldsProvider()
-	: m_lockP(new std::mutex())
-	, m_commonContextFieldsP(new std::map<std::string, EventProperty>())
-	, m_customContextFieldsP(new std::map<std::string, EventProperty>())
+    : m_lockP(new std::mutex())
+    , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
+    , m_customContextFieldsP(new std::map<std::string, EventProperty>())
 {
 
 }
@@ -19,26 +20,38 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
    ,m_parent(parent)
    ,m_commonContextFieldsP( new std::map<std::string, EventProperty>())
    ,m_customContextFieldsP( new std::map<std::string, EventProperty>())
+   ,m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
 {
-    if (!m_parent) {
-        PAL::registerSemanticContext(this);
-        setCommonField("act_session_id", PAL::generateUuidString());
+    if (!m_parent) 
+    {
+        PAL::registerSemanticContext(this);        
+        LogSessionData* sessionData = LogManager::GetLogSessionData();
+        if (sessionData)
+        {
+            setCommonField("act_session_id", LogManager::GetLogSessionData()->getSessionSDKUid());
+        }
+        else
+        {
+            setCommonField("act_session_id", PAL::generateUuidString());
+        }
     }
 }
 
 ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
 {
-	m_lockP = new std::mutex();
-	m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
-	m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
+    m_lockP = new std::mutex();
+    m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
+    m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
+    m_commonContextEventToConfigIdsP =  new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
 }
 
 ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
 {
-	m_lockP = new std::mutex();
-	m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
-	m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
-	return *this;
+    m_lockP = new std::mutex();
+    m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
+    m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
+    m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
+    return *this;
 }
 
 
@@ -47,23 +60,24 @@ ContextFieldsProvider::~ContextFieldsProvider()
     if (!m_parent) {
         PAL::unregisterSemanticContext(this);
     }
-	if (m_lockP) delete m_lockP;
-	if (m_commonContextFieldsP) delete m_commonContextFieldsP;
-	if (m_customContextFieldsP) delete m_customContextFieldsP;
+    if (m_lockP) delete m_lockP;
+    if (m_commonContextFieldsP) delete m_commonContextFieldsP;
+    if (m_customContextFieldsP) delete m_customContextFieldsP;
+    if(m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
 }
 
 void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty value)
 {
-	std::lock_guard<std::mutex> lock(*m_lockP);
+    std::lock_guard<std::mutex> lock(*m_lockP);
 
-	(*m_commonContextFieldsP)[name] = value;
+    (*m_commonContextFieldsP)[name] = value;
 }
 
 void ContextFieldsProvider::setCustomField(std::string const& name, EventProperty value)
 {
-	std::lock_guard<std::mutex> lock(*m_lockP);
+    std::lock_guard<std::mutex> lock(*m_lockP);
 
-	(*m_customContextFieldsP)[name] = value;
+    (*m_customContextFieldsP)[name] = value;
 }
 
 void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
@@ -75,111 +89,132 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
     {
         std::lock_guard<std::mutex> lock(*m_lockP);
 
-		std::map<std::string, AriaProtocol::PII> PIIExtensions;
+        std::map<std::string, AriaProtocol::PII> PIIExtensions;
 
         for (auto const& field : (*m_commonContextFieldsP))
-		{
-			if (field.second.piiKind != PiiKind_None)
-			{
-				//ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-				AriaProtocol::PII pii;
-				pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-				pii.RawContent = field.second.to_string();
-				pii.ScrubType = AriaProtocol::O365;
-				PIIExtensions[field.first] = pii;
-			}
-			else 
-			{
-				std::vector<uint8_t> guid;
-				uint8_t guid_bytes[16] = { 0 };
+        {
 
-				switch (field.second.type) 
-				{
-				case EventProperty::TYPE_STRING:
-					record.Extension[field.first] = field.second.to_string();
-					break;
-				case EventProperty::TYPE_INT64:
-					record.TypedExtensionInt64[field.first] = field.second.as_int64;
-					break;
-				case EventProperty::TYPE_DOUBLE:
-					record.TypedExtensionDouble[field.first] = field.second.as_double;
-					break;
-				case EventProperty::TYPE_TIME:
-					record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
-					break;
-				case EventProperty::TYPE_BOOLEAN:
-					record.TypedExtensionBoolean[field.first] = field.second.as_bool;
-					break;
-				case EventProperty::TYPE_GUID:
-				{
-					GUID_t temp = field.second.as_guid;
-					temp.to_bytes(guid_bytes);
-					guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-					record.TypedExtensionGuid[field.first] = guid;
-					break;
-				}
-				default:
-					// Convert all unknown types to string
-					record.Extension[field.first] = field.second.to_string();
-				}
-			}
+            if (field.first == COMMONFIELDS_APP_EXPERIMENTIDS)
+            {// for ECS set event specific config ids
+                std::string value = field.second.to_string();
+                if (m_commonContextFieldsP->find(EventInfo_Name) != m_commonContextFieldsP->end())
+                {
+                    EventProperty nameProperty = (*m_commonContextFieldsP)[EventInfo_Name];
+                    std::string eventName = nameProperty.to_string();
+                    if (!eventName.empty())
+                    {
+                        std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
+                        if (iter != m_commonContextEventToConfigIdsP->end())
+                        {
+                            value = iter->second;
+                        }
+                    }
+                }
+                record.Extension[field.first] = value;
+                continue;
+            }
+
+            if (field.second.piiKind != PiiKind_None)
+            {
+                //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                AriaProtocol::PII pii;
+                pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
+                pii.RawContent = field.second.to_string();
+                pii.ScrubType = AriaProtocol::O365;
+                PIIExtensions[field.first] = pii;
+            }
+            else 
+            {
+                std::vector<uint8_t> guid;
+                uint8_t guid_bytes[16] = { 0 };
+
+                switch (field.second.type) 
+                {
+                case EventProperty::TYPE_STRING:
+                    record.Extension[field.first] = field.second.to_string();
+                    break;
+                case EventProperty::TYPE_INT64:
+                    record.TypedExtensionInt64[field.first] = field.second.as_int64;
+                    break;
+                case EventProperty::TYPE_DOUBLE:
+                    record.TypedExtensionDouble[field.first] = field.second.as_double;
+                    break;
+                case EventProperty::TYPE_TIME:
+                    record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
+                    break;
+                case EventProperty::TYPE_BOOLEAN:
+                    record.TypedExtensionBoolean[field.first] = field.second.as_bool;
+                    break;
+                case EventProperty::TYPE_GUID:
+                {
+                    GUID_t temp = field.second.as_guid;
+                    temp.to_bytes(guid_bytes);
+                    guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+                    record.TypedExtensionGuid[field.first] = guid;
+                    break;
+                }
+                default:
+                    // Convert all unknown types to string
+                    record.Extension[field.first] = field.second.to_string();
+                }
+            }
         }
 
         for (auto const& field : (*m_customContextFieldsP)) 
-		{
-			if (field.second.piiKind != PiiKind_None)
-			{
-				//ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-				AriaProtocol::PII pii;
-				pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-				pii.RawContent = field.second.to_string();
-				pii.ScrubType = AriaProtocol::O365;
-				PIIExtensions[field.first] = pii;
-			}
-			else
-			{
-				std::vector<uint8_t> guid;
-				uint8_t guid_bytes[16] = { 0 };
+        {
+            if (field.second.piiKind != PiiKind_None)
+            {
+                //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                AriaProtocol::PII pii;
+                pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
+                pii.RawContent = field.second.to_string();
+                pii.ScrubType = AriaProtocol::O365;
+                PIIExtensions[field.first] = pii;
+            }
+            else
+            {
+                std::vector<uint8_t> guid;
+                uint8_t guid_bytes[16] = { 0 };
 
-				switch (field.second.type)
-				{
-				case EventProperty::TYPE_STRING:
-					record.Extension[field.first] = field.second.to_string();
-					break;
-				case EventProperty::TYPE_INT64:
-					record.TypedExtensionInt64[field.first] = field.second.as_int64;
-					break;
-				case EventProperty::TYPE_DOUBLE:
-					record.TypedExtensionDouble[field.first] = field.second.as_double;
-					break;
-				case EventProperty::TYPE_TIME:
-					record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
-					break;
-				case EventProperty::TYPE_BOOLEAN:
-					record.TypedExtensionBoolean[field.first] = field.second.as_bool;
-					break;
-				case EventProperty::TYPE_GUID:
-				{
-					GUID_t temp = field.second.as_guid;
-					temp.to_bytes(guid_bytes);
-					guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-					record.TypedExtensionGuid[field.first] = guid;
-					break;
-				}
-				default:
-					// Convert all unknown types to string
-					record.Extension[field.first] = field.second.to_string();
-				}
-			}
+                switch (field.second.type)
+                {
+                case EventProperty::TYPE_STRING:
+                    record.Extension[field.first] = field.second.to_string();
+                    break;
+                case EventProperty::TYPE_INT64:
+                    record.TypedExtensionInt64[field.first] = field.second.as_int64;
+                    break;
+                case EventProperty::TYPE_DOUBLE:
+                    record.TypedExtensionDouble[field.first] = field.second.as_double;
+                    break;
+                case EventProperty::TYPE_TIME:
+                    record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
+                    break;
+                case EventProperty::TYPE_BOOLEAN:
+                    record.TypedExtensionBoolean[field.first] = field.second.as_bool;
+                    break;
+                case EventProperty::TYPE_GUID:
+                {
+                    GUID_t temp = field.second.as_guid;
+                    temp.to_bytes(guid_bytes);
+                    guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+                    record.TypedExtensionGuid[field.first] = guid;
+                    break;
+                }
+                default:
+                    // Convert all unknown types to string
+                    record.Extension[field.first] = field.second.to_string();
+                }
+            }
         }
 
-		if (PIIExtensions.size() > 0)
-		{
-			for (auto piiItem : PIIExtensions)
-			{
-				record.PIIExtensions[piiItem.first] = piiItem.second;
-			}
-		}
+        if (PIIExtensions.size() > 0)
+        {
+            for (auto piiItem : PIIExtensions)
+            {
+                record.PIIExtensions[piiItem.first] = piiItem.second;
+            }
+        }
     }
 }
 
@@ -190,36 +225,49 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
 
 void ContextFieldsProvider::SetAppExperimentETag(std::string const& appExperimentETag)
 {
-	setCommonField(COMMONFIELDS_APP_EXPERIMENTETAG, appExperimentETag);
-	_ClearExperimentIds();
+    setCommonField(COMMONFIELDS_APP_EXPERIMENTETAG, appExperimentETag);
+    _ClearExperimentIds();
 }
 
 void ContextFieldsProvider::_ClearExperimentIds()
 {
-	// Clear the common ExperimentIds
-	setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS,"");
+    // Clear the common ExperimentIds
+    setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS,"");
+    // Clear the map of all ExperimentsIds (that's associated with event)
+    m_commonContextEventToConfigIdsP->clear();
 }
 
 void ContextFieldsProvider::SetAppExperimentIds(std::string const& appExperimentIds)
 {
-	setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS, appExperimentIds);
+    setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS, appExperimentIds);
 }
 
 void ContextFieldsProvider::SetAppExperimentImpressionId(std::string const& appExperimentImpressionId)
 {
-	setCommonField(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, appExperimentImpressionId);
+    setCommonField(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, appExperimentImpressionId);
 }
 
 void ContextFieldsProvider::SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds)
 {
-	std::string eventNameNormalized = toLower(eventName);
-	if (!eventName.empty())
-	{
-		if (!experimentIds.empty())
-		{
-			setCommonField(eventNameNormalized, experimentIds);
-		}
-	}
+    std::string eventNameNormalized = toLower(eventName);
+    if (!eventName.empty())
+    {	
+        if (!experimentIds.empty())
+        {
+            if (m_commonContextEventToConfigIdsP->find(eventNameNormalized) == m_commonContextEventToConfigIdsP->end())
+            {
+                m_commonContextEventToConfigIdsP->insert(std::pair<std::string, std::string>(eventNameNormalized, experimentIds));
+            }
+            else
+            {
+                (*m_commonContextEventToConfigIdsP)[eventNameNormalized] = experimentIds;
+            }
+        }
+        else
+        {
+            m_commonContextEventToConfigIdsP->erase(eventNameNormalized);
+        }
+    }
 }
 
 void ContextFieldsProvider::SetAppId(std::string const& appId)
@@ -334,7 +382,7 @@ void ContextFieldsProvider::SetOsBuild(std::string const& osBuild)
 
 void ContextFieldsProvider::SetUserId(std::string const& userId, PiiKind piiKind)
 {
-	EventProperty prop(userId, piiKind);
+    EventProperty prop(userId, piiKind);
     setCommonField(COMMONFIELDS_USER_ID, prop);
 }
 

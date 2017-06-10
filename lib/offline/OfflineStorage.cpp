@@ -48,9 +48,14 @@ void OfflineStorage::handleRetrieveEvents(EventsUploadContextPtr const& ctx)
             return wantMore;
         };
 
-    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinPriority, ctx->requestedMaxCount)) {
+    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinPriority, ctx->requestedMaxCount))
+	{
+		ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
         retrievalFailed(ctx);
-    } else {
+    } 
+	else
+	{
+		ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
         retrievalFinished(ctx);
     }
 }
@@ -62,7 +67,7 @@ bool OfflineStorage::handleDeleteRecords(EventsUploadContextPtr const& ctx)
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.DeleteRecords(ctx->recordIds, headers);
+    m_offlineStorage.DeleteRecords(ctx->recordIds, headers, ctx->fromMemory);
     return true;
 }
 
@@ -74,7 +79,7 @@ bool OfflineStorage::handleReleaseRecords(EventsUploadContextPtr const& ctx)
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, false, headers);
+    m_offlineStorage.ReleaseRecords(ctx->recordIds, false, headers, ctx->fromMemory);
     return true;
 }
 
@@ -86,7 +91,7 @@ bool OfflineStorage::handleReleaseRecordsIncRetryCount(EventsUploadContextPtr co
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, true, headers);
+    m_offlineStorage.ReleaseRecords(ctx->recordIds, true, headers, ctx->fromMemory);
     return true;
 }
 
@@ -98,8 +103,7 @@ void OfflineStorage::OnStorageOpened(std::string const& type)
 }
 
 void OfflineStorage::OnStorageFailed(std::string const& reason)
-{
-    LogManager::DispatchEvent(DebugEventType::EVT_STORAGE_FULL);
+{   
     StorageNotificationContext ctx;
     ctx.str = reason;
     failed(&ctx);

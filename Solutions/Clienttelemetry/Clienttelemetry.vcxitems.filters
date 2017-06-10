@@ -162,6 +162,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp">
+      <Filter>offline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -397,6 +400,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\TransmitProfiles.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp">
+      <Filter>offline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

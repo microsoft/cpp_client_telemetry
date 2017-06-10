@@ -157,8 +157,20 @@ class IOfflineStorage {
     /// really accepted by the consumer), <c>false</c> if an error occurred and
     /// the retrieval ended prematurely, records could not be reserved
     /// etc.</returns>
-    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs,
-        EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
+    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, 
+		EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
+	
+	/// <summary>
+	/// return where the last read was memory or disk
+	/// </summary>
+	/// <remarks>
+	virtual bool IsLastReadFromMemory() = 0;
+
+	/// <summary>
+	/// return last read count
+	/// </summary>
+	/// <remarks>
+	virtual unsigned LastReadRecordCount() = 0;
 
     /// <summary>
     /// Delete records with specified IDs
@@ -168,7 +180,7 @@ class IOfflineStorage {
     /// ignored. Called from the internal worker thread.
     /// </remarks>
     /// <param name="ids">Identifiers of records to delete</param>
-    virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers) = 0;
+    virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) = 0;
 
     /// <summary>
     /// Release event records with specified IDs
@@ -183,7 +195,7 @@ class IOfflineStorage {
     /// <param name="ids">Identifiers of records to release</param>
     /// <param name="incrementRetryCount">Determines whether the retry
     /// counter should be incremented for the records</param>
-    virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers) = 0;
+    virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) = 0;
 
     /// <summary>
     /// Set value of an auxiliary persistent configuration value
@@ -207,6 +219,28 @@ class IOfflineStorage {
     /// <param name="name">Name of the setting to retrieve</param>
     /// <returns>Value of the requested setting or an empty string</returns>
     virtual std::string GetSetting(std::string const& name) = 0;
+
+	/// <summary>
+	/// Get size of the DB
+	/// </summary>
+	/// <remarks>
+	/// Get current Db size returned. Called from the internal worker thread.
+	/// </remarks>
+	/// <returns>Value of the requested DB size</returns>
+	virtual unsigned GetSize() = 0;
+
+	/// <summary>
+	/// Get Vector of records from DB
+	/// </summary>
+	/// <remarks>
+	/// If a setting with the specified name does not exist, an empty string is
+	/// returned. Called from the internal worker thread.
+	/// </remarks>
+	/// <param name="shutdown">if this is called at shutdown ot not</param>
+	/// <param name="minPriority">lowest priority selected</param>
+	/// <param name="maxCount"> max count to be selected</param>
+	/// <returns>Value of the requested setting or an empty string</returns>
+	virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
 };
 
 
