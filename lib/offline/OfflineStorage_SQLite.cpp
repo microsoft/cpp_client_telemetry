@@ -204,7 +204,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
 	{
 		m_clockSkewManager.GetDelta();
 	}
-	m_lastReadCount = consumedIds.size();
+	m_lastReadCount = static_cast<unsigned>(consumedIds.size());
 
 	return true;
 }

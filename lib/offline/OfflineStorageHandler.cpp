@@ -81,7 +81,7 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
         //check if the momory is full
         unsigned dbsize = m_offlineStorageMemory->GetSize();
-        dbsize = dbsize + (/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size());
+        dbsize = dbsize + static_cast<unsigned>(/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size());
 
         if (dbsize > m_logConfiguration.cacheMemorySizeLimitInBytes)
         {
