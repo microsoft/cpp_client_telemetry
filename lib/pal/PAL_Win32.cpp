@@ -307,7 +307,7 @@ void registerSemanticContext(ISemanticContext* context)
 		// Get SystemInfo common fields
 		context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
 		context->SetOsName(g_SystemInformation->GetOsName());
-		context->SetOsName(g_SystemInformation->GetOsFullVersion());
+		context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
 
 		// AppInfo fields
 		context->SetAppId(g_SystemInformation->GetAppId());
