@@ -265,7 +265,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\tests\unittests\FIFOOfflineStorageTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\HttpServer.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIHttpClient.hpp" />
@@ -280,6 +279,8 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\EventPropertiesTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BackoffTests_ExponentialWithJitter.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\FIFOOfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\GuidTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpDeflateCompressionTests.cpp" />

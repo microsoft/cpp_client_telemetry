@@ -139,7 +139,7 @@ namespace ARIASDK_NS_BEGIN {
         ARIASDK_LOG_DETAIL("close file success");
     }
 
-	int FIFOFileStorage::Write(const char* buffer, size_t size)
+	int FIFOFileStorage::Write(_In_reads_bytes_(size) const char* buffer, size_t size)
     {
 		if (nullptr == m_FileHandle)
 		{
@@ -181,7 +181,7 @@ SAVE_FAILED:
         return RES_ERROR;
     }
 
-	int FIFOFileStorage::Read(char* buffer, size_t size)
+	int FIFOFileStorage::Read(_Out_writes_bytes_(size) char* buffer, size_t size)
     {
 		if (nullptr == m_FileHandle)
 		{

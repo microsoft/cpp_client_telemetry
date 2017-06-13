@@ -168,17 +168,21 @@ namespace Microsoft {
 
                 void to_bytes(uint8_t(&guid_bytes)[16]) const;
 
+#pragma warning(push)
+#pragma warning(disable:6031)
                 std::string to_string() const
                 {
-                    std::string result(36 + 1, ' '); // 36 + sprintf null-terminates
-                    char *buff = (char *)(result.c_str());
-                    snprintf(buff,36,
+                    const unsigned buffSize = 36 + 1;  // 36 + null-termination
+                    char buff[buffSize];
+                    snprintf(buff, buffSize,
                         "%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
                         this->Data1, this->Data2, this->Data3,
                         this->Data4[0], this->Data4[1], this->Data4[2], this->Data4[3],
                         this->Data4[4], this->Data4[5], this->Data4[6], this->Data4[7]);
+                    std::string result(buff);
                     return result;
                 }
+#pragma warning(pop)
 
                 // The output from this method is compatible with std::unordered_map.
                 std::size_t HashForMap() const

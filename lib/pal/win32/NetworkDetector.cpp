@@ -43,19 +43,23 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="guid"></param>
                 /// <returns></returns>
-                std::string to_string(GUID guid) {
-                    std::string result;
+#pragma warning(push)
+#pragma warning(disable:6031)
+                std::string to_string(GUID guid)
+                {
                     char buff[40] = { 0 }; // Maximum hyphenated GUID length with braces is 38 + null terminator
-                    sprintf_s(buff,
+                    snprintf(buff, sizeof(buff),
                         "{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
                         guid.Data1, guid.Data2, guid.Data3,
                         guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
                         guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-                    result = buff;
+                    std::string result(buff);
                     return result;
                 }
+#pragma warning(pop)
 
-                NetworkCost const& NetworkDetector::GetNetworkCost() const {
+                NetworkCost const& NetworkDetector::GetNetworkCost() const
+                {
                     return (NetworkCost const &)m_currentNetworkCost;
                 }
 
@@ -64,6 +68,8 @@ namespace Microsoft {
                 /// This function can be called on any Windows release and it provides a SEH handler.
                 /// </summary>
                 /// <returns></returns>
+#pragma warning(push)
+#pragma warning(disable:6320)
                 int NetworkDetector::GetCurrentNetworkCost()
                 {
 #if 0
@@ -102,6 +108,7 @@ namespace Microsoft {
 
                     return m_currentNetworkCost;
                 }
+#pragma warning(pop)
 
                 /// <summary>
                 /// Get current network connectivity state
@@ -382,6 +389,8 @@ namespace Microsoft {
                 /// <summary>
                 /// Register for COM events and block-wait in RegisterAndListen
                 /// </summary>
+#pragma warning(push)
+#pragma warning(disable:6320)
                 void NetworkDetector::run()
                 {
                     if (isRunning)
@@ -461,6 +470,7 @@ namespace Microsoft {
                     }
                     CoUninitialize();
                 }
+#pragma warning(pop)
 
                 /// <summary>
                 /// Start network monitoring thread

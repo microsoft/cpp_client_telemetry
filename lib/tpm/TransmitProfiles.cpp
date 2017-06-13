@@ -524,6 +524,8 @@ parsing_failed:
                 initTransmitProfileFields();
             }
 
+#pragma warning(push)
+#pragma warning(disable:6320)
             TransmitProfiles::~TransmitProfiles()
             {
 #ifdef _WIN32
@@ -539,6 +541,7 @@ parsing_failed:
                 }
 #endif
             }
+#pragma warning(pop)
 
             // Make sure we populate transmitProfileFields dynamically before start
             static TransmitProfiles __profiles;

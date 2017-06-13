@@ -294,8 +294,8 @@ namespace ARIASDK_NS_BEGIN {
         */
 		int  VerifyFileChecksum();
 
-		int  Write(const char* buffer, size_t size);
-		int  Read(char *buffer, size_t size);
+		int  Write(_In_reads_bytes_(size) const char* buffer, size_t size);
+		int  Read(_Out_writes_bytes_ (size) char *buffer, size_t size);
 
 		int  WriteFileHeader();
 		int  WriteFileInfo();

@@ -232,6 +232,8 @@ void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
 
 //---
 
+#pragma warning(push)
+#pragma warning(disable:6031)
 std::string generateUuidString()
 {
 	GUID uuid;
@@ -246,6 +248,7 @@ std::string generateUuidString()
         uuid.Data4[4], uuid.Data4[5], uuid.Data4[6], uuid.Data4[7]);
     return buf;
 }
+#pragma warning(pop)
 
 int64_t getUtcSystemTimeMs()
 {

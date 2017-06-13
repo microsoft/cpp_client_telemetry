@@ -11,6 +11,8 @@ using namespace tld;
 
 namespace ARIASDK_NS_BEGIN {
 
+    static const unsigned char InvalidHexDigit = 0xFF;
+
     unsigned char getHexToInt(char ch)
     {
         unsigned char temp = 0;
@@ -61,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
         case 'F':
             temp = 15; break;
         default:
-            temp = 255; break;
+            temp = InvalidHexDigit; break;
         }
         return temp;
     }
@@ -93,8 +95,8 @@ namespace ARIASDK_NS_BEGIN {
         index = 0;
         for (; index < 8; index++)
         {
-            int tempInt = getHexToInt(guidString[index]);
-            if (-1 == tempInt)
+            unsigned char tempInt = getHexToInt(guidString[index]);
+            if (InvalidHexDigit == tempInt)
             {
                 error = true;
                 return temp;
@@ -105,8 +107,8 @@ namespace ARIASDK_NS_BEGIN {
 
         for (; index < 12; index++)
         {
-            unsigned short tempInt = getHexToInt(guidString[index]);
-            if (-1 == tempInt)
+            unsigned char tempInt = getHexToInt(guidString[index]);
+            if (InvalidHexDigit == tempInt)
             {
                 error = true;
                 return temp;
@@ -117,8 +119,8 @@ namespace ARIASDK_NS_BEGIN {
 
         for (; index < 16; index++)
         {
-            unsigned short tempInt = getHexToInt(guidString[index]);
-            if (-1 == tempInt)
+            unsigned char tempInt = getHexToInt(guidString[index]);
+            if (InvalidHexDigit == tempInt)
             {
                 error = true;
                 return temp;
