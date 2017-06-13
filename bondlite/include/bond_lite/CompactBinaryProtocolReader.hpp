@@ -46,18 +46,17 @@ class CompactBinaryProtocolReader {
     }
 
   public:
-    bool ReadBlob(void* data, size_t size)
+    bool ReadBlob(_Out_writes_bytes_ (size) void* data, size_t size)
     {
-        if (size > m_input.size() - m_ofs) {
+        if (size > (m_input.size() - m_ofs)) {
             return false;
         }
-        // memcpy() is unsafe and would have to be replaced with memcpy_s(), potentially from PAL.
-        // std::copy() warns when used on plain pointer iterators also. Hence the poor man's approach.
-        uint8_t* dst = static_cast<uint8_t*>(data);
-        while (size--) {
-            *dst++ = m_input[m_ofs++];
+        if ((data == nullptr) || (size == 0)) {
+            return false;
         }
-        return true;
+        bool result = (memcpy_s(static_cast<uint8_t*>(data), size, &(m_input[m_ofs]), size) == 0);
+        m_ofs += size;
+        return result;
     }
 
     bool ReadBool(bool& value)
