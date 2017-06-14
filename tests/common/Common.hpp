@@ -37,11 +37,13 @@ MATCHER_P(BinaryHasSubstr, str, "")
 
 MATCHER_P2(Near, value, range, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return (abs(arg - value) <= range);
 }
 
 MATCHER_P(StrAsIntGt, value, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return std::stoi(arg) > value;
 }
 

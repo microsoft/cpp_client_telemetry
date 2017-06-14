@@ -95,6 +95,8 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     EXPECT_THAT(event3->compressed, true);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4125)
 TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 {
     EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
@@ -123,3 +125,4 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
     EXPECT_THAT(event->body, SizeIs(Lt(size * 70 / 100)));
     EXPECT_THAT(event->compressed, true);
 }
+#pragma warning(pop)

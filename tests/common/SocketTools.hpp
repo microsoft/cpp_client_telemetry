@@ -70,7 +70,7 @@ class SocketAddr
     {
         sockaddr_in& inet4 = reinterpret_cast<sockaddr_in&>(m_data);
         inet4.sin_family = AF_INET;
-        inet4.sin_port = htons(port);
+        inet4.sin_port = htons(static_cast<USHORT>(port));
         inet4.sin_addr.s_addr = htonl(addr);
     }
 

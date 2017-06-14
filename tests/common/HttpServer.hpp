@@ -380,6 +380,7 @@ class HttpServer : private Reactor::Callback
 
     bool parseHeaders(Connection& conn, size_t endOfs)
     {
+        UNREFERENCED_PARAMETER(endOfs);
         // Method
         char const* begin = conn.receiveBuffer.c_str();
         char const* ptr = begin;
@@ -483,12 +484,12 @@ class HttpServer : private Reactor::Callback
         bool first = true;
         for (char& ch : result) {
             if (first) {
-                ch = ::toupper(ch);
+                ch = static_cast<char>(::toupper(ch));
                 first = false;
             } else if (ch == '-') {
                 first = true;
             } else {
-                ch = ::tolower(ch);
+                ch = static_cast<char>(::tolower(ch));
             }
         }
         return result;
