@@ -27,6 +27,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Mocks.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OacrTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />
