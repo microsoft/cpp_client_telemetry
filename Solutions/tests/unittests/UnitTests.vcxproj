@@ -290,6 +290,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\Main.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\MetaStatsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OacrTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OfflineStorageTests_SQLiteWithMock.cpp" />
