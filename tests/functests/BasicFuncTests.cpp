@@ -42,6 +42,7 @@ class BasicFuncTests : public ::testing::Test,
 
         LogConfiguration configuration;
         configuration.runtimeConfig = &runtimeConfig;
+        configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
         configuration.cacheFilePath = TEST_STORAGE_FILENAME;
         ::remove(configuration.cacheFilePath.c_str());
 
@@ -143,11 +144,11 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_THAT(actual.EventType, expected.GetName());
         EXPECT_THAT(actual.RecordType, AriaProtocol::RecordType::Event);
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
-		{
-			if (prop.second.piiKind == PiiKind_None)
-			{
-				EXPECT_THAT(actual.Extension, Contains(Pair(prop.first, prop.second.to_string())));
-			}
+        {
+            if (prop.second.piiKind == PiiKind_None)
+            {
+                EXPECT_THAT(actual.Extension, Contains(Pair(prop.first, prop.second.to_string())));
+            }
         }
         for (auto const& property : expected.GetPiiProperties()) {
             ::AriaProtocol::PII pii;
@@ -226,6 +227,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     logger->LogEvent(event2);
 
     waitForRequests(5);
+    PAL::sleep(100);
     ASSERT_THAT(receivedRequests, SizeIs(1));
     auto payload = decodeRequest(receivedRequests[0], false);
 
@@ -255,22 +257,26 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger->LogEvent(event2);
 
-    waitForRequests(5, 2);
-    ASSERT_THAT(receivedRequests, SizeIs(2));
+    PAL::sleep(100); // Some time to let events be saved to DB
+    waitForRequests(5, 1);
+    ASSERT_THAT(receivedRequests, SizeIs(1));
 
     auto payload1 = decodeRequest(receivedRequests[0], false);
     ASSERT_THAT(payload1.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload1.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp1 = payload1.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp1.Records, SizeIs(1));
+    ASSERT_THAT(dp1.Records, SizeIs(2));
     verifyEvent(event2, dp1.Records[0]);
+	verifyEvent(event, dp1.Records[1]);
 
+	/*
     auto payload2 = decodeRequest(receivedRequests[1], false);
     ASSERT_THAT(payload2.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload2.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp2 = payload2.TokenToDataPackagesMap["functests-tenant-token"][0];
     ASSERT_THAT(dp2.Records, SizeIs(1));
     verifyEvent(event, dp2.Records[0]);
+	*/
 }
 
 TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
@@ -331,6 +337,7 @@ TEST_F(BasicFuncTests, configDecorations)
     logger->LogAppLifecycle(AppLifecycleState_Launch, event4);
 
     waitForRequests(5);
+    PAL::sleep(100);
     ASSERT_THAT(receivedRequests, SizeIs(1));
     auto payload = decodeRequest(receivedRequests[0], false);
     ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
@@ -362,9 +369,56 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 
     logManager.reset();
 
+    PAL::sleep(2100); // Some time to let events be saved to DB
+
     LogConfiguration configuration;
+    //configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.runtimeConfig = &runtimeConfig;
     configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+    logManager.reset(ILogManager::Create(configuration));
+
+    // 1st request is from MetaStats
+    waitForRequests(5, 1);
+    
+	ASSERT_THAT(receivedRequests, SizeIs(1));
+    auto payload = decodeRequest(receivedRequests[0], false);
+    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
+    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
+    auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
+    ASSERT_THAT(dp.Records, SizeIs(2));
+    verifyEvent(event1, dp.Records[0]);
+    verifyEvent(event2, dp.Records[1]);
+
+}
+
+TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
+{
+	logManager.reset();
+    // Wait a bit so that the initial check for unsent events does not send our events too early.
+    PAL::sleep(200);
+    LogConfiguration configuration;
+    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
+    configuration.runtimeConfig = &runtimeConfig;
+    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+   
+    logManager.reset(ILogManager::Create(configuration));
+    logger = logManager->GetLogger("functests-Tenant-Token", "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+
+    EventProperties event1("first_event");
+    EventProperties event2("second_event");
+    event1.SetProperty("property1", "value1");
+    event2.SetProperty("property2", "value2");
+
+    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
+    logger->LogEvent(event1);
+    logger->LogEvent(event2);
+
+    PAL::sleep(100); // Some time to let events be saved to DB
+
+    logManager.reset();
+
+	PAL::sleep(100);    
     logManager.reset(ILogManager::Create(configuration));
 
     // 1st request is from MetaStats
@@ -379,8 +433,57 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     verifyEvent(event2, dp.Records[1]);
 }
 
+TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
+{
+    logManager.reset();
+    // Wait a bit so that the initial check for unsent events does not send our events too early.
+    PAL::sleep(200);
+    LogConfiguration configuration;
+    configuration.maxTeardownUploadTimeInSec = 5;
+    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
+    configuration.runtimeConfig = &runtimeConfig;
+    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+
+    logManager.reset(ILogManager::Create(configuration));
+    logger = logManager->GetLogger("functests-Tenant-Token", "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+
+    EventProperties event1("first_event");
+    EventProperties event2("second_event");
+    event1.SetProperty("property1", "value1");
+    event2.SetProperty("property2", "value2");
+
+    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
+    logger->LogEvent(event1);
+    logger->LogEvent(event2);
+
+    //PAL::sleep(100); // Some time to let events be saved to DB
+
+    logManager.reset();
+
+    logManager.reset(ILogManager::Create(configuration));
+
+   // PAL::sleep(1000); // Some time to let events be saved to DB
+    // 1st request is from MetaStats
+    waitForRequests(5, 2);
+    ASSERT_THAT(receivedRequests, SizeIs(4));
+}
+
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
+	logManager.reset();
+	
+	// Wait a bit so that the initial check for unsent events does not send our events too early.
+	PAL::sleep(200);
+	LogConfiguration configuration;
+	configuration.maxTeardownUploadTimeInSec = 0;
+	configuration.runtimeConfig = &runtimeConfig;
+	configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+	logManager.reset(ILogManager::Create(configuration));
+
+	logger = logManager->GetLogger("functests-Tenant-Token", "source");
+
+
     static int64_t const ONE_EVENT_SIZE   = 500 * 1024;
     static int64_t const MAX_FILE_SIZE    =   8 * 1024 * 1024;
     static int64_t const ALLOWED_OVERFLOW =  10 * MAX_FILE_SIZE / 100;
@@ -414,8 +517,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     logManager.reset();
     PAL::sleep(2000);
     receivedRequests.clear();
-
-    LogConfiguration configuration;
+        
     configuration.runtimeConfig = &runtimeConfig;
     configuration.cacheFilePath = TEST_STORAGE_FILENAME;
     logManager.reset(ILogManager::Create(configuration));
@@ -424,7 +526,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     auto payload = decodeRequest(receivedRequests[0], false);
     ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(1));
+    ASSERT_THAT(dp.Records, SizeIs(2));
     EXPECT_THAT(dp.Records[0].Id, Not(IsEmpty()));
     EXPECT_THAT(dp.Records[0].Type, Eq("client_telemetry"));
     EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
@@ -455,20 +557,21 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 
     LogConfiguration configuration;
     configuration.runtimeConfig = &runtimeConfig;
+    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.cacheFilePath = TEST_STORAGE_FILENAME;
     logManager.reset(ILogManager::Create(configuration));
 
     waitForRequests(5, 2);
     ASSERT_THAT(receivedRequests, SizeIs(2));
-    auto payload = decodeRequest(receivedRequests[0], false);
+    auto payload = decodeRequest(receivedRequests[1], false);
     ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(1));
-    EXPECT_THAT(dp.Records[0].Id, Not(IsEmpty()));
-    EXPECT_THAT(dp.Records[0].Type, Eq("client_telemetry"));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_received_count", "2")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
+    ASSERT_THAT(dp.Records, SizeIs(2));
+    EXPECT_THAT(dp.Records[1].Id, Not(IsEmpty()));
+    EXPECT_THAT(dp.Records[1].Type, Eq("client_telemetry"));
+    EXPECT_THAT(dp.Records[1].Extension, Contains(Pair("records_received_count", "3")));
+    EXPECT_THAT(dp.Records[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
 }
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
@@ -503,8 +606,8 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
     // If the code works correctly, the event was not dropped (despite being retried twice)
     // because the retry was caused by network connectivity failures only - validate it.
     waitForRequests(5);
-    ASSERT_THAT(receivedRequests, SizeIs(1));
-    auto payload = decodeRequest(receivedRequests[0], false);
+    ASSERT_THAT(receivedRequests, SizeIs(2));
+    auto payload = decodeRequest(receivedRequests[1], false);
     EXPECT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
 }
 
@@ -542,17 +645,18 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 
     LogConfiguration configuration;
     configuration.runtimeConfig = &runtimeConfig;
+    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.cacheFilePath = TEST_STORAGE_FILENAME;
     logManager.reset(ILogManager::Create(configuration));
 
-    waitForRequests(5, 1);
-    auto payload = decodeRequest(receivedRequests[0], false);
+    waitForRequests(5, 2);
+    auto payload = decodeRequest(receivedRequests[1], false);
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
     ASSERT_THAT(dp.Records, SizeIs(1));
     EXPECT_THAT(dp.Records[0].Id, Not(IsEmpty()));
     EXPECT_THAT(dp.Records[0].Type, Eq("client_telemetry"));
     EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "1")));
+    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
 }
 
 TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
@@ -562,8 +666,9 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
 
     // Wait to see what is coming after start. There should be no uploads since nothing has happened yet.
     PAL::sleep(3500);
-    ASSERT_THAT(receivedRequests, SizeIs(0));
+    ASSERT_THAT(receivedRequests, SizeIs(1));
 
+	receivedRequests.clear();
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _))
         .WillOnce(Return());
     EventProperties event("some_event");
@@ -582,8 +687,8 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
     ASSERT_THAT(dp.Records, SizeIs(1));
     EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_received_count", "1")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("requests_acked_succeeded", "1")));
+    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_received_count", "2")));
+    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
 
     // Wait a few more seconds to see that no more events are being sent.
     PAL::sleep(3500);

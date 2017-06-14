@@ -12,6 +12,7 @@
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
 
+const unsigned int DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE = 75;
 
 using StorageRecordId = std::string;
 using StorageBlob     = std::vector<uint8_t>;
@@ -241,6 +242,9 @@ class IOfflineStorage {
 	/// <param name="maxCount"> max count to be selected</param>
 	/// <returns>Value of the requested setting or an empty string</returns>
 	virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
+
+
+	virtual bool ResizeDb() = 0;
 };
 
 

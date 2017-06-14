@@ -49,6 +49,9 @@ class LoggerTests : public Test {
 
     static void fakeRuntimeConfigDecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName)
     {
+        UNREFERENCED_PARAMETER(eventName);
+        UNREFERENCED_PARAMETER(experimentationProject);
+
         extension["runtimeconfigvalue"] = "blah";
     }
 
@@ -287,9 +290,9 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     std::string banned("\x01" R"( !"#$%&'()*+,-./:;<=>?@[\]^`{|}~)" "\x81");
     EXPECT_CALL(logger, submit(_, _, _)).WillRepeatedly(Assign(&submitted, true));
     for (char ch : banned) {
-        EventProperties props(std::string("test") + ch + "char");
+        EventProperties prop(std::string("test") + ch + "char");
         submitted = false;
-        logger.LogEvent(props);
+        logger.LogEvent(prop);
 		if (ch == '.')
 		{		
 			EXPECT_THAT(submitted, true) << "Banned character: '" << ch << "'";

@@ -248,7 +248,7 @@ class HttpServer : private Reactor::Callback
                     return;
                 }
 
-                if (!parseHeaders(conn, ofs)) {
+                if (!parseHeaders(conn)) {
                     ARIASDK_LOG_WARNING("HttpServer: [%s] invalid headers", conn.request.client.c_str());
                     conn.response.code = 400; // Bad Request
                     conn.keepalive = false;
@@ -378,7 +378,7 @@ class HttpServer : private Reactor::Callback
         }
     }
 
-    bool parseHeaders(Connection& conn, size_t endOfs)
+    bool parseHeaders(Connection& conn)
     {
         // Method
         char const* begin = conn.receiveBuffer.c_str();
@@ -483,12 +483,12 @@ class HttpServer : private Reactor::Callback
         bool first = true;
         for (char& ch : result) {
             if (first) {
-                ch = ::toupper(ch);
+                ch = (char)::toupper(ch);
                 first = false;
             } else if (ch == '-') {
                 first = true;
             } else {
-                ch = ::tolower(ch);
+                ch = (char)::tolower(ch);
             }
         }
         return result;

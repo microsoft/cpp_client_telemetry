@@ -35,10 +35,13 @@ MATCHER_P(BinaryHasSubstr, str, "")
     return Matches(HasSubstr(str))(haystack);
 }
 
+#pragma warning( push )
+#pragma warning(disable: 4100)
 MATCHER_P2(Near, value, range, "")
 {
     return (abs(arg - value) <= range);
 }
+#pragma warning( pop ) 
 
 MATCHER_P(StrAsIntGt, value, "")
 {

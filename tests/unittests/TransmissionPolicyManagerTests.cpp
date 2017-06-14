@@ -16,14 +16,14 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     {
     }
 
-    MOCK_METHOD1(scheduleUpload, void(int));
+    MOCK_METHOD2(scheduleUpload, void(int, EventPriority));
     using TransmissionPolicyManager::uploadAsync;
 
     bool uploadScheduled() const { return m_isUploadScheduled; }
     void uploadScheduled(bool state) { m_isUploadScheduled = state; }
 
     std::set<EventsUploadContextPtr> const& activeUploads() const { return m_activeUploads; }
-    EventsUploadContextPtr fakeActiveUpload() { auto ctx = EventsUploadContext::create(); m_activeUploads.insert(ctx); return ctx; }
+	EventsUploadContextPtr fakeActiveUpload() { auto ctx = EventsUploadContext::create(); ctx->requestedMinPriority = EventPriority_High; m_activeUploads.insert(ctx); return ctx; }
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
@@ -62,7 +62,7 @@ class TransmissionPolicyManagerTests : public StrictMock<Test> {
 TEST_F(TransmissionPolicyManagerTests, StartSchedulesUploadImmediately)
 {
     tpm.paused(true);
-    EXPECT_CALL(tpm, scheduleUpload(0))
+    EXPECT_CALL(tpm, scheduleUpload(0, EventPriority_Low))
         .WillOnce(Return());
     EXPECT_THAT(tpm.start(), true);
     EXPECT_THAT(tpm.paused(), false);
@@ -91,7 +91,7 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
 
     auto event = IncomingEventContext::create();
     event->record.priority = EventPriority_Normal;
-    EXPECT_CALL(tpm, scheduleUpload(1000))
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventPriority_Normal))
         .WillOnce(Return());
     tpm.eventArrived(event);
 }
@@ -116,7 +116,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenPaused)
     tpm.uploadScheduled(true);
     tpm.paused(true);
 
-    tpm.uploadAsync();
+    tpm.uploadAsync(EventPriority_Low);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
 }
@@ -127,7 +127,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWithActiveUploads)
     tpm.paused(false);
     tpm.fakeActiveUpload();
 
-    tpm.uploadAsync();
+    tpm.uploadAsync(EventPriority_Low);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
 }
@@ -139,9 +139,9 @@ TEST_F(TransmissionPolicyManagerTests, UploadPostponedWithInsufficientAvailableB
 
     EXPECT_CALL(bandwidthControllerMock, GetProposedBandwidthBps())
         .WillOnce(Return(999999));
-    EXPECT_CALL(tpm, scheduleUpload(1000))
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventPriority_Low))
         .WillOnce(Return());
-    tpm.uploadAsync();
+    tpm.uploadAsync(EventPriority_Low);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
 }
@@ -154,7 +154,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    tpm.uploadAsync();
+    tpm.uploadAsync(EventPriority_Low);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
     EXPECT_THAT(upload.get(), NotNull());
@@ -170,7 +170,7 @@ TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploading)
 TEST_F(TransmissionPolicyManagerTests, FailedUploadPackagingSchedulesNextOneWithDelay)
 {
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(2000))
+    EXPECT_CALL(tpm, scheduleUpload(2000, EventPriority_Low))
         .WillOnce(Return());
     tpm.packagingFailed(upload);
 }
@@ -178,7 +178,7 @@ TEST_F(TransmissionPolicyManagerTests, FailedUploadPackagingSchedulesNextOneWith
 TEST_F(TransmissionPolicyManagerTests, SuccessfulUploadSchedulesNextOneImmediately)
 {
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(0))
+    EXPECT_CALL(tpm, scheduleUpload(0, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadSuccessful(upload);
 }
@@ -189,12 +189,12 @@ TEST_F(TransmissionPolicyManagerTests, RejectedUploadSchedulesNextOneWithLargerD
         .WillRepeatedly(Return("E,3000,300000,2,0"));
 
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(3000))
+    EXPECT_CALL(tpm, scheduleUpload(3000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadRejected(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(6000))
+    EXPECT_CALL(tpm, scheduleUpload(6000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadRejected(upload);
 }
@@ -205,12 +205,12 @@ TEST_F(TransmissionPolicyManagerTests, FailedUploadSchedulesNextOneWithLargerDel
         .WillRepeatedly(Return("E,3000,300000,2,0"));
 
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(3000))
+    EXPECT_CALL(tpm, scheduleUpload(3000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(6000))
+    EXPECT_CALL(tpm, scheduleUpload(6000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 }
@@ -221,32 +221,32 @@ TEST_F(TransmissionPolicyManagerTests, SuccessfulUploadResetsBackoffDelay)
         .WillRepeatedly(Return("E,3000,300000,2,0"));
 
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(3000))
+    EXPECT_CALL(tpm, scheduleUpload(3000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadRejected(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(0))
+    EXPECT_CALL(tpm, scheduleUpload(0, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadSuccessful(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(3000))
+    EXPECT_CALL(tpm, scheduleUpload(3000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadRejected(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(6000))
+    EXPECT_CALL(tpm, scheduleUpload(6000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(0))
+    EXPECT_CALL(tpm, scheduleUpload(0, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadSuccessful(upload);
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(3000))
+    EXPECT_CALL(tpm, scheduleUpload(3000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 }
@@ -257,7 +257,7 @@ TEST_F(TransmissionPolicyManagerTests, InvalidUploadRetryBackoffConfigKeepsUsing
         .WillRepeatedly(Return("E,1000,300000,2,0"));
 
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(1000))
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 
@@ -265,7 +265,7 @@ TEST_F(TransmissionPolicyManagerTests, InvalidUploadRetryBackoffConfigKeepsUsing
         .WillRepeatedly(Return("x,"));
 
     upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(2000))
+    EXPECT_CALL(tpm, scheduleUpload(2000, EventPriority_Low))
         .WillOnce(Return());
     tpm.eventsUploadFailed(upload);
 }

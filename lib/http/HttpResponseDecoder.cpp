@@ -58,7 +58,10 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
             ARIASDK_LOG_DETAIL("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
             eventsRejected(ctx);      
-            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_ERROR);
+			DebugEvent evt;
+			evt.type = DebugEventType::EVT_HTTP_ERROR;
+			evt.param1 = response.GetStatusCode();
+            LogManager::DispatchEvent(evt);
             break;
         }
 

@@ -64,18 +64,18 @@ class HttpClientTests : public PAL::RefCountedImpl<HttpClientTests>,
     }
 
   protected:
-    virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
+    virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& inResponse) override
     {
         if (request.uri.substr(0, 8) == "/simple/") {
-            response.headers["Content-Type"] = "text/plain";
-            response.content = "It works!";
+            inResponse.headers["Content-Type"] = "text/plain";
+            inResponse.content = "It works!";
             return atoi(request.uri.substr(8).c_str());
         }
 
         if (request.uri == "/echo/") {
             auto it = request.headers.find("Content-Type");
-            response.headers["Content-Type"] = (it != request.headers.end()) ? it->second : "application/octet-stream";
-            response.content = request.content;
+            inResponse.headers["Content-Type"] = (it != request.headers.end()) ? it->second : "application/octet-stream";
+            inResponse.content = request.content;
             return 200;
         }
 
@@ -85,27 +85,27 @@ class HttpClientTests : public PAL::RefCountedImpl<HttpClientTests>,
                 countedRequestsMap[id] = Processed;
             }
             receivedRequestsCount++;
-            response.headers["Content-Type"] = "text/plain";
-            response.content = request.uri.substr(7);
+            inResponse.headers["Content-Type"] = "text/plain";
+            inResponse.content = request.uri.substr(7);
             return 200;
         }
 
         return 0;
     }
 
-    virtual void OnHttpResponse(IHttpResponse const* response) override
+    virtual void OnHttpResponse(IHttpResponse const* inResponse) override
     {
-		std::lock_guard<std::mutex> lock(lock);
+		std::lock_guard<std::mutex> lck(lock);
 
-        if (!countedRequestsMap.empty() && response->GetResult() == HttpResult_OK && response->GetStatusCode() == 200) {
-            int id = atoi(std::string(reinterpret_cast<char const*>(response->GetBody().data()), response->GetBody().size()).c_str());
+        if (!countedRequestsMap.empty() && inResponse->GetResult() == HttpResult_OK && inResponse->GetStatusCode() == 200) {
+            int id = atoi(std::string(reinterpret_cast<char const*>(inResponse->GetBody().data()), inResponse->GetBody().size()).c_str());
             if (id >= 0 && static_cast<size_t>(id) < countedRequestsMap.size()) {
                 countedRequestsMap[id] = Done;
             }
             receivedResponsesCount++;
         }
 
-        this->response.reset(response);
+        this->response.reset(inResponse);
         responseReceived = true;
     }
 };

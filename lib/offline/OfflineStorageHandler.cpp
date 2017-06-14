@@ -18,15 +18,27 @@ OfflineStorageHandler::OfflineStorageHandler(LogConfiguration const& configurati
     m_offlineStorageMemory(nullptr),
     m_offlineStorageDisk(nullptr),
     m_readFromMemory(false),
-    m_lastReadCount(0)
+    m_lastReadCount(0),
+    m_shutdownStarted(false),
+    m_memoryDbSize(0),
+    m_queryDbSize(0),
+    m_isStorageFullNotificationSend(false)
 {
+    if (configuration.cacheMemoryFullNotificationPercentage > 0 &&
+        configuration.cacheMemoryFullNotificationPercentage <= 100)
+    {
+        m_memoryDbSizeNotificationLimit = (configuration.cacheMemoryFullNotificationPercentage * configuration.cacheMemorySizeLimitInBytes) /100;
+    }
+    else
+    {// incase user has specified bad percentage, we stck to 75%
+        m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * configuration.cacheMemorySizeLimitInBytes)/100;
+    }
 }
 
 OfflineStorageHandler::~OfflineStorageHandler()
 {
     if (nullptr != m_offlineStorageMemory)
     {
-        m_offlineStorageMemory->Shutdown();
         m_offlineStorageMemory.reset();
     }	
     m_offlineStorageDisk.reset();
@@ -47,27 +59,31 @@ void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
 
     m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logConfiguration, m_runtimeConfig));
     m_offlineStorageDisk->Initialize(*this);
+    m_shutdownStarted = false;
 
-    ARIASDK_LOG_DETAIL("Initializing offline storage");
+    ARIASDK_LOG_DETAIL("Initializing offline storage handler");
 }
 
 void OfflineStorageHandler::Shutdown()
 {
-    ARIASDK_LOG_DETAIL("Shutting down offline storage");
+    ARIASDK_LOG_DETAIL("Shutting down offline storage handler");
+    m_shutdownStarted = true;
     if (nullptr != m_offlineStorageMemory)
-    {
-        // transfer data from Memory DB to Disk DB before shutting down.
+    {  // transfer data from Memory DB to Disk DB before shutting down.
         std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(true, EventPriority_Low, 0);
         std::vector<StorageRecord>::const_iterator iter;
         for (iter = records->begin(); iter != records->end(); iter++)
         {
             m_offlineStorageDisk->StoreRecord(*iter);
         }		
-        delete records;
-            
-        //PAL::sleep(1000);
+        records->clear();
+        delete records;        
     }
     m_offlineStorageDisk->Shutdown();	
+    if (nullptr != m_offlineStorageMemory)
+    {
+        m_offlineStorageMemory->Shutdown();
+    }
 }
 
 unsigned OfflineStorageHandler::GetSize() 
@@ -77,15 +93,30 @@ unsigned OfflineStorageHandler::GetSize()
 
 bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
 {
-    if (nullptr != m_offlineStorageMemory)
-    {
-        //check if the momory is full
-        unsigned dbsize = m_offlineStorageMemory->GetSize();
-        dbsize = dbsize + static_cast<unsigned>(/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size());
-
-        if (dbsize > m_logConfiguration.cacheMemorySizeLimitInBytes)
+    if (nullptr != m_offlineStorageMemory && !m_shutdownStarted)
+    {     
+        ++m_queryDbSize;
+        //query DB size from DB only every 100 Events, use size calculation done before that
+        if ( m_queryDbSize >= 100)
         {
+            m_queryDbSize = 0;
+            m_memoryDbSize = m_offlineStorageMemory->GetSize();
+        }
+      
+        m_queryDbSize = m_queryDbSize + static_cast<unsigned>(/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size());
+
+        //check if Application needs to be notified
+        if (m_memoryDbSize > m_memoryDbSizeNotificationLimit && !m_isStorageFullNotificationSend)
+        {
+            DebugEvent evt;
+            evt.type = DebugEventType::EVT_STORAGE_FULL;
+            evt.param1 = 1;
             LogManager::DispatchEvent(DebugEventType::EVT_STORAGE_FULL);
+            m_isStorageFullNotificationSend = true;
+        }
+
+        if (m_queryDbSize > m_logConfiguration.cacheMemorySizeLimitInBytes)
+        {
             // transfer data from Memory DB to Disk DB
             std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventPriority_Low, 500);
             std::vector<StorageRecord>::const_iterator iter;
@@ -100,7 +131,10 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
             m_offlineStorageMemory->DeleteRecords(recordIds, temp, fromMemory);
 
             delete records;
-            //transfer data from memory to disk;
+            //Resize the memory DB after delete
+            m_offlineStorageMemory->ResizeDb();
+            m_queryDbSize = 100;
+            m_isStorageFullNotificationSend = false;
         }
         m_offlineStorageMemory->StoreRecord(record);
     }
@@ -109,6 +143,18 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
         m_offlineStorageDisk->StoreRecord(record);
     }
 
+    return true;
+}
+
+bool OfflineStorageHandler::ResizeDb()
+{
+    if (nullptr != m_offlineStorageMemory )
+    {
+        m_offlineStorageMemory->ResizeDb();
+    }
+
+    m_offlineStorageDisk->ResizeDb();
+    
     return true;
 }
 
@@ -152,7 +198,13 @@ std::vector<StorageRecord>* OfflineStorageHandler::GetRecords(bool shutdown, Eve
 }
 
 void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
-{
+{    
+    if (m_shutdownStarted)
+    {
+        return;
+    }
+    ARIASDK_LOG_DETAIL(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
+        static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
     if (fromMemory && nullptr != m_offlineStorageMemory)
     {
         m_offlineStorageMemory->DeleteRecords(ids, headers, fromMemory);
@@ -165,6 +217,10 @@ void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& id
 
 void OfflineStorageHandler::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
 {
+    if (m_shutdownStarted)
+    {
+        return;
+    }
     if (fromMemory && nullptr != m_offlineStorageMemory)
     {
         m_offlineStorageMemory->ReleaseRecords(ids, incrementRetryCount, headers, fromMemory);

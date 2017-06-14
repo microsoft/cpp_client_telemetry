@@ -21,7 +21,7 @@ TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntime
     // Management
     //
 
-    this->started >> storage.start >> stats.onStart >> tpm.start;
+    this->started >> storage.start  >> tpm.start >> stats.onStart;
 
     this->stopped >> tpm.stop >> hcm.cancelAllRequestsAsync >> tpm.finishAllUploads;
     tpm.allUploadsFinished >> stats.onStop >> storage.stop >> this->flushWorkerThread;
@@ -130,7 +130,7 @@ void TelemetrySystem::stop()
 
 void TelemetrySystem::UploadNow()
 {
-    tpm.scheduleUpload(0);
+    tpm.scheduleUpload(0, EventPriority_Low);
 }
 
 void TelemetrySystem::pauseTransmission()

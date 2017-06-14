@@ -28,6 +28,7 @@ class OfflineStorageHandler : public IOfflineStorage,
     virtual std::string GetSetting(std::string const& name) override;
     virtual unsigned GetSize() override;
     virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) override;
+	virtual bool ResizeDb() override;
 
     virtual void OnStorageOpened(std::string const& type) override;
     virtual void OnStorageFailed(std::string const& reason) override;
@@ -43,6 +44,11 @@ class OfflineStorageHandler : public IOfflineStorage,
     std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
     bool                                   m_readFromMemory;
     unsigned                               m_lastReadCount;
+    bool                                   m_shutdownStarted;
+    unsigned                               m_memoryDbSize;
+    unsigned                               m_memoryDbSizeNotificationLimit;
+    unsigned                               m_queryDbSize;
+    bool                                   m_isStorageFullNotificationSend;
 
   protected:
     ARIASDK_LOG_DECL_COMPONENT_CLASS();

@@ -152,6 +152,9 @@ struct TelemetryStats
     /// the utc timestamp of starting the SCT client.
     int64_t sessionStartTimestamp;
 
+	/// the utc timestamp of starting the SCT client.
+	int64_t session_startup_time_in_millisec;
+
     /// the utc timestamp of starting collecting new telemetry stats.
     int64_t statsStartTimestamp;
 
@@ -628,6 +631,7 @@ MetaStats::MetaStats(IRuntimeConfig const& runtimeConfig, ContextFieldsProvider 
     m_semanticContextDecorator(parentContext)
 {
     m_telemetryStats->statsStartTimestamp = PAL::getUtcSystemTimeMs();
+	m_telemetryStats->session_startup_time_in_millisec = m_telemetryStats->statsStartTimestamp;
     resetStats(true);
     //TODO: extend IRuntimeConfig to include these vars
     m_telemetryStats->offlineStorageEnabled = true;
@@ -744,6 +748,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     // session fileds
     insertNonZero(ext, "session_start_timestamp", m_telemetryStats->sessionStartTimestamp);
     insertNonZero(ext, "stats_start_timestamp", m_telemetryStats->statsStartTimestamp);
+	insertNonZero(ext, "session_startup_time_in_millisec", m_telemetryStats->session_startup_time_in_millisec);
     insertNonZero(ext, "stats_end_timestamp", PAL::getUtcSystemTimeMs());
     ext["stats_rollup_kind"] = ActRollUpKindToString(rollupKind);
     insertNonZero(ext, "stats_send_frequency_secs", m_runtimeConfig.GetMetaStatsSendIntervalSec());
@@ -991,7 +996,7 @@ std::vector< ::AriaProtocol::Record> MetaStats::generateStatsEvent(ActRollUpKind
 
     std::vector< ::AriaProtocol::Record> records;
 
-    if (hasStatsDataAvailable()) {
+    if (hasStatsDataAvailable() || rollupKind != ActRollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING) {
         snapStatsToRecord(records, rollupKind);
 
         resetStats(false);

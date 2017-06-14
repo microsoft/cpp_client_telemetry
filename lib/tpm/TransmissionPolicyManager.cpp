@@ -7,27 +7,25 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-
 int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 
 ARIASDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "AriaSDK.TPM", "Aria telemetry client - TransmissionPolicyManager class");
 
 
 TransmissionPolicyManager::TransmissionPolicyManager(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController)
-  : m_lock(),
+    : m_lock(),
     m_runtimeConfig(runtimeConfig),
     m_bandwidthController(bandwidthController),
     m_isPaused(true),
     m_isUploadScheduled(false),
     m_finishing(false),
     m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-    m_uploadInProgress(false)
+    m_uploadInProgress(false),
+    m_runningPriority(EventPriority_High)
 {
     m_backoffConfig = "E,3000,300000,2,1";
     m_backoff = IBackoff::createFromConfig(m_backoffConfig);
     assert(m_backoff);
-    //TransmitProfiles::setDefaultProfile(TransmitProfile::TransmitProfile_RealTime);
-    //TransmitProfiles::updateStates(NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging);
     m_deviceStateHandler.Start();
 }
 
@@ -50,9 +48,9 @@ void TransmissionPolicyManager::checkBackoffConfigUpdate()
     }
 }
 
-void TransmissionPolicyManager::scheduleUpload(int delayInMs)
+void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventPriority priority)
 {
-    ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec", delayInMs);
+    ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec, priority= %d", delayInMs, priority);
 
     if (m_isUploadScheduled)
     {
@@ -60,14 +58,15 @@ void TransmissionPolicyManager::scheduleUpload(int delayInMs)
         m_isUploadScheduled = false;
     }
 
-    m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync);
+    m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync, priority);
     m_isUploadScheduled = true;
     m_uploadInProgress = true;
 }
 
-void TransmissionPolicyManager::uploadAsync()
+void TransmissionPolicyManager::uploadAsync(EventPriority priority)
 {
     m_isUploadScheduled = false;
+    m_runningPriority = priority;
 
     if (m_isPaused) {
         ARIASDK_LOG_DETAIL("Paused, not uploading anything until resumed");
@@ -89,13 +88,13 @@ void TransmissionPolicyManager::uploadAsync()
             unsigned delayMs = 1000;
             ARIASDK_LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
                 proposedBandwidthBps, minimumBandwidthBps, delayMs);
-            scheduleUpload(delayMs);
+            scheduleUpload(delayMs, priority);
             return;
         }
     }
 
     EventsUploadContextPtr ctx = EventsUploadContext::create();
-    ctx->requestedMinPriority = EventPriority_Low;
+    ctx->requestedMinPriority = m_runningPriority;// EventPriority_Low;
     m_activeUploads.insert(ctx);
     initiateUpload(ctx);
 }
@@ -115,19 +114,22 @@ void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, 
         return;
     }
 
-    if (nextUploadInMs >= 0 && m_activeUploads.empty()) {
+    if (nextUploadInMs >= 0 && m_activeUploads.empty())
+    {
         if (m_isUploadScheduled) {
             m_scheduledUpload.cancel();
             m_isUploadScheduled = false;
         }
-        scheduleUpload(nextUploadInMs);
+
+        EventPriority proposed = calculateNewPriority();
+        scheduleUpload(nextUploadInMs, proposed);
     }
 }
 
 bool TransmissionPolicyManager::handleStart()
 {
     m_isPaused = false;
-    scheduleUpload(0);
+    scheduleUpload(0, EventPriority_Low);
     return true;
 }
 
@@ -160,7 +162,7 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
 
     if (event->record.priority >= EventPriority_Immediate) {
         EventsUploadContextPtr ctx = EventsUploadContext::create();
-        ctx->requestedMinPriority = event->record.priority;//EventPriority_Low
+        ctx->requestedMinPriority = event->record.priority;
         m_activeUploads.insert(ctx);
         initiateUpload(ctx);
     } 
@@ -174,28 +176,89 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
 
         if (TransmitProfiles::isTimerUpdateRequired())
         {
-            std::vector<int> timers;
-            TransmitProfiles::getTimers(timers);
-            if (timers.size() > 2)
+            TransmitProfiles::getTimers(m_timers);
+            if (m_timers.size() > 2)
             {
-                m_timerdelay = timers[2];
+                m_timerdelay = m_timers[2];
             }
         }
-        scheduleUpload(m_timerdelay);
+       
+        EventPriority proposed = calculateNewPriority();
+           
+        scheduleUpload(m_timerdelay, proposed);
     }
+}
+
+EventPriority TransmissionPolicyManager::calculateNewPriority()
+{
+    EventPriority proposed = m_runningPriority;
+    if (m_timers.size() > 2)
+    {
+        if (m_timers[0] == m_timers[2])
+        {
+            proposed = EventPriority_Low;
+        }
+        else
+        {
+            bool isLowPriorityEnabled = false;
+            if (m_timers[0] > -1)
+            {
+                isLowPriorityEnabled = true;
+            }
+            bool isNormalPriorityEnabled = false;
+            if (m_timers[1] > -1)
+            {
+                isNormalPriorityEnabled = true;
+            }
+            bool isHighPriorityEnabled = false;
+            if (m_timers[2] > -1)
+            {
+                isHighPriorityEnabled = true;
+            }
+
+            if (m_runningPriority == EventPriority_High)
+            {
+                if (isNormalPriorityEnabled)
+                {
+                    proposed = EventPriority_Normal;
+                }
+            }
+            else if (m_runningPriority == EventPriority_Normal)
+            {
+                if (isLowPriorityEnabled)
+                {
+                    proposed = EventPriority_Low;
+                }
+                else
+                {
+                    proposed = EventPriority_High;
+                }
+            }
+            else if (m_runningPriority == EventPriority_Low)
+            {
+                proposed = EventPriority_High;
+            }
+        }
+    }
+    else
+    {
+        proposed = EventPriority_Low;
+    }
+
+    return proposed;
 }
 
 void TransmissionPolicyManager::handleNothingToUpload(EventsUploadContextPtr const& ctx)
 {
     ARIASDK_LOG_DETAIL("No stored events to send at the moment");	
     m_backoff->reset();
-    if (ctx->requestedMinPriority == EventPriority::EventPriority_Immediate)
+    if (ctx->requestedMinPriority == EventPriority::EventPriority_Low)
     {
-        finishUpload(ctx, 0);
+        finishUpload(ctx, -1);
     }
     else
     {
-        finishUpload(ctx, -1);
+        finishUpload(ctx, 0);
     }
 }
 

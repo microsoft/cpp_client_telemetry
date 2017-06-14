@@ -209,7 +209,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsOnlyHighestPriorit
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-22", "token2", EventPriority_High,   5, {}}), true);
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_High), true);
     ASSERT_THAT(consumer.records.size(), 2);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid-13"));
     EXPECT_THAT(consumer.records[1].id, StrEq("guid-22"));
@@ -222,11 +222,11 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsLowerPriorityIfHig
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-13", "token1", EventPriority_Normal, 3, {}}), true);
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_High), true);
     ASSERT_THAT(consumer.records.size(), 1);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid-11"));
     consumer.records.clear();
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_Normal), true);
     ASSERT_THAT(consumer.records.size(), 2);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid-12"));
     EXPECT_THAT(consumer.records[1].id, StrEq("guid-13"));
@@ -251,7 +251,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReservesOnlyReturnedRecor
 
     // limiting by maxCount in getAndReserveRecords
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_Unspecified, 2), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_Low, 2), true);
     ASSERT_THAT(consumer.records.size(), 2);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid-3"));
     EXPECT_THAT(consumer.records[1].id, StrEq("guid-4"));
@@ -334,7 +334,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount
 
     for (int i = 0; i <= MaxRetryCount; ++i) {
         consumer.records.clear();
-        EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+        EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_Normal), true);
         ASSERT_THAT(consumer.records.size(), 1);
         EXPECT_THAT(consumer.records[0].retryCount, i);
         EXPECT_CALL(observerMock, OnStorageRecordsDropped(1))
@@ -345,7 +345,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount
     }
 
     consumer.records.clear();
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_Low), true);
     ASSERT_THAT(consumer.records.size(), 1);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
     EXPECT_THAT(consumer.records[0].retryCount, 0);
@@ -367,7 +367,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsRecordsSortedByTim
     }
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_Immediate), true);
     ASSERT_THAT(consumer.records.size(), 3);
     EXPECT_THAT(consumer.records[0].id, StrEq("guid-5"));
     EXPECT_THAT(consumer.records[1].id, StrEq("guid-2"));
@@ -383,7 +383,7 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
     }
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventPriority_Low, 1000), true);
     EXPECT_THAT(consumer.records.size(), 1000);
 
     auto endTimeMs = PAL::getMonotonicTimeMs();
@@ -437,7 +437,7 @@ TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectly)
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, record.priority), true);
     ASSERT_THAT(consumer.records.size(), 1);
     auto storedRecord = consumer.records[0];
 
@@ -460,7 +460,7 @@ TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectlyAfterDbReopen)
     offlineStorage->Initialize(observerMock);
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, record.priority), true);
     ASSERT_THAT(consumer.records.size(), 1);
     auto storedRecord = consumer.records[0];
 
@@ -582,15 +582,15 @@ TEST_F(OfflineStorageTests_SQLite, ExceededStorageSizeCausesDbToDropOldestEvents
     ASSERT_THAT(offlineStorage->StoreRecord({"newest with low prio ", "token", EventPriority_Low, 5, StorageBlob(1024 * 1024)}), true); // X
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_High), true);
     ASSERT_THAT(consumer.records.size(), 1);
     EXPECT_THAT(consumer.records[0].id, StrEq("oldest with high prio"));
     consumer.records.clear();
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_Normal), true);
     ASSERT_THAT(consumer.records.size(), 1);
     EXPECT_THAT(consumer.records[0].id, StrEq("some more mid prio e1"));
     consumer.records.clear();
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventPriority_Low), true);
     ASSERT_THAT(consumer.records.size(), 0);
 }
 

@@ -18,14 +18,14 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
   public:
     TransmissionPolicyManager(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController);
     virtual ~TransmissionPolicyManager();
-	virtual void scheduleUpload(int delayInMs);
+    virtual void scheduleUpload(int delayInMs, EventPriority priority);
     virtual bool isUploadInProgress() { return m_uploadInProgress; }
 
   protected:
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
     void checkBackoffConfigUpdate();
     
-    void uploadAsync();
+    void uploadAsync(EventPriority priority);
     void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
 
     bool handleStart();
@@ -41,13 +41,15 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     void handleEventsUploadFailed(EventsUploadContextPtr const& ctx);
     void handleEventsUploadAborted(EventsUploadContextPtr const& ctx);
 
+    EventPriority calculateNewPriority();
+
   protected:
     std::mutex                       m_lock;
     IRuntimeConfig&                  m_runtimeConfig;
     IBandwidthController*            m_bandwidthController;
     std::string                      m_backoffConfig;
     std::unique_ptr<IBackoff>        m_backoff;
-	DeviceStateHandler               m_deviceStateHandler;
+    DeviceStateHandler               m_deviceStateHandler;
 
     bool                             m_isPaused;
     bool                             m_isUploadScheduled;
@@ -55,8 +57,10 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     PAL::DeferredCallbackHandle      m_scheduledUpload;
 
     std::set<EventsUploadContextPtr> m_activeUploads;
-	int                              m_timerdelay;
+    int                              m_timerdelay;
     bool                             m_uploadInProgress;
+    EventPriority                    m_runningPriority;
+    std::vector<int>                 m_timers;
 
   public:
     RoutePassThrough<TransmissionPolicyManager>                          start{this, &TransmissionPolicyManager::handleStart};
