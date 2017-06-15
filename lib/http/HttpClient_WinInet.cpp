@@ -58,17 +58,12 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         m_hWinInetRequest = NULL;
     }
 
-#ifndef _DEBUG
-// bResult is only used inside an assertion
-#pragma warning(push)
-#pragma warning(disable:4189)
-#endif
     void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
 
         {
-			std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
+            std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
             m_parent.m_requests[m_id] = self();
         }
 
@@ -125,23 +120,18 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         m_bodyBuffer.swap(request->m_body);
 
         BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
-
-        
         DWORD dwError = GetLastError();
-        assert(!bResult);
+
         if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
             dwError = ::GetLastError();
             ARIASDK_LOG_WARNING("HttpSendRequest() failed: %d", dwError);
             onRequestComplete(dwError);
         }
     }
-#ifndef _DEBUG
-#pragma warning(pop)
-#endif
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
-#ifndef DEBUG
+#ifndef _DEBUG
         UNREFERENCED_PARAMETER(dwStatusInformationLength);  // Only used inside an assertion
 #endif
         OACR_USE_PTR(hInternet);
