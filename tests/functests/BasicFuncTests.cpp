@@ -79,7 +79,7 @@ class BasicFuncTests : public ::testing::Test,
         }
 
         if (request.uri.compare(0, 6, "/slow/") == 0) {
-            PAL::sleep(request.content.size() / 567);
+            PAL::sleep(static_cast<unsigned int>(request.content.size() / 567));
         }
 
         receivedRequests.push_back(request);

@@ -133,7 +133,7 @@ class LoadTests : public Test,
         auto payload = decodeRequest(request, false);
         for (auto const& packagesPerTenant : payload.TokenToDataPackagesMap) {
             for (auto const& package : packagesPerTenant.second) {
-                recordsReceived += package.Records.size();
+                recordsReceived += static_cast<unsigned int>(package.Records.size());
             }
         }
         return 200;

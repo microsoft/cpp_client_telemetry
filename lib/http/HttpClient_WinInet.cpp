@@ -123,15 +123,13 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         // Take over the body buffer ownership, it must stay alive until
         // the async operation finishes.
         m_bodyBuffer.swap(request->m_body);
-#ifdef _DEBUG
-        BOOL bResult = 
-#endif
-            ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
+
+        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
 
         
         DWORD dwError = GetLastError();
         assert(!bResult);
-        if (dwError != ERROR_IO_PENDING) {
+        if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
             dwError = ::GetLastError();
             ARIASDK_LOG_WARNING("HttpSendRequest() failed: %d", dwError);
             onRequestComplete(dwError);
