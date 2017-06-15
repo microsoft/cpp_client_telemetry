@@ -2,7 +2,8 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include <aria/ILogger.hpp>
+#include "Config.hpp"
+#include <ILogger.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -137,7 +138,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
             {"KeyboardEnter",      101}
         };
 
-        EnumValueName const names_InputDeviceType[] = {
+        static EnumValueName const names_InputDeviceType[] = {
             {"Unspecified",          0},
             {"Unknown",              1},
             {"Other",                2},
@@ -241,7 +242,7 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
         return true;
     }
 
-    std::string SessionDurationBucket(const int64_t time_in_seconds)
+    static std::string SessionDurationBucket(const int64_t time_in_seconds)
     {
         if (time_in_seconds < 0)
             return "Undefined";
@@ -274,23 +275,18 @@ class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
         std::string stateString = (state == SessionState::Session_Started) ? "Started" : "Ended";
 
         record.EventType = "Session";
-        setIfNotEmpty(record.Extension, "Session.State", stateString);
-        setIfNotEmpty(record.Extension, "Session.Id", id);
+        setIfNotEmpty(record.Extension, SESSION_STATE, stateString);
+        setIfNotEmpty(record.Extension, SESSION_ID, id);
         setIfNotEmpty(record.Extension, SESSION_FIRST_TIME, firstTime);
-        setIfNotEmpty(record.Extension, "DeviceInfo.SDKUid", sdkuid);
+        setIfNotEmpty(record.Extension, SESSION_SDKUID, sdkuid);
 
         if (duration >  0)
         {   // This fields are added only for the ended session
-            setInt64Value(record.TypedExtensionInt64, "Session.Duration", duration);
-            setIfNotEmpty(record.Extension,           "Session.DurationBucket", SessionDurationBucket(duration));
+            setInt64Value(record.TypedExtensionInt64, SESSION_DURATION, duration);
+            setIfNotEmpty(record.Extension,           SESSION_DURATION_BUCKET, SemanticApiDecorators::SessionDurationBucket(duration));
         }
                     
         return true;
     }
-
-
-
 };
-
-
 } ARIASDK_NS_END

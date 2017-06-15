@@ -3,8 +3,8 @@
 #pragma once
 #include "Common.hpp"
 #include "api/LogManagerImpl.hpp"
-#include "aria/Enums.hpp"
-#include "aria/ILogger.hpp"
+#include "Enums.hpp"
+#include "ILogger.hpp"
 
 
 namespace testing {

@@ -1,6 +1,6 @@
 #pragma once
-#include "..\include\aria\ISystemInformation.hpp"
-#include "..\include\aria\IInformationProvider.hpp"
+#include "ISystemInformation.hpp"
+#include "IInformationProvider.hpp"
 #include "InformationProviderImpl.hpp"
 
 namespace Microsoft { namespace Applications { namespace Telemetry {

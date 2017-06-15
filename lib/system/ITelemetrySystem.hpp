@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
+#include <Version.hpp>
 #include "bond/BondSerializer.hpp"
 
 namespace ARIASDK_NS_BEGIN {
@@ -17,6 +17,8 @@ class ITelemetrySystem
     virtual void pauseTransmission() = 0;
     virtual void resumeTransmission() = 0;
     virtual void UploadNow() = 0;
+
+    virtual void addIncomingEventSystem(IncomingEventContextPtr const& event) = 0;
 
   protected:
     virtual void startAsync() = 0;

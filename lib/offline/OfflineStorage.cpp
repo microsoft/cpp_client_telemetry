@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage.hpp"
-#include "api\LogManager.hpp"
+#include "LogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
-
+    
 OfflineStorage::OfflineStorage(IOfflineStorage& offlineStorage)
   : m_offlineStorage(offlineStorage)
 {
@@ -29,7 +29,7 @@ bool OfflineStorage::handleStop()
 
 bool OfflineStorage::handleStoreRecord(IncomingEventContextPtr const& ctx)
 {
-	LogManager::DispatchEvent(DebugEventType::EVT_CACHED);
+    LogManager::DispatchEvent(DebugEventType::EVT_CACHED);
     ctx->record.timestamp = PAL::getUtcSystemTimeMs();
 
     if (!m_offlineStorage.StoreRecord(ctx->record)) {
@@ -48,46 +48,50 @@ void OfflineStorage::handleRetrieveEvents(EventsUploadContextPtr const& ctx)
             return wantMore;
         };
 
-    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinPriority, ctx->requestedMaxCount)) {
+    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinPriority, ctx->requestedMaxCount))
+	{
+		ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
         retrievalFailed(ctx);
-    } else {
+    } 
+	else
+	{
+		ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
         retrievalFinished(ctx);
     }
 }
 
 bool OfflineStorage::handleDeleteRecords(EventsUploadContextPtr const& ctx)
-{
-	LogManager::DispatchEvent(DebugEventType::EVT_HTTP_OK);
-	HttpHeaders headers;
-	if (ctx->httpResponse)
-	{
-		headers = ctx->httpResponse->GetHeaders();
-	}
-    m_offlineStorage.DeleteRecords(ctx->recordIds, headers);
+{	
+    HttpHeaders headers;
+    if (ctx->httpResponse)
+    {
+        headers = ctx->httpResponse->GetHeaders();
+    }
+    m_offlineStorage.DeleteRecords(ctx->recordIds, headers, ctx->fromMemory);
     return true;
 }
 
 bool OfflineStorage::handleReleaseRecords(EventsUploadContextPtr const& ctx)
 {
-	LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
-	HttpHeaders headers;
-	if (ctx->httpResponse)
-	{
-		headers = ctx->httpResponse->GetHeaders();
-	}
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, false, headers);
+    LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
+    HttpHeaders headers;
+    if (ctx->httpResponse)
+    {
+        headers = ctx->httpResponse->GetHeaders();
+    }
+    m_offlineStorage.ReleaseRecords(ctx->recordIds, false, headers, ctx->fromMemory);
     return true;
 }
 
 bool OfflineStorage::handleReleaseRecordsIncRetryCount(EventsUploadContextPtr const& ctx)
 {
-	LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
-	HttpHeaders headers;
-	if (ctx->httpResponse)
-	{
-		headers = ctx->httpResponse->GetHeaders();
-	}
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, true, headers);
+    LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
+    HttpHeaders headers;
+    if (ctx->httpResponse)
+    {
+        headers = ctx->httpResponse->GetHeaders();
+    }
+    m_offlineStorage.ReleaseRecords(ctx->recordIds, true, headers, ctx->fromMemory);
     return true;
 }
 
@@ -99,26 +103,34 @@ void OfflineStorage::OnStorageOpened(std::string const& type)
 }
 
 void OfflineStorage::OnStorageFailed(std::string const& reason)
-{
-	LogManager::DispatchEvent(DebugEventType::EVT_STORAGE_FULL);
+{   
     StorageNotificationContext ctx;
     ctx.str = reason;
     failed(&ctx);
 }
 
 void OfflineStorage::OnStorageTrimmed(unsigned numRecords)
-{
+{   
     StorageNotificationContext ctx;
     ctx.count = numRecords;
     trimmed(&ctx);
+
+    DebugEvent evt;
+    evt.type = EVT_DROPPED;
+    evt.size = numRecords;
+    LogManager::DispatchEvent(evt);
 }
 
 void OfflineStorage::OnStorageRecordsDropped(unsigned numRecords)
 {
-	LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
     StorageNotificationContext ctx;
     ctx.count = numRecords;
     recordsDropped(&ctx);
+   
+    DebugEvent evt;
+    evt.type = EVT_DROPPED;
+    evt.size = numRecords;
+    LogManager::DispatchEvent(evt);
 }
 
 

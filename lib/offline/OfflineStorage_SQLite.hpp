@@ -2,9 +2,9 @@
 
 #pragma once
 #include "pal/PAL.hpp"
-#include <aria/IOfflineStorage.hpp>
-#include <aria/IRuntimeConfig.hpp>
-#include <aria/LogConfiguration.hpp>
+#include <IOfflineStorage.hpp>
+#include <IRuntimeConfig.hpp>
+#include <LogConfiguration.hpp>
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 #include <memory>
@@ -24,11 +24,16 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     virtual void Initialize(IOfflineStorageObserver& observer) override;
     virtual void Shutdown() override;
     virtual bool StoreRecord(StorageRecord const& record) override;
-    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeSec, EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) override;
-    virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers) override;
-    virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers) override;
+    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority = EventPriority_Low, unsigned maxCount = 0) override;
+    virtual bool IsLastReadFromMemory() override;
+    virtual unsigned LastReadRecordCount() override; 
+    virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
+    virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
     virtual bool StoreSetting(std::string const& name, std::string const& value) override;
     virtual std::string GetSetting(std::string const& name) override;
+    virtual unsigned GetSize() override;
+    virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Low, unsigned maxCount = 0) override;
+    virtual bool ResizeDb() override;
 
   protected:
     bool initializeDatabase();
@@ -43,7 +48,6 @@ class OfflineStorage_SQLite : public IOfflineStorage,
 
   protected:
     IOfflineStorageObserver*    m_observer;
-    std::string                 m_databasePath;
     IRuntimeConfig&             m_runtimeConfig;
     std::unique_ptr<SqliteDB>   m_db;
     PAL::DeferredCallbackHandle m_scheduledAutoCommit;
@@ -60,6 +64,8 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     int                         m_stmtDeleteEvents_ids;
     int                         m_stmtReleaseExpiredEvents;
     int                         m_stmtSelectEvents;
+    int                         m_stmtSelectEventAtShutdown;
+    int                         m_stmtSelectEventsMinPriority;
     int                         m_stmtReserveEvents;
     int                         m_stmtReleaseEvents_ids_retryCountDelta;
     int                         m_stmtDeleteEventsRetried_maxRetryCount;
@@ -67,8 +73,12 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     int                         m_stmtInsertSetting_name_value;
     int                         m_stmtDeleteSetting_name;
     int                         m_stmtSelectSetting_name;
-	KillSwitchManager           m_killSwitchManager;
-	ClockSkewManager            m_clockSkewManager;
+    KillSwitchManager           m_killSwitchManager;
+    ClockSkewManager            m_clockSkewManager;
+    unsigned                    m_lastReadCount;
+    LogConfiguration            m_logConfiguration;
+    unsigned                    m_DbSizeNotificationLimit;
+    bool                        m_isStorageFullNotificationSend;
 
   protected:
     ARIASDK_LOG_DECL_COMPONENT_CLASS();

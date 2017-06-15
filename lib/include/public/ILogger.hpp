@@ -6,7 +6,6 @@
 #include "Enums.hpp"
 #include "EventProperties.hpp"
 #include "ISemanticContext.hpp"
-#include "Utils.hpp"
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -151,7 +150,7 @@ class ARIASDK_LIBABI ILogger
     /// Gets an ISemanticContext interface through which to specify semantic context of this logger instance.
     /// </summary>
     /// <returns>ISemanticContext interface</returns>
-    virtual ISemanticContext& GetSemanticContext() = 0;
+    virtual ISemanticContext* GetSemanticContext() const = 0 ;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -189,7 +188,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -197,7 +196,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -205,7 +204,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -213,7 +212,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -221,7 +220,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -229,7 +228,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
@@ -237,7 +236,7 @@ class ARIASDK_LIBABI ILogger
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">String value of the property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+	virtual void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.

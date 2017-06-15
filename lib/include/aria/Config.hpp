@@ -238,7 +238,7 @@ const unsigned int STATS_STORAGE_SIZE_TOTAL_SPOTS = 8;
 const unsigned int SESSION_GUID_SIZE = 36;
 
 /*
-   This specifi size comes from the fact that we plan to use 2 blocks of memory
+   This specific size comes from the fact that we plan to use 2 blocks of memory
    and each block of memory has 32 * 1024 so we limit the file size to twice that
 */
 const unsigned int SESSION_OFFLINE_SIZE = 1024 * 1024;
@@ -271,9 +271,8 @@ const char* const COMMONFIELDS_NETWORK_COST         = "DeviceInfo.NetworkCost";
 const char* const COMMONFIELDS_OS_NAME              = "DeviceInfo.OsName";
 const char* const COMMONFIELDS_OS_VERSION           = "DeviceInfo.OsVersion";
 const char* const COMMONFIELDS_OS_BUILD             = "DeviceInfo.OsBuild";
-const char* const COMMONFIELDS_EVENT_TIME           = "EventInfo.Time";
-const char* const COMMONFIELDS_EVENT_SDKVERSION     = "EventInfo.SdkVersion";
-const char* const COMMONFIELDS_EVENT_CRC32          = "EventInfo.CRC32";
+
+
 const char* const COMMONFIELDS_EVENT_SDK_TYPE       = "S_t";
 const char* const COMMONFIELDS_EVENT_SDK_OSNAME     = "S_p";
 const char* const COMMONFIELDS_EVENT_SDK_SKU        = "S_u";
@@ -300,6 +299,15 @@ const char* const EventInfo_Source                  = "EventInfo.Source";
 const char* const EventInfo_Name                    = "EventInfo.Name";
 const char* const EventInfo_InitId                  = "EventInfo.InitId";
 const char* const EventInfo_Sequence                = "EventInfo.Sequence";
+const char* const COMMONFIELDS_EVENT_TIME           = "EventInfo.Time";
+const char* const COMMONFIELDS_EVENT_SDKVERSION     = "EventInfo.SdkVersion";
+const char* const COMMONFIELDS_EVENT_CRC32          = "EventInfo.CRC32";
+
+const char* const SESSION_STATE                     = "Session.State";
+const char* const SESSION_ID                        = "Session.Id";
+const char* const SESSION_DURATION                  = "Session.Duration";
+const char* const SESSION_DURATION_BUCKET           = "Session.DurationBucket";
+const char* const SESSION_SDKUID                    = "DeviceInfo.SDKUid";
 
 bool  const ENABLE_HMAC_SHA256                      = true;
 const char* const HMAC_ENCRYPTION_KEY               = "bdyt7XVQVWYzXCviDbKMDktZZBIbjA7g9pdjXEYtsSUNPQHpBPofMgx9SrFFNZI9";

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "pal/PAL.hpp"
 
 namespace bond_lite {
 

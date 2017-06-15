@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <regex>
 #include "pal/PAL_Win32.hpp"
-//#include <sqlite/sqlite3.h>
+#include "../../sqlite/sqlite3.h"
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -17,11 +17,15 @@ using namespace ARIASDK_NS::PAL;
 
 // Do not try use anything else than .* in the regex, it will fail because of buggy implementations:
 // http://stackoverflow.com/questions/12530406/is-gcc-4-8-or-earlier-buggy-about-regular-expressions
+#pragma warning( push )
+#pragma warning(disable: 4100)
 MATCHER_P2(PreparedStatement, testClass, recipeRegex, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return testClass->statements.find(arg) != testClass->statements.end() &&
            std::regex_match(testClass->statements[arg].recipe, std::regex(recipeRegex));
 }
+#pragma warning( pop ) 
 
 
 class TestRecordConsumer {
@@ -120,6 +124,8 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
 
     int fakePrepareStatement(sqlite3* db, char const* zsql, int size, sqlite3_stmt** pstmt, char const** pztail)
     {
+        UNREFERENCED_PARAMETER(db);
+        UNREFERENCED_PARAMETER(pztail);
         *pstmt = reinterpret_cast<sqlite3_stmt*>(reinterpret_cast<size_t>(dbHandle) + statements.size() + 1);
         statements[*pstmt] = FakeStatement{(size < 0) ? std::string(zsql) : std::string(zsql, size), true};
         return SQLITE_OK;
@@ -269,11 +275,17 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
 
     static int vfsDeleteOk(sqlite3_vfs* vfs, char const* zName, int syncDir)
     {
+        UNREFERENCED_PARAMETER(vfs);
+        UNREFERENCED_PARAMETER(zName);
+        UNREFERENCED_PARAMETER(syncDir);
         return SQLITE_OK;
     }
 
     static int vfsDeleteError(sqlite3_vfs* vfs, char const* zName, int syncDir)
     {
+        UNREFERENCED_PARAMETER(vfs);
+        UNREFERENCED_PARAMETER(zName);
+        UNREFERENCED_PARAMETER(syncDir);
         return SQLITE_IOERR_ACCESS;
     }
 
@@ -332,10 +344,11 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, NoInitializationMeansNoDatabase)
 
     // No database is open, but other methods are still safe to call and no SQLite methods will be invoked
     os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {'x'}});
+	bool fromMemory = false;
     os->GetAndReserveRecords(consumer, 1000, EventPriority_Normal, 3);
 	HttpHeaders test;
-    os->DeleteRecords({"guid"}, test);
-    os->ReleaseRecords({"guid"}, true, test);
+    os->DeleteRecords({"guid"}, test, fromMemory);
+    os->ReleaseRecords({"guid"}, true, test, fromMemory);
     os->StoreSetting("key", "value");
     os->GetSetting("key");
     os->Shutdown();
@@ -603,10 +616,11 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, CompletelyFailedInitializationMeansNo
 
     // No database is open, but other methods are still safe to call and no SQLite methods will be invoked
     os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {'x'}});
+	bool fromMemory = false;
     os->GetAndReserveRecords(consumer, 1000, EventPriority_Normal, 3);
 	HttpHeaders test;
-    os->DeleteRecords({"guid"}, test);
-    os->ReleaseRecords({"guid"}, true, test);
+    os->DeleteRecords({"guid"}, test, fromMemory);
+    os->ReleaseRecords({"guid"}, true, test, fromMemory);
     os->StoreSetting("key", "value");
     os->GetSetting("key");
     os->Shutdown();
@@ -1096,7 +1110,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Succe
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "COMMIT")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), true);
     EXPECT_THAT(consumer.records, SizeIs(1));
 }
@@ -1153,7 +1166,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "201");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1170,7 +1182,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "202");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1194,7 +1205,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "203");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1228,7 +1238,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "204");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1297,7 +1306,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "205");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1340,7 +1348,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "206");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1416,7 +1423,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "207");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1502,7 +1508,6 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "208");
-
     EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
 }
 
@@ -1524,13 +1529,15 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_Succeeds)
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 	HttpHeaders test;
-    os->DeleteRecords({"id1", "id2"}, test);
+	bool fromMemory = false;
+    os->DeleteRecords({"id1", "id2"}, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_DoesNothingWithEmptyInput)
 {
 	HttpHeaders test;
-    os->DeleteRecords({}, test);
+	bool fromMemory = false;
+    os->DeleteRecords({}, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_HandlesCommitFailure)
@@ -1547,7 +1554,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_HandlesCommi
 
     expectDatabaseRecreation(true, "301");
 	HttpHeaders test;
-    os->DeleteRecords({"id"}, test);
+	bool fromMemory = false;
+    os->DeleteRecords({"id"}, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_HandlesDeletionFalure)
@@ -1563,7 +1571,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, DeleteRecords_HandlesDelet
 
     expectDatabaseRecreation(true, "302");
 	HttpHeaders test;
-    os->DeleteRecords({"id"}, test);
+	bool fromMemory = false;
+    os->DeleteRecords({"id"}, test, fromMemory);
 }
 
 //---
@@ -1595,7 +1604,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_Succeeds)
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 	HttpHeaders test;
-    os->ReleaseRecords({"id1", "id2"}, false, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id1", "id2"}, false, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_SucceedsAndIncreasesRetryCount)
@@ -1639,14 +1649,16 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_SucceedsAnd
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 	HttpHeaders test;
-    os->ReleaseRecords({"id1", "id2"}, true, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id1", "id2"}, true, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_DoesNothingWithEmptyInput)
 {
 	HttpHeaders test;
-    os->ReleaseRecords({}, false, test);
-    os->ReleaseRecords({}, true, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({}, false, test, fromMemory);
+    os->ReleaseRecords({}, true, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesCommitPreviousFailure)
@@ -1663,7 +1675,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesComm
 
     expectDatabaseRecreation(true, "401");
 	HttpHeaders test;
-    os->ReleaseRecords({"id"}, false, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id"}, false, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesBeginTransactionFailure)
@@ -1679,7 +1692,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesBegi
 
     expectDatabaseRecreation(true, "402");
 	HttpHeaders test;
-    os->ReleaseRecords({"id"}, false, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id"}, false, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesReleaseFailure)
@@ -1699,7 +1713,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesRele
 
     expectDatabaseRecreation(true, "403");
 	HttpHeaders test;
-    os->ReleaseRecords({"id"}, false, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id"}, false, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesDeletionFailure)
@@ -1733,7 +1748,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesDele
 
     expectDatabaseRecreation(true, "404");
 	HttpHeaders test;
-    os->ReleaseRecords({"id"}, true, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id"}, true, test, fromMemory);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesFinalCommitFailure)
@@ -1777,7 +1793,8 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesFina
 
     expectDatabaseRecreation(true, "405");
 	HttpHeaders test;
-    os->ReleaseRecords({"id"}, true, test);
+	bool fromMemory = false;
+    os->ReleaseRecords({"id"}, true, test, fromMemory);
 }
 
 //---

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClientManager.hpp"
-#include "utils/Common.hpp"
+#include "utils/Utils.hpp"
 #include <assert.h>
 
 namespace ARIASDK_NS_BEGIN {
@@ -54,7 +54,7 @@ void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
 
 void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
 {
-    PAL::executeOnWorkerThread(self(), &HttpClientManager::onHttpResponse, callback);
+    PAL::scheduleOnWorkerThread(0,self(), &HttpClientManager::onHttpResponse, callback);
 }
 
 void HttpClientManager::onHttpResponse(HttpCallback* callback)
@@ -78,7 +78,7 @@ bool HttpClientManager::handleCancelAllRequestsAsync()
         ARIASDK_LOG_DETAIL("Cancelling %u outstanding HTTP requests...",
             static_cast<unsigned>(m_httpCallbacks.size()));
 
-        for (HttpCallback* callback : m_httpCallbacks) {
+        for (const HttpCallback* callback : m_httpCallbacks) {
             m_httpClient.CancelRequestAsync(callback->m_ctx->httpRequestId);
         }
         // Requests will be cancelled asynchronously.

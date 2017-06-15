@@ -1,10 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BondSplicerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\EventPropertiesTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BackoffTests_ExponentialWithJitter.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\FIFOOfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\GuidTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpClientManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\HttpDeflateCompressionTests.cpp" />
@@ -25,7 +27,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Mocks.cpp" />
-    <ClCompile Include="..\..\..\tests\unittests\FIFOOfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\OacrTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />

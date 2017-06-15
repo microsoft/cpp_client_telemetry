@@ -2,7 +2,7 @@
 
 #pragma once
 #include "Common.hpp"
-#include <aria/IHttpClient.hpp>
+#include <IHttpClient.hpp>
 
 namespace testing {
 

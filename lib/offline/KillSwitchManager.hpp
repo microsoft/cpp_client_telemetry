@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PAL/PAL.hpp"
+#include "pal/PAL.hpp"
 #include <map>
 #include <string>
 #include <mutex>
@@ -42,7 +42,7 @@ public:
 
 			if (killtokensVector.size() > 0 && timeinSecs > 0)
 			{
-				for (std::vector<std::string>::iterator iter = killtokensVector.begin(); iter < killtokensVector.end(); iter++)
+				for (std::vector<std::string>::iterator iter = killtokensVector.begin(); iter < killtokensVector.end(); ++iter)
 				{
 					addToken(*iter, timeinSecs);
 				}

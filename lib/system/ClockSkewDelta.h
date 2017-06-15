@@ -1,5 +1,5 @@
 #pragma once
-#include "PAL/PAL.hpp"
+#include "pal/PAL.hpp"
 #include <vector>
 #include <mutex>
 
@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
 			m_delta = delta;
 		}
 
-		bool isClockSkewOn()
+		bool isClockSkewOn() const
 		{
 			if (!m_pingSent || (m_deltaReceived && !m_delta.empty()))
 			{
@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
 			return false;
 		}
 
-		bool isWaitingForClockSkew()
+		bool isWaitingForClockSkew() const
 		{
 			if (!m_deltaReceived && m_pingSent)
 			{
@@ -56,7 +56,6 @@ namespace ARIASDK_NS_BEGIN {
 	RoutePassThrough<ClockSkewDelta, EventsUploadContextPtr const&> decode{ this, &ClockSkewDelta::handleDecode };
 
 	private:
-		std::mutex				m_lock;
 		std::string				m_delta;
 		bool					m_pingSent;
 		bool					m_deltaReceived;

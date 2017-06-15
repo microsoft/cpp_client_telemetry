@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/Version.hpp>
+#include <Version.hpp>
 
 // See docs/PAL.md for details about the classes, functions and macros a PAL implementation must support.
 

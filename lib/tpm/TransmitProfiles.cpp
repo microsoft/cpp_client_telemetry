@@ -1,9 +1,9 @@
 #define LOG_MODULE DBG_CONFIG
 
 #include "TransmitProfiles.hpp"
-#include "aria/json.hpp"
+#include "json.hpp"
 #include <set>
-#include "utils/Common.hpp"
+#include "utils/Utils.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 using namespace std;
@@ -100,9 +100,8 @@ static void initTransmitProfileFields()
 
 #define LOCK_PROFILES       std::lock_guard<std::mutex> lock(profiles_mtx)
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Telemetry {
+namespace ARIASDK_NS_BEGIN {
+
 
             static const char* ATTR_NAME  = "name";     /// <summary>name  attribute</summary>
             static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
@@ -113,6 +112,7 @@ namespace Microsoft {
             size_t      TransmitProfiles::currRule        = 0;
             NetworkCost TransmitProfiles::currNetCost     = NetworkCost::NetworkCost_Any;
             PowerSource TransmitProfiles::currPowState    = PowerSource::PowerSource_Any;
+            bool        TransmitProfiles::isTimerUpdated  = true;
 
             /// <summary>
             /// Get current transmit profile name
@@ -206,7 +206,7 @@ namespace Microsoft {
                 while (it != profiles.end())
                 {
                     if (defaultProfileNames.find((*it).first) != defaultProfileNames.end()) {
-                        it++;
+                        ++it;
                         continue;
                     }
                     it = profiles.erase(it);
@@ -222,89 +222,94 @@ namespace Microsoft {
             size_t TransmitProfiles::parse(const std::string& profiles_json)
 			{
                 size_t numProfilesParsed = 0;
-              //  json::Variant result;
-
                 // Temporary storage for the new profiles that we use before we copy to current profiles
                 std::vector<TransmitProfileRules> newProfiles;
 
-				json temp = json::parse(profiles_json.c_str());
+                try
+                {
+                    json temp = json::parse(profiles_json.c_str());
 
-                // Try to parse the JSON string into result variant
-				if (temp.is_array())
-				{
-					size_t numProfiles = temp.size();
-					if (numProfiles > MAX_TRANSMIT_PROFILES) {
-						goto parsing_failed;
+                    // Try to parse the JSON string into result variant
+                    if (temp.is_array())
+                    {
+                        size_t numProfiles = temp.size();
+                        if (numProfiles > MAX_TRANSMIT_PROFILES) {
+                            goto parsing_failed;
 
-					}
-					ARIASDK_LOG_DETAIL("got %u profiles", numProfiles);
-					for (auto it = temp.begin(); it != temp.end(); ++it)
-					{
-						TransmitProfileRules profile;
-						json rulesObj = it.value();
-						if (rulesObj.is_object())
-						{
-							std::string name = rulesObj[ATTR_NAME];
+                        }
+                        ARIASDK_LOG_DETAIL("got %u profiles", numProfiles);
+                        for (auto it = temp.begin(); it != temp.end(); ++it)
+                        {
+                            TransmitProfileRules profile;
+                            json rulesObj = it.value();
+                            if (rulesObj.is_object())
+                            {
+                                std::string name = rulesObj[ATTR_NAME];
 
-							profile.name = name;
-							json rules = rulesObj[ATTR_RULES];
+                                profile.name = name;
+                                json rules = rulesObj[ATTR_RULES];
 
-							if (rules.is_array())
-							{
-								size_t numRules = rules.size();
-								if (numRules > MAX_TRANSMIT_RULES)
-								{
-									ARIASDK_LOG_ERROR("Exceeded max transmit rules %d>%d for profile",
-										numRules, MAX_TRANSMIT_RULES);
-									goto parsing_failed;
-								}
+                                if (rules.is_array())
+                                {
+                                    size_t numRules = rules.size();
+                                    if (numRules > MAX_TRANSMIT_RULES)
+                                    {
+                                        ARIASDK_LOG_ERROR("Exceeded max transmit rules %d>%d for profile",
+                                            numRules, MAX_TRANSMIT_RULES);
+                                        goto parsing_failed;
+                                    }
 
-								profile.rules.clear();
-								for (auto itRule = rules.begin(); itRule != rules.end(); ++itRule)
-								{
-									if (itRule.value().is_object())
-									{
-										TransmitProfileRule rule;
-										auto itnetCost = itRule.value().find("netCost");
-										if (itRule.value().end() != itnetCost)
-										{
-											std::string netCost = itRule.value()["netCost"];
-											std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
-											if (iter != transmitProfileNetCost.end())
-											{
-												rule.netCost = static_cast<NetworkCost>(iter->second);
-											}
-										}
+                                    profile.rules.clear();
+                                    for (auto itRule = rules.begin(); itRule != rules.end(); ++itRule)
+                                    {
+                                        if (itRule.value().is_object())
+                                        {
+                                            TransmitProfileRule rule;
+                                            auto itnetCost = itRule.value().find("netCost");
+                                            if (itRule.value().end() != itnetCost)
+                                            {
+                                                std::string netCost = itRule.value()["netCost"];
+                                                std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
+                                                if (iter != transmitProfileNetCost.end())
+                                                {
+                                                    rule.netCost = static_cast<NetworkCost>(iter->second);
+                                                }
+                                            }
 
-										auto itpowerState = itRule.value().find("powerState");
-										if (itRule.value().end() != itpowerState)
-										{
-											std::string powerState = itRule.value()["powerState"];
-											std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
-											if (iter != transmitProfilePowerState.end())
-											{
-												rule.powerState = static_cast<PowerSource>(iter->second);
-											}
-										}
+                                            auto itpowerState = itRule.value().find("powerState");
+                                            if (itRule.value().end() != itpowerState)
+                                            {
+                                                std::string powerState = itRule.value()["powerState"];
+                                                std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
+                                                if (iter != transmitProfilePowerState.end())
+                                                {
+                                                    rule.powerState = static_cast<PowerSource>(iter->second);
+                                                }
+                                            }
 
-										auto timers = itRule.value()["timers"];
+                                            auto timers = itRule.value()["timers"];
 
-										for (auto i : timers)
-										{
-											if (i.is_number())
-											{
-												rule.timers.push_back(i);
-											}
-										}
-										profile.rules.push_back(rule);
-									}
+                                            for (auto i : timers)
+                                            {
+                                                if (i.is_number())
+                                                {
+                                                    rule.timers.push_back(i);
+                                                }
+                                            }
+                                            profile.rules.push_back(rule);
+                                        }
 
-								}
-							}
-						}
-						newProfiles.push_back(profile);
-					}
-				}
+                                    }
+                                }
+                            }
+                            newProfiles.push_back(profile);
+                        }
+                    }
+                }
+                catch (...)
+                {
+                    ARIASDK_LOG_ERROR("JSON parsing failed miserably! Please check your config to fix above errors.");
+                }
 
                 numProfilesParsed = newProfiles.size();
                 {
@@ -323,7 +328,7 @@ namespace Microsoft {
                     // Print combined list of profiles: default + custom
                     ARIASDK_LOG_DETAIL("Profiles:");
                     size_t i = 0;
-                    for (auto &kv : profiles) {
+                    for (const auto &kv : profiles) {
                         ARIASDK_LOG_DETAIL("[%d] %s%s", i, kv.first.c_str(),
                             (!kv.first.compare(currProfileName))?
                             " [active]":""
@@ -431,9 +436,13 @@ parsing_failed:
             /// </summary>
             /// <returns></returns>
             void TransmitProfiles::getTimers(std::vector<int>& out) {
-                {
-                    LOCK_PROFILES;
+                {                    
                     out.clear();
+					if (profiles.size() == 0) {
+						// Load default profiles if nothing is loaded yet
+						reset();
+					}
+					LOCK_PROFILES;
                     auto it = profiles.find(currProfileName);
                     if (it == profiles.end()) {
                         for (size_t i = 0; i < MAX_TIMERS_SIZE; i++) {
@@ -445,13 +454,23 @@ parsing_failed:
                     for (int timer : (it->second).rules[currRule].timers) {
                         out.push_back(timer * 1000);// convert time in milisec
                     }
+                    isTimerUpdated = false;
                 }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            bool TransmitProfiles::isTimerUpdateRequired()
+            {
+                return isTimerUpdated;
             }
 
             /// <summary>
             /// This function is called only from updateStates
             /// </summary>
             void TransmitProfiles::onTimersUpdated() {
+                isTimerUpdated = true;
                 auto it = profiles.find(currProfileName);
                 if (it != profiles.end()) {
 #if 1   /* Debug routine to print the list of currently selected timers */
@@ -483,7 +502,7 @@ parsing_failed:
                         // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
                         currRule = 0;
                         for (size_t i = 0; i < profile.rules.size(); i++) {
-                            auto &rule = profile.rules[i];
+                            const auto &rule = profile.rules[i];
                             if ((
                                 (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
                                 ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))
@@ -505,6 +524,8 @@ parsing_failed:
                 initTransmitProfileFields();
             }
 
+#pragma warning(push)
+#pragma warning(disable:6320)
             TransmitProfiles::~TransmitProfiles()
             {
 #ifdef _WIN32
@@ -520,11 +541,9 @@ parsing_failed:
                 }
 #endif
             }
+#pragma warning(pop)
 
             // Make sure we populate transmitProfileFields dynamically before start
             static TransmitProfiles __profiles;
 
-        } /* end of NS Telemetry */
-    }
-
-}
+} ARIASDK_NS_END

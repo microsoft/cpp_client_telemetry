@@ -2,8 +2,8 @@
 
 #pragma once
 #include "IDecorator.hpp"
-#include "utils/Common.hpp"
-#include <aria/EventProperties.hpp>
+#include <EventProperties.hpp>
+#include "utils/Utils.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

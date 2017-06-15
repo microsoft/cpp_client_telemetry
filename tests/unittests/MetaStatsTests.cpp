@@ -25,8 +25,9 @@ class MetaStatsTests : public ::testing::Test
 
 TEST_F(MetaStatsTests, NoInputGeneratesNoEvents)
 {
+    EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
     auto events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_START);
-    EXPECT_THAT(events, IsEmpty());
+    EXPECT_THAT(events, SizeIs(1));
 }
 
 TEST_F(MetaStatsTests, GenerateStartEvent)

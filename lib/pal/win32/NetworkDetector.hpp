@@ -42,7 +42,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "lib\include\aria\Enums.hpp"
+#include "Enums.hpp"
 
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
@@ -77,7 +77,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name"></param>
                 /// <returns></returns>
-                std::string to_string(HString *name);
+                std::string to_string(const HString *name);
 
                 /// <summary>
                 /// Convert GUID to std::string
@@ -163,7 +163,7 @@ namespace Microsoft {
                     /// <summary>
                     /// 
                     /// </summary>
-                    bool isUp() { return isRunning; };
+                    bool isUp() const { return isRunning; };
 
                     /// <summary>
                     /// Createa network status listener
@@ -210,7 +210,7 @@ namespace Microsoft {
                     /// Get last cached network cost
                     /// </summary>
                     /// <returns></returns>
-                    NetworkCost const& NetworkDetector::GetNetworkCost();
+                    NetworkCost const& NetworkDetector::GetNetworkCost() const;
 
 
                     /// <summary>
@@ -220,10 +220,10 @@ namespace Microsoft {
                     /// <returns></returns>
                     std::string GetAdapterId(IConnectionProfile *profile);
 
-                    int NetworkDetector::GetConnectivity();
+                    int NetworkDetector::GetConnectivity() const;
 
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity();
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity();
+                    const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity() const;
+                    const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity() const;
 
                     void GetNetworkDetails();
 

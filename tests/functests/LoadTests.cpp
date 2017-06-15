@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "common/Common.hpp"
+#include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include <aria/ILogManager.hpp>
+#include "utils/Utils.hpp"
+#include <ILogManager.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -128,10 +129,11 @@ class LoadTests : public Test,
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
+        UNREFERENCED_PARAMETER(response);
         auto payload = decodeRequest(request, false);
         for (auto const& packagesPerTenant : payload.TokenToDataPackagesMap) {
             for (auto const& package : packagesPerTenant.second) {
-                recordsReceived += package.Records.size();
+                recordsReceived += static_cast<unsigned int>(package.Records.size());
             }
         }
         return 200;
@@ -139,6 +141,7 @@ class LoadTests : public Test,
 
     AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request, bool decompress)
     {
+        UNREFERENCED_PARAMETER(decompress);
         AriaProtocol::ClientToCollectorRequest result;
         std::vector<uint8_t> input(request.content.data(), request.content.data() + request.content.size());
         bond_lite::CompactBinaryProtocolReader reader(input);

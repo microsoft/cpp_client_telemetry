@@ -4,7 +4,7 @@
 #pragma comment(lib, "windowsapp")
 #pragma comment(lib, "runtimeobject")
 
-#include <aria/IHttpClient.hpp>
+#include <IHttpClient.hpp>
 #include "pal/PAL.hpp"
 #include <ppltasks.h>
 

@@ -3,8 +3,8 @@
 #pragma once
 #include "decorators/BaseDecorator.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
-#include <aria/Enums.hpp>
-#include <aria/IRuntimeConfig.hpp>
+#include <Enums.hpp>
+#include <IRuntimeConfig.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include <memory>
 
@@ -62,7 +62,7 @@ class MetaStats
     /// <summary>
     /// Check if there's any stats data available to be sent.
     /// </summary>
-    bool hasStatsDataAvailable();
+    bool hasStatsDataAvailable() const;
 
     /// <summary>
     /// Reset TelemetryStats

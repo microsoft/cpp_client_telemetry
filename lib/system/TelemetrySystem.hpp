@@ -2,7 +2,7 @@
 
 #pragma once
 #include "ITelemetrySystem.hpp"
-#include <aria/Version.hpp>
+#include <Version.hpp>
 #include "bond/BondSerializer.hpp"
 #include "compression/HttpDeflateCompression.hpp"
 #include "http/HttpClientManager.hpp"
@@ -34,6 +34,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
     void pauseTransmission();
     void resumeTransmission();
     void UploadNow();
+    void addIncomingEventSystem(IncomingEventContextPtr const& event);
 
   protected:
     void startAsync();
@@ -59,6 +60,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
     Statistics                stats;
     TransmissionPolicyManager tpm;
     ClockSkewDelta            clockSkewDelta;
+    LogConfiguration          configuration;
 #if ARIASDK_UTC_ENABLED
     UtcForwarder              utcForwarder;
 #endif

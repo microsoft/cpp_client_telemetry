@@ -1,5 +1,5 @@
 #pragma once
-#include "PAL/PAL.hpp"
+#include "pal/PAL.hpp"
 #include <vector>
 #include <mutex>
 
@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
 		{
 		}
 
-		void handleResponse(HttpHeaders& headers)
+		void handleResponse(const HttpHeaders& headers)
 		{
 			std::string timeString = headers.get("time-delta-millis");
 			if (!timeString.empty())
@@ -40,7 +40,7 @@ namespace ARIASDK_NS_BEGIN {
 			}
 		}
 
-		bool isClockSkewOn()
+		bool isClockSkewOn() const
 		{
 			{
 				if (!m_pingSent || (m_deltaReceived && !m_delta.empty()))
@@ -82,7 +82,7 @@ namespace ARIASDK_NS_BEGIN {
 			}
 		}
 
-		bool GetResumeTransmissionAfterClockSkew()
+		bool GetResumeTransmissionAfterClockSkew() const
 		{
 			return m_resumeTransmissionAfterClockSkew;
 		}

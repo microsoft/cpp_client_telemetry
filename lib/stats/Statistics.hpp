@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IRuntimeConfig.hpp>
+#include <IRuntimeConfig.hpp>
+#include "system/ITelemetrySystem.hpp"
 #include "MetaStats.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
@@ -12,7 +13,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class Statistics : public PAL::RefCountedImpl<Statistics> {
   public:
-    Statistics(IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext);
+    Statistics(IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext, ITelemetrySystem*   telemetrySystem);
     ~Statistics();
 
   protected:
@@ -42,6 +43,8 @@ class Statistics : public PAL::RefCountedImpl<Statistics> {
     PAL::DeferredCallbackHandle m_scheduledSend;
     bool                        m_isScheduled;
     bool                        m_isStarted;
+    ITelemetrySystem*           m_iTelemetrySystem;
+    std::int64_t                m_statEventSentTime;
 
   public:
     RouteSource<IncomingEventContextPtr const&>                     eventGenerated;

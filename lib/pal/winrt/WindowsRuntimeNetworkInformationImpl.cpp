@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "..\NetworkInformationImpl.hpp"
+#include "pal/NetworkInformationImpl.hpp"
 #include <exception>  
 
 namespace Microsoft {

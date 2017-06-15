@@ -50,6 +50,12 @@ struct LogConfiguration
     /// [optional] Memory size limit that allows events to be cached in memory
     /// Additional events will cause older events to be flushed to disk file
     unsigned int cacheMemorySizeLimitInBytes = 0;
+    
+    /// [optional] Sets when application wants to be notified at File percentage FULL
+    unsigned int cacheFileFullNotificationPercentage = 75;
+
+    /// [optional] Sets when application wants to be notified at Memory percentage FULL
+    unsigned int cacheMemoryFullNotificationPercentage = 75;
 
     /// [optional] Allows overriding tenant token for all logged events.
     /// Useful when testing reliability, amount of events sent by an app etc.

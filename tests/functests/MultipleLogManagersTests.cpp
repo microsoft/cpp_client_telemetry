@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "common/Common.hpp"
+#include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include <aria/ILogManager.hpp>
+#include <ILogManager.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
-//#include <sqlite/sqlite3.h>
+#include "../../sqlite/sqlite3.h"
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -76,6 +76,7 @@ class MultipleLogManagersTests : public ::testing::Test,
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
+        UNREFERENCED_PARAMETER(response);
         receivedRequests.push_back(request);
         return 200;
     }

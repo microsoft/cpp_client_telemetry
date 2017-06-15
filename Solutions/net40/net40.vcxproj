@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug.vs2013|Win32">
-      <Configuration>Debug.vs2013</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug.vs2013|x64">
-      <Configuration>Debug.vs2013</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release.vs2013|Win32">
-      <Configuration>Release.vs2013</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release.vs2013|x64">
-      <Configuration>Release.vs2013</Configuration>
-      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -56,15 +40,6 @@
     <QBConfigId>win-x86_vs2015-crtdynamic-debug</QBConfigId>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CLRSupport>false</CLRSupport>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x86_vs2013-crtdynamic-debug</QBConfigId>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -72,15 +47,6 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <QBConfigId>win-x86_vs2015-crtdynamic-release</QBConfigId>
-    <CLRSupport>false</CLRSupport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x86_vs2013-crtdynamic-release</QBConfigId>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -92,15 +58,6 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x64_vs2013-crtdynamic-debug</QBConfigId>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-    <CLRSupport>false</CLRSupport>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -108,15 +65,6 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
-    <CLRSupport>false</CLRSupport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x64_vs2013-crtdynamic-release</QBConfigId>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -171,42 +119,6 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(SolutionDir)\shared;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
-    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(SolutionDir)\shared;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
-    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(SolutionDir)\shared;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
-    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(SolutionDir)\shared;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
-    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <PrecompiledHeader>
@@ -236,7 +148,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
@@ -274,73 +186,6 @@
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
     </Bscmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2013'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\src;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAsManaged>false</CompileAsManaged>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">All</AssemblerOutput>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">All</AssemblerOutput>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</BrowseInformation>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">Async</ExceptionHandling>
-      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</MinimalRebuild>
-      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</MinimalRebuild>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">Default</BasicRuntimeChecks>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">Async</ExceptionHandling>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">Default</BasicRuntimeChecks>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
-      <LinkStatus>false</LinkStatus>
-      <GenerateMapFile>true</GenerateMapFile>
-      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</OptimizeReferences>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</OptimizeReferences>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</Profile>
-    </Link>
-    <ProjectReference>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;httpstack.lib;wininet.lib;openssl.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-    <Bscmake>
-      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</PreserveSbr>
-    </Bscmake>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -371,7 +216,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
@@ -405,182 +250,74 @@
       <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2013'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MinSpace</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\src;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <CompileAsManaged>false</CompileAsManaged>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">All</AssemblerOutput>
-      <GenerateXMLDocumentationFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</GenerateXMLDocumentationFiles>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</BrowseInformation>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">All</AssemblerOutput>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</BrowseInformation>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">MultiThreadedDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">MultiThreadedDLL</RuntimeLibrary>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">Async</ExceptionHandling>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">Async</ExceptionHandling>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>runtimeobject.lib;z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
-      <LinkStatus>false</LinkStatus>
-      <GenerateMapFile>true</GenerateMapFile>
-      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">Default</LinkTimeCodeGeneration>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">Default</LinkTimeCodeGeneration>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</Profile>
-    </Link>
-    <ProjectReference>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;httpstack.lib;wininet.lib;openssl.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h" />
     <ClCompile Include="..\shared\ECSClientCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\EventPropertiesCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\LogConfigurationCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\LoggerCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\LogManagerCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\SemanticContextCX.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="..\shared\TimedEvent.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
       <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</SuppressStartupBanner>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</SuppressStartupBanner>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
       <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</SuppressStartupBanner>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</SuppressStartupBanner>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
       <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SuppressStartupBanner>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</SuppressStartupBanner>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
       <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</SuppressStartupBanner>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
-      <SuppressStartupBanner Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</SuppressStartupBanner>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
     <ClInclude Include="pch.h" />
     <ClCompile Include="WindowsDesktopHelpers.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</CompileAsManaged>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

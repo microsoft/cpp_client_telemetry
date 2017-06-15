@@ -50,6 +50,12 @@ EventPriority RuntimeConfig_Default::GetEventPriority(std::string const& tenantI
 
 std::string RuntimeConfig_Default::GetMetaStatsTenantToken() const
 {
+	std::size_t found = m_collectorUrl.find(".int.");
+	if (found != std::string::npos)
+	{
+		return m_metaStatsTenantToken_INT;
+	}
+
     return m_metaStatsTenantToken;
 }
 

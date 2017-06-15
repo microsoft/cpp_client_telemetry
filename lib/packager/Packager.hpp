@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IOfflineStorage.hpp>
-#include <aria/LogConfiguration.hpp>
+#include <IOfflineStorage.hpp>
+#include <LogConfiguration.hpp>
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 

@@ -90,7 +90,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteUnitTest)
 
 	char fileName[] = "OfflineStorageOverwriteUnitTest.dat";
 	char content[] = "aaaaaaaaaabbbbbbbbbbccccccccccddddddddddeeeeeee";
-	int  contLen = strlen(content);
+	int  contLen = static_cast<int>(strlen(content));
 
 	FIFOFileStorage storeFile;
 	storeFile.DeleteFileLocal(fileName);
@@ -159,7 +159,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageMultiBlocksUnitTest)
 
 	char filename[] = "OfflineStorageMultiBlocksUnitTest.dat";
 	char content[] = "aaaaaaaaaabbbbbbbbbbccccccccccddddddddddeeeeeee";
-	int  contLen = strlen(content);
+	int  contLen = static_cast<int>(strlen(content));
 
 	FIFOFileStorage  storeFile;
 
@@ -933,7 +933,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
 	// Save items in newest to oldest order
 	for (size_t itemIndex = 1; itemIndex <= writeCount; itemIndex++)
 	{
-		sprintf_s(data, "Data Item %d", itemIndex);
+		sprintf_s(data, "Data Item %d", static_cast<int>(itemIndex));
 		StorageItemKey fileItemInfo = {};
 
 		fileItemInfo.Time = itemIndex;
@@ -961,7 +961,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
 			EXPECT_EQ(DATARV_ERROR_OK, storeFile.FindNextItem(&findItemInfo));
 		}
 
-		int itemIndex = writeCount - (blockCount - i);
+		int itemIndex = static_cast<int>(writeCount - (blockCount - i));
 		printf("Item Index %d", itemIndex);
 
 		sprintf_s(data, "Data Item %d", itemIndex);

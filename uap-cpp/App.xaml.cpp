@@ -5,7 +5,7 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
-#include "api/LogManager.hpp"
+#include "public/LogManager.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 
@@ -63,6 +63,7 @@ extern "C" void SendTelemetryEvents() {
 		logger->LogEvent(properties2);
 	}
 	catch (const std::logic_error& ex) {
+		UNREFERENCED_PARAMETER(ex);
 		OutputDebugStringA("Good stuff: we handled the exception here!\n");
 	}
 }
@@ -91,7 +92,6 @@ App::App()
 	configuration.traceLevelMask = 0xFFFFFFFF; // API calls + Global mask for general messages
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
 	configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
-	// configuration.useWindowsSamplinginUtcMode = true;
 
 #if 1 /* Use INT */
 	configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";

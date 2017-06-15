@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 #pragma once
-#include "PAL/PAL.hpp"
+#include "pal/PAL.hpp"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -92,34 +92,34 @@ struct PII {
 };
 
 struct Record {
-	// 1: optional string Id
-	std::string Id;
-	// 3: optional int64 Timestamp
-	int64_t Timestamp = 0;
-	// 4: optional map<string, string> ConfigurationIds
-	std::map<std::string, std::string> ConfigurationIds;
-	// 5: optional string Type
-	std::string Type;
-	// 6: optional string EventType
-	std::string EventType;
-	// 13: optional map<string, string> Extension
-	std::map<std::string, std::string> Extension;
-	// 19: optional map<string, string> ContextIds
-	std::map<std::string, std::string> ContextIds;
-	// 24: optional RecordType RecordType
-	RecordType RecordType = RecordType::Event;
-	// 30: optional map<string, PII> PIIExtensions
-	std::map<std::string, PII> PIIExtensions;
-	// 31: optional map<string, bool> TypedExtensionBoolean
-	std::map<std::string, bool> TypedExtensionBoolean;
-	// 32: optional map<string, int64> TypedExtensionDateTime
-	std::map<std::string, int64_t> TypedExtensionDateTime;
-	// 33: optional map<string, int64> TypedExtensionInt64
-	std::map<std::string, int64_t> TypedExtensionInt64;
-	// 34: optional map<string, double> TypedExtensionDouble
-	std::map<std::string, double> TypedExtensionDouble;
-	// 35: optional map<string, vector<uint8>> TypedExtensionGuid
-	std::map<std::string, std::vector<uint8_t>> TypedExtensionGuid;
+    // 1: optional string Id
+    std::string Id;
+    // 3: optional int64 Timestamp
+    int64_t Timestamp = 0;
+    // 4: optional map<string, string> ConfigurationIds
+    std::map<std::string, std::string> ConfigurationIds;
+    // 5: optional string Type
+    std::string Type;
+    // 6: optional string EventType
+    std::string EventType;
+    // 13: optional map<string, string> Extension
+    std::map<std::string, std::string> Extension;
+    // 19: optional map<string, string> ContextIds
+    std::map<std::string, std::string> ContextIds;
+    // 24: optional RecordType RecordType
+    RecordType RecordType = RecordType::Event;
+    // 30: optional map<string, PII> PIIExtensions
+    std::map<std::string, PII> PIIExtensions;
+    // 31: optional map<string, bool> TypedExtensionBoolean
+    std::map<std::string, bool> TypedExtensionBoolean;
+    // 32: optional map<string, int64> TypedExtensionDateTime
+    std::map<std::string, int64_t> TypedExtensionDateTime;
+    // 33: optional map<string, int64> TypedExtensionInt64
+    std::map<std::string, int64_t> TypedExtensionInt64;
+    // 34: optional map<string, double> TypedExtensionDouble
+    std::map<std::string, double> TypedExtensionDouble;
+    // 35: optional map<string, vector<uint8>> TypedExtensionGuid
+    std::map<std::string, std::vector<uint8_t>> TypedExtensionGuid;
 
 	Record()
 	{
@@ -129,20 +129,20 @@ struct Record {
 
 	bool operator==(const Record& other) const
 	{
-		return (Id == other.Id)
-			&& (Timestamp == other.Timestamp)
-			&& (ConfigurationIds == other.ConfigurationIds)
-			&& (Type == other.Type)
-			&& (EventType == other.EventType)
-			&& (Extension == other.Extension)
-			&& (ContextIds == other.ContextIds)
-			&& (RecordType == other.RecordType)
-			&& (PIIExtensions == other.PIIExtensions)
-			&& (TypedExtensionBoolean == other.TypedExtensionBoolean)
-			&& (TypedExtensionDateTime == other.TypedExtensionDateTime)
-			&& (TypedExtensionInt64 == other.TypedExtensionInt64)
-			&& (TypedExtensionDouble == other.TypedExtensionDouble)
-			&& (TypedExtensionGuid == other.TypedExtensionGuid);
+        return (Id == other.Id)
+            && (Timestamp == other.Timestamp)
+            && (ConfigurationIds == other.ConfigurationIds)
+            && (Type == other.Type)
+            && (EventType == other.EventType)
+            && (Extension == other.Extension)
+            && (ContextIds == other.ContextIds)
+            && (RecordType == other.RecordType)
+            && (PIIExtensions == other.PIIExtensions)
+            && (TypedExtensionBoolean == other.TypedExtensionBoolean)
+            && (TypedExtensionDateTime == other.TypedExtensionDateTime)
+            && (TypedExtensionInt64 == other.TypedExtensionInt64)
+            && (TypedExtensionDouble == other.TypedExtensionDouble)
+            && (TypedExtensionGuid == other.TypedExtensionGuid);
 	}
 
 	bool operator!=(const Record& other) const

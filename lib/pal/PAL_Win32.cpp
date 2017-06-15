@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "pal\PAL.hpp"
-#include <aria/ISemanticContext.hpp>
+#include "PAL.hpp"
+#include "LogManager.hpp"
+#include <ISemanticContext.hpp>
 #include <IPHlpApi.h>
 #include <algorithm>
 #include <list>
 #include <memory>
 #include <Objbase.h>
+#include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
 namespace PAL {
@@ -16,7 +18,7 @@ ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.PAL", "Aria telemetry client - platform a
 
 
 namespace detail {
-
+	
 LogLevel g_logLevel = LogLevel::Detail;
 
 void log(LogLevel level, char const* component, char const* fmt, ...)
@@ -69,6 +71,7 @@ class WorkerThread
     std::list<detail::WorkerThreadItemPtr> m_queue;
     std::list<detail::WorkerThreadItemPtr> m_timerQueue;
     Event                                  m_event;
+	int count = 0;
 
   public:
     WorkerThread()
@@ -121,6 +124,15 @@ class WorkerThread
         } else {
             m_queue.push_back(item);
         }
+		count++;
+		if (count == (count / 100) * 100)
+		{
+            DebugEvent evt;
+            evt.type = EVT_UNKNOWN;
+            evt.param1 = m_timerQueue.size();
+            evt.param2 = m_queue.size();
+            LogManager::DispatchEvent(evt);
+		}
         m_event.post();
     }
 
@@ -220,6 +232,8 @@ void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
 
 //---
 
+#pragma warning(push)
+#pragma warning(disable:6031)
 std::string generateUuidString()
 {
 	GUID uuid;
@@ -234,6 +248,7 @@ std::string generateUuidString()
         uuid.Data4[4], uuid.Data4[5], uuid.Data4[6], uuid.Data4[7]);
     return buf;
 }
+#pragma warning(pop)
 
 int64_t getUtcSystemTimeMs()
 {
@@ -266,9 +281,9 @@ int64_t getMonotonicTimeMs()
     static int64_t ticksPerMillisecond;
     if (!frequencyQueried) {
         // There is no harm in querying twice in case of a race condition.
-        LARGE_INTEGER ticksPerSecond;
-        ::QueryPerformanceFrequency(&ticksPerSecond);
-        ticksPerMillisecond = ticksPerSecond.QuadPart / 1000;
+        LARGE_INTEGER ticksInOneSecond;
+        ::QueryPerformanceFrequency(&ticksInOneSecond);
+        ticksPerMillisecond = ticksInOneSecond.QuadPart / 1000;
         frequencyQueried = true;
     }
 
@@ -287,15 +302,31 @@ void registerSemanticContext(ISemanticContext* context)
 	{
 		context->SetDeviceId(g_DeviceInformation->GetDeviceId());
 		context->SetDeviceModel(g_DeviceInformation->GetModel());
+		context->SetDeviceMake(g_DeviceInformation->GetManufacturer());
 	}
 
 	if (g_SystemInformation != nullptr)
 	{
+		// Get SystemInfo common fields
 		context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
 		context->SetOsName(g_SystemInformation->GetOsName());
+		context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
+
+		// AppInfo fields
+		context->SetAppId(g_SystemInformation->GetAppId());
+		context->SetAppVersion(g_SystemInformation->GetAppVersion());
+		context->SetAppLanguage(g_SystemInformation->GetAppLanguage());
+
+		// UserInfo fields.
+		context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
+		context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
+		context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
 	}
 	if(g_NetworkInformation != nullptr)
-	{
+	{		
+		// Get NetworkInfo common fields
+		context->SetNetworkProvider(g_NetworkInformation->GetNetworkProvider());
+		context->SetNetworkCost(g_NetworkInformation->GetNetworkCost());
 		context->SetNetworkType(g_NetworkInformation->GetNetworkType());
 	}   
 }
@@ -303,6 +334,7 @@ void registerSemanticContext(ISemanticContext* context)
 void unregisterSemanticContext(ISemanticContext* context)
 {
 	UNREFERENCED_PARAMETER(context);
+    OACR_USE_PTR(this);
 }
 
 //---

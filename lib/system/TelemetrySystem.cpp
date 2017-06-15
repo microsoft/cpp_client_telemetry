@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "TelemetrySystem.hpp"
-#include "utils/Common.hpp"
+#include "utils/Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -13,14 +13,15 @@ TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntime
     httpEncoder(httpClient, runtimeConfig),
     storage(offlineStorage),
     packager(configuration, runtimeConfig),
-    stats(runtimeConfig, globalContext),
-    tpm(runtimeConfig, bandwidthController)
+    stats(runtimeConfig, globalContext, nullptr),
+    tpm(runtimeConfig, bandwidthController),
+    configuration(configuration)
 {
     //
     // Management
     //
 
-    this->started >> storage.start >> stats.onStart >> tpm.start;
+    this->started >> storage.start  >> tpm.start >> stats.onStart;
 
     this->stopped >> tpm.stop >> hcm.cancelAllRequestsAsync >> tpm.finishAllUploads;
     tpm.allUploadsFinished >> stats.onStop >> storage.stop >> this->flushWorkerThread;
@@ -96,6 +97,32 @@ void TelemetrySystem::start()
 
 void TelemetrySystem::stop()
 {
+    if (configuration.maxTeardownUploadTimeInSec > 0)
+    {
+        unsigned int timeoutInSec = configuration.maxTeardownUploadTimeInSec;
+        std::uint64_t shutdownStartSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+        std::uint64_t nowSec = 0;
+        UploadNow();
+        PAL::sleep(1000);
+        timeoutInSec = timeoutInSec - 1;
+        bool isuploadinProgress = true;
+        ARIASDK_LOG_DETAIL("Shutdown timer started.");
+        // Repeat this loop while we still have events to send OR while there are requests still pending
+        while (isuploadinProgress)
+        {
+            //isuploadinProgress = tpm.isUploadInProgress();
+            nowSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+            if ((nowSec - shutdownStartSec) >= timeoutInSec)
+            { // Hard-stop if it takes longer than planned
+                ARIASDK_LOG_DETAIL("Shutdown timer expired, exiting...");
+                break;
+            }
+            //UploadNow();
+            PAL::sleep(25);  // Sleep in 25 ms increments
+            isuploadinProgress = tpm.isUploadInProgress();
+        }        
+    }
+
     PAL::executeOnWorkerThread(self(), &TelemetrySystem::stopAsync);
     ARIASDK_LOG_DETAIL("Waiting for all queued callbacks...");
     m_doneEvent.wait();
@@ -103,7 +130,7 @@ void TelemetrySystem::stop()
 
 void TelemetrySystem::UploadNow()
 {
-    tpm.scheduleUpload(0);
+    tpm.scheduleUpload(0, EventPriority_Low);
 }
 
 void TelemetrySystem::pauseTransmission()
@@ -167,6 +194,11 @@ void TelemetrySystem::resumeTransmissionAsync()
 void TelemetrySystem::preparedIncomingEventAsync(IncomingEventContextPtr const& event)
 {
     preparedIncomingEvent(event);
+}
+
+void TelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& event)
+{
+    addIncomingEvent(event);
 }
 
 

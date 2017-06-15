@@ -15,8 +15,7 @@
 
 namespace testing {
 
-
-ARIASDK_LOG_DECL_COMPONENT_NS();
+	ARIASDK_LOG_DECL_COMPONENT_NS();
 
 
 class OutsideSequence {
@@ -36,13 +35,18 @@ MATCHER_P(BinaryHasSubstr, str, "")
     return Matches(HasSubstr(str))(haystack);
 }
 
+#pragma warning( push )
+#pragma warning(disable: 4100)
 MATCHER_P2(Near, value, range, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return (abs(arg - value) <= range);
 }
+#pragma warning( pop ) 
 
 MATCHER_P(StrAsIntGt, value, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return std::stoi(arg) > value;
 }
 

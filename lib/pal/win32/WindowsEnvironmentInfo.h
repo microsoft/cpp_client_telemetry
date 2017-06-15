@@ -1,5 +1,5 @@
 #pragma once
-#include "..\..\include\aria\Enums.hpp"
+#include "Enums.hpp"
 #include <string>
 #include <stdint.h>
 

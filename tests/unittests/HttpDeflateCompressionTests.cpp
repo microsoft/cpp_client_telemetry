@@ -95,10 +95,15 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     EXPECT_THAT(event3->compressed, true);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4125)
 TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 {
     EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
         .WillOnce(Return(true));
+
+#pragma warning( push )
+#pragma warning(disable: 4125)
 
     static char const bond[] =
         "+\n\001I\003sct\215\t\t\001\nservice_id\0011\251$772bcee2-8c19-454b-9af7-99b97ae4afde\321"
@@ -113,6 +118,7 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
         "ay\016act_sent_count\0010 act_sent_failure_and_retry_count\0010\016act_session_id$39d9160"
         "f-396d-4427-ad76-9dedc5dea386\reventpriority\0012\315\036\t\n\001\020VideoPublisherIdP\02"
         "4i\t123456789\000\000\000\000";
+#pragma warning( pop ) 
     size_t const size = sizeof(bond) - 1;
 
     EventsUploadContextPtr event = EventsUploadContext::create();
@@ -123,3 +129,4 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
     EXPECT_THAT(event->body, SizeIs(Lt(size * 70 / 100)));
     EXPECT_THAT(event->compressed, true);
 }
+#pragma warning(pop)

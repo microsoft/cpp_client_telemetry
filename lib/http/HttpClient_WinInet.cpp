@@ -1,16 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClient_WinInet.hpp"
-#include "utils/Common.hpp"
-#include <aria/Utils.hpp>
+#include <utils/Utils.hpp>
 #include <WinInet.h>
 #include <algorithm>
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
-
 
 class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 {
@@ -59,6 +58,11 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         m_hWinInetRequest = NULL;
     }
 
+#ifndef _DEBUG
+// bResult is only used inside an assertion
+#pragma warning(push)
+#pragma warning(disable:4189)
+#endif
     void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
@@ -77,7 +81,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         char path[1024];
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlA(request->m_url.data(), request->m_url.size(), 0, &urlc)) {
+        if (!::InternetCrackUrlA(request->m_url.data(), (DWORD)request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
             ARIASDK_LOG_WARNING("InternetCrackUrl() failed: %d", dwError);
             onRequestComplete(dwError);
@@ -119,19 +123,29 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         // Take over the body buffer ownership, it must stay alive until
         // the async operation finishes.
         m_bodyBuffer.swap(request->m_body);
-        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), m_bodyBuffer.size());
 
+        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
+
+        
         DWORD dwError = GetLastError();
         assert(!bResult);
-        if (dwError != ERROR_IO_PENDING) {
+        if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
             dwError = ::GetLastError();
             ARIASDK_LOG_WARNING("HttpSendRequest() failed: %d", dwError);
             onRequestComplete(dwError);
         }
     }
+#ifndef _DEBUG
+#pragma warning(pop)
+#endif
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
+#ifndef DEBUG
+        UNREFERENCED_PARAMETER(dwStatusInformationLength);  // Only used inside an assertion
+#endif
+        OACR_USE_PTR(hInternet);
+
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);
 
         ARIASDK_LOG_DETAIL("winInetCallback: hInternet %p, dwContext %p, dwInternetStatus %u", hInternet, dwContext, dwInternetStatus);

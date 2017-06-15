@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 #pragma once
-#include "BondConstTypes.hpp"
+#include "bond/generated/BondConstTypes.hpp"
 
 namespace bond_lite {
 
@@ -57,7 +57,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_STRING, 1, nullptr);
         writer.WriteString(value.Id);
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
     }
 
@@ -65,15 +66,31 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_INT64, 3, nullptr);
         writer.WriteInt64(value.Timestamp);
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_INT64, 3, nullptr);
+    }
+
+    if (!value.ConfigurationIds.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 4, nullptr);
+        writer.WriteMapContainerBegin(value.ConfigurationIds.size(), BT_STRING, BT_STRING);
+        for (auto const& item2 : value.ConfigurationIds) {
+            writer.WriteString(item2.first);
+            writer.WriteString(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 4, nullptr);
     }
 
     if (!value.Type.empty()) {
         writer.WriteFieldBegin(BT_STRING, 5, nullptr);
         writer.WriteString(value.Type);
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
     }
 
@@ -81,7 +98,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_STRING, 6, nullptr);
         writer.WriteString(value.EventType);
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
     }
 
@@ -94,8 +112,23 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_MAP, 13, nullptr);
+    }
+
+    if (!value.ContextIds.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 19, nullptr);
+        writer.WriteMapContainerBegin(value.ContextIds.size(), BT_STRING, BT_STRING);
+        for (auto const& item2 : value.ContextIds) {
+            writer.WriteString(item2.first);
+            writer.WriteString(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 19, nullptr);
     }
 
     static_assert(sizeof(value.RecordType) == 4, "Invalid size of enum");
@@ -103,7 +136,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_INT32, 24, nullptr);
         writer.WriteInt32(static_cast<int32_t>(value.RecordType));
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_INT32, 24, nullptr);
     }
 
@@ -116,8 +150,83 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    } else {
+    }
+    else {
         writer.WriteFieldOmitted(BT_MAP, 30, nullptr);
+    }
+
+    if (!value.TypedExtensionBoolean.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 31, nullptr);
+        writer.WriteMapContainerBegin(value.TypedExtensionBoolean.size(), BT_STRING, BT_BOOL);
+        for (auto const& item2 : value.TypedExtensionBoolean) {
+            writer.WriteString(item2.first);
+            writer.WriteBool(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 31, nullptr);
+    }
+
+    if (!value.TypedExtensionDateTime.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 32, nullptr);
+        writer.WriteMapContainerBegin(value.TypedExtensionDateTime.size(), BT_STRING, BT_INT64);
+        for (auto const& item2 : value.TypedExtensionDateTime) {
+            writer.WriteString(item2.first);
+            writer.WriteInt64(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 32, nullptr);
+    }
+
+    if (!value.TypedExtensionInt64.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 33, nullptr);
+        writer.WriteMapContainerBegin(value.TypedExtensionInt64.size(), BT_STRING, BT_INT64);
+        for (auto const& item2 : value.TypedExtensionInt64) {
+            writer.WriteString(item2.first);
+            writer.WriteInt64(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 33, nullptr);
+    }
+
+    if (!value.TypedExtensionDouble.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 34, nullptr);
+        writer.WriteMapContainerBegin(value.TypedExtensionDouble.size(), BT_STRING, BT_DOUBLE);
+        for (auto const& item2 : value.TypedExtensionDouble) {
+            writer.WriteString(item2.first);
+            writer.WriteDouble(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 34, nullptr);
+    }
+
+    if (!value.TypedExtensionGuid.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 35, nullptr);
+        writer.WriteMapContainerBegin(value.TypedExtensionGuid.size(), BT_STRING, BT_LIST);
+        for (auto const& item2 : value.TypedExtensionGuid) {
+            writer.WriteString(item2.first);
+            writer.WriteContainerBegin(item2.second.size(), BT_UINT8);
+            for (auto const& item3 : item2.second) {
+                writer.WriteUInt8(item3);
+            }
+            writer.WriteContainerEnd();
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    }
+    else {
+        writer.WriteFieldOmitted(BT_MAP, 35, nullptr);
     }
 
     writer.WriteStructEnd(isBase);

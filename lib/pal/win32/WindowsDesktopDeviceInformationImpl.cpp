@@ -1,6 +1,6 @@
 #define LOG_MODULE DBG_API
-#include "pal\PAL.hpp"
-#include "..\DeviceInformationImpl.hpp"
+#include "pal/PAL.hpp"
+#include "pal/DeviceInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
 #include <winsock2.h>
@@ -59,7 +59,7 @@ namespace Microsoft {
                             if (pAdapterInfo->AdapterName != NULL)
                             {
                                 netIfGuid = _strdup(pAdapterInfo->AdapterName);
-                                _strlwr(netIfGuid);
+                                _strlwr_s(netIfGuid, lstrlenA(netIfGuid) + 1);
                             }
                             FREE(pAdapterInfo);
                         }
@@ -104,23 +104,23 @@ namespace Microsoft {
 
                     m_device_id = getDeviceId();
 
-                    wchar_t buff[256] = { 0 };
+                    char buff[256] = { 0 };
                     DWORD size = sizeof(buff);
 
                     // Detect manufacturer
                     m_manufacturer = manufacturer;
-                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MANUFACTURER), RRF_RT_REG_SZ, NULL, (BYTE*)buff, &size)) {
-                        const std::wstring &tmp = std::wstring(buff);
-                        m_manufacturer = to_string(tmp);
+                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MANUFACTURER), RRF_RT_REG_SZ, NULL, (char*)buff, &size)) {
+                        const std::string tmp(buff);
+                        m_manufacturer = tmp;
                     }
 					ARIASDK_LOG_DETAIL("Device Manufacturer=%s", m_manufacturer.c_str());
 
                     // Detect model
                     size = sizeof(buff);
                     m_model = model;
-                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MODEL), RRF_RT_REG_SZ, NULL, (BYTE*)buff, &size)) {
-                        const std::wstring &tmp = std::wstring(buff);
-                        m_model = to_string(tmp);
+                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MODEL), RRF_RT_REG_SZ, NULL, (char*)buff, &size)) {
+                        std::string tmp(buff);
+                        m_model = tmp;
                     }
 					ARIASDK_LOG_DETAIL("Device Model=%s", m_model.c_str());
 

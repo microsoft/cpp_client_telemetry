@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IHttpClient.hpp>
+#include <IHttpClient.hpp>
 #include "pal/PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN {

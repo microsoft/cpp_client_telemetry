@@ -3,7 +3,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "aria/IControlPlane.hpp"
+#include "IControlPlane.hpp"
 #include "ConcurrentObservable.hpp"
 #include "ILocalStorage.hpp"
 

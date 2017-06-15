@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include "pal\PAL.hpp"
+#include "pal/PAL.hpp"
 
-#include "HttpClient_WinRt.hpp"
-#include "utils/Common.hpp"
-#include <aria/Utils.hpp>
+#include "http/HttpClient_WinRt.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 #include <memory>
 #include <sstream>
@@ -97,7 +96,7 @@ namespace ARIASDK_NS_BEGIN {
 								
 			// Initialize the in-memory stream where data will be stored.
 			DataWriter^ dataWriter = ref new DataWriter();
-			dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(request->m_body.data()), request->m_body.size())));
+			dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(request->m_body.data()), (DWORD)request->m_body.size())));
 			IBuffer ^ibuffer = dataWriter->DetachBuffer();
 			HttpBufferContent^ httpBufferContent = ref new HttpBufferContent(ibuffer);
 
@@ -196,7 +195,7 @@ namespace ARIASDK_NS_BEGIN {
 					{
 						response->m_body.reserve(length);
 						unsigned char* storage = static_cast<unsigned char*>(response->m_body.data());
-						DataReader::FromBuffer(buffer)->ReadBytes(ArrayReference<unsigned char>(storage, length));
+						DataReader::FromBuffer(buffer)->ReadBytes(ArrayReference<unsigned char>(storage, (DWORD)length));
 						//response->m_body = std::string(reinterpret_cast<char*>(storage), length);
 					}
 				}

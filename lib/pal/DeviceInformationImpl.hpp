@@ -1,6 +1,6 @@
 #pragma once
-#include "aria/Enums.hpp"
-#include "aria/IDeviceInformation.hpp"
+#include "Enums.hpp"
+#include "IDeviceInformation.hpp"
 #include "InformationProviderImpl.hpp"
 
 namespace Microsoft { namespace Applications { namespace Telemetry {

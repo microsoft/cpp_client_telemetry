@@ -150,21 +150,39 @@ namespace Microsoft {
                     this->Data3 = guid.Data3;
                     memcpy(&(this->Data4[0]), &(guid.Data4[0]), sizeof(guid.Data4));
                 }
+
+				static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes)
+				{
+					GUID_t temp_t = GUID_t(bytes.data());
+					GUID temp;
+					temp.Data1 = temp_t.Data1;
+					temp.Data2 = temp_t.Data2;
+					temp.Data3 = temp_t.Data3;
+					for (size_t i = 0; i < 8; i++)
+					{
+						temp.Data4[i] = temp_t.Data4[i];
+					}
+					return temp;
+				}
 #endif
 
-                void to_bytes(uint8_t (&guid_bytes) [16]);
+                void to_bytes(uint8_t(&guid_bytes)[16]) const;
 
+#pragma warning(push)
+#pragma warning(disable:6031)
                 std::string to_string() const
                 {
-                    std::string result(36 + 1, ' '); // 36 + sprintf null-terminates
-                    char *buff = (char *)(result.c_str());
-                    snprintf(buff,36,
+                    const unsigned buffSize = 36 + 1;  // 36 + null-termination
+                    char buff[buffSize];
+                    snprintf(buff, buffSize,
                         "%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
                         this->Data1, this->Data2, this->Data3,
                         this->Data4[0], this->Data4[1], this->Data4[2], this->Data4[3],
                         this->Data4[4], this->Data4[5], this->Data4[6], this->Data4[7]);
+                    std::string result(buff);
                     return result;
                 }
+#pragma warning(pop)
 
                 // The output from this method is compatible with std::unordered_map.
                 std::size_t HashForMap() const

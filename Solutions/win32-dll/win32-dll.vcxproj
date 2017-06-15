@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug.vs2013|Win32">
-      <Configuration>Debug.vs2013</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug.vs2013|x64">
-      <Configuration>Debug.vs2013</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release.vs2013|Win32">
-      <Configuration>Release.vs2013</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release.vs2013|x64">
-      <Configuration>Release.vs2013</Configuration>
-      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -50,8 +34,11 @@
     <Keyword>Win32DllProj</Keyword>
     <RootNamespace>ClientTelemetry</RootNamespace>
     <!-- check if this is correct -->
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>win32-dll</ProjectName>
+  </PropertyGroup>
+  <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
+    <OacrPath>OACR</OacrPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -62,14 +49,6 @@
     <QBConfigId>win-x86_vs2015-crtdynamic-debug</QBConfigId>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x86_vs2013-crtdynamic-debug</QBConfigId>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -77,14 +56,6 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <QBConfigId>win-x86_vs2015-crtdynamic-release</QBConfigId>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x86_vs2013-crtdynamic-release</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -94,14 +65,6 @@
     <QBConfigId>win-x64_vs2015-crtdynamic-debug</QBConfigId>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x64_vs2013-crtdynamic-debug</QBConfigId>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -109,14 +72,6 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x64_vs2013-crtdynamic-release</QBConfigId>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -128,84 +83,41 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <AdditionalIncludeDirectories Condition="'$(RunOACR)'=='Yes'">$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <OutDir>$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\out\$(OacrPath)\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <TargetName>ClientTelemetry</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
-    <LibraryWPath />
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
@@ -215,59 +127,40 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsWinRT>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">All</AssemblerOutput>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">All</AssemblerOutput>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsWinRT>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4503</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4503</DisableSpecificWarnings>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EnablePREfast>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EnablePREfast>
-      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</TreatWarningAsError>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;ole32.lib;oleaut32.lib;uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;Crypt32.lib;wininet.lib;iphlpapi.lib;rpcrt4.lib;$(ProjectDir)..\out\$(Configuration)\$(Platform)\sqlite.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
+      <AdditionalDependencies>kernel32.lib;ole32.lib;oleaut32.lib;uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;Crypt32.lib;wininet.lib;iphlpapi.lib;rpcrt4.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
       <LinkStatus>false</LinkStatus>
       <GenerateMapFile>true</GenerateMapFile>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</OptimizeReferences>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</OptimizeReferences>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</Profile>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
@@ -277,74 +170,9 @@
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
     </Bscmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2013'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</CompileAsWinRT>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">All</AssemblerOutput>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">All</AssemblerOutput>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</CompileAsWinRT>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</BrowseInformation>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</EnablePREfast>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</EnablePREfast>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>uuid.lib;runtimeobject.lib;msxml6.lib;wininet.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
-      <LinkStatus>false</LinkStatus>
-      <GenerateMapFile>true</GenerateMapFile>
-      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</OptimizeReferences>
-      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</OptimizeReferences>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">false</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">false</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</Profile>
-    </Link>
-    <ProjectReference>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|x64'">true</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-    <Bscmake>
-      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013|Win32'">true</PreserveSbr>
-    </Bscmake>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <!-- FIXME: x64 bit - no optimizations -->
@@ -354,8 +182,8 @@
       <Optimization Condition="'$(Platform)'=='x64'">MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AssemblerOutput>All</AssemblerOutput>
@@ -364,10 +192,9 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Size</FavorSizeOrSpeed>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4503</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4503</DisableSpecificWarnings>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnablePREfast>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EnablePREfast>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -375,8 +202,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;wininet.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
@@ -385,95 +212,21 @@
       <GenerateMapFile>true</GenerateMapFile>
       <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</LinkTimeCodeGeneration>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Default</LinkTimeCodeGeneration>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</Profile>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2013'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MinSpace</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</CompileAsWinRT>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">All</AssemblerOutput>
-      <GenerateXMLDocumentationFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</GenerateXMLDocumentationFiles>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</BrowseInformation>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">All</AssemblerOutput>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</CompileAsManaged>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</CompileAsWinRT>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</BrowseInformation>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">MultiThreadedDLL</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">MultiThreadedDLL</RuntimeLibrary>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</EnablePREfast>
-      <EnablePREfast Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</EnablePREfast>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;wininet.lib;json.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
-      <LinkStatus>false</LinkStatus>
-      <GenerateMapFile>true</GenerateMapFile>
-      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</IgnoreAllDefaultLibraries>
-      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">Default</LinkTimeCodeGeneration>
-      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">Default</LinkTimeCodeGeneration>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">false</GenerateWindowsMetadata>
-      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">false</GenerateWindowsMetadata>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</TurnOffAssemblyGeneration>
-      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</TurnOffAssemblyGeneration>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</MapExports>
-      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</MapExports>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</Profile>
-      <Profile Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</Profile>
-    </Link>
-    <ProjectReference>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">true</UseLibraryDependencyInputs>
-      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|x64'">true</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release.vs2013|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

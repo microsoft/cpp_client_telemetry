@@ -9,7 +9,7 @@
 #elif defined(ARIASDK_STATIC_LIB)
 #define ARIASDK_LIBABI
 #else // Header file included by client
-#define ARIASDK_LIBABI __declspec(dllexport)
+#define ARIASDK_LIBABI //__declspec(dllexport)
 #endif
 
 #else // non-windows platform

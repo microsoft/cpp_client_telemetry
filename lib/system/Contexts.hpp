@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IHttpClient.hpp>
-#include <aria/IOfflineStorage.hpp>
+#include <IHttpClient.hpp>
+#include <IOfflineStorage.hpp>
 #include "packager/BondSplicer.hpp"
 #include "pal/PAL.hpp"
 #include <map>
@@ -16,6 +16,7 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
   public:
     ::AriaProtocol::Record * source;
     StorageRecord            record;
+    std::uint64_t            policyBitFlags;
 
   public:
     IncomingEventContext()
@@ -59,6 +60,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     // Receiving
     std::unique_ptr<IHttpResponse const> httpResponse;
     int                                  durationMs = -1;
+    bool                                 fromMemory;
 };
 
 using EventsUploadContextPtr = PAL::RefCountedPtr<EventsUploadContext>;

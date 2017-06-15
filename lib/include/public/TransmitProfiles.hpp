@@ -1,7 +1,7 @@
 #pragma once
 
-#include <aria/Enums.hpp>
-#include <aria/ILogManager.hpp>
+#include <Enums.hpp>
+#include <ILogManager.hpp>
 
 #include <cstdint>
 #include <vector>
@@ -80,6 +80,11 @@ namespace ARIASDK_NS_BEGIN {
                 /// Last reported power state
                 /// </summary>
                 static PowerSource      currPowState;
+
+                /// <summary>
+                /// is timer updated
+                /// </summary>
+                static bool         isTimerUpdated;
 
             public:
 
@@ -162,6 +167,11 @@ namespace ARIASDK_NS_BEGIN {
                 /// 
                 /// </summary>
                 static void onTimersUpdated();
+
+                /// <summary>
+                /// 
+                /// </summary>
+                static bool isTimerUpdateRequired();                
 
                 /// <summary>
                 /// Select profile rule based on current device state

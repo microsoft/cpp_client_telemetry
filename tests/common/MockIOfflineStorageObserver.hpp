@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IOfflineStorage.hpp>
+#include <IOfflineStorage.hpp>
 
 namespace testing {
 

@@ -6,8 +6,9 @@
 #include "NetworkDetector.hpp"
 #include <algorithm>
 
-#include "api/LogManager.hpp"
-#include "include\aria\DebugEvents.hpp"
+#include "LogManager.hpp"
+#include "DebugEvents.hpp"
+#include "utils/Utils.hpp"
 
 // Define a GUID that is only available in Windows 8.x+ SDK . We are using Windows 7.1A SDK for Win32 SDK build,
 // so we cannot easily add an extra dependency on Windows 8 or later functionality project-wide. It'd be error-prone,
@@ -28,7 +29,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name"></param>
                 /// <returns></returns>
-                std::string to_string(HString *name)
+                std::string to_string(const HString *name)
                 {
                     UINT32 length;
                     PCWSTR rawString = name->GetRawBuffer(&length);
@@ -42,19 +43,23 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="guid"></param>
                 /// <returns></returns>
-                std::string to_string(GUID guid) {
-                    std::string result;
+#pragma warning(push)
+#pragma warning(disable:6031)
+                std::string to_string(GUID guid)
+                {
                     char buff[40] = { 0 }; // Maximum hyphenated GUID length with braces is 38 + null terminator
-                    sprintf_s(buff,
+                    snprintf(buff, sizeof(buff),
                         "{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
                         guid.Data1, guid.Data2, guid.Data3,
                         guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
                         guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-                    result = buff;
+                    std::string result(buff);
                     return result;
                 }
+#pragma warning(pop)
 
-                NetworkCost const& NetworkDetector::GetNetworkCost() {
+                NetworkCost const& NetworkDetector::GetNetworkCost() const
+                {
                     return (NetworkCost const &)m_currentNetworkCost;
                 }
 
@@ -63,6 +68,8 @@ namespace Microsoft {
                 /// This function can be called on any Windows release and it provides a SEH handler.
                 /// </summary>
                 /// <returns></returns>
+#pragma warning(push)
+#pragma warning(disable:6320)
                 int NetworkDetector::GetCurrentNetworkCost()
                 {
 #if 0
@@ -101,12 +108,13 @@ namespace Microsoft {
 
                     return m_currentNetworkCost;
                 }
+#pragma warning(pop)
 
                 /// <summary>
                 /// Get current network connectivity state
                 /// </summary>
                 /// <returns>Value of enum NLM_CONNECTIVITY</returns>
-                int NetworkDetector::GetConnectivity()
+                int NetworkDetector::GetConnectivity() const
                 {
                     return m_connectivity;
                 }
@@ -381,6 +389,8 @@ namespace Microsoft {
                 /// <summary>
                 /// Register for COM events and block-wait in RegisterAndListen
                 /// </summary>
+#pragma warning(push)
+#pragma warning(disable:6320)
                 void NetworkDetector::run()
                 {
                     if (isRunning)
@@ -460,6 +470,7 @@ namespace Microsoft {
                     }
                     CoUninitialize();
                 }
+#pragma warning(pop)
 
                 /// <summary>
                 /// Start network monitoring thread
@@ -486,7 +497,7 @@ namespace Microsoft {
                 /// </summary>
                 void NetworkDetector::Stop()
                 {
-                    PostThreadMessage(m_listener_tid, -1, 0, NULL);
+                    PostThreadMessage(m_listener_tid, (UINT)-1, 0, NULL);
                     if ( isRunning && netDetectThread.joinable() )
                     {
                         std::unique_lock<std::mutex> lock(m_lock);
@@ -505,37 +516,37 @@ namespace Microsoft {
                     ARIASDK_LOG_DETAIL("NetworkDetector destroyed.");
                 }
 
-                /// <summary>
-                /// Get network cost name
-                /// </summary>
-                /// <param name="type"></param>
-                /// <returns></returns>
-                const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
-                {
-                    char *typeName;
-                    switch (type) {
-                    case NetworkCostType_Unrestricted:
-                        typeName = "Unrestricted";
-                        break;
-                    case NetworkCostType_Fixed:
-                        typeName = "Fixed";
-                        break;
-                    case NetworkCostType_Variable:
-                        typeName = "Variable";
-                    case NetworkCostType_Unknown:
-                    default:
-                        typeName = "Unknown";
-                        break;
-                    }
-                    return typeName;
-                }
+                ///// <summary>
+                ///// Get network cost name
+                ///// </summary>
+                ///// <param name="type"></param>
+                ///// <returns></returns>
+                //const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
+                //{
+                //    char *typeName;
+                //    switch (type) {
+                //    case NetworkCostType_Unrestricted:
+                //        typeName = "Unrestricted";
+                //        break;
+                //    case NetworkCostType_Fixed:
+                //        typeName = "Fixed";
+                //        break;
+                //    case NetworkCostType_Variable:
+                //        typeName = "Variable";
+                //    case NetworkCostType_Unknown:
+                //    default:
+                //        typeName = "Unknown";
+                //        break;
+                //    }
+                //    return typeName;
+                //}
 
-                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity()
+                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity() const
                 {
                     return m_networks_connectivity;
                 }
 
-                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity()
+                const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity() const
                 {
                     return m_connections_connectivity;
                 }

@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage_SQLite.hpp"
-#include "api\LogManager.hpp"
+#include "LogManager.hpp"
 #include "SQLiteWrapper.hpp"
-#include "utils/Common.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -18,12 +18,23 @@ static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_SETTINGS "settings"
 
 OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig)
-	: m_databasePath(configuration.cacheFilePath),
-	m_runtimeConfig(runtimeConfig),
-	m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown)
-	, m_killSwitchManager()
-	, m_clockSkewManager()
+    : m_logConfiguration(configuration),
+    m_runtimeConfig(runtimeConfig),
+    m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown),
+    m_killSwitchManager(),
+    m_clockSkewManager(),
+    m_lastReadCount(0),
+    m_isStorageFullNotificationSend(false)
 {
+    if (configuration.cacheFileFullNotificationPercentage > 0 &&
+        configuration.cacheFileFullNotificationPercentage <= 100)
+    {
+        m_DbSizeNotificationLimit = (configuration.cacheFileFullNotificationPercentage * configuration.cacheFileSizeLimitInBytes) / 100;
+    }
+    else
+    {// incase user has specified bad percentage, we stck to 75%
+        m_DbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * configuration.cacheFileSizeLimitInBytes) / 100;
+    }
 }
 
 OfflineStorage_SQLite::~OfflineStorage_SQLite()
@@ -40,7 +51,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
     ARIASDK_LOG_DETAIL("Initializing offline storage");
 
-    if (m_db->initialize(m_databasePath, false) && initializeDatabase()) {
+    if (m_db->initialize(m_logConfiguration.cacheFilePath, false) && initializeDatabase()) {
         ARIASDK_LOG_INFO("Using configured on-disk database");
         m_observer->OnStorageOpened("SQLite/Default");
         return;
@@ -51,7 +62,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
 void OfflineStorage_SQLite::Shutdown()
 {
-    ARIASDK_LOG_DETAIL("Shutting down offline storage");
+    ARIASDK_LOG_DETAIL("Shutting down offline storage %s", m_logConfiguration.cacheFilePath.c_str());
 
     if (m_db) {
         if (!commitIfInTransaction()) {
@@ -100,8 +111,9 @@ bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
     return false;
 }
 
-bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority /* =EventPriority_Unspecified */, unsigned maxCount /* =0 */)
+bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority, unsigned maxCount)
 {
+    m_lastReadCount = 0;
     if (!m_db) {
         ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database is not open");
         return false;
@@ -132,12 +144,11 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         recreate(203);
         return false;
     }
-	
-	if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
-	{
-		//LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
-		return false;
-	}
+
+    if (m_runtimeConfig.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
+    {
+        return false;
+    }
     SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
     if (!selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1)) {
         ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
@@ -146,26 +157,35 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
     }
 
     std::vector<StorageRecordId> consumedIds;
+    std::vector<StorageRecordId> killedConsumedIds;
     StorageRecord record;
     int priority;
-    while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob)) {
+    while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+    {
         if (priority < EventPriority_Off || priority > EventPriority_Immediate) {
             record.priority = EventPriority_Normal;
-        } else {
+        }
+        else {
             record.priority = static_cast<EventPriority>(priority);
         }
         // The record ID needs to be saved before std::move() below.
-		if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
-		{			
-			consumedIds.push_back(record.id);
-		}
-		
-        if (!consumer(std::move(record))) {
-            consumedIds.pop_back();
-            selectStmt.reset();
-            break;
+        if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
+        {
+            consumedIds.push_back(record.id);
+            if (!consumer(std::move(record)))
+            {
+                consumedIds.pop_back();                
+                break;
+            }
+        }
+        else
+        {
+            killedConsumedIds.push_back(record.id);
         }
     }
+
+    selectStmt.reset();
+
     if (selectStmt.error()) {
         ARIASDK_LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
         recreate(205);
@@ -196,23 +216,79 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         return false;
     }
 
-	if (m_runtimeConfig.IsClockSkewEnabled() &&
-		!m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
-		!consumedIds.empty())
-	{
-		m_clockSkewManager.GetDelta();
-	}
+    if (m_runtimeConfig.IsClockSkewEnabled() &&
+        !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
+        !consumedIds.empty())
+    {
+        m_clockSkewManager.GetDelta();
+    }
+    m_lastReadCount = static_cast<unsigned>(consumedIds.size());
+
+    if (killedConsumedIds.size() > 0)
+    {
+        HttpHeaders temp;
+        bool fromMemory = false;
+        DeleteRecords(killedConsumedIds, temp, fromMemory);
+        m_observer->OnStorageRecordsDropped(static_cast<unsigned int>(killedConsumedIds.size()));
+    }
 
     return true;
 }
 
-void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers)
+bool OfflineStorage_SQLite::IsLastReadFromMemory()
 {
-	m_killSwitchManager.handleResponse(headers);
-	if (m_clockSkewManager.isWaitingForClockSkew())
-	{
-		m_clockSkewManager.handleResponse(headers);
-	}
+    return false;
+}
+unsigned OfflineStorage_SQLite::LastReadRecordCount()
+{
+    return  m_lastReadCount;
+}
+
+std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, EventPriority minPriority, unsigned maxCount) 
+{
+    std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
+    StorageRecord record;
+
+    if (shutdown)
+    {
+        SqliteStatement selectStmt(*m_db, m_stmtSelectEventAtShutdown);
+        if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+        {
+            int priority;
+            while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+            {
+                record.priority = static_cast<EventPriority>(priority);
+                records->push_back(record);
+            }
+            selectStmt.reset();
+        }
+    }
+    else
+    {
+        SqliteStatement selectStmt(*m_db, m_stmtSelectEventsMinPriority);
+        if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+        {
+            int priority;
+            while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+            {
+                record.priority = static_cast<EventPriority>(priority);
+                records->push_back(record);
+            }
+            selectStmt.reset();
+        }
+    }	
+    return records;
+}
+
+
+void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
+{
+    UNREFERENCED_PARAMETER(fromMemory);
+    m_killSwitchManager.handleResponse(headers);
+    if (m_clockSkewManager.isWaitingForClockSkew())
+    {
+        m_clockSkewManager.handleResponse(headers);
+    }
 
     if (ids.empty()) {
         return;
@@ -241,13 +317,14 @@ void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& id
     }
 }
 
-void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers)
+void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
 {
-	m_killSwitchManager.handleResponse(headers);
-	if (m_clockSkewManager.isWaitingForClockSkew())
-	{
-		m_clockSkewManager.handleResponse(headers);
-	}
+    UNREFERENCED_PARAMETER(fromMemory);
+    m_killSwitchManager.handleResponse(headers);
+    if (m_clockSkewManager.isWaitingForClockSkew())
+    {
+        m_clockSkewManager.handleResponse(headers);
+    }
 
     if (ids.empty()) {
         return;
@@ -296,7 +373,8 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
         }
 
         unsigned droppedCount = deleteStmt.changes();
-        if (droppedCount > 0) {
+        if (droppedCount > 0)
+        {
             ARIASDK_LOG_ERROR("Deleted %u events over maximum retry count %u",
                 droppedCount, maxRetryCount);
             m_observer->OnStorageRecordsDropped(droppedCount);
@@ -382,7 +460,7 @@ bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     m_observer->OnStorageFailed(toString(failureCode));
 
     // Try again with deletePrevious = true
-    if (m_db->initialize(m_databasePath, true)) {
+    if (m_db->initialize(m_logConfiguration.cacheFilePath, true)) {
         if (initializeDatabase()) {
             m_observer->OnStorageOpened("SQLite/Clean");
             ARIASDK_LOG_INFO("Using configured on-disk database after deleting the existing one");
@@ -514,8 +592,19 @@ bool OfflineStorage_SQLite::initializeDatabase()
     PREPARE_SQL(m_stmtSelectEvents,
         "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
-        " WHERE priority=(SELECT MAX(priority) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND priority>=?) AND reserved_until=0"
+        " WHERE priority>=? AND reserved_until=0"
+        " ORDER BY priority DESC, timestamp ASC LIMIT ?");
+    PREPARE_SQL(m_stmtSelectEventAtShutdown,
+        "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+        " FROM " TABLE_NAME_EVENTS
+        " WHERE priority>=?"
+        " ORDER BY priority DESC, timestamp ASC LIMIT ?");
+    PREPARE_SQL(m_stmtSelectEventsMinPriority,
+        "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+        " FROM " TABLE_NAME_EVENTS
+        " WHERE priority=(SELECT MIN(priority) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND priority>=?) AND reserved_until=0"
         " ORDER BY timestamp ASC LIMIT ?");
+
     PREPARE_SQL(m_stmtReserveEvents,
         SQL_SUPPLY_PACKAGED_IDS
         "UPDATE " TABLE_NAME_EVENTS
@@ -616,6 +705,19 @@ void OfflineStorage_SQLite::autoCommitTransaction()
     }
 }
 
+unsigned OfflineStorage_SQLite::GetSize() 
+{
+    unsigned pageCount;
+    SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
+    if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
+        ARIASDK_LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
+        return 0;
+    }
+    pageCountStmt.reset();
+
+    return pageCount * m_pageSize;
+}
+
 bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
 {
     m_currentlyAddedBytes += justAddedBytes;
@@ -633,6 +735,17 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
     pageCountStmt.reset();
 
     unsigned previousDbSize = pageCount * m_pageSize;
+
+    //check if Application needs to be notified
+    if (previousDbSize > m_DbSizeNotificationLimit && !m_isStorageFullNotificationSend)
+    {
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_STORAGE_FULL;
+        evt.param1 = 2;
+        LogManager::DispatchEvent(DebugEventType::EVT_STORAGE_FULL);
+        m_isStorageFullNotificationSend = true;
+    }
+       
     unsigned maxSize = m_runtimeConfig.GetOfflineStorageMaximumSizeBytes();
     if (previousDbSize <= maxSize) {
         ARIASDK_LOG_DETAIL("Database size (%u bytes) is below the maximum allowed size (%u bytes), no trimming necessary",
@@ -640,6 +753,7 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
         return true;
     }
 
+    m_isStorageFullNotificationSend = false; // to be notified again
     unsigned pct = m_runtimeConfig.GetOfflineStorageResizeThresholdPct();
     ARIASDK_LOG_ERROR("Database size (%u bytes) exceeds the maximum allowed size (%u bytes), trimming %u%% off...",
         previousDbSize, maxSize, pct);
@@ -688,6 +802,22 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
         return false;
     }
 
+    return true;
+}
+
+bool OfflineStorage_SQLite::ResizeDb()
+{
+    SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
+    if (!trimStmt.select()) {
+        ARIASDK_LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
+        return false;
+    }
+    while (trimStmt.getRow()) {
+    }
+    if (trimStmt.error()) {
+        ARIASDK_LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
+        return false;
+    }
     return true;
 }
 

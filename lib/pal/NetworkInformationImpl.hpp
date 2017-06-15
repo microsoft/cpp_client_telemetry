@@ -1,8 +1,8 @@
 #pragma once
-#include "include\aria\Version.hpp"
-#include "include\aria\Enums.hpp"
-#include "include\aria\INetworkInformation.hpp"
-#include "pal\InformationProviderimpl.hpp"
+#include "Version.hpp"
+#include "Enums.hpp"
+#include "INetworkInformation.hpp"
+#include "InformationProviderimpl.hpp"
 
 
 namespace Microsoft { namespace Applications { namespace Telemetry {

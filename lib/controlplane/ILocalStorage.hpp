@@ -3,8 +3,8 @@
 #pragma once
 
 #include <unordered_map>
-#include "aria/EventProperty.hpp"
-#include "aria/IControlPlane.hpp"
+#include "EventProperty.hpp"
+#include "IControlPlane.hpp"
 
 // *INDENT-OFF*
 namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
