@@ -7,9 +7,6 @@
 #include <LogConfiguration.hpp>
 #include "system/Contexts.hpp"
 #include "stats/Statistics.hpp"
-#if ARIASDK_UTC_ENABLED
-    #include "utc/UtcForwarder.hpp"
-#endif
 
 namespace ARIASDK_NS_BEGIN {
 

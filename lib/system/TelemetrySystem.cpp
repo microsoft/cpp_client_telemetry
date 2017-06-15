@@ -36,11 +36,7 @@ TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntime
     //
 
     // On an arbitrary user thread
-    this->addIncomingEvent >>
-#if ARIASDK_UTC_ENABLED
-    utcForwarder.forwardIfAvailable >>
-#endif
-    bondSerializer.serialize >> this->incomingEventPrepared;
+    this->addIncomingEvent >> bondSerializer.serialize >> this->incomingEventPrepared;
 
     // On the inner worker thread
     this->preparedIncomingEvent                      >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;

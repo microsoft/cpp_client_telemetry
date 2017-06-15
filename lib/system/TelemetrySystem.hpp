@@ -13,9 +13,6 @@
 #include "stats/Statistics.hpp"
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "ClockSkewDelta.h"
-#if ARIASDK_UTC_ENABLED
-    #include "utc/UtcForwarder.hpp"
-#endif
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -61,9 +58,6 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
     TransmissionPolicyManager tpm;
     ClockSkewDelta            clockSkewDelta;
     LogConfiguration          configuration;
-#if ARIASDK_UTC_ENABLED
-    UtcForwarder              utcForwarder;
-#endif
 
   public:
     RouteSource<>                                              started;
