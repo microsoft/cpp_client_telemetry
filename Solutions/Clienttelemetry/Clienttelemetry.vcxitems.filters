@@ -55,6 +55,15 @@
     <Filter Include="controlplane">
       <UniqueIdentifier>{e58972e8-1026-45d4-85ff-e2017d74e69c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="experiment">
+      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="experiment\afd">
+      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="experiment\ecs">
+      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp">
@@ -146,8 +155,30 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
       <Filter>offline</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp">
       <Filter>controlplane</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp">
+      <Filter>experiment\afd</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp">
+      <Filter>experiment\afd</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp">
+      <Filter>experiment\afd</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.cpp">
+      <Filter>experiment\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp">
+      <Filter>experiment\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp">
+      <Filter>experiment\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp">
+      <Filter>experiment</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -378,6 +409,36 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp">
       <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp">
+      <Filter>experiment\afd</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientConfig.hpp">
+      <Filter>experiment\afd</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.hpp">
+      <Filter>experiment\afd</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.hpp">
+      <Filter>experiment\afd</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.hpp">
+      <Filter>experiment\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientConfig.hpp">
+      <Filter>experiment\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp">
+      <Filter>experiment\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp">
+      <Filter>experiment\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp">
+      <Filter>experiment</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\IAFDClient.hpp">
+      <Filter>experiment\afd</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
