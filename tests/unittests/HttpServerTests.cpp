@@ -52,7 +52,7 @@ class HttpServerTestsBase : public ::testing::Test
 
     bool sendRequest(std::string const& request)
     {
-        return (clientSocket.send(request.data(), request.size()) == static_cast<int>(request.size()));
+        return (clientSocket.send(request.data(), static_cast<unsigned int>(request.size())) == static_cast<int>(request.size()));
     }
 
     std::string receiveResponse(bool singlePacket = false)

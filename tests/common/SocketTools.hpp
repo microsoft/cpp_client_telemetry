@@ -70,7 +70,7 @@ class SocketAddr
     {
         sockaddr_in& inet4 = reinterpret_cast<sockaddr_in&>(m_data);
         inet4.sin_family = AF_INET;
-        inet4.sin_port = htons(static_cast<u_short>(port));
+        inet4.sin_port = htons(static_cast<USHORT>(port));
         inet4.sin_addr.s_addr = htonl(addr);
     }
 
@@ -562,7 +562,7 @@ class Reactor : protected Thread
         ARIASDK_LOG_INFO("Reactor: Thread started");
         while (!shouldTerminate()) {
 #ifdef _WIN32
-            DWORD dwResult = ::WSAWaitForMultipleEvents(m_events.size(), m_events.data(), FALSE, 500, FALSE);
+            DWORD dwResult = ::WSAWaitForMultipleEvents(static_cast<DWORD>(m_events.size()), m_events.data(), FALSE, 500, FALSE);
             if (dwResult == WSA_WAIT_TIMEOUT) {
                 continue;
             }

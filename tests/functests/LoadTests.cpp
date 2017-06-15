@@ -129,6 +129,7 @@ class LoadTests : public Test,
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
+        UNREFERENCED_PARAMETER(response);
         auto payload = decodeRequest(request, false);
         for (auto const& packagesPerTenant : payload.TokenToDataPackagesMap) {
             for (auto const& package : packagesPerTenant.second) {
@@ -140,6 +141,7 @@ class LoadTests : public Test,
 
     AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request, bool decompress)
     {
+        UNREFERENCED_PARAMETER(decompress);
         AriaProtocol::ClientToCollectorRequest result;
         std::vector<uint8_t> input(request.content.data(), request.content.data() + request.content.size());
         bond_lite::CompactBinaryProtocolReader reader(input);

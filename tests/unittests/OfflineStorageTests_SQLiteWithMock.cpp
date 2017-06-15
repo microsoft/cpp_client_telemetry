@@ -21,6 +21,7 @@ using namespace ARIASDK_NS::PAL;
 #pragma warning(disable: 4100)
 MATCHER_P2(PreparedStatement, testClass, recipeRegex, "")
 {
+    UNREFERENCED_PARAMETER(result_listener);
     return testClass->statements.find(arg) != testClass->statements.end() &&
            std::regex_match(testClass->statements[arg].recipe, std::regex(recipeRegex));
 }
@@ -123,8 +124,8 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
 
     int fakePrepareStatement(sqlite3* db, char const* zsql, int size, sqlite3_stmt** pstmt, char const** pztail)
     {
-        UNREFERENCED_PARAMETER(pztail);
         UNREFERENCED_PARAMETER(db);
+        UNREFERENCED_PARAMETER(pztail);
         *pstmt = reinterpret_cast<sqlite3_stmt*>(reinterpret_cast<size_t>(dbHandle) + statements.size() + 1);
         statements[*pstmt] = FakeStatement{(size < 0) ? std::string(zsql) : std::string(zsql, size), true};
         return SQLITE_OK;
@@ -274,17 +275,17 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
 
     static int vfsDeleteOk(sqlite3_vfs* vfs, char const* zName, int syncDir)
     {
+        UNREFERENCED_PARAMETER(vfs);
         UNREFERENCED_PARAMETER(zName);
         UNREFERENCED_PARAMETER(syncDir);
-        UNREFERENCED_PARAMETER(vfs);
         return SQLITE_OK;
     }
 
     static int vfsDeleteError(sqlite3_vfs* vfs, char const* zName, int syncDir)
     {
+        UNREFERENCED_PARAMETER(vfs);
         UNREFERENCED_PARAMETER(zName);
         UNREFERENCED_PARAMETER(syncDir);
-        UNREFERENCED_PARAMETER(vfs);
         return SQLITE_IOERR_ACCESS;
     }
 

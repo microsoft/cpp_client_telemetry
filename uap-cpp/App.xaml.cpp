@@ -63,6 +63,7 @@ extern "C" void SendTelemetryEvents() {
 		logger->LogEvent(properties2);
 	}
 	catch (const std::logic_error& ex) {
+		UNREFERENCED_PARAMETER(ex);
 		OutputDebugStringA("Good stuff: we handled the exception here!\n");
 	}
 }

@@ -192,7 +192,7 @@ class HttpServer : private Reactor::Callback
             return false;
         }
 
-        int sent = conn.socket.send(conn.sendBuffer.data(), conn.sendBuffer.size());
+        int sent = conn.socket.send(conn.sendBuffer.data(), static_cast<int>(conn.sendBuffer.size()));
         ARIASDK_LOG_DETAIL("HttpServer: [%s] sent %d", conn.request.client.c_str(), sent);
         if (sent < 0 && conn.socket.error() != Socket::ErrorWouldBlock) {
             return true;
@@ -483,12 +483,12 @@ class HttpServer : private Reactor::Callback
         bool first = true;
         for (char& ch : result) {
             if (first) {
-                ch = (char)::toupper(ch);
+                ch = static_cast<char>(::toupper(ch));
                 first = false;
             } else if (ch == '-') {
                 first = true;
             } else {
-                ch = (char)::tolower(ch);
+                ch = static_cast<char>(::tolower(ch));
             }
         }
         return result;

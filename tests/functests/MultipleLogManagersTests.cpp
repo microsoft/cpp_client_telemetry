@@ -76,6 +76,7 @@ class MultipleLogManagersTests : public ::testing::Test,
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
+        UNREFERENCED_PARAMETER(response);
         receivedRequests.push_back(request);
         return 200;
     }
