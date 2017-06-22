@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "pal/PAL.hpp"
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
@@ -25,18 +26,5 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         const std::string& clientName,
         const std::string& clientVersion);
 
-    void ThrowECSError(ECS_ERROR errCode, const char* pFile, int lineNumber);
-
-    std::string GetStoragePath();
-
-// Exceptions defines
-#define THROW			        throw
-#define CONST_THROW		        const throw()
-#define BOND_THROW(x, y)	    throw x((bond::detail::string_stream() << y).content());
-#define ECS_THROW(errCode, ...) \
-        do\
-        {\
-        ThrowECSError(errCode, __FILE__, __LINE__);\
-        } while(0,0)
-
+	ARIASDK_LOG_DECL_COMPONENT_NS();
 }}}}

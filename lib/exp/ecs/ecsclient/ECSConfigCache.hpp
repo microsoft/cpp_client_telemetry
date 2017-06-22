@@ -1,17 +1,12 @@
 #pragma once
 
 #include "ECSClientConfig.hpp"
-#include "Misc.hpp"
+#include "offline/IStorage.hpp"
+#include "pal/PAL.hpp"
 #include <json.hpp>
 #include <string>
 #include <map>
 
-// forward-declaration
-namespace common
-{
-    class IOfflineStorage;
-}
-using nlohmann::json;
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
 // struct to hold an individual config retrieved from ECS
@@ -20,8 +15,8 @@ struct ECSConfig
     std::string     requestName;
     std::string     etag;
     std::int64_t    expiryUtcTimestamp;
-    json            configSettings;
-	std::string     clientVersion;
+    nlohmann::json  configSettings;
+    std::string     clientVersion;
 
     ECSConfig()
     {
@@ -29,9 +24,9 @@ struct ECSConfig
         expiryUtcTimestamp = 0;
     }
 
-	std::int64_t GetExpiryTimeInSec() const
+    std::int64_t GetExpiryTimeInSec() const
     {
-        std::int64_t currUtcTimestamp = common::GetCurrentTimeStamp();
+        std::int64_t currUtcTimestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTime();
 
         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
     }
@@ -52,11 +47,11 @@ public:
     ECSConfig* GetConfigByRequestName(const std::string& requestName);
 
 private:
-    common::IOfflineStorage* _CreateOfflineStorage(const std::string& storagePath);
+    ARIASDK_NS::IStorage* _CreateOfflineStorage(const std::string& storagePath);
 
 private:
     std::string m_OfflineStoragePath;
-    common::IOfflineStorage* m_pOfflineStorage;
+    ARIASDK_NS::IStorage* m_pOfflineStorage;
 
     std::map<std::string, ECSConfig> m_configs;
 

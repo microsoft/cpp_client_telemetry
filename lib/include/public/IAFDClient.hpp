@@ -86,12 +86,12 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <summary>
         /// Create a new instance of AFDClient
         /// </summary>
-        static IAFDClient* ARIASDK_SPEC CreateInstance();
+        static IAFDClient* ARIASDK_LIBABI_CDECL CreateInstance();
 
         /// <summary>
         /// Destroy the specified AFDClient instance
         /// </summary>
-        static void ARIASDK_SPEC DestroyInstance(IAFDClient** ppAFDClient);
+        static void ARIASDK_LIBABI_CDECL DestroyInstance(IAFDClient** ppAFDClient);
 
 		virtual void Initialize(const AFDClientConfiguration& config) = 0;
 

@@ -1,16 +1,11 @@
 #define LOG_MODULE DBG_API
 
-#pragma unmanaged
-
 #include "ECSClient.hpp"
 #include "ECSClientConfig.hpp"
 #include "ECSConfigCache.hpp"
 #include "ECSClientUtils.hpp"
-
-#include "common/PalSingleton.hpp"
-#include "common/TraceHelper.hpp"
-#include "common/Misc.hpp"
-#include "common/JsonHelper.hpp"
+#include "json.hpp"
+#include "../../JsonHelper.hpp"
 
 #include <iostream>
 #include <iterator>
@@ -21,15 +16,116 @@
 
 using namespace std;
 using namespace nlohmann; 
-using namespace common;
 using namespace Microsoft::Applications::Telemetry;
-using namespace Microsoft::Applications::Telemetry::PlatformAbstraction;
+using namespace Microsoft::Applications::Telemetry::PAL;
 
 namespace Microsoft {
     namespace Applications {
         namespace Experimentation {
             namespace ECS {
-				                
+				        
+				int GetItemIndex(const char* items[], size_t itemCount, size_t itemMaxSize, const char* pItemToFind)
+				{
+					if ((itemMaxSize > 128) || (strlen(pItemToFind) > itemMaxSize))
+					{
+						return -1;
+					}
+
+					char itemLoweredCase[129];
+					strcpy_s(itemLoweredCase, pItemToFind);
+
+					// strlwr does not seem to be available for gcc
+					for (size_t i = 0; i < strlen(itemLoweredCase); i++)
+					{
+						itemLoweredCase[i] = static_cast<char>(tolower(itemLoweredCase[i]));
+					}
+
+					for (size_t i = 0; i < itemCount; i++)
+					{
+						if (strcmp(items[i], itemLoweredCase) == 0)
+						{
+							return (int)i;
+						}
+					}
+
+					return -1;
+				}
+
+				static int GetDayIndex(const char* pItemToFind)
+				{
+					const char* days[] =
+					{
+						"sun",
+						"mon",
+						"tue",
+						"wed",
+						"thu",
+						"fri",
+						"sat",
+					};
+
+					return GetItemIndex(days, 7, 3, pItemToFind);
+				}
+
+				static int GetMonthIndex(const char* pItemToFind)
+				{
+					const char* months[] =
+					{
+						"jan",
+						"feb",
+						"mar",
+						"apr",
+						"may",
+						"jun",
+						"jul",
+						"aug",
+						"sep",
+						"oct",
+						"nov",
+						"dec",
+					};
+
+					return GetItemIndex(months, 12, 3, pItemToFind);
+				}
+
+
+				uint64_t GetTimeFromRFC1123Pattern(const std::string& gmt, struct tm* res)
+				{
+					struct tm tms = {};
+					tms.tm_wday = tms.tm_mon = -1;
+					if (!gmt.empty())
+					{
+						char wday[4] = {};
+						char month[4] = {};
+
+						// There should be 7 valid fields scanned. 
+						if (7 == sscanf_s(gmt.c_str(), "%3c, %d %3c %d %d:%d:%d", wday, 3, &tms.tm_mday, month, 3,  &tms.tm_year, &tms.tm_hour, &tms.tm_min, &tms.tm_sec))
+						{
+							tms.tm_wday = GetDayIndex(wday);
+							tms.tm_mon = GetMonthIndex(month);
+
+							// tm_year in struct tm is year since 1900
+							tms.tm_year -= 1900;
+						}
+					}
+					*res = tms;
+					return _mkgmtime(res);
+				}
+
+				uint64_t ParseTime(const std::string& time, uint32_t defaultValue/*=0*/)
+				{
+					tm tms = {};
+					uint64_t rfcTime;
+					if ((rfcTime = GetTimeFromRFC1123Pattern(time, &tms)) > 0)
+					{
+						return rfcTime;
+					}
+					else
+					{
+						return defaultValue;
+					}
+				}
+
                 IECSClient* IECSClient::CreateInstance()
                 {
                     return (IECSClient*)(new ECSClient());
@@ -56,7 +152,7 @@ namespace Microsoft {
 					m_EXPCommon(this, Retry_Queue_Name),
 					m_minExpireTimeInSecs(DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN)					
                 {
-                    TRACE("ECSClient c'tor: this=0x%x", this);
+                    ARIASDK_LOG_DETAIL("ECSClient c'tor: this=0x%x", this);
                 }
 
                 /******************************************************************************
@@ -67,7 +163,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 ECSClient::~ECSClient()
                 {
-                    TRACE("EcsClient d'tor: this=0x%x", this);
+                    ARIASDK_LOG_DETAIL("EcsClient d'tor: this=0x%x", this);
 
                     if (m_configCache != NULL)
                     {
@@ -88,8 +184,7 @@ namespace Microsoft {
                         config.clientVersion.empty() ||
                         config.cacheFilePathName.empty())
                     {
-                        LOG_ERROR("_ValidateECSClientConfiguration: Invalid ECSClientConfiguration specified");
-                        ECS_THROW(ECS_ERROR_INVALID_CONFIG);
+                        ARIASDK_LOG_ERROR("_ValidateECSClientConfiguration: Invalid ECSClientConfiguration specified");
                     }
                 }
 
@@ -104,17 +199,17 @@ namespace Microsoft {
                     // Validate the ECSClientConfiguration struct
                     _ValidateECSClientConfiguration(config);
 
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
                     if (config.serverUrls.empty())
                     {
                         // Use DEFAULT_INT_ECS_SERVER_URL_1 or DEFAULT_INT_ECS_SERVER_URL_2 for test purpose
                         std::string serverUrl1 = CreateServerUrl(DEFAULT_PROD_ECS_SERVER_URL_1, config.clientName, config.clientVersion);
-                        TRACE("Initialize: Added default ECS ServerUrl=%s", serverUrl1.c_str());
+                        ARIASDK_LOG_DETAIL("Initialize: Added default ECS ServerUrl=%s", serverUrl1.c_str());
 						m_EXPCommon.m_serverUrls.push_back(serverUrl1);
 
                         std::string serverUrl2 = CreateServerUrl(DEFAULT_PROD_ECS_SERVER_URL_2, config.clientName, config.clientVersion);
-                        TRACE("Initialize: Added default ECS ServerUrl=%s", serverUrl2.c_str());
+                        ARIASDK_LOG_DETAIL("Initialize: Added default ECS ServerUrl=%s", serverUrl2.c_str());
 						m_EXPCommon.m_serverUrls.push_back(serverUrl2);
                     }
                     else
@@ -122,33 +217,32 @@ namespace Microsoft {
                         for (size_t i = 0; i < config.serverUrls.size(); ++i)
                         {
                             std::string serverUrl = CreateServerUrl(config.serverUrls[i], config.clientName, config.clientVersion);
-                            TRACE("Initialize: Added ECS ServerUrl=%s", serverUrl.c_str());
+                            ARIASDK_LOG_DETAIL("Initialize: Added ECS ServerUrl=%s", serverUrl.c_str());
 
 							m_EXPCommon.m_serverUrls.push_back(serverUrl);
                         }
                     }
 
                     // Start with random server from the list of servers available
-					m_EXPCommon.m_serverUrlIdx = static_cast<unsigned int>(common::GetCurrentTimeStamp() % (m_EXPCommon.m_serverUrls.size()));
+					m_EXPCommon.m_serverUrlIdx = static_cast<unsigned int>(PAL::getUtcSystemTime() % (m_EXPCommon.m_serverUrls.size()));
 
                     m_configCache = new ECSConfigCache(config.cacheFilePathName);
                     if (!m_configCache)
                     {
-                        LOG_ERROR("Initialize: Failed to create local config cache");
-                        ECS_THROW(ECS_ERROR_OUT_OF_MEMORY);
+                        ARIASDK_LOG_ERROR("Initialize: Failed to create local config cache");
                     }
 
                     m_ecsClientConfiguration = config;
 
 					m_EXPCommon.m_status = EXP_INITIALIZED;
-                    TRACE("Initialize: ECSClient successfully initialized");
+                    ARIASDK_LOG_DETAIL("Initialize: ECSClient successfully initialized");
                 }
 
                 bool ECSClient::AddListener(IECSClientCallback *listener)
                 {
-                    TRACE("AddListener[%d]: ECSClient=0x%x, listener=0x%x", __LINE__, this, listener);
+                    ARIASDK_LOG_DETAIL("AddListener[%d]: ECSClient=0x%x, listener=0x%x", __LINE__, this, listener);
 
-                    LOCKGUARD(m_EXPCommon.m_smalllock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
                     if (m_listeners.find(listener) == m_listeners.end())
                     {
@@ -161,9 +255,9 @@ namespace Microsoft {
 
                 bool ECSClient::RemoveListener(IECSClientCallback *listener)
                 {
-                    TRACE("RemoveListener[%d]: ECSClient=0x%x, listener=0x%x", __LINE__, this, listener);
+                    ARIASDK_LOG_DETAIL("RemoveListener[%d]: ECSClient=0x%x, listener=0x%x", __LINE__, this, listener);
 
-                    LOCKGUARD(m_EXPCommon.m_smalllock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
                     if (m_listeners.find(listener) != m_listeners.end())
                     {
@@ -176,12 +270,12 @@ namespace Microsoft {
 
                 bool ECSClient::RegisterLogger(ILogger* pLogger, const string& agentName)
                 {
-                    TRACE("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
+                    ARIASDK_LOG_DETAIL("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
 					
 					m_EXPCommon.RegisterLogger(pLogger, agentName);
 					                   
                     // Update the logger with the ECS configuration info like Etag if this function is called after ECSClient is started
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
 					if (m_EXPCommon.m_status == EXP_STARTED || m_EXPCommon.m_status == EXP_SUSPENDED)
 					{
@@ -220,7 +314,7 @@ namespace Microsoft {
 							string eventConfigIds = GetSetting(DEFAULT_EVENT_TO_CONFIGIDS_MAPPING_AGENT_NAME, eventConfigIdsPath, std::string());
 							if (!eventConfigIds.empty())
 							{
-								TRACE("_UpdateLoggerWithEXPConfig: SetEventExperimentIds eventName=%s, eventConfigIds=%s", events[i].c_str(), eventConfigIds.c_str());
+								ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: SetEventExperimentIds eventName=%s, eventConfigIds=%s", events[i].c_str(), eventConfigIds.c_str());
 								eventConfigIdMap[events[i]] = eventConfigIds;
 							}
 						}
@@ -246,19 +340,19 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::Start()
                 {
-					LOCKGUARD(m_EXPCommon.m_lock);
+					std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
                     // check status first, simply return if it hasn't been initialzied or has already started
 					if (m_EXPCommon.m_status != EXP_INITIALIZED &&
 						m_EXPCommon.m_status != EXP_STOPPED)
 					{
-                        LOG_ERROR("Start: EcsClient hasn't been initialzied or has already started");
+                        ARIASDK_LOG_ERROR("Start: EcsClient hasn't been initialzied or has already started");
                         return false;
                     }
 
 					// load cached configuration from local cache
 					if (!m_configCache->LoadConfig())
 					{
-						LOG_WARN("Start: Failed to load configurations from local cache");
+						ARIASDK_LOG_WARNING("Start: Failed to load configurations from local cache");
 					}
 					else
 					{
@@ -266,8 +360,10 @@ namespace Microsoft {
 						m_configActive = m_configCache->GetConfigByRequestName(m_EXPCommon.m_configActiveRequestName);
 						if (m_configActive && m_configActive->etag != DEFAULT_CONFIG_ETAG)
 						{
+                            //save config to next time
+                             m_configCache->SaveConfig(*m_configActive);
 							// TODO: notify listener if the Etag of the active configuration is different from default
-							LOCKGUARD(m_EXPCommon.m_smalllock);
+							std::lock_guard<std::mutex> lock(m_EXPCommon.m_smalllock);
 
 							// log event thru all register loggers to indicate that ECS config is updated from local cache
 							_LogEXPConfigUpdateEvent(EXP_CUR_SUCCEEDED, EXP_CUS_LOCAL);
@@ -290,15 +386,12 @@ namespace Microsoft {
 						backoffTimes.push_back(backoffTimeInSec);
 					}
 
-                    RetryTimes retryTimes;
-                    retryTimes.name = Retry_Queue_Name;
-                    retryTimes.timeOuts = backoffTimes;
-					m_EXPCommon.Start(retryTimes);
+					m_EXPCommon.Start(backoffTimes);
 
                     // log EVENT_TYPE_ECSCLIENT_STATE_CHANGE event to all registered logger to indicate the ECSClient state 
 					_LogEXPCleintStateChangeEvent(EXP_STARTED);
 
-                    TRACE("Start: EcsClient successfully started");
+                    ARIASDK_LOG_DETAIL("Start: EcsClient successfully started");
 
                     return true;
                 }
@@ -311,12 +404,12 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::Resume()
                 {
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
                     // check status first, simply return if it hasn't been initialzied or has already started
                     if (m_EXPCommon.m_status != EXP_SUSPENDED)
                     {
-                        LOG_ERROR("Resume: ExpCommon wasn't suspended");
+                        ARIASDK_LOG_ERROR("Resume: ExpCommon wasn't suspended");
                         return false;
                     }
 
@@ -334,11 +427,11 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::Suspend()
                 {
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
                     // check status first, simply return if it hasn't been initialzied or has already started
                     if (m_EXPCommon.m_status != EXP_STARTED)
                     {
-                        LOG_ERROR("Suspend: ExpCommon isn't started");
+                        ARIASDK_LOG_ERROR("Suspend: ExpCommon isn't started");
                         return false;
                     }
 
@@ -356,12 +449,12 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::Stop()
                 {
-					LOCKGUARD(m_EXPCommon.m_lock);
+					std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
 					// check status first, simply return if not started
 					if (m_EXPCommon.m_status != EXP_STARTED && m_EXPCommon.m_status != EXP_SUSPENDED)
 					{
-						LOG_ERROR("Stop: ExpCommon isn't started");
+						ARIASDK_LOG_ERROR("Stop: ExpCommon isn't started");
 						return false;
 					}
 
@@ -386,18 +479,18 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::SetUserId(const string& userId)
                 {
-                    TRACE("SetUserId[%d]: ECSClient=0x%x, userId=%u", __LINE__, this, userId.c_str());
+                    ARIASDK_LOG_DETAIL("SetUserId[%d]: ECSClient=0x%x, userId=%u", __LINE__, this, userId.c_str());
 
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
-                    if (m_configActiveUserId.compare(userId) == 0)
+                    if (m_EXPCommon.m_configActiveUserId.compare(userId) == 0)
                     {
-                        LOG_ERROR("SetUserId: User Id is the same");
+                        ARIASDK_LOG_ERROR("SetUserId: User Id is the same");
                         return false;
                     }
 
-                    m_configActiveUserId = userId;
-					m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_ID] = m_configActiveUserId;
+                    m_EXPCommon.m_configActiveUserId = userId;
+					m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_ID] = m_EXPCommon.m_configActiveUserId;
                     m_EXPCommon.m_configActiveRequestName = m_EXPCommon.GetRequestName(m_ecsClientConfiguration.clientName);
 
                     // log EVENT_TYPE_ECSCLIENT_STATE_CHANGE event to all registered logger to indicate the ECSClient state 
@@ -431,17 +524,17 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::SetDeviceId(const string& deviceId)
                 {
-                    TRACE("SetDeviceId[%d]: ECSClient=0x%x, userId=%u", __LINE__, this, deviceId.c_str());
+                    ARIASDK_LOG_DETAIL("SetDeviceId[%d]: ECSClient=0x%x, userId=%u", __LINE__, this, deviceId.c_str());
 
-                    LOCKGUARD(m_EXPCommon.m_lock);
+                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
-                    if (m_configActiveDeviceId.compare(deviceId) == 0)
+                    if (m_EXPCommon.m_configActiveDeviceId.compare(deviceId) == 0)
                     {
-                        LOG_ERROR("SetDeviceId: Device Id is the same");
+                        ARIASDK_LOG_ERROR("SetDeviceId: Device Id is the same");
                         return false;
                     }
 
-                    m_configActiveDeviceId = deviceId;
+                    m_EXPCommon.m_configActiveDeviceId = deviceId;
 					m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_CLIENTID] = m_EXPCommon.m_configActiveDeviceId;
                     m_EXPCommon.m_configActiveRequestName = m_EXPCommon.GetRequestName(m_ecsClientConfiguration.clientName);
 
@@ -472,7 +565,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool ECSClient::SetRequestParameters(const std::map<std::string, std::string>& requestParams)
                 {
-                    TRACE("SetRequestParameters[%d]: ECSClient=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
+                    ARIASDK_LOG_DETAIL("SetRequestParameters[%d]: ECSClient=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
 					
                     m_EXPCommon.SetRequestParameters(requestParams); 
                     
@@ -489,23 +582,23 @@ namespace Microsoft {
 
 				void ECSClient::FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromServer)
 				{
-					TRACE("FireClientEvent[%d]:  ECSClient=0x%x, listener count=%u", __LINE__, this, m_listeners.size());
+					ARIASDK_LOG_DETAIL("FireClientEvent[%d]:  ECSClient=0x%x, listener count=%u", __LINE__, this, m_listeners.size());
 
-					TRACE("FireClientEvent[%d]:  EventType=%d, ConfigUpdateFromECS=%d", evtType, fConfigUpdateFromServer);
+					ARIASDK_LOG_DETAIL("FireClientEvent[%d]:  EventType=%d, ConfigUpdateFromECS=%d", evtType, fConfigUpdateFromServer);
 
 					// notify listners if the active config is either updated on ECS server or changed to a different one
 					IECSClientCallback::ECSClientEventContext evtContext = {};
 
 					evtContext.clientName = m_ecsClientConfiguration.clientName;
 					evtContext.clientVersion = m_ecsClientConfiguration.clientVersion;
-					evtContext.userId = m_configActiveUserId;
-					evtContext.deviceId = m_configActiveDeviceId;
+					evtContext.userId = m_EXPCommon.m_configActiveUserId;
+					evtContext.deviceId = m_EXPCommon.m_configActiveDeviceId;
 					evtContext.requestParameters = m_EXPCommon.m_configActiveRequestParams;
 					evtContext.configExpiryTimeInSec = (unsigned int)m_configActive->GetExpiryTimeInSec();
 					evtContext.configUpdateFromECS = fConfigUpdateFromServer;
 					
 					//pre-condition: m_smalllock is held in caller while this function is called
-					//LOCKGUARD(m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_smalllock);
 					IECSClientCallback::ECSClientEventType eventTypeLocal = IECSClientCallback::ECSClientEventType::ET_CONFIG_UPDATE_SUCCEEDED;
 					if (evtType == CommonClientEventType::ET_CONFIG_UPDATE_FAILED)
 					{
@@ -516,7 +609,7 @@ namespace Microsoft {
 					{
 						IECSClientCallback* ecsclientCallback = *it;
 
-						TRACE("_FireECSClientEvent[%d]:: EcsClient=0x%x, listener=0x%x", __LINE__, this, ecsclientCallback);
+						ARIASDK_LOG_DETAIL("_FireECSClientEvent[%d]:: EcsClient=0x%x, listener=0x%x", __LINE__, this, ecsclientCallback);
 						ecsclientCallback->OnECSClientEvent(eventTypeLocal, evtContext);
 					}
 				}
@@ -532,31 +625,35 @@ namespace Microsoft {
                     bool& isActiveConfigUpdatedOnECS,
                     bool& isActiveConfigUpdatedOnECSSaveNeeded)
                 {
-                    TRACE("_HandleHttpCallback: HTTPstack error=%u, HTTP status code=%u, HCM RetryFailedTimes=%u",
-                        msg.httpstackError, msg.statusCode, msg.retryFailedTimes);
+                    ARIASDK_LOG_DETAIL("_HandleHttpCallback: HTTPstack error=%u, HTTP status code=%u",
+                        msg.httpstackError, msg.statusCode);
 
                     isActiveConfigUpdatedOnECS = false;
                     isActiveConfigUpdatedOnECSSaveNeeded = false;
-
-                    if (msg.userData != m_configActive)
-                    {
-                        TRACE("_HandleHttpCallback: HTTP response received is not targeted for the current active config, ignored");
-                        return;
-                    }
 
                     switch (msg.statusCode)
                     {
                     case 200:
                         // Config retrieved successfully from ECS, update the local cache
-                        TRACE("_HandleHttpCallback: config retrieved from ECS, ETag=%s", msg.headers["ETag"].c_str());
-                        m_configActive->expiryUtcTimestamp = common::GetCurrentTimeStamp() + _GetExpiryTimeInSecFromHeader(msg);
+                        ARIASDK_LOG_DETAIL("_HandleHttpCallback: config retrieved from ECS, ETag=%s", msg.headers.get("ETag").c_str());
+                        m_configActive->expiryUtcTimestamp = getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
 
-                        m_configActive->etag = msg.headers["ETag"];
+                        m_configActive->etag = msg.headers.get("ETag");
                         //Update the active config version after getting new one from ECS server
                         m_configActive->clientVersion = m_ecsClientConfiguration.clientVersion;
-						m_configActive->configSettings = json::parse(msg.body.c_str());
-
-                        // notify listners if the active config is updated on ECS server
+						try
+						{
+							if (msg.body.size() > 0)
+							{
+								m_configActive->configSettings = json::parse(msg.body.c_str());
+							}
+						}
+						catch (...)
+						{
+							ARIASDK_LOG_DETAIL("Json pasring failed");
+						}
+                        
+						// notify listners if the active config is updated on ECS server
                         isActiveConfigUpdatedOnECS = true;
                         isActiveConfigUpdatedOnECSSaveNeeded = true;
                         break;
@@ -567,7 +664,7 @@ namespace Microsoft {
                         assert(isActiveConfigUpdatedOnECS == false);
 
                         // Config settings not modified but the expiry time does, which requires a save to local cache
-                        m_configActive->expiryUtcTimestamp = common::GetCurrentTimeStamp() + _GetExpiryTimeInSecFromHeader(msg);
+                        m_configActive->expiryUtcTimestamp = getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
                         isActiveConfigUpdatedOnECSSaveNeeded = true;
                         break;
 
@@ -599,7 +696,7 @@ namespace Microsoft {
                     bool& isActiveConfigSwitched,
                     bool& isActiveConfigSwitchedSaveNeeded)
                 {
-                    TRACE("_HandleConfigReloadAndRefetch: Reload/Re-fetch config for RequestName=%s", msg.requestName.c_str());
+                    ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Reload/Re-fetch config for RequestName=%s", msg.requestName.c_str());
 
                     if (m_configCache)
                     {
@@ -713,25 +810,8 @@ namespace Microsoft {
 
 						std::string url = m_EXPCommon.m_serverUrls.at(m_EXPCommon.m_serverUrlIdx);
 
-						if (m_EXPCommon.m_httpClientManager->SendRequestAsync(IRequest::GET, url.c_str(),
-							m_EXPCommon.m_configActiveHeaders,
-							m_EXPCommon.m_configActiveRequestParams,
-							NULL,
-							0,
-							m_configActive,
-                            vector<string>({""}),
-							-1,
-							true,
-							&m_EXPCommon,
-							Retry_Queue_Name,
-							Retry_Queue_Name))
-						{
-							TRACE("_HandleConfigReloadAndRefetch: Config refetch request successfully sent to EXP.");
-						}
-						else
-						{
-							LOG_ERROR("_HandleConfigReloadAndRefetch: Failed to send config refetch request to EXP");
-						}
+						m_EXPCommon.SendRequestAsync(url);
+						ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Config refetch request successfully sent to EXP.");
 						return true;
 					}
 					return false;
@@ -745,7 +825,7 @@ namespace Microsoft {
 				void ECSClient::_LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source)
 				{
 					//pre-condition: m_smalllock is held in caller while this function is called
-					//LOCKGUARD(m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_smalllock);
 
 					EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_CONFIG_UPDATE);
 
@@ -760,7 +840,7 @@ namespace Microsoft {
 				void ECSClient::_LogEXPCleintStateChangeEvent(EXPClientStatus status)
 				{
 
-					LOCKGUARD(m_EXPCommon.m_smalllock);
+					std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
 					EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_STATE_CHANGE);
 
@@ -786,7 +866,7 @@ namespace Microsoft {
                 // IECSClient APIs
                 string ECSClient::GetETag()
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
                     return (m_configActive != NULL) ? m_configActive->etag : "";
                 }
@@ -795,11 +875,11 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& keysPath)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, keysPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, keysPath, '/');
 
-                    return common::JsonHelper::GetKeys(_GetActiveConfigVariant(), fullPath);
+                    return JsonHelper::GetKeys(_GetActiveConfigVariant(), fullPath);
                 }
 
                 string ECSClient::GetSetting(
@@ -807,11 +887,11 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const std::string& defaultValue)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValueString(_GetActiveConfigVariant(), fullPath, defaultValue);
+                    return JsonHelper::GetValueString(_GetActiveConfigVariant(), fullPath, defaultValue);
                 }
 
                 bool ECSClient::GetSetting(
@@ -819,11 +899,11 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const bool defaultValue)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValueBool(_GetActiveConfigVariant(), fullPath, defaultValue);
+                    return JsonHelper::GetValueBool(_GetActiveConfigVariant(), fullPath, defaultValue);
                 }
 
                 int ECSClient::GetSetting(
@@ -831,11 +911,11 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const int defaultValue)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValueInt(_GetActiveConfigVariant(), fullPath, defaultValue);
+                    return JsonHelper::GetValueInt(_GetActiveConfigVariant(), fullPath, defaultValue);
                 }
 
                 double ECSClient::GetSetting(
@@ -843,63 +923,63 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const double defaultValue)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValueDouble(_GetActiveConfigVariant(), fullPath, defaultValue);
+                    return JsonHelper::GetValueDouble(_GetActiveConfigVariant(), fullPath, defaultValue);
                 }
 
                 std::vector<std::string> ECSClient::GetSettings(
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValuesString(_GetActiveConfigVariant(), fullPath);
+                    return JsonHelper::GetValuesString(_GetActiveConfigVariant(), fullPath);
                 }
 
                 std::vector<int> ECSClient::GetSettingsAsInts(
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValuesInt(_GetActiveConfigVariant(), fullPath);
+                    return JsonHelper::GetValuesInt(_GetActiveConfigVariant(), fullPath);
                 }
 
                 std::vector<double> ECSClient::GetSettingsAsDbls(
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//LOCKGUARD(m_EXPCommon.m_smalllock);
+					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    string fullPath = common::Combine(agentName, settingPath, '/');
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
-                    return common::JsonHelper::GetValuesDouble(_GetActiveConfigVariant(), fullPath);
+                    return JsonHelper::GetValuesDouble(_GetActiveConfigVariant(), fullPath);
                 }
 
                 std::int64_t ECSClient::_GetExpiryTimeInSecFromHeader(Message& msg)
                 {
-                    std::string expireInHeaderStr = msg.headers["Expires"];
-                    std::string dateInHeaderStr = msg.headers["Date"];
+                    std::string expireInHeaderStr = msg.headers.get("Expires");
+                    std::string dateInHeaderStr = msg.headers.get("Date");
 
                     if (expireInHeaderStr.empty() || dateInHeaderStr.empty())
                     {
-                        LOG_WARN("_GetExpiryTimeInSecFromHeader: Expires time or date in response header is empty, use the default expiry time.");
+                        ARIASDK_LOG_WARNING("_GetExpiryTimeInSecFromHeader: Expires time or date in response header is empty, use the default expiry time.");
                         return DEFAULT_CONFIG_REFETCH_INTERVAL_IN_SECONDS;
                     }
 
-                    std::int64_t expireInHeader = common::ParseTime(expireInHeaderStr);
-                    std::int64_t dateInHeader = common::ParseTime(dateInHeaderStr);
+                    std::int64_t expireInHeader = ParseTime(expireInHeaderStr, 0);
+                    std::int64_t dateInHeader = ParseTime(dateInHeaderStr, 0);
 
                     if (expireInHeader == 0 || dateInHeader == 0) //Time Parse failure
                     {
-                        LOG_WARN("_GetExpiryTimeInSecFromHeader: Parse expiry time or date error(Expires=%s, Date=%s), use the default expiry time.",
+						ARIASDK_LOG_WARNING("_GetExpiryTimeInSecFromHeader: Parse expiry time or date error(Expires=%s, Date=%s), use the default expiry time.",
                             expireInHeaderStr.c_str(), dateInHeaderStr.c_str());
                         return DEFAULT_CONFIG_REFETCH_INTERVAL_IN_SECONDS;
                     }
@@ -909,7 +989,7 @@ namespace Microsoft {
                     //make sure the relative expire time is no less than m_minExpireTimeInSecs
                     if (expireRelative < m_minExpireTimeInSecs)
                     {
-                        LOG_WARN("_GetExpiryTimeInSecFromHeader: Expires time(%ld) from response header is less than min limit(%ld sec), use min.",
+                        ARIASDK_LOG_WARNING("_GetExpiryTimeInSecFromHeader: Expires time(%ld) from response header is less than min limit(%ld sec), use min.",
                             expireRelative, m_minExpireTimeInSecs);
                         expireRelative = m_minExpireTimeInSecs;
                     }
@@ -917,7 +997,7 @@ namespace Microsoft {
                     //make sure the relative expire time is no more than DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX
                     if (expireRelative > DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX)
                     {
-                        LOG_WARN("_GetExpiryTimeInSecFromHeader: Expire time(%ld) from response header is more than max limit(%ld sec), use max.",
+						ARIASDK_LOG_WARNING("_GetExpiryTimeInSecFromHeader: Expire time(%ld) from response header is more than max limit(%ld sec), use max.",
                             expireRelative, DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX);
                         expireRelative = DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX;
                     }

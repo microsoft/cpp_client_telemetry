@@ -64,12 +64,12 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <summary>
         /// Create a new instance of ECSClient
         /// </summary>
-        static IECSClient* ARIASDK_SPEC CreateInstance();
+        static IECSClient* ARIASDK_LIBABI_CDECL CreateInstance();
 
         /// <summary>
         /// Destroy the specified ECSClient instance
         /// </summary>
-        static void ARIASDK_SPEC DestroyInstance(IECSClient** ppECSClient);
+        static void ARIASDK_LIBABI_CDECL DestroyInstance(IECSClient** ppECSClient);
 
         // Initialize the ECSClient with the specified configuration
 

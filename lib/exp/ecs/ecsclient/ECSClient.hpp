@@ -1,16 +1,9 @@
 #pragma once
 
-#include "common/HttpClientManager.hpp"
-#include "common/JsonHelper.hpp"
-#include "common/Misc.hpp"
-#include "common/ExpCommonClient.hpp"
-
+#include "../../EXPCommonClient.hpp"
 #include "IECSClient.hpp"
 #include "ECSConfigCache.hpp"
 #include "json.hpp"
-#include "ctsdk/cthttp.hpp"
-#include "ctsdk/ctpal.hpp"
-
 #include <string>
 #include <vector>
 #include <queue>
@@ -27,7 +20,7 @@ const static int MAX_RETRY_TIMES = 5;
 const static int DEFAULT_RETRY_TIME_FACTOR = 8;
 
 
-namespace PAL = ::Microsoft::Applications::Telemetry::PlatformAbstraction;
+namespace PAL = ::Microsoft::Applications::Telemetry::PAL;
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
@@ -44,7 +37,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual bool RemoveListener(IECSClientCallback* listener);
 
         // Register a logger to auto-tag events sent by the logger with ECS configuration infos like ETag
-        virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName);
+        virtual bool RegisterLogger(ILogger* pLoger, const std::string& agentName);
 
         virtual bool SetUserId(const std::string& userId);
 
@@ -86,15 +79,15 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		virtual void HandleUpdateClient(bool isActiveConfigSwitched, bool isActiveConfigUpdatedOnEXP, bool isActiveConfigUpdatedOnEXPSaveNeeded);
 		virtual bool FetchFromServerIfRequired();
 		virtual unsigned int GetExpiryTimeInSec();
-		virtual json GetActiveConfigVariant();
+		virtual nlohmann::json GetActiveConfigVariant();
 
 
     private:
-		json _GetActiveConfigVariant();
+		nlohmann::json _GetActiveConfigVariant();
         void _ValidateECSClientConfiguration(const ECSClientConfiguration& config);
 		void _LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source);
 		void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-		void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, std::string agentName);
+		void _UpdateLoggerWithEXPConfig(ILogger* pLogger, std::string agentName);
 		void _UpdateLoggersWithEXPConfig();
 		std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
 
@@ -104,8 +97,6 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         ECSConfigCache*         m_configCache;
         ECSConfig*              m_configActive;
 		ExpCommon               m_EXPCommon;
-        std::string             m_configActiveUserId;
-        std::string             m_configActiveDeviceId;
 		unsigned int            m_minExpireTimeInSecs;		
      
 
