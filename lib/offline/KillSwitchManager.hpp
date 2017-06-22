@@ -56,7 +56,7 @@ public:
 		std::lock_guard<std::mutex> guard(m_lock);
 		if (timeInSeconds > 0)
 		{
-			m_tokenTime[tokenId] = (PAL::getUtcSystemTimeMs() / 1000) + timeInSeconds; //convert milisec to sec
+			m_tokenTime[tokenId] = PAL::getUtcSystemTime() + timeInSeconds; //convert milisec to sec
 		}
 	}
 
@@ -68,7 +68,7 @@ public:
 		{//found, check the time stamp
 			int64_t timeStamp = m_tokenTime[tokenId];
 			
-			if (timeStamp > (PAL::getUtcSystemTimeMs() / 1000))  //convert milisec to sec
+			if (timeStamp > PAL::getUtcSystemTime())  //convert milisec to sec
 			{
 				return true;
 			}

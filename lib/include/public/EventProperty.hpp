@@ -498,6 +498,7 @@ namespace Microsoft {
                             as_string = NULL;
                         }
                     }
+					piiKind = PiiKind_None;
                 }
 
                 /// EventProperty destructor

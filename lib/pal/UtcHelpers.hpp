@@ -4,7 +4,8 @@
 namespace ARIASDK_NS_BEGIN {
 namespace PAL {
 
-bool __cdecl IsUtcRegistrationEnabledinWindows();
-bool __cdecl RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
+bool IsUtcRegistrationEnabledinWindows();
+bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
+std::string GetAppLocalTempDirectory();
 } // namespace PAL
 } ARIASDK_NS_END

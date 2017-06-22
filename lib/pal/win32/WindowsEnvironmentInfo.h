@@ -6,7 +6,6 @@
 namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
-#define SPL_PATH_SEPARATOR_CHAR '\\'
             class WindowsEnvironmentInfo
             {
             public:

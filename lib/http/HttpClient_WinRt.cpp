@@ -92,7 +92,14 @@ namespace ARIASDK_NS_BEGIN {
 			// Convert std::string to Uri
 			Uri ^ uri = ref new Uri(to_platform_string(request->m_url));
 			// Create new request message
-			m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Post, uri);
+            if (request->m_method.compare("GET") == 0)
+            {
+                m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Get, uri);
+            }
+            else
+            {
+                m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Post, uri);
+            }
 								
 			// Initialize the in-memory stream where data will be stored.
 			DataWriter^ dataWriter = ref new DataWriter();
@@ -107,31 +114,27 @@ namespace ARIASDK_NS_BEGIN {
 			{
 				Platform::String^ key = to_platform_string(kv.first);
 				Platform::String^ value = to_platform_string(kv.second);
-				if (kv.first.compare("Client-Id") == 0 ||
-					kv.first.compare("X-APIKey") == 0 ||
-					kv.first.compare("SDK-Version") == 0)
-				{
-					m_httpRequestMessage->Headers->TryAppendWithoutValidation(key, value);
-				}
+				
 				if (kv.first.compare("Expect") == 0)
 				{
 					m_httpRequestMessage->Headers->Expect->TryParseAdd(value);
+                    continue;
 				}
 				if (kv.first.compare("Content-Encoding") == 0)
 				{
 					m_httpRequestMessage->Content->Headers->ContentEncoding->Append(ref new HttpContentCodingHeaderValue(value));
+                    continue;
 				}
 				if (kv.first.compare("Content-Type") == 0)
 				{
 					m_httpRequestMessage->Content->Headers->ContentType = ref new HttpMediaTypeHeaderValue(value);
+                    continue;
 				}
+
+                m_httpRequestMessage->Headers->TryAppendWithoutValidation(key, value);
 			}
 
 			SendHttpAsyncRequest(m_httpRequestMessage);
-
-			//delete  dataWriter;
-			//delete stream;
-
 		}
 		
 		void SendHttpAsyncRequest(HttpRequestMessage ^req)
@@ -164,13 +167,11 @@ namespace ARIASDK_NS_BEGIN {
 		void onRequestComplete(HttpResponseMessage^ httpResponse)
 		{
 			std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+			response->m_statusCode = static_cast<unsigned int>(httpResponse->StatusCode);
 			if (httpResponse->IsSuccessStatusCode)
 			{		
 				response->m_result = HttpResult_OK;
 				IMapView<String^, String^>^ mapView = httpResponse->Headers->GetView();
-
-				//String^ temp = httpResponse->Headers->ToString();
-				//std::string tempString = from_platform_string(temp);
 
 				auto iterator = mapView->First();
 				unsigned int  index = 0;
@@ -183,20 +184,36 @@ namespace ARIASDK_NS_BEGIN {
 					iterator->MoveNext();	
 					index++;
 				}
-				HttpBufferContent^ content;
-				auto operation = m_httpResponseMessage->Content->ReadAsBufferAsync();
+				
+                auto operation = m_httpResponseMessage->Content->ReadAsBufferAsync();
 				auto task = create_task(operation);
 				if (task.wait() == task_status::completed)
 				{
+                    IMapView<String^, String^>^ contentHeadersView = m_httpResponseMessage->Content->Headers->GetView();
+
+                    auto contentHeadersiterator = contentHeadersView->First();
+                    unsigned int  contentHeadersIndex = 0;
+                    while (contentHeadersIndex < contentHeadersView->Size)
+                    {
+                        String^ Key = contentHeadersiterator->Current->Key;
+                        String^ Value = contentHeadersiterator->Current->Value;
+
+                        response->m_headers.add(from_platform_string(Key), from_platform_string(Value));
+                        contentHeadersiterator->MoveNext();
+                        contentHeadersIndex++;
+                    }
+
 					auto buffer = task.get();
 					size_t length = buffer->Length;
 
 					if (length > 0)
 					{
 						response->m_body.reserve(length);
-						unsigned char* storage = static_cast<unsigned char*>(response->m_body.data());
-						DataReader::FromBuffer(buffer)->ReadBytes(ArrayReference<unsigned char>(storage, (DWORD)length));
-						//response->m_body = std::string(reinterpret_cast<char*>(storage), length);
+                        response->m_body.resize(length);
+                        DataReader^ dataReader = DataReader::FromBuffer(buffer);
+                        dataReader->ReadBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(response->m_body.data()), (DWORD)length)));
+                        dataReader->DetachBuffer();        
+                        delete dataReader;
 					}
 				}
 			}

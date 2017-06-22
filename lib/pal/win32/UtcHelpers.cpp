@@ -103,5 +103,17 @@ bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize
 	return false;
 }
 
+std::string GetAppLocalTempDirectory()
+{
+	std::string path;
+	char lpTempPathBuffer[MAX_PATH] = { 0 };
+	if (::GetTempPathA(MAX_PATH, lpTempPathBuffer)) 
+	{
+		const std::string &tmp = (char *)lpTempPathBuffer;
+		path = std::string(tmp);
+	}
+	return path;
+}
+
 	} // namespace PAL
 } ARIASDK_NS_END

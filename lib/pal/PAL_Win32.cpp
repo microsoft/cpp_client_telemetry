@@ -257,6 +257,11 @@ int64_t getUtcSystemTimeMs()
     return (now.QuadPart - 116444736000000000ull) / 10000;
 }
 
+int64_t getUtcSystemTime()
+{
+    return getUtcSystemTimeMs() / 1000;
+}
+
 std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
 {
     __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);

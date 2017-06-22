@@ -56,7 +56,7 @@ namespace ARIASDK_NS_BEGIN {
 			{
 				if (!m_deltaReceived && m_pingSent)
 				{
-					int64_t timeSincePing = (PAL::getUtcSystemTimeMs() / 1000) - m_pingSendTime;
+					int64_t timeSincePing = PAL::getUtcSystemTime() - m_pingSendTime;
 					if (timeSincePing > 30) //30 secs have passed sinse ping was sent, soemthing went wrong, disable clock skew
 					{
 						SetDelta("");
@@ -74,7 +74,7 @@ namespace ARIASDK_NS_BEGIN {
 				if (m_pingSent == false)
 				{
 					m_pingSent = true;
-					m_pingSendTime = (PAL::getUtcSystemTimeMs() / 1000);
+					m_pingSendTime = PAL::getUtcSystemTime();
 					return "use-collector-delta";
 				}
 				else

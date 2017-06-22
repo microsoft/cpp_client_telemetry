@@ -396,7 +396,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
                 ARIASDK_LOG_ERROR("LogSession The order is not the correct one in calling LogSession");
                 return;
             }
-            m_sessionStartTime = PAL::getUtcSystemTimeMs();
+            m_sessionStartTime = PAL::getUtcSystemTime();
             if (m_sessionIdP) delete m_sessionIdP;
             m_sessionIdP = new std::string(PAL::generateUuidString());
             break;
@@ -408,7 +408,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
                 ARIASDK_LOG_WARNING("LogSession We don't have session start time");
                 return;
             }
-            sessionDuration = (PAL::getUtcSystemTimeMs() - m_sessionStartTime) / 1000;
+            sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
             break;
         }
     }

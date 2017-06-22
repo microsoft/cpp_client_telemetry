@@ -29,6 +29,8 @@
 namespace ARIASDK_NS_BEGIN {
 namespace PAL {
 
+#define PATH_SEPARATOR_CHAR '\\'
+
 
 //
 // Startup/shutdown
@@ -520,6 +522,7 @@ class PseudoRandomGenerator {
 
 // Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
 extern int64_t getUtcSystemTimeMs();
+extern int64_t getUtcSystemTime();
 
 // Convert given system timestamp in milliseconds to a string in ISO 8601 format
 std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);

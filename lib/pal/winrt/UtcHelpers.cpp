@@ -42,5 +42,14 @@ namespace ARIASDK_NS_BEGIN {
 			}
 		}
 
+
+		std::string GetAppLocalTempDirectory()
+		{
+			::Windows::Storage::StorageFolder^ localFolder = ::Windows::Storage::ApplicationData::Current->LocalFolder;
+			Platform::String^ storagePath = localFolder->Path->ToString();
+			std::wstring wcontent(storagePath->Data());
+			return std::string(wcontent.begin(), wcontent.end());
+		}
+
 	}// namespace PAL
 } ARIASDK_NS_END

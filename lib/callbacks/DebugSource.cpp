@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             seq++;
             evt.seq = seq.load();
-            evt.ts = PAL::getUtcSystemTimeMs();
+            evt.ts = PAL::getUtcSystemTime();
             bool dispatched = false;
 
             if (listeners.size()) {
