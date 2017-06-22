@@ -139,7 +139,7 @@ std::atomic<unsigned>   numRejected = 0;
 std::atomic<unsigned>   numSent = 0;
 std::atomic<unsigned>   numDropped = 0;
 std::atomic<unsigned>   numCached = 0;
-unsigned long testStartMs;
+std::uint64_t testStartMs;
 
 class MyDebugEventListener : public DebugEventListener {
 public:
@@ -197,7 +197,7 @@ public:
 
 		// lock for the duration of the print, so that we don't mess up the prints
 		std::lock_guard<std::mutex> lock(dbg_callback_mtx);
-		unsigned long ms;
+		std::uint64_t ms;
 
 		switch (evt.type) {
 		case EVT_LOG_EVENT:
@@ -214,46 +214,46 @@ public:
 			numLogged++;
             if (print)
             {
-                printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged, evt.param2);
+                printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, evt.param2);
             }
 			ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 			{
-				int temp = (ms - testStartMs);
+				uint64_t temp = (ms - testStartMs);
 				if (temp > 0)
 				{
-					eps = (1000 * numLogged) / temp;
+					eps = (1000 * numLogged) / static_cast<unsigned int>(temp);
 					if ((numLogged % 500) == 0)
 					{
-						printf("EPS=%u\n", eps);
+						printf("EPS=%u\n", eps._My_val);
 					}
 				}
 			}
 			break;
 		case EVT_REJECTED:
             numRejected++;
-			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numRejected, evt.param2);
+			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numRejected._My_val, evt.param2);
 			break;
 		case EVT_ADDED:
             numLogged++;
             if(print)
-			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged, evt.param2);
+			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, evt.param2);
 			break;
 		case EVT_CACHED:
 			numCached += evt.size;
             if(print)
-			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached, evt.param2);
+			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached._My_val, evt.param2);
 			break;
 		case EVT_DROPPED:
             numDropped += evt.size;
-			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numDropped, evt.param2);
+			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numDropped._My_val, evt.param2);
 			break;
 		case EVT_SENT:
 			numSent += evt.size;
             if(print)
-			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent, evt.param2);
+			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, evt.param2);
 			break;
 		case EVT_STORAGE_FULL:
-			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent, evt.param2);
+			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, evt.param2);
 			if (evt.param1 >= 75) {
 				// UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
 				// or notify the main app that it has to do the profile timers housekeeping / force the upload...
@@ -486,6 +486,7 @@ ILogger* init() {
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
 	//configuration.multiTenantEnabled = true;
 	configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
+	configuration.cacheMemorySizeLimitInBytes = 50 * 1024 * 1024;
 	configuration.maxTeardownUploadTimeInSec = 5;
 
 	// Force UTC uploader on Windows 10 even if it's not RS2
@@ -566,43 +567,43 @@ void run(ILogger* logger, int maxStressRuns) {
 
 			{
 				// ignore the logger passed from above
-				ILogger *logger = LogManager::GetLogger(cTenantToken); 
+				ILogger *loggerl = LogManager::GetLogger(cTenantToken); 
 
 				// Set the custom context to be sent with every telemetry event.
-				logger->SetContext("TeamName", "ARIA");
+                loggerl->SetContext("TeamName", "ARIA");
 				//logger->SetContext("AppID", VER1 VER2 "-" __DATE__ " " __TIME__);
 				// Set the semantic context. For example, an app will set this property after the user logs in.
 				//logger->SetContext(->GetSemanticContext()->SetUserMsaId("BCCA864D-1386-4D5A-9570-B129F6DD42B7");
-				logger->SetContext("context.string.key", "boo");
+                loggerl->SetContext("context.string.key", "boo");
 
 				long long_value = 12345L;
-				logger->SetContext("context.long.key", long_value);
+                loggerl->SetContext("context.long.key", long_value);
 
 				double double_value = (double)((uint64_t)9223372036854775807L);
-				logger->SetContext("context.double.key", double_value);
+                loggerl->SetContext("context.double.key", double_value);
 
 				{
 					EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
-					logger->LogEvent(props);
+                    loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 2) == 0)
 				{
 					EventProperties props = CreateSampleEvent("Sample.Event.Normal", EventPriority_Normal);
-					logger->LogEvent(props);
+                    loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 4) == 0)
 				{
 					EventProperties props = CreateSampleEvent("Sample.Event.High", EventPriority_High);
 					props.SetType("My.Super.Duper.Fancy.Event.Type.For.MDM.Export");
-					logger->LogEvent(props);
+                    loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 8) == 0)
 				{
 					EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_Immediate);
-					logger->LogEvent(props);
+                    loggerl->LogEvent(props);
 				}
 			}
 						
@@ -664,6 +665,8 @@ void DumpMemoryLeaks()
 
 int main(int argc, char* argv[])
 {//
+    UNREFERENCED_PARAMETER(argc);
+    UNREFERENCED_PARAMETER(argv);
 #ifdef DETECT_MEMLEAKS
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_CHECK_EVERY_1024_DF);
@@ -748,14 +751,6 @@ int main(int argc, char* argv[])
 	// 2nd run after initialize
 	{		
 		printf("Reinitialize test...\n");
-		LogConfiguration configuration;
-        configuration.cacheFilePath = "offlinestorage.db";// ":memory:"; //"offlinestorage.db";
-		configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
-														 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
-		configuration.minimumTraceLevel = ACTTraceLevel_Trace;
-		configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
-		configuration.maxTeardownUploadTimeInSec = 5;
-
 		
 #ifdef USE_INT
 		configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
@@ -779,13 +774,13 @@ int main(int argc, char* argv[])
 		{
 			for (size_t i = 0; i < MAX_STRESS_COUNT; i++)
 			{
-				ILogger *logger = kv.second;
+				ILogger *loggerl = kv.second;
 				EventProperties props("traceEventName",
 				{
 					{ "logger"  , kv.first.c_str() }
 				});
-				logger->SetContext(kv.first, true);
-				logger->LogTrace(TraceLevel_Error, "some error occurred", props);
+                loggerl->SetContext(kv.first, true);
+                loggerl->LogTrace(TraceLevel_Error, "some error occurred", props);
 			}
 		};
 		LogManager::UploadNow();

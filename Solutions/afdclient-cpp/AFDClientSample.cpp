@@ -28,11 +28,6 @@ void AFDClientSample()
     ILogger *pLogger = getPrimaryLogger();
     pAFDClientListener->Init(pLogger);
 
-    int setting1 = pAFDClientListener->m_pAFDClient->GetSetting("SCTTest", "Flight", 0);
-    string setting2 = pAFDClientListener->m_pAFDClient->GetSetting("AsyncMediaClient", "pes_config", std::string());
-    string setting3 = pAFDClientListener->m_pAFDClient->GetSetting("AsyncMediaClient", "media_params/Audio.1/title", std::string());
-    std::vector<std::string> settings4 = pAFDClientListener->m_pAFDClient->GetSettings("AsyncMediaClient", "storage_limits/imgpsh/format");
-
     for (int i = 0; i < 2; i++)
     {
         Sleep(500000);

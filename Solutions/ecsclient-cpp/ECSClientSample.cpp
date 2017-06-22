@@ -28,10 +28,16 @@ void ECSClientSample()
     ILogger *pLogger = getPrimaryLogger();
     pECSClientListener->Init(pLogger);
 
-    int setting1 = pECSClientListener->m_pECSClient->GetSetting("SCTTest", "Flight", 0);
+    EventProperties evtProp("EventSetting");
+    int setting1 = pECSClientListener->m_pECSClient->GetSetting("SCTTest", "Flight", 0);  
+    evtProp.SetProperty("setting1", setting1);
     string setting2 = pECSClientListener->m_pECSClient->GetSetting("AsyncMediaClient", "pes_config", std::string());
+    evtProp.SetProperty("setting2", setting2);
     string setting3 = pECSClientListener->m_pECSClient->GetSetting("AsyncMediaClient", "media_params/Audio.1/title", std::string());
+    evtProp.SetProperty("setting3", setting3);
     std::vector<std::string> settings4 = pECSClientListener->m_pECSClient->GetSettings("AsyncMediaClient", "storage_limits/imgpsh/format");
+
+    pLogger->LogEvent(evtProp);
 
     for (int i = 0; i < 2; i++)
     {

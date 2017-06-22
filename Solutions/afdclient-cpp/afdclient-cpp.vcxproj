@@ -101,6 +101,8 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(ProjectDir)..\..\Solutions\out\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -111,6 +113,8 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(ProjectDir)..\..\Solutions\out\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,6 +125,8 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(ProjectDir)..\..\Solutions\out\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -131,6 +137,8 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\include\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(ProjectDir)..\..\Solutions\out\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -186,7 +194,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug.vs2013.static|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release.vs2013.static|x64'">Create</PrecompiledHeader>
-    </ClCompile> 
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\win10-dll\win10-dll.vcxproj">

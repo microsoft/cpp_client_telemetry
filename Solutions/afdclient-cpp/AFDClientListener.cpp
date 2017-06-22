@@ -49,7 +49,9 @@ void AFDClientListener::Init(ILogger* pLogger)
     }
     catch (std::exception& e)
     {
-        // Log exception message
+        EventProperties prop("test");
+        pLogger->LogFailure("Exception",e.what(), prop);
+       
         return;
     }
 

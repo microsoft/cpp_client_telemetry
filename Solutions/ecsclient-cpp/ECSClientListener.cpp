@@ -48,7 +48,9 @@ void ECSClientListener::Init(ILogger* pLogger)
     }
     catch (std::exception& e)
     {
-        // Log exception message
+        EventProperties prop("test");
+        pLogger->LogFailure("Exception", e.what(), prop);
+   
         return;
     }
 
@@ -95,8 +97,17 @@ void ECSClientListener::OnECSClientEvent(ECSClientEventType evtType, ECSClientEv
     {
         TraceMsg("ET_CONFIG_UPDATE_SUCCEEDED\n");
         int setting1 = m_pECSClient->GetSetting("SCTTest", "Flight", 0);
+        std::string message;
+        message += std::to_string(setting1); message += " ,";
         string setting2 = m_pECSClient->GetSetting("UI", "id", std::string());
+        message += setting2; message += " ,";
         string setting3 = m_pECSClient->GetSetting("AsyncMediaClient", "media_params/Audio.1/title", std::string());
+        message += setting3; message += " ,";
         std::vector<std::string> settings4 = m_pECSClient->GetSettings("AsyncMediaClient", "storage_limits/imgpsh/format");
+        for (auto elem : settings4)
+        {
+            message += elem; message += " ,";
+        }
+        TraceMsg(msg.c_str());
     }
 }
