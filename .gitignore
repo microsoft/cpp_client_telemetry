@@ -23,5 +23,6 @@ lib/jni/gen/
 .project
 .settings
 
-#Visual Studio state files
+#Visual Studio files
 *.suo
+*.opendb
