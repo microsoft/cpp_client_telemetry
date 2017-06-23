@@ -25,7 +25,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneProvider.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp" />
@@ -72,8 +75,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ConcurrentObservable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneConcurrentObservable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ILocalStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\LocalStorageConcurrentObservable.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />

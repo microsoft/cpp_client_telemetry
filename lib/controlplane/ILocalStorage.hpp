@@ -59,18 +59,39 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         /// <summary>
         /// Retrieve all data for the specified tenant
         /// </summary>
-        /// <returns>The available tenant data. Returns defaults if no data exists</returns>
+        /// <returns>The available tenant data. Returns nullptr if no data exists</returns>
         virtual TenantDataPtr ReadTenantData(const ARIASDK_NS::GUID_t& ariaTenantId) const = 0;
 
         /// <summary>
         /// Register a handler to receive notifications if any parameters change within this store
         /// </summary>
-        virtual void RegisterChangeEventHandler(ILocalStorageChangeEventHandler const * handler) = 0;
+        virtual void RegisterChangeEventHandler(ILocalStorageChangeEventHandler * handler) = 0;
 
         /// <summary>
         /// Unregister a previously regsitered handler
         /// </summary>
-        virtual void UnregisterChangeEventHandler(ILocalStorageChangeEventHandler const * handler) = 0;
+        virtual void UnregisterChangeEventHandler(ILocalStorageChangeEventHandler * handler) = 0;
+    };
+
+    /// <summary>
+    /// API to serialize/deserialize TenantData
+    /// </summary>
+    class ITenantDataSerializer
+    {
+    public:
+        ~ITenantDataSerializer() {}
+
+        /// <summary>
+        /// Convert the specified TenantDataPtr to a string
+        /// </summary>
+        /// <returns>The serialized form of the data</returns>
+        virtual std::string SerializeTenantData(TenantDataPtr tenantData) const = 0;
+
+        /// <summary>
+        /// Convert the specfied string into a TenantDataPtr
+        /// </summary>
+        /// <returns>The appropriate TenantDataPtr, or an empty (non-dummy) TenantDataPtr on error. The caller owns deleting the object</returns>
+        virtual TenantDataPtr DeserializeTenantData(const std::string& string) const = 0;
     };
 
 }}}} // namespace Microsoft::Applications::Telemetry::ControlPlane

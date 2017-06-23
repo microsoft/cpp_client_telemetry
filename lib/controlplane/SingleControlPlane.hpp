@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "IControlPlane.hpp"
-#include "ConcurrentObservable.hpp"
+#include "ControlPlaneConcurrentObservable.hpp"
 #include "ILocalStorage.hpp"
 
 // *INDENT-OFF*
@@ -29,7 +29,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         SingleControlPlane(ILocalStorageReader& localStorageReader);
         virtual ~SingleControlPlane();
 
-        const std::string& GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) override;
+        std::string* GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) override;
         long GetLongParameter(const GUID_t& ariaTenantId, const std::string& parameterId, long defaultValue) override;
         bool GetBoolParameter(const GUID_t& ariaTenantId, const std::string& parameterId, bool defaultValue) override;
         bool TryGetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, std::string& value) override;

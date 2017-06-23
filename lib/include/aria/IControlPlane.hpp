@@ -33,8 +33,8 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Retrieve a string parameter (as a std::string) from the control plane.
         /// </summary>
-        /// <returns>The parameter if it exists and is the correct type, otherwise defaultValue</returns>
-        virtual const std::string& GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) = 0;
+        /// <returns>The parameter if it exists and is the correct type, otherwise a copy of defaultValue. Caller owns deleting this object.</returns>
+        virtual std::string* GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) = 0;
 
         /// <summary>
         /// Retrieve a numeric parameter (as a long) from the control plane.
@@ -75,6 +75,43 @@ namespace ARIASDK_NS_BEGIN
         /// Unregister a previously regsitered handler
         /// </summary>
         virtual void UnregisterChangeEventHandler(IControlPlaneChangeEventHandler* handler) = 0;
+    };
+
+    /// <summary>
+    /// Configuration of the control plane to be used. This struct must not contain any members that
+    /// might change size based upon what version of the standard library is used (and that rules out
+    /// EVERYTHING in the std namespace, with the single exception of std::vector). Required use
+    /// </summary>
+    struct ControlPlaneConfiguration
+    {
+        // [required] Size of this structure, must be set by the caller before requesting the control plane
+        size_t structSize;
+
+        // [required] The root under which control plane data will be cached.
+        LPCSTR cacheFilePathRoot;
+
+        /// <summary>
+        /// Ctor -- sets all memebers to safe defaults, so caller simply overrides what needs to be non-default
+        /// </summary>
+        ControlPlaneConfiguration()
+        {
+            // ALL data members must be set here!
+            structSize = sizeof(ControlPlaneConfiguration);
+            cacheFilePathRoot = nullptr;
+        }
+    };
+
+    /// <summary>
+    /// Class to obtain the IControlPlane object
+    /// </summary>
+    class ControlPlaneProvider
+    {
+    public:
+        /// <summary>
+        /// Get an implementation of IControlPlane that uses just the Aria collector
+        /// </summary>
+        /// <returns>The IControlPlane object</returns>
+        static IControlPlane* GetControlPlane(const ControlPlaneConfiguration& config);
     };
 
 } ARIASDK_NS_END

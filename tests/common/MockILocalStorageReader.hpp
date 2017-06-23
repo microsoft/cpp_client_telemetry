@@ -12,8 +12,8 @@ namespace testing
     {
     public:
         MOCK_CONST_METHOD1(ReadTenantData, ARIASDK_NS::ControlPlane::TenantDataPtr(const ARIASDK_NS::GUID_t& ariaTenantId));
-        MOCK_METHOD1(RegisterChangeEventHandler, void(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler const * handler));
-        MOCK_METHOD1(UnregisterChangeEventHandler, void(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler const * handler));
+        MOCK_METHOD1(RegisterChangeEventHandler, void(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler * handler));
+        MOCK_METHOD1(UnregisterChangeEventHandler, void(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler * handler));
     };
 
     class NotifiableMockILocalStorageReader : public MockILocalStorageReader
@@ -26,13 +26,13 @@ namespace testing
             m_handler = nullptr;
         }
 
-        void RegisterChangeEventHandler(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler const * handler) override
+        void RegisterChangeEventHandler(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler * handler) override
         {
-            m_handler = (ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler * const)handler;
+            m_handler = handler;
             MockILocalStorageReader::RegisterChangeEventHandler(handler);
         }
 
-        void UnregisterChangeEventHandler(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler const * handler) override
+        void UnregisterChangeEventHandler(ARIASDK_NS::ControlPlane::ILocalStorageChangeEventHandler * handler) override
         {
             m_handler = nullptr;
             MockILocalStorageReader::UnregisterChangeEventHandler(handler);

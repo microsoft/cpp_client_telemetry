@@ -24,16 +24,16 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         }
     }
 
-    const std::string& SingleControlPlane::GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue)
+    std::string* SingleControlPlane::GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue)
     {
         std::string value;
 
         if (TryGetStringParameter(ariaTenantId, parameterId, value))
         {
-            return *(new std::string(value));  // Return a COPY of the string, so caller owns the delete
+            return new std::string(value);      // Return a COPY of the string, so caller owns the delete
         }
 
-        return defaultValue;
+        return new std::string(defaultValue);   // Return a COPY of the string, so caller owns the delete
     }
 
     long SingleControlPlane::GetLongParameter(const GUID_t& ariaTenantId, const std::string& parameterId, long defaultValue)

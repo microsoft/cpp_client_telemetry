@@ -45,8 +45,8 @@ TEST(SingleControlPlaneTests, GetStringParameter_NoTenantDataExists_ReturnsDefau
     IControlPlane* controlPlane = new SingleControlPlane(readerMock);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsNotInDictionary_ReturnsDefaultValue)
@@ -67,8 +67,8 @@ TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsNot
     IControlPlane* controlPlane = new SingleControlPlane(readerMock);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsInDictionary_ReturnsDictionaryValue)
@@ -91,8 +91,8 @@ TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsInD
     IControlPlane* controlPlane = new SingleControlPlane(readerMock);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(value, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(value, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(value, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(value, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetLongParameter_NoTenantDataExists_ReturnsDefaultValue)
