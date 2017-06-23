@@ -22,3 +22,6 @@ lib/jni/gen/
 .cproject
 .project
 .settings
+
+#Visual Studio state files
+*.suo
