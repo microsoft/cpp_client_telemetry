@@ -9,7 +9,7 @@ struct sqlite3;
 struct sqlite3_context;
 struct sqlite3_stmt;
 struct sqlite3_vfs;
-typedef struct Mem sqlite3_value;
+typedef struct Mem sqlite3_proxy_value;
 
 
 namespace ARIASDK_NS_BEGIN {
@@ -31,7 +31,7 @@ class ISqlite3Proxy {
     virtual int64_t              sqlite3_column_int64(sqlite3_stmt* stmt, int iCol) = 0;
     virtual unsigned char const* sqlite3_column_text(sqlite3_stmt* stmt, int iCol) = 0;
     virtual int                  sqlite3_create_function_v2(sqlite3* db, char const* zFunctionName, int nArg, int eTextRep, void* pApp,
-        void (* xFunc)(sqlite3_context*, int, sqlite3_value**), void (* xStep)(sqlite3_context*, int, sqlite3_value**),
+        void (* xFunc)(sqlite3_context*, int, sqlite3_proxy_value**), void (* xStep)(sqlite3_context*, int, sqlite3_proxy_value**),
         void (* xFinal)(sqlite3_context*), void (* xDestroy)(void*)) = 0;
     virtual const char*          sqlite3_errmsg(sqlite3* db) = 0;
     virtual int                  sqlite3_extended_result_codes(sqlite3* db, int on) = 0;
@@ -46,8 +46,8 @@ class ISqlite3Proxy {
     virtual void                 sqlite3_set_auxdata(sqlite3_context* ctx, int N, void* data, void (* d)(void*)) = 0;
     virtual int                  sqlite3_shutdown() = 0;
     virtual int                  sqlite3_step(sqlite3_stmt* stmt) = 0;
-    virtual const void*          sqlite3_value_blob(sqlite3_value* value) = 0;
-    virtual int                  sqlite3_value_bytes(sqlite3_value* value) = 0;
+    virtual const void*          sqlite3_value_blob(sqlite3_proxy_value* value) = 0;
+    virtual int                  sqlite3_value_bytes(sqlite3_proxy_value* value) = 0;
     virtual sqlite3_vfs*         sqlite3_vfs_find(char const* zVfsName) = 0;
 };
 
