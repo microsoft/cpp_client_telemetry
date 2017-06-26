@@ -25,7 +25,7 @@ class MockISqlite3Proxy : public ARIASDK_NS::ISqlite3Proxy {
     MOCK_METHOD2(sqlite3_column_int64, int64_t(sqlite3_stmt * stmt, int iCol));
     MOCK_METHOD2(sqlite3_column_text, unsigned const char*(sqlite3_stmt * stmt, int iCol));
     MOCK_METHOD9(sqlite3_create_function_v2, int(sqlite3 * db, char const* zFunctionName, int nArg, int eTextRep, void* pApp,
-        void (* xFunc)(sqlite3_context*, int, sqlite3_proxy_value**), void (* xStep)(sqlite3_context*, int, sqlite3_proxy_value**),
+        void (* xFunc)(sqlite3_context*, int, sqlite3_value**), void (* xStep)(sqlite3_context*, int, sqlite3_value**),
         void (* xFinal)(sqlite3_context*), void (* xDestroy)(void*)));
     MOCK_METHOD1(sqlite3_errmsg, char const*(sqlite3 * db));
     MOCK_METHOD2(sqlite3_extended_result_codes, int(sqlite3 * db, int on));
@@ -40,8 +40,8 @@ class MockISqlite3Proxy : public ARIASDK_NS::ISqlite3Proxy {
     MOCK_METHOD4(sqlite3_set_auxdata, void(sqlite3_context * ctx, int N, void* data, void (* d)(void*)));
     MOCK_METHOD0(sqlite3_shutdown, int());
     MOCK_METHOD1(sqlite3_step, int(sqlite3_stmt * stmt));
-    MOCK_METHOD1(sqlite3_value_blob, void const*(sqlite3_proxy_value * value));
-    MOCK_METHOD1(sqlite3_value_bytes, int(sqlite3_proxy_value * value));
+    MOCK_METHOD1(sqlite3_value_blob, void const*(sqlite3_value * value));
+    MOCK_METHOD1(sqlite3_value_bytes, int(sqlite3_value * value));
     MOCK_METHOD1(sqlite3_vfs_find, sqlite3_vfs * (char const* zVfsName));
 };
 

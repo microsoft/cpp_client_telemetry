@@ -50,7 +50,7 @@ class RealSqlite3Proxy : public ISqlite3Proxy {
     { return ::sqlite3_column_text(stmt, iCol); }
 
     int sqlite3_create_function_v2(sqlite3* db, char const* zFunctionName, int nArg, int eTextRep, void* pApp,
-        void (* xFunc)(sqlite3_context*, int, sqlite3_proxy_value**), void (* xStep)(sqlite3_context*, int, sqlite3_proxy_value**),
+        void (* xFunc)(sqlite3_context*, int, sqlite3_value**), void (* xStep)(sqlite3_context*, int, sqlite3_value**),
         void (* xFinal)(sqlite3_context*), void (* xDestroy)(void*)) override
     { return ::sqlite3_create_function_v2(db, zFunctionName, nArg, eTextRep, pApp, xFunc, xStep, xFinal, xDestroy); }
 
@@ -93,10 +93,10 @@ class RealSqlite3Proxy : public ISqlite3Proxy {
     int sqlite3_step(sqlite3_stmt* stmt) override
     { return ::sqlite3_step(stmt); }
 
-    void const* sqlite3_value_blob(sqlite3_proxy_value* value) override
+    void const* sqlite3_value_blob(sqlite3_value* value) override
     { return ::sqlite3_value_blob(value); }
 
-    int sqlite3_value_bytes(sqlite3_proxy_value* value) override
+    int sqlite3_value_bytes(sqlite3_value* value) override
     { return ::sqlite3_value_bytes(value); }
 
     sqlite3_vfs* sqlite3_vfs_find(char const* zVfsName) override
@@ -260,7 +260,7 @@ class SqliteDB {
     }
 
   protected:
-    static void sqliteFunc_tokenize(sqlite3_context* ctx, int argc, sqlite3_proxy_value** argv)
+    static void sqliteFunc_tokenize(sqlite3_context* ctx, int argc, sqlite3_value** argv)
     {
 		UNREFERENCED_PARAMETER(argc);
         int len = g_sqlite3Proxy->sqlite3_value_bytes(argv[0]);
