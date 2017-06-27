@@ -20,7 +20,7 @@ class TestableDiskLocalStorage : public DiskLocalStorage
     }
 
 public:
-    TestableDiskLocalStorage(const std::string& pathToCache, ITenantDataSerializer& serializer,
+    TestableDiskLocalStorage(const std::string& pathToCache, std::unique_ptr<ITenantDataSerializer> &serializer,
         std::istream* streamToReturn)
         : DiskLocalStorage(pathToCache, serializer), m_streamToReturn(streamToReturn)
     {
@@ -29,17 +29,19 @@ public:
 
 TEST(DiskLocalStorageTests, Ctor_Succeeds)
 {
-    StrictMock<MockITenantDataSerializer> mockISerializer;
-    DiskLocalStorage reader("", mockISerializer);
+    MockITenantDataSerializer* serializerMock = new StrictMock<MockITenantDataSerializer>();
+    std::unique_ptr<ITenantDataSerializer> serializer(serializerMock);
+    DiskLocalStorage reader("", serializer);
 }
 
 TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamFails_ReturnsNullptr)
 {
     LPCSTR path = "My Path";
     GUID_t ariaTenantId;
+    MockITenantDataSerializer* serializerMock = new StrictMock<MockITenantDataSerializer>();
+    std::unique_ptr<ITenantDataSerializer> serializer(serializerMock);
 
-    StrictMock<MockITenantDataSerializer> mockISerializer;
-    TestableDiskLocalStorage reader(path, mockISerializer, nullptr);
+    TestableDiskLocalStorage reader(path, serializer, nullptr);
     ASSERT_EQ(nullptr, reader.ReadTenantData(ariaTenantId));
 }
 
@@ -47,11 +49,12 @@ TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamReturnsEmptyStream_ReturnsN
 {
     LPCSTR path = "My Path";
     GUID_t ariaTenantId;
+    MockITenantDataSerializer* serializerMock = new StrictMock<MockITenantDataSerializer>();
+    std::unique_ptr<ITenantDataSerializer> serializer(serializerMock);
     std::string expectedInput = "";
     std::istream * testStream = new std::istringstream(expectedInput);
 
-    StrictMock<MockITenantDataSerializer> mockISerializer;
-    TestableDiskLocalStorage reader(path, mockISerializer, testStream);
+    TestableDiskLocalStorage reader(path, serializer, testStream);
     ASSERT_EQ(nullptr, reader.ReadTenantData(ariaTenantId));
 }
 
@@ -59,15 +62,16 @@ TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamReturnsNonEmptyStream_Seria
 {
     LPCSTR path = "My Path";
     GUID_t ariaTenantId;
+    MockITenantDataSerializer* serializerMock = new StrictMock<MockITenantDataSerializer>();
+    std::unique_ptr<ITenantDataSerializer> serializer(serializerMock);
     std::string expectedInput = "This should return nullptr";
     std::istream * testStream = new std::istringstream(expectedInput);
 
     std::string actualInput;
 
-    StrictMock<MockITenantDataSerializer> mockISerializer;
-    EXPECT_CALL(mockISerializer, DeserializeTenantData(_))
+    EXPECT_CALL(*serializerMock, DeserializeTenantData(_))
         .WillOnce(DoAll(SaveArg<0>(&actualInput),Return(nullptr)));
-    TestableDiskLocalStorage reader(path, mockISerializer, testStream);
+    TestableDiskLocalStorage reader(path, serializer, testStream);
     ASSERT_EQ(nullptr, reader.ReadTenantData(ariaTenantId));
     ASSERT_EQ(expectedInput, actualInput);
 }
@@ -76,6 +80,8 @@ TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamReturnsNonEmptyStream_Seria
 {
     LPCSTR path = "My Path";
     GUID_t ariaTenantId;
+    MockITenantDataSerializer* serializerMock = new StrictMock<MockITenantDataSerializer>();
+    std::unique_ptr<ITenantDataSerializer> serializer(serializerMock);
     std::string expectedInput = "This should return TenantDataPtr";
     std::istream * testStream = new std::istringstream(expectedInput);
 
@@ -83,10 +89,9 @@ TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamReturnsNonEmptyStream_Seria
 
     TenantData tenantData;
 
-    StrictMock<MockITenantDataSerializer> mockISerializer;
-    EXPECT_CALL(mockISerializer, DeserializeTenantData(_))
+    EXPECT_CALL(*serializerMock, DeserializeTenantData(_))
         .WillOnce(DoAll(SaveArg<0>(&actualInput), Return(&tenantData)));
-    TestableDiskLocalStorage reader(path, mockISerializer, testStream);
+    TestableDiskLocalStorage reader(path, serializer, testStream);
     ASSERT_EQ(&tenantData, reader.ReadTenantData(ariaTenantId));
     ASSERT_EQ(expectedInput, actualInput);
 }

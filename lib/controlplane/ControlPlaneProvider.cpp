@@ -7,6 +7,7 @@
 #include "controlplane/DiskLocalStorage.hpp"
 #include "controlplane/TenantDataSerializer.hpp"
 #include "offline/FifoFileStorage.hpp"
+#include <memory>
 
 using namespace ARIASDK_NS::ControlPlane;
 
@@ -34,9 +35,9 @@ namespace ARIASDK_NS_BEGIN
     {
         std::string pathToCache(config.cacheFilePathRoot);
         pathToCache += "\\ACP";
-        ITenantDataSerializer* serializer = new TenantDataSerializer();
-        ILocalStorageReader* reader = new DiskLocalStorage(pathToCache, *serializer);
-        return new SingleControlPlane(*reader);
+        std::unique_ptr<ITenantDataSerializer> serializer = std::make_unique<TenantDataSerializer>();
+        std::unique_ptr<ILocalStorageReader> reader(new DiskLocalStorage(pathToCache, serializer));
+        return new SingleControlPlane(reader);
     }
 
     /// <summary>

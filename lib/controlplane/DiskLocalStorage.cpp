@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <memory>
 #include "DiskLocalStorage.hpp"
 
 // *INDENT-OFF*
@@ -15,10 +14,10 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
     /// <paramName>Where the place cache files. Ownersip is NOT transferred to the new object</paramName>
     /// <paramName>serializer is the ITenantDataSerializer to use. Ownership is transferred to the new object</paramName>
     /// <returns>The available tenant data. Returns nullptr if no data exists</returns>
-    DiskLocalStorage::DiskLocalStorage(const std::string& pathToCache, ITenantDataSerializer& serializer)
+    DiskLocalStorage::DiskLocalStorage(const std::string& pathToCache, std::unique_ptr<ITenantDataSerializer> &serializer)
         : m_pathToCache(pathToCache)
-        , m_serializer(serializer)
     {
+        m_serializer.swap(serializer);
     }
 
     /// <summary>
@@ -62,7 +61,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
 
                 if (stream->read(&contents[0], size))
                 {
-                    tenantDataPtr = m_serializer.DeserializeTenantData(contents);
+                    tenantDataPtr = m_serializer->DeserializeTenantData(contents);
                 }
             }
         }

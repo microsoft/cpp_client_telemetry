@@ -9,15 +9,15 @@ using namespace Microsoft::Applications::Telemetry;
 namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
 // *INDENT-ON*
 {
-    SingleControlPlane::SingleControlPlane(ILocalStorageReader& localStorageReader)
-        :m_localStorageReader(localStorageReader)
+    SingleControlPlane::SingleControlPlane(std::unique_ptr<ILocalStorageReader>& localStorageReader)
     {
-        m_localStorageReader.RegisterChangeEventHandler(this);
+        m_localStorageReader.swap(localStorageReader);
+        m_localStorageReader->RegisterChangeEventHandler(this);
     }
 
     SingleControlPlane::~SingleControlPlane()
     {
-        m_localStorageReader.UnregisterChangeEventHandler(this);
+        m_localStorageReader->UnregisterChangeEventHandler(this);
         {
             std::lock_guard<std::mutex> lockguard(m_mutex);
             m_tenantMap.clear();
@@ -150,7 +150,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         if (found != m_tenantMap.end())
             return found->second;
 
-        TenantDataPtr dataFromStorage = m_localStorageReader.ReadTenantData(ariaTenantId);
+        TenantDataPtr dataFromStorage = m_localStorageReader->ReadTenantData(ariaTenantId);
 
         if (dataFromStorage != nullptr)
         {

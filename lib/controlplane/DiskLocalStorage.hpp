@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include "LocalStorageConcurrentObservable.hpp"
+#include <memory>
 
 // *INDENT-OFF*
 namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
@@ -19,7 +20,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
     private:
         LocalStorageConcurrentObservable m_observable;
         const std::string m_pathToCache;
-        ITenantDataSerializer & m_serializer;
+        std::unique_ptr<ITenantDataSerializer> m_serializer;
 
         void GetPathToTenantDataFile(const ARIASDK_NS::GUID_t& ariaTenantId, std::string& pathToTenantDataFile) const;
 
@@ -36,7 +37,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         /// <paramName>Where the place cache files. Ownersip is NOT transferred to the new object</paramName>
         /// <paramName>serializer is the ITenantDataSerializer to use. Ownership is transferred to the new object</paramName>
         /// <returns>The available tenant data. Returns nullptr if no data exists</returns>
-        DiskLocalStorage(const std::string& pathToCache, ITenantDataSerializer& serializer);
+        DiskLocalStorage(const std::string& pathToCache, std::unique_ptr<ITenantDataSerializer> &serializer);
 
         /// <summary>
         /// Dtor
