@@ -4,8 +4,9 @@
 #include <unordered_map>
 
 #include "IControlPlane.hpp"
-#include "ConcurrentObservable.hpp"
+#include "ControlPlaneConcurrentObservable.hpp"
 #include "ILocalStorage.hpp"
+#include <memory>
 
 // *INDENT-OFF*
 namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
@@ -17,7 +18,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
     class SingleControlPlane : public IControlPlane, ILocalStorageChangeEventHandler
     {
     private:
-        ILocalStorageReader& m_localStorageReader;
+        std::unique_ptr<ILocalStorageReader> m_localStorageReader;
         ControlPlaneConcurrentObservable m_observable;
         std::unordered_map<GUID_t, TenantDataPtr, GuidMapHasher> m_tenantMap;
         std::mutex m_mutex;
@@ -26,10 +27,10 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         void OnChange(ILocalStorageReader& localStorageReader, const GUID_t& ariaTenantId);
 
     public:
-        SingleControlPlane(ILocalStorageReader& localStorageReader);
+        SingleControlPlane(std::unique_ptr<ILocalStorageReader>& localStorageReader);
         virtual ~SingleControlPlane();
 
-        const std::string& GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) override;
+        std::string* GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue) override;
         long GetLongParameter(const GUID_t& ariaTenantId, const std::string& parameterId, long defaultValue) override;
         bool GetBoolParameter(const GUID_t& ariaTenantId, const std::string& parameterId, bool defaultValue) override;
         bool TryGetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, std::string& value) override;

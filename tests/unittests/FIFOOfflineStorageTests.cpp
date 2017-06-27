@@ -76,6 +76,8 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageBaseUnitTest)
 	//EXPECT_STREQ(str, buf);
 	EXPECT_EQ(0, std::memcmp(buf, str, size));
 	storeFile.Close();
+
+	storeFile.DeleteFileLocal(filename);
 }
 
 
@@ -143,7 +145,6 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteUnitTest)
 
 	storeFile.Free((void **)&buff);
 	storeFile.Close();
-
 	storeFile.DeleteFileLocal(fileName);
 }
 
@@ -752,10 +753,8 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
 	char filename[] = "OfflineStorageRemoveItemsByTimeUnitTest.dat";
 
 	// Delete the file before starting the test
-	{
-		FIFOFileStorage  storeFile;
-		storeFile.DeleteFileLocal(filename);
-	}
+	FIFOFileStorage  storeFile;
+	storeFile.DeleteFileLocal(filename);
 
 	IStorage* pOfflineStorage = new FIFOFileStorage();
 	EXPECT_TRUE(pOfflineStorage != NULL);
@@ -835,6 +834,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
 	EXPECT_EQ(DATARV_ERROR_FILE_NOMOREITEMS, pOfflineStorage->FindFirstItem(&findItemInfo));
 
 	delete pOfflineStorage;
+	storeFile.DeleteFileLocal(filename);
 }
 
 

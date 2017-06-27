@@ -22,3 +22,11 @@ lib/jni/gen/
 .cproject
 .project
 .settings
+
+# Visual Studio files
+*.suo
+*.opendb
+
+# Zlib generated files
+zlib/contrib/masmx86/*.lst
+zlib/contrib/masmx64/*.lst

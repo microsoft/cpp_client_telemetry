@@ -9,7 +9,7 @@ struct sqlite3;
 struct sqlite3_context;
 struct sqlite3_stmt;
 struct sqlite3_vfs;
-typedef struct Mem sqlite3_value;
+typedef struct sqlite3_value sqlite3_value;
 
 
 namespace ARIASDK_NS_BEGIN {

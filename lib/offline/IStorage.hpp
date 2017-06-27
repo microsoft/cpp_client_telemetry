@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Version.hpp>
 #include <stddef.h>
 #include <cstdint>
 #include <stdio.h>

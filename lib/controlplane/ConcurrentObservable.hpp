@@ -80,22 +80,16 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         }
     };
 
-    struct ControlPlaneChangeData
+    template <class SourceType>
+    struct ChangeDataTemplate
     {
-        ControlPlaneChangeData(IControlPlane& controlPlane, const GUID_t & ariaTenantId)
-            : m_ariaTenantId(ariaTenantId), m_controlPlane(controlPlane)
+        ChangeDataTemplate(SourceType & sourceType, const GUID_t & ariaTenantId)
+            : m_ariaTenantId(ariaTenantId), m_source(sourceType)
         {
         }
 
-        IControlPlane & m_controlPlane;
+        SourceType & m_source;
         const GUID_t & m_ariaTenantId;
     };
 
-    class ControlPlaneConcurrentObservable : public ConcurrentObservable<IControlPlaneChangeEventHandler*, const ControlPlaneChangeData&>
-    {
-        void NotifyOneObserver(IControlPlaneChangeEventHandler* observer, const ControlPlaneChangeData& data)
-        {
-            observer->OnChange(data.m_controlPlane, data.m_ariaTenantId);
-        }
-    };
 }}}} // namespace Microsoft::Applications::Telemetry::ControlPlane

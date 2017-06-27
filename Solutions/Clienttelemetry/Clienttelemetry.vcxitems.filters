@@ -198,6 +198,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp">
       <Filter>experiment</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.cpp">
+      <Filter>controlplane</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.cpp">
+      <Filter>controlplane</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneProvider.cpp">
+      <Filter>controlplane</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -372,6 +381,18 @@
       <Filter>controlplane</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneConcurrentObservable.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\LocalStorageConcurrentObservable.hpp">
+      <Filter>controlplane</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.hpp">
       <Filter>controlplane</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp">

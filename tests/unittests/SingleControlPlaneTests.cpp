@@ -11,22 +11,24 @@ using namespace ARIASDK_NS::ControlPlane;
 
 TEST(SingleControlPlaneTests, ValidStorageConstructs)
 {
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
-    new SingleControlPlane(readerMock);
+    new SingleControlPlane(reader);
 }
 
 TEST(SingleControlPlaneTests, ValidStorageConstructsAndDestructs)
 {
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, UnregisterChangeEventHandler(_))
+    EXPECT_CALL(*readerMock, UnregisterChangeEventHandler(_))
         .Times(1);
 
-    IControlPlane * p = new SingleControlPlane(readerMock);
+    IControlPlane * p = new SingleControlPlane(reader);
     delete p;
 }
 
@@ -36,17 +38,18 @@ TEST(SingleControlPlaneTests, GetStringParameter_NoTenantDataExists_ReturnsDefau
     const std::string defaultValue = "myDefault";
     const std::string key = "Superman";
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsNotInDictionary_ReturnsDefaultValue)
@@ -58,17 +61,18 @@ TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsNot
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(defaultValue, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(defaultValue, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsInDictionary_ReturnsDictionaryValue)
@@ -82,17 +86,18 @@ TEST(SingleControlPlaneTests, GetStringParameter_TenantDataExists_ParameterIsInD
     tenantData.m_isDummy = false;
     tenantData.m_stringMap[key] = value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
-    ASSERT_EQ(value, controlPlane->GetStringParameter(testGuid, key, defaultValue));
-    ASSERT_EQ(value, controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(value, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
+    ASSERT_EQ(value, *controlPlane->GetStringParameter(testGuid, key, defaultValue));
 }
 
 TEST(SingleControlPlaneTests, GetLongParameter_NoTenantDataExists_ReturnsDefaultValue)
@@ -101,13 +106,14 @@ TEST(SingleControlPlaneTests, GetLongParameter_NoTenantDataExists_ReturnsDefault
     long defaultValue = 4;
     const std::string key = "Justice League";
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(defaultValue, controlPlane->GetLongParameter(testGuid, key, defaultValue));
@@ -123,13 +129,14 @@ TEST(SingleControlPlaneTests, GetLongParameter_TenantDataExists_ParameterIsNotIn
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(defaultValue, controlPlane->GetLongParameter(testGuid, key, defaultValue));
@@ -147,13 +154,14 @@ TEST(SingleControlPlaneTests, GetLongParameter_TenantDataExists_ParameterIsInDic
     tenantData.m_isDummy = false;
     tenantData.m_longMap[key] = value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(value, controlPlane->GetLongParameter(testGuid, key, defaultValue));
@@ -166,13 +174,14 @@ TEST(SingleControlPlaneTests, GetBoolParameter_NoTenantDataExists_ReturnsDefault
     bool defaultValue = false;
     const std::string key = "Kryptonite";
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(defaultValue, controlPlane->GetBoolParameter(testGuid, key, defaultValue));
@@ -188,13 +197,14 @@ TEST(SingleControlPlaneTests, GetBoolParameter_TenantDataExists_ParameterIsNotIn
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(defaultValue, controlPlane->GetBoolParameter(testGuid, key, defaultValue));
@@ -212,13 +222,14 @@ TEST(SingleControlPlaneTests, GetBoolParameter_TenantDataExists_ParameterIsInDic
     tenantData.m_isDummy = false;
     tenantData.m_boolMap[key] = value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_EQ(value, controlPlane->GetBoolParameter(testGuid, key, defaultValue));
@@ -231,13 +242,14 @@ TEST(SingleControlPlaneTests, TryGetStringParameter_NoTenantDataExists_ReturnsFa
     const std::string key = "Superman";
     std::string value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetStringParameter(testGuid, key, value));
@@ -253,13 +265,14 @@ TEST(SingleControlPlaneTests, TryGetStringParameter_TenantDataExists_ParameterIs
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetStringParameter(testGuid, key, value));
@@ -277,13 +290,14 @@ TEST(SingleControlPlaneTests, TryGetStringParameter_TenantDataExists_ParameterIs
     tenantData.m_isDummy = false;
     tenantData.m_stringMap[key] = expectedValue;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetStringParameter(testGuid, key, value));
@@ -298,13 +312,14 @@ TEST(SingleControlPlaneTests, TryGetLongParameter_NoTenantDataExists_ReturnsFals
     const std::string key = "Justice League";
     long value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetLongParameter(testGuid, key, value));
@@ -320,13 +335,14 @@ TEST(SingleControlPlaneTests, TryGetLongParameter_TenantDataExists_ParameterIsNo
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetLongParameter(testGuid, key, value));
@@ -344,13 +360,14 @@ TEST(SingleControlPlaneTests, TryGetLongParameter_TenantDataExists_ParameterIsIn
     tenantData.m_isDummy = false;
     tenantData.m_longMap[key] = expectedValue;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetLongParameter(testGuid, key, value));
@@ -365,13 +382,14 @@ TEST(SingleControlPlaneTests, TryGetBoolParameter_NoTenantDataExists_ReturnsFals
     const std::string key = "Kryptonite";
     bool value;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(_))
+    EXPECT_CALL(*readerMock, ReadTenantData(_))
         .WillOnce(Return(nullptr));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -387,13 +405,14 @@ TEST(SingleControlPlaneTests, GetBoolParameter_TenantDataExists_ParameterIsNotIn
     TenantData tenantData;
     tenantData.m_isDummy = false;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_FALSE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -411,13 +430,14 @@ TEST(SingleControlPlaneTests, TryGetBoolParameter_TenantDataExists_ParameterIsIn
     tenantData.m_isDummy = false;
     tenantData.m_boolMap[key] = expectedValue;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -426,7 +446,7 @@ TEST(SingleControlPlaneTests, TryGetBoolParameter_TenantDataExists_ParameterIsIn
     ASSERT_EQ(expectedValue, value);
 }
 
-TEST(SingleControlPlaneTests, TryGetStringParameter_TwoTenantsWithCOnflictingData_CorrectDataIsReadFromEachTenant)
+TEST(SingleControlPlaneTests, TryGetStringParameter_TwoTenantsWithConflictingData_CorrectDataIsReadFromEachTenant)
 {
     GUID_t testGuid1("{25D580F6-6532-41B1-B7E5-09D9E2C19697}");
     GUID_t testGuid2("{82D1891A-C4E5-4324-BC00-19ECF50D68FC}");
@@ -444,15 +464,16 @@ TEST(SingleControlPlaneTests, TryGetStringParameter_TwoTenantsWithCOnflictingDat
     tenantData2.m_isDummy = false;
     tenantData2.m_stringMap[key] = expectedValue2;
 
-    StrictMock<MockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    MockILocalStorageReader* readerMock = new StrictMock<MockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid1))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid1))
         .WillOnce(Return(&tenantData1));
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid2))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid2))
         .WillOnce(Return(&tenantData2));
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetStringParameter(testGuid1, key, value));
@@ -476,15 +497,16 @@ TEST(SingleControlPlaneTests, OnChange_TenantHasNotBeenRead_DataDoesNotRefresh)
     tenantData.m_isDummy = false;
     tenantData.m_boolMap[key] = expectedTrue;
 
-    StrictMock<NotifiableMockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    NotifiableMockILocalStorageReader* readerMock = new StrictMock<NotifiableMockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantData))
         .RetiresOnSaturation();
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -494,7 +516,7 @@ TEST(SingleControlPlaneTests, OnChange_TenantHasNotBeenRead_DataDoesNotRefresh)
 
     // Invoke the change handler with an unknown tenantId
     GUID_t changeTenantId("{038C3CD7-82B8-422F-8E6E-47270F2D5A3A}");
-    readerMock.m_handler->OnChange(readerMock, changeTenantId);
+    readerMock->m_handler->OnChange(*reader, changeTenantId);
 
     // Nothing should have changed here
     ASSERT_TRUE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -517,20 +539,21 @@ TEST(SingleControlPlaneTests, OnChange_TenantHasBeenRead_DataRefreshes)
     tenantDataFalse.m_isDummy = false;
     tenantDataFalse.m_boolMap[key] = expectedFalse;
 
-    StrictMock<NotifiableMockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    NotifiableMockILocalStorageReader* readerMock = new StrictMock<NotifiableMockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
     // GMock uses sticky WillOnce values, so this will return first tenantDataTrue, then tenantDataFalse.
     // Reference: https://github.com/google/googletest/blob/master/googlemock/docs/ForDummies.md
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantDataFalse))
         .RetiresOnSaturation();
-    EXPECT_CALL(readerMock, ReadTenantData(testGuid))
+    EXPECT_CALL(*readerMock, ReadTenantData(testGuid))
         .WillOnce(Return(&tenantDataTrue))
         .RetiresOnSaturation();
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -539,7 +562,7 @@ TEST(SingleControlPlaneTests, OnChange_TenantHasBeenRead_DataRefreshes)
     ASSERT_EQ(expectedTrue, value);
 
     // Invoke the change handler
-    readerMock.m_handler->OnChange(readerMock, testGuid);
+    readerMock->m_handler->OnChange(*reader, testGuid);
 
     // Call these twice, to ensure that the TenantDataPtr is properly cached
     ASSERT_TRUE(controlPlane->TryGetBoolParameter(testGuid, key, value));
@@ -571,11 +594,12 @@ public:
 
 TEST(SingleControlPlaneTests, OnChange_ListenerIsRegistered_NotificationHappens)
 {
-    StrictMock<NotifiableMockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    NotifiableMockILocalStorageReader* readerMock = new StrictMock<NotifiableMockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     TestControlPlaneChangeEventHandler handler;
     controlPlane->RegisterChangeEventHandler(&handler);
@@ -586,12 +610,12 @@ TEST(SingleControlPlaneTests, OnChange_ListenerIsRegistered_NotificationHappens)
     ASSERT_EQ(0, handler.m_count);
     ASSERT_EQ(nullptr, handler.m_lastControlPlane);
 
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId1);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId1);
     ASSERT_EQ(1, handler.m_count);
     ASSERT_EQ(controlPlane, handler.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId1, handler.m_lastAriaTenantId);
 
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId2);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId2);
     ASSERT_EQ(2, handler.m_count);
     ASSERT_EQ(controlPlane, handler.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId2, handler.m_lastAriaTenantId);
@@ -599,11 +623,12 @@ TEST(SingleControlPlaneTests, OnChange_ListenerIsRegistered_NotificationHappens)
 
 TEST(SingleControlPlaneTests, OnChange_ListenerIsUnregistered_NotificationStops)
 {
-    StrictMock<NotifiableMockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    NotifiableMockILocalStorageReader* readerMock = new StrictMock<NotifiableMockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     TestControlPlaneChangeEventHandler handler;
     controlPlane->RegisterChangeEventHandler(&handler);
@@ -614,13 +639,13 @@ TEST(SingleControlPlaneTests, OnChange_ListenerIsUnregistered_NotificationStops)
     ASSERT_EQ(0, handler.m_count);
     ASSERT_EQ(nullptr, handler.m_lastControlPlane);
 
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId1);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId1);
     ASSERT_EQ(1, handler.m_count);
     ASSERT_EQ(controlPlane, handler.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId1, handler.m_lastAriaTenantId);
 
     controlPlane->UnregisterChangeEventHandler(&handler);
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId2);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId2);
     ASSERT_EQ(1, handler.m_count);
     ASSERT_EQ(controlPlane, handler.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId1, handler.m_lastAriaTenantId);
@@ -628,11 +653,12 @@ TEST(SingleControlPlaneTests, OnChange_ListenerIsUnregistered_NotificationStops)
 
 TEST(SingleControlPlaneTests, MultipleListenersAreRegistered_EachIsNotified)
 {
-    StrictMock<NotifiableMockILocalStorageReader> readerMock;
-    EXPECT_CALL(readerMock, RegisterChangeEventHandler(_))
+    NotifiableMockILocalStorageReader* readerMock = new StrictMock<NotifiableMockILocalStorageReader>();
+    std::unique_ptr<ILocalStorageReader> reader(readerMock);
+    EXPECT_CALL(*readerMock, RegisterChangeEventHandler(_))
         .Times(1);
 
-    IControlPlane* controlPlane = new SingleControlPlane(readerMock);
+    IControlPlane* controlPlane = new SingleControlPlane(reader);
 
     TestControlPlaneChangeEventHandler handler1;
     TestControlPlaneChangeEventHandler handler2;
@@ -651,7 +677,7 @@ TEST(SingleControlPlaneTests, MultipleListenersAreRegistered_EachIsNotified)
     ASSERT_EQ(0, handler3.m_count);
     ASSERT_EQ(nullptr, handler3.m_lastControlPlane);
 
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId1);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId1);
     ASSERT_EQ(1, handler1.m_count);
     ASSERT_EQ(controlPlane, handler1.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId1, handler1.m_lastAriaTenantId);
@@ -663,7 +689,7 @@ TEST(SingleControlPlaneTests, MultipleListenersAreRegistered_EachIsNotified)
     ASSERT_EQ(ariaTenantId1, handler3.m_lastAriaTenantId);
 
     controlPlane->UnregisterChangeEventHandler(&handler2);
-    readerMock.m_handler->OnChange(readerMock, ariaTenantId2);
+    readerMock->m_handler->OnChange(*reader, ariaTenantId2);
     ASSERT_EQ(2, handler1.m_count);
     ASSERT_EQ(controlPlane, handler1.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId2, handler1.m_lastAriaTenantId);

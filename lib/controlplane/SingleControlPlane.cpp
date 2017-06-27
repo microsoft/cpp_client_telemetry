@@ -9,31 +9,31 @@ using namespace Microsoft::Applications::Telemetry;
 namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
 // *INDENT-ON*
 {
-    SingleControlPlane::SingleControlPlane(ILocalStorageReader& localStorageReader)
-        :m_localStorageReader(localStorageReader)
+    SingleControlPlane::SingleControlPlane(std::unique_ptr<ILocalStorageReader>& localStorageReader)
     {
-        m_localStorageReader.RegisterChangeEventHandler(this);
+        m_localStorageReader.swap(localStorageReader);
+        m_localStorageReader->RegisterChangeEventHandler(this);
     }
 
     SingleControlPlane::~SingleControlPlane()
     {
-        m_localStorageReader.UnregisterChangeEventHandler(this);
+        m_localStorageReader->UnregisterChangeEventHandler(this);
         {
             std::lock_guard<std::mutex> lockguard(m_mutex);
             m_tenantMap.clear();
         }
     }
 
-    const std::string& SingleControlPlane::GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue)
+    std::string* SingleControlPlane::GetStringParameter(const GUID_t& ariaTenantId, const std::string& parameterId, const std::string& defaultValue)
     {
         std::string value;
 
         if (TryGetStringParameter(ariaTenantId, parameterId, value))
         {
-            return *(new std::string(value));  // Return a COPY of the string, so caller owns the delete
+            return new std::string(value);      // Return a COPY of the string, so caller owns the delete
         }
 
-        return defaultValue;
+        return new std::string(defaultValue);   // Return a COPY of the string, so caller owns the delete
     }
 
     long SingleControlPlane::GetLongParameter(const GUID_t& ariaTenantId, const std::string& parameterId, long defaultValue)
@@ -150,7 +150,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         if (found != m_tenantMap.end())
             return found->second;
 
-        TenantDataPtr dataFromStorage = m_localStorageReader.ReadTenantData(ariaTenantId);
+        TenantDataPtr dataFromStorage = m_localStorageReader->ReadTenantData(ariaTenantId);
 
         if (dataFromStorage != nullptr)
         {
