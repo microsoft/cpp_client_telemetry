@@ -653,7 +653,6 @@ namespace Microsoft {
                         {
                             if (itImpressionId.value().is_string())
                             {
-                                std::cout << itImpressionId.value().get<std::string>() << "\n";
                                 m_AFDClientConfiguration.impressionGuid = itImpressionId.value().get<std::string>();
                                 m_EXPCommon.m_configActiveRequestParams["ig"] = m_AFDClientConfiguration.impressionGuid;
                             }
