@@ -765,6 +765,10 @@ ProviderData UtcTelemetrySystem::getProviderFortoken(const std::string& tenantTo
             {
                 tokenToIkeyaMap[tenantToken] = true;
             }
+			else
+			{
+				return temp; // Ikey registeration failed, we ignore this event
+			}
         }
         //iKey is registered
 

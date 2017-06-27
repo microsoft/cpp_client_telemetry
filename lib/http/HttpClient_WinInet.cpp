@@ -244,7 +244,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
                 }
                 std::string value1(ptr, eol);
 
-                response->m_headers.add(toLower(name), value1);
+                response->m_headers.add(name, value1);
                 ptr = eol + 2;
             }
 

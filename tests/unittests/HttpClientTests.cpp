@@ -132,7 +132,7 @@ TEST_F(HttpClientTests, HandlesSimpleRequest)
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 200u);
-    EXPECT_THAT(_response->GetHeaders().get("host"), _hostname);
+    EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetBody(), Eq(Binary("It works!")));
 }
 
@@ -151,7 +151,7 @@ TEST_F(HttpClientTests, HandlesErrorRequest)
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 404u);
-    EXPECT_THAT(_response->GetHeaders().get("host"), _hostname);
+    EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetBody(), Eq(Binary("It works!")));
 }
 
@@ -174,8 +174,8 @@ TEST_F(HttpClientTests, HandlesPostRequest)
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 200u);
-    EXPECT_THAT(_response->GetHeaders().get("host"), _hostname);
-    EXPECT_THAT(_response->GetHeaders().get("content-type"), Eq("application/octet-stream"));
+    EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
+    EXPECT_THAT(_response->GetHeaders().get("Content-Type"), Eq("application/octet-stream"));
     EXPECT_THAT(_response->GetBody(), Eq(Binary("Some\xBB\x11naryContent")));
 }
 
@@ -264,8 +264,8 @@ TEST_F(HttpClientTests, Handles100Continue)
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 200u);
-    EXPECT_THAT(_response->GetHeaders().get("host"), _hostname);
-    EXPECT_THAT(_response->GetHeaders().get("content-type"), Eq("application/octet-stream"));
+    EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
+    EXPECT_THAT(_response->GetHeaders().get("Content-Type"), Eq("application/octet-stream"));
     EXPECT_THAT(_response->GetBody(), Eq(Binary("Some\xBB\x11naryContent")));
 }
 

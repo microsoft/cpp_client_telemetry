@@ -96,6 +96,10 @@ TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
     }),
         Return(true)))
         .RetiresOnSaturation();
+
+	EXPECT_CALL(offlineStorageMock, IsLastReadFromMemory())
+		.WillOnce(Return(false));
+
     EXPECT_CALL(*this, resultRetrievedEvent(ctx, Ref(record1), _))
         .WillOnce(SetArgReferee<2>(true))
         .RetiresOnSaturation();
@@ -104,6 +108,9 @@ TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
         .RetiresOnSaturation();
     EXPECT_CALL(*this, resultRetrievalFinished(ctx))
         .WillOnce(Return());
+
+	
+
     offlineStorage.retrieveEvents(ctx);
 }
 
@@ -115,6 +122,8 @@ TEST_F(OfflineStorageTests, RetrieveEventsFailureAborts)
 
     EXPECT_CALL(offlineStorageMock, GetAndReserveRecords(_, Gt(1000u), ctx->requestedMinPriority, ctx->requestedMaxCount))
         .WillOnce(Return(false));
+	EXPECT_CALL(offlineStorageMock, IsLastReadFromMemory())
+		.WillOnce(Return(false));
     EXPECT_CALL(*this, resultRetrievalFailed(ctx))
         .WillOnce(Return());
     offlineStorage.retrieveEvents(ctx);

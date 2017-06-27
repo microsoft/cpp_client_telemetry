@@ -123,8 +123,11 @@ namespace Microsoft {
                         }
                     }
 
-                    m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_CLIENTID] = config.clientId;
-                    m_EXPCommon.m_configActiveDeviceId = config.clientId;
+					if (!config.clientId.empty())
+					{
+						m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_CLIENTID] = config.clientId;
+						m_EXPCommon.m_configActiveDeviceId = config.clientId;
+					}
 
                     if (!config.impressionGuid.empty())
                     {
@@ -748,8 +751,6 @@ namespace Microsoft {
                 std::int64_t AFDClient::_GetExpiryTimeInSecFromHeader(Message& msg)
                 {
                     UNREFERENCED_PARAMETER(msg);
-                    //std::string expireInHeaderStr = msg.headers["Date"];
-                    //std::int64_t expireInHeader = common::ParseTime(expireInHeaderStr);
 
                     unsigned int timeoutinSec = m_AFDClientConfiguration.defaultExpiryTimeInMin * 60;
 

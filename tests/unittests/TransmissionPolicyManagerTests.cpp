@@ -164,6 +164,8 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
 TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploading)
 {
     auto upload = tpm.fakeActiveUpload();
+	EXPECT_CALL(tpm, scheduleUpload(0, EventPriority_Low))
+		.WillOnce(Return());
     tpm.nothingToUpload(upload);
 }
 

@@ -7,6 +7,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\functests\MultipleLogManagersTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\common\Mocks.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\functests\BasicAfdFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\Common.hpp" />

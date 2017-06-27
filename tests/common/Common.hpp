@@ -17,6 +17,7 @@ namespace testing {
 
 	ARIASDK_LOG_DECL_COMPONENT_NS();
 
+const int DELAY_FACTOR_FOR_SERVER = 567;
 
 class OutsideSequence {
   public:
