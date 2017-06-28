@@ -79,7 +79,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
     class ITenantDataSerializer
     {
     public:
-        ~ITenantDataSerializer() {}
+        virtual ~ITenantDataSerializer() {}
 
         /// <summary>
         /// Convert the specified TenantDataPtr to a string
