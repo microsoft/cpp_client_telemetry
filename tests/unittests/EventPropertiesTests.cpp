@@ -15,6 +15,7 @@ TEST(EventPropertiesTests, Construction)
     EXPECT_THAT(ep.GetTimestamp(), 0ll);
     EXPECT_THAT(ep.GetProperties(), IsEmpty());
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
+    EXPECT_THAT(ep.GetCustomerContentProperties(), IsEmpty());
 }
 
 TEST(EventPropertiesTests, Name)
@@ -84,6 +85,7 @@ TEST(EventPropertiesTests, Properties)
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("Weird.Characters_are_weird", EventProperty("value #2"))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("public", EventProperty("value #3"))));
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
+    EXPECT_THAT(ep.GetCustomerContentProperties(), IsEmpty());
 }
 
 TEST(EventPropertiesTests, NumericProperties)
@@ -115,6 +117,7 @@ TEST(EventPropertiesTests, NumericProperties)
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("true", EventProperty(true))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("false", EventProperty(false))));
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
+    EXPECT_THAT(ep.GetCustomerContentProperties(), IsEmpty());
 }
 
 TEST(EventPropertiesTests, PiiProperties)
@@ -127,4 +130,15 @@ TEST(EventPropertiesTests, PiiProperties)
     EXPECT_THAT(ep.GetPiiProperties(), SizeIs(2));
     EXPECT_THAT(ep.GetPiiProperties(), Contains(Pair("secret",                       Pair("dn=value",    PiiKind_DistinguishedName))));
     EXPECT_THAT(ep.GetPiiProperties(), Contains(Pair("Weird.Characters_are_weird", Pair("12.34.56.78", PiiKind_IPv4Address))));
+    EXPECT_THAT(ep.GetCustomerContentProperties(), IsEmpty());
+}
+
+TEST(EventPropertiesTests, CustomerContentProperties)
+{
+    EventProperties ep("test");
+    EXPECT_THAT(ep.GetCustomerContentProperties(), IsEmpty());
+
+    ep.SetProperty("customerData", "value", CustomerContentKind_GenericData);
+    EXPECT_THAT(ep.GetCustomerContentProperties(), SizeIs(1));
+    EXPECT_THAT(ep.GetCustomerContentProperties(), Contains(Pair("customerData", Pair("value", CustomerContentKind_GenericData))));
 }

@@ -208,6 +208,14 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// All integer types are currently being converted to int64_t.
 		void SetProperty(const std::string& name, uint64_t     value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
 
+        /// <summary>
+        /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
+        void SetProperty(const std::string& name, char const*  value, CustomerContentKind ccKind) { SetProperty(name, EventProperty(value, ccKind)); }
+        
+        /// <summary>
+        /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
+        void SetProperty(const std::string& name, std::string  value, CustomerContentKind ccKind) { SetProperty(name, EventProperty(value, ccKind)); }
+
 		/// <summary>
 		/// Get the properties bag of an event.
 		/// </summary>
@@ -220,14 +228,20 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// <returns>Pii Properties bag of the event</returns>
 		const std::map<std::string, std::pair<std::string, PiiKind> > GetPiiProperties() const;
 
+        /// <summary>
+        /// Get the Costomer content properties bag of an event.
+        /// </summary>
+        /// <returns>Customer content Properties bag of the event</returns>
+        const std::map<std::string, std::pair<std::string, CustomerContentKind> > GetCustomerContentProperties() const;
+
 		virtual ~EventProperties();
 
 	private:
 		std::string*     m_eventNameP;
 		std::string*     m_eventTypeP;
-		EventPriority   m_eventPriority;
-		uint64_t        m_eventPolicyBitflags;
-		int64_t         m_timestampInMillis;
+		EventPriority    m_eventPriority;
+		uint64_t         m_eventPolicyBitflags;
+		int64_t          m_timestampInMillis;
 
 		std::map<std::string, EventProperty>* m_propertiesP;
 	};

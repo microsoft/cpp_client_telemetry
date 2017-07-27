@@ -107,6 +107,8 @@ using namespace std;
 #ifdef USE_INT
 // Windows SDK Test - Int: Default Ingestion Token.
 #define TOKEN   "0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582"
+//"112b4296adfa44b68570a476ec2b2e1b-b7a01aa4-4f7b-4b2e-ad82-f3f48f15833c-7683"
+//"0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582" // //
 // Windows SDK Test 2 - Int: Default Ingestion Token.
 #define TOKEN2  "462f0c61d59d43d1bf6987688131bd2e-370ca818-e162-499e-a3b8-39e55aad385d-6983"
 #else
@@ -139,6 +141,7 @@ std::atomic<unsigned>   numRejected = 0;
 std::atomic<unsigned>   numSent = 0;
 std::atomic<unsigned>   numDropped = 0;
 std::atomic<unsigned>   numCached = 0;
+std::atomic<unsigned>   numStorageFull = 0;
 std::uint64_t testStartMs;
 
 class MyDebugEventListener : public DebugEventListener {
@@ -249,11 +252,12 @@ public:
 			break;
 		case EVT_SENT:
 			numSent += evt.size;
-            if(print)
+            //if(print)
 			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, evt.param2);
 			break;
 		case EVT_STORAGE_FULL:
-			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, evt.param2);
+            numStorageFull++;
+			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numStorageFull._My_val, evt.param2);
 			if (evt.param1 >= 75) {
 				// UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
 				// or notify the main app that it has to do the profile timers housekeeping / force the upload...
@@ -294,6 +298,7 @@ public:
 			break;
 		case EVT_UNKNOWN:
 		default:
+            if (print)
 			printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, Timerqueue=%u, ExecuteQueue=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
 			break;
 		};
@@ -304,7 +309,7 @@ public:
 MyDebugEventListener listener;
 
 #define MAX_STRESS_COUNT            32
-#define MAX_STRESS_THREADS          100
+#define MAX_STRESS_THREADS          10//0
 
 /// <summary>
 /// New fluent syntax
@@ -417,6 +422,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 	});
 #endif
 	props.SetProperty("win_guid", GUID_t(win_guid));
+    props.SetProperty("Customer", "value", CustomerContentKind::CustomerContentKind_GenericData);
 
 	// GUID_t guidKey5("00000000-0000-0000-0000-000000000001");
 	// GUID_t &g = guidKey5;
@@ -434,6 +440,8 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 	}
 	props.SetProperty("weirdoString", (const char *)(&weirdoBuffer[0]));
 #endif
+
+	props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
 
 	return props;
 }
@@ -473,6 +481,7 @@ void test_ProfileSwitch(ILogger *logger)
 void sendEmptyEvent(ILogger *logger)
 {
 	EventProperties props("test_empty_event");
+	props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
 	logger->LogEvent(props);
 }
 
@@ -490,10 +499,10 @@ ILogger* init() {
 	configuration.maxTeardownUploadTimeInSec = 5;
 
 	// Force UTC uploader on Windows 10 even if it's not RS2
-	 //configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
+	//configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
 
 #ifdef USE_INT
-	configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
+    configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/"; //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
 #endif
 
 #ifdef USE_BOGUS_URL
@@ -602,7 +611,7 @@ void run(ILogger* logger, int maxStressRuns) {
 
 				if ((stressRuns % 8) == 0)
 				{
-					EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_Immediate);
+                    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_High);// EventPriority_Immediate);                    
                     loggerl->LogEvent(props);
 				}
 			}
@@ -615,7 +624,8 @@ void run(ILogger* logger, int maxStressRuns) {
 				// LogSession API is not thread-safe by design -- use logger passed from above
 				std::lock_guard<std::mutex> lock(mtx_log_session);
 				EventProperties props("LogSessionTest");
-				props.SetPriority(EventPriority_Immediate);
+				props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
+				props.SetPriority(EventPriority_High);
 				logger->LogSession(SessionState::Session_Started, props);
 				logger->LogSession(SessionState::Session_Ended, props);
 			}
@@ -634,6 +644,7 @@ void run(ILogger* logger, int maxStressRuns) {
 
 		//std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
+        
 		//LogManager::UploadNow();
 	}
 }
@@ -673,6 +684,7 @@ int main(int argc, char* argv[])
 	std::atexit(DumpMemoryLeaks);
 #endif
 
+    DWORD start = GetTickCount();
 	LogManager::LoadTransmitProfiles(transmitProfileDefinitions);
 	LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
 
@@ -690,6 +702,9 @@ int main(int argc, char* argv[])
 
 	printf("test_ProfileSwitch\n");
 	test_ProfileSwitch(logger);
+
+    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_Immediate);
+    logger->LogEvent(props);
 
 	// Run multi-threaded stress for multi-tenant
 	testStartMs = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
@@ -726,38 +741,38 @@ int main(int argc, char* argv[])
 		}
 	});
 
+	//LogManager::UploadNow();
 	// save to disk
 	LogManager::Flush();
 
 //all_done:
-
-	bool waitForUser = true;
-	if (waitForUser) {
-		std::cout << "Press <ENTER> to FlushAndTeardown" << std::endl;
-		fflush(stdout);
-		fgetc(stdin);
-	}
-
-    listener.print = true;
+    	    
     {
-        EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
-        logger->LogEvent(props);
+        EventProperties lprops = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+        logger->LogEvent(lprops);
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    //listener.print = true;
 	// Flush and Teardown
 	done();
+    
+
+    bool waitForUser = true;
+    if (waitForUser) {
+        std::cout << "Press <ENTER> to FlushAndTeardown" << std::endl;
+        fflush(stdout);
+        fgetc(stdin);
+    }
+
 
     listener.print = false;
 	delete lm;
-	// 2nd run after initialize
+/*	// 2nd run after initialize
 	{		
 		printf("Reinitialize test...\n");
+        ILogger* logger = init();
 		
-#ifdef USE_INT
-		configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
-#endif
-#ifdef USE_BOGUS_URL
-		configuration.eventCollectorUri = "https://127.0.0.1/";
-#endif
 		std::map<std::string, ILogger*> loggers;
 		//loggers["logger.noparam"] = LogManager::GetLogger();
 		//loggers["logger.blank"] = LogManager::GetLogger("");
@@ -779,7 +794,7 @@ int main(int argc, char* argv[])
 				{
 					{ "logger"  , kv.first.c_str() }
 				});
-                loggerl->SetContext(kv.first, true);
+				props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
                 loggerl->LogTrace(TraceLevel_Error, "some error occurred", props);
 			}
 		};
@@ -793,10 +808,21 @@ int main(int argc, char* argv[])
 		done();
 		delete lm;
 	}
+*/
 
 #ifdef DETECT_MEMLEAKS
 	_CrtDumpMemoryLeaks();
 #endif
 	fgetc(stdin);
+    DWORD end = GetTickCount();
+    printf("Time Taken to run this all= %d test...\n", end - start );
+   
+    printf("numLogged:      p1=%u, \n", numLogged._My_val);
+    printf("numRejected:    p1=%u\n", numRejected._My_val);
+    printf("numCached:      p1=%u\n", numCached._My_val);
+    printf("numDropped:     p1=%u\n", numDropped._My_val);
+    printf("numSent:        p1=%u\n", numSent._My_val);
+    printf("numStorageFull: p1=%u\n", numStorageFull._My_val);
+    
 	return 0;
 }

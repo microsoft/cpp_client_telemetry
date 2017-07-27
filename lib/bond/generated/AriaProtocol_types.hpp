@@ -91,21 +91,45 @@ struct PII {
     }
 };
 
+namespace _bond_enumerators {
+namespace CustomerContentKind {
+enum CustomerContentKind {
+    NotSet         = 0,
+    GenericContent = 1
+};
+}
+}
+using namespace _bond_enumerators::CustomerContentKind;
+
+struct CustomerContent {
+    // 1: optional CustomerContentKind Kind
+    ::AriaProtocol::CustomerContentKind Kind = ::AriaProtocol::CustomerContentKind::NotSet;
+    // 2: optional string RawContent
+    std::string RawContent;
+
+    bool operator==(CustomerContent const& other) const
+    {
+        return (Kind == other.Kind)
+            && (RawContent == other.RawContent);
+    }
+
+    bool operator!=(CustomerContent const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
 struct Record {
     // 1: optional string Id
     std::string Id;
     // 3: optional int64 Timestamp
     int64_t Timestamp = 0;
-    // 4: optional map<string, string> ConfigurationIds
-    std::map<std::string, std::string> ConfigurationIds;
     // 5: optional string Type
     std::string Type;
     // 6: optional string EventType
     std::string EventType;
     // 13: optional map<string, string> Extension
     std::map<std::string, std::string> Extension;
-    // 19: optional map<string, string> ContextIds
-    std::map<std::string, std::string> ContextIds;
     // 24: optional RecordType RecordType
     RecordType RecordType = RecordType::Event;
     // 30: optional map<string, PII> PIIExtensions
@@ -120,37 +144,37 @@ struct Record {
     std::map<std::string, double> TypedExtensionDouble;
     // 35: optional map<string, vector<uint8>> TypedExtensionGuid
     std::map<std::string, std::vector<uint8_t>> TypedExtensionGuid;
+    // 36: optional map<string, CustomerContent> CustomerContentExtensions
+    std::map<std::string, CustomerContent> CustomerContentExtensions;
 
-	Record()
-	{
-		Id = Microsoft::Applications::Telemetry::PAL::generateUuidString();
-		Timestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTimeMs();
-	}
+    Record()
+    {
+        Id = Microsoft::Applications::Telemetry::PAL::generateUuidString();
+        Timestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTimeMs();
+    }
 
-	bool operator==(const Record& other) const
-	{
+    bool operator==(Record const& other) const
+    {
         return (Id == other.Id)
             && (Timestamp == other.Timestamp)
-            && (ConfigurationIds == other.ConfigurationIds)
             && (Type == other.Type)
             && (EventType == other.EventType)
             && (Extension == other.Extension)
-            && (ContextIds == other.ContextIds)
             && (RecordType == other.RecordType)
             && (PIIExtensions == other.PIIExtensions)
             && (TypedExtensionBoolean == other.TypedExtensionBoolean)
             && (TypedExtensionDateTime == other.TypedExtensionDateTime)
             && (TypedExtensionInt64 == other.TypedExtensionInt64)
             && (TypedExtensionDouble == other.TypedExtensionDouble)
-            && (TypedExtensionGuid == other.TypedExtensionGuid);
-	}
+            && (TypedExtensionGuid == other.TypedExtensionGuid)
+            && (CustomerContentExtensions == other.CustomerContentExtensions);
+    }
 
-	bool operator!=(const Record& other) const
-	{
-		return !(*this == other);
-	}
+    bool operator!=(Record const& other) const
+    {
+        return !(*this == other);
+    }
 };
-
 
 struct DataPackage {
     // 1: optional string Type
@@ -166,7 +190,7 @@ struct DataPackage {
     // 6: optional int64 Timestamp
     int64_t Timestamp = 0;
     // 7: optional int32 SchemaVersion
-    int32_t SchemaVersion = 0;
+    int32_t SchemaVersion = 1;
     // 8: optional vector<Record> Records
     std::vector< ::AriaProtocol::Record> Records;
 

@@ -261,6 +261,9 @@ namespace Microsoft {
                 /// <summary>Event field Pii kind</summary>
                 PiiKind piiKind;
 
+				/// <summary>Event field CustomerContent kind</summary>
+                CustomerContentKind ccKind = CustomerContentKind_None;
+
                 /// <summary>
                 /// Variant object value
                 /// </summary>
@@ -338,6 +341,16 @@ namespace Microsoft {
                 /// </summary>
                 bool operator==(const EventProperty& source) const
                 {
+					if (ccKind != source.ccKind)
+					{
+						return false;
+					}
+					
+					if (piiKind != source.piiKind)
+					{
+						return false;
+					}
+					
                     if (type == source.type)
                     {
                         switch (type)
@@ -499,6 +512,7 @@ namespace Microsoft {
                         }
                     }
 					piiKind = PiiKind_None;
+                    ccKind = CustomerContentKind_None;
                 }
 
                 /// EventProperty destructor
@@ -513,7 +527,8 @@ namespace Microsoft {
                 /// </summary>
                 EventProperty() :
                     type(TYPE_STRING),
-                    piiKind(PiiKind_None)
+                    piiKind(PiiKind_None),
+                    ccKind(CustomerContentKind_None)
                 {
                     as_time_ticks.ticks = 0;
                     as_guid = {};
@@ -527,7 +542,9 @@ namespace Microsoft {
                 /// <param name="piiKind">Pii kind</param>
                 EventProperty(const char* value, PiiKind piiKind = PiiKind_None) :
                     type(TYPE_STRING),
-                    piiKind(piiKind) {
+                    piiKind(piiKind),
+                    ccKind(CustomerContentKind_None) 
+				{
                     as_string = strdup((value != NULL) ? value : "");
                 };
 
@@ -538,7 +555,35 @@ namespace Microsoft {
                 /// <param name="piiKind">Pii kind</param>
                 EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None) :
                     type(TYPE_STRING),
-                    piiKind(piiKind) {
+                    piiKind(piiKind),
+                    ccKind(CustomerContentKind_None) 
+                {
+                    as_string = strdup(value.c_str());
+                };
+
+				/// <summary>
+				/// EventProperty constructor for string value
+				/// </summary>
+				/// <param name="value">string value</param>
+				/// <param name="ccKind">Customer content kind</param>
+				EventProperty(const char* value, CustomerContentKind ccKind):
+                    type(TYPE_STRING),
+                    piiKind(PiiKind_None),
+                    ccKind(ccKind)
+                {
+                    as_string = strdup((value != NULL) ? value : "");
+                };
+
+				/// <summary>
+				/// EventProperty constructor for string value
+				/// </summary>
+				/// <param name="value">string value</param>
+				/// <param name="ccKind">Customer content kind</param>
+				EventProperty(const std::string& value, CustomerContentKind ccKind):
+                    type(TYPE_STRING),
+                    piiKind(PiiKind_None),
+                    ccKind(ccKind)
+                {
                     as_string = strdup(value.c_str());
                 };
 
@@ -547,35 +592,35 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="value">int64_t value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None) : type(TYPE_INT64), piiKind(piiKind), as_int64(value) {};
+                EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None) : type(TYPE_INT64), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_int64(value) {};
 
                 /// <summary>
                 /// EventProperty constructor for double value
                 /// </summary>
                 /// <param name="value">double value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(double        value, PiiKind piiKind = PiiKind_None) : type(TYPE_DOUBLE), piiKind(piiKind), as_double(value) {};
+                EventProperty(double        value, PiiKind piiKind = PiiKind_None) : type(TYPE_DOUBLE), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_double(value) {};
 
                 /// <summary>
                 /// EventProperty constructor for time in .NET ticks
                 /// </summary>
                 /// <param name="value">time_ticks_t value - time in .NET ticks</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None) : type(TYPE_TIME), piiKind(piiKind), as_time_ticks(value) {};
+                EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None) : type(TYPE_TIME), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_time_ticks(value) {};
 
                 /// <summary>
                 /// EventProperty constructor for boolean value
                 /// </summary>
                 /// <param name="value">boolean value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(bool          value, PiiKind piiKind = PiiKind_None) : type(TYPE_BOOLEAN), piiKind(piiKind), as_bool(value) {};
+                EventProperty(bool          value, PiiKind piiKind = PiiKind_None) : type(TYPE_BOOLEAN), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_bool(value) {};
 
                 /// <summary>
                 /// EventProperty constructor for GUID
                 /// </summary>
                 /// <param name="value">GUID_t value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None) : type(TYPE_GUID), piiKind(piiKind), as_guid(value) {};
+                EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None) : type(TYPE_GUID), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_guid(value) {};
 
                 // All other integer types get converted to int64_t
                 EventProperty(long     value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};

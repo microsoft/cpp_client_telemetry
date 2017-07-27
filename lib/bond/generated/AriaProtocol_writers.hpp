@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 
 #pragma once
-#include "bond/generated/BondConstTypes.hpp"
+#include "BondConstTypes.hpp"
 
 namespace bond_lite {
 
@@ -49,6 +49,31 @@ void Serialize(TWriter& writer, ::AriaProtocol::PII const& value, bool isBase)
 }
 
 template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::CustomerContent const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    static_assert(sizeof(value.Kind) == 4, "Invalid size of enum");
+    if (value.Kind != ::AriaProtocol::CustomerContentKind::NotSet) {
+        writer.WriteFieldBegin(BT_INT32, 1, nullptr);
+        writer.WriteInt32(static_cast<int32_t>(value.Kind));
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT32, 1, nullptr);
+    }
+
+    if (!value.RawContent.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.RawContent);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
 void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
@@ -57,8 +82,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_STRING, 1, nullptr);
         writer.WriteString(value.Id);
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
     }
 
@@ -66,31 +90,15 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_INT64, 3, nullptr);
         writer.WriteInt64(value.Timestamp);
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_INT64, 3, nullptr);
-    }
-
-    if (!value.ConfigurationIds.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 4, nullptr);
-        writer.WriteMapContainerBegin(value.ConfigurationIds.size(), BT_STRING, BT_STRING);
-        for (auto const& item2 : value.ConfigurationIds) {
-            writer.WriteString(item2.first);
-            writer.WriteString(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    }
-    else {
-        writer.WriteFieldOmitted(BT_MAP, 4, nullptr);
     }
 
     if (!value.Type.empty()) {
         writer.WriteFieldBegin(BT_STRING, 5, nullptr);
         writer.WriteString(value.Type);
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
     }
 
@@ -98,8 +106,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_STRING, 6, nullptr);
         writer.WriteString(value.EventType);
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
     }
 
@@ -112,23 +119,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 13, nullptr);
-    }
-
-    if (!value.ContextIds.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 19, nullptr);
-        writer.WriteMapContainerBegin(value.ContextIds.size(), BT_STRING, BT_STRING);
-        for (auto const& item2 : value.ContextIds) {
-            writer.WriteString(item2.first);
-            writer.WriteString(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    }
-    else {
-        writer.WriteFieldOmitted(BT_MAP, 19, nullptr);
     }
 
     static_assert(sizeof(value.RecordType) == 4, "Invalid size of enum");
@@ -136,8 +128,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldBegin(BT_INT32, 24, nullptr);
         writer.WriteInt32(static_cast<int32_t>(value.RecordType));
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_INT32, 24, nullptr);
     }
 
@@ -150,8 +141,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 30, nullptr);
     }
 
@@ -164,8 +154,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 31, nullptr);
     }
 
@@ -178,8 +167,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 32, nullptr);
     }
 
@@ -192,8 +180,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 33, nullptr);
     }
 
@@ -206,8 +193,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 34, nullptr);
     }
 
@@ -224,9 +210,21 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
-    }
-    else {
+    } else {
         writer.WriteFieldOmitted(BT_MAP, 35, nullptr);
+    }
+
+    if (!value.CustomerContentExtensions.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 36, nullptr);
+        writer.WriteMapContainerBegin(value.CustomerContentExtensions.size(), BT_STRING, BT_STRUCT);
+        for (auto const& item2 : value.CustomerContentExtensions) {
+            writer.WriteString(item2.first);
+            Serialize(writer, item2.second, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_MAP, 36, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -290,7 +288,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::DataPackage const& value, bool i
         writer.WriteFieldOmitted(BT_INT64, 6, nullptr);
     }
 
-    if (value.SchemaVersion != 0) {
+    if (value.SchemaVersion != 1) {
         writer.WriteFieldBegin(BT_INT32, 7, nullptr);
         writer.WriteInt32(value.SchemaVersion);
         writer.WriteFieldEnd();

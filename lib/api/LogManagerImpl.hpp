@@ -35,6 +35,8 @@ class LogManagerImpl : public ILogManagerInternal {
 	virtual void  SetTransmitProfile(TransmitProfile profile) override;
 	virtual const std::string& GetTransmitProfileName() override;
 	virtual ISemanticContext& GetSemanticContext() override;
+    virtual void SetContext(const std::string& name, const std::string& value, CustomerContentKind ccKind) override;
+    virtual void SetContext(const std::string& name, const char *value, CustomerContentKind ccKind) override;
 	virtual void SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) override;
 	virtual void SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
 	virtual void SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;

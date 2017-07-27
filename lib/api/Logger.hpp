@@ -25,13 +25,15 @@ class ARIASDK_LIBABI Logger : public ILogger
      ~Logger();
 
   public:
-    virtual void  SetContext(const std::string& name, const char value[], PiiKind piiKind = PiiKind_None)  override;
-    virtual void  SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None) override;
-    virtual void  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
-    virtual void  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
-    virtual void  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
-    virtual void  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override;
-    virtual void  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& k, const char v[], CustomerContentKind ccKind) override;
+    virtual void SetContext(const std::string& k, const std::string &v, CustomerContentKind ccKind) override;
+    virtual void SetContext(const std::string& name, const char value[], PiiKind piiKind = PiiKind_None)  override;
+    virtual void SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override;
+    virtual void SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
 	virtual void SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) override { SetContext(name, (int64_t)value, piiKind); }
 	virtual void SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) override { SetContext(name, (int64_t)value, piiKind); }
 	virtual void SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) override { SetContext(name, (int64_t)value, piiKind); }

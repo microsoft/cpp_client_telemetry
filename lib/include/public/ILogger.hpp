@@ -152,6 +152,22 @@ class ARIASDK_LIBABI ILogger
     /// <returns>ISemanticContext interface</returns>
     virtual ISemanticContext* GetSemanticContext() const = 0 ;
 
+    /// <summary>
+    /// Adds or overrides a property of the context associated with this logger instance.
+    /// </summary>
+    /// <param name="name">Name of the property</param>
+    /// <param name="value">String value of the property</param>
+    /// <param name='piiKind'>CustomerContentKind of the context </param>
+    virtual void SetContext(const std::string& k, const char v[], CustomerContentKind ccKind) = 0;
+
+    /// <summary>
+    /// Adds or overrides a property of the context associated with this logger instance.
+    /// </summary>
+    /// <param name="name">Name of the property</param>
+    /// <param name="value">String value of the property</param>
+    /// <param name='piiKind'>CustomerContentKind of the context</param>
+    virtual void SetContext(const std::string& k, const std::string &v, CustomerContentKind ccKind) = 0;
+
 	/// <summary>
 	/// Adds or overrides a property of the context associated with this logger instance.
 	/// </summary>

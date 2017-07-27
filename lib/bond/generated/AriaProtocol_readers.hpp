@@ -80,6 +80,61 @@ bool Deserialize(TReader& reader, ::AriaProtocol::PII& value, bool isBase)
 }
 
 template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::CustomerContent& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                static_assert(sizeof(value.Kind) == 4, "Invalid size of enum");
+                int32_t item4;
+                if (!reader.ReadInt32(item4)) {
+                    return false;
+                }
+                value.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(item4);
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.RawContent)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
 bool Deserialize(TReader& reader, ::AriaProtocol::Record& value, bool isBase)
 {
     if (!reader.ReadStructBegin(isBase)) {
@@ -101,276 +156,252 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Record& value, bool isBase)
         }
 
         switch (id) {
-        case 1: {
-            if (!reader.ReadString(value.Id)) {
-                return false;
+            case 1: {
+                if (!reader.ReadString(value.Id)) {
+                    return false;
+                }
+                break;
             }
-            break;
-        }
 
-        case 3: {
-            if (!reader.ReadInt64(value.Timestamp)) {
-                return false;
+            case 3: {
+                if (!reader.ReadInt64(value.Timestamp)) {
+                    return false;
+                }
+                break;
             }
-            break;
-        }
 
-        case 4: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_STRING) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
+            case 5: {
+                if (!reader.ReadString(value.Type)) {
                     return false;
                 }
-                if (!reader.ReadString(value.ConfigurationIds[key4])) {
-                    return false;
-                }
+                break;
             }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
 
-        case 5: {
-            if (!reader.ReadString(value.Type)) {
-                return false;
+            case 6: {
+                if (!reader.ReadString(value.EventType)) {
+                    return false;
+                }
+                break;
             }
-            break;
-        }
 
-        case 6: {
-            if (!reader.ReadString(value.EventType)) {
-                return false;
-            }
-            break;
-        }
-
-        case 13: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_STRING) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
+            case 13: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
                     return false;
                 }
-                if (!reader.ReadString(value.Extension[key4])) {
+                if (keyType4 != BT_STRING || valueType4 != BT_STRING) {
                     return false;
                 }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 19: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_STRING) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!reader.ReadString(value.ContextIds[key4])) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 24: {
-            static_assert(sizeof(value.RecordType) == 4, "Invalid size of enum");
-            int32_t item4;
-            if (!reader.ReadInt32(item4)) {
-                return false;
-            }
-            value.RecordType = static_cast<::AriaProtocol::RecordType>(item4);
-            break;
-        }
-
-        case 30: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_STRUCT) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!Deserialize(reader, value.PIIExtensions[key4], false)) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 31: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_BOOL) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!reader.ReadBool(value.TypedExtensionBoolean[key4])) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 32: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_INT64) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!reader.ReadInt64(value.TypedExtensionDateTime[key4])) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 33: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_INT64) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!reader.ReadInt64(value.TypedExtensionInt64[key4])) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 34: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_DOUBLE) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                if (!reader.ReadDouble(value.TypedExtensionDouble[key4])) {
-                    return false;
-                }
-            }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
-
-        case 35: {
-            uint32_t size4;
-            uint8_t keyType4, valueType4;
-            if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
-                return false;
-            }
-            if (keyType4 != BT_STRING || valueType4 != BT_LIST) {
-                return false;
-            }
-            for (unsigned i4 = 0; i4 < size4; i4++) {
-                std::string key4;
-                if (!reader.ReadString(key4)) {
-                    return false;
-                }
-                uint32_t size5;
-                uint8_t type5;
-                if (!reader.ReadContainerBegin(size5, type5)) {
-                    return false;
-                }
-                if (type5 != BT_UINT8) {
-                    return false;
-                }
-                value.TypedExtensionGuid[key4].resize(size5);
-                for (unsigned i5 = 0; i5 < size5; i5++) {
-                    if (!reader.ReadUInt8(value.TypedExtensionGuid[key4][i5])) {
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadString(value.Extension[key4])) {
                         return false;
                     }
                 }
                 if (!reader.ReadContainerEnd()) {
                     return false;
                 }
+                break;
             }
-            if (!reader.ReadContainerEnd()) {
-                return false;
-            }
-            break;
-        }
 
-        default:
-            return false;
+            case 24: {
+                static_assert(sizeof(value.RecordType) == 4, "Invalid size of enum");
+                int32_t item4;
+                if (!reader.ReadInt32(item4)) {
+                    return false;
+                }
+                value.RecordType = static_cast< ::AriaProtocol::RecordType>(item4);
+                break;
+            }
+
+            case 30: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_STRUCT) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!Deserialize(reader, value.PIIExtensions[key4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 31: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_BOOL) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadBool(value.TypedExtensionBoolean[key4])) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 32: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_INT64) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadInt64(value.TypedExtensionDateTime[key4])) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 33: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_INT64) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadInt64(value.TypedExtensionInt64[key4])) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 34: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_DOUBLE) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadDouble(value.TypedExtensionDouble[key4])) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 35: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_LIST) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    uint32_t size5;
+                    uint8_t type5;
+                    if (!reader.ReadContainerBegin(size5, type5)) {
+                        return false;
+                    }
+                    if (type5 != BT_UINT8) {
+                        return false;
+                    }
+                    value.TypedExtensionGuid[key4].resize(size5);
+                    for (unsigned i5 = 0; i5 < size5; i5++) {
+                        if (!reader.ReadUInt8(value.TypedExtensionGuid[key4][i5])) {
+                            return false;
+                        }
+                    }
+                    if (!reader.ReadContainerEnd()) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 36: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_STRUCT) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!Deserialize(reader, value.CustomerContentExtensions[key4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
         }
 
         if (!reader.ReadFieldEnd()) {

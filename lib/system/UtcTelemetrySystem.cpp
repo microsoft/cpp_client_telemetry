@@ -505,22 +505,6 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     eventCtx->source->Extension.erase(EventInfo_Name);
     eventCtx->source->Extension.erase(EventInfo_InitId);
 
-    //"ConfigurationIds"
-    if (eventCtx->source->ConfigurationIds.size() > 0)
-    {
-        std::map<std::string, std::string>::iterator iterConfigId;
-        for (iterConfigId = eventCtx->source->ConfigurationIds.begin(); iterConfigId != eventCtx->source->ConfigurationIds.end(); ++iterConfigId)
-        {
-            if (!iterConfigId->second.empty())
-            {
-                std::string name = iterConfigId->first;
-
-                builder.AddField(name.c_str(), TypeMbcsString);
-                dbuilder.AddString(iterConfigId->second.c_str());
-            }
-        }
-    }
-
     //"Extension"
     if (eventCtx->source->Extension.size() > 0)
     {
@@ -533,22 +517,6 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
 
                 builder.AddField(name.c_str(), TypeMbcsString);
                 dbuilder.AddString(iterExtension->second.c_str());
-            }
-        }
-    }
-
-    //"ContextIds"
-    if (eventCtx->source->ContextIds.size() > 0)
-    {
-        std::map<std::string, std::string>::iterator iterContextIds;
-        for (iterContextIds = eventCtx->source->ContextIds.begin(); iterContextIds != eventCtx->source->ContextIds.end(); ++iterContextIds)
-        {
-            if (!iterContextIds->second.empty())
-            {
-                std::string name = iterContextIds->first;
-
-                builder.AddField(name.c_str(), TypeMbcsString);
-                dbuilder.AddString(iterContextIds->second.c_str());
             }
         }
     }

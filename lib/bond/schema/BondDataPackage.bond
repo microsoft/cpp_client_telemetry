@@ -133,6 +133,35 @@ struct BondPII
   5: optional nullable<BondO365ScrubberOptions> O365Ops;
 }
 
+
+enum BondCustomerContentKind
+
+{
+  
+  NotSet = 0,
+
+  GenericContent = 1
+
+}
+
+
+
+struct BondCustomerContent
+
+{
+ 
+   // Customer content type
+  
+   1: optional BondCustomerContentKind
+ Kind = NotSet;
+  
+   // Customer content sent to the collector
+  
+   2: optional string RawContent;
+
+}
+
+
 // One instance of a log Record.
 struct BondRecord
 {
@@ -168,6 +197,17 @@ struct BondRecord
   30: optional map<string, BondPII> PIIExtensions;
   31: optional map<string, bool> ExtensionBoolean;
   32: optional map<string, int64> ExtensionDateTime;
+  33: optional map<string, int64> TypedExtensionInt64;
+  
+  34: optional map<string, double> TypedExtensionDouble;
+
+ 
+  // guid is encoded using this format: https://msdn.microsoft.com/en-us/library/system.guid.tobytearray(v=vs.110).aspx
+  // so this is always 16 element long
+ 
+  35: optional map<string, vector<uint8>> TypedExtensionGuid;
+  
+  36: optional map<string, CustomerContent> CustomerContentExtensions;
 };
 
 // Container for a group of Records from the same Source.

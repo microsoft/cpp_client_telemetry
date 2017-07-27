@@ -275,6 +275,20 @@ ISemanticContext& LogManagerImpl::GetSemanticContext()
     return *m_context;
 }
 
+void LogManagerImpl::SetContext(const std::string& name, const std::string& value, CustomerContentKind ccKind)
+{
+    ARIASDK_LOG_DETAIL("SetContext(\"%s\", ..., %u)", name.c_str(), ccKind);
+    EventProperty prop(value, ccKind);
+    m_context->setCustomField(name, prop);
+}
+
+void LogManagerImpl::SetContext(const std::string& name, const char *value, CustomerContentKind ccKind)
+{
+    ARIASDK_LOG_DETAIL("SetContext(\"%s\", ..., %u)", name.c_str(), ccKind);
+    EventProperty prop(value, ccKind);
+    m_context->setCustomField(name, prop);
+}
+
 /// <summary>
 /// Set global context field - string
 /// </summary>

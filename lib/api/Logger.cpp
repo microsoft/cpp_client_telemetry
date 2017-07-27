@@ -68,6 +68,8 @@ void Logger::SetContext(const std::string& name, EventProperty prop)
     m_context.setCustomField(name, prop);
 }
 
+void Logger::SetContext(const std::string& k, const char       v[], CustomerContentKind ccKind) { SetContext(k, EventProperty(v, ccKind)); }
+void Logger::SetContext(const std::string& k, const std::string &v, CustomerContentKind ccKind) { SetContext(k, EventProperty(v, ccKind)); }
 void Logger::SetContext(const std::string& k, const char       v[], PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
 void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
 void Logger::SetContext(const std::string& k, double             v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };

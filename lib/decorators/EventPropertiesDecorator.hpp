@@ -42,6 +42,7 @@ class ARIASDK_LIBABI EventPropertiesDecorator : public DecoratorBase {
 		// 2. Merge event context on top of it into props
 		// 3. Populate Pii properties as record.PIIExtensions
 		std::map<std::string, AriaProtocol::PII> PIIExtensions;
+        std::map<std::string, AriaProtocol::CustomerContent> ccExtensions;
 
 		for (auto &kv : eventProperties.GetProperties()) {
 
@@ -50,16 +51,30 @@ class ARIASDK_LIBABI EventPropertiesDecorator : public DecoratorBase {
 			}
 			auto k = kv.first;
 			auto v = kv.second;
-			if (v.piiKind != PiiKind_None) {
-				//ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-				AriaProtocol::PII pii;
-				pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
-				pii.RawContent = v.to_string();
-				// ScrubType = 1 is the O365 scrubber which is the default behavior.
-				// pii.ScrubType = static_cast<PIIScrubber>(O365);
-				pii.ScrubType = AriaProtocol::O365;
-				PIIExtensions[k] = pii;
-				// 4. Send event's Pii context fields as record.PIIExtensions
+			if (v.piiKind != PiiKind_None ||
+                v.ccKind != CustomerContentKind_None)
+            {
+                if (v.piiKind != PiiKind_None)
+                {
+                    //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                    AriaProtocol::PII pii;
+                    pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
+                    pii.RawContent = v.to_string();
+                    // ScrubType = 1 is the O365 scrubber which is the default behavior.
+                    // pii.ScrubType = static_cast<PIIScrubber>(O365);
+                    pii.ScrubType = AriaProtocol::O365;
+                    PIIExtensions[k] = pii;
+                    // 4. Send event's Pii context fields as record.PIIExtensions
+                }
+                else
+                {
+                    //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                    AriaProtocol::CustomerContent cc;
+                    cc.Kind = static_cast<AriaProtocol::CustomerContentKind>(v.ccKind);
+                    cc.RawContent = v.to_string();
+                    ccExtensions[k] = cc;
+                    // 4. Send event's Pii context fields as record.PIIExtensions
+                }
 			}
 			else {
 				std::vector<uint8_t> guid;
@@ -100,6 +115,14 @@ class ARIASDK_LIBABI EventPropertiesDecorator : public DecoratorBase {
 				record.PIIExtensions[piiItem.first] = piiItem.second;
 			}
 		}
+        
+        if (ccExtensions.size() > 0)
+        {
+            for (auto ccItem : ccExtensions)
+            {
+                record.CustomerContentExtensions[ccItem.first] = ccItem.second;
+            }
+        }        
 
 		std::string sdkVersion = PAL::getSdkVersion();
 		record.Extension[COMMONFIELDS_EVENT_SDKVERSION] = sdkVersion;

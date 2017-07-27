@@ -27,6 +27,8 @@ class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
 	MOCK_METHOD0(ResetTransmitProfiles, void());
 	MOCK_METHOD0(GetTransmitProfileName, std::string&());
     MOCK_METHOD0(GetSemanticContext, ARIASDK_NS::ISemanticContext & ());
+    MOCK_METHOD3(SetContext, void(std::string const &, std::string const &, ARIASDK_NS::CustomerContentKind));
+    MOCK_METHOD3(SetContext, void(const std::string&, const char*, ARIASDK_NS::CustomerContentKind));
     MOCK_METHOD3(SetContext, void(std::string const &, std::string const &, ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, const char* , ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, double, ARIASDK_NS::PiiKind));

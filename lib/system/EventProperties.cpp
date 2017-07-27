@@ -297,6 +297,26 @@ namespace Microsoft {
                 
 				return pIIExtensions;
             }
+            
+            /// <summary>
+            /// Get Customer content properties map
+            /// </summary>
+            /// <returns></returns>
+            const map<string, pair<string, CustomerContentKind> > EventProperties::GetCustomerContentProperties() const
+            {
+                std::map<string, pair<string, CustomerContentKind> > customerContentKindExtensions;
+                for (const auto &kv : (*m_propertiesP))
+                {
+                    auto k = kv.first;
+                    auto v = kv.second;
+                    if (v.ccKind != CustomerContentKind_None)
+                    {
+                        customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
+                    }
+                }
+
+                return customerContentKindExtensions;
+            }
 			        
             /// <summary>
             /// GUID_t constructor that accepts string

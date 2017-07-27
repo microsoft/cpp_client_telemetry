@@ -27,6 +27,15 @@ enum PiiKind
     PiiKind_IPv4AddressLegacy   = 13
 };
 
+
+/// <summary>
+/// Customer specific contenat kind used to indicate an event property value
+/// </summary>
+enum CustomerContentKind {
+	CustomerContentKind_None = 0,
+	CustomerContentKind_GenericData = 1,
+};
+
 /// <summary>
 /// Api Types of an operation such as ServiceApi or ClientProxy
 /// </summary.

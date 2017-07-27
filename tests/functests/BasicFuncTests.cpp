@@ -145,17 +145,27 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_THAT(actual.RecordType, AriaProtocol::RecordType::Event);
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
         {
-            if (prop.second.piiKind == PiiKind_None)
+            if (prop.second.piiKind == PiiKind_None &&
+                prop.second.ccKind == CustomerContentKind_None)
             {
                 EXPECT_THAT(actual.Extension, Contains(Pair(prop.first, prop.second.to_string())));
             }
         }
-        for (auto const& property : expected.GetPiiProperties()) {
+        for (auto const& property : expected.GetPiiProperties())
+        {
             ::AriaProtocol::PII pii;
             pii.ScrubType  = ::AriaProtocol::PIIScrubber::O365;
             pii.Kind       = static_cast< ::AriaProtocol::PIIKind>(property.second.second);
             pii.RawContent = property.second.first;
             EXPECT_THAT(actual.PIIExtensions, Contains(Pair(property.first, pii)));
+        }
+
+        for (auto const& property : expected.GetCustomerContentProperties())
+        {
+            ::AriaProtocol::CustomerContent cc;
+            cc.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(property.second.second);
+            cc.RawContent = property.second.first;
+            EXPECT_THAT(actual.CustomerContentExtensions, Contains(Pair(property.first, cc)));
         }
     }
 
@@ -222,6 +232,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
+    event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger->LogEvent(event2);
@@ -253,6 +264,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
+    event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger->LogEvent(event2);
