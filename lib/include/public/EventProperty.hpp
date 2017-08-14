@@ -72,7 +72,6 @@ namespace Microsoft {
             /// Customers need to provide their own converter from RPC GUID type to ARIA portable GUID type.
             /// </remarks>
             struct ARIASDK_LIBABI GUID_t {
-            private:
                 /// <summary>Specifies the first 8 hexadecimal digits of the GUID.</summary>
                 uint32_t Data1;
 
@@ -86,7 +85,6 @@ namespace Microsoft {
                 /// The remaining 6 bytes contain the final 12 hexadecimal digits.</summary>
                 uint8_t  Data4[8];
 
-            public:
                 /// <summary>
                 /// Create an empty Nil instance of GUID_t object (initialized to all 0)
                 /// {00000000-0000-0000-0000-000000000000}
@@ -146,19 +144,19 @@ namespace Microsoft {
                     memcpy(&(this->Data4[0]), &(guid.Data4[0]), sizeof(guid.Data4));
                 }
 
-				static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes)
-				{
-					GUID_t temp_t = GUID_t(bytes.data());
-					GUID temp;
-					temp.Data1 = temp_t.Data1;
-					temp.Data2 = temp_t.Data2;
-					temp.Data3 = temp_t.Data3;
-					for (size_t i = 0; i < 8; i++)
-					{
-						temp.Data4[i] = temp_t.Data4[i];
-					}
-					return temp;
-				}
+                static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes)
+                {
+                    GUID_t temp_t = GUID_t(bytes.data());
+                    GUID temp;
+                    temp.Data1 = temp_t.Data1;
+                    temp.Data2 = temp_t.Data2;
+                    temp.Data3 = temp_t.Data3;
+                    for (size_t i = 0; i < 8; i++)
+                    {
+                        temp.Data4[i] = temp_t.Data4[i];
+                    }
+                    return temp;
+                }
 #endif
 
                 void to_bytes(uint8_t(&guid_bytes)[16]) const;
@@ -256,7 +254,7 @@ namespace Microsoft {
                 /// <summary>Event field Pii kind</summary>
                 PiiKind piiKind;
 
-				/// <summary>Event field CustomerContent kind</summary>
+                 /// <summary>Event field CustomerContent kind</summary>
                 CustomerContentKind ccKind = CustomerContentKind_None;
 
                 /// <summary>
@@ -303,7 +301,7 @@ namespace Microsoft {
                 }
 
                 /// <summary>
-                /// EventProperty copy constructor
+                   /// EventProperty copy constructor
                 /// </summary>
                 /// <param name="source">Right-hand side value of object</param>
                 EventProperty(const EventProperty& source) :
@@ -342,16 +340,16 @@ namespace Microsoft {
                 /// </summary>
                 bool operator==(const EventProperty& source) const
                 {
-					if (ccKind != source.ccKind)
-					{
-						return false;
-					}
-					
-					if (piiKind != source.piiKind)
-					{
-						return false;
-					}
-					
+                    if (ccKind != source.ccKind)
+                    {
+                        return false;
+                    }
+                    
+                    if (piiKind != source.piiKind)
+                    {
+                        return false;
+                    }
+                    
                     if (type == source.type)
                     {
                         switch (type)
@@ -522,7 +520,7 @@ namespace Microsoft {
                             as_string = NULL;
                         }
                     }
-					piiKind = PiiKind_None;
+                    piiKind = PiiKind_None;
                     ccKind = CustomerContentKind_None;
                 }
 
@@ -556,7 +554,7 @@ namespace Microsoft {
                     type(TYPE_STRING),
                     piiKind(piiKind),
                     ccKind(CustomerContentKind_None) 
-				{
+                {
                     if (NULL == value)
                     {
                         as_string = new char[1];
@@ -588,12 +586,12 @@ namespace Microsoft {
                    
                 };
 
-				/// <summary>
-				/// EventProperty constructor for string value
-				/// </summary>
-				/// <param name="value">string value</param>
-				/// <param name="ccKind">Customer content kind</param>
-				EventProperty(const char* value, CustomerContentKind ccKind):
+                /// <summary>
+                /// EventProperty constructor for string value
+                /// </summary>
+                /// <param name="value">string value</param>
+                /// <param name="ccKind">Customer content kind</param>
+                EventProperty(const char* value, CustomerContentKind ccKind):
                     type(TYPE_STRING),
                     piiKind(PiiKind_None),
                     ccKind(ccKind)
@@ -612,12 +610,12 @@ namespace Microsoft {
                     }
                 };
 
-				/// <summary>
-				/// EventProperty constructor for string value
-				/// </summary>
-				/// <param name="value">string value</param>
-				/// <param name="ccKind">Customer content kind</param>
-				EventProperty(const std::string& value, CustomerContentKind ccKind):
+                /// <summary>
+                /// EventProperty constructor for string value
+                /// </summary>
+                /// <param name="value">string value</param>
+                /// <param name="ccKind">Customer content kind</param>
+                EventProperty(const std::string& value, CustomerContentKind ccKind):
                     type(TYPE_STRING),
                     piiKind(PiiKind_None),
                     ccKind(ccKind)
