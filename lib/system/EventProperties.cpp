@@ -26,7 +26,7 @@ namespace Microsoft {
                 {
                     auto key = kv.first;
                     auto val = kv.second;
-					(*m_propertiesP)[key] = val;
+                    (*m_propertiesP)[key] = val;
                 }
                 return (*this);
             }
@@ -43,23 +43,23 @@ namespace Microsoft {
              * \param name Event name - must not be empty!
              */
 
-			EventProperties::EventProperties()
-				: m_timestampInMillis(0LL)
-				, m_eventPriority(EventPriority_Unspecified)
-				, m_eventPolicyBitflags(0)
-				, m_eventNameP(new std::string("EventProperties default constructor"))
-				, m_eventTypeP(new std::string())
-				, m_propertiesP(new std::map<std::string, EventProperty>())
-			{
-			}
+            EventProperties::EventProperties()
+                : m_timestampInMillis(0LL)
+                , m_eventPriority(EventPriority_Unspecified)
+                , m_eventPolicyBitflags(0)
+                , m_eventNameP(new std::string("EventProperties default constructor"))
+                , m_eventTypeP(new std::string())
+                , m_propertiesP(new std::map<std::string, EventProperty>())
+            {
+            }
 
             EventProperties::EventProperties(const string& name)
                 : m_timestampInMillis(0LL)
                 , m_eventPriority(EventPriority_Unspecified)
-				, m_eventPolicyBitflags(0)
-				, m_eventNameP(new std::string("EventProperties Named constructor"))
-				, m_eventTypeP(new std::string())
-				, m_propertiesP(new std::map<std::string, EventProperty>())
+                , m_eventPolicyBitflags(0)
+                , m_eventNameP(new std::string("EventProperties Named constructor"))
+                , m_eventTypeP(new std::string())
+                , m_propertiesP(new std::map<std::string, EventProperty>())
             {
                 if (!name.empty())
                 {
@@ -69,30 +69,30 @@ namespace Microsoft {
                     SetName("undefined");
                 }
             }
-			EventProperties::EventProperties(EventProperties const& copy)
-			{
-				m_eventNameP = new std::string(*(copy.m_eventNameP));
-				m_eventTypeP = new std::string(*(copy.m_eventTypeP));
-				m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
-				m_eventPriority = copy.m_eventPriority;
-				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
-				m_timestampInMillis = copy.m_timestampInMillis;
+            EventProperties::EventProperties(EventProperties const& copy)
+            {
+                m_eventNameP = new std::string(*(copy.m_eventNameP));
+                m_eventTypeP = new std::string(*(copy.m_eventTypeP));
+                m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+                m_eventPriority = copy.m_eventPriority;
+                m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
+                m_timestampInMillis = copy.m_timestampInMillis;
                 
                 std::map<std::string, EventProperty>::iterator iter;
                 for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
                 {
                     (*m_propertiesP)[iter->first] = iter->second;
                 }
-			}
+            }
 
-			EventProperties& EventProperties::operator=(EventProperties const& copy)
-			{
-				m_eventNameP = new std::string(*(copy.m_eventNameP));
-				m_eventTypeP = new std::string(*(copy.m_eventTypeP));
-				m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
-				m_eventPriority = copy.m_eventPriority;
-				m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
-				m_timestampInMillis = copy.m_timestampInMillis;
+            EventProperties& EventProperties::operator=(EventProperties const& copy)
+            {
+                m_eventNameP = new std::string(*(copy.m_eventNameP));
+                m_eventTypeP = new std::string(*(copy.m_eventTypeP));
+                m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+                m_eventPriority = copy.m_eventPriority;
+                m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
+                m_timestampInMillis = copy.m_timestampInMillis;
 
                 std::map<std::string, EventProperty>::iterator iter;
                 for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
@@ -100,15 +100,15 @@ namespace Microsoft {
                     (*m_propertiesP)[iter->first] = iter->second;
                 }
 
-				return *this;
-			}
+                return *this;
+            }
 
-			EventProperties::~EventProperties()
-			{
-				if (m_eventNameP) delete m_eventNameP;
-				if (m_eventTypeP) delete m_eventTypeP;
-				if (m_propertiesP) delete m_propertiesP;
-			}
+            EventProperties::~EventProperties()
+            {
+                if (m_eventNameP) delete m_eventNameP;
+                if (m_eventTypeP) delete m_eventTypeP;
+                if (m_propertiesP) delete m_propertiesP;
+            }
 
             /// <summary>
             /// EventProperties constructor using C++11 initializer list
@@ -131,7 +131,7 @@ namespace Microsoft {
                     auto key = kv.first;
                     auto val = kv.second;
                    
-					(*m_propertiesP)[key] = val;
+                    (*m_propertiesP)[key] = val;
                 }
 
                 return (*this);
@@ -176,21 +176,21 @@ namespace Microsoft {
                 return result;
             }
 
-			/// <summary>
-			///  Specify Policy Bit flags for UTC usage of an event.
-			/// </summary>
-			void EventProperties::SetPolicyBitFlags(uint64_t policyBitFlags)
-			{
-				m_eventPolicyBitflags = policyBitFlags;
-			}
+            /// <summary>
+            ///  Specify Policy Bit flags for UTC usage of an event.
+            /// </summary>
+            void EventProperties::SetPolicyBitFlags(uint64_t policyBitFlags)
+            {
+                m_eventPolicyBitflags = policyBitFlags;
+            }
 
-			/// <summary>
-			/// Get the Policy bit flags for UTC usage of the event.
-			/// </summary>
-			uint64_t EventProperties::GetPolicyBitFlags() const
-			{
-				return m_eventPolicyBitflags;
-			}
+            /// <summary>
+            /// Get the Policy bit flags for UTC usage of the event.
+            /// </summary>
+            uint64_t EventProperties::GetPolicyBitFlags() const
+            {
+                return m_eventPolicyBitflags;
+            }
 
             /// <summary>
             /// Set name of this event
@@ -206,7 +206,7 @@ namespace Microsoft {
                 if (!isValidEventName) {
                     return false;
                 }
-				this->m_eventNameP->assign(m_eventName);
+                this->m_eventNameP->assign(m_eventName);
                 return true;
             }
 
@@ -232,7 +232,7 @@ namespace Microsoft {
                 if (!isValidEventType) {
                     return false;
                 }
-				this->m_eventTypeP->assign(m_eventType);
+                this->m_eventTypeP->assign(m_eventType);
                 return true;
             }
 
@@ -261,7 +261,7 @@ namespace Microsoft {
                     return;
                 }
                
-				(*m_propertiesP)[name] = prop;
+                (*m_propertiesP)[name] = prop;
             }
 
             //
@@ -284,18 +284,18 @@ namespace Microsoft {
             /// <returns></returns>
             const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties() const
             {
-				std::map<string, pair<string, PiiKind> > pIIExtensions;
-				for (const auto &kv : (*m_propertiesP))
-				{
-					auto k = kv.first;
-					auto v = kv.second;
-					if (v.piiKind != PiiKind_None)
-					{
-						pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
-					}
-				}
+                std::map<string, pair<string, PiiKind> > pIIExtensions;
+                for (const auto &kv : (*m_propertiesP))
+                {
+                    auto k = kv.first;
+                    auto v = kv.second;
+                    if (v.piiKind != PiiKind_None)
+                    {
+                        pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
+                    }
+                }
                 
-				return pIIExtensions;
+                return pIIExtensions;
             }
             
             /// <summary>
@@ -317,7 +317,7 @@ namespace Microsoft {
 
                 return customerContentKindExtensions;
             }
-			        
+                    
             /// <summary>
             /// GUID_t constructor that accepts string
             /// </summary>
