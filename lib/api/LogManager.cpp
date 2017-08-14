@@ -1,5 +1,5 @@
 #define LOG_MODULE DBG_API
-
+#include "pal/PAL.hpp"
 #include "LogManager.hpp"
 #include "LogManagerImpl.hpp"
 
@@ -35,11 +35,35 @@ namespace Microsoft {
 
 				if (nullptr == our_LogSessionDataP)
 				{
-					our_LogSessionDataP = new LogSessionData(configuration.cacheFilePath);
+					our_LogSessionDataP = new LogSessionData(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH));
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
-				
+
+                switch (configuration.minimumTraceLevel)
+                {
+                case    ACTTraceLevel_Debug:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Error);
+                    break;
+                case    ACTTraceLevel_Trace:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Detail);
+                    break;
+                case    ACTTraceLevel_Info:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Info);
+                    break;
+                case    ACTTraceLevel_Warn:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Warning);
+                    break;
+                case   ACTTraceLevel_Error:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Error);
+                    break;
+                case   ACTTraceLevel_Fatal:
+                    ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Error);
+                    break;
+                default:
+                    break;
+                }
+
 				return result;
 			}
 

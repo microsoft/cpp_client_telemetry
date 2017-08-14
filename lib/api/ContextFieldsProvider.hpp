@@ -7,7 +7,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI ContextFieldsProvider : public ISemanticContext
+class ContextFieldsProvider : public ISemanticContext
 {
   protected:
     typedef std::map<std::string, std::string>         KeyValueMap;
@@ -66,6 +66,7 @@ class ARIASDK_LIBABI ContextFieldsProvider : public ISemanticContext
     std::map<std::string, EventProperty>*  m_customContextFieldsP;      // custom context fields
     // mapping from an event name to a list of CSV'ed ECS configIds
     std::map<std::string, std::string>* m_commonContextEventToConfigIdsP;
+    std::string* m_CommonFieldsAppExperimentIdsP;
 };
 
 

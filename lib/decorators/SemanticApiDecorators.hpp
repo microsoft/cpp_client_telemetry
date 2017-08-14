@@ -8,7 +8,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI SemanticApiDecorators : public DecoratorBase {
+class SemanticApiDecorators : public DecoratorBase {
   public:
     SemanticApiDecorators()
     {

@@ -37,7 +37,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual bool RemoveListener(IECSClientCallback* listener);
 
         // Register a logger to auto-tag events sent by the logger with ECS configuration infos like ETag
-        virtual bool RegisterLogger(ILogger* pLoger, const std::string& agentName);
+        virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName);
 
         virtual bool SetUserId(const std::string& userId);
 
@@ -87,7 +87,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         void _ValidateECSClientConfiguration(const ECSClientConfiguration& config);
 		void _LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source);
 		void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-		void _UpdateLoggerWithEXPConfig(ILogger* pLogger, std::string agentName);
+		void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Telemetry::ILogger* pLogger, std::string agentName);
 		void _UpdateLoggersWithEXPConfig();
 		std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
 

@@ -24,10 +24,12 @@ OfflineStorageHandler::OfflineStorageHandler(LogConfiguration const& configurati
     m_queryDbSize(0),
     m_isStorageFullNotificationSend(false)
 {
-    if (configuration.cacheMemoryFullNotificationPercentage > 0 &&
-        configuration.cacheMemoryFullNotificationPercentage <= 100)
+    std::string  percentageFullNotification = configuration.GetProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE);
+    int percentage = std::stoi(percentageFullNotification);
+
+    if (percentage > 0 && percentage <= 100)
     {
-        m_memoryDbSizeNotificationLimit = (configuration.cacheMemoryFullNotificationPercentage * configuration.cacheMemorySizeLimitInBytes) /100;
+        m_memoryDbSizeNotificationLimit = (percentage * configuration.cacheMemorySizeLimitInBytes) /100;
     }
     else
     {// incase user has specified bad percentage, we stck to 75%
@@ -51,7 +53,7 @@ void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
     if (m_logConfiguration.cacheMemorySizeLimitInBytes > 0)
     {
         LogConfiguration inMemoryConfig = m_logConfiguration;
-        inMemoryConfig.cacheFilePath = ":memory:";
+        inMemoryConfig.SetProperty(CFG_STR_CACHE_FILE_PATH,":memory:");
 
         m_offlineStorageMemory.reset(new OfflineStorage_SQLite(inMemoryConfig, m_runtimeConfig));
         m_offlineStorageMemory->Initialize(*this);

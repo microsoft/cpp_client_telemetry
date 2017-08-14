@@ -48,7 +48,7 @@ ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "AriaSDK.LogManager", "Aria tel
 LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
   : m_httpClient(configuration.httpClient),
     m_runtimeConfig(configuration.runtimeConfig),
-    m_bandwidthController(configuration.bandwidthController),
+    m_bandwidthController(nullptr),//configuration.bandwidthController),
     m_offlineStorage(nullptr),
     m_system(nullptr)
 {

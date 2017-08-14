@@ -489,7 +489,7 @@ LogConfiguration configuration;
 ILogManager* lm;
 
 ILogger* init() {
-    configuration.cacheFilePath = "offlinestorage.db"; //":memory:"; //"offlinestorage.db";
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH,"offlinestorage.db"); //":memory:"; //"offlinestorage.db";
 	configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
 													 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
 	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
@@ -498,11 +498,18 @@ ILogger* init() {
 	configuration.cacheMemorySizeLimitInBytes = 50 * 1024 * 1024;
 	configuration.maxTeardownUploadTimeInSec = 5;
 
+    configuration.SetProperty(CFG_BOOL_ENABLE_CRC32, "true");
+    configuration.SetProperty(CFG_BOOL_ENABLE_HMAC, "false");
+    configuration.SetProperty(CFG_BOOL_ENABLE_DB_COMPRESS, "true");
+    configuration.SetProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, "false");
+    configuration.SetProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, "20");
+    std::string temp = configuration.GetProperty("dsadasdsad");
+
 	// Force UTC uploader on Windows 10 even if it's not RS2
 	//configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
 
 #ifdef USE_INT
-    configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/"; //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
+    configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
 #endif
 
 #ifdef USE_BOGUS_URL

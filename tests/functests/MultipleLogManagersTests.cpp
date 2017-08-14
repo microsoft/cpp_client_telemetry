@@ -40,24 +40,24 @@ class MultipleLogManagersTests : public ::testing::Test,
         server.start();
 
         sqlite3_initialize();
-        config1.skipSqliteInitAndShutdown = true;
-        config2.skipSqliteInitAndShutdown = true;
+        config1.SetProperty("skipSqliteInitAndShutdown", "true");
+        config2.SetProperty("skipSqliteInitAndShutdown", "true"); 
 
-        config1.cacheFilePath = "lm1.db";
+        config1.SetProperty("cacheFilePath","lm1.db");
         config1.runtimeConfig = &runtimeConfig1;
-        ::remove(config1.cacheFilePath.c_str());
+        ::remove(config1.GetProperty("cacheFilePath"));
 
-        config2.cacheFilePath = "lm2.db";
+        config2.SetProperty("cacheFilePath", "lm2.db");
         config2.runtimeConfig = &runtimeConfig2;
-        ::remove(config2.cacheFilePath.c_str());
+        ::remove(config2.GetProperty("cacheFilePath"));
     }
 
     virtual void TearDown() override
     {
         sqlite3_shutdown();
         server.stop();
-        ::remove(config1.cacheFilePath.c_str());
-        ::remove(config2.cacheFilePath.c_str());
+        ::remove(config1.GetProperty("cacheFilePath"));
+        ::remove(config2.GetProperty("cacheFilePath"));
     }
 
     void expectRuntimeConfig(MockIRuntimeConfig& rc, std::string const& url)

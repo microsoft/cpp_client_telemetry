@@ -7,7 +7,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI RuntimeConfigDecorator : public DecoratorBase {
+class RuntimeConfigDecorator : public DecoratorBase {
   public:
     RuntimeConfigDecorator(IRuntimeConfig& runtimeConfig, std::string const& tenantId, std::string const& experimentationProject)
       : m_runtimeConfig(runtimeConfig),

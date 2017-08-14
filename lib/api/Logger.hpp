@@ -93,23 +93,23 @@ class ARIASDK_LIBABI Logger : public ILogger
         long timeToLiveInMillis,
         EventProperties const& properties) override;
 
-  protected:
+    protected:
     bool applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority);
     virtual void submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags);
     void SetContext(const std::string& name, EventProperty prop);
-  protected:
+ // protected:
     std::mutex*              m_lockP;
     std::string*             m_tenantTokenP;
     std::string*             m_sourceP;
     ILogManagerInternal&     m_logManager;
-    ContextFieldsProvider    m_context;
+    ContextFieldsProvider*   m_context;
     IRuntimeConfig&          m_runtimeConfig;
 
-    BaseDecorator            m_baseDecorator;
-    EventPropertiesDecorator m_eventPropertiesDecorator;
-    RuntimeConfigDecorator   m_runtimeConfigDecorator;
-    SemanticContextDecorator m_semanticContextDecorator;
-    SemanticApiDecorators    m_semanticApiDecorators;
+    BaseDecorator*            m_baseDecorator;
+    EventPropertiesDecorator* m_eventPropertiesDecorator;
+    RuntimeConfigDecorator*   m_runtimeConfigDecorator;
+    SemanticContextDecorator* m_semanticContextDecorator;
+    SemanticApiDecorators*    m_semanticApiDecorators;
     int64_t                  m_sessionStartTime;
     std::string*             m_sessionIdP;
 };

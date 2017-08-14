@@ -34,9 +34,7 @@ namespace Microsoft {
 
                     std::int64_t GetExpiryTimeInSec() const
                     {
-
-                        std::int64_t currUtcTimestamp = PAL::getUtcSystemTime();
-
+                        std::int64_t currUtcTimestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTime();
                         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
                     }
 

@@ -43,8 +43,8 @@ class BasicFuncTests : public ::testing::Test,
         LogConfiguration configuration;
         configuration.runtimeConfig = &runtimeConfig;
         configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-        configuration.cacheFilePath = TEST_STORAGE_FILENAME;
-        ::remove(configuration.cacheFilePath.c_str());
+        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+        ::remove(configuration.GetProperty("cacheFilePath"));
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
         EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
@@ -386,7 +386,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     LogConfiguration configuration;
     //configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
     logManager.reset(ILogManager::Create(configuration));
 
     // 1st request is from MetaStats
@@ -411,8 +411,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     LogConfiguration configuration;
     configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
-   
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+
     logManager.reset(ILogManager::Create(configuration));
     logger = logManager->GetLogger("functests-Tenant-Token", "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
@@ -454,8 +454,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
     configuration.maxTeardownUploadTimeInSec = 5;
     configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
     configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
-
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+    
     logManager.reset(ILogManager::Create(configuration));
     logger = logManager->GetLogger("functests-Tenant-Token", "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
@@ -490,8 +490,8 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 	LogConfiguration configuration;
 	configuration.maxTeardownUploadTimeInSec = 0;
 	configuration.runtimeConfig = &runtimeConfig;
-	configuration.cacheFilePath = TEST_STORAGE_FILENAME;
-	logManager.reset(ILogManager::Create(configuration));
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
+    logManager.reset(ILogManager::Create(configuration));
 
 	logger = logManager->GetLogger("functests-Tenant-Token", "source");
 
@@ -531,7 +531,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     receivedRequests.clear();
         
     configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
     logManager.reset(ILogManager::Create(configuration));
 
     waitForRequests(5, 1);
@@ -570,7 +570,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     LogConfiguration configuration;
     configuration.runtimeConfig = &runtimeConfig;
     configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
     logManager.reset(ILogManager::Create(configuration));
 
     waitForRequests(5, 2);
@@ -658,7 +658,7 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     LogConfiguration configuration;
     configuration.runtimeConfig = &runtimeConfig;
     configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
     logManager.reset(ILogManager::Create(configuration));
 
     waitForRequests(5, 2);

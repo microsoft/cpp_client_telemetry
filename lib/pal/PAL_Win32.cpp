@@ -19,10 +19,13 @@ ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.PAL", "Aria telemetry client - platform a
 
 namespace detail {
 	
-LogLevel g_logLevel = LogLevel::Detail;
+LogLevel g_logLevel = LogLevel::Error;
 
 void log(LogLevel level, char const* component, char const* fmt, ...)
 {
+    if (level <= g_logLevel)
+        return;
+
     SYSTEMTIME st;
     ::GetSystemTime(&st);
 
@@ -232,6 +235,80 @@ void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
 
 //---
 
+char inttoHex[16]= {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
+void GuidtoString(GUID uuid, char* buf)
+{
+    //char buf[40];
+    int  test = (uuid.Data1 >> 28 & 0x0000000F);
+    buf[0] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 24 & 0x0000000F);
+    buf[1] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 20 & 0x0000000F);
+    buf[2] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 16 & 0x0000000F);
+    buf[3] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 12 & 0x0000000F);
+    buf[4] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 8 & 0x0000000F);
+    buf[5] = inttoHex[test];
+    test = (int)(uuid.Data1 >> 4 & 0x0000000F);
+    buf[6] = inttoHex[test];
+    test = (int)(uuid.Data1 & 0x0000000F);
+    buf[7] = inttoHex[test];    
+    buf[8] = '-';
+    test = (int)(uuid.Data2 >> 12 & 0x000F);
+    buf[9] =  inttoHex[test];
+    test = (int)(uuid.Data2 >> 8 & 0x000F);
+    buf[10] = inttoHex[test];
+    test = (int)(uuid.Data2 >> 4 & 0x000F);
+    buf[11] = inttoHex[test];
+    test = (int)(uuid.Data2 & 0x000F);
+    buf[12] = inttoHex[test];    
+    buf[13] = '-';
+    test = (int)(uuid.Data3 >> 12 & 0x000F);
+    buf[14] = inttoHex[test];
+    test = (int)(uuid.Data3 >> 8 & 0x000F);
+    buf[15] = inttoHex[test];
+    test = (int)(uuid.Data3 >> 4 & 0x000F);
+    buf[16] = inttoHex[test];
+    test = (int)(uuid.Data3 & 0x000F);
+    buf[17] = inttoHex[test];
+    buf[18] = '-';
+    test = (int)(uuid.Data4[0] >> 4 & 0x0F);
+    buf[19] = inttoHex[test];
+    test = (int)(uuid.Data4[0] & 0x0F);
+    buf[20] = inttoHex[test];
+    test = (int)(uuid.Data4[1] >> 4 & 0x0F);
+    buf[21] = inttoHex[test];
+    test = (int)(uuid.Data4[1] & 0x0F);
+    buf[22] = inttoHex[test];
+    buf[23] = '-';
+    test = (int)(uuid.Data4[2] >> 4 & 0x0F);
+    buf[24] = inttoHex[test];
+    test = (int)(uuid.Data4[2] & 0x0F);
+    buf[25] = inttoHex[test];
+    test = (int)(uuid.Data4[3] >> 4 & 0x0F);
+    buf[26] = inttoHex[test];
+    test = (int)(uuid.Data4[3] & 0x0F);
+    buf[27] = inttoHex[test];
+    test = (int)(uuid.Data4[4] >> 4 & 0x0F);
+    buf[28] = inttoHex[test];
+    test = (int)(uuid.Data4[4] & 0x0F);
+    buf[29] = inttoHex[test];
+    test = (int)(uuid.Data4[5] >> 4 & 0x0F);
+    buf[31] = inttoHex[test];
+    test = (int)(uuid.Data4[5] & 0x0F);
+    buf[30] = inttoHex[test];
+    test = (int)(uuid.Data4[6] >> 4 & 0x0F);
+    buf[32] = inttoHex[test];
+    test = (int)(uuid.Data4[6] & 0x0F);
+    buf[33] = inttoHex[test];
+    test = (int)(uuid.Data4[7] >> 4 & 0x0F);
+    buf[34] = inttoHex[test];
+    test = (int)(uuid.Data4[7]& 0x0F);
+    buf[35] = inttoHex[test];
+    buf[36] = 0;
+}
 #pragma warning(push)
 #pragma warning(disable:6031)
 std::string generateUuidString()
@@ -241,11 +318,7 @@ std::string generateUuidString()
     //UUID uuid;
     //::UuidCreate(&uuid);
     char buf[40];
-    sprintf_s(buf,
-        "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-        uuid.Data1, uuid.Data2, uuid.Data3,
-        uuid.Data4[0], uuid.Data4[1], uuid.Data4[2], uuid.Data4[3],
-        uuid.Data4[4], uuid.Data4[5], uuid.Data4[6], uuid.Data4[7]);
+    GuidtoString(uuid, buf);
     return buf;
 }
 #pragma warning(pop)

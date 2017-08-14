@@ -10,7 +10,6 @@
 #include <map>
 #include <string>
 
-using namespace Microsoft::Applications::Telemetry;
 
 namespace ARIASDK_NS_BEGIN {
 

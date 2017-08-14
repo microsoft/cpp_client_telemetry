@@ -97,7 +97,7 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
 
         EXPECT_CALL(runtimeConfigMock, GetOfflineStorageMaximumSizeBytes())
             .WillRepeatedly(Return(1000000));
-        configuration.cacheFilePath = "OfflineStorageTests_SQLiteWithMock.db";
+        configuration.SetProperty("cacheFilePath","OfflineStorageTests_SQLiteWithMock.db");
 
         os.reset(new OfflineStorage_SQLite4Test(configuration, runtimeConfigMock));
 
@@ -203,7 +203,7 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
                 .WillRepeatedly(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakePrepareStatement));
         }
 
-        EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(path ? path : configuration.cacheFilePath.c_str()), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+        EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(path ? path : configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
             .WillOnce(DoAll(
             SetArgPointee<1>(dbHandle),
             Return(SQLITE_OK)))
@@ -362,7 +362,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, InitializationErrorsFallbackToRecreat
     EXPECT_CALL(sqliteMock, sqlite3_initialize())
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.cacheFilePath), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
         .WillOnce(DoAll(
         SetArgPointee<1>(dbHandle),
         Return(SQLITE_CORRUPT)))
@@ -404,7 +404,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, InitializationErrorsFallbackToTempora
     EXPECT_CALL(sqliteMock, sqlite3_initialize())
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.cacheFilePath), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
         .WillOnce(DoAll(
         SetArgPointee<1>(dbHandle),
         Return(SQLITE_CORRUPT)))
@@ -454,7 +454,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, InitializationErrorsFallbackToInMemor
     EXPECT_CALL(sqliteMock, sqlite3_initialize())
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.cacheFilePath), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
         .WillOnce(DoAll(
         SetArgPointee<1>(dbHandle),
         Return(SQLITE_CORRUPT)))
@@ -533,7 +533,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, CompletelyFailedInitializationMeansNo
     EXPECT_CALL(sqliteMock, sqlite3_initialize())
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.cacheFilePath), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+    EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
         .WillOnce(DoAll(
         SetArgPointee<1>(dbHandle),
         Return(SQLITE_CORRUPT)))
@@ -827,7 +827,7 @@ class OfflineStorageTests_SQLiteWithMockInitialized : public OfflineStorageTests
   public:
     virtual void SetUp() override
     {
-        configuration.skipSqliteInitAndShutdown = true;
+        configuration.SetProperty("skipSqliteInitAndShutdown", "true");
         OfflineStorageTests_SQLiteWithMock::SetUp();
         expectOpenDatabase();
         expectInitializeDatabase();
@@ -857,7 +857,7 @@ class OfflineStorageTests_SQLiteWithMockInitialized : public OfflineStorageTests
             return;
         }
 
-        EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.cacheFilePath), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
+        EXPECT_CALL(sqliteMock, sqlite3_open_v2(StrEq(configuration.GetProperty("cacheFilePath")), _, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL))
             .WillOnce(DoAll(
             SetArgPointee<1>(nullptr),
             Return(SQLITE_NOMEM)))

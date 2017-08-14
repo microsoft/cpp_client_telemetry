@@ -75,6 +75,8 @@ extern void log(LogLevel level, char const* component, char const* fmt, ...);
 
 } // namespace detail
 
+#define ARIASDK_SET_LOG_LEVEL_(level_) \
+    (::ARIASDK_NS::PAL::detail::g_logLevel = (level_))
 // Check if logging is enabled on a specific level
 #define ARIASDK_LOG_ENABLED_(level_) \
     (::ARIASDK_NS::PAL::detail::g_logLevel >= (level_))

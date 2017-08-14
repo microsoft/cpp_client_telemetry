@@ -9,7 +9,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI BaseDecorator : public DecoratorBase {
+class BaseDecorator : public DecoratorBase {
   public:
     BaseDecorator()
           : m_sourceP(new std::string("")),

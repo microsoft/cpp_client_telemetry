@@ -15,8 +15,9 @@ RuntimeConfig_Default::~RuntimeConfig_Default()
 
 void RuntimeConfig_Default::initialize(LogConfiguration const& configuration)
 {
-    if (!configuration.eventCollectorUri.empty()) {
-        m_collectorUrl = configuration.eventCollectorUri;
+    std::string url = configuration.GetProperty(CFG_STR_COLLECTOR_URL);
+    if (!url.empty()) {
+        m_collectorUrl = url;
     }
 
     if (configuration.cacheFileSizeLimitInBytes != 0) {

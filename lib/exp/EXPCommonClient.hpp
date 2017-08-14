@@ -14,7 +14,6 @@
 #include <mutex>
 
 
-using namespace Microsoft::Applications::Telemetry;
 
 namespace Microsoft {
     namespace Applications {
@@ -100,7 +99,7 @@ namespace Microsoft {
                 std::string         requestName;
                 int                 httpstackError;
                 int                 statusCode;
-                HttpHeaders         headers;
+                Microsoft::Applications::Telemetry::HttpHeaders         headers;
                 std::string         body;
 
                 Message(MessageType type)
@@ -149,29 +148,29 @@ namespace Microsoft {
             };
 
 
-            class ExpRequestContext : public PAL::RefCountedImpl<ExpRequestContext>
+            class ExpRequestContext : public Microsoft::Applications::Telemetry::PAL::RefCountedImpl<ExpRequestContext>
             {
             public:
                 // Sending
-                std::unique_ptr<IHttpRequest>        httpRequest;
+                std::unique_ptr<Microsoft::Applications::Telemetry::IHttpRequest>        httpRequest;
                 std::string                          httpRequestId;
 
                 // Receiving
-                std::unique_ptr<IHttpResponse const> httpResponse;
+                std::unique_ptr<Microsoft::Applications::Telemetry::IHttpResponse const> httpResponse;
             };
 
-            using ExpRequestContextPtr = PAL::RefCountedPtr<ExpRequestContext>;
+            using ExpRequestContextPtr = Microsoft::Applications::Telemetry::PAL::RefCountedPtr<ExpRequestContext>;
 
 
-            class ExpCommon : public PAL::RefCountedImpl<ExpCommon>,
-                              public IHttpResponseCallback
+            class ExpCommon : public Microsoft::Applications::Telemetry::PAL::RefCountedImpl<ExpCommon>,
+                public Microsoft::Applications::Telemetry::IHttpResponseCallback
             {
             public:
                 ExpCommon(IExpCommonClient* client, std::string retry_Queue_Name);
                 ~ExpCommon();
 
                 // Register a logger to auto-tag events sent by the logger with EXP configuration infos like ETag
-                virtual bool RegisterLogger(ILogger* pLoger, const std::string& agentName);
+                virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName);
 
                 virtual bool Start(std::vector<int>& retryTimes);
 
@@ -193,15 +192,15 @@ namespace Microsoft {
                 void _HandleConfigRefetch(Message& msg, bool& isActiveConfigSwitched, bool& isActiveConfigSwitchedSaveNeeded);
 
                 // IHttpClientManagerCallback
-                virtual void OnHttpResponse(IHttpResponse const* response) override;
+                virtual void OnHttpResponse(Microsoft::Applications::Telemetry::IHttpResponse const* response) override;
                 void SendRequestAsync(std::string const& url);
                 bool CancelRequestsAsync();
 
                 void handleMessageTask();				
 
-                void _UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName, const std::string etag, const std::string configIds);
-                void _UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds);
-                void _LogEXPConfigEvent(EventProperties& evtProperties);
+                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Telemetry::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::string configIds);
+                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Telemetry::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds);
+                void _LogEXPConfigEvent(Microsoft::Applications::Telemetry::EventProperties& evtProperties);
                 void _ScheduleFetch(unsigned int seconds = 0);				
 
             
@@ -209,7 +208,7 @@ namespace Microsoft {
                 std::mutex                          m_lock;
                 std::mutex                          m_smalllock;
                 std::vector<std::string>            m_serverUrls;
-                std::map<ILogger*, std::string>     m_registeredLoggers;
+                std::map<Microsoft::Applications::Telemetry::ILogger*, std::string>     m_registeredLoggers;
                 std::map<std::string, std::string>  m_configActiveRequestParams;
                 std::map<std::string, std::string>  m_configActiveHeaders;
                 std::string                         m_configActiveUserId;
@@ -228,17 +227,17 @@ namespace Microsoft {
 
             private:
                 volatile bool                            m_isTimerCancelling;
-                PAL::DeferredCallbackHandle              m_messageProcessingTask;
+                Microsoft::Applications::Telemetry::PAL::DeferredCallbackHandle              m_messageProcessingTask;
                 bool                                     m_messageProcessingTaskScheduled;
                 std::vector<int>                         m_retryBackoffTimes;
                 unsigned int                             m_retrybackoffTimesIndex;
                 unsigned int                             m_minExpireTimeInSEXP;
                 IExpCommonClient*                        m_clientPtr;
                 std::string                              m_retry_Queue_Name;
-                std::unique_ptr<IHttpClient>             m_ownHttpClient;
-                std::unique_ptr<IHttpResponseCallback>   m_httpCallback;
+                std::unique_ptr<Microsoft::Applications::Telemetry::IHttpClient>             m_ownHttpClient;
+                std::unique_ptr<Microsoft::Applications::Telemetry::IHttpResponseCallback>   m_httpCallback;
 
-                IHttpClient*             m_httpClient;
+                Microsoft::Applications::Telemetry::IHttpClient*             m_httpClient;
                 std::string              m_httpRequestId;
 
 

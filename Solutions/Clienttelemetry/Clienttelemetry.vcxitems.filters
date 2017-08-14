@@ -207,6 +207,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneProvider.cpp">
       <Filter>controlplane</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp">
+      <Filter>api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">

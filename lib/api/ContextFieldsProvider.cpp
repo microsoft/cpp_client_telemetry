@@ -10,8 +10,10 @@ namespace ARIASDK_NS_BEGIN {
 
 ContextFieldsProvider::ContextFieldsProvider()
     : m_lockP(new std::mutex())
+    , m_parent( NULL)
     , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
     , m_customContextFieldsP(new std::map<std::string, EventProperty>())
+    , m_CommonFieldsAppExperimentIdsP( new std::string())
 {
 
 }
@@ -21,6 +23,7 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
    ,m_commonContextFieldsP( new std::map<std::string, EventProperty>())
    ,m_customContextFieldsP( new std::map<std::string, EventProperty>())
    ,m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
+   ,m_CommonFieldsAppExperimentIdsP(new std::string())
 {
     if (!m_parent) 
     {
@@ -43,6 +46,7 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
     m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
     m_commonContextEventToConfigIdsP =  new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
+    m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
 }
 
 ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
@@ -51,6 +55,7 @@ ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider co
     m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
     m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
     m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
+    m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
     return *this;
 }
 
@@ -63,7 +68,8 @@ ContextFieldsProvider::~ContextFieldsProvider()
     if (m_lockP) delete m_lockP;
     if (m_commonContextFieldsP) delete m_commonContextFieldsP;
     if (m_customContextFieldsP) delete m_customContextFieldsP;
-    if(m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
+    if (m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
+    if (m_CommonFieldsAppExperimentIdsP) delete m_CommonFieldsAppExperimentIdsP;
 }
 
 void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty value)
@@ -82,7 +88,8 @@ void ContextFieldsProvider::setCustomField(std::string const& name, EventPropert
 
 void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
 {
-    if (m_parent) {
+    if (m_parent)
+    {
         m_parent->writeToRecord(record);
     }
 
@@ -91,29 +98,27 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
 
         std::map<std::string, AriaProtocol::PII> PIIExtensions;
 
-        for (auto const& field : (*m_commonContextFieldsP))
-        {
-
-            if (field.first == COMMONFIELDS_APP_EXPERIMENTIDS)
-            {// for ECS set event specific config ids
-                std::string value = field.second.to_string();
-                if (m_commonContextFieldsP->find(EventInfo_Name) != m_commonContextFieldsP->end())
+        if (!m_CommonFieldsAppExperimentIdsP->empty())
+        {// for ECS set event specific config ids
+            std::string value = *m_CommonFieldsAppExperimentIdsP;
+            if (m_commonContextFieldsP->find(EventInfo_Name) != m_commonContextFieldsP->end())
+            {
+                EventProperty nameProperty = (*m_commonContextFieldsP)[EventInfo_Name];
+                std::string eventName = nameProperty.to_string();
+                if (!eventName.empty())
                 {
-                    EventProperty nameProperty = (*m_commonContextFieldsP)[EventInfo_Name];
-                    std::string eventName = nameProperty.to_string();
-                    if (!eventName.empty())
+                    std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
+                    if (iter != m_commonContextEventToConfigIdsP->end())
                     {
-                        std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
-                        if (iter != m_commonContextEventToConfigIdsP->end())
-                        {
-                            value = iter->second;
-                        }
+                        value = iter->second;
                     }
                 }
-                record.Extension[field.first] = value;
-                continue;
             }
+            record.Extension[COMMONFIELDS_APP_EXPERIMENTIDS] = value;
+        }
 
+        for (auto const& field : (*m_commonContextFieldsP))
+        {        
             if (field.second.piiKind != PiiKind_None)
             {
                 //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
@@ -160,7 +165,7 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
             }
         }
 
-        for (auto const& field : (*m_customContextFieldsP)) 
+        for (auto const& field : (*m_customContextFieldsP))
         {
             if (field.second.piiKind != PiiKind_None)
             {
@@ -232,14 +237,14 @@ void ContextFieldsProvider::SetAppExperimentETag(std::string const& appExperimen
 void ContextFieldsProvider::_ClearExperimentIds()
 {
     // Clear the common ExperimentIds
-    setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS,"");
+    m_CommonFieldsAppExperimentIdsP->clear();
     // Clear the map of all ExperimentsIds (that's associated with event)
     m_commonContextEventToConfigIdsP->clear();
 }
 
 void ContextFieldsProvider::SetAppExperimentIds(std::string const& appExperimentIds)
 {
-    setCommonField(COMMONFIELDS_APP_EXPERIMENTIDS, appExperimentIds);
+    *m_CommonFieldsAppExperimentIdsP = appExperimentIds;
 }
 
 void ContextFieldsProvider::SetAppExperimentImpressionId(std::string const& appExperimentImpressionId)

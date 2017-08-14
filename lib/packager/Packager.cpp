@@ -9,8 +9,9 @@ namespace ARIASDK_NS_BEGIN {
 
 Packager::Packager(LogConfiguration const& configuration, IRuntimeConfig const& runtimeConfig)
   : m_runtimeConfig(runtimeConfig),
-    m_forcedTenantToken(toLower(configuration.forcedTenantToken))
+    m_forcedTenantToken(toLower(configuration.GetProperty("forcedTenantToken")))
 {
+    UNREFERENCED_PARAMETER(configuration);
 }
 
 Packager::~Packager()

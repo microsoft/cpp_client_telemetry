@@ -7,7 +7,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ARIASDK_LIBABI SemanticContextDecorator : public DecoratorBase {
+class SemanticContextDecorator : public DecoratorBase {
   protected:
     ContextFieldsProvider const& m_provider;
 

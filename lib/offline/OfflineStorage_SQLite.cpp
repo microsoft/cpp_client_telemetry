@@ -20,20 +20,27 @@ static int const CURRENT_SCHEMA_VERSION = 1;
 OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig)
     : m_logConfiguration(configuration),
     m_runtimeConfig(runtimeConfig),
-    m_skipInitAndShutdown(configuration.skipSqliteInitAndShutdown),
+    m_skipInitAndShutdown(false),
     m_killSwitchManager(),
     m_clockSkewManager(),
     m_lastReadCount(0),
     m_isStorageFullNotificationSend(false)
 {
-    if (configuration.cacheFileFullNotificationPercentage > 0 &&
-        configuration.cacheFileFullNotificationPercentage <= 100)
+    std::string  percentageFullNotification = configuration.GetProperty(CFG_INT_CACHE_FILE_FULL_NOTIFICATION_PERCENTAGE);
+    int percentage = std::stoi(percentageFullNotification);
+
+    if (percentage > 0 && percentage <= 100)
     {
-        m_DbSizeNotificationLimit = (configuration.cacheFileFullNotificationPercentage * configuration.cacheFileSizeLimitInBytes) / 100;
+        m_DbSizeNotificationLimit = (percentage * configuration.cacheFileSizeLimitInBytes) / 100;
     }
     else
     {// incase user has specified bad percentage, we stck to 75%
         m_DbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * configuration.cacheFileSizeLimitInBytes) / 100;
+    }
+    std::string skipSqliteInitAndShutdownString = configuration.GetProperty("skipSqliteInitAndShutdown");
+    if (skipSqliteInitAndShutdownString == "true")
+    {
+        m_skipInitAndShutdown = true;
     }
 }
 
@@ -51,7 +58,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
     ARIASDK_LOG_DETAIL("Initializing offline storage");
 
-    if (m_db->initialize(m_logConfiguration.cacheFilePath, false) && initializeDatabase()) {
+    if (m_db->initialize(m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH), false) && initializeDatabase()) {
         ARIASDK_LOG_INFO("Using configured on-disk database");
         m_observer->OnStorageOpened("SQLite/Default");
         return;
@@ -62,7 +69,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
 void OfflineStorage_SQLite::Shutdown()
 {
-    ARIASDK_LOG_DETAIL("Shutting down offline storage %s", m_logConfiguration.cacheFilePath.c_str());
+    ARIASDK_LOG_DETAIL("Shutting down offline storage %s", m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH));
 
     if (m_db) {
         if (!commitIfInTransaction()) {
@@ -460,7 +467,7 @@ bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     m_observer->OnStorageFailed(toString(failureCode));
 
     // Try again with deletePrevious = true
-    if (m_db->initialize(m_logConfiguration.cacheFilePath, true)) {
+    if (m_db->initialize(m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH), true)) {
         if (initializeDatabase()) {
             m_observer->OnStorageOpened("SQLite/Clean");
             ARIASDK_LOG_INFO("Using configured on-disk database after deleting the existing one");

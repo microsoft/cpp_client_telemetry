@@ -8,7 +8,7 @@ namespace ARIASDK_NS_BEGIN {
 
 
 // Not an interface per se, rather a collection of static utility methods.
-class ARIASDK_LIBABI DecoratorBase {
+class DecoratorBase {
   public:
     // bool decorate(::AriaProtocol::Record& record, ...)
     // {

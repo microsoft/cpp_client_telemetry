@@ -17,14 +17,16 @@ Logger::Logger(std::string const& tenantToken, std::string const& source, std::s
     m_tenantTokenP(new std::string(tenantToken)),
     m_sourceP(new std::string(source)),
     m_logManager(logManager),
-    m_context(parentContext),
+    m_context(new ContextFieldsProvider(parentContext)),
     m_runtimeConfig(runtimeConfig),
-    m_baseDecorator(source),
-    m_runtimeConfigDecorator(m_runtimeConfig, tenantTokenToId(tenantToken), experimentationProject),
-    m_semanticContextDecorator(m_context),
+    m_baseDecorator(new BaseDecorator(source)),
+    m_runtimeConfigDecorator(new RuntimeConfigDecorator(m_runtimeConfig, tenantTokenToId(tenantToken), experimentationProject)),
+    m_semanticContextDecorator(new SemanticContextDecorator(*m_context)),
+    m_eventPropertiesDecorator( new EventPropertiesDecorator()),
+    m_semanticApiDecorators( new SemanticApiDecorators()),
     m_sessionStartTime(0),
     m_sessionIdP( new std::string(""))
-{
+{    
     ARIASDK_LOG_DETAIL("%p: New instance (tenantId=%s)", this, tenantTokenToId(*m_tenantTokenP).c_str());
 }
 
@@ -35,6 +37,12 @@ Logger::~Logger()
     if (m_sourceP) delete m_sourceP;
     if (m_lockP) delete m_lockP;
     if (m_sessionIdP) delete m_sessionIdP;
+    if (m_baseDecorator) delete m_baseDecorator;
+    if (m_runtimeConfigDecorator) delete m_runtimeConfigDecorator;
+    if (m_semanticContextDecorator) delete m_semanticContextDecorator;
+    if (m_eventPropertiesDecorator) delete m_eventPropertiesDecorator;
+    if (m_semanticApiDecorators) delete m_semanticApiDecorators;
+    if (m_context )delete m_context;
 }
 
 ISemanticContext* Logger::GetSemanticContext() const
@@ -65,7 +73,10 @@ void Logger::SetContext(const std::string& name, EventProperty prop)
     // Always overwrite the stored value. 
     // Empty string is alowed to remove the previously set value.
     // If the value is empty, the context will not be added to event.
-    m_context.setCustomField(name, prop);
+    if (m_context)
+    {
+        m_context->setCustomField(name, prop);
+    }
 }
 
 void Logger::SetContext(const std::string& k, const char       v[], CustomerContentKind ccKind) { SetContext(k, EventProperty(v, ccKind)); }
@@ -87,7 +98,7 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateAppLifecycleMessage(record, state) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAppLifecycleMessage(record, state)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -141,7 +152,7 @@ void Logger::LogFailure(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateFailureMessage(record, signature, detail, category, id)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -175,7 +186,7 @@ void Logger::LogPageView(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageViewMessage(record, id, pageName, category, uri, referrer)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -214,7 +225,7 @@ void Logger::LogPageAction(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageActionMessage(record, pageActionData)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -241,7 +252,7 @@ void Logger::LogSampledMetric(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -282,7 +293,7 @@ void Logger::LogAggregatedMetric(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAggregatedMetricMessage(record, metricData)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -305,7 +316,7 @@ void Logger::LogTrace(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateTraceMessage(record, level, message) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateTraceMessage(record, level, message)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -328,7 +339,7 @@ void Logger::LogUserState(
     EventPriority priority = EventPriority_Normal;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateUserStateMessage(record, state, timeToLiveInMillis) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateUserStateMessage(record, state, timeToLiveInMillis)) ||
         !applyCommonDecorators(record, properties, priority))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -342,10 +353,14 @@ void Logger::LogUserState(
 
 bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
 {
-    return m_semanticContextDecorator.decorate(record) &&
-           m_eventPropertiesDecorator.decorate(record, priority, properties) &&
-           m_runtimeConfigDecorator.decorate(record, priority) &&
-           m_baseDecorator.decorate(record, priority);
+    return m_semanticApiDecorators &&
+           m_semanticContextDecorator->decorate(record) &&
+           m_eventPropertiesDecorator &&
+           m_eventPropertiesDecorator->decorate(record, priority, properties) &&
+           m_runtimeConfigDecorator &&
+           m_runtimeConfigDecorator->decorate(record, priority) &&
+           m_baseDecorator &&
+           m_baseDecorator->decorate(record, priority);
 }
 
 void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
@@ -417,7 +432,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
     EventPriority priority = EventPriority_High;
     ::AriaProtocol::Record record;
 
-    if (!m_semanticApiDecorators.decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration) ||
+    if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration)) ||
         !applyCommonDecorators(record, prop, priority))
     {
        ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",

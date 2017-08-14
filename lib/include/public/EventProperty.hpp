@@ -10,11 +10,6 @@
 #include <cstdint>
 
 #ifdef _WIN32
-#pragma warning(push)
-#pragma warning(disable:4251)
-#ifndef strdup
-#define strdup _strdup
-#endif
 /* Required for GUID type helper function on Windows */
 #include <ObjBase.h>
 #endif
@@ -269,7 +264,7 @@ namespace Microsoft {
                 /// </summary>
                 union
                 {
-                    const char*  as_string;
+                    char*  as_string;
                     int64_t      as_int64;
                     double       as_double;
                     bool         as_bool;
@@ -313,11 +308,14 @@ namespace Microsoft {
                 /// <param name="source">Right-hand side value of object</param>
                 EventProperty(const EventProperty& source) :
                     type(source.type)
-                {
+                {                    
                     memcpy((void*)this, (void*)&source, sizeof(EventProperty));
                     if (type == TYPE_STRING)
                     {
-                        as_string = strdup(source.as_string);
+                        size_t len = strlen(source.as_string);
+                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                        memcpy((void*)as_string, (void*)source.as_string, len);
+                        as_string[len] = 0;
                     }
                 }
 
@@ -331,7 +329,10 @@ namespace Microsoft {
                     memcpy((void*)this, (void*)&source, sizeof(EventProperty));
                     if (type == TYPE_STRING)
                     {
-                        as_string = strdup(source.as_string);
+                        size_t len = strlen(source.as_string);
+                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                        memcpy((void*)as_string, (void*)source.as_string, len);
+                        as_string[len] = 0;
                     }
                 }
 
@@ -414,7 +415,10 @@ namespace Microsoft {
                     memcpy((void*)this, (void*)&source, sizeof(EventProperty));
                     if (type == TYPE_STRING)
                     {
-                        as_string = strdup(source.as_string); // Error #28: LEAK 4 bytes 
+                        size_t len = strlen(source.as_string);
+                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                        memcpy((void*)as_string, (void*)source.as_string, len);
+                        as_string[len] = 0;
                     }
                     return (*this);
                 }
@@ -425,7 +429,11 @@ namespace Microsoft {
                 EventProperty& operator=(const std::string& value)
                 {
                     clear();
-                    as_string = strdup(value.c_str());
+                    size_t len = strlen(value.c_str());
+                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                    memcpy((void*)as_string, (void*)value.c_str(), len);
+                    as_string[len] = 0;
+
                     type = TYPE_STRING;
                     return (*this);
                 }
@@ -436,7 +444,10 @@ namespace Microsoft {
                 EventProperty& operator=(const char *value)
                 {
                     clear();
-                    as_string = strdup(value);
+                    size_t len = strlen(value);
+                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                    memcpy((void*)as_string, (void*)value, len);
+                    as_string[len] = 0;
                     type = TYPE_STRING;
                     return (*this);
                 }
@@ -507,7 +518,7 @@ namespace Microsoft {
                 void clear() {
                     if (type == TYPE_STRING) {
                         if (as_string != NULL) {
-                            free((void *)as_string);
+                            delete as_string;
                             as_string = NULL;
                         }
                     }
@@ -532,7 +543,8 @@ namespace Microsoft {
                 {
                     as_time_ticks.ticks = 0;
                     as_guid = {};
-                    as_string = strdup("");
+                    as_string = new char[1];
+                    as_string[0] = 0;
                 };
 
                 /// <summary>
@@ -545,7 +557,18 @@ namespace Microsoft {
                     piiKind(piiKind),
                     ccKind(CustomerContentKind_None) 
 				{
-                    as_string = strdup((value != NULL) ? value : "");
+                    if (NULL == value)
+                    {
+                        as_string = new char[1];
+                        as_string[0] = 0;
+                    }
+                    else
+                    {
+                        size_t len = strlen(value);
+                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                        memcpy((void*)as_string, (void*)value, len);
+                        as_string[len] = 0;
+                    }                                        
                 };
 
                 /// <summary>
@@ -558,7 +581,11 @@ namespace Microsoft {
                     piiKind(piiKind),
                     ccKind(CustomerContentKind_None) 
                 {
-                    as_string = strdup(value.c_str());
+                    size_t len = strlen(value.c_str());
+                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                    memcpy((void*)as_string, (void*)value.c_str(), len);
+                    as_string[len] = 0;
+                   
                 };
 
 				/// <summary>
@@ -571,7 +598,18 @@ namespace Microsoft {
                     piiKind(PiiKind_None),
                     ccKind(ccKind)
                 {
-                    as_string = strdup((value != NULL) ? value : "");
+                    if (NULL == value)
+                    {
+                        as_string = new char[1];
+                        as_string[0] = 0;
+                    }
+                    else
+                    {
+                        size_t len = strlen(value);
+                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                        memcpy((void*)as_string, (void*)value, len);
+                        as_string[len] = 0;
+                    }
                 };
 
 				/// <summary>
@@ -584,7 +622,10 @@ namespace Microsoft {
                     piiKind(PiiKind_None),
                     ccKind(ccKind)
                 {
-                    as_string = strdup(value.c_str());
+                    size_t len = strlen(value.c_str());
+                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
+                    memcpy((void*)as_string, (void*)value.c_str(), len);
+                    as_string[len] = 0;
                 };
 
                 /// <summary>
@@ -675,5 +716,4 @@ namespace Microsoft {
 }
 
 #ifdef _WIN32
-#pragma warning(pop)
 #endif

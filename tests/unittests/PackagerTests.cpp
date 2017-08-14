@@ -194,7 +194,7 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 TEST_F(PackagerTests, ForcedTenantIsForced)
 {
     LogConfiguration logConfigurationF;
-    logConfigurationF.forcedTenantToken = "forced-Tenant-Token";
+    logConfigurationF.SetProperty("forcedTenantToken", "forced-Tenant-Token");
     Packager packagerF(logConfigurationF, runtimeConfigMock);
     packagerF.packagedEvents >> packagedEvents;
 

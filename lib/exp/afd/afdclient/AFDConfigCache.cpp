@@ -8,7 +8,7 @@
 #include "pal/UtcHelpers.hpp"
 #include "AFDClientUtils.hpp"
 
-
+using namespace Microsoft::Applications::Telemetry;
 using namespace Microsoft::Applications::Telemetry::PAL;
 using namespace std;
 

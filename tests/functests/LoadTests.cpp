@@ -69,10 +69,10 @@ class LoadTests : public Test,
     HttpServer                   server;
     std::unique_ptr<ILogManager> logManager;
     unsigned                     recordsReceived;
-	PDH_HQUERY                   cpuQuery;
-	PDH_HQUERY                   diskQuery;
-	PDH_HCOUNTER                 cpuTotal;
-	PDH_HCOUNTER                 diskTotal;
+    PDH_HQUERY                   cpuQuery;
+    PDH_HQUERY                   diskQuery;
+    PDH_HCOUNTER                 cpuTotal;
+    PDH_HCOUNTER                 diskTotal;
 
   public:
     virtual void SetUp() override
@@ -85,7 +85,7 @@ class LoadTests : public Test,
         server.addHandler("/", *this);
 
         configuration.runtimeConfig = &runtimeConfig;
-        configuration.cacheFilePath = TEST_STORAGE_FILENAME;
+        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
         ::remove(TEST_STORAGE_FILENAME);
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
@@ -103,13 +103,13 @@ class LoadTests : public Test,
 
         logManager.reset(ILogManager::Create(configuration));
 
-		PdhOpenQuery(NULL, NULL, &cpuQuery);
-		PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
-		PdhCollectQueryData(cpuQuery);
+        PdhOpenQuery(NULL, NULL, &cpuQuery);
+        PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
+        PdhCollectQueryData(cpuQuery);
 
-		PdhOpenQuery(NULL, NULL, &diskQuery);
-		PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
-		PdhCollectQueryData(diskQuery);
+        PdhOpenQuery(NULL, NULL, &diskQuery);
+        PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
+        PdhCollectQueryData(diskQuery);
 
         recordsReceived = 0;
         server.start();
@@ -117,10 +117,10 @@ class LoadTests : public Test,
 
     virtual void TearDown() override
     {
-		if (cpuQuery)
-		{
-			PdhCloseQuery(cpuQuery);
-		}
+        if (cpuQuery)
+        {
+            PdhCloseQuery(cpuQuery);
+        }
 
         logManager->FlushAndTeardown();
         ::remove(TEST_STORAGE_FILENAME);
@@ -163,18 +163,18 @@ class LoadTests : public Test,
 
 bool isRequiredAvailableMemory()
 {
-	MEMORYSTATUSEX memInfo;
-	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-	GlobalMemoryStatusEx(&memInfo);
-	DWORDLONG fourGB = 4294967296;
-	if (memInfo.ullAvailPhys > fourGB)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    DWORDLONG fourGB = 4294967296;
+    if (memInfo.ullAvailPhys > fourGB)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 
@@ -184,50 +184,50 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     // Avoid counting cost of the fat RootTools initialization/shutdown.
     auf::init();
 #endif
-	
-	unsigned const RESTART_COUNT           = 100;
+    
+    unsigned const RESTART_COUNT           = 100;
     unsigned int MAX_TIME_PER_RESTART_MS = 250;
 
-	unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
+    unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
 
-	double avgCpuLoad = 0;
-	PDH_FMT_COUNTERVALUE counterVal;	
-	PDH_FMT_COUNTERVALUE diskVal;
-	double avgDiskLoad = 0;
-	
+    double avgCpuLoad = 0;
+    PDH_FMT_COUNTERVALUE counterVal;	
+    PDH_FMT_COUNTERVALUE diskVal;
+    double avgDiskLoad = 0;
+    
 
     int64_t time = PAL::getMonotonicTimeMs();
     for (unsigned i = 0; i < RESTART_COUNT; i++)
-	{
+    {
         logManager.reset();
         logManager.reset(ILogManager::Create(configuration));
     }
 
     time = PAL::getMonotonicTimeMs() - time;
-	PdhCollectQueryData(cpuQuery);
-	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
-	PdhCollectQueryData(diskQuery);
-	PdhGetFormattedCounterValue(diskTotal, PDH_FMT_DOUBLE, NULL, &diskVal);
-	avgCpuLoad = avgCpuLoad + counterVal.doubleValue;
-	avgDiskLoad = avgDiskLoad + diskVal.doubleValue;
+    PdhCollectQueryData(cpuQuery);
+    PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+    PdhCollectQueryData(diskQuery);
+    PdhGetFormattedCounterValue(diskTotal, PDH_FMT_DOUBLE, NULL, &diskVal);
+    avgCpuLoad = avgCpuLoad + counterVal.doubleValue;
+    avgDiskLoad = avgDiskLoad + diskVal.doubleValue;
 
-	//printf("\nAvg Processor (_Total) Processor Time = %f", NULL, avgCpuLoad);
-	//printf("\navg PhysicalDisk (_Total)  Disk Read Timee = %f", NULL, avgDiskLoad);
+    //printf("\nAvg Processor (_Total) Processor Time = %f", NULL, avgCpuLoad);
+    //printf("\navg PhysicalDisk (_Total)  Disk Read Timee = %f", NULL, avgDiskLoad);
 
-	if (avgCpuLoad > 75)
-	{
-		maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
-	}
-	else if (avgCpuLoad > 40)
-	{
-		maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
-	}
-	
-	if (!isRequiredAvailableMemory())
-	{
-		maxtimeperrestart = maxtimeperrestart + MAX_TIME_PER_RESTART_MS;
-	}	
-	
+    if (avgCpuLoad > 75)
+    {
+        maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
+    }
+    else if (avgCpuLoad > 40)
+    {
+        maxtimeperrestart = MAX_TIME_PER_RESTART_MS + MAX_TIME_PER_RESTART_MS;
+    }
+    
+    if (!isRequiredAvailableMemory())
+    {
+        maxtimeperrestart = maxtimeperrestart + MAX_TIME_PER_RESTART_MS;
+    }	
+    
     EXPECT_THAT(time / RESTART_COUNT, Lt(maxtimeperrestart));
 
 #ifdef ARIASDK_PAL_SKYPE
