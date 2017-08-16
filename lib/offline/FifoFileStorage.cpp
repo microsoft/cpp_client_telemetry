@@ -643,17 +643,18 @@ LOAD_FAILED:
 
     void FIFOFileStorage::Reset()
     {
+        memset(&m_FileHeader, 0, sizeof(m_FileHeader));
         m_FileHandle = nullptr;
         m_FileStatus = FILE_CLOSE;
         m_FileOpenSize = 0;
         m_PhysicalBlocks.clear();
-        memset(&m_FileHeader, 0, sizeof(m_FileHeader));
+        m_LogicalBlocks.clear();        
 
 //		if(m_LogicalBlocks.size() == 0)
 //		{
 //    		fileDelete(m_FilePath);
 //		}
-        m_LogicalBlocks.clear();
+       
     }
 
 	size_t FIFOFileStorage::DeleteFileLocal(const char* filePath)

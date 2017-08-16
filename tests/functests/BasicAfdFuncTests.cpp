@@ -128,41 +128,11 @@ class BasicAfdFuncTests : public ::testing::Test,
 
     virtual void TearDown() override
     {
-        try
-        {
-            logManager->FlushAndTeardown();
-        }
-        catch (...)
-        {
-            printf("exception in logManager->FlushAndTeardown();");
-        }
-        try
-        {
-            ::remove(TEST_STORAGE_FILENAME);
-        }
-        catch (...)
-        {
-            printf("exception in ::remove(TEST_STORAGE_FILENAME);");
-        }
-        try
-        {
-            server.stop();
-            IAFDClient::DestroyInstance(&m_pAFDClient);
-        }
-        catch (...)
-        {
-            printf("exception in server.stop();");
-        }
-
-        try
-        {
-            IAFDClient::DestroyInstance(&m_pAFDClient);
-        }
-        catch (...)
-        {
-            printf("exception in IAFDClient::DestroyInstance(&m_pAFDClient);");
-        }
-        //m_pAFDClient = NULL;
+        ::remove(TEST_STORAGE_FILENAME);
+        server.stop();
+        IAFDClient::DestroyInstance(&m_pAFDClient);
+        m_pAFDClient = NULL;
+        logManager->FlushAndTeardown();
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override

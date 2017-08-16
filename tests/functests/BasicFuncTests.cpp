@@ -370,8 +370,11 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
+    
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
+    event1.SetPriority(Microsoft::Applications::Telemetry::EventPriority::EventPriority_High);
+    event2.SetPriority(Microsoft::Applications::Telemetry::EventPriority::EventPriority_High);
 
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
     logger->LogEvent(event1);
@@ -384,8 +387,9 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     PAL::sleep(2100); // Some time to let events be saved to DB
 
     LogConfiguration configuration;
-    //configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
+    configuration.cacheMemorySizeLimitInBytes = 0;
     configuration.runtimeConfig = &runtimeConfig;
+
     configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
     logManager.reset(ILogManager::Create(configuration));
 
@@ -488,6 +492,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 	// Wait a bit so that the initial check for unsent events does not send our events too early.
 	PAL::sleep(200);
 	LogConfiguration configuration;
+    configuration.cacheMemorySizeLimitInBytes = 0;
 	configuration.maxTeardownUploadTimeInSec = 0;
 	configuration.runtimeConfig = &runtimeConfig;
     configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
