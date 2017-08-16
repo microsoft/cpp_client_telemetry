@@ -4,6 +4,8 @@
 #include "EventProperties.hpp"
 #include "utils/Utils.hpp"
 #include <string>
+#include <algorithm>
+#include <cctype>
 #include <map>
 
 
@@ -317,112 +319,6 @@ namespace Microsoft {
 
                 return customerContentKindExtensions;
             }
-                    
-            /// <summary>
-            /// GUID_t constructor that accepts string
-            /// </summary>
-            /// <param name="guid_string"></param>
-            GUID_t::GUID_t(const char* guid_string)
-            {
-                const char *str = const_cast<char *>(guid_string);
-                // Skip curly brace
-                if (str[0] == '{')
-                {
-                    str++;
-                }
-                // Convert to set of integer values
-                unsigned int p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
-                if (11 == sscanf_s(str,
-                    "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-                    &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10))
-                {
-                    Data1 = static_cast<uint32_t>(p0);
-                    Data2 = static_cast<uint16_t>(p1);
-                    Data3 = static_cast<uint16_t>(p2);
-                    Data4[0] = static_cast<uint8_t>(p3);
-                    Data4[1] = static_cast<uint8_t>(p4);
-                    Data4[2] = static_cast<uint8_t>(p5);
-                    Data4[3] = static_cast<uint8_t>(p6);
-                    Data4[4] = static_cast<uint8_t>(p7);
-                    Data4[5] = static_cast<uint8_t>(p8);
-                    Data4[6] = static_cast<uint8_t>(p9);
-                    Data4[7] = static_cast<uint8_t>(p10);
-                }
-                else  // Invalid input--use a safe default value
-                {
-                    Data1 = 0;
-                    Data2 = 0;
-                    Data3 = 0;
-                    Data4[0] = 0;
-                    Data4[1] = 0;
-                    Data4[2] = 0;
-                    Data4[3] = 0;
-                    Data4[4] = 0;
-                    Data4[5] = 0;
-                    Data4[6] = 0;
-                    Data4[7] = 0;
-                }
-            }
-
-            GUID_t::GUID_t(const uint8_t guid_bytes[16], bool bigEndian)
-            {
-                if (bigEndian)
-                {
-                    /* Use big endian - human-readable */
-                    // Part 1
-                    Data1 = guid_bytes[3];
-                    Data1 |= ((uint32_t)(guid_bytes[2])) << 8;
-                    Data1 |= ((uint32_t)(guid_bytes[1])) << 16;
-                    Data1 |= ((uint32_t)(guid_bytes[0])) << 24;
-                    // Part 2
-                    Data2 = guid_bytes[5];
-                    Data2 |= ((uint16_t)(guid_bytes[4])) << 8;
-                    // Part 3
-                    Data3 = guid_bytes[7];
-                    Data3 |= ((uint16_t)(guid_bytes[6])) << 8;
-                }
-                else
-                {
-                    /* Use little endian - the same order as .NET C# Guid() class uses */
-                    // Part 1
-                    Data1 = guid_bytes[0];
-                    Data1 |= ((uint32_t)(guid_bytes[1])) << 8;
-                    Data1 |= ((uint32_t)(guid_bytes[2])) << 16;
-                    Data1 |= ((uint32_t)(guid_bytes[3])) << 24;
-                    // Part 2
-                    Data2 = guid_bytes[4];
-                    Data2 |= ((uint16_t)(guid_bytes[5])) << 8;
-                    // Part 3
-                    Data3 = guid_bytes[6];
-                    Data3 |= ((uint16_t)(guid_bytes[7])) << 8;
-                }
-                // Part 4
-                for (size_t i = 0; i < 8; i++)
-                {
-                    Data4[i] = guid_bytes[8 + i];
-                }
-            }
-
-            void GUID_t::to_bytes(uint8_t(&guid_bytes)[16]) const
-            {
-                // Part 1
-                guid_bytes[0] = (uint8_t)((Data1) & 0xFF);
-                guid_bytes[1] = (uint8_t)((Data1 >> 8) & 0xFF);
-                guid_bytes[2] = (uint8_t)((Data1 >> 16) & 0xFF);
-                guid_bytes[3] = (uint8_t)((Data1 >> 24) & 0xFF);
-                // Part 2
-                guid_bytes[4] = (uint8_t)((Data2) & 0xFF);
-                guid_bytes[5] = (uint8_t)((Data2 >> 8) & 0xFF);
-                // Part 3
-                guid_bytes[6] = (uint8_t)((Data3) & 0xFF);
-                guid_bytes[7] = (uint8_t)((Data3 >> 8) & 0xFF);
-                // Part 4
-                for (size_t i = 0; i < 8; i++)
-                {
-                    guid_bytes[8 + i] = Data4[i];
-                }
-            }
-
         }
     }
 }

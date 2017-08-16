@@ -43,20 +43,10 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="guid"></param>
                 /// <returns></returns>
-#pragma warning(push)
-#pragma warning(disable:6031)
                 std::string to_string(GUID guid)
                 {
-                    char buff[40] = { 0 }; // Maximum hyphenated GUID length with braces is 38 + null terminator
-                    snprintf(buff, sizeof(buff),
-                        "{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
-                        guid.Data1, guid.Data2, guid.Data3,
-                        guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-                        guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-                    std::string result(buff);
-                    return result;
+                    return GuidtoString(guid);;
                 }
-#pragma warning(pop)
 
                 NetworkCost const& NetworkDetector::GetNetworkCost() const
                 {
@@ -168,40 +158,6 @@ namespace Microsoft {
                         }
                     }
                     return result;
-                }
-
-                /// <summary>
-                /// Get adapter id for IConnectionProfile
-                /// </summary>
-                /// <param name="profile"></param>
-                /// <returns></returns>
-                std::string NetworkDetector::GetAdapterId(IConnectionProfile *profile)
-                {
-                    if (!profile)
-                    {
-                        ARIASDK_LOG_ERROR("Invalid profile pointer!");
-                        return "";  // Invalid interface ptr
-                    }
-
-                    ComPtr<INetworkAdapter> adapter;
-                    HRESULT hr = profile->get_NetworkAdapter(&adapter);
-                    if (hr == E_INVALIDARG)
-                    {
-                        ARIASDK_LOG_ERROR("No network interfaces - device is in airplane mode");
-                        return ""; // No interfaces - device is in airplane mode
-                    }
-
-                    UINT32 type;
-                    hr = adapter->get_IanaInterfaceType(&type);
-                    if (type == 23)
-                    {
-                        // FIXME
-                    }
-
-                    GUID id;
-                    hr = adapter->get_NetworkAdapterId(&id);
-
-                    return to_string(id);
                 }
 
                 /// <summary>
@@ -516,30 +472,6 @@ namespace Microsoft {
                     ARIASDK_LOG_DETAIL("NetworkDetector destroyed.");
                 }
 
-                ///// <summary>
-                ///// Get network cost name
-                ///// </summary>
-                ///// <param name="type"></param>
-                ///// <returns></returns>
-                //const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
-                //{
-                //    char *typeName;
-                //    switch (type) {
-                //    case NetworkCostType_Unrestricted:
-                //        typeName = "Unrestricted";
-                //        break;
-                //    case NetworkCostType_Fixed:
-                //        typeName = "Fixed";
-                //        break;
-                //    case NetworkCostType_Variable:
-                //        typeName = "Variable";
-                //    case NetworkCostType_Unknown:
-                //    default:
-                //        typeName = "Unknown";
-                //        break;
-                //    }
-                //    return typeName;
-                //}
 
                 const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity() const
                 {
@@ -550,82 +482,6 @@ namespace Microsoft {
                 {
                     return m_connections_connectivity;
                 }
-
-                /// <summary>
-                /// Obtain various details about network stack
-                /// </summary>
-                void NetworkDetector::GetNetworkDetails()
-                {
-                    ARIASDK_LOG_DETAIL("Getting network details...");
-                    ComPtr<IVectorView<HostName *>> hostNames;
-                    HRESULT hr = networkInfoStats->GetHostNames(&hostNames);
-                    if (!hostNames)
-                        return;
-
-                    m_hostnames.clear();
-                    unsigned int hostNameCount;
-                    hr = hostNames->get_Size(&hostNameCount);
-                    for (unsigned i = 0; i < hostNameCount; ++i) {
-                        MATW::HostNameInfo hostInfo;
-                        ComPtr<IHostName> hostName;
-                        hr = hostNames->GetAt(i, &hostName);
-
-                        HString rawName;
-                        hostName->get_RawName(rawName.GetAddressOf());
-                        ARIASDK_LOG_DETAIL("RawName: %s", to_string(&rawName).c_str());
-
-                        HostNameType type;
-                        hr = hostName->get_Type(&type);
-                        ARIASDK_LOG_DETAIL("HostNameType: %d", type);
-
-                        if (type == HostNameType_DomainName)
-                            continue;
-
-                        ComPtr<IIPInformation> ipInformation;
-                        hr = hostName->get_IPInformation(&ipInformation);
-
-                        ComPtr<INetworkAdapter> currentAdapter;
-                        hr = ipInformation->get_NetworkAdapter(&currentAdapter);
-                        hr = currentAdapter->get_NetworkAdapterId(&hostInfo.adapterId);
-                        ARIASDK_LOG_DETAIL("CurrentAdapterId: %s", to_string(hostInfo.adapterId).c_str());
-
-                        ComPtr<IReference<unsigned char>> prefixLengthReference;
-                        hr = ipInformation->get_PrefixLength(&prefixLengthReference);
-                        hr = prefixLengthReference->get_Value(&hostInfo.prefixLength);
-                        ARIASDK_LOG_DETAIL("PrefixLength: %d", hostInfo.prefixLength);
-
-                        // invalid prefixes
-                        if ((type == HostNameType_Ipv4 && hostInfo.prefixLength > 32)
-                            || (type == HostNameType_Ipv6 && hostInfo.prefixLength > 128))
-                            continue;
-
-                        HString name;
-                        hr = hostName->get_CanonicalName(name.GetAddressOf());
-                        hostInfo.address = to_string(&name);
-                        ARIASDK_LOG_DETAIL("CanonicalName: %s", hostInfo.address.c_str());
-
-                        m_hostnames.push_back(hostInfo);
-                    }
-
-                    hr = networkInfoStats->GetInternetConnectionProfile(&m_connection_profile);
-                    //auto profile = m_connection_profile.Get();
-
-                    ComPtr<IVectorView<ConnectionProfile *>> m_connection_profiles;
-                    hr = networkInfoStats->GetConnectionProfiles(&m_connection_profiles);
-
-                    unsigned int size;
-                    hr = m_connection_profiles->get_Size(&size);
-                    for (unsigned int i = 0; i < size; ++i) {
-                        ComPtr<IConnectionProfile> profile;
-                        hr = m_connection_profiles->GetAt(i, &profile);
-                        auto prof = profile.Get();
-                        HString name;
-                        hr = prof->get_ProfileName(name.GetAddressOf());
-                        ARIASDK_LOG_DETAIL("Profile[%d]: name = %s", i, to_string(&name).c_str());
-                        ARIASDK_LOG_DETAIL("Profile[%d]: guid = %s", i, GetAdapterId(prof).c_str());
-                    }
-                }
-
             }
         }
     }

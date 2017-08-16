@@ -24,7 +24,10 @@ std::string toString(float              value);
 std::string toString(double             value);
 std::string toString(long double        value);
 
+std::string GuidtoString(GUID uuid);
+
 std::string toLower(std::string str);
+std::string toUpper(std::string str);
 std::string sanitizeIdentifier(std::string buff);
 bool validateEventName(std::string const& name);
 bool validatePropertyName(std::string const& name);

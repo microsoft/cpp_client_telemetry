@@ -35,30 +35,24 @@ namespace Microsoft {
                 /// <summary>Raw 64-bit signed integer number representing number of .NET ticks</summary>
                 uint64_t ticks;
 
-                /// <summary>
                 /// Default constructor for an empty object
                 /// </summary>
-                time_ticks_t() : ticks(0) {};
+                time_ticks_t();
 
                 /// <summary>
                 /// Convert number of .NET ticks to time_ticks_t structure
                 /// </summary>
-                time_ticks_t(uint64_t raw) : ticks(raw) {};
+                time_ticks_t(uint64_t raw);
 
                 /// <summary>
                 /// time_t time must contain timestamp in UTC time
                 /// </summary>
-                time_ticks_t(const std::time_t* time)
-                {
-                    ticks = ticksUnixEpoch + ticksPerSecond * ((uint64_t)(*time));
-                }
+                time_ticks_t(const std::time_t* time);
 
                 /// <summary>
                 /// time_ticks_t copy constructor
                 /// </summary>
-                time_ticks_t(const time_ticks_t& t) {
-                    this->ticks = t.ticks;
-                }
+                time_ticks_t(const time_ticks_t& t);
             };
 
             /// <summary>GUID type - ARIA portable cross-platform implementation of GUID.
@@ -89,15 +83,7 @@ namespace Microsoft {
                 /// Create an empty Nil instance of GUID_t object (initialized to all 0)
                 /// {00000000-0000-0000-0000-000000000000}
                 /// </summary>
-                GUID_t() : Data1(0), Data2(0), Data3(0)
-                {
-                    // This silly code is required because vs2013 does not support
-                    // initializing arrays within a constructor list (C++11 feature).
-                    for(size_t i=0; i<8; i++)
-                    {
-                        Data4[i] = 0;
-                    }
-                };
+                GUID_t();
 
                 /// <summary>
                 /// Create GUID_t object from hyphenated string (curly braces optional)
@@ -113,91 +99,32 @@ namespace Microsoft {
                 /// </param>
                 GUID_t(const uint8_t guid_bytes[16], bool bigEndian = false);
 
-                GUID_t(int d1, int d2, int d3, const std::initializer_list<uint8_t> &v):
-                    Data1((uint32_t)d1), Data2((uint16_t)d2), Data3((uint16_t)d3)
-                {
-                    size_t i = 0;
-                    for (auto val : v) {
-                        Data4[i] = val;
-                        i++;
-                    }
-                }
-
+                GUID_t(int d1, int d2, int d3, const std::initializer_list<uint8_t> &v);
+                
                 /// <summary>
                 /// GUID_t copy constructor
                 /// </summary>
-                GUID_t(const GUID_t& guid) {
-                    this->Data1 = guid.Data1;
-                    this->Data2 = guid.Data2;
-                    this->Data3 = guid.Data3;
-                    memcpy(&(this->Data4[0]), &(guid.Data4[0]), sizeof(guid.Data4));
-                }
+                GUID_t(const GUID_t& guid);
 
 #ifdef _WIN32
                 /// <summary>
                 /// Create GUID_t object from Windows GUID object
                 /// </summary>
-                GUID_t(GUID guid) {
-                    this->Data1 = guid.Data1;
-                    this->Data2 = guid.Data2;
-                    this->Data3 = guid.Data3;
-                    memcpy(&(this->Data4[0]), &(guid.Data4[0]), sizeof(guid.Data4));
-                }
+                GUID_t(GUID guid);
 
-                static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes)
-                {
-                    GUID_t temp_t = GUID_t(bytes.data());
-                    GUID temp;
-                    temp.Data1 = temp_t.Data1;
-                    temp.Data2 = temp_t.Data2;
-                    temp.Data3 = temp_t.Data3;
-                    for (size_t i = 0; i < 8; i++)
-                    {
-                        temp.Data4[i] = temp_t.Data4[i];
-                    }
-                    return temp;
-                }
+                static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes);
+             
 #endif
 
                 void to_bytes(uint8_t(&guid_bytes)[16]) const;
 
-#pragma warning(push)
-#pragma warning(disable:6031)
-                std::string to_string() const
-                {
-                    const unsigned buffSize = 36 + 1;  // 36 + null-termination
-                    char buff[buffSize];
-                    snprintf(buff, buffSize,
-                        "%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
-                        this->Data1, this->Data2, this->Data3,
-                        this->Data4[0], this->Data4[1], this->Data4[2], this->Data4[3],
-                        this->Data4[4], this->Data4[5], this->Data4[6], this->Data4[7]);
-                    std::string result(buff);
-                    return result;
-                }
-#pragma warning(pop)
+                std::string to_string() const;
 
                 // The output from this method is compatible with std::unordered_map.
-                std::size_t HashForMap() const
-                {
-                    // Compute individual hash values for Data1, Data2, Data3, and parts of Data4
-                    // http://stackoverflow.com/a/1646913/126995
-                    size_t res = 17;
-                    res = res * 31 + Data1;
-                    res = res * 31 + Data2;
-                    res = res * 31 + Data3;
-                    res = res * 31 + (Data4[0] << 24 | Data4[1] << 16 | Data4[6] << 8 | Data4[7]);
-                    return res;
-                }
+                std::size_t HashForMap() const;
 
                 // Are 2 GUID_t objects equivalent? (needed for maps)
-                bool operator==(GUID_t const& other) const
-                {
-                    return Data1 == other.Data1 &&
-                        Data2 == other.Data2 &&
-                        Data3 == other.Data3 &&
-                        (0 == memcmp(Data4, other.Data4, sizeof(Data4)));
-                }
+                bool operator==(GUID_t const& other) const;
             };
 
             /// <summary>
@@ -301,411 +228,164 @@ namespace Microsoft {
                 }
 
                 /// <summary>
-                   /// EventProperty copy constructor
+                /// EventProperty copy constructor
                 /// </summary>
                 /// <param name="source">Right-hand side value of object</param>
-                EventProperty(const EventProperty& source) :
-                    type(source.type)
-                {                    
-                    memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                    if (type == TYPE_STRING)
-                    {
-                        size_t len = strlen(source.as_string);
-                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                        memcpy((void*)as_string, (void*)source.as_string, len);
-                        as_string[len] = 0;
-                    }
-                }
+                EventProperty(const EventProperty& source);
 
                 /// <summary>
                 /// EventProperty move constructor
                 /// </summary>
                 /// <param name="source">Right-hand side value of object</param>
-                EventProperty(EventProperty&& source) /* noexcept */ :
-                    type(source.type)
-                {
-                    memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                    if (type == TYPE_STRING)
-                    {
-                        size_t len = strlen(source.as_string);
-                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                        memcpy((void*)as_string, (void*)source.as_string, len);
-                        as_string[len] = 0;
-                    }
-                }
-
+                EventProperty(EventProperty&& source);
 
                 /// <summary>
                 /// EventProperty equalto operator
                 /// </summary>
-                bool operator==(const EventProperty& source) const
-                {
-                    if (ccKind != source.ccKind)
-                    {
-                        return false;
-                    }
-                    
-                    if (piiKind != source.piiKind)
-                    {
-                        return false;
-                    }
-                    
-                    if (type == source.type)
-                    {
-                        switch (type)
-                        {
-                        case TYPE_STRING:
-                        {
-                            std::string temp1 = as_string;
-                            std::string temp2 = source.as_string;
-                            if (temp1.compare(temp2) == 0)
-                            {
-                                return true;
-                            }
-                            break;
-                        }
-                        case TYPE_INT64:
-                            if (as_int64 == source.as_int64)
-                            {
-                                return true;
-                            }
-                            break;
-                        case TYPE_DOUBLE:
-                            if (as_double == source.as_double)
-                            {
-                                return true;
-                            }
-                            break;
-                        case TYPE_TIME:
-                            if (as_time_ticks.ticks == source.as_time_ticks.ticks)
-                            {
-                                return true;
-                            }
-                            break;
-                        case TYPE_BOOLEAN:
-                            if (as_bool == source.as_bool)
-                            {
-                                return true;
-                            }
-                            break;
-                        case TYPE_GUID:
-                        {
-                            std::string temp1 = as_guid.to_string();
-                            std::string temp2 = source.as_guid.to_string();
-                            if (temp1.compare(temp2) == 0)
-                            {
-                                return true;
-                            }
-                            break;
-                        }
-                            
-                        }
-                    }                    
-                    return false;
-                }
+                bool operator==(const EventProperty& source) const;
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(const EventProperty& source)
-                {
-                    clear();
-                    memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                    if (type == TYPE_STRING)
-                    {
-                        size_t len = strlen(source.as_string);
-                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                        memcpy((void*)as_string, (void*)source.as_string, len);
-                        as_string[len] = 0;
-                    }
-                    return (*this);
-                }
+                EventProperty& operator=(const EventProperty& source);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(const std::string& value)
-                {
-                    clear();
-                    size_t len = strlen(value.c_str());
-                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                    memcpy((void*)as_string, (void*)value.c_str(), len);
-                    as_string[len] = 0;
-
-                    type = TYPE_STRING;
-                    return (*this);
-                }
+                EventProperty& operator=(const std::string& value);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(const char *value)
-                {
-                    clear();
-                    size_t len = strlen(value);
-                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                    memcpy((void*)as_string, (void*)value, len);
-                    as_string[len] = 0;
-                    type = TYPE_STRING;
-                    return (*this);
-                }
+                EventProperty& operator=(const char *value);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(int64_t value) {
-                    clear();
-                    this->type = TYPE_INT64;
-                    this->as_int64 = value;
-                    return (*this);
-                }
+                EventProperty& operator=(int64_t value);
 
                 // All other integer types get converted to int64_t
-                EventProperty& operator=(long    value)  { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(int8_t  value)  { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(int16_t value)  { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(int32_t value)  { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(uint8_t  value) { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(uint16_t value) { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(uint32_t value) { return ((*this) = (int64_t)value); }
-                EventProperty& operator=(uint64_t value) { return ((*this) = (int64_t)value); }
+                EventProperty& operator=(long    value);
+                EventProperty& operator=(int8_t  value); 
+                EventProperty& operator=(int16_t value); 
+                EventProperty& operator=(int32_t value); 
+                EventProperty& operator=(uint8_t  value); 
+                EventProperty& operator=(uint16_t value); 
+                EventProperty& operator=(uint32_t value); 
+                EventProperty& operator=(uint64_t value); 
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(double value) {
-                    clear();
-                    this->type = TYPE_DOUBLE;
-                    this->as_double = value;
-                    return (*this);
-                }
+                EventProperty& operator=(double value);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(bool value) {
-                    clear();
-                    this->type = TYPE_BOOLEAN;
-                    this->as_bool = value;
-                    return (*this);
-                }
+                EventProperty& operator=(bool value);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(time_ticks_t value) {
-                    clear();
-                    this->type = TYPE_TIME;
-                    this->as_time_ticks = value;
-                    return (*this);
-                }
+                EventProperty& operator=(time_ticks_t value);
 
                 /// <summary>
                 /// EventProperty assignment operator
                 /// </summary>
-                EventProperty& operator=(GUID_t value) {
-                    clear();
-                    this->type = TYPE_GUID;
-                    this->as_guid = value;
-                    return (*this);
-                }
+                EventProperty& operator=(GUID_t value);
 
                 /// <summary>
                 /// Clears value object, deallocating memory if needed
                 /// </summary>
-                void clear() {
-                    if (type == TYPE_STRING) {
-                        if (as_string != NULL) {
-                            delete as_string;
-                            as_string = NULL;
-                        }
-                    }
-                    piiKind = PiiKind_None;
-                    ccKind = CustomerContentKind_None;
-                }
+                void clear();
 
                 /// EventProperty destructor
                 /// </summary>
-                virtual ~EventProperty()
-                {
-                    clear();
-                }
+                virtual ~EventProperty();
 
                 /// <summary>
                 /// EventProperty default constructor for empty string value
                 /// </summary>
-                EventProperty() :
-                    type(TYPE_STRING),
-                    piiKind(PiiKind_None),
-                    ccKind(CustomerContentKind_None)
-                {
-                    as_time_ticks.ticks = 0;
-                    as_guid = {};
-                    as_string = new char[1];
-                    as_string[0] = 0;
-                };
+                EventProperty();
 
                 /// <summary>
                 /// EventProperty constructor for string value
                 /// </summary>
                 /// <param name="value">string value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(const char* value, PiiKind piiKind = PiiKind_None) :
-                    type(TYPE_STRING),
-                    piiKind(piiKind),
-                    ccKind(CustomerContentKind_None) 
-                {
-                    if (NULL == value)
-                    {
-                        as_string = new char[1];
-                        as_string[0] = 0;
-                    }
-                    else
-                    {
-                        size_t len = strlen(value);
-                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                        memcpy((void*)as_string, (void*)value, len);
-                        as_string[len] = 0;
-                    }                                        
-                };
+                EventProperty(const char* value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for string value
                 /// </summary>
                 /// <param name="value">string value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None) :
-                    type(TYPE_STRING),
-                    piiKind(piiKind),
-                    ccKind(CustomerContentKind_None) 
-                {
-                    size_t len = strlen(value.c_str());
-                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                    memcpy((void*)as_string, (void*)value.c_str(), len);
-                    as_string[len] = 0;
-                   
-                };
+                EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for string value
                 /// </summary>
                 /// <param name="value">string value</param>
                 /// <param name="ccKind">Customer content kind</param>
-                EventProperty(const char* value, CustomerContentKind ccKind):
-                    type(TYPE_STRING),
-                    piiKind(PiiKind_None),
-                    ccKind(ccKind)
-                {
-                    if (NULL == value)
-                    {
-                        as_string = new char[1];
-                        as_string[0] = 0;
-                    }
-                    else
-                    {
-                        size_t len = strlen(value);
-                        as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                        memcpy((void*)as_string, (void*)value, len);
-                        as_string[len] = 0;
-                    }
-                };
+                EventProperty(const char* value, CustomerContentKind ccKind);
 
                 /// <summary>
                 /// EventProperty constructor for string value
                 /// </summary>
                 /// <param name="value">string value</param>
                 /// <param name="ccKind">Customer content kind</param>
-                EventProperty(const std::string& value, CustomerContentKind ccKind):
-                    type(TYPE_STRING),
-                    piiKind(PiiKind_None),
-                    ccKind(ccKind)
-                {
-                    size_t len = strlen(value.c_str());
-                    as_string = new char[len + 1]; // Error #28: LEAK 4 bytes 
-                    memcpy((void*)as_string, (void*)value.c_str(), len);
-                    as_string[len] = 0;
-                };
+                EventProperty(const std::string& value, CustomerContentKind ccKind);
 
                 /// <summary>
                 /// EventProperty constructor for int64 value
                 /// </summary>
                 /// <param name="value">int64_t value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None) : type(TYPE_INT64), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_int64(value) {};
+                EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for double value
                 /// </summary>
                 /// <param name="value">double value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(double        value, PiiKind piiKind = PiiKind_None) : type(TYPE_DOUBLE), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_double(value) {};
+                EventProperty(double        value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for time in .NET ticks
                 /// </summary>
                 /// <param name="value">time_ticks_t value - time in .NET ticks</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None) : type(TYPE_TIME), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_time_ticks(value) {};
+                EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for boolean value
                 /// </summary>
                 /// <param name="value">boolean value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(bool          value, PiiKind piiKind = PiiKind_None) : type(TYPE_BOOLEAN), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_bool(value) {};
+                EventProperty(bool          value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// EventProperty constructor for GUID
                 /// </summary>
                 /// <param name="value">GUID_t value</param>
                 /// <param name="piiKind">Pii kind</param>
-                EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None) : type(TYPE_GUID), piiKind(piiKind), ccKind(CustomerContentKind_None) , as_guid(value) {};
+                EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None);
 
                 // All other integer types get converted to int64_t
-                EventProperty(long     value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(int8_t   value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(int16_t  value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(int32_t  value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(uint8_t  value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(uint16_t value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(uint32_t value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
-                EventProperty(uint64_t value, PiiKind piiKind = PiiKind_None) : EventProperty((int64_t)value, piiKind) {};
+                EventProperty(long     value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(int8_t   value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(int16_t  value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(int32_t  value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(uint8_t  value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(uint16_t value, PiiKind piiKind = PiiKind_None);
+                EventProperty(uint32_t value, PiiKind piiKind = PiiKind_None); 
+                EventProperty(uint64_t value, PiiKind piiKind = PiiKind_None); 
 
                 /// <summary>Returns true whether the type is string AND the value is empty (i.e. whether its length is 0).</summary>
-                bool empty()
-                {
-                    return ((type == TYPE_STRING) && (strlen(as_string) == 0));
-                }
+                bool empty();
 
                 /// <summary>Return a string representation of this value object</summary>
-                virtual std::string to_string() const {
-                    std::string result;
-                    switch (type) {
-                    case TYPE_STRING:
-                        result = as_string;
-                        break;
-                    case TYPE_INT64:
-                        result = std::to_string(as_int64);
-                        break;
-                    case TYPE_DOUBLE:
-                        result = std::to_string(as_double);
-                        break;
-                    case TYPE_TIME:
-                        // Note that we do not format time as time, we return it as raw number of .NET ticks
-                        result = std::to_string(as_time_ticks.ticks);
-                        break;
-                    case TYPE_BOOLEAN:
-                        result = ((as_bool) ? "true" : "false");
-                        break;
-                    case TYPE_GUID:
-                        result = as_guid.to_string();
-                        break;
-                    default:
-                        result = "";
-                        break;
-                    }
-                    return result;
-                }
+                virtual std::string to_string() const;
 
             };
 

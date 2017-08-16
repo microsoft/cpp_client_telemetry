@@ -353,7 +353,7 @@ void Logger::LogUserState(
 
 bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
 {
-    return m_semanticApiDecorators &&
+    return m_semanticContextDecorator &&
            m_semanticContextDecorator->decorate(record) &&
            m_eventPropertiesDecorator &&
            m_eventPropertiesDecorator->decorate(record, priority, properties) &&

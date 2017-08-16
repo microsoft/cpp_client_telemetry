@@ -217,7 +217,7 @@ public:
 			numLogged++;
             if (print)
             {
-                printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, evt.param2);
+                printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, (unsigned int) evt.param2);
             }
 			ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 			{
@@ -234,30 +234,30 @@ public:
 			break;
 		case EVT_REJECTED:
             numRejected++;
-			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numRejected._My_val, evt.param2);
+			printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numRejected._My_val, (unsigned int)evt.param2);
 			break;
 		case EVT_ADDED:
             numLogged++;
             if(print)
-			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, evt.param2);
+			printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numLogged._My_val, (unsigned int) evt.param2);
 			break;
 		case EVT_CACHED:
-			numCached += evt.size;
+			numCached += (unsigned int)evt.size;
             if(print)
-			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached._My_val, evt.param2);
+			 printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numCached._My_val, (unsigned int) evt.param2);
 			break;
 		case EVT_DROPPED:
-            numDropped += evt.size;
-			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numDropped._My_val, evt.param2);
+            numDropped += (unsigned int)evt.size;
+			printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numDropped._My_val, (unsigned int)evt.param2);
 			break;
 		case EVT_SENT:
-			numSent += evt.size;
+			numSent += (unsigned int)evt.size;
             //if(print)
-			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, evt.param2);
+			printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numSent._My_val, (unsigned int) evt.param2);
 			break;
 		case EVT_STORAGE_FULL:
             numStorageFull++;
-			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numStorageFull._My_val, evt.param2);
+			printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, numStorageFull._My_val, (unsigned int)evt.param2);
 			if (evt.param1 >= 75) {
 				// UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
 				// or notify the main app that it has to do the profile timers housekeeping / force the upload...
@@ -269,29 +269,29 @@ public:
 		case EVT_COMPRESS_FAILED:
 		case EVT_UNKNOWN_HOST:
 		case EVT_SEND_FAILED:
-			printf("OnEventsSendFailed: seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			printf("OnEventsSendFailed: seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int) evt.param2);
 			break;
 		case EVT_HTTP_ERROR:
 			printf("OnHttpError:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+				evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int)evt.param2, evt.data, (unsigned int)evt.size);
 			break;
 		case EVT_HTTP_OK:
             if(print)
 			printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+				evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int) evt.param2, evt.data, (unsigned int)evt.size);
 			break;
 		case EVT_SEND_RETRY:
 			printf("OnSendRetry:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+				evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int)evt.param2, evt.data, (unsigned int)evt.size);
 			break;
 		case EVT_SEND_RETRY_DROPPED:
 			printf("OnSendRetryDropped: seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
+				evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int) evt.param2, evt.data, (unsigned int)evt.size);
 			break;
 		case EVT_NET_CHANGED:
 			printf("OnNetChanged:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u [%s]\n",
-				evt.seq, evt.ts, evt.type, evt.param1, evt.param2, networkCostNames[evt.param1]);
-			if (evt.param2)
+				evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int)evt.param2, networkCostNames[evt.param1]);
+			if ((unsigned int) evt.param2)
 			{
 				printf("Malwarebytes Antiexploit has been detected! Network cost is unknown.\n");
 			}
@@ -299,7 +299,7 @@ public:
 		case EVT_UNKNOWN:
 		default:
             if (print)
-			printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, Timerqueue=%u, ExecuteQueue=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+			printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, Timerqueue=%u, ExecuteQueue=%u\n", evt.seq, evt.ts, evt.type, (unsigned int)evt.param1, (unsigned int)evt.param2);
 			break;
 		};
 #endif
@@ -309,7 +309,7 @@ public:
 MyDebugEventListener listener;
 
 #define MAX_STRESS_COUNT            32
-#define MAX_STRESS_THREADS          10//0
+#define MAX_STRESS_THREADS          100
 
 /// <summary>
 /// New fluent syntax

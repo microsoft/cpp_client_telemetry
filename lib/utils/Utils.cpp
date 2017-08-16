@@ -39,6 +39,16 @@ std::string toLower(std::string str)
     return str;
 }
 
+std::string toUpper(std::string str)
+{
+    for (char& ch : str) {
+        if (ch >= 'a' && ch <= 'z') {
+            ch -= ('a' - 'A'); //ch += ('A' - 'a');
+        }
+    }
+    return str;
+}
+
 std::string sanitizeIdentifier(std::string str)
 {
 	std::replace(str.begin(), str.end(), '.', '_');
@@ -102,5 +112,84 @@ bool validateEventName(std::string const& name)
 
 	return true;
 }
+ 
+ 
+ std::string GuidtoString(GUID uuid)
+ {
+     static char inttoHex[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
+     const unsigned buffSize = 36 + 1;  // 36 + null-termination
+     char buf[buffSize];
+     
+     int  test = (uuid.Data1 >> 28 & 0x0000000F);
+     buf[0] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 24 & 0x0000000F);
+     buf[1] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 20 & 0x0000000F);
+     buf[2] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 16 & 0x0000000F);
+     buf[3] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 12 & 0x0000000F);
+     buf[4] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 8 & 0x0000000F);
+     buf[5] = inttoHex[test];
+     test = (int)(uuid.Data1 >> 4 & 0x0000000F);
+     buf[6] = inttoHex[test];
+     test = (int)(uuid.Data1 & 0x0000000F);
+     buf[7] = inttoHex[test];
+     buf[8] = '-';
+     test = (int)(uuid.Data2 >> 12 & 0x000F);
+     buf[9] = inttoHex[test];
+     test = (int)(uuid.Data2 >> 8 & 0x000F);
+     buf[10] = inttoHex[test];
+     test = (int)(uuid.Data2 >> 4 & 0x000F);
+     buf[11] = inttoHex[test];
+     test = (int)(uuid.Data2 & 0x000F);
+     buf[12] = inttoHex[test];
+     buf[13] = '-';
+     test = (int)(uuid.Data3 >> 12 & 0x000F);
+     buf[14] = inttoHex[test];
+     test = (int)(uuid.Data3 >> 8 & 0x000F);
+     buf[15] = inttoHex[test];
+     test = (int)(uuid.Data3 >> 4 & 0x000F);
+     buf[16] = inttoHex[test];
+     test = (int)(uuid.Data3 & 0x000F);
+     buf[17] = inttoHex[test];
+     buf[18] = '-';
+     test = (int)(uuid.Data4[0] >> 4 & 0x0F);
+     buf[19] = inttoHex[test];
+     test = (int)(uuid.Data4[0] & 0x0F);
+     buf[20] = inttoHex[test];
+     test = (int)(uuid.Data4[1] >> 4 & 0x0F);
+     buf[21] = inttoHex[test];
+     test = (int)(uuid.Data4[1] & 0x0F);
+     buf[22] = inttoHex[test];
+     buf[23] = '-';
+     test = (int)(uuid.Data4[2] >> 4 & 0x0F);
+     buf[24] = inttoHex[test];
+     test = (int)(uuid.Data4[2] & 0x0F);
+     buf[25] = inttoHex[test];
+     test = (int)(uuid.Data4[3] >> 4 & 0x0F);
+     buf[26] = inttoHex[test];
+     test = (int)(uuid.Data4[3] & 0x0F);
+     buf[27] = inttoHex[test];
+     test = (int)(uuid.Data4[4] >> 4 & 0x0F);
+     buf[28] = inttoHex[test];
+     test = (int)(uuid.Data4[4] & 0x0F);
+     buf[29] = inttoHex[test];
+     test = (int)(uuid.Data4[5] >> 4 & 0x0F);
+     buf[30] = inttoHex[test];
+     test = (int)(uuid.Data4[5] & 0x0F);
+     buf[31] = inttoHex[test];
+     test = (int)(uuid.Data4[6] >> 4 & 0x0F);
+     buf[32] = inttoHex[test];
+     test = (int)(uuid.Data4[6] & 0x0F);
+     buf[33] = inttoHex[test];
+     test = (int)(uuid.Data4[7] >> 4 & 0x0F);
+     buf[34] = inttoHex[test];
+     test = (int)(uuid.Data4[7] & 0x0F);
+     buf[35] = inttoHex[test];
+     buf[36] = 0;
+     return std::string(buf);
+ }
 
 } ARIASDK_NS_END
