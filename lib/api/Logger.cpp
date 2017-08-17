@@ -353,14 +353,14 @@ void Logger::LogUserState(
 
 bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
 {
-    return m_semanticContextDecorator &&
-           m_semanticContextDecorator->decorate(record) &&
-           m_eventPropertiesDecorator &&
-           m_eventPropertiesDecorator->decorate(record, priority, properties) &&
-           m_runtimeConfigDecorator &&
-           m_runtimeConfigDecorator->decorate(record, priority) &&
-           m_baseDecorator &&
-           m_baseDecorator->decorate(record, priority);
+    return m_eventPropertiesDecorator &&
+        m_eventPropertiesDecorator->decorate(record, priority, properties) &&
+        m_runtimeConfigDecorator &&
+        m_runtimeConfigDecorator->decorate(record, priority) &&
+        m_baseDecorator &&
+        m_baseDecorator->decorate(record, priority) &&
+        m_semanticContextDecorator &&
+        m_semanticContextDecorator->decorate(record);
 }
 
 void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)

@@ -237,10 +237,16 @@ void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
 std::string generateUuidString()
 {
 	GUID uuid;
-	CoCreateGuid(&uuid);
-    //UUID uuid;
-    //::UuidCreate(&uuid);
-    return GuidtoString(uuid);
+    if (S_OK == CoCreateGuid(&uuid))
+    {
+        //UUID uuid;
+        //::UuidCreate(&uuid);
+        return GuidtoString(uuid);
+    }
+    else
+    {
+        return GuidtoString(uuid);
+    }
 }
 
 int64_t getUtcSystemTimeMs()

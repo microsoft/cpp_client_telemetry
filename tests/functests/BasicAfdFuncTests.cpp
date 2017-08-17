@@ -450,7 +450,16 @@ TEST_F(BasicAfdFuncTests, getAfdDataAfterRestart)
 
     m_pAFDClient->Stop();
     
-    IAFDClient::DestroyInstance(&m_pAFDClient);
+    try
+    {
+        IAFDClient::DestroyInstance(&m_pAFDClient);
+        m_pAFDClient = NULL;
+    }
+    catch (...)
+    {
+        printf("exception in IAFDClient::DestroyInstance(&m_pAFDClient);");
+    }
+
 
     PAL::sleep(1 * 1000); 
 

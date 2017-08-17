@@ -101,10 +101,9 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
         if (!m_CommonFieldsAppExperimentIdsP->empty())
         {// for ECS set event specific config ids
             std::string value = *m_CommonFieldsAppExperimentIdsP;
-            if (m_commonContextFieldsP->find(EventInfo_Name) != m_commonContextFieldsP->end())
+            if (record.Extension.find(EventInfo_Name) != record.Extension.end())
             {
-                EventProperty nameProperty = (*m_commonContextFieldsP)[EventInfo_Name];
-                std::string eventName = nameProperty.to_string();
+                std::string eventName = record.Extension[EventInfo_Name];
                 if (!eventName.empty())
                 {
                     std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
