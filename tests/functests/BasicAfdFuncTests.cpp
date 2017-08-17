@@ -130,9 +130,28 @@ class BasicAfdFuncTests : public ::testing::Test,
     {
         ::remove(TEST_STORAGE_FILENAME);
         server.stop();
-        IAFDClient::DestroyInstance(&m_pAFDClient);
-        m_pAFDClient = NULL;
-        logManager->FlushAndTeardown();
+       
+
+        try
+        {
+            IAFDClient::DestroyInstance(&m_pAFDClient);
+            m_pAFDClient = NULL;
+        }
+        catch (...)
+        {
+            printf("exception in IAFDClient::DestroyInstance(&m_pAFDClient);");
+        }
+        
+        PAL::sleep(100);
+
+        try
+        {
+            logManager->FlushAndTeardown();
+        }
+        catch (...)
+        {
+            printf("exception in logManager->FlushAndTeardown();");
+        }
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
