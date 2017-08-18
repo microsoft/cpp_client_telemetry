@@ -350,28 +350,28 @@ std::string getSdkVersion()
 
 //---
 
-static volatile LONG g_palStarted;
+static volatile LONG g_palStarted = 0;
+HANDLE syncEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
 
 void initialize()
 {
-    if (InterlockedIncrementAcquire(&g_palStarted) == 1) {
-        while ((g_palStarted & 0x80000000) != 0) {
-            ::Sleep(10);
-        }
+    if (InterlockedIncrementAcquire(&g_palStarted) == 1)
+    {
         ARIASDK_LOG_DETAIL("Initializing...");
         g_workerThread.reset(new WorkerThread);
-        ARIASDK_LOG_INFO("Initialized");
-        for (LONG value, expected = g_palStarted; value = InterlockedCompareExchangeRelease(&g_palStarted, expected + 0x80000000, expected), value != expected; value = expected) {
-        }
-    } else {
-        while ((g_palStarted & 0x80000000) == 0) {
-            ::Sleep(10);
-        }
-    }
+       
+        g_SystemInformation = SystemInformationImpl::Create();
+        g_DeviceInformation = DeviceInformationImpl::Create();
+        g_NetworkInformation = NetworkInformationImpl::Create();
 
-	g_SystemInformation = SystemInformationImpl::Create();
-	g_DeviceInformation = DeviceInformationImpl::Create();
-	g_NetworkInformation = NetworkInformationImpl::Create();
+        ARIASDK_LOG_INFO("Initialized");
+        ::SetEvent(syncEvent);
+    }
+    else 
+    {
+         ::WaitForSingleObject(syncEvent, INFINITE);
+         ::Sleep(10);
+    }	
 }
 
 INetworkInformation* GetNetworkInformation() {return g_NetworkInformation;}
@@ -379,16 +379,22 @@ IDeviceInformation* GetDeviceInformation() { return g_DeviceInformation; }
 
 void shutdown()
 {
-    if (InterlockedDecrementAcquire(&g_palStarted) == 0x80000000) {
+    if (InterlockedDecrementAcquire(&g_palStarted) == 0)
+    {
         ARIASDK_LOG_DETAIL("Shutting down...");
         g_workerThread.reset();
+            
+        if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
+        if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
+        if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }
+
         ARIASDK_LOG_INFO("Shut down");
-        for (LONG value, expected = g_palStarted; value = InterlockedCompareExchangeRelease(&g_palStarted, expected - 0x80000000, expected), value != expected; value = expected) {
-        }
+        ::ResetEvent(syncEvent);
+    }	
+    else
+    {
+        ::Sleep(10);
     }
-	if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr;	}
-	if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr;	}
-	if (g_NetworkInformation) {	delete g_NetworkInformation; g_NetworkInformation = nullptr; }
 }
 
 

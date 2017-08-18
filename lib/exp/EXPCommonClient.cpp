@@ -74,6 +74,7 @@ namespace Microsoft {
             {
                 ARIASDK_LOG_DETAIL("ExpCommonClient c'tor: this=0x%x", this);
 
+                ARIASDK_NS::PAL::initialize();
 #if ARIASDK_PAL_SKYPE
                 ARIASDK_LOG_DETAIL("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
                 m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
@@ -113,6 +114,8 @@ namespace Microsoft {
                     m_messageProcessingTaskScheduled = false;
                 }
                 if (m_httpClient) delete m_httpClient;
+
+                ARIASDK_NS::PAL::shutdown();
             }
 
             /******************************************************************************
