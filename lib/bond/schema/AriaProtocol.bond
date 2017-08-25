@@ -125,20 +125,21 @@ struct CustomerContent
 
 struct Attributes
 {
-	1: optional PII pii;
-	2: optional CustomerContent customerContent;
+	1: optional vector<PII> pii;
+	2: optional vector<CustomerContent> customerContent;
 }
 struct Value
 {
-	1: optional ValueKind type = String;
-	2: optional string stringValue;
-	3: optional int64 longValue; // all integer types, data time, bool is represented here
-	4: optional double doubleValue;
-	5: optional vector<uint8> guidValue;
-	10: optional vector<string> stringArray;
-	11: optional vector<int64> longArray; // all vectors of integer types, data time, bool are represented here
-	12: optional vector<double> doubleArray;
-	13: optional vector<vector<int64>> guidArray;
+	1: optional ValueKind type = ValueString;
+	2: optional vector<Attributes> attributes;
+	3: optional string stringValue;
+	4: optional int64 longValue; // all integer types, data time, bool is represented here
+	5: optional double doubleValue;
+	6: optional vector<vector<uint8>> guidValue;
+	10: optional vector<vector<string>> stringArray;
+	11: optional vector<vector<int64>> longArray; // all vectors of integer types, data time, bool are represented here
+	12: optional vector<vector<double>> doubleArray;
+	13: optional vector<vector<vector<int64>>> guidArray;
 };
 
 struct Data
@@ -147,7 +148,7 @@ struct Data
 	1: optional map<string, Value> properties;
 }
 
-struct CommonSchemaEvent
+struct CsEvent
 {
     1: required string ver;
     2: required string name;
@@ -162,16 +163,16 @@ struct CommonSchemaEvent
     11: optional string appId;
     12: optional string appVer;
     13: optional string cV;
-	14: optional Ingest extIngest;
-	15: optional User extUser;
-	16: optional Device extDevice;
-	17: optional Os extOs;
-	18: optional App expApp;
-	19: optional Utc extUtc;
-	20: optional Protocol extProtocol;
-	21: optional Data ext;
+	14: optional vector<Ingest> extIngest;
+	15: optional vector<User> extUser;
+	16: optional vector<Device> extDevice;
+	17: optional vector<Os> extOs;
+	18: optional vector<App> expApp;
+	19: optional vector<Utc> extUtc;
+	20: optional vector<Protocol> extProtocol;
+	21: optional vector<Data> ext;
     22: optional map<string, string> tags;
     50: optional string baseType;
-	51: optional Data baseData;
-	60: optional Data data;
+	51: optional vector<Data> baseData;
+	60: optional vector<Data> data;
 };
