@@ -271,8 +271,8 @@ void UtcTelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& e
 
 int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx)
 {
-    std::string appInfoAppName = eventCtx->source->Extension[COMMONFIELDS_APP_ID];
-    eventCtx->source->Extension.erase(COMMONFIELDS_APP_ID);
+    std::string appInfoAppName = eventCtx->source->appId;
+    //eventCtx->source->Extension.erase(COMMONFIELDS_APP_ID);
 
     ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);
     if (0 == providerdata.providerHandle)
@@ -312,10 +312,10 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     tld::EventDataBuilder<std::vector<BYTE>> dbuilder(byteDataVector);
 
     
-    std::string eventName = eventCtx->source->Extension[EventInfo_Name];
+    std::string eventName = eventCtx->source->name;
     if (eventName.empty())
     {
-        eventName = eventCtx->source->EventType;
+        //eventName = eventCtx->source->EventType;
     }
 
     builder.Begin(eventName.c_str(), eventTags);
@@ -325,63 +325,64 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         //PartA_Exts_bc
         auto  structPartAExtsBC = builder.AddStruct(UTC_PART_A_EXTS_BC);
 
-        if (!eventCtx->source->Type.empty())
+       // if (!eventCtx->source->Type.empty())
         {
-            structPartAExtsBC.AddField(UTC_TYPE, TypeMbcsString);
-            dbuilder.AddString(eventCtx->source->Type.c_str());
+        //    structPartAExtsBC.AddField(UTC_TYPE, TypeMbcsString);
+        //    dbuilder.AddString(eventCtx->source->Type.c_str());
         }
 
-        std::string deviceInfoMake = eventCtx->source->Extension[COMMONFIELDS_DEVICE_MAKE];
-        if (!deviceInfoMake.empty())
+        //std::string deviceInfoMake = eventCtx->source->extDevice.>Extension[COMMONFIELDS_DEVICE_MAKE];
+        //if (!deviceInfoMake.empty())
         {
-            structPartAExtsBC.AddField(UTC_MAKE, TypeMbcsString);
-            dbuilder.AddString(deviceInfoMake.c_str());
+         //   structPartAExtsBC.AddField(UTC_MAKE, TypeMbcsString);
+         //   dbuilder.AddString(deviceInfoMake.c_str());
         }
 
-        std::string deviceInfoModel = eventCtx->source->Extension[COMMONFIELDS_DEVICE_MODEL];
-        if (!deviceInfoModel.empty())
+        //std::string deviceInfoModel = eventCtx->source->Extension[COMMONFIELDS_DEVICE_MODEL];
+        //if (!deviceInfoModel.empty())
         {
-            structPartAExtsBC.AddField(UTC_MODEL, TypeMbcsString);
-            dbuilder.AddString(deviceInfoModel.c_str());
+        //    structPartAExtsBC.AddField(UTC_MODEL, TypeMbcsString);
+        //    dbuilder.AddString(deviceInfoModel.c_str());
         }
 
-        std::string userInforTimeZone = eventCtx->source->Extension[COMMONFIELDS_USER_TIMEZONE];
-        if (!userInforTimeZone.empty())
+        //std::string userInforTimeZone = eventCtx->source->Extension[COMMONFIELDS_USER_TIMEZONE];
+        //if (!userInforTimeZone.empty())
         {
-            structPartAExtsBC.AddField(UTC_TIMEZONE, TypeMbcsString);
-            dbuilder.AddString(userInforTimeZone.c_str());
+         //   structPartAExtsBC.AddField(UTC_TIMEZONE, TypeMbcsString);
+         //   dbuilder.AddString(userInforTimeZone.c_str());
         }
 
-        std::string appInfoLanguage = eventCtx->source->Extension[COMMONFIELDS_APP_LANGUAGE];
-        if (!appInfoLanguage.empty())
+        //std::string appInfoLanguage = eventCtx->source->Extension[COMMONFIELDS_APP_LANGUAGE];
+        //if (!appInfoLanguage.empty())
         {
-            structPartAExtsBC.AddField(UTC_APP_LANG, TypeMbcsString);
-            dbuilder.AddString(appInfoLanguage.c_str());
+         //   structPartAExtsBC.AddField(UTC_APP_LANG, TypeMbcsString);
+         //   dbuilder.AddString(appInfoLanguage.c_str());
         }
 
-        std::string eventSource = eventCtx->source->Extension[EventInfo_Source];
-        if (!eventSource.empty())
+        //std::string eventSource = eventCtx->source->Extension[EventInfo_Source];
+        //if (!eventSource.empty())
         {
-            structPartAExtsBC.AddField(UTC_BC_SOURCE, TypeMbcsString);
-            dbuilder.AddString(eventSource.c_str());
+         //   structPartAExtsBC.AddField(UTC_BC_SOURCE, TypeMbcsString);
+         //   dbuilder.AddString(eventSource.c_str());
         }
 
-        std::string userInfoAdvertisingId(eventCtx->source->Extension[COMMONFIELDS_USER_ADVERTISINGID]);
-        if (!userInfoAdvertisingId.empty())
+        //std::string userInfoAdvertisingId(eventCtx->source->Extension[COMMONFIELDS_USER_ADVERTISINGID]);
+        //if (!userInfoAdvertisingId.empty())
         {
-            structPartAExtsBC.AddField(UTC_BC_ADVERTISEMENT_ID, TypeMbcsString);
-            dbuilder.AddString(userInfoAdvertisingId.c_str());
+         //   structPartAExtsBC.AddField(UTC_BC_ADVERTISEMENT_ID, TypeMbcsString);
+         //   dbuilder.AddString(userInfoAdvertisingId.c_str());
         }
     }
 
-    eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MAKE);
-    eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MODEL);
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_TIMEZONE);
-    eventCtx->source->Extension.erase(COMMONFIELDS_APP_LANGUAGE);
-    eventCtx->source->Extension.erase(EventInfo_Source);
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_ADVERTISINGID);
+    //eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MAKE);
+    //eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MODEL);
+    //eventCtx->source->Extension.erase(COMMONFIELDS_USER_TIMEZONE);
+    //eventCtx->source->Extension.erase(COMMONFIELDS_APP_LANGUAGE);
+    //eventCtx->source->Extension.erase(EventInfo_Source);
+    //eventCtx->source->Extension.erase(COMMONFIELDS_USER_ADVERTISINGID);
 
     //PartA_Exts_aria
+/*
     auto  structPartAExtsAria = builder.AddStruct(UTC_PART_A_EXTS_ARIA);
     structPartAExtsAria.AddField(UTC_LIB_VERSION, TypeMbcsString);
     std::string eventInfoSdkVersion = eventCtx->source->Extension[COMMONFIELDS_EVENT_SDKVERSION];
@@ -416,9 +417,9 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     //eventCtx->source->Extension.erase(SESSION_DURATION_BUCKET);
     //eventCtx->source->Extension.erase(SESSION_FIRST_TIME);
     //eventCtx->source->Extension.erase(SESSION_SDKUID);
+*/
 
-
-    //PartA_Exts_CommonFields
+ /*   //PartA_Exts_CommonFields
     builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
     std::string iKey(IKEY_PRE_TEXT);
     iKey.append(eventCtx->record.tenantToken);
@@ -675,7 +676,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         return -1; // if event is too big for UTC to handle
     }
 
-    tld::EventDescriptor eventDescriptor;// 3/*level*/,		opcode,		task,		keywords);	 
+    tld::EventDescriptor eventDescriptor;// 3//level//,		opcode,		task,		keywords);	 
 
     if (eventCtx->policyBitFlags & MICROSOFT_KEYWORD_CRITICAL_DATA)
     {
@@ -705,7 +706,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
             return -1;
         }
     }
-
+*/
 //	m_telemetryStatsHelper.UpdateOnEventsSuccessfullySentPerPriority(eventCtx->record.priority, eventCtx->source->Timestamp, 1);
 
 //	_GenerateAndSendStatsEventsAsNeeded(ACT_STATS_ROLLUP_KIND_ONGOING);

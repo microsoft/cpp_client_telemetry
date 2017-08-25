@@ -14,7 +14,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
   public:
-    ::AriaProtocol::Record * source;
+    ::AriaProtocol::CsEvent* source;
     StorageRecord            record;
     std::uint64_t            policyBitFlags;
 
@@ -23,7 +23,7 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
     {
     }
 
-    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventPriority priority, ::AriaProtocol::Record* source)
+    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventPriority priority, ::AriaProtocol::CsEvent* source)
       : source(source),
         record{id, tenantToken, priority}
     {

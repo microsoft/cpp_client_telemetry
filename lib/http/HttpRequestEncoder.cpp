@@ -4,6 +4,11 @@
 #include "utils/Utils.hpp"
 #include <memory>
 
+#include "utils/Utils.hpp"
+#include <bond_lite/All.hpp>
+#include "bond/generated/AriaProtocol_writers.hpp"
+#include "bond/generated/AriaProtocol_readers.hpp"
+
 namespace ARIASDK_NS_BEGIN {
 
 
@@ -27,7 +32,7 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     ctx->httpRequest->SetUrl(m_runtimeConfig.GetCollectorUrl());
 
     ctx->httpRequest->GetHeaders().set("Expect",       "100-continue");
-    ctx->httpRequest->GetHeaders().set("SDK-Version",  PAL::getSdkVersion());
+    ctx->httpRequest->GetHeaders().set("Client-Version",  PAL::getSdkVersion());
     ctx->httpRequest->GetHeaders().set("Client-Id",    "NO_AUTH");
     ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
 
@@ -44,6 +49,12 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     if (ctx->compressed) {
         ctx->httpRequest->GetHeaders().add("Content-Encoding", "deflate");
     }
+
+
+    AriaProtocol::CsEvent result;
+    bond_lite::CompactBinaryProtocolReader reader(ctx->body);
+    bond_lite::Deserialize(reader, result);
+
 
     ctx->httpRequest->SetBody(ctx->body);
     // IHttpRequest::SetBody() is free to swap the real body out, but better clear it anyway.

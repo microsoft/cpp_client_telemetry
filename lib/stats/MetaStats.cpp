@@ -499,10 +499,13 @@ void clearMapValues(std::map<T, unsigned int>& distribution)
 }
 
 template<typename T>
-static void insertNonZero(std::map<std::string, std::string>& target, std::string const& key, T const& value)
+static void insertNonZero(std::map<std::string, ::AriaProtocol::Value>& target, std::string const& key, T const& value)
 {
-    if (value != 0) {
-        target[key] = toString(value);
+    if (value != 0)
+    {
+        ::AriaProtocol::Value temp;
+        temp.stringValue = toString(value);
+        target[key] = temp;
     }
 }
 
@@ -511,21 +514,27 @@ static void insertNonZero(std::map<std::string, std::string>& target, std::strin
 /// For example,
 /// 1) range distribution
 /// map = { 1:2, 2 : 3, 3 : 4 }
-/// record.extension = { "name_0_1":"2", "name_1_2" : "3", "name_3_plus" : "4" }
+/// record.data.properties = { "name_0_1":"2", "name_1_2" : "3", "name_3_plus" : "4" }
 /// 2) otherwise
-/// record.extension = { "name_1":"2", "name_2" : "3", "name_3" : "4" }
+/// record.data.properties = { "name_1":"2", "name_2" : "3", "name_3" : "4" }
 /// </summary>
 /// <param name="record">telemetry::Record</param>
 /// <param name="distributionName">prefix of extension key name</param>
 /// <param name="distribution">map<unsigned int, unsigned int></param>
 /// <param name="range">indicate if the frequency distribution stored in map is based on multiple groups or multiple points</param>
-static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::string const& distributionName,
+static void addAggregatedMapToRecordFields(::AriaProtocol::CsEvent& record, std::string const& distributionName,
     uint_uint_dict_t const& distribution, bool range = true)
 {
     if (distribution.empty()) {
         return;
     }
-    std::map<std::string, std::string>& ext = record.Extension;
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+
+    std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
     uint_uint_dict_t::const_iterator it, next;
     std::string fieldValue;
 
@@ -547,19 +556,21 @@ static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::
         }
     }
 
-    ext[distributionName] = fieldValue;
+    ::AriaProtocol::Value temp;
+    temp.stringValue = fieldValue;
+    ext[distributionName] = temp;
 }
 
 /// <summary>
 /// Add A Map struture to Record Extension Field
 /// For example,
 /// map= {"a":2, "b":3, "c":4}
-/// record.extension = {"name_a":"2", "name_b":"3", "name_c":"4"}
+/// record.data.properties = {"name_a":"2", "name_b":"3", "name_c":"4"}
 /// </summary>
 /// <param name="record">telemetry::Record</param>
 /// <param name="distributionName">prefix of the key name in record extension map</param>
 /// <param name="distribution">map<std::string, unsigned int>, key is the source of event</param>
-static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::string const& distributionName,
+static void addAggregatedMapToRecordFields(::AriaProtocol::CsEvent& record, std::string const& distributionName,
     string_uint_dict_t const& distribution)
 {
     if (distribution.empty()) {
@@ -579,8 +590,14 @@ static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::
             fieldValue += it->first + ":" + toString(it->second) + ",";
         }
     }
-
-    record.Extension[distributionName] = fieldValue;
+    ::AriaProtocol::Value temp;;
+    temp.stringValue = fieldValue;
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+    record.data[0].properties[distributionName] = temp;
 }
 
 /// <summary>
@@ -589,15 +606,20 @@ static void addAggregatedMapToRecordFields(::AriaProtocol::Record& record, std::
 /// <param name="record">telemetry::Record</param>
 /// <param name="distributionName">prefix of the key name in record extension map</param>
 /// <param name="distribution">map<unsigned int, unsigned int>, key is the http return code, value is the count</param>
-static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::Record& record, std::string const& prefix,
+static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::CsEvent& record, std::string const& prefix,
     uint_uint_dict_t const countsPerHttpReturnCodeMap)
 {
     if (countsPerHttpReturnCodeMap.empty()) {
         return;
     }
 
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
     for (auto const& item : countsPerHttpReturnCodeMap) {
-        insertNonZero(record.Extension, prefix + "_" + toString(item.first), item.second);
+        insertNonZero(record.data[0].properties, prefix + "_" + toString(item.first), item.second);
     }
 }
 
@@ -607,9 +629,15 @@ static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::Record& rec
 /// <param name="record">BondTypes::Record</param>
 /// <param name="prefix">prefix of the key name in record extension map</param>
 /// <param name="recordsRejectedCountReasonDistribution">count of rejected records by reason due to which records were rejected</param>
-static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::Record& record, std::string const& prefix, const unsigned int recordsRejectedCountByReasonDistribution[])
+static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::CsEvent& record, std::string const& prefix, const unsigned int recordsRejectedCountByReasonDistribution[])
 {
-    std::map<std::string, std::string>& extension = record.Extension;
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+
+    std::map<std::string, ::AriaProtocol::Value>& extension = record.data[0].properties;
 
     insertNonZero(extension, prefix + "invalid_message_type",        recordsRejectedCountByReasonDistribution[REJECTED_REASON_INVALID_CLIENT_MESSAGE_TYPE]);
     insertNonZero(extension, prefix + "required_argument_missing",   recordsRejectedCountByReasonDistribution[REJECTED_REASON_REQUIRED_ARGUMENT_MISSING]);
@@ -730,34 +758,58 @@ void MetaStats::resetStats(bool start)
     }
 }
 
-void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, ActRollUpKind rollupKind)
+void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& records, ActRollUpKind rollupKind)
 {
     ARIASDK_LOG_DETAIL("snapStatsToRecord");
 
-    ::AriaProtocol::Record record;
-    record.Type                      = "client_telemetry";
-    record.EventType                 = "act_stats";
-    record.Extension["act_stats_id"] = m_telemetryStats->sessionId;
+    ::AriaProtocol::CsEvent record;
+    //record.Type                      = "client_telemetry";
+    record.baseType = "act_stats";
+        
+    ::AriaProtocol::Value temp;
+    temp.stringValue = m_telemetryStats->sessionId;
 
-    std::map<std::string, std::string>& ext = record.Extension;
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+    std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
+
+    ext["act_stats_id"] = temp;
+    
 
     //basic Fields
     //Add the tenantID (not the entire tenantToken) to the stats event
-    ext["TenantId"] = m_telemetryStats->tenantId;
+
+    std::string tenantToken = m_runtimeConfig.GetMetaStatsTenantToken();
+    m_telemetryStats->tenantId = tenantToken.substr(0, tenantToken.find('-'));
+    record.iKey = "O-" + m_telemetryStats->tenantId;
+    record.name = "stats";
+
+   // record.iKey = "O-" + m_telemetryStats->tenantId;
+    //ext["TenantId"] = m_telemetryStats->tenantId;
 
     // session fileds
     insertNonZero(ext, "session_start_timestamp", m_telemetryStats->sessionStartTimestamp);
     insertNonZero(ext, "stats_start_timestamp", m_telemetryStats->statsStartTimestamp);
 	insertNonZero(ext, "session_startup_time_in_millisec", m_telemetryStats->session_startup_time_in_millisec);
     insertNonZero(ext, "stats_end_timestamp", PAL::getUtcSystemTimeMs());
-    ext["stats_rollup_kind"] = ActRollUpKindToString(rollupKind);
+    ::AriaProtocol::Value rollupKindValue; 
+    rollupKindValue.stringValue = ActRollUpKindToString(rollupKind);
+    ext["stats_rollup_kind"] = rollupKindValue;
     insertNonZero(ext, "stats_send_frequency_secs", m_runtimeConfig.GetMetaStatsSendIntervalSec());
 
     if (m_telemetryStats->offlineStorageEnabled) {
         const TelemetryStats::OfflineStorageStats& storageStats = m_telemetryStats->offlineStorageStats;
-        ext["offline_storage_format_type"] = storageStats.storageFormat;
-        if (!storageStats.lastFailureReason.empty()) {
-            ext["offline_storage_last_failure"] = storageStats.lastFailureReason;
+        ::AriaProtocol::Value storageFormatValue; 
+        storageFormatValue.stringValue = storageStats.storageFormat;
+        ext["offline_storage_format_type"] = storageFormatValue;
+        if (!storageStats.lastFailureReason.empty())
+        {
+            ::AriaProtocol::Value lastFailureReasonValue; 
+            lastFailureReasonValue.stringValue = storageStats.lastFailureReason;
+            ext["offline_storage_last_failure"] = lastFailureReasonValue;
         }
         insertNonZero(ext, "config_offline_storage_size_bytes", storageStats.fileSizeInBytes);
     }
@@ -817,12 +869,14 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
     addRecordsPerRejectedReasonToRecordFields(record, "records_rejected_", recordStats.rejectedCountReasonDistribution);
 
     insertNonZero(ext, "records_dropped_count", recordStats.droppedCount);
-    insertNonZero(record.Extension, "records_dropped_offline_storage_save_failed", recordStats.droppedCountReasonDistribution[DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED]);
-    insertNonZero(record.Extension, "records_dropped_offline_storage_overflow",    recordStats.droppedCountReasonDistribution[DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW]);
-    insertNonZero(record.Extension, "records_dropped_server_declined_4xx",         recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_4XX]);
-    insertNonZero(record.Extension, "records_dropped_server_declined_5xx",         recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_5XX]);
-    insertNonZero(record.Extension, "records_dropped_server_declined_other",       recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_OTHER]);
-    insertNonZero(record.Extension, "records_dropped_retry_exceeded",              recordStats.droppedCountReasonDistribution[DROPPED_REASON_RETRY_EXCEEDED]);
+    
+
+    insertNonZero(ext, "records_dropped_offline_storage_save_failed", recordStats.droppedCountReasonDistribution[DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED]);
+    insertNonZero(ext, "records_dropped_offline_storage_overflow",    recordStats.droppedCountReasonDistribution[DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW]);
+    insertNonZero(ext, "records_dropped_server_declined_4xx",         recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_4XX]);
+    insertNonZero(ext, "records_dropped_server_declined_5xx",         recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_5XX]);
+    insertNonZero(ext, "records_dropped_server_declined_other",       recordStats.droppedCountReasonDistribution[DROPPED_REASON_SERVER_DECLINED_OTHER]);
+    insertNonZero(ext, "records_dropped_retry_exceeded",              recordStats.droppedCountReasonDistribution[DROPPED_REASON_RETRY_EXCEEDED]);
     addCountsPerHttpReturnCodeToRecordFields(record, "records_dropped_on_HTTP", recordStats.droppedCountPerHttpReturnCode);
 
     addAggregatedMapToRecordFields(record, "exceptions_per_eventtype_count", recordStats.semanticToExceptionCountMap);
@@ -946,6 +1000,7 @@ void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
 
     m_semanticContextDecorator.decorate(record);
     m_baseDecorator.decorate(record, EventPriority_Normal);
+   
     records.push_back(record);
 }
 
@@ -990,11 +1045,11 @@ bool MetaStats::hasStatsDataAvailable() const
            m_telemetryStats->packageStats.totalPkgsToBeAcked > m_telemetryStats->packageStats.totalMetastatsOnlyPkgsToBeAcked);
 }
 
-std::vector< ::AriaProtocol::Record> MetaStats::generateStatsEvent(ActRollUpKind rollupKind)
+std::vector< ::AriaProtocol::CsEvent> MetaStats::generateStatsEvent(ActRollUpKind rollupKind)
 {
     ARIASDK_LOG_DETAIL("generateStatsEvent");
 
-    std::vector< ::AriaProtocol::Record> records;
+    std::vector< ::AriaProtocol::CsEvent> records;
 
     if (hasStatsDataAvailable() || rollupKind != ActRollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING) {
         snapStatsToRecord(records, rollupKind);

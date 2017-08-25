@@ -134,21 +134,19 @@ class BasicFuncTests : public ::testing::Test,
         return result;
     }
 
-    void verifyEvent(EventProperties const& expected, ::AriaProtocol::Record const& actual)
+    void verifyEvent(EventProperties const& expected, ::AriaProtocol::CsEvent const& actual)
     {
-        EXPECT_THAT(actual.Id, Not(IsEmpty()));
+        EXPECT_THAT(actual.name, Not(IsEmpty()));
         int64_t now = PAL::getUtcSystemTimeMs();
-        EXPECT_THAT(actual.Timestamp, Gt(now - 60000));
-        EXPECT_THAT(actual.Timestamp, Le(now));
-        EXPECT_THAT(actual.Type, Eq("Custom"));
-        EXPECT_THAT(actual.EventType, expected.GetName());
-        EXPECT_THAT(actual.RecordType, AriaProtocol::RecordType::Event);
+        EXPECT_THAT(actual.time, Gt(now - 60000));
+        EXPECT_THAT(actual.time, Le(now));
+        EXPECT_THAT(actual.baseType, expected.GetName());
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None &&
                 prop.second.ccKind == CustomerContentKind_None)
             {
-                EXPECT_THAT(actual.Extension, Contains(Pair(prop.first, prop.second.to_string())));
+                EXPECT_THAT(actual.data[0].properties[prop.first].stringValue, prop.second.to_string());
             }
         }
         for (auto const& property : expected.GetPiiProperties())

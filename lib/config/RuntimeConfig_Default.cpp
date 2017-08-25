@@ -87,7 +87,7 @@ std::string RuntimeConfig_Default::GetUploadRetryBackoffConfig() const
 
 bool RuntimeConfig_Default::IsHttpRequestCompressionEnabled() const
 {
-    return m_isHttpRequestCompressionEnabled;
+    return false;// m_isHttpRequestCompressionEnabled;
 }
 
 unsigned RuntimeConfig_Default::GetMinimumUploadBandwidthBps() const

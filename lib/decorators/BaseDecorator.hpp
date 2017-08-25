@@ -43,24 +43,26 @@ class BaseDecorator : public DecoratorBase {
         if (m_initIdP) delete m_initIdP;
     }
 
-    bool decorate(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
+    bool decorate(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
     {
-        record.Id         = PAL::generateUuidString();
-        record.Timestamp  = PAL::getUtcSystemTimeMs();
-        if (record.Type.empty()) {
-            record.Type = "Custom";
-        }
-        record.RecordType = AriaProtocol::RecordType::Event;
-
-        
-        setIfNotEmpty(record.Extension,            EventInfo_Name,       record.EventType);
-        setIfNotEmpty(record.Extension,            EventInfo_Source,     *m_sourceP);
-        setIfNotEmpty(record.Extension,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.Timestamp));
-        setIfNotEmpty(record.Extension,            EventInfo_InitId,     *m_initIdP);
-        setInt64Value(record.TypedExtensionInt64,  EventInfo_Sequence,   ++m_sequenceId);
-        setIfNotEmpty(record.Extension,            COMMONFIELDS_EVENT_SDKVERSION, PAL::getSdkVersion());
-
-        setInt64Value(record.TypedExtensionInt64, "eventpriority",  std::max<int>(0, priority));
+        UNREFERENCED_PARAMETER(priority);
+       
+        //record.Id         = PAL::generateUuidString();
+        record.time       = PAL::getUtcSystemTimeMs();
+        std::string sdkVersion = PAL::getSdkVersion();
+        record.ver = sdkVersion;
+        if (record.baseType.empty())
+        {  
+            record.baseType = record.name;
+        } 
+      
+        //if (record.data.size() == 0) {        AriaProtocol::Data temp;            record.data.push_back(temp);        }
+        //setIfNotEmpty(record.data[0].properties,            EventInfo_Source,     *m_sourceP);
+        //setIfNotEmpty(record.data[0].properties,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.time));
+        //setIfNotEmpty(record.data[0].properties,            EventInfo_InitId,     *m_initIdP);
+        record.seqNum = ++m_sequenceId;
+        //record.popSample = 100.00;
+        //record.epoch = "epoch";
 
         return true;
     }

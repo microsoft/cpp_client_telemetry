@@ -2,6 +2,7 @@
 
 #pragma once
 #include <Version.hpp>
+#include "Enums.hpp"
 #include "bond/generated/AriaProtocol_types.hpp"
 #include <list>
 
@@ -32,7 +33,7 @@ class BondSplicer
     BondSplicer(BondSplicer const&) = delete;
     BondSplicer& operator=(BondSplicer const&) = delete;
 
-    size_t addDataPackage(std::string const& tenantToken, ::AriaProtocol::DataPackage const& dataPackage);
+    size_t addDataPackage(std::string const& tenantToken, DataPackage const& dataPackage);
     void addRecord(size_t dataPackageIndex, std::vector<uint8_t> const& recordBlob);
 
     size_t getSizeEstimate() const;

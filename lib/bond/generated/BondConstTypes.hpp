@@ -36,6 +36,12 @@ enum BondDataType {
     BT_UNAVAILABLE = 127
 };
 
+enum ListSubType {
+    NO_SUBTYPE       = 0,
+    NULLABLE_SUBTYPE = 1,
+    BLOB_SUBTYPE     = 2
+};
+
 enum ProtocolType {
     MARSHALED_PROTOCOL   = 0,
     FAST_PROTOCOL        = 17997,

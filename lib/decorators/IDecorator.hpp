@@ -10,7 +10,7 @@ namespace ARIASDK_NS_BEGIN {
 // Not an interface per se, rather a collection of static utility methods.
 class DecoratorBase {
   public:
-    // bool decorate(::AriaProtocol::Record& record, ...)
+    // bool decorate(::AriaProtocol::CsEvent& record, ...)
     // {
     //     ...
     // }
@@ -25,40 +25,69 @@ class DecoratorBase {
         return false;
     }
 
-    static void setIfNotEmpty(std::map<std::string, std::string>& dest, std::string const& key, std::string const& value)
+    static void setIfNotEmpty(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, std::string const& value)
     {
-        if (!value.empty()) {
-            dest[key] = value;
+        if (!value.empty())
+        {
+            AriaProtocol::Value temp;
+            temp.type = AriaProtocol::ValueKind::ValueString;
+            temp.stringValue = value;
+            dest[key] = temp;
         }
     }
 
-    static void setOrErase(std::map<std::string, std::string>& dest, std::string const& key, std::string const& value)
+    static void setOrErase(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, std::string const& value)
     {
-        if (!value.empty()) {
-            dest[key] = value;
-        } else {
+        if (!value.empty()) 
+        {
+            AriaProtocol::Value temp;
+            temp.type = AriaProtocol::ValueKind::ValueString;
+            temp.stringValue = value;
+            dest[key] = temp;
+        } 
+        else
+        {
             dest.erase(key);
         }
     }
 
-    static void setBoolValue(std::map<std::string, bool>& dest, std::string const& key, bool const& value)
+    static void setBoolValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, bool const& value)
     {
-        dest[key] = value;
+        AriaProtocol::Value temp;
+        temp.type = AriaProtocol::ValueKind::ValueBool;
+        if(true == value)
+        {
+            temp.longValue = 1;
+        }
+        else
+        {
+            temp.longValue = 0;
+        }
+        dest[key] = temp;
     }
 
-	static void setDateTimeValue(std::map<std::string, int64_t>& dest, std::string const& key, int64_t const& value)
+	static void setDateTimeValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, int64_t const& value)
 	{
-		dest[key] = value;
+        AriaProtocol::Value temp;
+        temp.type = AriaProtocol::ValueKind::ValueDateTime;
+        temp.longValue = value;
+        dest[key] = temp;
 	}
 
-	static void setInt64Value(std::map<std::string, int64_t>& dest, std::string const& key, int64_t const& value)
+	static void setInt64Value(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, int64_t const& value)
 	{
-		dest[key] = value;
+        AriaProtocol::Value temp;
+        temp.type = AriaProtocol::ValueKind::ValueInt64;
+        temp.longValue = value;
+        dest[key] = temp;
 	}
 
-	static void setDoubleValue(std::map<std::string, double>& dest, std::string const& key, double const& value)
+	static void setDoubleValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, double const& value)
 	{
-		dest[key] = value;
+        AriaProtocol::Value temp;
+        temp.type = AriaProtocol::ValueKind::ValueDouble;
+        temp.doubleValue = value;
+        dest[key] = temp;
 	}
 
     struct EnumValueName {
@@ -67,7 +96,7 @@ class DecoratorBase {
     };
 
     template<size_t N>
-    static void setEnumValue(std::map<std::string, std::string>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
+    static void setEnumValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
     {
         for (EnumValueName const& item : names) {
             if (item.value == value) {

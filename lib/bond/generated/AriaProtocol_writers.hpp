@@ -15,34 +15,373 @@
 namespace bond_lite {
 
 template<typename TWriter>
-void Serialize(TWriter& writer, ::AriaProtocol::PII const& value, bool isBase)
+void Serialize(TWriter& writer, ::AriaProtocol::Ingest const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
 
-    static_assert(sizeof(value.ScrubType) == 4, "Invalid size of enum");
-    if (value.ScrubType != ::AriaProtocol::PIIScrubber::NotSet) {
+    if (value.time != 0) {
+        writer.WriteFieldBegin(BT_INT64, 1, nullptr);
+        writer.WriteInt64(value.time);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 1, nullptr);
+    }
+
+    if (!value.clientIp.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.clientIp);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (value.auth != 0) {
+        writer.WriteFieldBegin(BT_INT64, 3, nullptr);
+        writer.WriteInt64(value.auth);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 3, nullptr);
+    }
+
+    if (value.quality != 0) {
+        writer.WriteFieldBegin(BT_INT64, 4, nullptr);
+        writer.WriteInt64(value.quality);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 4, nullptr);
+    }
+
+    if (value.uploadTime != 0) {
+        writer.WriteFieldBegin(BT_INT64, 5, nullptr);
+        writer.WriteInt64(value.uploadTime);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 5, nullptr);
+    }
+
+    if (!value.userAgent.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 6, nullptr);
+        writer.WriteString(value.userAgent);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
+    }
+
+    if (!value.client.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
+        writer.WriteString(value.client);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::User const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.id.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.id);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.localId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.localId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.authId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.authId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Device const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.id.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.id);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.localId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.localId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.authId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.authId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (!value.authSecId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 4, nullptr);
+        writer.WriteString(value.authSecId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (!value.deviceClass.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.deviceClass);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
+    }
+
+    if (!value.orgId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 6, nullptr);
+        writer.WriteString(value.orgId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
+    }
+
+    if (!value.orgAuthId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
+        writer.WriteString(value.orgAuthId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Os const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.locale.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.locale);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.expId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.expId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (value.bootId != 0) {
+        writer.WriteFieldBegin(BT_INT32, 3, nullptr);
+        writer.WriteInt32(value.bootId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT32, 3, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::App const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.expId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.expId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.userId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.userId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.env.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.env);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (value.asId != 0) {
+        writer.WriteFieldBegin(BT_INT32, 4, nullptr);
+        writer.WriteInt32(value.asId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT32, 4, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Utc const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.stId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.stId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.aId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.aId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.raId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.raId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (!value.op.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 4, nullptr);
+        writer.WriteString(value.op);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (value.cat != 0) {
+        writer.WriteFieldBegin(BT_INT64, 5, nullptr);
+        writer.WriteInt64(value.cat);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 5, nullptr);
+    }
+
+    if (value.flags != 0) {
+        writer.WriteFieldBegin(BT_INT64, 6, nullptr);
+        writer.WriteInt64(value.flags);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 6, nullptr);
+    }
+
+    if (!value.sqmId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
+        writer.WriteString(value.sqmId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
+    }
+
+    if (!value.tickets.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 8, nullptr);
+        writer.WriteContainerBegin(value.tickets.size(), BT_STRING);
+        for (auto const& item2 : value.tickets) {
+            writer.WriteString(item2);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 8, nullptr);
+    }
+
+    if (!value.mon.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 9, nullptr);
+        writer.WriteString(value.mon);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
+    }
+
+    if (value.cpId != 0) {
+        writer.WriteFieldBegin(BT_INT32, 10, nullptr);
+        writer.WriteInt32(value.cpId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT32, 10, nullptr);
+    }
+
+    if (!value.bSeq.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 11, nullptr);
+        writer.WriteString(value.bSeq);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 11, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Protocol const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (value.metadataCrc != 0) {
         writer.WriteFieldBegin(BT_INT32, 1, nullptr);
-        writer.WriteInt32(static_cast<int32_t>(value.ScrubType));
+        writer.WriteInt32(value.metadataCrc);
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_INT32, 1, nullptr);
     }
 
+    if (!value.ticketKey.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.ticketKey);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::PII const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
     static_assert(sizeof(value.Kind) == 4, "Invalid size of enum");
     if (value.Kind != ::AriaProtocol::PIIKind::NotSet) {
-        writer.WriteFieldBegin(BT_INT32, 2, nullptr);
+        writer.WriteFieldBegin(BT_INT32, 1, nullptr);
         writer.WriteInt32(static_cast<int32_t>(value.Kind));
         writer.WriteFieldEnd();
     } else {
-        writer.WriteFieldOmitted(BT_INT32, 2, nullptr);
-    }
-
-    if (!value.RawContent.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
-        writer.WriteString(value.RawContent);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+        writer.WriteFieldOmitted(BT_INT32, 1, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -62,264 +401,18 @@ void Serialize(TWriter& writer, ::AriaProtocol::CustomerContent const& value, bo
         writer.WriteFieldOmitted(BT_INT32, 1, nullptr);
     }
 
-    if (!value.RawContent.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
-        writer.WriteString(value.RawContent);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
-    }
-
     writer.WriteStructEnd(isBase);
 }
 
 template<typename TWriter>
-void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase)
+void Serialize(TWriter& writer, ::AriaProtocol::Attributes const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
 
-    if (!value.Id.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
-        writer.WriteString(value.Id);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
-    }
-
-    if (value.Timestamp != 0) {
-        writer.WriteFieldBegin(BT_INT64, 3, nullptr);
-        writer.WriteInt64(value.Timestamp);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_INT64, 3, nullptr);
-    }
-
-    if (!value.Type.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
-        writer.WriteString(value.Type);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
-    }
-
-    if (!value.EventType.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 6, nullptr);
-        writer.WriteString(value.EventType);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
-    }
-
-    if (!value.Extension.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 13, nullptr);
-        writer.WriteMapContainerBegin(value.Extension.size(), BT_STRING, BT_STRING);
-        for (auto const& item2 : value.Extension) {
-            writer.WriteString(item2.first);
-            writer.WriteString(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 13, nullptr);
-    }
-
-    static_assert(sizeof(value.RecordType) == 4, "Invalid size of enum");
-    if (value.RecordType != ::AriaProtocol::RecordType::NotSet) {
-        writer.WriteFieldBegin(BT_INT32, 24, nullptr);
-        writer.WriteInt32(static_cast<int32_t>(value.RecordType));
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_INT32, 24, nullptr);
-    }
-
-    if (!value.PIIExtensions.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 30, nullptr);
-        writer.WriteMapContainerBegin(value.PIIExtensions.size(), BT_STRING, BT_STRUCT);
-        for (auto const& item2 : value.PIIExtensions) {
-            writer.WriteString(item2.first);
-            Serialize(writer, item2.second, false);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 30, nullptr);
-    }
-
-    if (!value.TypedExtensionBoolean.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 31, nullptr);
-        writer.WriteMapContainerBegin(value.TypedExtensionBoolean.size(), BT_STRING, BT_BOOL);
-        for (auto const& item2 : value.TypedExtensionBoolean) {
-            writer.WriteString(item2.first);
-            writer.WriteBool(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 31, nullptr);
-    }
-
-    if (!value.TypedExtensionDateTime.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 32, nullptr);
-        writer.WriteMapContainerBegin(value.TypedExtensionDateTime.size(), BT_STRING, BT_INT64);
-        for (auto const& item2 : value.TypedExtensionDateTime) {
-            writer.WriteString(item2.first);
-            writer.WriteInt64(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 32, nullptr);
-    }
-
-    if (!value.TypedExtensionInt64.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 33, nullptr);
-        writer.WriteMapContainerBegin(value.TypedExtensionInt64.size(), BT_STRING, BT_INT64);
-        for (auto const& item2 : value.TypedExtensionInt64) {
-            writer.WriteString(item2.first);
-            writer.WriteInt64(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 33, nullptr);
-    }
-
-    if (!value.TypedExtensionDouble.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 34, nullptr);
-        writer.WriteMapContainerBegin(value.TypedExtensionDouble.size(), BT_STRING, BT_DOUBLE);
-        for (auto const& item2 : value.TypedExtensionDouble) {
-            writer.WriteString(item2.first);
-            writer.WriteDouble(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 34, nullptr);
-    }
-
-    if (!value.TypedExtensionGuid.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 35, nullptr);
-        writer.WriteMapContainerBegin(value.TypedExtensionGuid.size(), BT_STRING, BT_LIST);
-        for (auto const& item2 : value.TypedExtensionGuid) {
-            writer.WriteString(item2.first);
-            writer.WriteContainerBegin(item2.second.size(), BT_UINT8);
-            for (auto const& item3 : item2.second) {
-                writer.WriteUInt8(item3);
-            }
-            writer.WriteContainerEnd();
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 35, nullptr);
-    }
-
-    if (!value.CustomerContentExtensions.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 36, nullptr);
-        writer.WriteMapContainerBegin(value.CustomerContentExtensions.size(), BT_STRING, BT_STRUCT);
-        for (auto const& item2 : value.CustomerContentExtensions) {
-            writer.WriteString(item2.first);
-            Serialize(writer, item2.second, false);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 36, nullptr);
-    }
-
-    writer.WriteStructEnd(isBase);
-}
-
-template<typename TWriter>
-void Serialize(TWriter& writer, ::AriaProtocol::DataPackage const& value, bool isBase)
-{
-    writer.WriteStructBegin(nullptr, isBase);
-
-    if (!value.Type.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
-        writer.WriteString(value.Type);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
-    }
-
-    if (!value.Source.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
-        writer.WriteString(value.Source);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
-    }
-
-    if (!value.Version.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
-        writer.WriteString(value.Version);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
-    }
-
-    if (!value.Ids.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 4, nullptr);
-        writer.WriteMapContainerBegin(value.Ids.size(), BT_STRING, BT_STRING);
-        for (auto const& item2 : value.Ids) {
-            writer.WriteString(item2.first);
-            writer.WriteString(item2.second);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_MAP, 4, nullptr);
-    }
-
-    if (!value.DataPackageId.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
-        writer.WriteString(value.DataPackageId);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
-    }
-
-    if (value.Timestamp != 0) {
-        writer.WriteFieldBegin(BT_INT64, 6, nullptr);
-        writer.WriteInt64(value.Timestamp);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_INT64, 6, nullptr);
-    }
-
-    if (value.SchemaVersion != 1) {
-        writer.WriteFieldBegin(BT_INT32, 7, nullptr);
-        writer.WriteInt32(value.SchemaVersion);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_INT32, 7, nullptr);
-    }
-
-    if (!value.Records.empty()) {
-        writer.WriteFieldBegin(BT_LIST, 8, nullptr);
-        writer.WriteContainerBegin(value.Records.size(), BT_STRUCT);
-        for (auto const& item2 : value.Records) {
-            Serialize(writer, item2, false);
-        }
-        writer.WriteContainerEnd();
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_LIST, 8, nullptr);
-    }
-
-    writer.WriteStructEnd(isBase);
-}
-
-template<typename TWriter>
-void Serialize(TWriter& writer, ::AriaProtocol::ClientToCollectorRequest const& value, bool isBase)
-{
-    writer.WriteStructBegin(nullptr, isBase);
-
-    if (!value.DataPackages.empty()) {
+    if (!value.pii.empty()) {
         writer.WriteFieldBegin(BT_LIST, 1, nullptr);
-        writer.WriteContainerBegin(value.DataPackages.size(), BT_STRUCT);
-        for (auto const& item2 : value.DataPackages) {
+        writer.WriteContainerBegin(value.pii.size(), BT_STRUCT);
+        for (auto const& item2 : value.pii) {
             Serialize(writer, item2, false);
         }
         writer.WriteContainerEnd();
@@ -328,29 +421,427 @@ void Serialize(TWriter& writer, ::AriaProtocol::ClientToCollectorRequest const& 
         writer.WriteFieldOmitted(BT_LIST, 1, nullptr);
     }
 
-    if (value.RequestRetryCount != 0) {
-        writer.WriteFieldBegin(BT_INT32, 2, nullptr);
-        writer.WriteInt32(value.RequestRetryCount);
+    if (!value.customerContent.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 2, nullptr);
+        writer.WriteContainerBegin(value.customerContent.size(), BT_STRUCT);
+        for (auto const& item2 : value.customerContent) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
         writer.WriteFieldEnd();
     } else {
-        writer.WriteFieldOmitted(BT_INT32, 2, nullptr);
+        writer.WriteFieldOmitted(BT_LIST, 2, nullptr);
     }
 
-    if (!value.TokenToDataPackagesMap.empty()) {
-        writer.WriteFieldBegin(BT_MAP, 3, nullptr);
-        writer.WriteMapContainerBegin(value.TokenToDataPackagesMap.size(), BT_STRING, BT_LIST);
-        for (auto const& item2 : value.TokenToDataPackagesMap) {
-            writer.WriteString(item2.first);
-            writer.WriteContainerBegin(item2.second.size(), BT_STRUCT);
-            for (auto const& item3 : item2.second) {
-                Serialize(writer, item3, false);
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Value const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    static_assert(sizeof(value.type) == 4, "Invalid size of enum");
+    if (value.type != ::AriaProtocol::ValueKind::ValueString) {
+        writer.WriteFieldBegin(BT_INT32, 1, nullptr);
+        writer.WriteInt32(static_cast<int32_t>(value.type));
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT32, 1, nullptr);
+    }
+
+    if (!value.attributes.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 2, nullptr);
+        writer.WriteContainerBegin(value.attributes.size(), BT_STRUCT);
+        for (auto const& item2 : value.attributes) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 2, nullptr);
+    }
+
+    if (!value.stringValue.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.stringValue);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (value.longValue != 0) {
+        writer.WriteFieldBegin(BT_INT64, 4, nullptr);
+        writer.WriteInt64(value.longValue);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 4, nullptr);
+    }
+
+    if (value.doubleValue != 0.0) {
+        writer.WriteFieldBegin(BT_DOUBLE, 5, nullptr);
+        writer.WriteDouble(value.doubleValue);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_DOUBLE, 5, nullptr);
+    }
+
+    if (!value.guidValue.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 6, nullptr);
+        writer.WriteContainerBegin(value.guidValue.size(), BT_LIST);
+        for (auto const& item2 : value.guidValue) {
+            writer.WriteContainerBegin(item2.size(), BT_UINT8);
+            for (auto const& item3 : item2) {
+                writer.WriteUInt8(item3);
             }
             writer.WriteContainerEnd();
         }
         writer.WriteContainerEnd();
         writer.WriteFieldEnd();
     } else {
-        writer.WriteFieldOmitted(BT_MAP, 3, nullptr);
+        writer.WriteFieldOmitted(BT_LIST, 6, nullptr);
+    }
+
+    if (!value.stringArray.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 10, nullptr);
+        writer.WriteContainerBegin(value.stringArray.size(), BT_LIST);
+        for (auto const& item2 : value.stringArray) {
+            writer.WriteContainerBegin(item2.size(), BT_STRING);
+            for (auto const& item3 : item2) {
+                writer.WriteString(item3);
+            }
+            writer.WriteContainerEnd();
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 10, nullptr);
+    }
+
+    if (!value.longArray.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 11, nullptr);
+        writer.WriteContainerBegin(value.longArray.size(), BT_LIST);
+        for (auto const& item2 : value.longArray) {
+            writer.WriteContainerBegin(item2.size(), BT_INT64);
+            for (auto const& item3 : item2) {
+                writer.WriteInt64(item3);
+            }
+            writer.WriteContainerEnd();
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 11, nullptr);
+    }
+
+    if (!value.doubleArray.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 12, nullptr);
+        writer.WriteContainerBegin(value.doubleArray.size(), BT_LIST);
+        for (auto const& item2 : value.doubleArray) {
+            writer.WriteContainerBegin(item2.size(), BT_DOUBLE);
+            for (auto const& item3 : item2) {
+                writer.WriteDouble(item3);
+            }
+            writer.WriteContainerEnd();
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 12, nullptr);
+    }
+
+    if (!value.guidArray.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 13, nullptr);
+        writer.WriteContainerBegin(value.guidArray.size(), BT_LIST);
+        for (auto const& item2 : value.guidArray) {
+            writer.WriteContainerBegin(item2.size(), BT_LIST);
+            for (auto const& item3 : item2) {
+                writer.WriteContainerBegin(item3.size(), BT_INT64);
+                for (auto const& item4 : item3) {
+                    writer.WriteInt64(item4);
+                }
+                writer.WriteContainerEnd();
+            }
+            writer.WriteContainerEnd();
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 13, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Data const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.properties.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 1, nullptr);
+        writer.WriteMapContainerBegin(value.properties.size(), BT_STRING, BT_STRUCT);
+        for (auto const& item2 : value.properties) {
+            writer.WriteString(item2.first);
+            Serialize(writer, item2.second, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_MAP, 1, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::CsEvent const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.ver.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.ver);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.name.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.name);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (value.time != 0) {
+        writer.WriteFieldBegin(BT_INT64, 3, nullptr);
+        writer.WriteInt64(value.time);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 3, nullptr);
+    }
+
+    if (value.popSample != 0.0) {
+        writer.WriteFieldBegin(BT_DOUBLE, 4, nullptr);
+        writer.WriteDouble(value.popSample);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_DOUBLE, 4, nullptr);
+    }
+
+    if (!value.epoch.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.epoch);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
+    }
+
+    if (value.seqNum != 0) {
+        writer.WriteFieldBegin(BT_INT64, 6, nullptr);
+        writer.WriteInt64(value.seqNum);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 6, nullptr);
+    }
+
+    if (!value.iKey.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
+        writer.WriteString(value.iKey);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
+    }
+
+    if (value.flags != 0) {
+        writer.WriteFieldBegin(BT_INT64, 8, nullptr);
+        writer.WriteInt64(value.flags);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 8, nullptr);
+    }
+
+    if (!value.os.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 9, nullptr);
+        writer.WriteString(value.os);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
+    }
+
+    if (!value.osVer.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 10, nullptr);
+        writer.WriteString(value.osVer);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 10, nullptr);
+    }
+
+    if (!value.appId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 11, nullptr);
+        writer.WriteString(value.appId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 11, nullptr);
+    }
+
+    if (!value.appVer.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 12, nullptr);
+        writer.WriteString(value.appVer);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 12, nullptr);
+    }
+
+    if (!value.cV.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 13, nullptr);
+        writer.WriteString(value.cV);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 13, nullptr);
+    }
+
+    if (!value.extIngest.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 14, nullptr);
+        writer.WriteContainerBegin(value.extIngest.size(), BT_STRUCT);
+        for (auto const& item2 : value.extIngest) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 14, nullptr);
+    }
+
+    if (!value.extUser.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 15, nullptr);
+        writer.WriteContainerBegin(value.extUser.size(), BT_STRUCT);
+        for (auto const& item2 : value.extUser) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 15, nullptr);
+    }
+
+    if (!value.extDevice.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 16, nullptr);
+        writer.WriteContainerBegin(value.extDevice.size(), BT_STRUCT);
+        for (auto const& item2 : value.extDevice) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 16, nullptr);
+    }
+
+    if (!value.extOs.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 17, nullptr);
+        writer.WriteContainerBegin(value.extOs.size(), BT_STRUCT);
+        for (auto const& item2 : value.extOs) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 17, nullptr);
+    }
+
+    if (!value.expApp.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 18, nullptr);
+        writer.WriteContainerBegin(value.expApp.size(), BT_STRUCT);
+        for (auto const& item2 : value.expApp) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 18, nullptr);
+    }
+
+    if (!value.extUtc.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 19, nullptr);
+        writer.WriteContainerBegin(value.extUtc.size(), BT_STRUCT);
+        for (auto const& item2 : value.extUtc) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 19, nullptr);
+    }
+
+    if (!value.extProtocol.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 20, nullptr);
+        writer.WriteContainerBegin(value.extProtocol.size(), BT_STRUCT);
+        for (auto const& item2 : value.extProtocol) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 20, nullptr);
+    }
+
+    if (!value.ext.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 21, nullptr);
+        writer.WriteContainerBegin(value.ext.size(), BT_STRUCT);
+        for (auto const& item2 : value.ext) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 21, nullptr);
+    }
+
+    if (!value.tags.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 22, nullptr);
+        writer.WriteMapContainerBegin(value.tags.size(), BT_STRING, BT_STRING);
+        for (auto const& item2 : value.tags) {
+            writer.WriteString(item2.first);
+            writer.WriteString(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_MAP, 22, nullptr);
+    }
+
+    if (!value.baseType.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 50, nullptr);
+        writer.WriteString(value.baseType);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 50, nullptr);
+    }
+
+    if (!value.baseData.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 51, nullptr);
+        writer.WriteContainerBegin(value.baseData.size(), BT_STRUCT);
+        for (auto const& item2 : value.baseData) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 51, nullptr);
+    }
+
+    if (!value.data.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 60, nullptr);
+        writer.WriteContainerBegin(value.data.size(), BT_STRUCT);
+        for (auto const& item2 : value.data) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 60, nullptr);
     }
 
     writer.WriteStructEnd(isBase);

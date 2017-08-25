@@ -94,8 +94,8 @@ class ARIASDK_LIBABI Logger : public ILogger
         EventProperties const& properties) override;
 
     protected:
-    bool applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority);
-    virtual void submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags);
+    bool applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority);
+    virtual void submit(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags);
     void SetContext(const std::string& name, EventProperty prop);
  // protected:
     std::mutex*              m_lockP;

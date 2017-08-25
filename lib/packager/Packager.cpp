@@ -46,8 +46,9 @@ void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, Storag
 
     std::string const& tenantToken = m_forcedTenantToken.empty() ? record.tenantToken : m_forcedTenantToken;
     auto it = ctx->packageIds.lower_bound(tenantToken);
-    if (it == ctx->packageIds.end() || it->first != tenantToken) {
-        ::AriaProtocol::DataPackage package;
+    if (it == ctx->packageIds.end() || it->first != tenantToken)
+    {
+        DataPackage package;
         package.Type          = "Client";
         package.Source        = "act_default_source"; // from ReferenceSDK
         package.Version       = VersionString;
