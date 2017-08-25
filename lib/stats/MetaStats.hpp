@@ -40,7 +40,7 @@ class MetaStats
     MetaStats(IRuntimeConfig const& runtimeConfig, ContextFieldsProvider const& parentContext);
     ~MetaStats();
 
-    std::vector< ::AriaProtocol::Record> generateStatsEvent(ActRollUpKind rollupKind);
+    std::vector< ::AriaProtocol::CsEvent> generateStatsEvent(ActRollUpKind rollupKind);
 
     void updateOnEventIncoming(unsigned size, EventPriority priority, bool metastats);
     void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
@@ -75,7 +75,7 @@ class MetaStats
     /// <summary>
     /// stats records created
     /// </summary>
-    void snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, ActRollUpKind rollupKind);
+    void snapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& records, ActRollUpKind rollupKind);
 
   protected:
     IRuntimeConfig const&           m_runtimeConfig;

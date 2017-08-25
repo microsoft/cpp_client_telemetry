@@ -52,12 +52,12 @@ void Statistics::send(ActRollUpKind rollupKind)
 {
     m_isScheduled = false;
 
-    std::vector< ::AriaProtocol::Record> records = m_metaStats.generateStatsEvent(rollupKind);
+    std::vector< ::AriaProtocol::CsEvent> records = m_metaStats.generateStatsEvent(rollupKind);
     std::string tenantToken = m_runtimeConfig.GetMetaStatsTenantToken();
 
     for (auto& record : records)
     {
-        IncomingEventContextPtr event = IncomingEventContext::create(record.Id, tenantToken, EventPriority_High, &record);
+        IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), tenantToken, EventPriority_High, &record);
         if (nullptr == m_iTelemetrySystem)
         {
             eventGenerated(event);			

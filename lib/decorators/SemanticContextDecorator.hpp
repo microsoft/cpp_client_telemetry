@@ -22,7 +22,7 @@ class SemanticContextDecorator : public DecoratorBase {
 	{
 	}
 
-    bool decorate(::AriaProtocol::Record& record) const
+    bool decorate(::AriaProtocol::CsEvent& record) const
     {
         m_provider.writeToRecord(record);
         return true;

@@ -49,21 +49,18 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.SetUserLanguage("language");
     ctx.SetUserTimeZone("timeZone");
 
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
     loggerCtx.writeToRecord(record);
 
-    EXPECT_THAT(record.PIIExtensions.size(), 5);
-    EXPECT_THAT(record.Extension.size(), 23);
-    EXPECT_THAT(record.Extension["shared"], Eq("willbeoverwritten"));
-    EXPECT_THAT(record.Extension["empty"], Eq(""));
-    EXPECT_THAT(record.Extension["parentonly"], Eq("willberemoved"));
-    EXPECT_THAT(record.PIIExtensions["sharedpii"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record.PIIExtensions["sharedpii"].Kind, ::AriaProtocol::PIIKind::DistinguishedName);
-    EXPECT_THAT(record.PIIExtensions["sharedpii"].RawContent, Eq("willbeoverwrittenpii"));
-    EXPECT_THAT(record.PIIExtensions["emptypii"].RawContent, Eq(""));
-    EXPECT_THAT(record.PIIExtensions["parentonlypii"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record.PIIExtensions["parentonlypii"].Kind, ::AriaProtocol::PIIKind::GenericData);
-    EXPECT_THAT(record.PIIExtensions["parentonlypii"].RawContent, Eq("willberemoved"));
+    EXPECT_THAT(record.data[0].properties.size(), 8);
+    EXPECT_THAT(record.data[0].properties["shared"].stringValue, Eq("willbeoverwritten"));
+    EXPECT_THAT(record.data[0].properties["empty"].stringValue, Eq(""));
+    EXPECT_THAT(record.data[0].properties["parentonly"].stringValue, Eq("willberemoved"));
+    EXPECT_THAT(record.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::DistinguishedName);
+    EXPECT_THAT(record.data[0].properties["sharedpii"].stringValue, Eq("willbeoverwrittenpii"));
+    EXPECT_THAT(record.data[0].properties["emptypii"].stringValue, Eq(""));
+    EXPECT_THAT(record.data[0].properties["parentonlypii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::GenericData);
+    EXPECT_THAT(record.data[0].properties["parentonlypii"].stringValue, Eq("willberemoved"));
 
 
     loggerCtx.setCustomField("shared", "latest");
@@ -76,63 +73,57 @@ TEST(ContextFieldsProviderTests, SetProperties)
 	EventProperty prop12("specificpii", PiiKind_QueryString);
     loggerCtx.setCustomField("childpii", prop12 );
 
-    ::AriaProtocol::Record record1;
+    ::AriaProtocol::CsEvent record1;
     loggerCtx.writeToRecord(record1);
-    EXPECT_THAT(record1.PIIExtensions.size(), 6);
-    EXPECT_THAT(record1.Extension.size(), 24);
+    EXPECT_THAT(record1.data[0].properties.size(), 10);
 
-    EXPECT_THAT(record1.PIIExtensions["UserInfo.Id"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record1.PIIExtensions["UserInfo.Id"].Kind, ::AriaProtocol::PIIKind::Identity);
-    EXPECT_THAT(record1.PIIExtensions["UserInfo.Id"].RawContent, Eq("userId"));
+    EXPECT_THAT(record1.extUser[0].id, Eq("userId"));
 
-    EXPECT_THAT(record1.PIIExtensions["sharedpii"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record1.PIIExtensions["sharedpii"].Kind, ::AriaProtocol::PIIKind::MailSubject);
-    EXPECT_THAT(record1.PIIExtensions["sharedpii"].RawContent, Eq("latestpii"));
-    EXPECT_THAT(record1.PIIExtensions["parentpii"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record1.PIIExtensions["parentpii"].Kind, ::AriaProtocol::PIIKind::GenericData);
-    EXPECT_THAT(record1.PIIExtensions["parentpii"].RawContent, Eq("willremainpii"));
-    EXPECT_THAT(record1.PIIExtensions["childpii"].ScrubType, ::AriaProtocol::PIIScrubber::O365);
-    EXPECT_THAT(record1.PIIExtensions["childpii"].Kind, ::AriaProtocol::PIIKind::QueryString);
-    EXPECT_THAT(record1.PIIExtensions["childpii"].RawContent, Eq("specificpii"));
+    EXPECT_THAT(record1.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::MailSubject);
+    EXPECT_THAT(record1.data[0].properties["sharedpii"].stringValue, Eq("latestpii"));
+    EXPECT_THAT(record1.data[0].properties["parentpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::GenericData);
+    EXPECT_THAT(record1.data[0].properties["parentpii"].stringValue, Eq("willremainpii"));
+    EXPECT_THAT(record1.data[0].properties["childpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::QueryString);
+    EXPECT_THAT(record1.data[0].properties["childpii"].stringValue, Eq("specificpii"));
 
-    EXPECT_THAT(record1.Extension["shared"], Eq("latest"));
-    EXPECT_THAT(record1.Extension["parent"], Eq("willremain"));
-    EXPECT_THAT(record1.Extension["child"], Eq("specific"));
+    EXPECT_THAT(record1.data[0].properties["shared"].stringValue, Eq("latest"));
+    EXPECT_THAT(record1.data[0].properties["parent"].stringValue, Eq("willremain"));
+    EXPECT_THAT(record1.data[0].properties["child"].stringValue, Eq("specific"));
 
-    EXPECT_THAT(record1.Extension["AppInfo.Id"], Eq("appId"));
-    EXPECT_THAT(record1.Extension["AppInfo.ExperimentIds"], Eq("appExperimentIds"));
-    EXPECT_THAT(record1.Extension["AppInfo.Version"], Eq("appVersion"));
-    EXPECT_THAT(record1.Extension["AppInfo.Language"], Eq("appLanguage"));
+    EXPECT_THAT(record1.appId, Eq("appId"));
+    EXPECT_THAT(record1.expApp[0].expId, Eq("appExperimentIds"));
+    //EXPECT_THAT(record1.data[0].properties["AppInfo.Version"].stringValue, Eq("appVersion"));
+    //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
-    EXPECT_THAT(record1.Extension["DeviceInfo.Id"], Eq("deviceId"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.Make"], Eq("deviceMake"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.Model"], Eq("deviceModel"));
+    EXPECT_THAT(record1.extDevice[0].id, Eq("deviceId"));
+    //EXPECT_THAT(record1.extDevice[0]..properties["DeviceInfo.Make"].stringValue, Eq("deviceMake"));
+    //EXPECT_THAT(record1.data[0].properties["DeviceInfo.Model"].stringValue, Eq("deviceModel"));
 
-    EXPECT_THAT(record1.Extension["DeviceInfo.NetworkCost"], Eq("Unmetered"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.NetworkProvider"], Eq("networkProvider"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.NetworkType"], Eq("Wired"));
+   // EXPECT_THAT(record1.data[0].properties["DeviceInfo.NetworkCost"].stringValue, Eq("Unmetered"));
+  //  EXPECT_THAT(record1.data[0].properties["DeviceInfo.NetworkProvider"].stringValue, Eq("networkProvider"));
+  //  EXPECT_THAT(record1.data[0].properties["DeviceInfo.NetworkType"].stringValue, Eq("Wired"));
 
-    EXPECT_THAT(record1.Extension["DeviceInfo.OsName"], Eq("osName"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.OsVersion"], Eq("osVersion"));
-    EXPECT_THAT(record1.Extension["DeviceInfo.OsBuild"], Eq("osBuild"));
+    EXPECT_THAT(record1.os, Eq("osName"));
+    EXPECT_THAT(record1.osVer, Eq("osVersion"));
+    //EXPECT_THAT(record1.data[0].properties["DeviceInfo.OsBuild"].stringValue, Eq("osBuild"));
 
-    EXPECT_THAT(record1.Extension["UserInfo.MsaId"], Eq("userMsaId"));
-    EXPECT_THAT(record1.Extension["UserInfo.ANID"], Eq("userANID"));
-    EXPECT_THAT(record1.Extension["UserInfo.AdvertisingId"], Eq("userAdvertingId"));
-    EXPECT_THAT(record1.Extension["UserInfo.Language"], Eq("language"));
-    EXPECT_THAT(record1.Extension["UserInfo.TimeZone"], Eq("timeZone"));
+    //EXPECT_THAT(record1.data[0].properties["UserInfo.MsaId"].stringValue, Eq("userMsaId"));
+    //EXPECT_THAT(record1.data[0].properties["UserInfo.ANID"].stringValue, Eq("userANID"));
+    //EXPECT_THAT(record1.data[0].properties["UserInfo.AdvertisingId"].stringValue, Eq("userAdvertingId"));
+    //EXPECT_THAT(record1.extUser[0].localId, Eq("language"));
+    //EXPECT_THAT(record1.extUser[0], Eq("timeZone"));
 }
 
 TEST(ContextFieldsProviderTests, UsesPalValues)
 {
     ContextFieldsProvider ctx(nullptr);
 
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
     ctx.writeToRecord(record);
 
-    EXPECT_THAT(record.Extension["DeviceInfo.Id"],          Not(IsEmpty()));
-    EXPECT_THAT(record.Extension["DeviceInfo.Model"],       Not(IsEmpty()));
-    EXPECT_THAT(record.Extension["DeviceInfo.NetworkType"], Not(IsEmpty()));
-    EXPECT_THAT(record.Extension["DeviceInfo.OsName"],      Not(IsEmpty()));
-    EXPECT_THAT(record.Extension["DeviceInfo.OsVersion"],   Not(IsEmpty()));
+    EXPECT_THAT(record.extDevice[0].id,          Not(IsEmpty()));
+    EXPECT_THAT(record.extDevice[0].authSecId,   Not(IsEmpty()));
+    //EXPECT_THAT(record.data[0].properties["DeviceInfo.NetworkType"].stringValue, Not(IsEmpty()));
+    EXPECT_THAT(record.os,      Not(IsEmpty()));
+    EXPECT_THAT(record.osVer,   Not(IsEmpty()));
 }

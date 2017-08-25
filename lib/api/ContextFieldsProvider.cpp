@@ -87,94 +87,149 @@ void ContextFieldsProvider::setCustomField(std::string const& name, EventPropert
     (*m_customContextFieldsP)[name] = value;
 }
 
-void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
+void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
 {
     if (m_parent)
     {
         m_parent->writeToRecord(record);
     }
 
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+    if (record.expApp.size() == 0)
+    {
+        ::AriaProtocol::App app;
+        record.expApp.push_back(app);
+    }
+
+    if (record.extDevice.size() == 0)
+    {
+        ::AriaProtocol::Device device;
+        record.extDevice.push_back(device);
+    }
+
+    if (record.extOs.size() == 0)
+    {
+        ::AriaProtocol::Os os;
+        record.extOs.push_back(os);
+    }
+
+    if (record.extUser.size() == 0)
+    {
+        ::AriaProtocol::User user;
+        record.extUser.push_back(user);
+    }
+
+    std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
     {
         std::lock_guard<std::mutex> lock(*m_lockP);
-
-        std::map<std::string, AriaProtocol::PII> PIIExtensions;
 
         if (!m_CommonFieldsAppExperimentIdsP->empty())
         {// for ECS set event specific config ids
             std::string value = *m_CommonFieldsAppExperimentIdsP;
-            if (record.Extension.find(EventInfo_Name) != record.Extension.end())
+            std::string eventName = record.name;
+            if (!eventName.empty())
             {
-                std::string eventName = record.Extension[EventInfo_Name];
-                if (!eventName.empty())
+                std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
+                if (iter != m_commonContextEventToConfigIdsP->end())
                 {
-                    std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
-                    if (iter != m_commonContextEventToConfigIdsP->end())
-                    {
-                        value = iter->second;
-                    }
+                    value = iter->second;
                 }
             }
-            record.Extension[COMMONFIELDS_APP_EXPERIMENTIDS] = value;
+            
+            record.expApp[0].expId = value;
         }
 
-        for (auto const& field : (*m_commonContextFieldsP))
-        {        
-            if (field.second.piiKind != PiiKind_None)
-            {
-                //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                AriaProtocol::PII pii;
-                pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-                pii.RawContent = field.second.to_string();
-                pii.ScrubType = AriaProtocol::O365;
-                PIIExtensions[field.first] = pii;
-            }
-            else 
-            {
-                std::vector<uint8_t> guid;
-                uint8_t guid_bytes[16] = { 0 };
 
-                switch (field.second.type) 
-                {
-                case EventProperty::TYPE_STRING:
-                    record.Extension[field.first] = field.second.to_string();
-                    break;
-                case EventProperty::TYPE_INT64:
-                    record.TypedExtensionInt64[field.first] = field.second.as_int64;
-                    break;
-                case EventProperty::TYPE_DOUBLE:
-                    record.TypedExtensionDouble[field.first] = field.second.as_double;
-                    break;
-                case EventProperty::TYPE_TIME:
-                    record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
-                    break;
-                case EventProperty::TYPE_BOOLEAN:
-                    record.TypedExtensionBoolean[field.first] = field.second.as_bool;
-                    break;
-                case EventProperty::TYPE_GUID:
-                {
-                    GUID_t temp = field.second.as_guid;
-                    temp.to_bytes(guid_bytes);
-                    guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-                    record.TypedExtensionGuid[field.first] = guid;
-                    break;
-                }
-                default:
-                    // Convert all unknown types to string
-                    record.Extension[field.first] = field.second.to_string();
-                }
-            }
+        //common Experiement fields   COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, 
+        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFieldsP->end())
+        {
+            AriaProtocol::Value temp;
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_EXPERIMENTETAG];
+            temp.stringValue = prop.as_string;
+
+            ext[COMMONFIELDS_APP_EXPERIMENTETAG] = temp;
         }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_ID) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_ID];
+            record.appId = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_VERSION) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_VERSION];
+            record.appVer = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_LANGUAGE];
+            record.extOs[0].locale = prop.as_string;
+        }       
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_ID];
+            record.extDevice[0].id = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE) != m_commonContextFieldsP->end())// COMMONFIELDS_DEVICE_MODEL
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MAKE];
+            record.extDevice[0].authSecId = prop.as_string;
+        }
+        
+        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_NAME];
+            record.os = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_VERSION) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
+            record.osVer = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_ID) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_ID];
+            record.extUser[0].id = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_LANGUAGE) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_LANGUAGE];
+            record.extUser[0].localId = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_MSAID) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_MSAID];
+            record.extDevice[0].authSecId = prop.as_string;
+        }
+
 
         for (auto const& field : (*m_customContextFieldsP))
         {
             if (field.second.piiKind != PiiKind_None)
             {
-                //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
                 AriaProtocol::PII pii;
                 pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-                pii.RawContent = field.second.to_string();
-                pii.ScrubType = AriaProtocol::O365;
-                PIIExtensions[field.first] = pii;
+                AriaProtocol::Value temp;
+                AriaProtocol::Attributes attrib;
+                attrib.pii.push_back(pii);
+
+
+                temp.attributes.push_back(attrib);
+                
+                temp.stringValue = field.second.to_string();
+                record.data[0].properties[field.first] = temp;
             }
             else
             {
@@ -183,43 +238,67 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record) const
 
                 switch (field.second.type)
                 {
-                case EventProperty::TYPE_STRING:
-                    record.Extension[field.first] = field.second.to_string();
-                    break;
-                case EventProperty::TYPE_INT64:
-                    record.TypedExtensionInt64[field.first] = field.second.as_int64;
-                    break;
-                case EventProperty::TYPE_DOUBLE:
-                    record.TypedExtensionDouble[field.first] = field.second.as_double;
-                    break;
-                case EventProperty::TYPE_TIME:
-                    record.TypedExtensionDateTime[field.first] = field.second.as_time_ticks.ticks;
-                    break;
-                case EventProperty::TYPE_BOOLEAN:
-                    record.TypedExtensionBoolean[field.first] = field.second.as_bool;
-                    break;
-                case EventProperty::TYPE_GUID:
-                {
-                    GUID_t temp = field.second.as_guid;
-                    temp.to_bytes(guid_bytes);
-                    guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-                    record.TypedExtensionGuid[field.first] = guid;
-                    break;
-                }
-                default:
-                    // Convert all unknown types to string
-                    record.Extension[field.first] = field.second.to_string();
-                }
-            }
-        }
+                    case EventProperty::TYPE_STRING:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.stringValue = field.second.to_string();
+                        record.data[0].properties[field.first] = temp;
+                        break;
+                    }
+                    case EventProperty::TYPE_INT64:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueInt64;
+                        temp.longValue = field.second.as_int64;
+                        record.data[0].properties[field.first] = temp;
+                        break;
+                    }
+                    case EventProperty::TYPE_DOUBLE:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueDouble;
+                        temp.doubleValue = field.second.as_double;
+                        record.data[0].properties[field.first] = temp;
+                        break;
+                    }
+                    case EventProperty::TYPE_TIME:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
+                        temp.longValue = field.second.as_time_ticks.ticks;
+                        record.data[0].properties[field.first] = temp;
+                        break;
+                    }
+                    case EventProperty::TYPE_BOOLEAN:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueBool;
+                        temp.longValue = field.second.as_bool;
+                        record.data[0].properties[field.first] = temp;
+                        break;
+                    }
+                    case EventProperty::TYPE_GUID:
+                    {
+                        GUID_t temp = field.second.as_guid;
+                        temp.to_bytes(guid_bytes);
+                        guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
 
-        if (PIIExtensions.size() > 0)
-        {
-            for (auto piiItem : PIIExtensions)
-            {
-                record.PIIExtensions[piiItem.first] = piiItem.second;
+                        AriaProtocol::Value tempValue;
+                        tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
+                        tempValue.guidValue.push_back(guid);
+                        record.data[0].properties[field.first] = tempValue;
+                        break;
+                    }
+                    default:
+                    {
+                        // Convert all unknown types to string
+                        AriaProtocol::Value temp;
+                        temp.stringValue = field.second.to_string();
+                        record.data[0].properties[field.first] = temp;
+                    }
+                }
             }
-        }
+        }        
     }
 }
 

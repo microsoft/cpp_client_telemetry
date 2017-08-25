@@ -17,9 +17,9 @@ class Logger4Test : public Logger {
     {
     }
 
-    MOCK_METHOD3(submit, void(::AriaProtocol::Record &, ::Microsoft::Applications::Telemetry::EventPriority, std::uint64_t  const& ));
+    MOCK_METHOD3(submit, void(::AriaProtocol::CsEvent &, ::Microsoft::Applications::Telemetry::EventPriority, std::uint64_t  const& ));
 
-    void submit_(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
+    void submit_(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
     {
         return Logger::submit(record, priority, policyBitFlags);
     }
@@ -35,7 +35,7 @@ class LoggerTests : public Test {
     EventProperties                     _emptyProperties;
 
     bool                                _submitted;
-    ::AriaProtocol::Record              _submittedRecord;
+    ::AriaProtocol::CsEvent              _submittedRecord;
     EventPriority                       _submittedPriority;
 
     uint64_t                            _sequenceId;
@@ -85,27 +85,26 @@ class LoggerTests : public Test {
 
     void checkBaseAndContextAndRuntimeConfigProps(EventPriority priority = EventPriority_Normal)
     {
+        UNREFERENCED_PARAMETER(priority);
         // Base
-        EXPECT_THAT(_submittedRecord.Id, Not(IsEmpty()));
+        EXPECT_THAT(_submittedRecord.name, Not(IsEmpty()));
         int64_t now = PAL::getUtcSystemTimeMs();
-        EXPECT_THAT(_submittedRecord.Timestamp, Gt(now - 60000));
-        EXPECT_THAT(_submittedRecord.Timestamp, Le(now));
-        EXPECT_THAT(_submittedRecord.Type, Eq("Custom"));
-        EXPECT_THAT(_submittedRecord.RecordType, AriaProtocol::RecordType::Event);
-        EXPECT_THAT(_submittedRecord.EventType, Not(IsEmpty()));
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("EventInfo.Name",       _submittedRecord.EventType)));
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("EventInfo.Source",     "test-source")));
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("EventInfo.Time",       PAL::formatUtcTimestampMsAsISO8601(_submittedRecord.Timestamp))));
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("EventInfo.InitId",     MatchesRegex(R"(........-....-....-....-............)"))));
-        EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("EventInfo.Sequence",   ++_sequenceId)));
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("EventInfo.SdkVersion", PAL::getSdkVersion())));
-        EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("eventpriority",        priority)));
+        EXPECT_THAT(_submittedRecord.time, Gt(now - 60000));
+        EXPECT_THAT(_submittedRecord.time, Le(now));
+        EXPECT_THAT(_submittedRecord.baseType, Not(IsEmpty()));
+        //EXPECT_THAT(_submittedRecord.name["EventInfo.Name",       _submittedRecord.baseType)));
+        //EXPECT_THAT(_submittedRecord.data[0].properties["EventInfo.Source"].stringValue,"test-source");
+        //EXPECT_THAT(_submittedRecord.data[0].properties["EventInfo.Time"].stringValue,PAL::formatUtcTimestampMsAsISO8601(_submittedRecord.time));
+        //EXPECT_THAT(_submittedRecord.data[0].properties["EventInfo.InitId"].stringValue,   MatchesRegex(R"(........-....-....-....-............)"));
+        EXPECT_THAT(_submittedRecord.seqNum, ++_sequenceId);
+        EXPECT_THAT(_submittedRecord.ver, PAL::getSdkVersion());
+        //EXPECT_THAT(_submittedRecord.data[0].properties["eventpriority"].longValue, priority);
 
         // Context
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("contextvalue", "info")));
+        EXPECT_THAT(_submittedRecord.data[0].properties["contextvalue"].stringValue, "info");
 
         // RuntimeConfig
-        EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("runtimeconfigvalue", "blah")));
+        //EXPECT_THAT(_submittedRecord.data[0].properties["runtimeconfigvalue"].stringValue, "blah");
     }
 };
 
@@ -116,10 +115,10 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     _logger.LogAggregatedMetric("speed", 60000, 60, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("AggregatedMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",      60000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",         60)));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("AggregatedMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Name"].stringValue, "speed");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Duration"].longValue, 60000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Count"].longValue, 60);
 
     expectSubmit();
     AggregatedMetricData amd("speed", 60000, 60);
@@ -138,22 +137,22 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     _logger.LogAggregatedMetric(amd, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("AggregatedMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectClass",             "vehicle")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectId",                "car-1")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.InstanceName",            "Ferda")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",       60000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",          60)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.Units",                   "km/h")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Sum", 2400.000000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Maximum",45.000000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.Minimum",35.000000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("AggregatedMetric.Aggregates.SumOfSquares", 97000.000000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.0",               0)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.1",               40)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.2",               20)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Buckets.3",               0)));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("AggregatedMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.ObjectClass"].stringValue,"vehicle");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.ObjectId"].stringValue, "car-1");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Name"].stringValue, "speed");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.InstanceName"].stringValue, "Ferda");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Duration"].longValue, 60000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Count"].longValue, 60);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Units"].stringValue, "km/h");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Aggregates.Sum"].doubleValue, 2400.000000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Aggregates.Maximum"].doubleValue, 45.000000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Aggregates.Minimum"].doubleValue, 35.000000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Aggregates.SumOfSquares"].doubleValue, 97000.000000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Buckets.0"].longValue, 0);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Buckets.1"].longValue, 40);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Buckets.2"].longValue, 20);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Buckets.3"].longValue, 0);
 
     expectSubmit();
     AggregatedMetricData amd2("speed", 60000, 60);
@@ -166,15 +165,15 @@ TEST_F(LoggerTests, LogAggregatedMetric)
     _logger.LogAggregatedMetric(amd2, props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("AggregatedMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectClass",             "vehicle")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.ObjectId",                "car-2")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.Name",                    "speed")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.InstanceName",            "Adref")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Duration",       60000)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("AggregatedMetric.Count",          60)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AggregatedMetric.Units",                   "km/h")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",                                     "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("AggregatedMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.ObjectClass"].stringValue, "vehicle");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.ObjectId"].stringValue, "car-2");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Name"].stringValue, "speed");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.InstanceName"].stringValue, "Adref");
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Duration"].longValue, 60000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Count"].longValue,  60);
+    EXPECT_THAT(_submittedRecord.data[0].properties["AggregatedMetric.Units"].stringValue, "km/h");
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
 
     expectNoSubmit();
     _logger.LogAggregatedMetric("", 60000, 60, _emptyProperties);
@@ -187,8 +186,8 @@ TEST_F(LoggerTests, LogAppLifecycle)
     _logger.LogAppLifecycle(AppLifecycleState_Launch, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("AppLifecycle"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AppLifeCycle.State", "Launch")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("AppLifecycle"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["AppLifeCycle.State"].stringValue, "Launch");
 
     expectSubmit();
     EventProperties props("ui_process_state");
@@ -196,9 +195,9 @@ TEST_F(LoggerTests, LogAppLifecycle)
     _logger.LogAppLifecycle(AppLifecycleState_Exit, props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("AppLifecycle"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("AppLifeCycle.State", "Exit")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",               "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("AppLifecycle"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["AppLifeCycle.State"].stringValue, "Exit");
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
 }
 
 TEST_F(LoggerTests, LogEvent)
@@ -207,14 +206,14 @@ TEST_F(LoggerTests, LogEvent)
     _logger.LogEvent("name_only");
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("name_only"));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("name_only"));
 
     expectSubmit();
     EventProperties props1("name_only_props");
     _logger.LogEvent(props1);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("name_only_props"));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("name_only_props"));
 
     expectSubmit();
     EventProperties props2("custom_event");
@@ -224,14 +223,13 @@ TEST_F(LoggerTests, LogEvent)
     _logger.LogEvent(props2);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("custom_event"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",      "value")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("auxiliary", "long content")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("custom_event"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
+    EXPECT_THAT(_submittedRecord.data[0].properties["auxiliary"].stringValue, "long content");
     ::AriaProtocol::PII pii;
-    pii.ScrubType  = ::AriaProtocol::PIIScrubber::O365;
     pii.Kind       = ::AriaProtocol::PIIKind::GenericData;
-    pii.RawContent = "oops, I did it again";
-    EXPECT_THAT(_submittedRecord.PIIExtensions, Contains(Pair("secret", pii)));
+    //pii.RawContent = "oops, I did it again";
+    EXPECT_THAT(_submittedRecord.data[0].properties["secret"].stringValue, "oops, I did it again");
 }
 
 TEST_F(LoggerTests, CustomEventNameValidation)
@@ -253,14 +251,14 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq(props.GetName()));
+    EXPECT_THAT(_submittedRecord.baseType, Eq(props.GetName()));
 
     expectSubmit();
     props.SetName(std::string(100, 'a'));
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq(props.GetName()));
+    EXPECT_THAT(_submittedRecord.baseType, Eq(props.GetName()));
 
     expectSubmit();
     props.SetName(std::string(101, 'a'));
@@ -285,7 +283,7 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("0123456789_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz"));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("0123456789_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz"));
 
     std::string banned("\x01" R"( !"#$%&'()*+,-./:;<=>?@[\]^`{|}~)" "\x81");
     EXPECT_CALL(_logger, submit(_, _, _)).WillRepeatedly(Assign(&_submitted, true));
@@ -321,10 +319,10 @@ TEST_F(LoggerTests, CustomPropertyNameValidation)
     checkBaseAndContextAndRuntimeConfigProps();
 	for (std::pair<std::string, EventProperty> prop : props2.GetProperties())
 	{
-		EXPECT_THAT(_submittedRecord.Extension, Contains(Pair(prop.first, prop.second.to_string())));
+		EXPECT_THAT(_submittedRecord.data[0].properties[prop.first].stringValue, prop.second.to_string());
 	}
 
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(*props2.GetProperties..GetProperties().begin()));
+    //EXPECT_THAT(_submittedRecord.data[0].properties, Contains(*props2.GetProperties().begin()));
 
     expectSubmit();
     EventProperties props3("test");
@@ -334,9 +332,9 @@ TEST_F(LoggerTests, CustomPropertyNameValidation)
     checkBaseAndContextAndRuntimeConfigProps();
 	for (std::pair<std::string, EventProperty> prop : props3.GetProperties())
 	{
-		EXPECT_THAT(_submittedRecord.Extension, Contains(Pair(prop.first, prop.second.to_string())));
+		EXPECT_THAT(_submittedRecord.data[0].properties[prop.first].stringValue, prop.second.to_string());
 	}
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(*props3.GetProperties().begin()));
+    //EXPECT_THAT(_submittedRecord.data[0].properties, Contains(*props3.GetProperties().begin()));
 
     expectSubmit();
     EventProperties props4("test");
@@ -381,9 +379,9 @@ TEST_F(LoggerTests, CustomPropertyNameValidation)
     checkBaseAndContextAndRuntimeConfigProps();
 	for (std::pair<std::string, EventProperty> prop : props9.GetProperties())
 	{
-		EXPECT_THAT(_submittedRecord.Extension, Contains(Pair(prop.first, prop.second.to_string())));
+		EXPECT_THAT(_submittedRecord.data[0].properties[prop.first].stringValue, prop.second.to_string());
 	}
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(*props9.GetProperties().begin()));
+    //EXPECT_THAT(_submittedRecord.data[0].properties, Contains(*props9.GetProperties().begin()));
 
 #if ARIASDK_PAL_SKYPE
     // Sad but true. See comment in EventPropertiesDecorator::validatePropertyName().
@@ -424,17 +422,16 @@ TEST_F(LoggerTests, CustomEventPropertiesCanOverrideOrEraseContextOnes)
     ASSERT_THAT(_submitted, true);
 
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("overridden_event"));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("overridden_event"));
 
- //   EXPECT_THAT(submittedRecord.Extension, Contains(Pair("plain1", "overridden")));
- //   EXPECT_THAT(submittedRecord.Extension, Not(Contains(Pair("plain2", _))));
+    EXPECT_THAT(_submittedRecord.data[0].properties["plain1"].stringValue, "overridden");
+    EXPECT_THAT(_submittedRecord.data[0].properties["plain2"].stringValue, "");
 
     ::AriaProtocol::PII pii;
-    pii.ScrubType  = ::AriaProtocol::PIIScrubber::O365;
     pii.Kind       = ::AriaProtocol::PIIKind::GenericData;
-    pii.RawContent = "overridden";
- //   EXPECT_THAT(submittedRecord.PIIExtensions, Contains(Pair("pii1", pii)));
- //   EXPECT_THAT(submittedRecord.PIIExtensions, Not(Contains(Pair("pii2", _))));
+    //pii.RawContent = "overridden";
+    EXPECT_THAT(_submittedRecord.data[0].properties["pii1"].stringValue, "overridden");
+    EXPECT_THAT(_submittedRecord.data[0].properties["pii2"].stringValue,"");
 }
 
 TEST_F(LoggerTests, LogFailure)
@@ -443,19 +440,19 @@ TEST_F(LoggerTests, LogFailure)
     _logger.LogFailure("bad problem", "no food", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("Failure"));
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Signature", "bad problem")));
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Detail",    "no food")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("Failure"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Signature"].stringValue, "bad problem");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Detail"].stringValue, "no food");
 
     expectSubmit();
     _logger.LogFailure("worse problem", "no water", "serious", "#555", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("Failure"));
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Signature", "worse problem")));
-  //  EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Detail",    "no water")));
- //   EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Category",  "serious")));
- //   EXPECT_THAT(submittedRecord.Extension, Contains(Pair("Failure.Id",        "#555")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("Failure"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Signature"].stringValue, "worse problem");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Detail"].stringValue, "no water");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Category"].stringValue, "serious");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Id"].stringValue, "#555");
 
     expectSubmit();
     EventProperties props("problem_report");
@@ -463,12 +460,12 @@ TEST_F(LoggerTests, LogFailure)
     _logger.LogFailure("catastrophic problem", "oxygen tank exploded", "deadly", "#666", props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("Failure"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Failure.Signature", "catastrophic problem")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Failure.Detail",    "oxygen tank exploded")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Failure.Category",  "deadly")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Failure.Id",        "#666")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("life_support_eta",  "7:30")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("Failure"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Signature"].stringValue, "catastrophic problem");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Detail"].stringValue, "oxygen tank exploded");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Category"].stringValue, "deadly");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Failure.Id"].stringValue, "#666");
+    EXPECT_THAT(_submittedRecord.data[0].properties["life_support_eta"].stringValue, "7:30");
 
     expectNoSubmit();
     _logger.LogFailure("empty detail", "", _emptyProperties);
@@ -485,12 +482,12 @@ TEST_F(LoggerTests, LogPageAction)
     _logger.LogPageAction("/index.html", ActionType_Click, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageAction"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.ActionType",                      "Click")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.PageViewId",                      "/index.html")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.RawActionType",                   "Unspecified")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.InputDeviceType",                 "Unspecified")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 0)));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageAction"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.ActionType"].stringValue, "Click");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.PageViewId"].stringValue, "/index.html");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.RawActionType"].stringValue, "Unspecified");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.InputDeviceType"].stringValue, "Unspecified");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemLayout.Rank"].longValue, 0);
 
     expectSubmit();
     PageActionData pad("/eshop/cart.aspx", ActionType_Zoom);
@@ -499,12 +496,12 @@ TEST_F(LoggerTests, LogPageAction)
     _logger.LogPageAction(pad, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageAction"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.ActionType",                      "Zoom")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.PageViewId",                      "/eshop/cart.aspx")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.RawActionType",                   "TouchZoom")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.InputDeviceType",                 "Touch")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 0)));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageAction"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.ActionType"].stringValue, "Zoom");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.PageViewId"].stringValue, "/eshop/cart.aspx");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.RawActionType"].stringValue, "TouchZoom");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.InputDeviceType"].stringValue, "Touch");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemLayout.Rank"].longValue, 0);
 
     expectSubmit();
     PageActionData pad2("SendMessage.action", ActionType_Other);
@@ -522,19 +519,19 @@ TEST_F(LoggerTests, LogPageAction)
     _logger.LogPageAction(pad2, props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageAction"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.ActionType",                      "Other")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.PageViewId",                      "SendMessage.action")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.RawActionType",                   "KeyboardPress")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.InputDeviceType",                 "Keyboard")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.DestinationUri",                  "SendAttachment.action")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.TargetItemId",                    "attach")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.TargetItemDataSource.Name",       "extras")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.TargetItemDataSource.Category",   "form")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.TargetItemDataSource.Collection", "buttons")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageAction.TargetItemLayout.Container",      "message-entry")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("PageAction.TargetItemLayout.Rank", 123)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",                                       "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageAction"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.ActionType"].stringValue, "Other");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.PageViewId"].stringValue, "SendMessage.action");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.RawActionType"].stringValue, "KeyboardPress");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.InputDeviceType"].stringValue, "Keyboard");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.DestinationUri"].stringValue, "SendAttachment.action");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemId"].stringValue, "attach");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemDataSource.Name"].stringValue, "extras");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemDataSource.Category"].stringValue, "form");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemDataSource.Collection"].stringValue, "buttons");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemLayout.Container"].stringValue, "message-entry");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageAction.TargetItemLayout.Rank"].longValue,123);
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
 
     expectNoSubmit();
     _logger.LogPageAction("", ActionType_Click, _emptyProperties);
@@ -547,20 +544,20 @@ TEST_F(LoggerTests, LogPageView)
     _logger.LogPageView("id-1", "Index", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageView"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Id",          "id-1")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Name",        "Index")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageView"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Id"].stringValue, "id-1");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Name"].stringValue, "Index");
 
     expectSubmit();
     _logger.LogPageView("id-2", "Cart", "eshop", "/eshop/cart.aspx", "/eshop/index.aspx", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageView"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Id",          "id-2")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Name",        "Cart")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Category",    "eshop")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Uri",         "/eshop/cart.aspx")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.ReferrerUri", "/eshop/index.aspx")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageView"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Id"].stringValue, "id-2");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Name"].stringValue, "Cart");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Category"].stringValue, "eshop");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Uri"].stringValue, "/eshop/cart.aspx");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.ReferrerUri"].stringValue, "/eshop/index.aspx");
 
     expectSubmit();
     EventProperties props("internal_browser_page_view");
@@ -568,13 +565,13 @@ TEST_F(LoggerTests, LogPageView)
     _logger.LogPageView("id-3", "Order", "eshop", "/eshop/order.aspx", "/eshop/cart.aspx", props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("PageView"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Id",          "id-3")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Name",        "Order")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Category",    "eshop")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.Uri",         "/eshop/order.aspx")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("PageView.ReferrerUri", "/eshop/cart.aspx")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",                 "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("PageView"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Id"].stringValue, "id-3");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Name"].stringValue, "Order");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Category"].stringValue, "eshop");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.Uri"].stringValue, "/eshop/order.aspx");
+    EXPECT_THAT(_submittedRecord.data[0].properties["PageView.ReferrerUri"].stringValue, "/eshop/cart.aspx");
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
 
     expectNoSubmit();
     _logger.LogPageView("", "name", _emptyProperties);
@@ -587,35 +584,35 @@ TEST_F(LoggerTests, LogSampledMetric)
     _logger.LogSampledMetric("measurement", 1.2, "ms", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("SampledMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "measurement")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",1.200000)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "ms")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("SampledMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Name"].stringValue, "measurement");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Value"].doubleValue, 1.200000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Units"].stringValue, "ms");
 
     expectSubmit();
     _logger.LogSampledMetric("speed", 67.89, "km/h", "Ferda", "vehicle", "id-1", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("SampledMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "speed")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",        67.890000)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "km/h")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.InstanceName", "Ferda")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectClass",  "vehicle")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectId",     "id-1")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("SampledMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Name"].stringValue, "speed");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Value"].doubleValue, 67.890000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Units"].stringValue, "km/h");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.InstanceName"].stringValue, "Ferda");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.ObjectClass"].stringValue, "vehicle");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.ObjectId"].stringValue, "id-1");
 
     expectSubmit();
     EventProperties props("detected_vehicle");
     _logger.LogSampledMetric("speed", 89.01, "km/h", "Adref", "vehicle", "id-2", props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("SampledMetric"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Name",         "speed")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionDouble, Contains(Pair("SampledMetric.Value",        89.010000)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.Units",        "km/h")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.InstanceName", "Adref")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectClass",  "vehicle")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("SampledMetric.ObjectId",     "id-2")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("SampledMetric"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Name"].stringValue, "speed");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Value"].doubleValue, 89.010000);
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.Units"].stringValue, "km/h");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.InstanceName"].stringValue, "Adref");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.ObjectClass"].stringValue, "vehicle");
+    EXPECT_THAT(_submittedRecord.data[0].properties["SampledMetric.ObjectId"].stringValue, "id-2");
 
     expectNoSubmit();
     _logger.LogSampledMetric("", 1.2, "ms", _emptyProperties);
@@ -632,9 +629,9 @@ TEST_F(LoggerTests, LogTrace)
     _logger.LogTrace(TraceLevel_Information, "Everything is all right", _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("Trace"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Trace.Level",   "Information")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Trace.Message", "Everything is all right")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("Trace"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["Trace.Level"].stringValue, "Information");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Trace.Message"].stringValue, "Everything is all right");
 
     expectSubmit();
     EventProperties props("worker_report");
@@ -642,10 +639,10 @@ TEST_F(LoggerTests, LogTrace)
     _logger.LogTrace(TraceLevel_Warning, "Stuff is getting harder", props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("Trace"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Trace.Level",   "Warning")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("Trace.Message", "Stuff is getting harder")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",          "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("Trace"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["Trace.Level"].stringValue,"Warning");
+    EXPECT_THAT(_submittedRecord.data[0].properties["Trace.Message"].stringValue, "Stuff is getting harder");
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
 
     expectNoSubmit();
     _logger.LogTrace(TraceLevel_Warning, "", _emptyProperties);
@@ -658,11 +655,11 @@ TEST_F(LoggerTests, LogUserState)
     _logger.LogUserState(UserState_Connected, 12345, _emptyProperties);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("UserInfo_UserState"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("State.Name",         "UserState")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("State.Value",        "Connected")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("State.TimeToLive",   12345)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionBoolean, Contains(Pair("State.IsTransition", true)));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("UserInfo_UserState"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.Name"].stringValue ,        "UserState");
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.Value"].stringValue ,       "Connected");
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.TimeToLive"].longValue, 12345);
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.IsTransition"].longValue, true);
 
     expectSubmit();
     EventProperties props("app_login_state");
@@ -670,12 +667,12 @@ TEST_F(LoggerTests, LogUserState)
     _logger.LogUserState(UserState_SignedIn, 67890, props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.EventType, Eq("UserInfo_UserState"));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("State.Name",         "UserState")));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("State.Value",        "SignedIn")));
-    EXPECT_THAT(_submittedRecord.TypedExtensionInt64, Contains(Pair("State.TimeToLive",   67890)));
-    EXPECT_THAT(_submittedRecord.TypedExtensionBoolean, Contains(Pair("State.IsTransition", true)));
-    EXPECT_THAT(_submittedRecord.Extension, Contains(Pair("test",               "value")));
+    EXPECT_THAT(_submittedRecord.baseType, Eq("UserInfo_UserState"));
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.Name"].stringValue,         "UserState");
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.Value"].stringValue ,       "SignedIn");
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.TimeToLive"].longValue,  67890);
+    EXPECT_THAT(_submittedRecord.data[0].properties["State.IsTransition"].longValue, true);
+    EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue,              "value");
 }
 
 TEST_F(LoggerTests, RuntimeConfigPriorityIsForced)
@@ -742,8 +739,8 @@ TEST_F(LoggerTests, RuntimeConfigPriorityIsForced)
 
 TEST_F(LoggerTests, SubmitIgnoresPriorityOff)
 {
-    ::AriaProtocol::Record record;
-    record.EventType = "off";
+    ::AriaProtocol::CsEvent record;
+    record.baseType = "off";
 	std::string name("test");
 	std::uint64_t flags = 0;
     _logger.submit_(record, EventPriority_Off, flags);
@@ -751,20 +748,27 @@ TEST_F(LoggerTests, SubmitIgnoresPriorityOff)
 
 TEST_F(LoggerTests, SubmitSendsEventContext)
 {
-    ::AriaProtocol::Record record;
-    record.Id = "guid";
-    record.EventType = "eventtype";
-    record.Extension["propertykey"] = "propertyvalue";
+    ::AriaProtocol::CsEvent record;
+    record.name = "guid";
+    record.baseType = "eventtype";
+    ::AriaProtocol::Value temp;
+    temp.stringValue = "propertyvalue";
+    if (record.data.size() == 0)
+    {
+        ::AriaProtocol::Data data;
+        record.data.push_back(data);
+    }
+    record.data[0].properties["propertykey"] = temp;
 
     ARIASDK_NS::IncomingEventContextPtr event;
     EXPECT_CALL(_logManagerMock, addIncomingEvent(_))
         .WillOnce(SaveArg<0>(&event));
     _logger.submit_(record, EventPriority_Unspecified,0);
 
-    EXPECT_THAT(event->record.id,          Eq("guid"));
+    //EXPECT_THAT(event->record.id,          Eq("guid"));
     EXPECT_THAT(event->record.tenantToken, Eq("testtenantid-tenanttoken"));
     EXPECT_THAT(event->record.priority,    EventPriority_Unspecified);
-    EXPECT_THAT(event->source->Id,         Eq("guid"));
-    EXPECT_THAT(event->source->EventType,  Eq("eventtype"));
-    EXPECT_THAT(event->source->Extension,  Contains(Pair(Eq("propertykey"), Eq("propertyvalue"))));
+    EXPECT_THAT(event->source->name,         Eq("guid"));
+    EXPECT_THAT(event->source->baseType,  Eq("eventtype"));
+    EXPECT_THAT(event->source->data[0].properties["propertykey"].stringValue,"propertyvalue");
 }

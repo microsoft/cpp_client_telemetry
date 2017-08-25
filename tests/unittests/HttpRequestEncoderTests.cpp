@@ -49,7 +49,7 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
     EXPECT_THAT(req->m_method, Eq("POST"));
     EXPECT_THAT(req->m_url, Eq("http://collector/"));
     EXPECT_THAT(req->m_headers, Contains(Pair("Expect",       "100-continue")));
-    EXPECT_THAT(req->m_headers, Contains(Pair("SDK-Version",  PAL::getSdkVersion())));
+    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Version",  PAL::getSdkVersion())));
     EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id",    "NO_AUTH")));
     EXPECT_THAT(req->m_headers, Contains(Pair("Content-Type", "application/bond-compact-binary")));
     EXPECT_THAT(req->m_headers, Contains(Pair("X-APIKey",     "tenant1-token")));

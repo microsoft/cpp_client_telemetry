@@ -43,7 +43,7 @@ class RuntimeConfig_Default : public IRuntimeConfig {
     unsigned    m_maxRetryCount                   = 5;
     unsigned    m_minimumUploadBandwidthBps       = 512;
     unsigned    m_maximumUploadSizeBytes          = 1 * 1024 * 1024;
-    bool        m_isHttpRequestCompressionEnabled = true;
+    bool        m_isHttpRequestCompressionEnabled = false; // true;
 };
 
 

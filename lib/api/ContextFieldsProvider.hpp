@@ -2,6 +2,7 @@
 
 #pragma once
 #include <ILogger.hpp>
+#include <mutex>
 #include "bond/generated/AriaProtocol_types.hpp"
 
 namespace ARIASDK_NS_BEGIN {
@@ -21,7 +22,7 @@ class ContextFieldsProvider : public ISemanticContext
       ~ContextFieldsProvider();
 
     void setCustomField(std::string const& name, EventProperty value);
-    void writeToRecord(::AriaProtocol::Record& record) const;
+    void writeToRecord(::AriaProtocol::CsEvent& record) const;
 
   protected:
     void setCommonField(std::string const& name, EventProperty value);

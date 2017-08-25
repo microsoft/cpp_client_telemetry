@@ -97,7 +97,7 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
         this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAppLifecycleMessage(record, state)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -128,7 +128,7 @@ void Logger::LogEvent(EventProperties const& properties)
         priority = properties.GetPriority();
     }
     
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if (!applyCommonDecorators(record, properties, priority)) {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -151,7 +151,7 @@ void Logger::LogFailure(
         this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateFailureMessage(record, signature, detail, category, id)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -185,7 +185,7 @@ void Logger::LogPageView(
         this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageViewMessage(record, id, pageName, category, uri, referrer)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -224,7 +224,7 @@ void Logger::LogPageAction(
         this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageActionMessage(record, pageActionData)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -251,7 +251,7 @@ void Logger::LogSampledMetric(
         this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -292,7 +292,7 @@ void Logger::LogAggregatedMetric(
         this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAggregatedMetricMessage(record, metricData)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -315,7 +315,7 @@ void Logger::LogTrace(
         this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateTraceMessage(record, level, message)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -338,7 +338,7 @@ void Logger::LogUserState(
         this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
     EventPriority priority = EventPriority_Normal;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateUserStateMessage(record, state, timeToLiveInMillis)) ||
         !applyCommonDecorators(record, properties, priority))
@@ -352,29 +352,38 @@ void Logger::LogUserState(
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
 }
 
-bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
+bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
 {
-    return m_eventPropertiesDecorator &&
-        m_eventPropertiesDecorator->decorate(record, priority, properties) &&
-        m_runtimeConfigDecorator &&
-        m_runtimeConfigDecorator->decorate(record, priority) &&
-        m_baseDecorator &&
-        m_baseDecorator->decorate(record, priority) &&
+    record.name = properties.GetName();
+    if (record.name.empty())
+    {
+        record.name = "NotSpecified";
+    }
+    record.iKey = "O-" + (*m_tenantTokenP).substr(0, (*m_tenantTokenP).find('-'));
+    return  m_baseDecorator &&
+            m_baseDecorator->decorate(record, priority ) &&
+            m_semanticApiDecorators &&
+            m_semanticContextDecorator->decorate(record) &&
+            m_eventPropertiesDecorator &&
+            m_eventPropertiesDecorator->decorate(record, priority, properties) &&
+            m_runtimeConfigDecorator &&
+            m_runtimeConfigDecorator->decorate(record, priority);
+           
         m_semanticContextDecorator &&
         m_semanticContextDecorator->decorate(record);
 }
 
-void Logger::submit(::AriaProtocol::Record& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
+void Logger::submit(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
 {
     if (priority == EventPriority_Off)
     {
         LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
         ARIASDK_LOG_INFO("Event %s/%s dropped because of calculated priority 0 (Off)",
-            tenantTokenToId(*m_tenantTokenP).c_str(), record.EventType.c_str());
+            tenantTokenToId(*m_tenantTokenP).c_str(), record.baseType.c_str());
         return;
     }
 
-    IncomingEventContextPtr event = IncomingEventContext::create(record.Id, *m_tenantTokenP, priority, &record);
+    IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), *m_tenantTokenP, priority, &record);
     event->policyBitFlags = policyBitFlags;
     m_logManager.addIncomingEvent(event);
 }
@@ -431,7 +440,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
         }
     }
     EventPriority priority = EventPriority_High;
-    ::AriaProtocol::Record record;
+    ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration)) ||
         !applyCommonDecorators(record, prop, priority))

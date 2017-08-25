@@ -352,7 +352,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 
 	// Prepare current time in UTC (seconds precision)
 	std::time_t t = std::time(nullptr);
-	//struct tm*   Tm;
+//	struct tm*   Tm;
 	//std::gmtime_s(Tm,&t);
 
 #if defined(_MSC_VER) && (_MSC_VER == 1800)
@@ -391,7 +391,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 	/* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
 	EventProperties props(name,
 	{
-		{ "MSC_VER", _MSC_VER },
+		//{ "MSC_VER", _MSC_VER },
 
 		{ "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
 		{ "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
@@ -419,14 +419,15 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 		{ "guidKey4", GUID_t(guid_c) },
 		{ "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
 		{ "timeKey2",  time_ticks_t(&t) }               // seconds precision
+        
 	});
 #endif
 	props.SetProperty("win_guid", GUID_t(win_guid));
     props.SetProperty("Customer", "value", CustomerContentKind::CustomerContentKind_GenericData);
 
-	// GUID_t guidKey5("00000000-0000-0000-0000-000000000001");
-	// GUID_t &g = guidKey5;
-	// props.SetProperty("refGuidKey5", guidKey5);
+	 GUID_t guidKey5("00000000-0000-0000-0000-000000000001");
+//	 GUID_t &g = guidKey5;
+	 props.SetProperty("refGuidKey5", guidKey5);
 
 	props.SetPriority(prio);
 
@@ -434,11 +435,11 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 	// This buffer is intentionally concurrently modified from different threads,
 	// so it's random string of ASCII characeters pretty much, depending on how
 	// many threads running and at what speed
-	for (size_t i = 0; i < MAX_WEIRDOS; i++)
-	{
-		weirdoBuffer[i] = ' ' + (i % (127 - ' '));
-	}
-	props.SetProperty("weirdoString", (const char *)(&weirdoBuffer[0]));
+	//for (size_t i = 0; i < MAX_WEIRDOS; i++)
+	//{
+	//	weirdoBuffer[i] = ' ' + (i % (127 - ' '));
+	//}
+	//props.SetProperty("weirdoString", (const char *)(&weirdoBuffer[0]));
 #endif
 
 	props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
@@ -510,7 +511,7 @@ ILogger* init() {
 	//configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
 
 #ifdef USE_INT
-    configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
+    configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://pipe.int.trafficmanager.net/OneCollector/1.0");//"https://pipe.dev.trafficmanager.net/OneCollector/1.0/"); //"https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
 #endif
 
 #ifdef USE_BOGUS_URL
