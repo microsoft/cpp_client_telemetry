@@ -1,4 +1,7 @@
-#pragma once
+
+#ifndef ARIA_EVENTPROPERTY_H
+#define ARIA_EVENTPROPERTY_H
+
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 #include <stdint.h>
@@ -208,25 +211,8 @@ namespace Microsoft {
 #endif
 
                 /// <summary>Debug routine that returns string representation of type name</summary>
-                static const char *type_name(unsigned typeId) {
-                    switch (typeId) {
-                    case TYPE_STRING:
-                        return "string";
-                    case TYPE_INT64:
-                        return "int64";
-                    case TYPE_DOUBLE:
-                        return "double";
-                    case TYPE_TIME:
-                        return "time";
-                    case TYPE_BOOLEAN:
-                        return "bool";
-                    case TYPE_GUID:
-                        return "guid";
-                    default:
-                        return "unknown";
-                    }
-                }
-
+                static const char *type_name(unsigned typeId);
+            
                 /// <summary>
                 /// EventProperty copy constructor
                 /// </summary>
@@ -265,7 +251,9 @@ namespace Microsoft {
                 EventProperty& operator=(int64_t value);
 
                 // All other integer types get converted to int64_t
+#ifdef _WIN32
                 EventProperty& operator=(long    value);
+#endif
                 EventProperty& operator=(int8_t  value); 
                 EventProperty& operator=(int16_t value); 
                 EventProperty& operator=(int32_t value); 
@@ -372,7 +360,9 @@ namespace Microsoft {
                 EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None);
 
                 // All other integer types get converted to int64_t
+#ifdef _WIN32
                 EventProperty(long     value, PiiKind piiKind = PiiKind_None); 
+#endif
                 EventProperty(int8_t   value, PiiKind piiKind = PiiKind_None); 
                 EventProperty(int16_t  value, PiiKind piiKind = PiiKind_None); 
                 EventProperty(int32_t  value, PiiKind piiKind = PiiKind_None); 
@@ -393,5 +383,4 @@ namespace Microsoft {
     }
 }
 
-#ifdef _WIN32
-#endif
+#endif //ARIA_EVENTPROPERTY_H

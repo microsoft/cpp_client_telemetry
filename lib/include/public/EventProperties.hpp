@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#pragma once
+#ifndef EVENTPROPERTIES_H
+#define EVENTPROPERTIES_H
+
 #include "EventProperty.hpp"
 #include "Version.hpp"
 #include "ctmacros.hpp"
@@ -247,3 +249,5 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 	};
 
 }}} // namespace Microsoft::Applications::Telemetry
+
+#endif //MYAPPLICATION_EVENTPROPERTIES_H

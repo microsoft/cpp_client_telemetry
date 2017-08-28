@@ -1,6 +1,7 @@
 #define LOG_MODULE DBG_API
 #include "pal/PAL.hpp"
 #include "LogManager.hpp"
+#include "LogSessionData.hpp"
 #include "LogManagerImpl.hpp"
 
 #include "TransmitProfiles.hpp"

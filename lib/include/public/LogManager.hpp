@@ -1,17 +1,24 @@
-#pragma once
+
+#ifndef ARIA_LOGMANAGER_H
+#define ARIA_LOGMANAGER_H
+
 #include "ILogger.hpp"
-#include "LogSessionData.hpp"
 #include "LogConfiguration.hpp"
+#ifdef _WIN32
 #include "TransmitProfiles.hpp"
 #include "DebugEvents.hpp"
+#endif
 
 
 #include <climits>
 #include <cstdint>
 
+
 namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
+
+          class LogSessionData;
 
             /// <summary>
             /// This class is used to manage the Telemetry logging system
@@ -24,7 +31,13 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
                 /// <returns>A logger instance instantiated with the tenantToken and default configuration</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL Initialize(const std::string& tenantToken);
+                static ILogger* ARIASDK_LIBABI_CDECL Initialize(
+#ifdef ANDROID
+                    JNIEnv *env,
+                    jclass contextClass,
+                    jobject  contextObject,
+#endif
+                    const std::string& tenantToken);
 
                 /// <summary>
                 /// Initializes the telemetry logging system with specified configuration.
@@ -32,7 +45,13 @@ namespace Microsoft {
                 /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
                 /// <param name="configuration">Configuration settings to apply to the telemetry logging system</param>
                 /// <returns>A logger instance instantiated with the tenantToken and specified configuration</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL Initialize(const std::string& tenantToken, const LogConfiguration& configuration);
+                static ILogger* ARIASDK_LIBABI_CDECL Initialize(
+#ifdef ANDROID
+                    JNIEnv *env,
+                    jclass contextClass,
+                    jobject  contextObject,
+#endif
+                    const std::string& tenantToken, const LogConfiguration& configuration);
 
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
@@ -71,7 +90,7 @@ namespace Microsoft {
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>This function doesn't return any value because it always succeeds.</returns>
                 static void ARIASDK_LIBABI_CDECL SetTransmitProfile(TransmitProfile profile);
-
+#ifndef ANDROID
                 /// <summary>
                 /// Sets transmit profile for event transmission.
                 /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
@@ -96,7 +115,7 @@ namespace Microsoft {
                 /// <summary>Get profile name based on built-in profile enum<summary>
                 /// <param name="profile">Transmit profile</param>
                 static const std::string& ARIASDK_LIBABI_CDECL GetTransmitProfileName(TransmitProfile profile);
-
+#endif
                 /// <summary>
                 /// Retrieve an ISemanticContext interface through which to specify context information 
                 /// such as device, system, hardware and user information.
@@ -256,7 +275,7 @@ namespace Microsoft {
                 /// <param name="source">Source name of events sent by this logger instance</param>
                 /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
                 static ILogger* ARIASDK_LIBABI_CDECL GetLogger(const std::string& tenantToken, const std::string& source);
-
+#ifdef _WIN32
 
                 /// <summary>
                 /// Add Debug callback
@@ -282,6 +301,12 @@ namespace Microsoft {
 				/// Get Session data
 				/// </summary>
 				static LogSessionData* GetLogSessionData();
+#endif
+#ifdef ANDROID
+                static jclass  GetGlobalInternalMgrImpl();
+#endif
+
+
 
             protected:
 
@@ -309,14 +334,8 @@ namespace Microsoft {
                 /// Debug routine that validates if LogManager has been initialized. May trigger a warning message if not.
                 /// </summary>
                 static void checkup();
-
-            private:
-
-				//static std::mutex*                     our_lockP;
-				//static ILogManager*                    our_pLogManagerSingletonInstanceP;
-              
             };
-
         }
     }
 }
+#endif //ARIA_LOGMANAGER_H

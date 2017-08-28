@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef ARIA_ILOGGER_H
+#define ARIA_ILOGGER_H
 
-#pragma once
 #include "Version.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
@@ -142,10 +143,9 @@ struct AggregatedMetricData
 /// </summary>
 class ARIASDK_LIBABI ILogger
 {
-  protected:
-    virtual ~ILogger() {}
 
   public:
+    virtual ~ILogger() {}
     /// <summary>
     /// Gets an ISemanticContext interface through which to specify semantic context of this logger instance.
     /// </summary>
@@ -447,3 +447,5 @@ class ARIASDK_LIBABI ILogger
 
 
 }}} // namespace Microsoft::Applications::Telemetry
+
+#endif //ARIA_ILOGGER_H

@@ -16,13 +16,13 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 
 
 uint64_t const Version =
-    (5ull << 48) |
+    (2ull << 48) |
     (0ull << 32) |
     (0ull << 16) |
      0ull;
 
 char const VersionString[] =
-    "5.0.0.0";
+    "2.0.0.0";
 
 
 namespace {

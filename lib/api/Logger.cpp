@@ -2,6 +2,7 @@
 
 #include "Logger.hpp"
 #include "LogManager.hpp"
+#include "LogSessionData.hpp"
 #include "LogManagerImpl.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>

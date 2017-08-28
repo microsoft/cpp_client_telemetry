@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CTMACROS_H
+#define CTMACROS_H
 
 #if defined(ARIASDK_PLATFORM_WINDOWS)
 
@@ -19,3 +20,5 @@
 #define ARIASDK_LIBABI
 
 #endif
+
+#endif //CTMACROS_H

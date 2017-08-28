@@ -1,4 +1,7 @@
-#pragma once
+
+#ifndef ARIA_ENUMS_H
+#define ARIA_ENUMS_H
+
 #include "Version.hpp"
 
 // *INDENT-OFF*
@@ -278,5 +281,22 @@ enum HttpResult
     HttpResult_NetworkFailure = 3
 };
 
+/// <summary>
+/// Transmit profiles to choose from for event transmission that could favor low transmission 
+/// latency or device resource consumption.
+/// </summary>
+enum TransmitProfile
+{
+    /// <summary>Favors low transmission latency, but may consume more data bandwidth and power.</summary>
+    TransmitProfile_RealTime = 0,
+    /// <summary>Favors near real-time transmission latency. Automatically balances transmission 
+    /// latency with data bandwidth and power consumption.</summary>
+    TransmitProfile_NearRealTime = 1,
+    /// <summary>Favors device performance by conserving both data bandwidth and power consumption.</summary>
+    TransmitProfile_BestEffort = 2
+};
+
 
 }}} // namespace Microsoft::Applications::Telemetry
+
+#endif //EVENTPRIORITY_H

@@ -1,4 +1,7 @@
-#pragma once
+
+#ifndef ISEMANTICCONTEXT_H
+#define ISEMANTICCONTEXT_H
+
 #include "ctmacros.hpp"
 #include "Version.hpp"
 #include "Enums.hpp"
@@ -150,3 +153,5 @@ class  ARIASDK_LIBABI ISemanticContext
 
 
 }}} // namespace Microsoft::Applications::Telemetry
+
+#endif //ISEMANTICCONTEXT_H

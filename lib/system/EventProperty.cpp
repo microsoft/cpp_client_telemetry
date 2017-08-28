@@ -386,6 +386,26 @@ namespace Microsoft {
                 return (*this);
             }
 
+            const char *EventProperty::type_name(unsigned typeId)
+            {
+                switch (typeId) {
+                case TYPE_STRING:
+                    return "string";
+                case TYPE_INT64:
+                    return "int64";
+                case TYPE_DOUBLE:
+                    return "double";
+                case TYPE_TIME:
+                    return "time";
+                case TYPE_BOOLEAN:
+                    return "bool";
+                case TYPE_GUID:
+                    return "guid";
+                default:
+                    return "unknown";
+                }
+            }
+
             /// <summary>
             /// EventProperty assignment operator
             /// </summary>
@@ -456,7 +476,7 @@ namespace Microsoft {
                         as_string = NULL;
                     }
                 }
-                piiKind;
+                piiKind = PiiKind::PiiKind_None;
                 ccKind = CustomerContentKind_None;
             }
 

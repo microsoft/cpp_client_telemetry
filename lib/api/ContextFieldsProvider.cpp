@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "ContextFieldsProvider.hpp"
+#include "LogSessionData.hpp"
 #include "Config.hpp"
 #include "utils/Utils.hpp"
 #include "LogManager.hpp"
