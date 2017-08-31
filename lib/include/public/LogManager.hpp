@@ -1,6 +1,6 @@
 
-#ifndef ARIA_LOGMANAGER_H
-#define ARIA_LOGMANAGER_H
+#ifndef ARIA_LOGMANAGER_HPP
+#define ARIA_LOGMANAGER_HPP
 
 #include "ILogger.hpp"
 #include "LogConfiguration.hpp"
@@ -114,7 +114,7 @@ namespace Microsoft {
 
                 /// <summary>Get profile name based on built-in profile enum<summary>
                 /// <param name="profile">Transmit profile</param>
-                static const std::string& ARIASDK_LIBABI_CDECL GetTransmitProfileName(TransmitProfile profile);
+                static const std::string ARIASDK_LIBABI_CDECL GetTransmitProfileName(TransmitProfile profile);
 #endif
                 /// <summary>
                 /// Retrieve an ISemanticContext interface through which to specify context information 

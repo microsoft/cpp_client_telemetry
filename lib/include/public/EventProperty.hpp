@@ -1,6 +1,6 @@
 
-#ifndef ARIA_EVENTPROPERTY_H
-#define ARIA_EVENTPROPERTY_H
+#ifndef ARIA_EVENTPROPERTY_HPP
+#define ARIA_EVENTPROPERTY_HPP
 
 #include "ctmacros.hpp"
 #include "Enums.hpp"
@@ -383,4 +383,4 @@ namespace Microsoft {
     }
 }
 
-#endif //ARIA_EVENTPROPERTY_H
+#endif //ARIA_EVENTPROPERTY_HPP

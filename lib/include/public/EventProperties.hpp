@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#ifndef EVENTPROPERTIES_H
-#define EVENTPROPERTIES_H
+#ifndef EVENTPROPERTIES_HPP
+#define EVENTPROPERTIES_HPP
 
 #include "EventProperty.hpp"
 #include "Version.hpp"

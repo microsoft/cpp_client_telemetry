@@ -27,20 +27,6 @@ typedef std::map<std::string, unsigned int> string_uint_dict_t;
 /// </summary>
 typedef std::map<std::string, std::map<std::string, unsigned int>> eventsMap;
 
-// Event rejected due to legit reasoning
-enum EventRejectedReason
-{
-    REJECTED_REASON_REQUIRED_ARGUMENT_MISSING,
-    REJECTED_REASON_EVENT_NAME_MISSING,
-    REJECTED_REASON_INVALID_CLIENT_MESSAGE_TYPE,
-    REJECTED_REASON_VALIDATION_FAILED,
-    REJECTED_REASON_OLD_RECORD_VERSION,
-    REJECTED_REASON_EVENT_EXPIRED,
-    REJECTED_REASON_COUNT
-};
-static unsigned const gc_NumRejectedReasons = REJECTED_REASON_COUNT;
-
-
 /// <summary>
 /// A structure defining some configurations used in collecting stats,
 /// including sending frequency and frequency distributions of multiple data sets.

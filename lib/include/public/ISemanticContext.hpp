@@ -1,9 +1,8 @@
 
-#ifndef ISEMANTICCONTEXT_H
-#define ISEMANTICCONTEXT_H
+#ifndef ISEMANTICCONTEXT_HPP
+#define ISEMANTICCONTEXT_HPP
 
 #include "ctmacros.hpp"
-#include "Version.hpp"
 #include "Enums.hpp"
 #include <string>
 

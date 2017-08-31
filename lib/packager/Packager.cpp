@@ -3,6 +3,7 @@
 #include "Packager.hpp"
 #include "LogManager.hpp"
 #include "utils/Utils.hpp"
+#include "IRuntimeConfig.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

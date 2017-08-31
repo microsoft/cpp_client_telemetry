@@ -1,8 +1,10 @@
-#pragma once
+#ifndef ARIA_LOGCONFIGURATION_HPP
+#define ARIA_LOGCONFIGURATION_HPP
+
 #include "Version.hpp"
-#include "IHttpClient.hpp"
-#include "IRuntimeConfig.hpp"
-#include "IBandwidthController.hpp"
+#include "Enums.hpp"
+#include "ctmacros.hpp"
+#include <map>
 
 #ifdef ARIASDK_PAL_SKYPE
     #include <httpstack/fwd.hpp>
@@ -13,6 +15,9 @@
 // *INDENT-OFF*
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
+    class IHttpClient;
+    class IRuntimeConfig;
+    class IBandwidthController;
 
 	static const char* COLLECTOR_URL_UNITED_STATES = "https://us.pipe.aria.microsoft.com/Collector/3.0/";
 	static const char* COLLECTOR_URL_GERMANY = "https://de.pipe.aria.microsoft.com/Collector/3.0/";
@@ -157,3 +162,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 
 
 }}} // namespace Microsoft::Applications::Telemetry
+#endif //MYAPPLICATION_EVENTPROPERTIES_H

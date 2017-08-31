@@ -176,7 +176,7 @@ namespace Microsoft {
                 TransmitProfiles::reset();
             }
 
-            const std::string& LogManager::GetTransmitProfileName(TransmitProfile profile)
+            const std::string LogManager::GetTransmitProfileName(TransmitProfile profile)
             {
 				UNREFERENCED_PARAMETER(profile);
                return TransmitProfiles::getProfile();

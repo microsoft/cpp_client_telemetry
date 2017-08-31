@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include "Version.hpp"
 #include "EventProperty.hpp"
 
 namespace ARIASDK_NS_BEGIN

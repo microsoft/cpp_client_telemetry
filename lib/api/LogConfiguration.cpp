@@ -1,4 +1,7 @@
 #include "LogConfiguration.hpp"
+#include "IHttpClient.hpp"
+#include "IRuntimeConfig.hpp"
+#include "IBandwidthController.hpp"
 #include "Config.hpp"
 #include "Logger.hpp"
 #include "pal/PAL.hpp"

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifndef ARIA_ILOGGER_H
-#define ARIA_ILOGGER_H
+#ifndef ARIA_ILOGGER_HPP
+#define ARIA_ILOGGER_HPP
 
-#include "Version.hpp"
+//#include "Version.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 #include "EventProperties.hpp"
@@ -26,24 +26,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 #define MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY 0x00040000
 #define MICROSOFT_EVENTTAG_REALTIME_LATENCY     0x00200000
 #define MICROSOFT_EVENTTAG_NORMAL_LATENCY       0x00400000
-
-/// <summary>
-/// Internal SDK debugging trace level
-/// </summary>
-enum ACTTraceLevel {
-	/// <summary>Debug messages</summary>
-	ACTTraceLevel_Debug,
-	/// <summary>Trace messages</summary>
-	ACTTraceLevel_Trace,
-	/// <summary>Informational messages</summary>
-	ACTTraceLevel_Info,
-	/// <summary>Warnings</summary>
-	ACTTraceLevel_Warn,
-	/// <summary>Errors</summary>
-	ACTTraceLevel_Error,
-	/// <summary>Fatal errors that lead to process termination</summary>
-	ACTTraceLevel_Fatal
-};
 
 /// <summary>
 /// Struct data of a page action event.
