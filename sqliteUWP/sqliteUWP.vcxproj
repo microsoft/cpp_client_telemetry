@@ -22,7 +22,7 @@
     <ProjectGuid>{33798CA7-74C0-4BF3-8171-7E098A6EBAA5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>sqliteUWP</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
     <OacrPath>OACR</OacrPath>
