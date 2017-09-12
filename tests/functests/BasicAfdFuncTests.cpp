@@ -124,6 +124,7 @@ class BasicAfdFuncTests : public ::testing::Test,
         
         
         server.start();		
+        PAL::initialize();
     }
 
     virtual void TearDown() override
@@ -152,6 +153,7 @@ class BasicAfdFuncTests : public ::testing::Test,
         {
             printf("exception in logManager->FlushAndTeardown();");
         }
+        PAL::shutdown();
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
