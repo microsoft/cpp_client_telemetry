@@ -17,7 +17,7 @@ char const* const TEST_STORAGE_FILENAME = "OfflineStorageTests_SQLite.db";
 class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
 {
   public:
-    OfflineStorage_SQLiteNoAutoCommit(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig)
+    OfflineStorage_SQLiteNoAutoCommit(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
       : OfflineStorage_SQLite(configuration, runtimeConfig)
     {
     }
@@ -393,17 +393,18 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
 TEST_F(OfflineStorageTests_SQLite, OnInvalidFilenameInitializeCreatesTemporaryDb)
 {
     offlineStorage->Shutdown();
-    std::string origCacheFilePath = configuration.GetProperty("cacheFilePath");
+    bool error;
+    std::string origCacheFilePath = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);
     ::remove(origCacheFilePath.c_str());
 
-    configuration.SetProperty("cacheFilePath", "/\\/*/[]\\\\");
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, "/\\/*/[]\\\\");
     offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(configuration, configMock));
     EXPECT_CALL(observerMock, OnStorageFailed("1"));
     EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Temp"));
     offlineStorage->Initialize(observerMock);
 
     EXPECT_THAT(fileExists(origCacheFilePath), false);
-    EXPECT_THAT(fileExists(configuration.GetProperty("cacheFilePath")), false);
+    EXPECT_THAT(fileExists(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error)), false);
 
     // Recreate for destructor
     std::ofstream(origCacheFilePath, std::ios::out);

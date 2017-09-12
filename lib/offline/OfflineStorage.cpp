@@ -73,7 +73,6 @@ bool OfflineStorage::handleDeleteRecords(EventsUploadContextPtr const& ctx)
 
 bool OfflineStorage::handleReleaseRecords(EventsUploadContextPtr const& ctx)
 {
-    LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
     HttpHeaders headers;
     if (ctx->httpResponse)
     {
@@ -117,6 +116,7 @@ void OfflineStorage::OnStorageTrimmed(unsigned numRecords)
 
     DebugEvent evt;
     evt.type = EVT_DROPPED;
+    evt.param1 = numRecords;
     evt.size = numRecords;
     LogManager::DispatchEvent(evt);
 }
@@ -129,6 +129,7 @@ void OfflineStorage::OnStorageRecordsDropped(unsigned numRecords)
    
     DebugEvent evt;
     evt.type = EVT_DROPPED;
+    evt.param1 = numRecords;
     evt.size = numRecords;
     LogManager::DispatchEvent(evt);
 }

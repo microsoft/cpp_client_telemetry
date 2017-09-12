@@ -8,11 +8,12 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-Packager::Packager(LogConfiguration const& configuration, IRuntimeConfig const& runtimeConfig)
-  : m_runtimeConfig(runtimeConfig),
-    m_forcedTenantToken(toLower(configuration.GetProperty("forcedTenantToken")))
-{
+Packager::Packager(LogConfiguration& configuration, IRuntimeConfig const& runtimeConfig)
+  : m_runtimeConfig(runtimeConfig)    
+{  
     UNREFERENCED_PARAMETER(configuration);
+    bool error;
+    m_forcedTenantToken = toLower(configuration.GetProperty("forcedTenantToken", error));   
 }
 
 Packager::~Packager()
@@ -78,6 +79,7 @@ void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     
     DebugEvent evt;
     evt.type = EVT_SENT;
+    evt.param1 = ctx->recordIds.size();
     evt.size = ctx->recordIds.size();
     LogManager::DispatchEvent(evt);
 }

@@ -4,7 +4,7 @@
 #include "pal/PAL.hpp"
 #include <IOfflineStorage.hpp>
 #include <IRuntimeConfig.hpp>
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {
@@ -14,7 +14,7 @@ class OfflineStorageHandler : public IOfflineStorage,
                               public PAL::RefCountedImpl<OfflineStorageHandler>
 {
   public:
-    OfflineStorageHandler(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig);
+    OfflineStorageHandler(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig);
     virtual ~OfflineStorageHandler() override;
     virtual void Initialize(IOfflineStorageObserver& observer) override;
     virtual void Shutdown() override;

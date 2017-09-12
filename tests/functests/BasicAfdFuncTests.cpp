@@ -77,6 +77,7 @@ class BasicAfdFuncTests : public ::testing::Test,
     IAFDClient* m_pAFDClient;
     AFDClientListener listner;
     std::ostringstream os;
+    LogConfiguration configuration;
 
   public:
     virtual void SetUp() override
@@ -93,11 +94,10 @@ class BasicAfdFuncTests : public ::testing::Test,
         server.addHandler("/afd", *this);
         server.addHandler("/afd503", *this);
 
-        LogConfiguration configuration;
-        configuration.runtimeConfig = &runtimeConfig;
-        configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
+        configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
         configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-        ::remove(configuration.GetProperty("cacheFilePath"));
+        bool error;
+        ::remove(configuration.GetProperty("cacheFilePath", error));
 
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
@@ -115,7 +115,7 @@ class BasicAfdFuncTests : public ::testing::Test,
         
         m_pAFDClient = IAFDClient::CreateInstance();
 
-        logManager.reset(ILogManager::Create(configuration));
+        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
         logger = logManager->GetLogger("functests-Tenant-Token", "source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 

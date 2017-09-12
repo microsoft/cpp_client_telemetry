@@ -12,7 +12,7 @@ namespace ARIASDK_NS_BEGIN {
 
 ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "AriaSDK.StorageHandler", "Aria telemetry client - OfflineStorageHandler class");
 
-OfflineStorageHandler::OfflineStorageHandler(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig)
+OfflineStorageHandler::OfflineStorageHandler(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
     : m_logConfiguration(configuration),
     m_runtimeConfig(runtimeConfig),
     m_offlineStorageMemory(nullptr),
@@ -24,16 +24,16 @@ OfflineStorageHandler::OfflineStorageHandler(LogConfiguration const& configurati
     m_queryDbSize(0),
     m_isStorageFullNotificationSend(false)
 {
-    std::string  percentageFullNotification = configuration.GetProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE);
-    int percentage = std::stoi(percentageFullNotification);
-
+    bool error;
+    int percentage = configuration.GetIntProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE, error);
+    unsigned int cacheMemorySizeLimitInBytes = configuration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
     if (percentage > 0 && percentage <= 100)
     {
-        m_memoryDbSizeNotificationLimit = (percentage * configuration.cacheMemorySizeLimitInBytes) /100;
+        m_memoryDbSizeNotificationLimit = (percentage * cacheMemorySizeLimitInBytes) /100;
     }
     else
     {// incase user has specified bad percentage, we stck to 75%
-        m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * configuration.cacheMemorySizeLimitInBytes)/100;
+        m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheMemorySizeLimitInBytes)/100;
     }
 }
 
@@ -49,10 +49,11 @@ OfflineStorageHandler::~OfflineStorageHandler()
 void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
 {
     m_observer = &observer;
-
-    if (m_logConfiguration.cacheMemorySizeLimitInBytes > 0)
+    bool error;
+    unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
+    if (cacheMemorySizeLimitInBytes > 0)
     {
-        LogConfiguration inMemoryConfig = m_logConfiguration;
+        LogConfiguration inMemoryConfig(m_logConfiguration);
         inMemoryConfig.SetProperty(CFG_STR_CACHE_FILE_PATH,":memory:");
 
         m_offlineStorageMemory.reset(new OfflineStorage_SQLite(inMemoryConfig, m_runtimeConfig));
@@ -113,11 +114,13 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
             DebugEvent evt;
             evt.type = DebugEventType::EVT_STORAGE_FULL;
             evt.param1 = 1;
-            LogManager::DispatchEvent(DebugEventType::EVT_STORAGE_FULL);
+            LogManager::DispatchEvent(evt);
             m_isStorageFullNotificationSend = true;
         }
+        bool error;
+        unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
 
-        if (m_queryDbSize > m_logConfiguration.cacheMemorySizeLimitInBytes)
+        if (m_queryDbSize > cacheMemorySizeLimitInBytes)
         {
             // transfer data from Memory DB to Disk DB
             std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventPriority_Low, 500);

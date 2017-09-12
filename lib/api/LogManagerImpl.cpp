@@ -34,9 +34,9 @@ extern ILogManager* g_jniLogManager;
 #endif
 
 
-ILogManager* ILogManager::Create(LogConfiguration const& configuration)
+ILogManager* ILogManager::Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig)
 {
-    return new LogManagerImpl(configuration);
+    return new LogManagerImpl(configuration, runtimeConfig);
 }
 
 
@@ -45,9 +45,9 @@ ILogManager* ILogManager::Create(LogConfiguration const& configuration)
 
 ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "AriaSDK.LogManager", "Aria telemetry client - LogManager class");
 
-LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
-  : m_httpClient(configuration.httpClient),
-    m_runtimeConfig(configuration.runtimeConfig),
+LogManagerImpl::LogManagerImpl(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig)
+  : m_httpClient(nullptr),//(IHttpClient*)configuration.GetPointerProperty("httpClient")),
+    m_runtimeConfig(runtimeConfig),
     m_bandwidthController(nullptr),//configuration.bandwidthController),
     m_offlineStorage(nullptr),
     m_system(nullptr)
@@ -81,7 +81,7 @@ LogManagerImpl::LogManagerImpl(LogConfiguration const& configuration)
 
     bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
     
-    if ((configuration.sdkmode > SdkModeTypes::SdkModeTypes_Aria) && isWindowsUtcClientRegistrationEnable)
+    if ((configuration.GetSdkModeType() > SdkModeTypes::SdkModeTypes_Aria) && isWindowsUtcClientRegistrationEnable)
     {
         ARIASDK_LOG_DETAIL("Initializing UTC physical layer...");
         m_system = new UtcTelemetrySystem(configuration, *m_runtimeConfig, *m_context);

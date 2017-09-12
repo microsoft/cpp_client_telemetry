@@ -6,7 +6,7 @@
 #include "system/Contexts.hpp"
 #include <IHttpClient.hpp>
 #include <ILogManager.hpp>
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 #include <DebugEvents.hpp>
 #include <memory>
 
@@ -22,7 +22,7 @@ class ILogManagerInternal : public ILogManager {
 
 class LogManagerImpl : public ILogManagerInternal {
   public:
-    LogManagerImpl(LogConfiguration const& configuration);
+    LogManagerImpl(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig);
     virtual ~LogManagerImpl() override;
     virtual void FlushAndTeardown() override;
     virtual void Flush() override;

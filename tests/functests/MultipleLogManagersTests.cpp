@@ -44,20 +44,23 @@ class MultipleLogManagersTests : public ::testing::Test,
         config2.SetProperty("skipSqliteInitAndShutdown", "true"); 
 
         config1.SetProperty("cacheFilePath","lm1.db");
-        config1.runtimeConfig = &runtimeConfig1;
-        ::remove(config1.GetProperty("cacheFilePath"));
+        //config1.runtimeConfig = &runtimeConfig1;
+        bool error;
+        ::remove(config1.GetProperty("cacheFilePath", error));
 
         config2.SetProperty("cacheFilePath", "lm2.db");
-        config2.runtimeConfig = &runtimeConfig2;
-        ::remove(config2.GetProperty("cacheFilePath"));
+        //config2.runtimeConfig = &runtimeConfig2;
+
+        ::remove(config2.GetProperty("cacheFilePath", error));
     }
 
     virtual void TearDown() override
     {
         sqlite3_shutdown();
         server.stop();
-        ::remove(config1.GetProperty("cacheFilePath"));
-        ::remove(config2.GetProperty("cacheFilePath"));
+        bool error;
+        ::remove(config1.GetProperty("cacheFilePath", error));
+        ::remove(config2.GetProperty("cacheFilePath", error));
     }
 
     void expectRuntimeConfig(MockIRuntimeConfig& rc, std::string const& url)
@@ -108,9 +111,9 @@ class MultipleLogManagersTests : public ::testing::Test,
 
 TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
 {
-    std::unique_ptr<ILogManager> lm1(ILogManager::Create(config1));
+    std::unique_ptr<ILogManager> lm1(ILogManager::Create(config1, &runtimeConfig1));
 
-    std::unique_ptr<ILogManager> lm2(ILogManager::Create(config2));
+    std::unique_ptr<ILogManager> lm2(ILogManager::Create(config2, &runtimeConfig2));
 
     lm1->SetContext("test1", "abc");
 

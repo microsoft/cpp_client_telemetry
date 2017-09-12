@@ -8,6 +8,13 @@
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
 
+    enum SdkModeTypes
+    {
+        SdkModeTypes_Aria = 0, //This is default transmission mode
+        SdkModeTypes_UTCAriaBackCompat = 1,
+        SdkModeTypes_UTCCommonSchema = 2
+    };
+
 /// <summary>
 /// Internal SDK debugging trace level
 /// </summary>

@@ -84,7 +84,7 @@ class LoadTests : public Test,
         server.setServerName(os.str());
         server.addHandler("/", *this);
 
-        configuration.runtimeConfig = &runtimeConfig;
+        //configuration.runtimeConfig = &runtimeConfig;
         configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
         ::remove(TEST_STORAGE_FILENAME);
 
@@ -101,7 +101,7 @@ class LoadTests : public Test,
         EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
         EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillRepeatedly(Return());
 
-        logManager.reset(ILogManager::Create(configuration));
+        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
         PdhOpenQuery(NULL, NULL, &cpuQuery);
         PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
@@ -200,7 +200,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     for (unsigned i = 0; i < RESTART_COUNT; i++)
     {
         logManager.reset();
-        logManager.reset(ILogManager::Create(configuration));
+        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
     }
 
     time = PAL::getMonotonicTimeMs() - time;
@@ -250,7 +250,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     for (unsigned i = 0; i < RESTART_COUNT; i++) {
         logManager.reset();
-        logManager.reset(ILogManager::Create(configuration));
+        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
     }
 
     // All events should eventually come.

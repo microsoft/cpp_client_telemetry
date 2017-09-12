@@ -103,8 +103,7 @@ bool validateEventName(std::string const& name)
 		return false;
 	}
 
-	if (name.front() == '_' || name.front() == '.' ||
-		name.back() == '_' || name.back() == '.')
+	if (name.front() == '.' || name.back() == '.')
 	{
 		ARIASDK_LOG_ERROR("Invalid property name - \"%s\": must not start or end with _ or . characters", name.c_str());
 		return false;

@@ -48,7 +48,7 @@ Logger::~Logger()
 
 ISemanticContext* Logger::GetSemanticContext() const
 {
-    return (ISemanticContext*)&m_context;
+    return (ISemanticContext*)m_context;
 }
 
 /******************************************************************************

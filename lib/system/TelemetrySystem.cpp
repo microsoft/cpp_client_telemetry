@@ -6,7 +6,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-TelemetrySystem::TelemetrySystem(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
+TelemetrySystem::TelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
     IHttpClient& httpClient, ContextFieldsProvider const& globalContext, IBandwidthController* bandwidthController)
   : compression(runtimeConfig),
     hcm(httpClient),
@@ -93,9 +93,10 @@ void TelemetrySystem::start()
 
 void TelemetrySystem::stop()
 {
-    if (configuration.maxTeardownUploadTimeInSec > 0)
-    {
-        unsigned int timeoutInSec = configuration.maxTeardownUploadTimeInSec;
+    bool error;
+    unsigned int timeoutInSec = configuration.GetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, error);
+    if (timeoutInSec > 0)
+    {        
         std::uint64_t shutdownStartSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
         std::uint64_t nowSec = 0;
         UploadNow();

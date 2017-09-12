@@ -485,25 +485,26 @@ void sendEmptyEvent(ILogger *logger)
 	logger->LogEvent(props);
 }
 
-LogConfiguration configuration;
+ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 ILogManager* lm;
 
 ILogger* init() {
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH,"offlinestorage.db"); //":memory:"; //"offlinestorage.db";
-	configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+	configuration.SetIntProperty("traceLevelMask",0xFFFFFFFF ^ 128); // API calls + Global mask for general messages - less SQL
 													 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
-	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
+	configuration.SetMinimumTraceLevel(ACTTraceLevel_Trace);
 	//configuration.multiTenantEnabled = true;
-	configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
-	configuration.cacheMemorySizeLimitInBytes = 50 * 1024 * 1024;
-	configuration.maxTeardownUploadTimeInSec = 5;
+	configuration.SetIntProperty("cacheFileSizeLimitInBytes",150 * 1024 * 1024);
+	configuration.SetIntProperty("cacheMemorySizeLimitInBytes", 50 * 1024 * 1024);
+	configuration.SetIntProperty("maxTeardownUploadTimeInSec", 5);
 
-    configuration.SetProperty(CFG_BOOL_ENABLE_CRC32, "true");
-    configuration.SetProperty(CFG_BOOL_ENABLE_HMAC, "false");
-    configuration.SetProperty(CFG_BOOL_ENABLE_DB_COMPRESS, "true");
-    configuration.SetProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, "false");
-    configuration.SetProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, "20");
-    std::string temp = configuration.GetProperty("dsadasdsad");
+    configuration.SetBoolProperty(CFG_BOOL_ENABLE_CRC32, true);
+    configuration.SetBoolProperty(CFG_BOOL_ENABLE_HMAC, false);
+    configuration.SetBoolProperty(CFG_BOOL_ENABLE_DB_COMPRESS, true);
+    configuration.SetBoolProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, false);
+    configuration.SetIntProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, 20);
+    bool error;
+    std::string temp = configuration.GetProperty("dsadasdsad", error);
 
 	// Force UTC uploader on Windows 10 even if it's not RS2
 	//configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
@@ -558,7 +559,7 @@ ILogger* init() {
 
 	// Apply the profile before initialize
 	LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
-	ILogger *result = LogManager::Initialize(cTenantToken, configuration);
+	ILogger *result = LogManager::Initialize(cTenantToken);
 
 	// TC for SetContext(<const char*,const char*, PiiKind>)
 	const char* gc_value = "1234 :-)";

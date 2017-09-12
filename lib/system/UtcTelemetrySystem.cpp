@@ -175,7 +175,7 @@ namespace ARIASDK_NS_BEGIN {
         return temp;
     }
 
-UtcTelemetrySystem::UtcTelemetrySystem(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext)
+UtcTelemetrySystem::UtcTelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext)
   : stats(runtimeConfig, globalContext, this),
     m_configuration(configuration)
 {
@@ -320,7 +320,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
 
     builder.Begin(eventName.c_str(), eventTags);
 
-    if (m_configuration.sdkmode == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
+    if (m_configuration.GetSdkModeType() == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
     {
         //PartA_Exts_bc
         auto  structPartAExtsBC = builder.AddStruct(UTC_PART_A_EXTS_BC);
@@ -388,7 +388,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDKVERSION);
     dbuilder.AddString(eventInfoSdkVersion.c_str());
 
-    if (m_configuration.sdkmode == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
+    if (m_configuration.GetSdkModeType() == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
     {
         std::string appInfoEtag = eventCtx->source->Extension[COMMONFIELDS_APP_EXPERIMENTETAG];
         if (!appInfoEtag.empty())

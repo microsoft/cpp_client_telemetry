@@ -4,7 +4,7 @@
 #include "pal/PAL.hpp"
 #include <IOfflineStorage.hpp>
 #include <IRuntimeConfig.hpp>
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 #include <memory>
@@ -19,7 +19,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
                               public PAL::RefCountedImpl<OfflineStorage_SQLite>
 {
   public:
-    OfflineStorage_SQLite(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig);
+    OfflineStorage_SQLite(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig);
     virtual ~OfflineStorage_SQLite() override;
     virtual void Initialize(IOfflineStorageObserver& observer) override;
     virtual void Shutdown() override;
@@ -76,7 +76,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     KillSwitchManager           m_killSwitchManager;
     ClockSkewManager            m_clockSkewManager;
     unsigned                    m_lastReadCount;
-    LogConfiguration            m_logConfiguration;
+    LogConfiguration&           m_logConfiguration;
     unsigned                    m_DbSizeNotificationLimit;
     bool                        m_isStorageFullNotificationSend;
 

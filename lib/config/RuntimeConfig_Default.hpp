@@ -2,7 +2,7 @@
 
 #pragma once
 #include <IRuntimeConfig.hpp>
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -14,7 +14,7 @@ class RuntimeConfig_Default : public IRuntimeConfig {
     RuntimeConfig_Default& operator=(RuntimeConfig_Default const&) = delete;
     virtual ~RuntimeConfig_Default();
 
-    void initialize(LogConfiguration const& configuration);
+    void initialize(LogConfiguration& configuration);
 
     virtual void SetDefaultConfig(IRuntimeConfig& defaultConfig) override;
     virtual std::string GetCollectorUrl() const override;

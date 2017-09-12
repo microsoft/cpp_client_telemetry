@@ -21,7 +21,7 @@ class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
                         public ITelemetrySystem
 {
   public:
-    TelemetrySystem(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
+    TelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
         IHttpClient& httpClient, ContextFieldsProvider const& globalContext, IBandwidthController* bandwidthController);
     ~TelemetrySystem();
 

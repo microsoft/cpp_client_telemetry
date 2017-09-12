@@ -18,30 +18,33 @@ namespace Microsoft {
 			std::mutex*          our_lockP = new std::mutex();
 			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
 			LogSessionData*      our_LogSessionDataP = nullptr;
+            LogConfiguration*    our_LogConfigurationP = new LogConfiguration();
 
 			ILogger* LogManager::Initialize(const std::string& tenantToken)
 			{
-				return LogManager::Initialize(tenantToken, LogConfiguration());
-			}
-
-			ILogger* LogManager::Initialize(const std::string& tenantToken, const LogConfiguration& configuration)
-			{
-				ARIASDK_LOG_DETAIL("Initialize[2]: tenantToken=%s, configuration=0x%X", tenantToken.c_str(), &configuration);
+				ARIASDK_LOG_DETAIL("Initialize[2]: tenantToken=%s, configuration=0x%X", tenantToken.c_str(), our_LogConfigurationP);
 				std::lock_guard<std::mutex> lock(*our_lockP);
 
 				if (nullptr == our_pLogManagerSingletonInstanceP)
 				{
-					our_pLogManagerSingletonInstanceP = ILogManager::Create(configuration);
+                    bool error;
+                    std::string cacheFilePath = our_LogConfigurationP->GetProperty(CFG_STR_CACHE_FILE_PATH, error);
+                    if (cacheFilePath.empty())
+                    {
+                        our_LogConfigurationP->SetProperty(CFG_STR_CACHE_FILE_PATH, tenantToken.c_str());
+                    }
+					our_pLogManagerSingletonInstanceP = ILogManager::Create(*our_LogConfigurationP, nullptr);
 				}
 
 				if (nullptr == our_LogSessionDataP)
 				{
-					our_LogSessionDataP = new LogSessionData(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH));
+                    bool error;
+					our_LogSessionDataP = new LogSessionData(our_LogConfigurationP->GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
 
-                switch (configuration.minimumTraceLevel)
+                switch (our_LogConfigurationP->GetMinimumTraceLevel())
                 {
                 case    ACTTraceLevel_Debug:
                     ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Error);
@@ -405,6 +408,11 @@ namespace Microsoft {
 			{
 				return our_LogSessionDataP;;
 			}
+
+            ILogConfiguration& LogManager::GetLogConfiguration()
+            {
+                return *our_LogConfigurationP;;
+            }
         }
     }
 }

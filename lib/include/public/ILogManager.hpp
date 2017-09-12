@@ -5,7 +5,7 @@
 #include "Enums.hpp"
 #include "ILogger.hpp"
 #include "ISemanticContext.hpp"
-#include "LogConfiguration.hpp"
+#include "api/LogConfiguration.hpp"
 #include <string>
 
 // *INDENT-OFF*
@@ -24,7 +24,7 @@ class ILogManager
     /// </summary>
     /// <param name="configuration">Configuration settings to apply to the telemetry logging system</param>
     /// <returns>A telemetry logging system instance created with the specified configuration</returns>
-    static ILogManager* Create(LogConfiguration const& configuration);
+    static ILogManager* Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig);
 
     /// <summary>
     /// Destroy the telemetry logging system instance. Calls `FlushAndTeardown()` implicitly.

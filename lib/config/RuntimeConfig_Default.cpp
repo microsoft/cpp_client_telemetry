@@ -13,15 +13,16 @@ RuntimeConfig_Default::~RuntimeConfig_Default()
 {
 }
 
-void RuntimeConfig_Default::initialize(LogConfiguration const& configuration)
+void RuntimeConfig_Default::initialize(LogConfiguration& configuration)
 {
-    std::string url = configuration.GetProperty(CFG_STR_COLLECTOR_URL);
+    bool error;
+    std::string url = configuration.GetProperty(CFG_STR_COLLECTOR_URL, error);
     if (!url.empty()) {
         m_collectorUrl = url;
     }
-
-    if (configuration.cacheFileSizeLimitInBytes != 0) {
-        m_offlineStorageMaximumSize = configuration.cacheFileSizeLimitInBytes;
+    int cacheFileSizeLimitInBytes = configuration.GetIntProperty(CFG_INT_CACHE_FILE_SIZE, error);
+    if (cacheFileSizeLimitInBytes != 0 && error  == false) {
+        m_offlineStorageMaximumSize = cacheFileSizeLimitInBytes;
     }
 }
 

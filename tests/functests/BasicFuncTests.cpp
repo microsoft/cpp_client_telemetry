@@ -27,6 +27,7 @@ class BasicFuncTests : public ::testing::Test,
     std::unique_ptr<ILogManager> logManager;
     ILogger* logger;
     ILogger* logger2;
+    LogConfiguration configuration;
 
   public:
     virtual void SetUp() override
@@ -39,12 +40,11 @@ class BasicFuncTests : public ::testing::Test,
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
         server.addHandler("/503/", *this);
-
-        LogConfiguration configuration;
-        configuration.runtimeConfig = &runtimeConfig;
-        configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-        ::remove(configuration.GetProperty("cacheFilePath"));
+                
+        configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
+        configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+        bool error;
+        ::remove(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
         EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
@@ -58,7 +58,7 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
         EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
 
-        logManager.reset(ILogManager::Create(configuration));
+        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
         logger = logManager->GetLogger("functests-Tenant-Token", "source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
@@ -385,13 +385,11 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     logManager.reset();
 
     PAL::sleep(2100); // Some time to let events be saved to DB
+        
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
 
-    LogConfiguration configuration;
-    configuration.cacheMemorySizeLimitInBytes = 0;
-    configuration.runtimeConfig = &runtimeConfig;
-
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManager::Create(configuration));
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
     // 1st request is from MetaStats
     waitForRequests(5, 1);
@@ -412,12 +410,11 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
 	logManager.reset();
     // Wait a bit so that the initial check for unsent events does not send our events too early.
     PAL::sleep(200);
-    LogConfiguration configuration;
-    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.runtimeConfig = &runtimeConfig;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+ 
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE,4096 * 20);
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
 
-    logManager.reset(ILogManager::Create(configuration));
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
     logger = logManager->GetLogger("functests-Tenant-Token", "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
@@ -435,7 +432,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     logManager.reset();
 
 	PAL::sleep(100);    
-    logManager.reset(ILogManager::Create(configuration));
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
     // 1st request is from MetaStats
     waitForRequests(5, 2);
@@ -454,13 +451,13 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
     logManager.reset();
     // Wait a bit so that the initial check for unsent events does not send our events too early.
     PAL::sleep(200);
-    LogConfiguration configuration;
-    configuration.maxTeardownUploadTimeInSec = 5;
-    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.runtimeConfig = &runtimeConfig;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
+    configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 5);
+   
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
     
-    logManager.reset(ILogManager::Create(configuration));
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
     logger = logManager->GetLogger("functests-Tenant-Token", "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
@@ -477,7 +474,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
 
     logManager.reset();
 
-    logManager.reset(ILogManager::Create(configuration));
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
    // PAL::sleep(1000); // Some time to let events be saved to DB
     // 1st request is from MetaStats
@@ -491,12 +488,11 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 	
 	// Wait a bit so that the initial check for unsent events does not send our events too early.
 	PAL::sleep(200);
-	LogConfiguration configuration;
-    configuration.cacheMemorySizeLimitInBytes = 0;
-	configuration.maxTeardownUploadTimeInSec = 0;
-	configuration.runtimeConfig = &runtimeConfig;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
-    logManager.reset(ILogManager::Create(configuration));
+
+    configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 0);
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME); 
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
 	logger = logManager->GetLogger("functests-Tenant-Token", "source");
 
@@ -535,9 +531,8 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     PAL::sleep(2000);
     receivedRequests.clear();
         
-    configuration.runtimeConfig = &runtimeConfig;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManager::Create(configuration));
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
     waitForRequests(5, 1);
     auto payload = decodeRequest(receivedRequests[0], false);
@@ -572,11 +567,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 
     logManager.reset();
 
-    LogConfiguration configuration;
-    configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManager::Create(configuration));
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+    
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
     waitForRequests(5, 2);
     ASSERT_THAT(receivedRequests, SizeIs(2));
@@ -660,11 +654,10 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     // Check meta stats on restart (will be first request)
     logManager.reset();
 
-    LogConfiguration configuration;
-    configuration.runtimeConfig = &runtimeConfig;
-    configuration.cacheMemorySizeLimitInBytes = 4096 * 20;
-    configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManager::Create(configuration));
+    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
+    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+    
+    logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
 
     waitForRequests(5, 2);
     auto payload = decodeRequest(receivedRequests[1], false);

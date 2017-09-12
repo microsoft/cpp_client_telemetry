@@ -2,7 +2,7 @@
 
 #pragma once
 #include <IOfflineStorage.hpp>
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
@@ -11,7 +11,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class Packager {
   public:
-    Packager(LogConfiguration const& configuration, IRuntimeConfig const& runtimeConfig);
+    Packager(LogConfiguration& configuration, IRuntimeConfig const& runtimeConfig);
     ~Packager();
 
   protected:

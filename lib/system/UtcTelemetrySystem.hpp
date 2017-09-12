@@ -4,7 +4,7 @@
 #include "ITelemetrySystem.hpp"
 #include <Version.hpp>
 #include "bond/BondSerializer.hpp"
-#include <LogConfiguration.hpp>
+#include <api/LogConfiguration.hpp>
 #include "system/Contexts.hpp"
 #include "stats/Statistics.hpp"
 
@@ -62,7 +62,7 @@ class UtcTelemetrySystem : public PAL::RefCountedImpl<UtcTelemetrySystem>,
                            public ITelemetrySystem
 {
   public:
-    UtcTelemetrySystem(LogConfiguration const& configuration, IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext);
+    UtcTelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext);
     ~UtcTelemetrySystem();
 
   public:
@@ -91,7 +91,7 @@ class UtcTelemetrySystem : public PAL::RefCountedImpl<UtcTelemetrySystem>,
 
     BondSerializer            bondSerializer;
     Statistics                stats;
-    LogConfiguration          m_configuration;
+    LogConfiguration const&   m_configuration;
     std::mutex                m_lock;
     std::map<std::string, ProviderData> tokenToProviderDataMap;
     std::map<std::string, bool> tokenToIkeyaMap;
