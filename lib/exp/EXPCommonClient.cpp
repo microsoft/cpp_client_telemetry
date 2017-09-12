@@ -690,25 +690,17 @@ namespace Microsoft {
                     message.body = s;
                 }
 
-                while (!m_lock.try_lock())
-                {
-                    ARIASDK_LOG_DETAIL("OnHttpCallback: tryLock failed, wait for 200ms.");
-                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                }
-
                 // This callback function could be invoked by HTTPStach Stop()/Abort(), in which case
                 // it will ignored
                 if (m_status != EXP_STARTED)
                 {
                     ARIASDK_LOG_DETAIL("OnHttpCallback: callback ignored[Status=%d]", m_status);
-                    m_lock.unlock();
                     return;
                 }
 
                 // dispatch the message to the message queue for async processing
                 _DispatchMessage(message);
-
-                m_lock.unlock();
+                
                 // No HCM retry needed
                 return;
             }
