@@ -21,10 +21,10 @@ public:
 
 	void handleResponse(HttpHeaders& headers)
 	{
-        std::string timeString = headers.get("Retry-After");
-        if (!timeString.empty())
+        std::string timeStr = headers.get("Retry-After");
+        if (!timeStr.empty())
         {
-            int64_t timeinSecs = std::stoi(timeString);
+            int64_t timeinSecs = std::stoi(timeStr);
             if (timeinSecs > 0)
             {
                 std::lock_guard<std::mutex> guard(m_lock);
