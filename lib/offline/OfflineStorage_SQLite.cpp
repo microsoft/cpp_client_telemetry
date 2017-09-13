@@ -18,8 +18,7 @@ static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_SETTINGS "settings"
 
 OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
-    : m_logConfiguration(configuration),
-    m_runtimeConfig(runtimeConfig),
+    : m_runtimeConfig(runtimeConfig),
     m_skipInitAndShutdown(false),
     m_killSwitchManager(),
     m_clockSkewManager(),
@@ -29,6 +28,7 @@ OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration& configuration, IR
     bool error;
     int percentage  = configuration.GetIntProperty(CFG_INT_CACHE_FILE_FULL_NOTIFICATION_PERCENTAGE, error);
     int cacheFileSizeLimitInBytes = configuration.GetIntProperty(CFG_INT_CACHE_FILE_SIZE, error);
+    m_offlineStorageFileName = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);
     if (percentage > 0 && percentage <= 100)
     {
         m_DbSizeNotificationLimit = (percentage * cacheFileSizeLimitInBytes) / 100;
@@ -57,8 +57,8 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
     m_db.reset(new SqliteDB(m_skipInitAndShutdown));
 
     ARIASDK_LOG_DETAIL("Initializing offline storage");
-    bool error;
-    if (m_db->initialize(m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH, error), false) && initializeDatabase()) {
+   
+    if (m_db->initialize(m_offlineStorageFileName, false) && initializeDatabase()) {
         ARIASDK_LOG_INFO("Using configured on-disk database");
         m_observer->OnStorageOpened("SQLite/Default");
         return;
@@ -69,8 +69,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
 void OfflineStorage_SQLite::Shutdown()
 {
-    bool error;
-    ARIASDK_LOG_DETAIL("Shutting down offline storage %s", m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
+    ARIASDK_LOG_DETAIL("Shutting down offline storage %s", m_offlineStorageFileName);
 
     if (m_db) {
         if (!commitIfInTransaction()) {
@@ -471,8 +470,7 @@ bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     m_observer->OnStorageFailed(toString(failureCode));
 
     // Try again with deletePrevious = true
-    bool error;
-    if (m_db->initialize(m_logConfiguration.GetProperty(CFG_STR_CACHE_FILE_PATH, error), true)) {
+    if (m_db->initialize(m_offlineStorageFileName, true)) {
         if (initializeDatabase()) {
             m_observer->OnStorageOpened("SQLite/Clean");
             ARIASDK_LOG_INFO("Using configured on-disk database after deleting the existing one");

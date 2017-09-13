@@ -76,7 +76,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     KillSwitchManager           m_killSwitchManager;
     ClockSkewManager            m_clockSkewManager;
     unsigned                    m_lastReadCount;
-    LogConfiguration&           m_logConfiguration;
+    std::string                 m_offlineStorageFileName;
     unsigned                    m_DbSizeNotificationLimit;
     bool                        m_isStorageFullNotificationSend;
 
