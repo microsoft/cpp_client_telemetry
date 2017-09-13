@@ -368,9 +368,6 @@ bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventPropert
             m_eventPropertiesDecorator->decorate(record, priority, properties) &&
             m_runtimeConfigDecorator &&
             m_runtimeConfigDecorator->decorate(record, priority);
-           
-        m_semanticContextDecorator &&
-        m_semanticContextDecorator->decorate(record);
 }
 
 void Logger::submit(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)

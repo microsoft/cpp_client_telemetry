@@ -354,23 +354,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
             const static unsigned gc_NumRejectedReasons = REJECTED_REASON_COUNT;
 
 
-bool operator==(DataPackage const& other) const
-{
-    return (Type == other.Type)
-        && (Source == other.Source)
-        && (Version == other.Version)
-        && (Ids == other.Ids)
-        && (DataPackageId == other.DataPackageId)
-        && (Timestamp == other.Timestamp)
-        && (SchemaVersion == other.SchemaVersion)
-        && (Records == other.Records);
-}
-
-bool operator!=(DataPackage const& other) const
-{
-    return !(*this == other);
-}
-};
 struct DataPackage
 {
     // 1: optional string Type
