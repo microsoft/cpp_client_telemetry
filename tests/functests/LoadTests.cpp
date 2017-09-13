@@ -130,15 +130,17 @@ class LoadTests : public Test,
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
         UNREFERENCED_PARAMETER(response);
-        auto payload = decodeRequest(request, false);
+        UNREFERENCED_PARAMETER(request);
+/*        auto payload = decodeRequest(request, false);
         for (auto const& packagesPerTenant : payload.TokenToDataPackagesMap) {
             for (auto const& package : packagesPerTenant.second) {
                 recordsReceived += static_cast<unsigned int>(package.Records.size());
             }
         }
+*/
         return 200;
     }
-
+/*
     AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request, bool decompress)
     {
         UNREFERENCED_PARAMETER(decompress);
@@ -148,7 +150,7 @@ class LoadTests : public Test,
         EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
         return result;
     }
-
+*/
     void waitForTotalRecordsReceived(unsigned timeout, unsigned expectedCount)
     {
         auto start = PAL::getUtcSystemTimeMs();
