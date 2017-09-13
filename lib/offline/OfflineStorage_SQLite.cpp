@@ -188,7 +188,10 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         }
         else
         {
-            killedConsumedIds.push_back(record.id);
+            if (!m_killSwitchManager.isRetryAfterActive())
+            {
+                killedConsumedIds.push_back(record.id);
+            }
         }
     }
 

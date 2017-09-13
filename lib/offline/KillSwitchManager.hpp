@@ -11,7 +11,7 @@ class KillSwitchManager
 {
 public:
 
-	KillSwitchManager() 
+	KillSwitchManager(): m_isRetryAfterActive(false), m_retryAfterExiryTime(0)
 	{
 	}
 
@@ -21,6 +21,18 @@ public:
 
 	void handleResponse(HttpHeaders& headers)
 	{
+        std::string timeString = headers.get("Retry-After");
+        if (!timeString.empty())
+        {
+            int64_t timeinSecs = std::stoi(timeString);
+            if (timeinSecs > 0)
+            {
+                std::lock_guard<std::mutex> guard(m_lock);
+                m_retryAfterExiryTime = PAL::getUtcSystemTime() + timeinSecs; 
+                m_isRetryAfterActive = true;
+            }
+        }
+
 		std::pair<std::multimap<std::string, std::string>::const_iterator, std::multimap<std::string, std::string>::const_iterator> ret;
 		ret = headers.equal_range("kill-tokens");
 
@@ -34,7 +46,7 @@ public:
 			}
 
 			int64_t timeinSecs = 0;
-			std::string timeString = headers.get("kill-duration-seconds");
+			std::string timeString = headers.get("kill-duration");
 			if (!timeString.empty())
 			{
 				timeinSecs = std::stoi(timeString);
@@ -63,6 +75,19 @@ public:
 	bool isTokenBlocked(std::string tokenId)
 	{
 		std::lock_guard<std::mutex> guard(m_lock);
+
+        if (m_isRetryAfterActive)
+        {
+            if(m_retryAfterExiryTime > PAL::getUtcSystemTime())  
+            {
+                return true;//always return true for all tokens
+            }
+            else
+            {
+                m_retryAfterExiryTime = 0;
+                m_isRetryAfterActive = false;
+            }
+        }
 		std::map<std::string, int64_t>::iterator iter = m_tokenTime.find(tokenId);
 		if (iter != m_tokenTime.end())
 		{//found, check the time stamp
@@ -91,10 +116,16 @@ public:
 		}
 	}
 
+    bool isRetryAfterActive()
+    {
+        return m_isRetryAfterActive;
+    }
+
 private:
 	std::map<std::string, int64_t> m_tokenTime;
 	std::mutex		m_lock;
-   
+    bool            m_isRetryAfterActive;
+    int64_t         m_retryAfterExiryTime;
 };
 
 } ARIASDK_NS_END
