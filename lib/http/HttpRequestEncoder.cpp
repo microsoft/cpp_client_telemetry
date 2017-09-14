@@ -2,6 +2,7 @@
 
 #include "HttpRequestEncoder.hpp"
 #include "utils/Utils.hpp"
+#include "pal/PAL.hpp"
 #include <memory>
 
 #include "utils/Utils.hpp"
@@ -35,7 +36,9 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     ctx->httpRequest->GetHeaders().set("Client-Version",  PAL::getSdkVersion());
     ctx->httpRequest->GetHeaders().set("Client-Id",    "NO_AUTH");
     ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
+    ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
+      
     std::string tenantTokens;
     tenantTokens.reserve(ctx->packageIds.size() * 75); // Tenants tokens are usually 74 chars long.
     for (auto const& item : ctx->packageIds) {

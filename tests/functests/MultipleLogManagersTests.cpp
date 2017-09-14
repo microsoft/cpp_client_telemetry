@@ -93,7 +93,7 @@ class MultipleLogManagersTests : public ::testing::Test,
         }
     }
 
-    AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request)
+/*    AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request)
     {
         std::vector<uint8_t> input(request.content.data(), request.content.data() + request.content.size());
         bond_lite::CompactBinaryProtocolReader reader(input);
@@ -103,6 +103,7 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         return result;
     }
+    */
 };
 
 

@@ -2,6 +2,7 @@
 
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
+#include "LogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -141,6 +142,13 @@ void TelemetrySystem::resumeTransmission()
 
 void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)
 {
+    if (event->record.blob.size() > 2097152)//2MB ( 2 X 1024 X 1024 )
+    {
+        LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
+        ARIASDK_LOG_INFO("Event %s/%s dropped because size more than 2 MB",
+            tenantTokenToId(event->record.tenantToken).c_str(), event->source->baseType.c_str());
+        return;
+    }
     event->source = nullptr;
     PAL::executeOnWorkerThread(self(), &TelemetrySystem::preparedIncomingEventAsync, event);
 }
