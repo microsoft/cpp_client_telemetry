@@ -7,7 +7,7 @@ import json
 import os
 
 
-__version__ = '2016.3.14.1'
+__version__ = '2017.09.19.1'
 
 
 class BondJson2Cpp:
@@ -149,6 +149,8 @@ class BondJson2Cpp:
             return None
         elif fd['type'] == 'integer':
             return str(fd['value'])
+        elif fd['type'] == 'float':
+            return str(fd['value'])
         elif fd['type'] == 'enum':
             return '{}::{}'.format(self.format_cpp_full_name(f['fieldType']['declaration']), fd['value'])
         else:
@@ -218,7 +220,7 @@ class BondJson2Cpp:
 
                 # operator==
                 self.wl(1, '')
-                self.wl(1, 'bool operator==(const {}& other) const', d['declName'])
+                self.wl(1, 'bool operator==({} const& other) const', d['declName'])
                 self.wl(1, '{{')
                 for i, f in enumerate(d['structFields']):
                     self.wl(2, '{0} ({1} == other.{1}){2}', 'return' if i == 0 else '    &&', f['fieldName'], ';' if i == len(d['structFields']) - 1 else '')
@@ -226,7 +228,7 @@ class BondJson2Cpp:
 
                 # operator!=
                 self.wl(1, '')
-                self.wl(1, 'bool operator!=(const {}& other) const', d['declName'])
+                self.wl(1, 'bool operator!=({} const& other) const', d['declName'])
                 self.wl(1, '{{')
                 self.wl(2, 'return !(*this == other);')
                 self.wl(1, '}}')
@@ -273,13 +275,13 @@ class BondJson2Cpp:
                     self.wl(indent, 'Serialize(writer, {}, false);', var)
             elif ft['type'] == 'vector':
                 self.wl(indent, 'writer.WriteContainerBegin({}.size(), {});', var, self.format_cpp_bt_const(ft['element']))
-                self.wl(indent, 'for (const auto& item{} : {}) {{', indent, var)
+                self.wl(indent, 'for (auto const& item{} : {}) {{', indent, var)
                 self.write_item_writer(ft['element'], 'item{}'.format(indent), indent + 1)
                 self.wl(indent, '}}')
                 self.wl(indent, 'writer.WriteContainerEnd();')
             elif ft['type'] == 'map':
                 self.wl(indent, 'writer.WriteMapContainerBegin({}.size(), {}, {});', var, self.format_cpp_bt_const(ft['key']), self.format_cpp_bt_const(ft['element']))
-                self.wl(indent, 'for (const auto& item{} : {}) {{', indent, var)
+                self.wl(indent, 'for (auto const& item{} : {}) {{', indent, var)
                 self.write_item_writer(ft['key'], 'item{}.first'.format(indent), indent + 1)
                 self.write_item_writer(ft['element'], 'item{}.second'.format(indent), indent + 1)
                 self.wl(indent, '}}')
@@ -348,7 +350,8 @@ class BondJson2Cpp:
             if d['tag'] != 'Struct':
                 continue
 
-            self.wl(0, 'template<typename TWriter> void Serialize(TWriter& writer, const {}& value, bool isBase)', self.format_cpp_full_name(d))
+            self.wl(0, 'template<typename TWriter>')
+            self.wl(0, 'void Serialize(TWriter& writer, {} const& value, bool isBase)', self.format_cpp_full_name(d))
             self.wl(0, '{{')
             self.wl(1, 'writer.WriteStructBegin(nullptr, isBase);')
             self.wl(1, '')
@@ -457,7 +460,8 @@ class BondJson2Cpp:
             if d['tag'] != 'Struct':
                 continue
 
-            self.wl(0, 'template<typename TReader> bool Deserialize(TReader& reader, {}& value, bool isBase)', self.format_cpp_full_name(d))
+            self.wl(0, 'template<typename TReader>')
+            self.wl(0, 'bool Deserialize(TReader& reader, {}& value, bool isBase)', self.format_cpp_full_name(d))
             self.wl(0, '{{')
             self.wl(1, 'if (!reader.ReadStructBegin(isBase)) {{')
             self.wl(2, 'return false;')
@@ -520,7 +524,7 @@ class BondJson2Cpp:
             print('Error loading input file: {}'.format(e))
             return
 
-        declarations = sorted(input_json['declarations'], lambda a, b: cmp(a['declNamespaces'], b['declNamespaces']))
+        declarations = sorted(input_json['declarations'], key=lambda x: x['declNamespaces'])
         input_noext = os.path.splitext(input_filename)[0]
 
         print('    Creating {}_types.hpp...'.format(input_noext))
