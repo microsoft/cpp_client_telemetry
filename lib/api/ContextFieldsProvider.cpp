@@ -98,10 +98,10 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         ::AriaProtocol::Data data;
         record.data.push_back(data);
     }
-    if (record.expApp.size() == 0)
+    if (record.extApp.size() == 0)
     {
         ::AriaProtocol::App app;
-        record.expApp.push_back(app);
+        record.extApp.push_back(app);
     }
 
     if (record.extDevice.size() == 0)
@@ -139,7 +139,7 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
                 }
             }
             
-            record.expApp[0].expId = value;
+            record.extApp[0].expId = value;
         }
 
 
