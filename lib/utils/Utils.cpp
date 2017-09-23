@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "Version.hpp"
 #include "Utils.hpp"
+#include "CorrelationVector.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
@@ -93,8 +94,8 @@ bool validateEventName(std::string const& name)
 		return false;
 	}
 
-	if (name.front() == '_' || name.front() == '.' ||
-		name.back() == '_' || name.back() == '.')
+	if ((name.front() == '_' || name.front() == '.' || name.back() == '_' || name.back() == '.') &&
+        name != CorrelationVector::PropertyName)
 	{
 		ARIASDK_LOG_ERROR("Invalid property name - \"%s\": must not start or end with _ or . characters", name.c_str());
 		return false;

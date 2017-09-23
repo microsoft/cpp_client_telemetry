@@ -3,6 +3,7 @@
 #pragma once
 #include "IDecorator.hpp"
 #include <EventProperties.hpp>
+#include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>
 
@@ -32,6 +33,7 @@ class EventPropertiesDecorator : public DecoratorBase {
             ::AriaProtocol::Data data;
             record.data.push_back(data);
         }
+
         std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
 
 		for (auto &kv : eventProperties.GetProperties()) {
@@ -142,6 +144,23 @@ class EventPropertiesDecorator : public DecoratorBase {
 
         if (eventProperties.GetPriority() != EventPriority_Unspecified) {
             priority = eventProperties.GetPriority();
+        }
+
+        // special case of CorrelationVector value
+        if (ext.count(CorrelationVector::PropertyName) > 0)
+        {
+            AriaProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
+
+            if (cvValue.type == ::AriaProtocol::ValueKind::ValueString)
+            {
+                record.cV = cvValue.stringValue;
+            }
+            else
+            {
+                ARIASDK_LOG_DETAIL("CorrelationVector value type is invalid %u", cvValue.type);
+            }
+
+            ext.erase(CorrelationVector::PropertyName);
         }
 
         return true;

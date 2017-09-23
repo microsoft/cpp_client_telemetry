@@ -91,7 +91,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     EXPECT_THAT(record1.data[0].properties["child"].stringValue, Eq("specific"));
 
     EXPECT_THAT(record1.appId, Eq("appId"));
-    EXPECT_THAT(record1.expApp[0].expId, Eq("appExperimentIds"));
+    EXPECT_THAT(record1.extApp[0].expId, Eq("appExperimentIds"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Version"].stringValue, Eq("appVersion"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
