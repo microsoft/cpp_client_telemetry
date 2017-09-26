@@ -17,6 +17,7 @@
 #include "ILogManager.hpp"
 #include "LogManager.hpp"
 #include "Enums.hpp"
+#include "CorrelationVector.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 using namespace std;
@@ -77,10 +78,17 @@ void NativeLogger::LogEvents(int count, bool isCritical, bool isRealtime)
 	uint64_t flags = (isCritical ? MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA : 0)
                    | (isRealtime ? MICROSOFT_EVENTTAG_REALTIME_LATENCY : 0);
 
+    // Construct and initialize a correlation vector with a random base value,
+    // share that value across the app components which are going to use it.
+    // There could be, for example, one CV per app, per scenario, per user.
+    CorrelationVector m_appCV;
+    m_appCV.Initialize(2);
+
 	for (int i = 0; i < count; i++)
 	{
 		EventProperties eventData("Microsoft.OneSDK.Example.HelloWorldEvent");
 
+        eventData.SetProperty(CorrelationVector::PropertyName, m_appCV.GetNextValue());
 		eventData.SetProperty("DeveloperName", converter.to_bytes(username), PiiKind_Identity);
 		eventData.SetProperty("ComputerName", converter.to_bytes(computerName), PiiKind_Identity);
 		eventData.SetProperty("LocalTime", localTime);
