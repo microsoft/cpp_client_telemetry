@@ -32,7 +32,9 @@ class EventPropertiesDecorator : public DecoratorBase {
             ::AriaProtocol::Data data;
             record.data.push_back(data);
         }
+                
         std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
+        std::map<std::string, ::AriaProtocol::Value> extPartB;
 
 		for (auto &kv : eventProperties.GetProperties()) {
 
@@ -56,7 +58,14 @@ class EventPropertiesDecorator : public DecoratorBase {
 
                     temp.attributes.push_back(attrib);
                     temp.stringValue = v.to_string();
-                    ext[k] = temp;
+                    if (v.dataCategory == DataCategory_PartB)
+                    {
+                        extPartB[k] = temp;
+                    }
+                    else
+                    {
+                        ext[k] = temp;
+                    }
                 }
                 else
                 {  //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
@@ -69,7 +78,14 @@ class EventPropertiesDecorator : public DecoratorBase {
 
                     temp.attributes.push_back(attrib);
                     temp.stringValue = v.to_string();
-                    ext[k] = temp;
+                    if (v.dataCategory == DataCategory_PartB)
+                    {
+                        extPartB[k] = temp;
+                    }
+                    else
+                    {
+                        ext[k] = temp;
+                    }
                 }
 			}
 			else {
@@ -82,7 +98,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                     {
                         AriaProtocol::Value temp;
                         temp.stringValue = v.to_string();
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                         break;
                     }
 				    case EventProperty::TYPE_INT64:
@@ -90,7 +113,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueInt64;
                         temp.longValue = v.as_int64;
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                         break;
                     }
 				    case EventProperty::TYPE_DOUBLE:
@@ -98,7 +128,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueDouble;
                         temp.doubleValue = v.as_double;
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                         break;
                     }
 				    case EventProperty::TYPE_TIME:
@@ -106,7 +143,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
                         temp.longValue = v.as_time_ticks.ticks;
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                         break;
                     }
 				    case EventProperty::TYPE_BOOLEAN:
@@ -114,7 +158,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueBool;
                         temp.longValue = v.as_bool;
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                         break;
                     }
 				    case EventProperty::TYPE_GUID:
@@ -126,7 +177,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         AriaProtocol::Value tempValue;
                         tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
                         tempValue.guidValue.push_back( guid);
-                        ext[k] = tempValue;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = tempValue;
+                        }
+                        else
+                        {
+                            ext[k] = tempValue;
+                        }
                         break;
                     }
 				    default:
@@ -134,7 +192,14 @@ class EventPropertiesDecorator : public DecoratorBase {
                         // Convert all unknown types to string
                         AriaProtocol::Value temp;
                         temp.stringValue = v.to_string();
-                        ext[k] = temp;
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
                     }
 				}
 			}
@@ -142,6 +207,13 @@ class EventPropertiesDecorator : public DecoratorBase {
 
         if (eventProperties.GetPriority() != EventPriority_Unspecified) {
             priority = eventProperties.GetPriority();
+        }
+
+        if (extPartB.size() > 0)
+        {
+            ::AriaProtocol::Data partBdata;
+            partBdata.properties = extPartB;
+            record.baseData.push_back(partBdata);
         }
 
         return true;

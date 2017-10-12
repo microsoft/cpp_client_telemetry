@@ -136,105 +136,105 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, char const*  value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, char const*  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, std::string  value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, std::string  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, double       value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, double       value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, int64_t      value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, int64_t      value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, bool         value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, bool         value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, GUID_t       value, PiiKind piiKind = PiiKind_None);
+		void SetProperty(const std::string& name, GUID_t       value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
 		/// </summary>
-		void SetProperty(const std::string& name, int8_t       value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, int8_t       value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind,category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, int16_t      value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, int16_t      value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, int32_t      value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, int32_t      value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, uint8_t      value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, uint8_t      value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, uint16_t     value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, uint16_t     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, uint32_t     value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, uint32_t     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
 		/// <summary>
 		/// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
 		/// All integer types are currently being converted to int64_t.
-		void SetProperty(const std::string& name, uint64_t     value, PiiKind piiKind = PiiKind_None) { SetProperty(name, (int64_t)value, piiKind); }
+		void SetProperty(const std::string& name, uint64_t     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
         /// <summary>
         /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
-        void SetProperty(const std::string& name, char const*  value, CustomerContentKind ccKind) { SetProperty(name, EventProperty(value, ccKind)); }
+        void SetProperty(const std::string& name, char const*  value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC) { SetProperty(name, EventProperty(value, ccKind, category)); }
         
         /// <summary>
         /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
-        void SetProperty(const std::string& name, std::string  value, CustomerContentKind ccKind) { SetProperty(name, EventProperty(value, ccKind)); }
+        void SetProperty(const std::string& name, std::string  value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC) { SetProperty(name, EventProperty(value, ccKind, category)); }
 
 		/// <summary>
 		/// Get the properties bag of an event.
 		/// </summary>
 		/// <returns>Properties bag of the event</returns>
-		const std::map<std::string, EventProperty>& GetProperties() const;
+		const std::map<std::string, EventProperty>& GetProperties(DataCategory category = DataCategory_PartC) const;
 
 		/// <summary>
 		/// Get the Pii properties bag of an event.
 		/// </summary>
 		/// <returns>Pii Properties bag of the event</returns>
-		const std::map<std::string, std::pair<std::string, PiiKind> > GetPiiProperties() const;
+		const std::map<std::string, std::pair<std::string, PiiKind> > GetPiiProperties(DataCategory category = DataCategory_PartC) const;
 
         /// <summary>
         /// Get the Costomer content properties bag of an event.
         /// </summary>
         /// <returns>Customer content Properties bag of the event</returns>
-        const std::map<std::string, std::pair<std::string, CustomerContentKind> > GetCustomerContentProperties() const;
+        const std::map<std::string, std::pair<std::string, CustomerContentKind> > GetCustomerContentProperties(DataCategory category = DataCategory_PartC) const;
 
 		virtual ~EventProperties();
 
@@ -246,6 +246,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		int64_t          m_timestampInMillis;
 
 		std::map<std::string, EventProperty>* m_propertiesP;
+        std::map<std::string, EventProperty>* m_propertiesBP;
 	};
 
 }}} // namespace Microsoft::Applications::Telemetry

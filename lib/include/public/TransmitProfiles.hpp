@@ -106,8 +106,6 @@ namespace ARIASDK_NS_BEGIN {
 
                 /// <summary>
                 /// Remove custom profiles.
-                /// This function is only called from parse and does not require the lock.
-                /// This function is NOT thread safe.
                 /// </summary>
                 static void removeCustomProfiles();
 
@@ -115,7 +113,6 @@ namespace ARIASDK_NS_BEGIN {
                 /// Parse JSON configration describing transmit profiles
                 /// </summary>
                 /// <param name="profiles_json"></param>
-                /// <param name="profiles"></param>
                 /// <returns></returns>
                 static size_t parse(const std::string& profiles_json);
 

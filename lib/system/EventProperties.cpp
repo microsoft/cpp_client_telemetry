@@ -52,6 +52,7 @@ namespace Microsoft {
                 , m_eventNameP(new std::string("EventProperties default constructor"))
                 , m_eventTypeP(new std::string())
                 , m_propertiesP(new std::map<std::string, EventProperty>())
+                , m_propertiesBP(new std::map<std::string, EventProperty>())
             {
             }
 
@@ -62,6 +63,7 @@ namespace Microsoft {
                 , m_eventNameP(new std::string("EventProperties Named constructor"))
                 , m_eventTypeP(new std::string())
                 , m_propertiesP(new std::map<std::string, EventProperty>())
+                , m_propertiesBP(new std::map<std::string, EventProperty>())
             {
                 if (!name.empty())
                 {
@@ -76,6 +78,7 @@ namespace Microsoft {
                 m_eventNameP = new std::string(*(copy.m_eventNameP));
                 m_eventTypeP = new std::string(*(copy.m_eventTypeP));
                 m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+                m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
                 m_eventPriority = copy.m_eventPriority;
                 m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
                 m_timestampInMillis = copy.m_timestampInMillis;
@@ -85,6 +88,11 @@ namespace Microsoft {
                 {
                     (*m_propertiesP)[iter->first] = iter->second;
                 }
+
+                for (iter = copy.m_propertiesBP->begin(); iter != copy.m_propertiesBP->end(); ++iter)
+                {
+                    (*m_propertiesBP)[iter->first] = iter->second;
+                }
             }
 
             EventProperties& EventProperties::operator=(EventProperties const& copy)
@@ -92,6 +100,7 @@ namespace Microsoft {
                 m_eventNameP = new std::string(*(copy.m_eventNameP));
                 m_eventTypeP = new std::string(*(copy.m_eventTypeP));
                 m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
+                m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
                 m_eventPriority = copy.m_eventPriority;
                 m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
                 m_timestampInMillis = copy.m_timestampInMillis;
@@ -100,6 +109,11 @@ namespace Microsoft {
                 for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
                 {
                     (*m_propertiesP)[iter->first] = iter->second;
+                }
+
+                for (iter = copy.m_propertiesBP->begin(); iter != copy.m_propertiesBP->end(); ++iter)
+                {
+                    (*m_propertiesBP)[iter->first] = iter->second;
                 }
 
                 return *this;
@@ -110,6 +124,7 @@ namespace Microsoft {
                 if (m_eventNameP) delete m_eventNameP;
                 if (m_eventTypeP) delete m_eventTypeP;
                 if (m_propertiesP) delete m_propertiesP;
+                if (m_propertiesBP) delete m_propertiesBP;
             }
 
             /// <summary>
@@ -127,6 +142,7 @@ namespace Microsoft {
             EventProperties& EventProperties::operator=(std::initializer_list<std::pair<std::string const, EventProperty> > properties)
             {
                 (*m_propertiesP).clear();
+                (*m_propertiesBP).clear();
 
                 for (auto &kv : properties)
                 {
@@ -267,33 +283,55 @@ namespace Microsoft {
             }
 
             //
-            void EventProperties::SetProperty(const std::string& name, char const*  value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, std::string  value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, double       value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, int64_t      value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, bool         value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, time_ticks_t value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
-            void EventProperties::SetProperty(const std::string& name, GUID_t       value, PiiKind piiKind) { SetProperty(name, EventProperty(value, piiKind)); }
+            void EventProperties::SetProperty(const std::string& name, char const*  value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, std::string  value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, double       value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, int64_t      value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, bool         value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, time_ticks_t value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, GUID_t       value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
 
-            const map<string, EventProperty>& EventProperties::GetProperties() const
+            const map<string, EventProperty>& EventProperties::GetProperties(DataCategory category) const
             {
-                return (*m_propertiesP);
+                if (category == DataCategory_PartC)
+                {
+                    return (*m_propertiesP);
+                }
+                else
+                { 
+                    return (*m_propertiesBP);
+                }
             }
 
             /// <summary>
             /// Get Pii properties map
             /// </summary>
             /// <returns></returns>
-            const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties() const
+            const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties(DataCategory category) const
             {
                 std::map<string, pair<string, PiiKind> > pIIExtensions;
-                for (const auto &kv : (*m_propertiesP))
+                if (category == DataCategory_PartC)
                 {
-                    auto k = kv.first;
-                    auto v = kv.second;
-                    if (v.piiKind != PiiKind_None)
+                    for (const auto &kv : (*m_propertiesP))
                     {
-                        pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
+                        auto k = kv.first;
+                        auto v = kv.second;
+                        if (v.piiKind != PiiKind_None)
+                        {
+                            pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
+                        }
+                    }
+                }
+                else
+                {
+                    for (const auto &kv : (*m_propertiesBP))
+                    {
+                        auto k = kv.first;
+                        auto v = kv.second;
+                        if (v.piiKind != PiiKind_None)
+                        {
+                            pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
+                        }
                     }
                 }
                 
@@ -304,16 +342,31 @@ namespace Microsoft {
             /// Get Customer content properties map
             /// </summary>
             /// <returns></returns>
-            const map<string, pair<string, CustomerContentKind> > EventProperties::GetCustomerContentProperties() const
+            const map<string, pair<string, CustomerContentKind> > EventProperties::GetCustomerContentProperties(DataCategory category) const
             {
                 std::map<string, pair<string, CustomerContentKind> > customerContentKindExtensions;
-                for (const auto &kv : (*m_propertiesP))
+                if (category == DataCategory_PartC)
                 {
-                    auto k = kv.first;
-                    auto v = kv.second;
-                    if (v.ccKind != CustomerContentKind_None)
+                    for (const auto &kv : (*m_propertiesP))
                     {
-                        customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
+                        auto k = kv.first;
+                        auto v = kv.second;
+                        if (v.ccKind != CustomerContentKind_None)
+                        {
+                            customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
+                        }
+                    }
+                }
+                else
+                {
+                    for (const auto &kv : (*m_propertiesBP))
+                    {
+                        auto k = kv.first;
+                        auto v = kv.second;
+                        if (v.ccKind != CustomerContentKind_None)
+                        {
+                            customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
+                        }
                     }
                 }
 

@@ -824,32 +824,37 @@ namespace Microsoft {
 
 				void ECSClient::_LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source)
 				{
-					//pre-condition: m_smalllock is held in caller while this function is called
-					//std::lock_guard<std::mutex> lockguard(m_smalllock);
+                    if (m_ecsClientConfiguration.enableECSClientTelemetry)
+                    {
+                        //pre-condition: m_smalllock is held in caller while this function is called
+                        //std::lock_guard<std::mutex> lockguard(m_smalllock);
 
-					EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_CONFIG_UPDATE);
+                        EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_CONFIG_UPDATE);
 
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTNAME, m_ecsClientConfiguration.clientName);
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTVERSION, m_ecsClientConfiguration.clientVersion);
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CONFIG_RESULT, ExpCommon::EXPConfigUpdateResult2STR[result]);
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CONFIG_SOURCE, ExpCommon::EXPConfigUpdateSource2STR[source]);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTNAME, m_ecsClientConfiguration.clientName);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTVERSION, m_ecsClientConfiguration.clientVersion);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CONFIG_RESULT, ExpCommon::EXPConfigUpdateResult2STR[result]);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CONFIG_SOURCE, ExpCommon::EXPConfigUpdateSource2STR[source]);
 
-					m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                        m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                    }
 				}
 
 				void ECSClient::_LogEXPCleintStateChangeEvent(EXPClientStatus status)
 				{
+                    if (m_ecsClientConfiguration.enableECSClientTelemetry)
+                    {
+                        std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-					std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
+                        EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_STATE_CHANGE);
 
-					EventProperties evtProperties(EVENT_TYPE_ECSCLIENT_STATE_CHANGE);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTNAME, m_ecsClientConfiguration.clientName);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTVERSION, m_ecsClientConfiguration.clientVersion);
 
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTNAME, m_ecsClientConfiguration.clientName);
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_CLIENTVERSION, m_ecsClientConfiguration.clientVersion);
+                        evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_STATE, ExpCommon::EXPClientStatus2STR[status]);
 
-					evtProperties.SetProperty(EVENT_FIELD_ECSCLIENT_STATE, ExpCommon::EXPClientStatus2STR[status]);
-
-					m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                        m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                    }
 				}
 
 

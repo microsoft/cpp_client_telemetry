@@ -25,6 +25,9 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 
         // [optional] ECS server URLs, default will be used if not specified
         std::vector<std::string> serverUrls;
+        
+        // [optional] enabled ECS telemetry
+        bool enableECSClientTelemetry = false;
     };
 
     // Callback interface for ECSClient to notify its listener of events occurred
@@ -83,14 +86,14 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// Add a listner to the ECSClient to be notified of any configuration changes
         /// </summary>
         /// <param name="listener">listener to be added to the ECSClient</param>
-        /// <return>true if listener is added successfully, false otherwise</return>
+        /// <returns>true if listener is added successfully, false otherwise</returns>
         virtual bool AddListener(IECSClientCallback* listener) = 0;
 
         /// <summary>
         /// Remove the listner to stop recieving notification from the ECSClient
         /// </summary>
         /// <param name="listener">listener to be removed from the ECSClient</param>
-        /// <return>true if listener is removed successfully, false otherwise</return>
+        /// <returns>true if listener is removed successfully, false otherwise</returns>
         virtual bool RemoveListener(IECSClientCallback* listener) = 0;
 
         /// <summary>
@@ -98,7 +101,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// </summary>
         /// <param name="pLoger">logger to be registered with the ECS client</param>
         /// <param name="agentName">name of the agent whose experiments configIds will be auto-tagged to event sent by the logger</param>
-        /// <return>true if logger is registered successfully, false otherwise</return>
+        /// <returns>true if logger is registered successfully, false otherwise</returns>
         virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName) = 0;
 
         /// <summary>
@@ -107,7 +110,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// The allocation persists for the user Id therefore good for allocation to follow the user account
         /// </summary>
         /// <param name="userId">login user Id to pass in the request</param>
-        /// <return>true if it is set successfully, false otherwise</return>
+        /// <returns>true if it is set successfully, false otherwise</returns>
         virtual bool SetUserId(const std::string& userId) = 0;
 
         /// <summary>
@@ -117,44 +120,44 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// and does not depend on the user's login state
         /// </summary>
         /// <param name="deviceId">Device Id to pass in the request</param>
-        /// <return>true if it is set successfully, false otherwise</return>
+        /// <returns>true if it is set successfully, false otherwise</returns>
         virtual bool SetDeviceId(const std::string& deviceId) = 0;
 
         /// <summary>
         /// Specify a list of custom paramters for the request to use to retrieve configurations from ECS server
         /// </summary>
         /// <param name="requestParams">list of paramters for the request</param>
-        /// <return>true if parameters are set successfully, false otherwise</return>
+        /// <returns>true if parameters are set successfully, false otherwise</returns>
         virtual bool SetRequestParameters(const std::map<std::string, std::string>& requestParams) = 0;
 
         /// <summary>
         /// Start the ECSClient to retrive configurations from ECS server
         /// </summary>
-        /// <return>true if ECSClient is started successfully, false otherwise</return>
+        /// <returns>true if ECSClient is started successfully, false otherwise</returns>
         virtual bool Start() = 0;
 
         /// <summary>
         /// Stop the ECSClient to retrive configurations from ECS server
         /// </summary>
-        /// <return>true if ECSClient is stopped successfully, false otherwise</return>
+        /// <returns>true if ECSClient is stopped successfully, false otherwise</returns>
         virtual bool Stop() = 0;
 
         /// <summary>
         /// Suspend the ECSClient to retrive configuration updates from ECS server
         /// </summary>
-        /// <return>true if ECSClient is suspend successfully, false otherwise</return>
+        /// <returns>true if ECSClient is suspend successfully, false otherwise</returns>
         virtual bool Suspend() = 0;
 
         /// <summary>
         /// Resume the ECSClient to retrive configuration updates from ECS server
         /// </summary>
-        /// <return>true if ECSClient is resumed successfully, false otherwise</return>
+        /// <returns>true if ECSClient is resumed successfully, false otherwise</returns>
         virtual bool Resume() = 0;
 
         /// <summary>
         /// Get the ETag of the current active ECS configuration
         /// </summary>
-        /// <return>ETag string</return>
+        /// <returns>ETag string</returns>
         virtual std::string GetETag() = 0;
 
         /// <summary>
@@ -162,7 +165,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// </summary>
         /// <param name="agentName">name of the agent for which to retrieve configuration keys</param>
         /// <param name="keysPath">configuration path to retrieve keys</param>
-        /// <return>list of configuration keys</return>
+        /// <returns>list of configuration keys</returns>
         virtual std::vector<std::string> GetKeys(const std::string& agentName, const std::string& keysPath) = 0;
 
         /// <summary>
@@ -171,7 +174,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="agentName">name of the agent for which to retrieve configuration setting</param>
         /// <param name="settingPath">configuration path to retrieve setting</param>
         /// <param name="defaultValue">default value to return if no configuration setting found</param>
-        /// <return>setting as string, return default if no configuration setting found</return>
+        /// <returns>setting as string, return default if no configuration setting found</returns>
         virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue) = 0;
 
         /// <summary>
@@ -180,7 +183,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="agentName">name of the agent for which to retrieve configuration setting</param>
         /// <param name="settingPath">configuration path to retrieve setting</param>
         /// <param name="defaultValue">default value to return if no configuration setting found</param>
-        /// <return>setting as bool, return default if no configuration setting found</return>
+        /// <returns>setting as bool, return default if no configuration setting found</returns>
         virtual bool GetSetting(const std::string& agentName, const std::string& settingPath, const bool defaultValue) = 0;
 
         /// <summary>
@@ -189,7 +192,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="agentName">name of the agent for which to retrieve configuration setting</param>
         /// <param name="settingPath">configuration path to retrieve setting</param>
         /// <param name="defaultValue">default value to return if no configuration setting found</param>
-        /// <return>setting as integer, return default if no configuration setting found</return>
+        /// <returns>setting as integer, return default if no configuration setting found</returns>
         virtual int GetSetting(const std::string& agentName, const std::string& settingPath, const int defaultValue) = 0;
 
         /// <summary>
@@ -198,7 +201,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="agentName">name of the agent for which to retrieve configuration setting</param>
         /// <param name="settingPath">configuration path to retrieve setting</param>
         /// <param name="defaultValue">default value to return if no configuration setting found</param>
-        /// <return>setting as double, return default if no configuration setting found</return>
+        /// <returns>setting as double, return default if no configuration setting found</returns>
         virtual double GetSetting(const std::string& agentName, const std::string& settingPath, const double defaultValue) = 0;
 
         /// <summary>
@@ -206,7 +209,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// </summary>
         /// <param name="agentName">name of the agent for which to retrieve configuration settings</param>
         /// <param name="settingPath">configuration path to retrieve settings</param>
-        /// <return>list of settings as string</return>
+        /// <returns>list of settings as string</returns>
         virtual std::vector<std::string> GetSettings(const std::string& agentName, const std::string& settingPath) = 0;
 
         /// <summary>
@@ -214,7 +217,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// </summary>
         /// <param name="agentName">name of the agent for which to retrieve configuration settings</param>
         /// <param name="settingPath">configuration path to retrieve settings</param>
-        /// <return>list of settings as integers</return>
+        /// <returns>list of settings as integers</returns>
         virtual std::vector<int> GetSettingsAsInts(const std::string& agentName, const std::string& settingPath) = 0;
 
         /// <summary>
@@ -222,7 +225,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// </summary>
         /// <param name="agentName">name of the agent for which to retrieve configuration settings</param>
         /// <param name="settingPath">configuration path to retrieve settings</param>
-        /// <return>list of settings as doubles</return>
+        /// <returns>list of settings as doubles</returns>
         virtual std::vector<double> GetSettingsAsDbls(const std::string& agentName, const std::string& settingPath) = 0;
     };
 

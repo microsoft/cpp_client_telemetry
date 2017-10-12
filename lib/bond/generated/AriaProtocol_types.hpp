@@ -164,8 +164,6 @@ struct Utc {
     int64_t flags = 0;
     // 7: optional string sqmId
     std::string sqmId;
-    // 8: optional vector<string> tickets
-    std::vector<std::string> tickets;
     // 9: optional string mon
     std::string mon;
     // 10: optional int32 cpId
@@ -182,7 +180,6 @@ struct Utc {
             && (cat == other.cat)
             && (flags == other.flags)
             && (sqmId == other.sqmId)
-            && (tickets == other.tickets)
             && (mon == other.mon)
             && (cpId == other.cpId)
             && (bSeq == other.bSeq);
@@ -194,16 +191,163 @@ struct Utc {
     }
 };
 
+struct Xbl {
+    // 5: optional map<string, string> claims
+    std::map<std::string, std::string> claims;
+    // 10: optional string nbf
+    std::string nbf;
+    // 20: optional string exp
+    std::string exp;
+    // 30: optional string sbx
+    std::string sbx;
+    // 40: optional string dty
+    std::string dty;
+    // 50: optional string did
+    std::string did;
+    // 60: optional string xid
+    std::string xid;
+    // 70: optional uint64 uts
+    uint64_t uts = 0;
+    // 80: optional string pid
+    std::string pid;
+    // 90: optional string dvr
+    std::string dvr;
+    // 100: optional uint32 tid
+    uint32_t tid = 0;
+    // 110: optional string tvr
+    std::string tvr;
+    // 120: optional string sty
+    std::string sty;
+    // 130: optional string sid
+    std::string sid;
+    // 140: optional int64 eid
+    int64_t eid = 0;
+    // 150: optional string ip
+    std::string ip;
+
+    bool operator==(Xbl const& other) const
+    {
+        return (claims == other.claims)
+            && (nbf == other.nbf)
+            && (exp == other.exp)
+            && (sbx == other.sbx)
+            && (dty == other.dty)
+            && (did == other.did)
+            && (xid == other.xid)
+            && (uts == other.uts)
+            && (pid == other.pid)
+            && (dvr == other.dvr)
+            && (tid == other.tid)
+            && (tvr == other.tvr)
+            && (sty == other.sty)
+            && (sid == other.sid)
+            && (eid == other.eid)
+            && (ip == other.ip);
+    }
+
+    bool operator!=(Xbl const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Javascript {
+    // 10: optional string libVer
+    std::string libVer;
+    // 15: optional string osName
+    std::string osName;
+    // 20: optional string browser
+    std::string browser;
+    // 21: optional string browserVersion
+    std::string browserVersion;
+    // 25: optional string platform
+    std::string platform;
+    // 30: optional string make
+    std::string make;
+    // 35: optional string model
+    std::string model;
+    // 40: optional string screenSize
+    std::string screenSize;
+    // 50: optional string mc1Id
+    std::string mc1Id;
+    // 60: optional uint64 mc1Lu
+    uint64_t mc1Lu = 0;
+    // 70: optional bool isMc1New
+    bool isMc1New = false;
+    // 80: optional string ms0
+    std::string ms0;
+    // 90: optional string anid
+    std::string anid;
+    // 100: optional string a
+    std::string a;
+    // 110: optional string msResearch
+    std::string msResearch;
+    // 120: optional string csrvc
+    std::string csrvc;
+    // 130: optional string rtCell
+    std::string rtCell;
+    // 140: optional string rtEndAction
+    std::string rtEndAction;
+    // 150: optional string rtPermId
+    std::string rtPermId;
+    // 160: optional string r
+    std::string r;
+    // 170: optional string wtFpc
+    std::string wtFpc;
+    // 180: optional string omniId
+    std::string omniId;
+    // 190: optional string gsfxSession
+    std::string gsfxSession;
+    // 200: optional string domain
+    std::string domain;
+    // 999: optional string dnt
+    std::string dnt;
+
+    bool operator==(Javascript const& other) const
+    {
+        return (libVer == other.libVer)
+            && (osName == other.osName)
+            && (browser == other.browser)
+            && (browserVersion == other.browserVersion)
+            && (platform == other.platform)
+            && (make == other.make)
+            && (model == other.model)
+            && (screenSize == other.screenSize)
+            && (mc1Id == other.mc1Id)
+            && (mc1Lu == other.mc1Lu)
+            && (isMc1New == other.isMc1New)
+            && (ms0 == other.ms0)
+            && (anid == other.anid)
+            && (a == other.a)
+            && (msResearch == other.msResearch)
+            && (csrvc == other.csrvc)
+            && (rtCell == other.rtCell)
+            && (rtEndAction == other.rtEndAction)
+            && (rtPermId == other.rtPermId)
+            && (r == other.r)
+            && (wtFpc == other.wtFpc)
+            && (omniId == other.omniId)
+            && (gsfxSession == other.gsfxSession)
+            && (domain == other.domain)
+            && (dnt == other.dnt);
+    }
+
+    bool operator!=(Javascript const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
 struct Protocol {
     // 1: optional int32 metadataCrc
     int32_t metadataCrc = 0;
-    // 2: optional string ticketKey
-    std::string ticketKey;
+    // 2: optional vector<vector<string>> ticketKeys
+    std::vector<std::vector<std::string>> ticketKeys;
 
     bool operator==(Protocol const& other) const
     {
         return (metadataCrc == other.metadataCrc)
-            && (ticketKey == other.ticketKey);
+            && (ticketKeys == other.ticketKeys);
     }
 
     bool operator!=(Protocol const& other) const
@@ -402,29 +546,33 @@ struct CsEvent {
     std::string appVer;
     // 13: optional string cV
     std::string cV;
-    // 14: optional vector<Ingest> extIngest
+    // 20: optional vector<Ingest> extIngest
     std::vector< ::AriaProtocol::Ingest> extIngest;
-    // 15: optional vector<User> extUser
-    std::vector< ::AriaProtocol::User> extUser;
-    // 16: optional vector<Device> extDevice
-    std::vector< ::AriaProtocol::Device> extDevice;
-    // 17: optional vector<Os> extOs
-    std::vector< ::AriaProtocol::Os> extOs;
-    // 18: optional vector<App> expApp
-    std::vector< ::AriaProtocol::App> expApp;
-    // 19: optional vector<Utc> extUtc
-    std::vector< ::AriaProtocol::Utc> extUtc;
-    // 20: optional vector<Protocol> extProtocol
+    // 21: optional vector<Protocol> extProtocol
     std::vector< ::AriaProtocol::Protocol> extProtocol;
-    // 21: optional vector<Data> ext
+    // 22: optional vector<User> extUser
+    std::vector< ::AriaProtocol::User> extUser;
+    // 23: optional vector<Device> extDevice
+    std::vector< ::AriaProtocol::Device> extDevice;
+    // 24: optional vector<Os> extOs
+    std::vector< ::AriaProtocol::Os> extOs;
+    // 25: optional vector<App> extApp
+    std::vector< ::AriaProtocol::App> extApp;
+    // 26: optional vector<Utc> extUtc
+    std::vector< ::AriaProtocol::Utc> extUtc;
+    // 27: optional vector<Xbl> extXbl
+    std::vector< ::AriaProtocol::Xbl> extXbl;
+    // 28: optional vector<Javascript> extJavascript
+    std::vector< ::AriaProtocol::Javascript> extJavascript;
+    // 41: optional vector<Data> ext
     std::vector< ::AriaProtocol::Data> ext;
-    // 22: optional map<string, string> tags
+    // 51: optional map<string, string> tags
     std::map<std::string, std::string> tags;
-    // 50: optional string baseType
+    // 60: optional string baseType
     std::string baseType;
-    // 51: optional vector<Data> baseData
+    // 61: optional vector<Data> baseData
     std::vector< ::AriaProtocol::Data> baseData;
-    // 60: optional vector<Data> data
+    // 70: optional vector<Data> data
     std::vector< ::AriaProtocol::Data> data;
 
     bool operator==(CsEvent const& other) const
@@ -443,12 +591,14 @@ struct CsEvent {
             && (appVer == other.appVer)
             && (cV == other.cV)
             && (extIngest == other.extIngest)
+            && (extProtocol == other.extProtocol)
             && (extUser == other.extUser)
             && (extDevice == other.extDevice)
             && (extOs == other.extOs)
-            && (expApp == other.expApp)
+            && (extApp == other.extApp)
             && (extUtc == other.extUtc)
-            && (extProtocol == other.extProtocol)
+            && (extXbl == other.extXbl)
+            && (extJavascript == other.extJavascript)
             && (ext == other.ext)
             && (tags == other.tags)
             && (baseType == other.baseType)

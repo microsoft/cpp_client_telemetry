@@ -99,10 +99,10 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         ::AriaProtocol::Data data;
         record.data.push_back(data);
     }
-    if (record.expApp.size() == 0)
+    if (record.extApp.size() == 0)
     {
         ::AriaProtocol::App app;
-        record.expApp.push_back(app);
+        record.extApp.push_back(app);
     }
 
     if (record.extDevice.size() == 0)
@@ -140,7 +140,7 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
                 }
             }
             
-            record.expApp[0].expId = value;
+            record.extApp[0].expId = value;
         }
 
 
@@ -183,6 +183,12 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MAKE];
             record.extDevice[0].authSecId = prop.as_string;
         }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end())// 
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MODEL];
+            //record.extDevice[0].model= prop.as_string;
+        }
         
         if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
         {
@@ -212,6 +218,25 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_MSAID];
             record.extDevice[0].authSecId = prop.as_string;
+        }
+
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_COST) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_COST];
+            //record.extNet[0].cost = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_PROVIDER) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_PROVIDER];
+            //record.extNet[0].provider = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_TYPE) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_TYPE];
+            //record.extNet[0].type = prop.as_string;
         }
 
 

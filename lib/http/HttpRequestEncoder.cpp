@@ -4,6 +4,7 @@
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
 #include <memory>
+#include <string>
 
 #include "utils/Utils.hpp"
 #include <bond_lite/All.hpp>
@@ -54,10 +55,11 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     }
 
 
-    AriaProtocol::CsEvent result;
-    bond_lite::CompactBinaryProtocolReader reader(ctx->body);
-    bond_lite::Deserialize(reader, result);
+  //  AriaProtocol::CsEvent result;
+ //   bond_lite::CompactBinaryProtocolReader reader(ctx->body);
+ //   bond_lite::Deserialize(reader, result);
 
+    //std::string str(ctx->body.begin(), ctx->body.end());
 
     ctx->httpRequest->SetBody(ctx->body);
     // IHttpRequest::SetBody() is free to swap the real body out, but better clear it anyway.

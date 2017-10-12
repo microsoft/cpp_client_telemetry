@@ -48,9 +48,10 @@ class BaseDecorator : public DecoratorBase {
         UNREFERENCED_PARAMETER(priority);
        
         //record.Id         = PAL::generateUuidString();
-        record.time       = PAL::getUtcSystemTimeMs();
-        std::string sdkVersion = PAL::getSdkVersion();
-        record.ver = sdkVersion;
+        record.time       = PAL::getUtcSystemTimeinTicks();
+        //std::string sdkVersion = PAL::getSdkVersion();
+        //record.sdk = //sdkVersion;
+        record.ver = "3.0";        
         if (record.baseType.empty())
         {  
             record.baseType = record.name;
@@ -61,8 +62,8 @@ class BaseDecorator : public DecoratorBase {
         //setIfNotEmpty(record.data[0].properties,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.time));
         //setIfNotEmpty(record.data[0].properties,            EventInfo_InitId,     *m_initIdP);
         record.seqNum = ++m_sequenceId;
-        //record.popSample = 100.00;
-        //record.epoch = "epoch";
+        record.popSample = 100.00;
+        record.epoch = "epoch";
 
         return true;
     }

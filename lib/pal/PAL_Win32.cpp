@@ -249,6 +249,12 @@ std::string generateUuidString()
     }
 }
 
+int64_t getUtcSystemTimeinTicks()
+{
+    ULARGE_INTEGER now;
+    ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
+    return (now.QuadPart - 116444736000000000ull);
+}
 int64_t getUtcSystemTimeMs()
 {
     ULARGE_INTEGER now;

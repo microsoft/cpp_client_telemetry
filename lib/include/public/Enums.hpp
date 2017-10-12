@@ -12,6 +12,13 @@
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
 
+    enum DataCategory
+    {
+        DataCategory_PartC = 0, //This is default transmission mode
+        DataCategory_PartB = 1,
+        DataCategory_MAX = 2
+    };
+
     enum SdkModeTypes
     {
         SdkModeTypes_Aria = 0, //This is default transmission mode

@@ -1,6 +1,3 @@
-
-
-
 {
   "declarations": [
     {
@@ -361,7 +358,10 @@
         {
           "fieldModifier": "Optional",
           "fieldDefault": null,
-          "fieldType": "string",
+          "fieldType": {
+            "type": "vector",
+            "element": "string"
+          },
           "fieldName": "ticketKey",
           "fieldAttributes": [],
           "fieldOrdinal": 2
@@ -2144,7 +2144,10 @@
                   {
                     "fieldModifier": "Optional",
                     "fieldDefault": null,
-                    "fieldType": "string",
+                    "fieldType": {
+                      "type": "vector",
+                      "element": "string"
+                    },
                     "fieldName": "ticketKey",
                     "fieldAttributes": [],
                     "fieldOrdinal": 2

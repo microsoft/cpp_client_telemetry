@@ -493,7 +493,8 @@ namespace Microsoft {
             EventProperty::EventProperty() :
                 type(TYPE_STRING),
                 piiKind(PiiKind_None),
-                ccKind(CustomerContentKind_None)
+                ccKind(CustomerContentKind_None),
+                dataCategory(DataCategory_PartC)
             {
                 as_time_ticks.ticks = 0;
                 as_guid = {};
@@ -506,10 +507,11 @@ namespace Microsoft {
             /// </summary>
             /// <param name="value">string value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(const char* value, PiiKind piiKind) :
+            EventProperty::EventProperty(const char* value, PiiKind piiKind, DataCategory category) :
                 type(TYPE_STRING),
                 piiKind(piiKind),
-                ccKind(CustomerContentKind_None)
+                ccKind(CustomerContentKind_None),
+                dataCategory(category)
             {
                 if (NULL == value)
                 {
@@ -530,10 +532,11 @@ namespace Microsoft {
             /// </summary>
             /// <param name="value">string value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(const std::string& value, PiiKind piiKind) :
+            EventProperty::EventProperty(const std::string& value, PiiKind piiKind, DataCategory category) :
                 type(TYPE_STRING),
                 piiKind(piiKind),
-                ccKind(CustomerContentKind_None)
+                ccKind(CustomerContentKind_None),
+                dataCategory(category)
             {
                 size_t len = strlen(value.c_str());
                 as_string = new char[len + 1];
@@ -547,10 +550,11 @@ namespace Microsoft {
             /// </summary>
             /// <param name="value">string value</param>
             /// <param name="ccKind">Customer content kind</param>
-            EventProperty::EventProperty(const char* value, CustomerContentKind ccKind) :
+            EventProperty::EventProperty(const char* value, CustomerContentKind ccKind, DataCategory category) :
                 type(TYPE_STRING),
                 piiKind(PiiKind_None),
-                ccKind(ccKind)
+                ccKind(ccKind),
+                dataCategory(category)
             {
                 if (NULL == value)
                 {
@@ -571,10 +575,11 @@ namespace Microsoft {
             /// </summary>
             /// <param name="value">string value</param>
             /// <param name="ccKind">Customer content kind</param>
-            EventProperty::EventProperty(const std::string& value, CustomerContentKind ccKind) :
+            EventProperty::EventProperty(const std::string& value, CustomerContentKind ccKind, DataCategory category) :
                 type(TYPE_STRING),
                 piiKind(PiiKind_None),
-                ccKind(ccKind)
+                ccKind(ccKind),
+                dataCategory(category)
             {
                 size_t len = strlen(value.c_str());
                 as_string = new char[len + 1];
@@ -587,46 +592,46 @@ namespace Microsoft {
             /// </summary>
             /// <param name="value">int64_t value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(int64_t       value, PiiKind piiKind) : type(TYPE_INT64), piiKind(piiKind), ccKind(CustomerContentKind_None), as_int64(value) {};
+            EventProperty::EventProperty(int64_t       value, PiiKind piiKind, DataCategory category) : type(TYPE_INT64), piiKind(piiKind), ccKind(CustomerContentKind_None), dataCategory(category), as_int64(value) {};
 
             /// <summary>
             /// EventProperty constructor for double value
             /// </summary>
             /// <param name="value">double value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(double        value, PiiKind piiKind) : type(TYPE_DOUBLE), piiKind(piiKind), ccKind(CustomerContentKind_None), as_double(value) {};
+            EventProperty::EventProperty(double        value, PiiKind piiKind, DataCategory category) : type(TYPE_DOUBLE), piiKind(piiKind), ccKind(CustomerContentKind_None), dataCategory(category), as_double(value) {};
 
             /// <summary>
             /// EventProperty constructor for time in .NET ticks
             /// </summary>
             /// <param name="value">time_ticks_t value - time in .NET ticks</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(time_ticks_t  value, PiiKind piiKind) : type(TYPE_TIME), piiKind(piiKind), ccKind(CustomerContentKind_None), as_time_ticks(value) {};
+            EventProperty::EventProperty(time_ticks_t  value, PiiKind piiKind, DataCategory category) : type(TYPE_TIME), piiKind(piiKind), ccKind(CustomerContentKind_None), dataCategory(category), as_time_ticks(value) {};
 
             /// <summary>
             /// EventProperty constructor for boolean value
             /// </summary>
             /// <param name="value">boolean value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(bool          value, PiiKind piiKind) : type(TYPE_BOOLEAN), piiKind(piiKind), ccKind(CustomerContentKind_None), as_bool(value) {};
+            EventProperty::EventProperty(bool          value, PiiKind piiKind, DataCategory category) : type(TYPE_BOOLEAN), piiKind(piiKind), ccKind(CustomerContentKind_None), dataCategory(category), as_bool(value) {};
 
             /// <summary>
             /// EventProperty constructor for GUID
             /// </summary>
             /// <param name="value">GUID_t value</param>
             /// <param name="piiKind">Pii kind</param>
-            EventProperty::EventProperty(GUID_t        value, PiiKind piiKind) : type(TYPE_GUID), piiKind(piiKind), ccKind(CustomerContentKind_None), as_guid(value) {};
+            EventProperty::EventProperty(GUID_t        value, PiiKind piiKind, DataCategory category) : type(TYPE_GUID), piiKind(piiKind), ccKind(CustomerContentKind_None), dataCategory(category), as_guid(value) {};
 
             // All other integer types get converted to int64_t
-            EventProperty::EventProperty(long     value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(int8_t   value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(int16_t  value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(int32_t  value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(uint8_t  value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(uint16_t value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(uint32_t value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-            EventProperty::EventProperty(uint64_t value, PiiKind piiKind) : EventProperty((int64_t)value, piiKind) {};
-
+            EventProperty::EventProperty(long     value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(int8_t   value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(int16_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(int32_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(uint8_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(uint16_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(uint32_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+            EventProperty::EventProperty(uint64_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+           
             /// <summary>Returns true whether the type is string AND the value is empty (i.e. whether its length is 0).</summary>
             bool EventProperty::empty()
             {

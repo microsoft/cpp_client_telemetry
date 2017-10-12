@@ -272,7 +272,7 @@ void UtcTelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& e
 int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx)
 {
     std::string appInfoAppName = eventCtx->source->appId;
-    //eventCtx->source->Extension.erase(COMMONFIELDS_APP_ID);
+    //eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_ID);
 
     ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);
     if (0 == providerdata.providerHandle)
@@ -374,19 +374,19 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         }
     }
 
-    //eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MAKE);
-    //eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_MODEL);
-    //eventCtx->source->Extension.erase(COMMONFIELDS_USER_TIMEZONE);
-    //eventCtx->source->Extension.erase(COMMONFIELDS_APP_LANGUAGE);
-    //eventCtx->source->Extension.erase(EventInfo_Source);
-    //eventCtx->source->Extension.erase(COMMONFIELDS_USER_ADVERTISINGID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MAKE);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MODEL);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_TIMEZONE);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_LANGUAGE);
+    eventCtx->source->data[0].properties.erase(EventInfo_Source);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ADVERTISINGID);
 
     //PartA_Exts_aria
 /*
     auto  structPartAExtsAria = builder.AddStruct(UTC_PART_A_EXTS_ARIA);
     structPartAExtsAria.AddField(UTC_LIB_VERSION, TypeMbcsString);
     std::string eventInfoSdkVersion = eventCtx->source->Extension[COMMONFIELDS_EVENT_SDKVERSION];
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDKVERSION);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDKVERSION);
     dbuilder.AddString(eventInfoSdkVersion.c_str());
 
     if (m_configuration.GetSdkModeType() == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
@@ -410,13 +410,13 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         dbuilder.AddValue(temp);
     }
 
-    eventCtx->source->Extension.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
-    eventCtx->source->Extension.erase(SESSION_ID);
-    //eventCtx->source->Extension.erase(SESSION_STATE);
-    //eventCtx->source->Extension.erase(SESSION_DURATION);
-    //eventCtx->source->Extension.erase(SESSION_DURATION_BUCKET);
-    //eventCtx->source->Extension.erase(SESSION_FIRST_TIME);
-    //eventCtx->source->Extension.erase(SESSION_SDKUID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
+    eventCtx->source->data[0].properties.erase(SESSION_ID);
+    //eventCtx->source->data[0].properties.erase(SESSION_STATE);
+    //eventCtx->source->data[0].properties.erase(SESSION_DURATION);
+    //eventCtx->source->data[0].properties.erase(SESSION_DURATION_BUCKET);
+    //eventCtx->source->data[0].properties.erase(SESSION_FIRST_TIME);
+    //eventCtx->source->data[0].properties.erase(SESSION_SDKUID);
 */
 
  /*   //PartA_Exts_CommonFields
@@ -432,7 +432,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string appInfoExpIds = eventCtx->source->Extension[COMMONFIELDS_APP_EXPERIMENTIDS];
-    eventCtx->source->Extension.erase(COMMONFIELDS_APP_EXPERIMENTIDS);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTIDS);
     if (!appInfoExpIds.empty())
     {
         builder.AddField(UTC_APP_EXPERIMENT_IDS, TypeMbcsString);
@@ -440,7 +440,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string deviceInfoNetworkProvider = eventCtx->source->Extension[COMMONFIELDS_NETWORK_PROVIDER];
-    eventCtx->source->Extension.erase(COMMONFIELDS_NETWORK_PROVIDER);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_PROVIDER);
     if (!deviceInfoNetworkProvider.empty())
     {
         builder.AddField(UTC_PARTA_NET_PROVIDER, TypeMbcsString);
@@ -448,7 +448,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string deviceInfoNetworkCost = eventCtx->source->Extension[COMMONFIELDS_NETWORK_COST];
-    eventCtx->source->Extension.erase(COMMONFIELDS_NETWORK_COST);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_COST);
     if (!deviceInfoNetworkCost.empty())
     {
         builder.AddField(UTC_PARTA_NET_COST, TypeMbcsString);
@@ -456,7 +456,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string deviceInfoNetworkType = eventCtx->source->Extension[COMMONFIELDS_NETWORK_TYPE];
-    eventCtx->source->Extension.erase(COMMONFIELDS_NETWORK_TYPE);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_TYPE);
     if (!deviceInfoNetworkType.empty())
     {
         builder.AddField(UTC_PARTA_NET_TYPE, TypeMbcsString);
@@ -464,7 +464,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string eventInfoSequence = eventCtx->source->Extension[EventInfo_Sequence];
-    eventCtx->source->Extension.erase(EventInfo_Sequence);
+    eventCtx->source->data[0].properties.erase(EventInfo_Sequence);
     if (!eventInfoSequence.empty())
     {
         builder.AddField(UTC_PARTA_APP_SEQ_NUM, TypeMbcsString);
@@ -472,7 +472,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string ariaUserId(eventCtx->source->Extension[COMMONFIELDS_USER_ID]);
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_ID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ID);
     if (!ariaUserId.empty())
     {
         std::string userId("e:");
@@ -482,29 +482,29 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     }
 
     std::string userInfoLanguage = eventCtx->source->Extension[COMMONFIELDS_USER_LANGUAGE];
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_LANGUAGE);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_LANGUAGE);
     if (!userInfoLanguage.empty())
     {
         builder.AddField(UTC_PARTA_OS_LOCALE, TypeMbcsString);
         dbuilder.AddString(userInfoLanguage.c_str());
     }
 
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_MSAID);
-    eventCtx->source->Extension.erase(COMMONFIELDS_DEVICE_ID);
-    eventCtx->source->Extension.erase(COMMONFIELDS_OS_NAME);
-    eventCtx->source->Extension.erase(COMMONFIELDS_OS_VERSION);
-    eventCtx->source->Extension.erase(COMMONFIELDS_OS_BUILD);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_TIME);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_TYPE);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_OSNAME);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_SKU);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_PROJECTION);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_VER_NUM);
-    eventCtx->source->Extension.erase(COMMONFIELDS_EVENT_SDK_ECS);
-    eventCtx->source->Extension.erase(COMMONFIELDS_USER_ANID);
-    eventCtx->source->Extension.erase(COMMONFIELDS_APP_VERSION);
-    eventCtx->source->Extension.erase(EventInfo_Name);
-    eventCtx->source->Extension.erase(EventInfo_InitId);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_MSAID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_ID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_NAME);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_VERSION);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_BUILD);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_TIME);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_TYPE);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_OSNAME);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_SKU);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_PROJECTION);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_VER_NUM);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_ECS);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ANID);
+    eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_VERSION);
+    eventCtx->source->data[0].properties.erase(EventInfo_Name);
+    eventCtx->source->data[0].properties.erase(EventInfo_InitId);
 
     //"Extension"
     if (eventCtx->source->Extension.size() > 0)

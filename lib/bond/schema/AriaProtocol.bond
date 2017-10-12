@@ -62,7 +62,7 @@ struct Utc
 struct Protocol
 {
     1: optional int32 metadataCrc;
-    2: optional string ticketKey;
+    2: optional vector<string> ticketKey;
 }
 
 enum ValueKind

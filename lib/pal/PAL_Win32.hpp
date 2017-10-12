@@ -523,6 +523,7 @@ class PseudoRandomGenerator {
 };
 
 // Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
+extern int64_t getUtcSystemTimeinTicks();
 extern int64_t getUtcSystemTimeMs();
 extern int64_t getUtcSystemTime();
 

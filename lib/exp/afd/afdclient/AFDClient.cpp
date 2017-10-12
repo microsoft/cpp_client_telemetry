@@ -923,18 +923,21 @@ namespace Microsoft {
                 ******************************************************************************/
                 void AFDClient::_LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source)
                 {
-                    //pre-condition: m_smalllock is held in caller while this function is called
-                    //std::lock_guard<std::mutex> lockguard(m_smalllock);
+                    if (m_AFDClientConfiguration.enableAFDClientTelemetry)
+                    {
+                        //pre-condition: m_smalllock is held in caller while this function is called
+                        //std::lock_guard<std::mutex> lockguard(m_smalllock);
 
-                    EventProperties evtProperties(EVENT_TYPE_AFDCLIENT_CONFIG_UPDATE);
+                        EventProperties evtProperties(EVENT_TYPE_AFDCLIENT_CONFIG_UPDATE);
 
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTNAME, m_AFDClientConfiguration.clientId);
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTVERSION, m_AFDClientConfiguration.clientVersion);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTNAME, m_AFDClientConfiguration.clientId);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTVERSION, m_AFDClientConfiguration.clientVersion);
 
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CONFIG_RESULT, ExpCommon::EXPConfigUpdateResult2STR[result]);
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CONFIG_SOURCE, ExpCommon::EXPConfigUpdateSource2STR[source]);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CONFIG_RESULT, ExpCommon::EXPConfigUpdateResult2STR[result]);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CONFIG_SOURCE, ExpCommon::EXPConfigUpdateSource2STR[source]);
 
-                    m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                        m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                    }
                 }
 
                 /******************************************************************************
@@ -945,17 +948,19 @@ namespace Microsoft {
                 ******************************************************************************/
                 void AFDClient::_LogEXPCleintStateChangeEvent(EXPClientStatus status)
                 {
+                    if (m_AFDClientConfiguration.enableAFDClientTelemetry)
+                    {
+                        std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
+                        EventProperties evtProperties(EVENT_TYPE_AFDCLIENT_STATE_CHANGE);
 
-                    EventProperties evtProperties(EVENT_TYPE_AFDCLIENT_STATE_CHANGE);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTNAME, m_AFDClientConfiguration.clientId);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTVERSION, m_AFDClientConfiguration.clientVersion);
 
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTNAME, m_AFDClientConfiguration.clientId);
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_CLIENTVERSION, m_AFDClientConfiguration.clientVersion);
+                        evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_STATE, ExpCommon::EXPClientStatus2STR[status]);
 
-                    evtProperties.SetProperty(EVENT_FIELD_AFDCLIENT_STATE, ExpCommon::EXPClientStatus2STR[status]);
-
-                    m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                        m_EXPCommon._LogEXPConfigEvent(evtProperties);
+                    }
                 }
 
                 unsigned int AFDClient::GetExpiryTimeInSec()
