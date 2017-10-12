@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+#include "CorrelationVector.hpp"
 #include "UtcTelemetrySystem.hpp"
 #include "LogManager.hpp"
 #include "pal/UtcHelpers.hpp"
@@ -419,7 +420,16 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     //eventCtx->source->data[0].properties.erase(SESSION_SDKUID);
 */
 
- /*   //PartA_Exts_CommonFields
+    // PartA_Exts_CommonFields
+
+    // Correlation Vector is passed to UTC as a regular top-level field with a reserved name.
+    if (!eventCtx->source->cV.empty())
+    {
+        builder.AddField(CorrelationVector::PropertyName, TypeMbcsString);
+        dbuilder.AddString(eventCtx->source->cV.c_str());
+    }
+
+ /*
     builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
     std::string iKey(IKEY_PRE_TEXT);
     iKey.append(eventCtx->record.tenantToken);

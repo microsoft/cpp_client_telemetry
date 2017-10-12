@@ -14,9 +14,9 @@ BondSplicer::BondSplicer()
 {
 }
 
-size_t BondSplicer::addDataPackage(std::string const& tenantToken, DataPackage const& dataPackage)
+size_t BondSplicer::addDataPackage(std::string const& tenantToken, DataPackage const& /* dataPackage */)
 {
-    assert(dataPackage.Records.empty());
+    //assert(dataPackage.Records.empty());
 
     size_t begin = m_buffer.size();
  /*   {

@@ -1,3 +1,13 @@
+# Build artifacts
+
+Debug/
+Release/
+*.VC.db
+
+# Test artifacts
+
+offlinestorage.db*
+                
 bondlite/external/bond/
 bondlite/external/rapidjson/
 bondlite/generated/bond/
@@ -13,7 +23,6 @@ skype-ant.zip
 zlib/
 uap-cpp/
 Win32/
-Debug/
 
 lib/include/aria/Version.hpp
 lib/jni/gen/

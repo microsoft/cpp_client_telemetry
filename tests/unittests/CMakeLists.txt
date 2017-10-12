@@ -7,6 +7,7 @@ endif()
 set(SRCS
   BondSplicerTests.cpp
   ContextFieldsProviderTests.cpp
+  CorrelationVectorTests.cpp
   EventPropertiesTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   HttpClientTests.cpp
@@ -24,6 +25,7 @@ set(SRCS
   PackagerTests.cpp
   PalTests.cpp
   RouteTests.cpp
+  StringUtilsTests.cpp
   TransmissionPolicyManagerTests.cpp
   UtilsTests.cpp
   ${CONFIG_SRCS}

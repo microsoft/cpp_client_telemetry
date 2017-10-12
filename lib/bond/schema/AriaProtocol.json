@@ -1,4 +1,6 @@
 {
+  "namespaces": [ { "name": [ "AriaProtocol" ] } ],
+  "imports": [],
   "declarations": [
     {
       "structBase": null,
@@ -305,17 +307,6 @@
         {
           "fieldModifier": "Optional",
           "fieldDefault": null,
-          "fieldType": {
-            "type": "vector",
-            "element": "string"
-          },
-          "fieldName": "tickets",
-          "fieldAttributes": [],
-          "fieldOrdinal": 8
-        },
-        {
-          "fieldModifier": "Optional",
-          "fieldDefault": null,
           "fieldType": "string",
           "fieldName": "mon",
           "fieldAttributes": [],
@@ -350,6 +341,358 @@
         {
           "fieldModifier": "Optional",
           "fieldDefault": null,
+          "fieldType": {
+            "key": "string",
+            "type": "map",
+            "element": "string"
+          },
+          "fieldName": "claims",
+          "fieldAttributes": [],
+          "fieldOrdinal": 5
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "nbf",
+          "fieldAttributes": [],
+          "fieldOrdinal": 10
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "exp",
+          "fieldAttributes": [],
+          "fieldOrdinal": 20
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "sbx",
+          "fieldAttributes": [],
+          "fieldOrdinal": 30
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "dty",
+          "fieldAttributes": [],
+          "fieldOrdinal": 40
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "did",
+          "fieldAttributes": [],
+          "fieldOrdinal": 50
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "xid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 60
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "uint64",
+          "fieldName": "uts",
+          "fieldAttributes": [],
+          "fieldOrdinal": 70
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "pid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 80
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "dvr",
+          "fieldAttributes": [],
+          "fieldOrdinal": 90
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "uint32",
+          "fieldName": "tid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 100
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "tvr",
+          "fieldAttributes": [],
+          "fieldOrdinal": 110
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "sty",
+          "fieldAttributes": [],
+          "fieldOrdinal": 120
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "sid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 130
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "int64",
+          "fieldName": "eid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 140
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "ip",
+          "fieldAttributes": [],
+          "fieldOrdinal": 150
+        }
+      ],
+      "declParams": [],
+      "declNamespaces": [ { "name": [ "AriaProtocol" ] } ],
+      "declName": "Xbl",
+      "declAttributes": []
+    },
+    {
+      "structBase": null,
+      "tag": "Struct",
+      "structFields": [
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "libVer",
+          "fieldAttributes": [],
+          "fieldOrdinal": 10
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "osName",
+          "fieldAttributes": [],
+          "fieldOrdinal": 15
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "browser",
+          "fieldAttributes": [],
+          "fieldOrdinal": 20
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "browserVersion",
+          "fieldAttributes": [],
+          "fieldOrdinal": 21
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "platform",
+          "fieldAttributes": [],
+          "fieldOrdinal": 25
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "make",
+          "fieldAttributes": [],
+          "fieldOrdinal": 30
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "model",
+          "fieldAttributes": [],
+          "fieldOrdinal": 35
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "screenSize",
+          "fieldAttributes": [],
+          "fieldOrdinal": 40
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "mc1Id",
+          "fieldAttributes": [],
+          "fieldOrdinal": 50
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "uint64",
+          "fieldName": "mc1Lu",
+          "fieldAttributes": [],
+          "fieldOrdinal": 60
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "bool",
+          "fieldName": "isMc1New",
+          "fieldAttributes": [],
+          "fieldOrdinal": 70
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "ms0",
+          "fieldAttributes": [],
+          "fieldOrdinal": 80
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "anid",
+          "fieldAttributes": [],
+          "fieldOrdinal": 90
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "a",
+          "fieldAttributes": [],
+          "fieldOrdinal": 100
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "msResearch",
+          "fieldAttributes": [],
+          "fieldOrdinal": 110
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "csrvc",
+          "fieldAttributes": [],
+          "fieldOrdinal": 120
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "rtCell",
+          "fieldAttributes": [],
+          "fieldOrdinal": 130
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "rtEndAction",
+          "fieldAttributes": [],
+          "fieldOrdinal": 140
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "rtPermId",
+          "fieldAttributes": [],
+          "fieldOrdinal": 150
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "r",
+          "fieldAttributes": [],
+          "fieldOrdinal": 160
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "wtFpc",
+          "fieldAttributes": [],
+          "fieldOrdinal": 170
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "omniId",
+          "fieldAttributes": [],
+          "fieldOrdinal": 180
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "gsfxSession",
+          "fieldAttributes": [],
+          "fieldOrdinal": 190
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "domain",
+          "fieldAttributes": [],
+          "fieldOrdinal": 200
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": "string",
+          "fieldName": "dnt",
+          "fieldAttributes": [],
+          "fieldOrdinal": 999
+        }
+      ],
+      "declParams": [],
+      "declNamespaces": [ { "name": [ "AriaProtocol" ] } ],
+      "declName": "Javascript",
+      "declAttributes": []
+    },
+    {
+      "structBase": null,
+      "tag": "Struct",
+      "structFields": [
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
           "fieldType": "int32",
           "fieldName": "metadataCrc",
           "fieldAttributes": [],
@@ -360,9 +703,12 @@
           "fieldDefault": null,
           "fieldType": {
             "type": "vector",
-            "element": "string"
+            "element": {
+              "type": "vector",
+              "element": "string"
+            }
           },
-          "fieldName": "ticketKey",
+          "fieldName": "ticketKeys",
           "fieldAttributes": [],
           "fieldOrdinal": 2
         }
@@ -1624,7 +1970,10 @@
         },
         {
           "fieldModifier": "Optional",
-          "fieldDefault": null,
+          "fieldDefault": {
+            "value": 100,
+            "type": "float"
+          },
           "fieldType": "double",
           "fieldName": "popSample",
           "fieldAttributes": [],
@@ -1779,7 +2128,52 @@
           },
           "fieldName": "extIngest",
           "fieldAttributes": [],
-          "fieldOrdinal": 14
+          "fieldOrdinal": 20
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": {
+            "type": "vector",
+            "element": {
+              "declaration": {
+                "structBase": null,
+                "tag": "Struct",
+                "structFields": [
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "int32",
+                    "fieldName": "metadataCrc",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 1
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": {
+                      "type": "vector",
+                      "element": {
+                        "type": "vector",
+                        "element": "string"
+                      }
+                    },
+                    "fieldName": "ticketKeys",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 2
+                  }
+                ],
+                "declParams": [],
+                "declNamespaces": [ { "name": [ "AriaProtocol" ] } ],
+                "declName": "Protocol",
+                "declAttributes": []
+              },
+              "type": "user"
+            }
+          },
+          "fieldName": "extProtocol",
+          "fieldAttributes": [],
+          "fieldOrdinal": 21
         },
         {
           "fieldModifier": "Optional",
@@ -1826,7 +2220,7 @@
           },
           "fieldName": "extUser",
           "fieldAttributes": [],
-          "fieldOrdinal": 15
+          "fieldOrdinal": 22
         },
         {
           "fieldModifier": "Optional",
@@ -1905,7 +2299,7 @@
           },
           "fieldName": "extDevice",
           "fieldAttributes": [],
-          "fieldOrdinal": 16
+          "fieldOrdinal": 23
         },
         {
           "fieldModifier": "Optional",
@@ -1952,7 +2346,7 @@
           },
           "fieldName": "extOs",
           "fieldAttributes": [],
-          "fieldOrdinal": 17
+          "fieldOrdinal": 24
         },
         {
           "fieldModifier": "Optional",
@@ -2005,9 +2399,9 @@
               "type": "user"
             }
           },
-          "fieldName": "expApp",
+          "fieldName": "extApp",
           "fieldAttributes": [],
-          "fieldOrdinal": 18
+          "fieldOrdinal": 25
         },
         {
           "fieldModifier": "Optional",
@@ -2078,17 +2472,6 @@
                   {
                     "fieldModifier": "Optional",
                     "fieldDefault": null,
-                    "fieldType": {
-                      "type": "vector",
-                      "element": "string"
-                    },
-                    "fieldName": "tickets",
-                    "fieldAttributes": [],
-                    "fieldOrdinal": 8
-                  },
-                  {
-                    "fieldModifier": "Optional",
-                    "fieldDefault": null,
                     "fieldType": "string",
                     "fieldName": "mon",
                     "fieldAttributes": [],
@@ -2121,7 +2504,7 @@
           },
           "fieldName": "extUtc",
           "fieldAttributes": [],
-          "fieldOrdinal": 19
+          "fieldOrdinal": 26
         },
         {
           "fieldModifier": "Optional",
@@ -2136,34 +2519,372 @@
                   {
                     "fieldModifier": "Optional",
                     "fieldDefault": null,
-                    "fieldType": "int32",
-                    "fieldName": "metadataCrc",
+                    "fieldType": {
+                      "key": "string",
+                      "type": "map",
+                      "element": "string"
+                    },
+                    "fieldName": "claims",
                     "fieldAttributes": [],
-                    "fieldOrdinal": 1
+                    "fieldOrdinal": 5
                   },
                   {
                     "fieldModifier": "Optional",
                     "fieldDefault": null,
                     "fieldType": {
-                      "type": "vector",
+                    "fieldName": "nbf",
                       "element": "string"
                     },
-                    "fieldName": "ticketKey",
                     "fieldAttributes": [],
-                    "fieldOrdinal": 2
+                    "fieldOrdinal": 10
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "exp",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 20
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "sbx",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 30
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "dty",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 40
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "did",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 50
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "xid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 60
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "uint64",
+                    "fieldName": "uts",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 70
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "pid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 80
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "dvr",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 90
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "uint32",
+                    "fieldName": "tid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 100
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "tvr",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 110
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "sty",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 120
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "sid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 130
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "int64",
+                    "fieldName": "eid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 140
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "ip",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 150
                   }
                 ],
                 "declParams": [],
                 "declNamespaces": [ { "name": [ "AriaProtocol" ] } ],
-                "declName": "Protocol",
+                "declName": "Xbl",
                 "declAttributes": []
               },
               "type": "user"
             }
           },
-          "fieldName": "extProtocol",
+          "fieldName": "extXbl",
           "fieldAttributes": [],
-          "fieldOrdinal": 20
+          "fieldOrdinal": 27
+        },
+        {
+          "fieldModifier": "Optional",
+          "fieldDefault": null,
+          "fieldType": {
+            "type": "vector",
+            "element": {
+              "declaration": {
+                "structBase": null,
+                "tag": "Struct",
+                "structFields": [
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "libVer",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 10
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "osName",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 15
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "browser",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 20
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "browserVersion",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 21
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "platform",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 25
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "make",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 30
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "model",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 35
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "screenSize",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 40
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "mc1Id",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 50
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "uint64",
+                    "fieldName": "mc1Lu",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 60
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "bool",
+                    "fieldName": "isMc1New",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 70
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "ms0",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 80
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "anid",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 90
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "a",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 100
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "msResearch",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 110
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "csrvc",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 120
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "rtCell",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 130
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "rtEndAction",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 140
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "rtPermId",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 150
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "r",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 160
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "wtFpc",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 170
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "omniId",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 180
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "gsfxSession",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 190
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "domain",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 200
+                  },
+                  {
+                    "fieldModifier": "Optional",
+                    "fieldDefault": null,
+                    "fieldType": "string",
+                    "fieldName": "dnt",
+                    "fieldAttributes": [],
+                    "fieldOrdinal": 999
+                  }
+                ],
+                "declParams": [],
+                "declNamespaces": [ { "name": [ "AriaProtocol" ] } ],
+                "declName": "Javascript",
+                "declAttributes": []
+              },
+              "type": "user"
+            }
+          },
+          "fieldName": "extJavascript",
+          "fieldAttributes": [],
+          "fieldOrdinal": 28
         },
         {
           "fieldModifier": "Optional",
@@ -2575,7 +3296,7 @@
           },
           "fieldName": "ext",
           "fieldAttributes": [],
-          "fieldOrdinal": 21
+          "fieldOrdinal": 41
         },
         {
           "fieldModifier": "Optional",
@@ -2587,7 +3308,7 @@
           },
           "fieldName": "tags",
           "fieldAttributes": [],
-          "fieldOrdinal": 22
+          "fieldOrdinal": 51
         },
         {
           "fieldModifier": "Optional",
@@ -2595,7 +3316,7 @@
           "fieldType": "string",
           "fieldName": "baseType",
           "fieldAttributes": [],
-          "fieldOrdinal": 50
+          "fieldOrdinal": 60
         },
         {
           "fieldModifier": "Optional",
@@ -3007,7 +3728,7 @@
           },
           "fieldName": "baseData",
           "fieldAttributes": [],
-          "fieldOrdinal": 51
+          "fieldOrdinal": 61
         },
         {
           "fieldModifier": "Optional",
@@ -3419,7 +4140,7 @@
           },
           "fieldName": "data",
           "fieldAttributes": [],
-          "fieldOrdinal": 60
+          "fieldOrdinal": 70
         }
       ],
       "declParams": [],
@@ -3427,7 +4148,5 @@
       "declName": "CsEvent",
       "declAttributes": []
     }
-  ],
-  "imports": [],
-  "namespaces": [ { "name": [ "AriaProtocol" ] } ]
+  ]
 }

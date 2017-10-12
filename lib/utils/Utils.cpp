@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "Version.hpp"
 #include "Utils.hpp"
+#include "CorrelationVector.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {

@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{434C594F-CDE0-3690-AC0A-9ED854B74092}</ProjectGUID>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>UnitTests</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -283,6 +283,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BondSplicerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\ControlPlaneProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\CorrelationVectorTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\EventPropertiesTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\BackoffTests_ExponentialWithJitter.cpp" />
@@ -305,6 +306,7 @@
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\PalTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\SingleControlPlaneTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\TenantDataSerializerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\TransmissionPolicyManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\..\tests\unittests\UtilsTests.cpp" />
