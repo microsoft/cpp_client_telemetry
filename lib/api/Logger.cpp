@@ -359,7 +359,7 @@ bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventPropert
     {
         record.name = "NotSpecified";
     }
-    record.iKey = "O-" + (*m_tenantTokenP).substr(0, (*m_tenantTokenP).find('-'));
+    record.iKey = "O:" + (*m_tenantTokenP).substr(0, (*m_tenantTokenP).find('-'));
     return  m_baseDecorator &&
             m_baseDecorator->decorate(record, priority ) &&
             m_semanticApiDecorators &&

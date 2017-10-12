@@ -57,13 +57,19 @@ class BaseDecorator : public DecoratorBase {
             record.baseType = record.name;
         } 
       
+
+        if (record.extUtc.size() == 0)
+        {
+            ::AriaProtocol::Utc utc;
+            record.extUtc.push_back(utc);
+        }
         //if (record.data.size() == 0) {        AriaProtocol::Data temp;            record.data.push_back(temp);        }
         //setIfNotEmpty(record.data[0].properties,            EventInfo_Source,     *m_sourceP);
         //setIfNotEmpty(record.data[0].properties,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.time));
         //setIfNotEmpty(record.data[0].properties,            EventInfo_InitId,     *m_initIdP);
-        record.seqNum = ++m_sequenceId;
+        record.extUtc[0].seq = ++m_sequenceId;
         record.popSample = 100.00;
-        record.epoch = "epoch";
+        record.extUtc[0].epoch = "epoch";
 
         return true;
     }

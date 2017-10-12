@@ -272,7 +272,7 @@ void UtcTelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& e
 
 int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx)
 {
-    std::string appInfoAppName = eventCtx->source->appId;
+    std::string appInfoAppName = eventCtx->source->extApp[0].id;
     //eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_ID);
 
     ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);

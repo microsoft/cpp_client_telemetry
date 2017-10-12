@@ -157,13 +157,13 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         if (m_commonContextFieldsP->find(COMMONFIELDS_APP_ID) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_ID];
-            record.appId = prop.as_string;
+            record.extApp[0].id = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_APP_VERSION) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_VERSION];
-            record.appVer = prop.as_string;
+            record.extApp[0].ver = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE) != m_commonContextFieldsP->end())
@@ -193,13 +193,13 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_NAME];
-            record.os = prop.as_string;
+            record.extOs[0].name = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_OS_VERSION) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
-            record.osVer = prop.as_string;
+            record.extOs[0].ver = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_USER_ID) != m_commonContextFieldsP->end())

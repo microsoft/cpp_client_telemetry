@@ -111,12 +111,18 @@ struct Os {
     std::string expId;
     // 3: optional int32 bootId
     int32_t bootId = 0;
+    // 4: optional string name
+    std::string name;
+    // 5: optional string ver
+    std::string ver;
 
     bool operator==(Os const& other) const
     {
         return (locale == other.locale)
             && (expId == other.expId)
-            && (bootId == other.bootId);
+            && (bootId == other.bootId)
+            && (name == other.name)
+            && (ver == other.ver);
     }
 
     bool operator!=(Os const& other) const
@@ -134,13 +140,19 @@ struct App {
     std::string env;
     // 4: optional int32 asId
     int32_t asId = 0;
+    // 5: optional string id
+    std::string id;
+    // 6: optional string ver
+    std::string ver;
 
     bool operator==(App const& other) const
     {
         return (expId == other.expId)
             && (userId == other.userId)
             && (env == other.env)
-            && (asId == other.asId);
+            && (asId == other.asId)
+            && (id == other.id)
+            && (ver == other.ver);
     }
 
     bool operator!=(App const& other) const
@@ -170,6 +182,10 @@ struct Utc {
     int32_t cpId = 0;
     // 11: optional string bSeq
     std::string bSeq;
+    // 12: optional string epoch
+    std::string epoch;
+    // 13: optional int64 seq
+    int64_t seq = 0;
 
     bool operator==(Utc const& other) const
     {
@@ -182,7 +198,9 @@ struct Utc {
             && (sqmId == other.sqmId)
             && (mon == other.mon)
             && (cpId == other.cpId)
-            && (bSeq == other.bSeq);
+            && (bSeq == other.bSeq)
+            && (epoch == other.epoch)
+            && (seq == other.seq);
     }
 
     bool operator!=(Utc const& other) const
@@ -351,6 +369,24 @@ struct Protocol {
     }
 
     bool operator!=(Protocol const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Receipts {
+    // 1: optional int64 originalTime
+    int64_t originalTime = 0;
+    // 2: optional int64 uploadTime
+    int64_t uploadTime = 0;
+
+    bool operator==(Receipts const& other) const
+    {
+        return (originalTime == other.originalTime)
+            && (uploadTime == other.uploadTime);
+    }
+
+    bool operator!=(Receipts const& other) const
     {
         return !(*this == other);
     }
@@ -528,23 +564,11 @@ struct CsEvent {
     int64_t time = 0;
     // 4: optional double popSample
     double popSample = 100;
-    // 5: optional string epoch
-    std::string epoch;
-    // 6: optional int64 seqNum
-    int64_t seqNum = 0;
-    // 7: optional string iKey
+    // 5: optional string iKey
     std::string iKey;
-    // 8: optional int64 flags
+    // 6: optional int64 flags
     int64_t flags = 0;
-    // 9: optional string os
-    std::string os;
-    // 10: optional string osVer
-    std::string osVer;
-    // 11: optional string appId
-    std::string appId;
-    // 12: optional string appVer
-    std::string appVer;
-    // 13: optional string cV
+    // 7: optional string cV
     std::string cV;
     // 20: optional vector<Ingest> extIngest
     std::vector< ::AriaProtocol::Ingest> extIngest;
@@ -564,6 +588,8 @@ struct CsEvent {
     std::vector< ::AriaProtocol::Xbl> extXbl;
     // 28: optional vector<Javascript> extJavascript
     std::vector< ::AriaProtocol::Javascript> extJavascript;
+    // 29: optional vector<Receipts> extReceipts
+    std::vector< ::AriaProtocol::Receipts> extReceipts;
     // 41: optional vector<Data> ext
     std::vector< ::AriaProtocol::Data> ext;
     // 51: optional map<string, string> tags
@@ -581,14 +607,8 @@ struct CsEvent {
             && (name == other.name)
             && (time == other.time)
             && (popSample == other.popSample)
-            && (epoch == other.epoch)
-            && (seqNum == other.seqNum)
             && (iKey == other.iKey)
             && (flags == other.flags)
-            && (os == other.os)
-            && (osVer == other.osVer)
-            && (appId == other.appId)
-            && (appVer == other.appVer)
             && (cV == other.cV)
             && (extIngest == other.extIngest)
             && (extProtocol == other.extProtocol)
@@ -599,6 +619,7 @@ struct CsEvent {
             && (extUtc == other.extUtc)
             && (extXbl == other.extXbl)
             && (extJavascript == other.extJavascript)
+            && (extReceipts == other.extReceipts)
             && (ext == other.ext)
             && (tags == other.tags)
             && (baseType == other.baseType)

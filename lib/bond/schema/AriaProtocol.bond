@@ -46,6 +46,8 @@ struct Os
     1: optional string locale;
     2: optional string expId;
     3: optional int32 bootId;    
+    4: optional string name;
+    5: optional string ver;
 }
 
 struct App
@@ -54,6 +56,8 @@ struct App
     2: optional string userId;
     3: optional string env;
     4: optional int32 asId;
+    5: optional string id;
+    6: optional string ver;
 }
 
 struct Utc
@@ -68,6 +72,8 @@ struct Utc
     9: optional string mon;
     10: optional int32 cpId;
     11: optional string bSeq;
+    12: optional string epoch;
+    13: optional int64 seq;
 }
 
 struct Xbl
@@ -123,6 +129,12 @@ struct Protocol
 {
     1: optional int32 metadataCrc;
     2: optional vector<vector<string>> ticketKeys;
+}
+
+struct Receipts
+{
+    1: optional int64 originalTime;
+    2: optional int64 uploadTime;
 }
 
 enum ValueKind
@@ -212,15 +224,9 @@ struct CsEvent
     2: required string name;
     3: required int64 time;
     4: optional double popSample = 100.0;
-    5: optional string epoch;
-    6: optional int64 seqNum;
-    7: optional string iKey;
-    8: optional int64 flags;
-    9: optional string os;
-    10: optional string osVer;
-    11: optional string appId;
-    12: optional string appVer;
-    13: optional string cV;
+    5: optional string iKey;
+    6: optional int64 flags;
+    7: optional string cV;
     20: optional vector<Ingest> extIngest;
     21: optional vector<Protocol> extProtocol;
     22: optional vector<User> extUser;
@@ -230,6 +236,7 @@ struct CsEvent
     26: optional vector<Utc> extUtc;
     27: optional vector<Xbl> extXbl;
     28: optional vector<Javascript> extJavascript;
+    29: optional vector<Receipts> extReceipts;
     41: optional vector<Data> ext;
     51: optional map<string, string> tags;
     60: optional string baseType;

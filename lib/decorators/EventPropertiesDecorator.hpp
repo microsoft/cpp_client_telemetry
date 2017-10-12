@@ -6,6 +6,8 @@
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>
+#include <map>
+#include <string>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -215,6 +217,7 @@ class EventPropertiesDecorator : public DecoratorBase {
             ::AriaProtocol::Data partBdata;
             partBdata.properties = extPartB;
             record.baseData.push_back(partBdata);
+        }
         // special case of CorrelationVector value
         if (ext.count(CorrelationVector::PropertyName) > 0)
         {
@@ -233,12 +236,8 @@ class EventPropertiesDecorator : public DecoratorBase {
         }
 
         return true;
-    }
-
-  protected:
-  
+    }  
   
 };
-
 
 } ARIASDK_NS_END

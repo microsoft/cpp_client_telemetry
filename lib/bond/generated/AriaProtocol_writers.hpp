@@ -203,6 +203,22 @@ void Serialize(TWriter& writer, ::AriaProtocol::Os const& value, bool isBase)
         writer.WriteFieldOmitted(BT_INT32, 3, nullptr);
     }
 
+    if (!value.name.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 4, nullptr);
+        writer.WriteString(value.name);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (!value.ver.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.ver);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
+    }
+
     writer.WriteStructEnd(isBase);
 }
 
@@ -241,6 +257,22 @@ void Serialize(TWriter& writer, ::AriaProtocol::App const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_INT32, 4, nullptr);
+    }
+
+    if (!value.id.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.id);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
+    }
+
+    if (!value.ver.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 6, nullptr);
+        writer.WriteString(value.ver);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 6, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -329,6 +361,22 @@ void Serialize(TWriter& writer, ::AriaProtocol::Utc const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 11, nullptr);
+    }
+
+    if (!value.epoch.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 12, nullptr);
+        writer.WriteString(value.epoch);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 12, nullptr);
+    }
+
+    if (value.seq != 0) {
+        writer.WriteFieldBegin(BT_INT64, 13, nullptr);
+        writer.WriteInt64(value.seq);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 13, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -716,6 +764,30 @@ void Serialize(TWriter& writer, ::AriaProtocol::Protocol const& value, bool isBa
 }
 
 template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::Receipts const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (value.originalTime != 0) {
+        writer.WriteFieldBegin(BT_INT64, 1, nullptr);
+        writer.WriteInt64(value.originalTime);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 1, nullptr);
+    }
+
+    if (value.uploadTime != 0) {
+        writer.WriteFieldBegin(BT_INT64, 2, nullptr);
+        writer.WriteInt64(value.uploadTime);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 2, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
 void Serialize(TWriter& writer, ::AriaProtocol::PII const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
@@ -976,76 +1048,28 @@ void Serialize(TWriter& writer, ::AriaProtocol::CsEvent const& value, bool isBas
         writer.WriteFieldOmitted(BT_DOUBLE, 4, nullptr);
     }
 
-    if (!value.epoch.empty()) {
+    if (!value.iKey.empty()) {
         writer.WriteFieldBegin(BT_STRING, 5, nullptr);
-        writer.WriteString(value.epoch);
+        writer.WriteString(value.iKey);
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
     }
 
-    if (value.seqNum != 0) {
+    if (value.flags != 0) {
         writer.WriteFieldBegin(BT_INT64, 6, nullptr);
-        writer.WriteInt64(value.seqNum);
+        writer.WriteInt64(value.flags);
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_INT64, 6, nullptr);
     }
 
-    if (!value.iKey.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
-        writer.WriteString(value.iKey);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
-    }
-
-    if (value.flags != 0) {
-        writer.WriteFieldBegin(BT_INT64, 8, nullptr);
-        writer.WriteInt64(value.flags);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_INT64, 8, nullptr);
-    }
-
-    if (!value.os.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 9, nullptr);
-        writer.WriteString(value.os);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
-    }
-
-    if (!value.osVer.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 10, nullptr);
-        writer.WriteString(value.osVer);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 10, nullptr);
-    }
-
-    if (!value.appId.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 11, nullptr);
-        writer.WriteString(value.appId);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 11, nullptr);
-    }
-
-    if (!value.appVer.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 12, nullptr);
-        writer.WriteString(value.appVer);
-        writer.WriteFieldEnd();
-    } else {
-        writer.WriteFieldOmitted(BT_STRING, 12, nullptr);
-    }
-
     if (!value.cV.empty()) {
-        writer.WriteFieldBegin(BT_STRING, 13, nullptr);
+        writer.WriteFieldBegin(BT_STRING, 7, nullptr);
         writer.WriteString(value.cV);
         writer.WriteFieldEnd();
     } else {
-        writer.WriteFieldOmitted(BT_STRING, 13, nullptr);
+        writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
     }
 
     if (!value.extIngest.empty()) {
@@ -1154,6 +1178,18 @@ void Serialize(TWriter& writer, ::AriaProtocol::CsEvent const& value, bool isBas
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_LIST, 28, nullptr);
+    }
+
+    if (!value.extReceipts.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 29, nullptr);
+        writer.WriteContainerBegin(value.extReceipts.size(), BT_STRUCT);
+        for (auto const& item2 : value.extReceipts) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 29, nullptr);
     }
 
     if (!value.ext.empty()) {
