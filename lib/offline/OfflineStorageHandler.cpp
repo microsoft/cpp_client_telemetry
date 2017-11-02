@@ -73,7 +73,7 @@ void OfflineStorageHandler::Shutdown()
     m_shutdownStarted = true;
     if (nullptr != m_offlineStorageMemory)
     {  // transfer data from Memory DB to Disk DB before shutting down.
-        std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(true, EventPriority_Low, 0);
+        std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(true, EventLatency_Normal, 0);
         std::vector<StorageRecord>::const_iterator iter;
         for (iter = records->begin(); iter != records->end(); iter++)
         {
@@ -123,7 +123,7 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
         if (m_queryDbSize > cacheMemorySizeLimitInBytes)
         {
             // transfer data from Memory DB to Disk DB
-            std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventPriority_Low, 500);
+            std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventLatency_Normal, 500);
             std::vector<StorageRecord>::const_iterator iter;
             std::vector<StorageRecordId> recordIds;
             for (iter = records->begin(); iter != records->end(); iter++)
@@ -163,11 +163,11 @@ bool OfflineStorageHandler::ResizeDb()
     return true;
 }
 
-bool OfflineStorageHandler::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority, unsigned maxCount)
+bool OfflineStorageHandler::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount)
 {
     bool returnValue = false;
     m_lastReadCount = 0;
-    if (nullptr != m_offlineStorageMemory && m_offlineStorageMemory->GetAndReserveRecords(consumer, leaseTimeMs, minPriority, maxCount))
+    if (nullptr != m_offlineStorageMemory && m_offlineStorageMemory->GetAndReserveRecords(consumer, leaseTimeMs, minLatency, maxCount))
     {
         m_readFromMemory = true;
         returnValue =  true;
@@ -177,7 +177,7 @@ bool OfflineStorageHandler::GetAndReserveRecords(std::function<bool(StorageRecor
     if(nullptr == m_offlineStorageMemory || m_lastReadCount == 0)
     { //nothing in memory left to send. lets end from disk
         m_readFromMemory = false;
-        returnValue =  m_offlineStorageDisk->GetAndReserveRecords(consumer, leaseTimeMs, minPriority, maxCount);
+        returnValue =  m_offlineStorageDisk->GetAndReserveRecords(consumer, leaseTimeMs, minLatency, maxCount);
         m_lastReadCount = m_offlineStorageDisk->LastReadRecordCount();
     }
 
@@ -193,10 +193,10 @@ unsigned OfflineStorageHandler::LastReadRecordCount()
     return  m_lastReadCount;
 }
 
-std::vector<StorageRecord>* OfflineStorageHandler::GetRecords(bool shutdown, EventPriority minPriority, unsigned maxCount) 
+std::vector<StorageRecord>* OfflineStorageHandler::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount) 
 {
     UNREFERENCED_PARAMETER(shutdown);
-    UNREFERENCED_PARAMETER(minPriority);
+    UNREFERENCED_PARAMETER(minLatency);
     UNREFERENCED_PARAMETER(maxCount);
     std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
     return records;

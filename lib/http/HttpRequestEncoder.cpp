@@ -48,7 +48,7 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
         }
         tenantTokens.append(item.first);
     }
-    ctx->httpRequest->GetHeaders().set("X-APIKey", tenantTokens);
+    ctx->httpRequest->GetHeaders().set("APIKey", tenantTokens);
 
     if (ctx->compressed) {
         ctx->httpRequest->GetHeaders().add("Content-Encoding", "deflate");
@@ -65,7 +65,7 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     // IHttpRequest::SetBody() is free to swap the real body out, but better clear it anyway.
     ctx->body.clear();
 
-    ctx->httpRequest->SetPriority(ctx->priority);
+    ctx->httpRequest->SetLatency(ctx->latency);
 
     return true;
 }

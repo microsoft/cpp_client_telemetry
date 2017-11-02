@@ -57,15 +57,39 @@ struct User {
     std::string localId;
     // 3: optional string authId
     std::string authId;
+    // 4: optional string locale
+    std::string locale;
 
     bool operator==(User const& other) const
     {
         return (id == other.id)
             && (localId == other.localId)
-            && (authId == other.authId);
+            && (authId == other.authId)
+            && (locale == other.locale);
     }
 
     bool operator!=(User const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Loc {
+    // 1: optional string id
+    std::string id;
+    // 2: optional string country
+    std::string country;
+    // 3: optional string timezone
+    std::string timezone;
+
+    bool operator==(Loc const& other) const
+    {
+        return (id == other.id)
+            && (country == other.country)
+            && (timezone == other.timezone);
+    }
+
+    bool operator!=(Loc const& other) const
     {
         return !(*this == other);
     }
@@ -86,6 +110,10 @@ struct Device {
     std::string orgId;
     // 7: optional string orgAuthId
     std::string orgAuthId;
+    // 8: optional string make
+    std::string make;
+    // 9: optional string model
+    std::string model;
 
     bool operator==(Device const& other) const
     {
@@ -95,7 +123,9 @@ struct Device {
             && (authSecId == other.authSecId)
             && (deviceClass == other.deviceClass)
             && (orgId == other.orgId)
-            && (orgAuthId == other.orgAuthId);
+            && (orgAuthId == other.orgAuthId)
+            && (make == other.make)
+            && (model == other.model);
     }
 
     bool operator!=(Device const& other) const
@@ -144,6 +174,8 @@ struct App {
     std::string id;
     // 6: optional string ver
     std::string ver;
+    // 7: optional string locale
+    std::string locale;
 
     bool operator==(App const& other) const
     {
@@ -152,7 +184,8 @@ struct App {
             && (env == other.env)
             && (asId == other.asId)
             && (id == other.id)
-            && (ver == other.ver);
+            && (ver == other.ver)
+            && (locale == other.locale);
     }
 
     bool operator!=(App const& other) const
@@ -361,11 +394,17 @@ struct Protocol {
     int32_t metadataCrc = 0;
     // 2: optional vector<vector<string>> ticketKeys
     std::vector<std::vector<std::string>> ticketKeys;
+    // 3: optional string devMake
+    std::string devMake;
+    // 4: optional string devModel
+    std::string devModel;
 
     bool operator==(Protocol const& other) const
     {
         return (metadataCrc == other.metadataCrc)
-            && (ticketKeys == other.ticketKeys);
+            && (ticketKeys == other.ticketKeys)
+            && (devMake == other.devMake)
+            && (devModel == other.devModel);
     }
 
     bool operator!=(Protocol const& other) const
@@ -387,6 +426,63 @@ struct Receipts {
     }
 
     bool operator!=(Receipts const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Diag {
+    // 1: optional string orgtime
+    std::string orgtime;
+
+    bool operator==(Diag const& other) const
+    {
+        return (orgtime == other.orgtime);
+    }
+
+    bool operator!=(Diag const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Net {
+    // 1: optional string provider
+    std::string provider;
+    // 2: optional string cost
+    std::string cost;
+    // 3: optional string type
+    std::string type;
+
+    bool operator==(Net const& other) const
+    {
+        return (provider == other.provider)
+            && (cost == other.cost)
+            && (type == other.type);
+    }
+
+    bool operator!=(Net const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Sdk {
+    // 1: optional string libVer
+    std::string libVer;
+    // 2: optional string epoch
+    std::string epoch;
+    // 3: optional int64 seq
+    int64_t seq = 0;
+
+    bool operator==(Sdk const& other) const
+    {
+        return (libVer == other.libVer)
+            && (epoch == other.epoch)
+            && (seq == other.seq);
+    }
+
+    bool operator!=(Sdk const& other) const
     {
         return !(*this == other);
     }
@@ -590,6 +686,14 @@ struct CsEvent {
     std::vector< ::AriaProtocol::Javascript> extJavascript;
     // 29: optional vector<Receipts> extReceipts
     std::vector< ::AriaProtocol::Receipts> extReceipts;
+    // 30: optional vector<Diag> extDiag
+    std::vector< ::AriaProtocol::Diag> extDiag;
+    // 31: optional vector<Net> extNet
+    std::vector< ::AriaProtocol::Net> extNet;
+    // 32: optional vector<Sdk> extSdk
+    std::vector< ::AriaProtocol::Sdk> extSdk;
+    // 33: optional vector<Loc> extLoc
+    std::vector< ::AriaProtocol::Loc> extLoc;
     // 41: optional vector<Data> ext
     std::vector< ::AriaProtocol::Data> ext;
     // 51: optional map<string, string> tags
@@ -620,6 +724,10 @@ struct CsEvent {
             && (extXbl == other.extXbl)
             && (extJavascript == other.extJavascript)
             && (extReceipts == other.extReceipts)
+            && (extDiag == other.extDiag)
+            && (extNet == other.extNet)
+            && (extSdk == other.extSdk)
+            && (extLoc == other.extLoc)
             && (ext == other.ext)
             && (tags == other.tags)
             && (baseType == other.baseType)

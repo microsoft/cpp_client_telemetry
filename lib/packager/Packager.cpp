@@ -37,10 +37,10 @@ void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, Storag
         }
     }
 
-    if (ctx->priority == EventPriority_Unspecified) {
-        ctx->priority = record.priority;
-        ARIASDK_LOG_DETAIL("The highest priority found was %d (%s)",
-            ctx->priority, priorityToStr(ctx->priority));
+    if (ctx->latency == EventPriority_Unspecified) {
+        ctx->latency = record.latency;
+        ARIASDK_LOG_DETAIL("The highest latency found was %d (%s)",
+            ctx->latency, priorityToStr(ctx->latency));
     }
 
     ARIASDK_LOG_DETAIL("Adding event %s:%s, size %u bytes",

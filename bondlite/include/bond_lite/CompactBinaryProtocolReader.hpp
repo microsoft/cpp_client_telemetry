@@ -23,6 +23,11 @@ class CompactBinaryProtocolReader {
     {
     }
 
+    size_t getSize()
+    {
+        return m_ofs;
+    }
+
   protected:
     template<typename T>
     bool readVarint(T& value)

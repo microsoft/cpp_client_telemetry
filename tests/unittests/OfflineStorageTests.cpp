@@ -83,14 +83,14 @@ TEST_F(OfflineStorageTests, StoreRecordIsForwarded)
 TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
 {
     auto ctx = EventsUploadContext::create();
-    ctx->requestedMinPriority = EventPriority_Normal;
+    ctx->requestedMinLatency = EventLatency_Normal;
     ctx->requestedMaxCount = 6;
 
-    StorageRecord record1("r1", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>{1, 127, 255});
-    StorageRecord record2("r2", "tenant2-token", EventPriority_Normal, 1234567891, std::vector<uint8_t>{2, 128, 0});
-    EXPECT_CALL(offlineStorageMock, GetAndReserveRecords(_, Gt(1000u), ctx->requestedMinPriority, ctx->requestedMaxCount))
+    StorageRecord record1("r1", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>{1, 127, 255});
+    StorageRecord record2("r2", "tenant2-token", EventLatency_Normal, EventPersistence_Normal, 1234567891, std::vector<uint8_t>{2, 128, 0});
+    EXPECT_CALL(offlineStorageMock, GetAndReserveRecords(_, Gt(1000u), ctx->requestedMinLatency, ctx->requestedMaxCount))
         .WillOnce(DoAll(
-        Invoke([&record1, &record2](std::function<bool(StorageRecord&&)> const& consumer, unsigned, EventPriority, unsigned) {
+        Invoke([&record1, &record2](std::function<bool(StorageRecord&&)> const& consumer, unsigned, EventLatency, unsigned) {
         EXPECT_THAT(consumer(std::move(record1)), true);
         EXPECT_THAT(consumer(std::move(record2)), false);
     }),
@@ -117,10 +117,10 @@ TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
 TEST_F(OfflineStorageTests, RetrieveEventsFailureAborts)
 {
     auto ctx = EventsUploadContext::create();
-    ctx->requestedMinPriority = EventPriority_Normal;
+    ctx->requestedMinLatency = EventLatency_Normal;
     ctx->requestedMaxCount = 6;
 
-    EXPECT_CALL(offlineStorageMock, GetAndReserveRecords(_, Gt(1000u), ctx->requestedMinPriority, ctx->requestedMaxCount))
+    EXPECT_CALL(offlineStorageMock, GetAndReserveRecords(_, Gt(1000u), ctx->requestedMinLatency, ctx->requestedMaxCount))
         .WillOnce(Return(false));
 	EXPECT_CALL(offlineStorageMock, IsLastReadFromMemory())
 		.WillOnce(Return(false));

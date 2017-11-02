@@ -19,7 +19,7 @@ class RuntimeConfig_Default : public IRuntimeConfig {
     virtual void SetDefaultConfig(IRuntimeConfig& defaultConfig) override;
     virtual std::string GetCollectorUrl() const override;
     virtual void DecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName) const override;
-    virtual EventPriority GetEventPriority(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) const override;
+    virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) const override;
     virtual std::string GetMetaStatsTenantToken() const override;
     virtual unsigned GetMetaStatsSendIntervalSec() const override;
     virtual unsigned GetOfflineStorageMaximumSizeBytes() const override;
@@ -29,7 +29,7 @@ class RuntimeConfig_Default : public IRuntimeConfig {
     virtual bool IsHttpRequestCompressionEnabled() const override;
     virtual unsigned GetMinimumUploadBandwidthBps() const override;
     virtual unsigned GetMaximumUploadSizeBytes() const override;
-    virtual void SetEventPriority(std::string const& tenantId, std::string const& eventName, EventPriority priority) override;
+    virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override;
 	virtual bool IsClockSkewEnabled() const override;
 
   protected:

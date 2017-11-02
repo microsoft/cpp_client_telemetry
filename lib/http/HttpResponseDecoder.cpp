@@ -26,7 +26,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
         case HttpResult_OK:
             if (response.GetStatusCode() == 200) {
                 outcome = Accepted;
-            } else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408) {
+            } else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429) {
                 outcome = RetryServer;
             } else {
                 outcome = Rejected;

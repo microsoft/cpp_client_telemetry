@@ -26,6 +26,7 @@ class MetaStatsTests : public ::testing::Test
 TEST_F(MetaStatsTests, NoInputGeneratesNoEvents)
 {
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
+    EXPECT_CALL(runtimeConfigMock, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
     auto events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_START);
     EXPECT_THAT(events, SizeIs(1));
 }
@@ -33,17 +34,18 @@ TEST_F(MetaStatsTests, NoInputGeneratesNoEvents)
 TEST_F(MetaStatsTests, GenerateStartEvent)
 {
     unsigned const postDataLength         = 234;
-    unsigned const lowPriorityCount       = 1;
-    unsigned const normalPriorityCount    = 2;
-    unsigned const highPriorityCount      = 3;
-    unsigned const immediatePriorityCount = 1;
+    unsigned const lowLatencyCount       = 1;
+    unsigned const normalLatencyCount    = 2;
+    unsigned const highLatencyCount      = 3;
+    unsigned const immediateLatencyCount = 1;
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
+    EXPECT_CALL(runtimeConfigMock, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
     stats.updateOnStorageOpened("MyStorage/Normal");
     stats.updateOnPostData(postDataLength, false);
-    stats.updateOnPackageSentSucceeded(EventPriority_Low,        0,   333, std::vector<unsigned>{ 1333 },          false);
-    stats.updateOnPackageSentSucceeded(EventPriority_Normal,     1,   444, std::vector<unsigned>{ 1444, 2444 },    false);
-    stats.updateOnPackageSentSucceeded(EventPriority_High,       3,  5555, std::vector<unsigned>{ 15, 255, 3555 }, false);
-    stats.updateOnPackageSentSucceeded(EventPriority_Immediate,  0,   666, std::vector<unsigned>{ 666 },           false);
+    stats.updateOnPackageSentSucceeded(EventLatency_Normal,        0,   333, std::vector<unsigned>{ 1333 },          false);
+    stats.updateOnPackageSentSucceeded(EventLatency_Normal,     1,   444, std::vector<unsigned>{ 1444, 2444 },    false);
+    stats.updateOnPackageSentSucceeded(EventLatency_RealTime,       3,  5555, std::vector<unsigned>{ 15, 255, 3555 }, false);
+    stats.updateOnPackageSentSucceeded(EventLatency_Max,  0,   666, std::vector<unsigned>{ 666 },           false);
     stats.updateOnPackageFailed(500);
     stats.updateOnPackageFailed(500);
     stats.updateOnPackageRetry(500, 2);
@@ -60,27 +62,27 @@ TEST_F(MetaStatsTests, GenerateStartEvent)
     //EXPECT_THAT(events[0].Extension, Contains(Pair("DeviceInfo.OsName", _)));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("stats_rollup_kind", "start")));
 
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_priority_records_sent_count",                                         toString(lowPriorityCount))));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_priority_log_to_successful_send_latency_millisec_distribution",       "0-1000:0,1000-2000:1,2000-4000:0,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_priority_log_to_successful_send_latency_millisec_max",                "1333")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_priority_log_to_successful_send_latency_millisec_min",                "1333")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_latency_records_sent_count",                                         toString(lowLatencyCount))));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_latency_log_to_successful_send_latency_millisec_distribution",       "0-1000:0,1000-2000:1,2000-4000:0,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_latency_log_to_successful_send_latency_millisec_max",                "1333")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("low_latency_log_to_successful_send_latency_millisec_min",                "1333")));
 
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_priority_records_sent_count",                                      toString(normalPriorityCount))));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_priority_log_to_successful_send_latency_millisec_distribution",    "0-1000:0,1000-2000:1,2000-4000:1,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_priority_log_to_successful_send_latency_millisec_max",             "2444")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_priority_log_to_successful_send_latency_millisec_min",             "1444")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_latency_records_sent_count",                                      toString(normalLatencyCount))));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_latency_log_to_successful_send_latency_millisec_distribution",    "0-1000:0,1000-2000:1,2000-4000:1,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_latency_log_to_successful_send_latency_millisec_max",             "2444")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("normal_latency_log_to_successful_send_latency_millisec_min",             "1444")));
 
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_priority_records_sent_count",                                        toString(highPriorityCount))));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_priority_log_to_successful_send_latency_millisec_distribution",      "0-1000:2,1000-2000:0,2000-4000:1,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_priority_log_to_successful_send_latency_millisec_max",               "3555")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_priority_log_to_successful_send_latency_millisec_min",               "15")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_latency_records_sent_count",                                        toString(highLatencyCount))));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_latency_log_to_successful_send_latency_millisec_distribution",      "0-1000:2,1000-2000:0,2000-4000:1,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_latency_log_to_successful_send_latency_millisec_max",               "3555")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_latency_log_to_successful_send_latency_millisec_min",               "15")));
 
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_priority_records_sent_count",                                   toString(immediatePriorityCount))));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_priority_log_to_successful_send_latency_millisec_distribution", "0-1000:1,1000-2000:0,2000-4000:0,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_priority_log_to_successful_send_latency_millisec_max",          "666")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_priority_log_to_successful_send_latency_millisec_min",          "666")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_latency_records_sent_count",                                   toString(immediateLatencyCount))));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_latency_log_to_successful_send_latency_millisec_distribution", "0-1000:1,1000-2000:0,2000-4000:0,4000-8000:0,8000-16000:0,16000-32000:0,>32000:0")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_latency_log_to_successful_send_latency_millisec_max",          "666")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("immediate_latency_log_to_successful_send_latency_millisec_min",          "666")));
 
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("records_sent_count",                               toString(lowPriorityCount + normalPriorityCount + highPriorityCount + immediatePriorityCount))));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("records_sent_count",                               toString(lowLatencyCount + normalLatencyCount + highLatencyCount + immediateLatencyCount))));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked",                                   "8")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked_dropped",                           "2")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked_dropped_on_HTTP_500",               "2")));
@@ -103,8 +105,9 @@ TEST_F(MetaStatsTests, GenerateStartEvent)
 TEST_F(MetaStatsTests, GenerateStopEvent)
 {
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
+    EXPECT_CALL(runtimeConfigMock, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
     stats.updateOnPostData(16, false);
-    stats.updateOnPackageSentSucceeded(EventPriority_High, 1, 99, std::vector<unsigned>{ 100, 101, 102, 103, 104, 105, 106 }, false);
+    stats.updateOnPackageSentSucceeded(EventLatency_RealTime, 1, 99, std::vector<unsigned>{ 100, 101, 102, 103, 104, 105, 106 }, false);
     stats.updateOnPackageFailed(501);
     stats.updateOnPackageFailed(403);
     stats.updateOnPackageRetry(505, 2);
@@ -116,7 +119,7 @@ TEST_F(MetaStatsTests, GenerateStopEvent)
     //EXPECT_THAT(events[0].Extension, Contains(Pair("EventInfo.Time", _)));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("DeviceInfo.OsName", _)));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("stats_rollup_kind",                                "stop")));
-    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_priority_records_sent_count",                 "7")));
+    //EXPECT_THAT(events[0].Extension, Contains(Pair("high_latency_records_sent_count",                 "7")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("records_sent_count",                               "7")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked",                                   "4")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked_dropped",                           "2")));
@@ -134,9 +137,10 @@ TEST_F(MetaStatsTests, NoNewDataOrMetastatsOnlyGenerateNoEvents)
 {
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec())
         .WillRepeatedly(Return(123));
+    EXPECT_CALL(runtimeConfigMock, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
 
     // Send one normal event first to verify that stats are reset on generation.
-    stats.updateOnEventIncoming(123, EventPriority_High, false);
+    stats.updateOnEventIncoming(123, EventLatency_RealTime, false);
     auto events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_ONGOING);
     //EXPECT_THAT(events, SizeIs(1));
 
@@ -147,19 +151,19 @@ TEST_F(MetaStatsTests, NoNewDataOrMetastatsOnlyGenerateNoEvents)
     //EXPECT_THAT(events, SizeIs(0));
 
     // Simulate logging and uploading some metastats events only. Nothing should be generated either.
-    stats.updateOnEventIncoming(123, EventPriority_High, true);
-    stats.updateOnEventIncoming(123, EventPriority_Normal, true);
+    stats.updateOnEventIncoming(123, EventLatency_RealTime, true);
+    stats.updateOnEventIncoming(123, EventLatency_Normal, true);
     stats.updateOnPostData(123, true);
-    stats.updateOnPackageSentSucceeded(EventPriority_High, 0, 123, std::vector<unsigned>{ 1234 }, true);
+    stats.updateOnPackageSentSucceeded(EventLatency_RealTime, 0, 123, std::vector<unsigned>{ 1234 }, true);
     events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_ONGOING);
     //EXPECT_THAT(events, SizeIs(0));
     events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_ONGOING);
     //EXPECT_THAT(events, SizeIs(0));
 
     // Verify events are generated again once some normal event arrives.
-    stats.updateOnEventIncoming(123, EventPriority_High, false);
+    stats.updateOnEventIncoming(123, EventLatency_RealTime, false);
     // Even if the last record is metastats.
-    stats.updateOnEventIncoming(123, EventPriority_High, true);
+    stats.updateOnEventIncoming(123, EventLatency_RealTime, true);
     events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_ONGOING);
     //EXPECT_THAT(events, SizeIs(1));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("records_received_count",   "4")));

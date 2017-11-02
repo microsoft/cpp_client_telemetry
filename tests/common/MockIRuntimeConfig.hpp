@@ -15,7 +15,7 @@ class MockIRuntimeConfig : public ARIASDK_NS::IRuntimeConfig {
     MOCK_CONST_METHOD3(DecorateEvent, void(std::map<std::string, std::string> &, std::string const &, std::string const &));
     MOCK_CONST_METHOD0(GetCollectorUrl, std::string());
     MOCK_CONST_METHOD0(GetMetaStatsTenantToken, std::string());
-    MOCK_CONST_METHOD2(GetEventPriority, ARIASDK_NS::EventPriority(std::string const &, std::string const &));
+    MOCK_CONST_METHOD2(GetEventLatency, ARIASDK_NS::EventLatency(std::string const &, std::string const &));
     MOCK_CONST_METHOD0(GetMetaStatsSendIntervalSec, unsigned());
     MOCK_CONST_METHOD0(GetOfflineStorageMaximumSizeBytes, unsigned());
     MOCK_CONST_METHOD0(GetOfflineStorageResizeThresholdPct, unsigned());
@@ -24,7 +24,7 @@ class MockIRuntimeConfig : public ARIASDK_NS::IRuntimeConfig {
     MOCK_CONST_METHOD0(IsHttpRequestCompressionEnabled, bool());
     MOCK_CONST_METHOD0(GetMinimumUploadBandwidthBps, unsigned());
     MOCK_CONST_METHOD0(GetMaximumUploadSizeBytes, unsigned());
-    MOCK_METHOD3(SetEventPriority, void(std::string const &, std::string const &, ARIASDK_NS::EventPriority));
+    MOCK_METHOD3(SetEventLatency, void(std::string const &, std::string const &, ARIASDK_NS::EventLatency));
 	bool IsClockSkewEnabled() const override
 	{
 		return false;

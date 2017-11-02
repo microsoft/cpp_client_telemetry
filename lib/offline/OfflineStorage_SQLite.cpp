@@ -82,7 +82,7 @@ void OfflineStorage_SQLite::Shutdown()
 
 bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
 {
-    if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.priority) < 0 || record.timestamp <= 0) {
+    if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
         ARIASDK_LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
             tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
         return false;
@@ -98,7 +98,7 @@ bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
             tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
 
         if (beginIfNotInTransaction() &&
-            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.priority), record.timestamp, record.blob))
+            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob))
         {
             scheduleAutoCommitTransaction();
             if (trimDbIfNeeded(/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size())) {
@@ -118,7 +118,7 @@ bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
     return false;
 }
 
-bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority, unsigned maxCount)
+bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount)
 {
     m_lastReadCount = 0;
     if (!m_db) {
@@ -127,7 +127,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
     }
 
     ARIASDK_LOG_DETAIL("Retrieving max. %u%s events of priority at least %d (%s)",
-        maxCount, (maxCount > 0) ? "" : " (unlimited)", minPriority, priorityToStr(static_cast<EventPriority>(minPriority)));
+        maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, priorityToStr(static_cast<EventLatency>(minLatency)));
 
     if (!commitIfInTransaction()) {
         ARIASDK_LOG_ERROR("Failed to commit queued events: Database error has occurred, recreating database");
@@ -157,7 +157,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         return false;
     }
     SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
-    if (!selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1)) {
+    if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
         ARIASDK_LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
         recreate(204);
         return false;
@@ -166,14 +166,14 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
     std::vector<StorageRecordId> consumedIds;
     std::vector<StorageRecordId> killedConsumedIds;
     StorageRecord record;
-    int priority;
-    while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+    int latency;
+    while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
     {
-        if (priority < EventPriority_Off || priority > EventPriority_Immediate) {
-            record.priority = EventPriority_Normal;
+        if (latency < EventLatency_Off || latency > EventLatency_Max) {
+            record.latency = EventLatency_Normal;
         }
         else {
-            record.priority = static_cast<EventPriority>(priority);
+            record.latency = static_cast<EventLatency>(latency);
         }
         // The record ID needs to be saved before std::move() below.
         if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
@@ -254,7 +254,7 @@ unsigned OfflineStorage_SQLite::LastReadRecordCount()
     return  m_lastReadCount;
 }
 
-std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, EventPriority minPriority, unsigned maxCount) 
+std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount) 
 {
     std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
     StorageRecord record;
@@ -262,12 +262,12 @@ std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, Eve
     if (shutdown)
     {
         SqliteStatement selectStmt(*m_db, m_stmtSelectEventAtShutdown);
-        if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+        if (selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1))
         {
-            int priority;
-            while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+            int latency;
+            while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
             {
-                record.priority = static_cast<EventPriority>(priority);
+                record.latency = static_cast<EventLatency>(latency);
                 records->push_back(record);
             }
             selectStmt.reset();
@@ -276,12 +276,12 @@ std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, Eve
     else
     {
         SqliteStatement selectStmt(*m_db, m_stmtSelectEventsMinPriority);
-        if (selectStmt.select(static_cast<int>(minPriority), maxCount > 0 ? maxCount : -1))
+        if (selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1))
         {
-            int priority;
-            while (selectStmt.getRow(record.id, record.tenantToken, priority, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+            int latency;
+            while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
             {
-                record.priority = static_cast<EventPriority>(priority);
+                record.latency = static_cast<EventLatency>(latency);
                 records->push_back(record);
             }
             selectStmt.reset();
@@ -547,6 +547,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "record_id"      " TEXT,"
         "tenant_token"   " TEXT NOT NULL,"
         "priority"       " INTEGER,"
+        "persistence"    " INTEGER,"
         "timestamp"      " INTEGER,"
         "retry_count"    " INTEGER DEFAULT 0,"
         "reserved_until" " INTEGER DEFAULT 0,"
@@ -556,7 +557,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
 
     if (!SqliteStatement(*m_db,
         "CREATE INDEX IF NOT EXISTS k_priority_timestamp ON " TABLE_NAME_EVENTS
-        " (priority DESC, timestamp ASC)"
+        " (priority DESC, persistence DESC, timestamp ASC)"
         ).execute()) { return false; }
 
     if (!SqliteStatement(*m_db,
@@ -588,7 +589,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "PRAGMA incremental_vacuum(0)");
     PREPARE_SQL(m_stmtTrimEvents_percent,
         "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
-        "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY priority ASC, timestamp ASC LIMIT MAX(1,"
+        "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
         "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
         "* ? / 100)"
         ")");
@@ -603,12 +604,12 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
         " WHERE priority>=? AND reserved_until=0"
-        " ORDER BY priority DESC, timestamp ASC LIMIT ?");
+        " ORDER BY priority DESC,persistence DESC, timestamp ASC LIMIT ?");
     PREPARE_SQL(m_stmtSelectEventAtShutdown,
         "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
         " WHERE priority>=?"
-        " ORDER BY priority DESC, timestamp ASC LIMIT ?");
+        " ORDER BY priority DESC,persistence DESC, timestamp ASC LIMIT ?");
     PREPARE_SQL(m_stmtSelectEventsMinPriority,
         "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
@@ -629,7 +630,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "DELETE FROM " TABLE_NAME_EVENTS
         " WHERE retry_count>?");
     PREPARE_SQL(m_stmtInsertEvent_id_tenant_prio_ts_data,
-        "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,priority,timestamp,payload) VALUES (?,?,?,?,?)");
+        "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,priority,persistence,timestamp,payload) VALUES (?,?,?,?,?,?)");
     PREPARE_SQL(m_stmtInsertSetting_name_value,
         "REPLACE INTO " TABLE_NAME_SETTINGS " (name,value) VALUES (?,?)");
     PREPARE_SQL(m_stmtDeleteSetting_name,

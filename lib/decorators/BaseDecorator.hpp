@@ -43,33 +43,32 @@ class BaseDecorator : public DecoratorBase {
         if (m_initIdP) delete m_initIdP;
     }
 
-    bool decorate(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority)
+    bool decorate(::AriaProtocol::CsEvent& record)
     {
-        UNREFERENCED_PARAMETER(priority);
-       
+        if (record.extSdk.size() == 0)
+        {
+            ::AriaProtocol::Sdk sdk;
+            record.extSdk.push_back(sdk);
+        }
+      
+
         //record.Id         = PAL::generateUuidString();
-        record.time       = PAL::getUtcSystemTimeinTicks();
-        //std::string sdkVersion = PAL::getSdkVersion();
-        //record.sdk = //sdkVersion;
+        record.time       = PAL::getUtcSystemTimeinTicks();       
         record.ver = "3.0";        
         if (record.baseType.empty())
         {  
             record.baseType = record.name;
-        } 
-      
+        }     
 
-        if (record.extUtc.size() == 0)
-        {
-            ::AriaProtocol::Utc utc;
-            record.extUtc.push_back(utc);
-        }
+      
         //if (record.data.size() == 0) {        AriaProtocol::Data temp;            record.data.push_back(temp);        }
         //setIfNotEmpty(record.data[0].properties,            EventInfo_Source,     *m_sourceP);
         //setIfNotEmpty(record.data[0].properties,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.time));
         //setIfNotEmpty(record.data[0].properties,            EventInfo_InitId,     *m_initIdP);
-        record.extUtc[0].seq = ++m_sequenceId;
-        record.popSample = 100.00;
-        record.extUtc[0].epoch = "epoch";
+        record.extSdk[0].seq = ++m_sequenceId;        
+        record.extSdk[0].epoch = *m_initIdP;
+        std::string sdkVersion = PAL::getSdkVersion();
+        record.extSdk[0].libVer = sdkVersion;
 
         return true;
     }

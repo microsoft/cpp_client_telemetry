@@ -85,6 +85,8 @@ namespace ARIASDK_NS_BEGIN
         EVT_NET_CHANGED = 0x0D000000,
         /// <summary>Storage full</summary>
         EVT_STORAGE_FULL = 0x0E000000,
+        /// <summary>Ticket Expired</summary>
+        EVT_TICKET_EXPIRED = 0x0F000000,
         /// <summary>Unknown error</summary>
         EVT_UNKNOWN = 0xDEADBEEF,
 

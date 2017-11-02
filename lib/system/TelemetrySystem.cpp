@@ -128,7 +128,7 @@ void TelemetrySystem::stop()
 
 void TelemetrySystem::UploadNow()
 {
-    tpm.scheduleUpload(0, EventPriority_Low);
+    tpm.scheduleUpload(0, EventLatency_Normal);
 }
 
 void TelemetrySystem::pauseTransmission()

@@ -66,7 +66,7 @@ bool validateEventName(std::string const& name)
 		return false;
 	}
 
-	auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_'); };
+	auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.'); };
 	if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
 		ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
 		return false;

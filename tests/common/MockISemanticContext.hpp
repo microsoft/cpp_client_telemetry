@@ -33,6 +33,7 @@ class MockISemanticContext : public ARIASDK_NS::ISemanticContext {
 	MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));
 	MOCK_METHOD1(SetAppExperimentImpressionId, void(std::string const& appExperimentImpressionId));
 	MOCK_METHOD2(SetEventExperimentIds, void(std::string const& eventName, std::string const& experimentIds));
+    MOCK_METHOD2(SetTicket, void(ARIASDK_NS::TicketType type, std::string const& ticketValue));
 };
 
 

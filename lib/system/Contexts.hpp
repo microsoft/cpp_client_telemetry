@@ -23,9 +23,9 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
     {
     }
 
-    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventPriority priority, ::AriaProtocol::CsEvent* source)
+    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::AriaProtocol::CsEvent* source)
       : source(source),
-        record{id, tenantToken, priority}
+        record{id, tenantToken, latency, persistence}
     {
     }
 };
@@ -37,13 +37,13 @@ using IncomingEventContextPtr = PAL::RefCountedPtr<IncomingEventContext>;
 class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
   public:
     // Retrieving
-    EventPriority                        requestedMinPriority = EventPriority_Unspecified;
+    EventLatency                         requestedMinLatency = EventLatency_Unspecified;
     unsigned                             requestedMaxCount = 0;
 
     // Packaging
     BondSplicer                          splicer;
     unsigned                             maxUploadSize = 0;
-    EventPriority                        priority = EventPriority_Unspecified;
+    EventLatency                         latency = EventLatency_Unspecified;
     std::map<std::string, size_t>        packageIds;
     std::vector<std::string>             recordIds;
     std::vector<int64_t>                 recordTimestamps;

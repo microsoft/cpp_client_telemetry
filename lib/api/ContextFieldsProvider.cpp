@@ -15,6 +15,7 @@ ContextFieldsProvider::ContextFieldsProvider()
     , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
     , m_customContextFieldsP(new std::map<std::string, EventProperty>())
     , m_CommonFieldsAppExperimentIdsP( new std::string())
+    , m_ticketsMapP(new std::map<TicketType, std::string>())
 {
 
 }
@@ -25,6 +26,7 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
    ,m_customContextFieldsP( new std::map<std::string, EventProperty>())
    ,m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
    ,m_CommonFieldsAppExperimentIdsP(new std::string())
+   ,m_ticketsMapP(new std::map<TicketType, std::string>())
 {
     if (!m_parent) 
     {
@@ -48,6 +50,7 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
     m_commonContextEventToConfigIdsP =  new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
     m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
+    m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
 }
 
 ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
@@ -57,6 +60,7 @@ ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider co
     m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
     m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
     m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
+    m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
     return *this;
 }
 
@@ -71,6 +75,7 @@ ContextFieldsProvider::~ContextFieldsProvider()
     if (m_customContextFieldsP) delete m_customContextFieldsP;
     if (m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
     if (m_CommonFieldsAppExperimentIdsP) delete m_CommonFieldsAppExperimentIdsP;
+    if (m_ticketsMapP) delete m_ticketsMapP;
 }
 
 void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty value)
@@ -123,6 +128,18 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         record.extUser.push_back(user);
     }
 
+    if (record.extLoc.size() == 0)
+    {
+        ::AriaProtocol::Loc loc;
+        record.extLoc.push_back(loc);
+    }
+
+    if (record.extNet.size() == 0)
+    {
+        ::AriaProtocol::Net net;
+        record.extNet.push_back(net);
+    }
+    
     std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
     {
         std::lock_guard<std::mutex> lock(*m_lockP);
@@ -169,25 +186,25 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         if (m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_LANGUAGE];
-            record.extOs[0].locale = prop.as_string;
+            record.extApp[0].locale = prop.as_string;
         }       
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_ID];
-            record.extDevice[0].id = prop.as_string;
+            record.extDevice[0].localId = prop.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE) != m_commonContextFieldsP->end())// COMMONFIELDS_DEVICE_MODEL
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MAKE];
-            record.extDevice[0].authSecId = prop.as_string;
+            record.extDevice[0].make = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end())// 
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MODEL];
-            //record.extDevice[0].model= prop.as_string;
+            record.extDevice[0].model= prop.as_string;
         }
         
         if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
@@ -196,22 +213,29 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
             record.extOs[0].name = prop.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_VERSION) != m_commonContextFieldsP->end())
+        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_BUILD) != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
-            record.extOs[0].ver = prop.as_string;
+            //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
+            EventProperty prop1 = (*m_commonContextFieldsP)[COMMONFIELDS_OS_BUILD];// build has version in it
+            record.extOs[0].ver = prop1.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_USER_ID) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_ID];
-            record.extUser[0].id = prop.as_string;
+            record.extUser[0].localId = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_USER_LANGUAGE) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_LANGUAGE];
-            record.extUser[0].localId = prop.as_string;
+            record.extUser[0].locale = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_TIMEZONE) != m_commonContextFieldsP->end())
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_TIMEZONE];
+            record.extLoc[0].timezone = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_USER_MSAID) != m_commonContextFieldsP->end())
@@ -219,26 +243,36 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_MSAID];
             record.extDevice[0].authSecId = prop.as_string;
         }
-
-
+        
         if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_COST) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_COST];
-            //record.extNet[0].cost = prop.as_string;
+            record.extNet[0].cost = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_PROVIDER) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_PROVIDER];
-            //record.extNet[0].provider = prop.as_string;
+            record.extNet[0].provider = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_TYPE) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_TYPE];
-            //record.extNet[0].type = prop.as_string;
+            record.extNet[0].type = prop.as_string;
         }
 
+        if (m_ticketsMapP->size() > 0)
+        {
+            std::vector<std::string> tickets;
+            for (auto const& field : (*m_ticketsMapP))
+            {
+                tickets.push_back(field.second);
+            }
+            AriaProtocol::Protocol temp;
+            temp.ticketKeys.push_back(tickets);
+            record.extProtocol.push_back(temp);
+        }
 
         for (auto const& field : (*m_customContextFieldsP))
         {
@@ -518,6 +552,14 @@ void ContextFieldsProvider::SetUserLanguage(std::string const& language)
 void ContextFieldsProvider::SetUserTimeZone(std::string const& timeZone)
 {
     setCommonField(COMMONFIELDS_USER_TIMEZONE, timeZone);
+}
+
+void ContextFieldsProvider::SetTicket(TicketType type, std::string const& ticketValue)
+{
+    if (!ticketValue.empty())
+    {
+        (*m_ticketsMapP)[type] = ticketValue;
+    }
 }
 
 

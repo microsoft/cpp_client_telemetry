@@ -343,9 +343,9 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, NoInitializationMeansNoDatabase)
     os->Initialize(observerMock);
 
     // No database is open, but other methods are still safe to call and no SQLite methods will be invoked
-    os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {'x'}});
+    os->StoreRecord({"guid", "tenant", EventLatency_Normal,EventPersistence_Normal, 2, {'x'}});
 	bool fromMemory = false;
-    os->GetAndReserveRecords(consumer, 1000, EventPriority_Normal, 3);
+    os->GetAndReserveRecords(consumer, 1000, EventLatency_Normal, 3);
 	HttpHeaders test;
     os->DeleteRecords({"guid"}, test, fromMemory);
     os->ReleaseRecords({"guid"}, true, test, fromMemory);
@@ -619,9 +619,9 @@ TEST_F(OfflineStorageTests_SQLiteWithMock, CompletelyFailedInitializationMeansNo
     os->Initialize(observerMock);
 
     // No database is open, but other methods are still safe to call and no SQLite methods will be invoked
-    os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {'x'}});
+    os->StoreRecord({"guid", "tenant", EventLatency_Normal,EventPersistence_Normal, 2, {'x'}});
 	bool fromMemory = false;
-    os->GetAndReserveRecords(consumer, 1000, EventPriority_Normal, 3);
+    os->GetAndReserveRecords(consumer, 1000, EventLatency_Normal, 3);
 	HttpHeaders test;
     os->DeleteRecords({"guid"}, test, fromMemory);
     os->ReleaseRecords({"guid"}, true, test, fromMemory);
@@ -899,10 +899,13 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_Succeeds)
     EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "REPLACE INTO events .*"), 3, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "REPLACE INTO events .*"), 4, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "REPLACE INTO events .*"), 4, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_bind_blob(PreparedStatement(this, "REPLACE INTO events .*"), 5, _, 1, _))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "REPLACE INTO events .*"), 5, 2))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_bind_blob(PreparedStatement(this, "REPLACE INTO events .*"), 6, _, 1, _))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "REPLACE INTO events .*")))
@@ -912,7 +915,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_Succeeds)
     EXPECT_CALL(*os, scheduleAutoCommitTransaction())
         .RetiresOnSaturation();
 
-    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {3}}), true);
+    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventLatency_Normal,EventPersistence_Normal, 2, {3}}), true);
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "COMMIT")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
@@ -921,10 +924,10 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_Succeeds)
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_FailsWithInvalidInput)
 {
-    EXPECT_THAT(os->StoreRecord({"",     "tenant",  EventPriority_Low,               2, {3}}), false);
-    EXPECT_THAT(os->StoreRecord({"guid", "",        EventPriority_Low,               2, {3}}), false);
-    EXPECT_THAT(os->StoreRecord({"guid", "tenant",  EventPriority_Unspecified,       2, {3}}), false);
-    EXPECT_THAT(os->StoreRecord({"guid", "tenant",  EventPriority_Normal,            0, {3}}), false);
+    EXPECT_THAT(os->StoreRecord({"",     "tenant",  EventLatency_Normal,EventPersistence_Normal,               2, {3}}), false);
+    EXPECT_THAT(os->StoreRecord({"guid", "",        EventLatency_Normal,EventPersistence_Normal,               2, {3}}), false);
+    EXPECT_THAT(os->StoreRecord({"guid", "tenant",  EventLatency_Unspecified,EventPersistence_Normal,       2, {3}}), false);
+    EXPECT_THAT(os->StoreRecord({"guid", "tenant",  EventLatency_Normal, EventPersistence_Normal,           0, {3}}), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_RetriesOnceOnError)
@@ -944,10 +947,13 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_RetriesOnceOnE
     EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "REPLACE INTO events .*"), 3, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "REPLACE INTO events .*"), 4, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "REPLACE INTO events .*"), 4, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_bind_blob(PreparedStatement(this, "REPLACE INTO events .*"), 5, _, 20000, _))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "REPLACE INTO events .*"), 5, 2))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_bind_blob(PreparedStatement(this, "REPLACE INTO events .*"), 6, _, 20000, _))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "REPLACE INTO events .*")))
@@ -975,7 +981,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_RetriesOnceOnE
 
     expectDatabaseRecreation(true, "101");
 
-    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, std::vector<uint8_t>(20000, 42)}), false);
+    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventLatency_Normal,EventPersistence_Normal, 2, std::vector<uint8_t>(20000, 42)}), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_AbortsIfDbCannotBeRecreated)
@@ -995,7 +1001,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, StoreRecord_AbortsIfDbCann
 
     expectDatabaseRecreation(false, "101");
 
-    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventPriority_Low, 2, {3}}), false);
+    EXPECT_THAT(os->StoreRecord({"guid", "tenant", EventLatency_Normal,EventPersistence_Normal, 2, {3}}), false);
 }
 
 //---
@@ -1026,7 +1032,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Succe
 
     consumer.maxCount = 1;
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1114,7 +1120,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Succe
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "COMMIT")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), true);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), true);
     EXPECT_THAT(consumer.records, SizeIs(1));
 }
 
@@ -1153,7 +1159,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Succe
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_High, 4), true);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_RealTime, 4), true);
     EXPECT_THAT(consumer.records, SizeIs(0));
 }
 
@@ -1170,7 +1176,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "201");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesReleaseExpiredFailure)
@@ -1186,7 +1192,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "202");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesBeginTransactionFailure)
@@ -1209,7 +1215,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "203");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesSelectFailure)
@@ -1228,7 +1234,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1242,7 +1248,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "204");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesGetRowFailure)
@@ -1261,7 +1267,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1310,7 +1316,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "205");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesRollbackFailure)
@@ -1334,7 +1340,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1352,7 +1358,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "206");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesReserveFailure)
@@ -1374,7 +1380,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1427,7 +1433,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "207");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_HandlesCommitFailure)
@@ -1449,7 +1455,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 2))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int(PreparedStatement(this, "SELECT .* FROM events .*"), 1, 1))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT .* FROM events .*"), 2, 3))
@@ -1512,7 +1518,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, GetAndReserveRecords_Handl
         .RetiresOnSaturation();
 
     expectDatabaseRecreation(true, "208");
-    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventPriority_Normal, 3), false);
+    EXPECT_THAT(os->GetAndReserveRecords(consumer, 120000, EventLatency_Normal, 3), false);
 }
 
 //---
@@ -2014,10 +2020,10 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_SucceedsWit
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY priority ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY priority ASC, timestamp ASC .*")))
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC,  timestamp ASC .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 

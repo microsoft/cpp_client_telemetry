@@ -144,6 +144,72 @@ bool Deserialize(TReader& reader, ::AriaProtocol::User& value, bool isBase)
                 break;
             }
 
+            case 4: {
+                if (!reader.ReadString(value.locale)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::Loc& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.id)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.country)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.timezone)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -226,6 +292,20 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Device& value, bool isBase)
 
             case 7: {
                 if (!reader.ReadString(value.orgAuthId)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 8: {
+                if (!reader.ReadString(value.make)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 9: {
+                if (!reader.ReadString(value.model)) {
                     return false;
                 }
                 break;
@@ -379,6 +459,13 @@ bool Deserialize(TReader& reader, ::AriaProtocol::App& value, bool isBase)
 
             case 6: {
                 if (!reader.ReadString(value.ver)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 7: {
+                if (!reader.ReadString(value.locale)) {
                     return false;
                 }
                 break;
@@ -966,6 +1053,20 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Protocol& value, bool isBase)
                 break;
             }
 
+            case 3: {
+                if (!reader.ReadString(value.devMake)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadString(value.devModel)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -1013,6 +1114,169 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Receipts& value, bool isBase)
 
             case 2: {
                 if (!reader.ReadInt64(value.uploadTime)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::Diag& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.orgtime)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::Net& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.provider)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.cost)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.type)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::Sdk& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.libVer)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.epoch)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadInt64(value.seq)) {
                     return false;
                 }
                 break;
@@ -1823,6 +2087,90 @@ bool Deserialize(TReader& reader, ::AriaProtocol::CsEvent& value, bool isBase)
                 value.extReceipts.resize(size4);
                 for (unsigned i4 = 0; i4 < size4; i4++) {
                     if (!Deserialize(reader, value.extReceipts[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 30: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extDiag.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extDiag[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 31: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extNet.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extNet[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 32: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extSdk.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extSdk[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 33: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extLoc.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extLoc[i4], false)) {
                         return false;
                     }
                 }

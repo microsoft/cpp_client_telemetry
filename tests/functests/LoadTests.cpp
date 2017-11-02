@@ -22,9 +22,9 @@ char const* const TEST_STORAGE_FILENAME = "LoadTests.db";
 class EventSender : public Thread
 {
   public:
-    EventSender(ILogger* logger, EventPriority priority)
+    EventSender(ILogger* logger, EventLatency latency)
       : m_logger(logger),
-        m_priority(priority)
+        m_latency(latency)
     {
     }
 
@@ -44,7 +44,7 @@ class EventSender : public Thread
         int i = 0;
         while (!shouldTerminate()) {
             EventProperties event("event" + toString(++i));
-            event.SetPriority(m_priority);
+            event.SetLatency(m_latency);
             event.SetProperty("data", std::string(static_cast<size_t>(m_prg.getRandomDouble() * 3072), '\42'));
             m_logger->LogEvent(event);
             if (i % 5) {
@@ -55,7 +55,7 @@ class EventSender : public Thread
 
   private:
     ILogger*                   m_logger;
-    EventPriority              m_priority;
+    EventLatency               m_latency;
     PAL::PseudoRandomGenerator m_prg;
 };
 
@@ -92,7 +92,7 @@ class LoadTests : public Test,
         EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
         EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
         EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventPriority(_, _)).WillRepeatedly(Return(EventPriority_Unspecified));
+        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
         EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
         EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
         EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
@@ -272,7 +272,7 @@ TEST_F(LoadTests, ManyEventsFromManyThreadsAreHandledSafely)
 
     std::vector<std::unique_ptr<EventSender>> senders;
     for (unsigned i = 0; i < THREAD_COUNT; i++) {
-        senders.emplace_back(new EventSender(logger, EventPriority_High));
+        senders.emplace_back(new EventSender(logger, EventLatency_RealTime));
         senders.back()->start();
         logger = (logger == logger1) ? logger2 : logger1;
     }

@@ -148,6 +148,14 @@ class  ARIASDK_LIBABI ISemanticContext
     /// </summary>
     /// <param name="timeZone">user's time zone relative to UTC, in ISO 8601 time zone format</param>
     virtual void  SetUserTimeZone(std::string const& timeZone) = 0;
+
+    /// <summary>
+    /// Set the Auth ticket.
+    /// </summary>
+    /// <param name="type">Ticket type</param>
+    /// <param name="ticketValue">Ticketvalue</param>
+    virtual void  SetTicket(TicketType type, std::string const& ticketValue) = 0;
+    
 };
 
 

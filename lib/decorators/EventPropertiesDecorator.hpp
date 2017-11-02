@@ -18,7 +18,7 @@ class EventPropertiesDecorator : public DecoratorBase {
     {
     }
 
-    bool decorate(::AriaProtocol::CsEvent& record, EventPriority& priority, EventProperties const& eventProperties)
+    bool decorate(::AriaProtocol::CsEvent& record, EventLatency& latency, EventProperties const& eventProperties)
     {
         if (eventProperties.GetName().empty()) {
             // OK, using some default set by earlier decorator.
@@ -35,6 +35,33 @@ class EventPropertiesDecorator : public DecoratorBase {
             ::AriaProtocol::Data data;
             record.data.push_back(data);
         }
+
+        record.popSample = eventProperties.GetPopSample();
+
+        int64_t flags = 0;
+        if (EventPersistence_Critical == eventProperties.GetPersistence())
+        {
+            flags = flags | 0x02;
+        }
+        else
+        {
+            flags = flags | 0x01;
+        }
+
+
+        if (eventProperties.GetLatency() >= EventLatency_RealTime)
+        {
+            flags = flags | 0x0200;
+        }
+        else if(EventLatency_CostDeferred == eventProperties.GetLatency())
+        {
+            flags = flags | 0x0300;
+        }
+        else
+        {
+            flags = flags | 0x0100;
+        }
+        record.flags = flags;
                 
         std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
         std::map<std::string, ::AriaProtocol::Value> extPartB;
@@ -208,8 +235,8 @@ class EventPropertiesDecorator : public DecoratorBase {
 			}
 		}
 
-        if (eventProperties.GetPriority() != EventPriority_Unspecified) {
-            priority = eventProperties.GetPriority();
+        if (eventProperties.GetLatency() != EventLatency_Unspecified) {
+            latency = eventProperties.GetLatency();
         }
 
         if (extPartB.size() > 0)

@@ -322,7 +322,7 @@ MyDebugEventListener listener;
 #define MAX_WEIRDOS     8192
 char weirdoBuffer[MAX_WEIRDOS] = { 'A' };
 
-EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
+EventProperties CreateSampleEvent(const char *name, EventLatency prio) {
 
 	GUID win_guid;
 	win_guid.Data1 = 0;
@@ -429,7 +429,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 //	 GUID_t &g = guidKey5;
 	 props.SetProperty("refGuidKey5", guidKey5);
 
-	props.SetPriority(prio);
+	props.SetLatency(prio);
 
 #if 1 /* This may cause out of memory in a stress... */
 	// This buffer is intentionally concurrently modified from different threads,
@@ -601,26 +601,26 @@ void run(ILogger* logger, int maxStressRuns) {
                 loggerl->SetContext("context.double.key", double_value);
 
 				{
-					EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+					EventProperties props = CreateSampleEvent("Sample.Event.Low", EventLatency_Normal);
                     loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 2) == 0)
 				{
-					EventProperties props = CreateSampleEvent("Sample.Event.Normal", EventPriority_Normal);
+					EventProperties props = CreateSampleEvent("Sample.Event.Normal", EventLatency_CostDeferred);
                     loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 4) == 0)
 				{
-					EventProperties props = CreateSampleEvent("Sample.Event.High", EventPriority_High);
+					EventProperties props = CreateSampleEvent("Sample.Event.High", EventLatency_RealTime);
 					props.SetType("My.Super.Duper.Fancy.Event.Type.For.MDM.Export");
                     loggerl->LogEvent(props);
 				}
 
 				if ((stressRuns % 8) == 0)
 				{
-                    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_High);// EventPriority_Immediate);                    
+                    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventLatency_RealTime);// EventPriority_Immediate);                    
                     loggerl->LogEvent(props);
 				}
 			}
@@ -704,7 +704,7 @@ int main(int argc, char* argv[])
 	ILogger* logger2 = LogManager::GetLogger(TOKEN2, "tenant2");
 
 	{
-		EventProperties props = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+		EventProperties props = CreateSampleEvent("Sample.Event.Low", EventLatency_Normal);
 		logger->LogEvent(props);
     }
 
@@ -712,7 +712,7 @@ int main(int argc, char* argv[])
 	printf("test_ProfileSwitch\n");
 	test_ProfileSwitch(logger);
 
-    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventPriority_Immediate);
+    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventLatency_Max);
     logger->LogEvent(props);
 
 	// Run multi-threaded stress for multi-tenant
@@ -757,7 +757,7 @@ int main(int argc, char* argv[])
 //all_done:
     	    
     {
-        EventProperties lprops = CreateSampleEvent("Sample.Event.Low", EventPriority_Low);
+        EventProperties lprops = CreateSampleEvent("Sample.Event.Low", EventLatency_Normal);
         logger->LogEvent(lprops);
     }
 

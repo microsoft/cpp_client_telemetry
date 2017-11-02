@@ -49,7 +49,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
 
-    StorageRecord record1("r1", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>{1, 1, 1, 0});
+    StorageRecord record1("r1", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>{1, 1, 1, 0});
     bool wantMore = true;
     packager.addEventToPackage(ctx, record1, wantMore);
 
@@ -71,7 +71,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
 
     wantMore = true;
     packager.addEventToPackage(ctx, record1, wantMore);
-    StorageRecord record2("r2", "tenant2-token", EventPriority_Normal, 1234567891, std::vector<uint8_t>{2, 2, 2, 0});
+    StorageRecord record2("r2", "tenant2-token", EventLatency_Normal, EventPersistence_Normal, 1234567891, std::vector<uint8_t>{2, 2, 2, 0});
     packager.addEventToPackage(ctx, record2, wantMore);
 
     EXPECT_CALL(*this, resultPackagedEvents(ctx))
@@ -93,12 +93,12 @@ TEST_F(PackagerTests, UsesPriorityOfTheFirstEvent)
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
-    EXPECT_THAT(ctx->priority, EventPriority_Unspecified);
+    EXPECT_THAT(ctx->latency, EventLatency_Unspecified);
 
-    StorageRecord record("r1", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>{1, 1, 1, 0});
+    StorageRecord record("r1", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>{1, 1, 1, 0});
     bool wantMore = false;
     packager.addEventToPackage(ctx, record, wantMore);
-    EXPECT_THAT(ctx->priority, EventPriority_Normal);
+    EXPECT_THAT(ctx->latency, EventLatency_Normal);
 }
 
 TEST_F(PackagerTests, HonorsMaximumPackageSize)
@@ -114,7 +114,7 @@ TEST_F(PackagerTests, HonorsMaximumPackageSize)
     bool wantMore = true;
     int i = 0;
     while (i < 4 && wantMore) {
-        StorageRecord record("r" + toString(i), "tenant1-token", EventPriority_Normal, 1234567890 + i, std::vector<uint8_t>(PartSize, 0));
+        StorageRecord record("r" + toString(i), "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890 + i, std::vector<uint8_t>(PartSize, 0));
         packager.addEventToPackage(ctx, record, wantMore);
         i++;
     }
@@ -125,7 +125,7 @@ TEST_F(PackagerTests, HonorsMaximumPackageSize)
         .WillOnce(Return());
     packager.finalizePackage(ctx);
 
-    EXPECT_THAT(ctx->body, SizeIs(Gt(PartSize * 3)));
+    EXPECT_THAT(ctx->body, SizeIs(Eq(PartSize * 3)));
     EXPECT_THAT(ctx->body, SizeIs(Lt(MaxSize)));
 }
 
@@ -139,7 +139,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
         .RetiresOnSaturation();
 
     bool wantMore = true;
-    StorageRecord record("r", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>(MaxSize, 0));
+    StorageRecord record("r", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>(MaxSize, 0));
     packager.addEventToPackage(ctx, record, wantMore);
     EXPECT_THAT(wantMore, false);
 
@@ -147,7 +147,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
         .WillOnce(Return());
     packager.finalizePackage(ctx);
 
-    EXPECT_THAT(ctx->body, SizeIs(Gt(MaxSize)));
+    EXPECT_THAT(ctx->body, SizeIs(Eq(MaxSize)));
 }
 
 TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
@@ -158,11 +158,11 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
         .RetiresOnSaturation();
 
     bool wantMore = true;
-    StorageRecord record1("r1", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>{0});
+    StorageRecord record1("r1", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>{0});
     packager.addEventToPackage(ctx, record1, wantMore);
-    StorageRecord record2("r2", "tenant2-token", EventPriority_Normal, 1234567891, std::vector<uint8_t>{0});
+    StorageRecord record2("r2", "tenant2-token", EventLatency_Normal, EventPersistence_Normal, 1234567891, std::vector<uint8_t>{0});
     packager.addEventToPackage(ctx, record2, wantMore);
-    StorageRecord record3("r3", "tenant1-token", EventPriority_Normal, 1234567892, std::vector<uint8_t>{0});
+    StorageRecord record3("r3", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567892, std::vector<uint8_t>{0});
     packager.addEventToPackage(ctx, record1, wantMore);
 
     EXPECT_CALL(*this, resultPackagedEvents(ctx))
@@ -205,11 +205,11 @@ TEST_F(PackagerTests, ForcedTenantIsForced)
         .RetiresOnSaturation();
 
     bool wantMore = true;
-    StorageRecord record1("r1", "tenant1-token", EventPriority_Normal, 1234567890, std::vector<uint8_t>{0});
+    StorageRecord record1("r1", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567890, std::vector<uint8_t>{0});
     packagerF.addEventToPackage(ctx, record1, wantMore);
-    StorageRecord record2("r2", "tenant2-token", EventPriority_Normal, 1234567891, std::vector<uint8_t>{0});
+    StorageRecord record2("r2", "tenant2-token", EventLatency_Normal, EventPersistence_Normal, 1234567891, std::vector<uint8_t>{0});
     packagerF.addEventToPackage(ctx, record2, wantMore);
-    StorageRecord record3("r3", "tenant1-token", EventPriority_Normal, 1234567892, std::vector<uint8_t>{0});
+    StorageRecord record3("r3", "tenant1-token", EventLatency_Normal, EventPersistence_Normal, 1234567892, std::vector<uint8_t>{0});
     packagerF.addEventToPackage(ctx, record1, wantMore);
 
     EXPECT_CALL(*this, resultPackagedEvents(ctx))

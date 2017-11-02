@@ -6,7 +6,7 @@
 #include "pal/UtcHelpers.hpp"
 #include "utils/Utils.hpp"
 #include "MicrosoftTelemetry.h"
-#include "traceloggingdynamic.h"
+
 
 using namespace tld;
 
@@ -273,7 +273,6 @@ void UtcTelemetrySystem::addIncomingEventSystem(IncomingEventContextPtr const& e
 int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx)
 {
     std::string appInfoAppName = eventCtx->source->extApp[0].id;
-    //eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_ID);
 
     ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);
     if (0 == providerdata.providerHandle)
@@ -283,7 +282,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
 
     UINT32 eventTags = MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE;//   MICROSOFT_KEYWORD_TELEMETRY  
 
-    if (eventCtx->record.priority > EventPriority::EventPriority_Normal)
+    if (eventCtx->record.persistence > EventPersistence::EventPersistence_Normal)
     {
         eventTags = MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE;
     }
@@ -316,64 +315,10 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     std::string eventName = eventCtx->source->name;
     if (eventName.empty())
     {
-        //eventName = eventCtx->source->EventType;
+        eventName = "Unspecified";
     }
 
     builder.Begin(eventName.c_str(), eventTags);
-
-    if (m_configuration.GetSdkModeType() == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
-    {
-        //PartA_Exts_bc
-        auto  structPartAExtsBC = builder.AddStruct(UTC_PART_A_EXTS_BC);
-
-       // if (!eventCtx->source->Type.empty())
-        {
-        //    structPartAExtsBC.AddField(UTC_TYPE, TypeMbcsString);
-        //    dbuilder.AddString(eventCtx->source->Type.c_str());
-        }
-
-        //std::string deviceInfoMake = eventCtx->source->extDevice.>Extension[COMMONFIELDS_DEVICE_MAKE];
-        //if (!deviceInfoMake.empty())
-        {
-         //   structPartAExtsBC.AddField(UTC_MAKE, TypeMbcsString);
-         //   dbuilder.AddString(deviceInfoMake.c_str());
-        }
-
-        //std::string deviceInfoModel = eventCtx->source->Extension[COMMONFIELDS_DEVICE_MODEL];
-        //if (!deviceInfoModel.empty())
-        {
-        //    structPartAExtsBC.AddField(UTC_MODEL, TypeMbcsString);
-        //    dbuilder.AddString(deviceInfoModel.c_str());
-        }
-
-        //std::string userInforTimeZone = eventCtx->source->Extension[COMMONFIELDS_USER_TIMEZONE];
-        //if (!userInforTimeZone.empty())
-        {
-         //   structPartAExtsBC.AddField(UTC_TIMEZONE, TypeMbcsString);
-         //   dbuilder.AddString(userInforTimeZone.c_str());
-        }
-
-        //std::string appInfoLanguage = eventCtx->source->Extension[COMMONFIELDS_APP_LANGUAGE];
-        //if (!appInfoLanguage.empty())
-        {
-         //   structPartAExtsBC.AddField(UTC_APP_LANG, TypeMbcsString);
-         //   dbuilder.AddString(appInfoLanguage.c_str());
-        }
-
-        //std::string eventSource = eventCtx->source->Extension[EventInfo_Source];
-        //if (!eventSource.empty())
-        {
-         //   structPartAExtsBC.AddField(UTC_BC_SOURCE, TypeMbcsString);
-         //   dbuilder.AddString(eventSource.c_str());
-        }
-
-        //std::string userInfoAdvertisingId(eventCtx->source->Extension[COMMONFIELDS_USER_ADVERTISINGID]);
-        //if (!userInfoAdvertisingId.empty())
-        {
-         //   structPartAExtsBC.AddField(UTC_BC_ADVERTISEMENT_ID, TypeMbcsString);
-         //   dbuilder.AddString(userInfoAdvertisingId.c_str());
-        }
-    }
 
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MAKE);
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MODEL);
@@ -381,44 +326,15 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_LANGUAGE);
     eventCtx->source->data[0].properties.erase(EventInfo_Source);
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ADVERTISINGID);
-
-    //PartA_Exts_aria
-/*
-    auto  structPartAExtsAria = builder.AddStruct(UTC_PART_A_EXTS_ARIA);
-    structPartAExtsAria.AddField(UTC_LIB_VERSION, TypeMbcsString);
-    std::string eventInfoSdkVersion = eventCtx->source->Extension[COMMONFIELDS_EVENT_SDKVERSION];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDKVERSION);
-    dbuilder.AddString(eventInfoSdkVersion.c_str());
-
-    if (m_configuration.GetSdkModeType() == SdkModeTypes::SdkModeTypes_UTCAriaBackCompat)
-    {
-        std::string appInfoEtag = eventCtx->source->Extension[COMMONFIELDS_APP_EXPERIMENTETAG];
-        if (!appInfoEtag.empty())
-        {
-            structPartAExtsAria.AddField(UTC_APP_ETAG, TypeMbcsString);
-            dbuilder.AddString(appInfoEtag.c_str());
-        }
-
-        std::string eventsessiond = eventCtx->source->Extension[SESSION_ID];
-        if (!eventsessiond.empty())
-        {
-            structPartAExtsAria.AddField(UTC_PARTA_APP_SESSION_ID, TypeMbcsString);
-            dbuilder.AddString(eventsessiond.c_str());
-        }
-
-        structPartAExtsAria.AddField(UTC_PARTA_RECORD_TIMESTAMP, TypeInt64);
-        INT64 temp = eventCtx->source->Timestamp;
-        dbuilder.AddValue(temp);
-    }
-
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
-    eventCtx->source->data[0].properties.erase(SESSION_ID);
+
+    //eventCtx->source->data[0].properties.erase(SESSION_ID);
     //eventCtx->source->data[0].properties.erase(SESSION_STATE);
     //eventCtx->source->data[0].properties.erase(SESSION_DURATION);
     //eventCtx->source->data[0].properties.erase(SESSION_DURATION_BUCKET);
     //eventCtx->source->data[0].properties.erase(SESSION_FIRST_TIME);
     //eventCtx->source->data[0].properties.erase(SESSION_SDKUID);
-*/
+
 
     // PartA_Exts_CommonFields
 
@@ -429,76 +345,7 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         dbuilder.AddString(eventCtx->source->cV.c_str());
     }
 
- /*
-    builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
-    std::string iKey(IKEY_PRE_TEXT);
-    iKey.append(eventCtx->record.tenantToken);
-    dbuilder.AddString(iKey.c_str());
-
-    if (!appInfoAppName.empty())
-    {
-        builder.AddField(UTC_PARTA_APP_NAME, TypeMbcsString);
-        dbuilder.AddString(appInfoAppName.c_str());
-    }
-
-    std::string appInfoExpIds = eventCtx->source->Extension[COMMONFIELDS_APP_EXPERIMENTIDS];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTIDS);
-    if (!appInfoExpIds.empty())
-    {
-        builder.AddField(UTC_APP_EXPERIMENT_IDS, TypeMbcsString);
-        dbuilder.AddString(appInfoExpIds.c_str());
-    }
-
-    std::string deviceInfoNetworkProvider = eventCtx->source->Extension[COMMONFIELDS_NETWORK_PROVIDER];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_PROVIDER);
-    if (!deviceInfoNetworkProvider.empty())
-    {
-        builder.AddField(UTC_PARTA_NET_PROVIDER, TypeMbcsString);
-        dbuilder.AddString(deviceInfoNetworkProvider.c_str());
-    }
-
-    std::string deviceInfoNetworkCost = eventCtx->source->Extension[COMMONFIELDS_NETWORK_COST];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_COST);
-    if (!deviceInfoNetworkCost.empty())
-    {
-        builder.AddField(UTC_PARTA_NET_COST, TypeMbcsString);
-        dbuilder.AddString(deviceInfoNetworkCost.c_str());
-    }
-
-    std::string deviceInfoNetworkType = eventCtx->source->Extension[COMMONFIELDS_NETWORK_TYPE];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_NETWORK_TYPE);
-    if (!deviceInfoNetworkType.empty())
-    {
-        builder.AddField(UTC_PARTA_NET_TYPE, TypeMbcsString);
-        dbuilder.AddString(deviceInfoNetworkType.c_str());
-    }
-
-    std::string eventInfoSequence = eventCtx->source->Extension[EventInfo_Sequence];
-    eventCtx->source->data[0].properties.erase(EventInfo_Sequence);
-    if (!eventInfoSequence.empty())
-    {
-        builder.AddField(UTC_PARTA_APP_SEQ_NUM, TypeMbcsString);
-        dbuilder.AddString(eventInfoSequence.c_str());
-    }
-
-    std::string ariaUserId(eventCtx->source->Extension[COMMONFIELDS_USER_ID]);
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ID);
-    if (!ariaUserId.empty())
-    {
-        std::string userId("e:");
-        userId.append(ariaUserId);
-        builder.AddField(UTC_PARTA_APP_USERID, TypeMbcsString);
-        dbuilder.AddString(userId.c_str());
-    }
-
-    std::string userInfoLanguage = eventCtx->source->Extension[COMMONFIELDS_USER_LANGUAGE];
-    eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_LANGUAGE);
-    if (!userInfoLanguage.empty())
-    {
-        builder.AddField(UTC_PARTA_OS_LOCALE, TypeMbcsString);
-        dbuilder.AddString(userInfoLanguage.c_str());
-    }
-
+   
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_MSAID);
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_ID);
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_NAME);
@@ -517,156 +364,9 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
     eventCtx->source->data[0].properties.erase(EventInfo_InitId);
 
     //"Extension"
-    if (eventCtx->source->Extension.size() > 0)
-    {
-        std::map<std::string, std::string>::iterator iterExtension;
-        for (iterExtension = eventCtx->source->Extension.begin(); iterExtension != eventCtx->source->Extension.end(); ++iterExtension)
-        {
-            if (!iterExtension->second.empty())
-            {
-                std::string name = iterExtension->first;
-
-                builder.AddField(name.c_str(), TypeMbcsString);
-                dbuilder.AddString(iterExtension->second.c_str());
-            }
-        }
-    }
-
-    //"PIIExtensions"
-    if (eventCtx->source->PIIExtensions.size() > 0)
-    {
-        std::map<std::string, AriaProtocol::PII>::iterator iterPii;
-        for (iterPii = eventCtx->source->PIIExtensions.begin(); iterPii != eventCtx->source->PIIExtensions.end(); ++iterPii)
-        {
-            if (!iterPii->second.RawContent.empty())
-            {
-                std::string name = iterPii->first;
-
-                builder.AddField(name.c_str(), TypeMbcsString);
-                dbuilder.AddString(iterPii->second.RawContent.c_str());
-
-                std::string metadata(ARIA_METADATA_COMMON_TEXT);
-                metadata.append(name.c_str());
-
-                UINT8 ScrubType = static_cast<UINT8>(iterPii->second.ScrubType);
-                metadata.append(";s:");
-                metadata.append(std::to_string(ScrubType));
-
-                UINT8 Kind = static_cast<UINT8>(iterPii->second.Kind);
-                metadata.append(";k:");
-                metadata.append(std::to_string(Kind));
-
-                MD.push_back(metadata);
-            }
-        }
-    }
-
-    //TypedExtensionBoolean
-    if (eventCtx->source->TypedExtensionBoolean.size() > 0)
-    {
-        std::map<std::string, bool>::iterator iterExtensionBooleanMap;
-        for (iterExtensionBooleanMap = eventCtx->source->TypedExtensionBoolean.begin(); iterExtensionBooleanMap != eventCtx->source->TypedExtensionBoolean.end(); ++iterExtensionBooleanMap)
-        {
-            std::string name = iterExtensionBooleanMap->first;
-
-            builder.AddField(name.c_str(), TypeBool8);
-            dbuilder.AddByte(iterExtensionBooleanMap->second);
-
-            std::string metadata(ARIA_METADATA_COMMON_TEXT);
-            metadata.append(name.c_str());
-            metadata.append(ARIA_METADATA_TYPE_TEXT);
-            metadata.append(std::to_string(AriaTypeBool));
-            MD.push_back(metadata);
-        }
-    }
-
-    //TypedExtensionDateTime
-    if (eventCtx->source->TypedExtensionDateTime.size() > 0)
-    {
-        std::map<std::string, INT64>::iterator iterExtensionDateTimeMap;
-        for (iterExtensionDateTimeMap = eventCtx->source->TypedExtensionDateTime.begin(); iterExtensionDateTimeMap != eventCtx->source->TypedExtensionDateTime.end(); ++iterExtensionDateTimeMap)
-        {
-            UINT64 temp = iterExtensionDateTimeMap->second;
-            if (temp > 0)
-            {
-                std::string name = iterExtensionDateTimeMap->first;
-
-                builder.AddField(name.c_str(), TypeUInt64);
-
-                dbuilder.AddBytes(&temp, sizeof(UINT64));
-
-                std::string metadata(ARIA_METADATA_COMMON_TEXT);
-                metadata.append(name.c_str());
-                metadata.append(ARIA_METADATA_TYPE_TEXT);
-                metadata.append(std::to_string(AriaTypeDateTime));
-                MD.push_back(metadata);
-            }
-        }
-    }
-
-    //TypedExtensionInt64
-    if (eventCtx->source->TypedExtensionInt64.size() > 0)
-    {
-        std::map<std::string, INT64>::iterator iterExtensionInt64Map;
-        for (iterExtensionInt64Map = eventCtx->source->TypedExtensionInt64.begin(); iterExtensionInt64Map != eventCtx->source->TypedExtensionInt64.end(); ++iterExtensionInt64Map)
-        {
-            std::string name = iterExtensionInt64Map->first;
-
-            builder.AddField(name.c_str(), TypeInt64);
-            INT64 temp = iterExtensionInt64Map->second;
-            dbuilder.AddBytes(&temp, sizeof(INT64));
-
-            std::string metadata(ARIA_METADATA_COMMON_TEXT);
-            metadata.append(name.c_str());
-            metadata.append(ARIA_METADATA_TYPE_TEXT);
-            metadata.append(std::to_string(AriaTypeInt64));
-            MD.push_back(metadata);
-        }
-    }
-
-    //TypedExtensionDouble
-    if (eventCtx->source->TypedExtensionDouble.size() > 0)
-    {
-        std::map<std::string, double>::iterator iterExtensionDoubleMap;
-        for (iterExtensionDoubleMap = eventCtx->source->TypedExtensionDouble.begin(); iterExtensionDoubleMap != eventCtx->source->TypedExtensionDouble.end(); ++iterExtensionDoubleMap)
-        {
-            std::string name = iterExtensionDoubleMap->first;
-
-            builder.AddField(name.c_str(), TypeDouble);
-            double temp = iterExtensionDoubleMap->second;
-            dbuilder.AddBytes(&temp, sizeof(double));
-
-            std::string metadata(ARIA_METADATA_COMMON_TEXT);
-            metadata.append(name.c_str());
-            metadata.append(ARIA_METADATA_TYPE_TEXT);
-            metadata.append(std::to_string(AriaTypeDouble));
-            MD.push_back(metadata);
-        }
-    }
-
-    //TypedExtensionGuid
-    if (eventCtx->source->TypedExtensionGuid.size() > 0)
-    {
-        std::map<std::string, std::vector<uint8_t>>::iterator iterExtensionGuidMap;
-        for (iterExtensionGuidMap = eventCtx->source->TypedExtensionGuid.begin(); iterExtensionGuidMap != eventCtx->source->TypedExtensionGuid.end(); ++iterExtensionGuidMap)
-        {
-            bool error = false;
-            GUID temp = GUID_t::convertUintVectorToGUID(iterExtensionGuidMap->second);
-            if (false == error)
-            {
-                std::string name = iterExtensionGuidMap->first;
-
-                builder.AddField(name.c_str(), TypeGuid);
-                dbuilder.AddBytes(&temp, sizeof(GUID));
-
-                std::string metadata(ARIA_METADATA_COMMON_TEXT);
-                metadata.append(name.c_str());
-                metadata.append(ARIA_METADATA_TYPE_TEXT);
-                metadata.append(std::to_string(AriaTypeGuid));
-                MD.push_back(metadata);
-            }
-        }
-    }
+    PutData(eventCtx->source->ext, MD, builder, dbuilder);
+    PutData(eventCtx->source->baseData, MD, builder, dbuilder);
+    PutData(eventCtx->source->data, MD, builder, dbuilder);
 
     //PartA_Ext_ariaMD
     if (MD.size() > 0)
@@ -716,14 +416,152 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
             return -1;
         }
     }
-*/
+
 //	m_telemetryStatsHelper.UpdateOnEventsSuccessfullySentPerPriority(eventCtx->record.priority, eventCtx->source->Timestamp, 1);
 
 //	_GenerateAndSendStatsEventsAsNeeded(ACT_STATS_ROLLUP_KIND_ONGOING);
-    //	cout << "\n_SendAriaEventToUTC  for Tenant Token = "<< eventCtx.tenantToken<< endl;
+//	cout << "\n_SendAriaEventToUTC  for Tenant Token = "<< eventCtx.tenantToken<< endl;
     return 0;
 }
 
+void UtcTelemetrySystem::PutData(std::vector< ::AriaProtocol::Data>& ext,
+                                 std::vector<std::string>& MD,
+                                 tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
+                                 tld::EventDataBuilder<std::vector<BYTE>>& dbuilder )
+{
+    if (ext.size() > 0)
+    {
+        std::vector<::AriaProtocol::Data>::const_iterator iterExtension;
+        for (iterExtension = ext.begin(); iterExtension != ext.end(); ++iterExtension)
+        {
+            std::map<std::string, AriaProtocol::Value>::const_iterator iterValue;
+            for (iterValue = iterExtension->properties.begin(); iterValue != iterExtension->properties.end(); ++iterValue)
+            {
+                std::string name = iterValue->first;
+                std::string metadata(ARIA_METADATA_COMMON_TEXT);
+                metadata.append(name.c_str());
+                metadata.append(ARIA_METADATA_TYPE_TEXT);
+                bool addMetaData = true;
+                bool error = false;
+
+                switch (iterValue->second.type)
+                {
+                case AriaProtocol::ValueKind::ValueInt64:
+                case AriaProtocol::ValueKind::ValueUInt64:
+                case AriaProtocol::ValueKind::ValueInt32:
+                case AriaProtocol::ValueKind::ValueUInt32:
+                {
+                    builder.AddField(name.c_str(), TypeInt64);
+                    INT64 temp = iterValue->second.longValue;
+                    dbuilder.AddBytes(&temp, sizeof(INT64));
+
+                    metadata.append(std::to_string(AriaTypeInt64));
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueBool:
+                {
+                    builder.AddField(name.c_str(), TypeBool8);
+                    UINT8 temp = static_cast<UINT8>(iterValue->second.longValue);
+                    dbuilder.AddByte(temp);
+
+                    metadata.append(std::to_string(AriaTypeBool));
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueDateTime:
+                {
+                    builder.AddField(name.c_str(), TypeUInt64);
+                    UINT64 temp = iterValue->second.longValue;
+                    dbuilder.AddBytes(&temp, sizeof(UINT64));
+
+                    metadata.append(std::to_string(AriaTypeDateTime));
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueArrayInt64:
+                case AriaProtocol::ValueKind::ValueArrayUInt64:
+                case AriaProtocol::ValueKind::ValueArrayInt32:
+                case AriaProtocol::ValueKind::ValueArrayUInt32:
+                case AriaProtocol::ValueKind::ValueArrayBool:
+                case AriaProtocol::ValueKind::ValueArrayDateTime:
+                {
+
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueDouble:
+                {
+                    builder.AddField(name.c_str(), TypeDouble);
+                    double temp = iterValue->second.doubleValue;
+                    dbuilder.AddBytes(&temp, sizeof(double));
+
+                    metadata.append(std::to_string(AriaTypeDouble));
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueArrayDouble:
+                {
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueString:
+                {
+                    addMetaData = false;
+                    builder.AddField(name.c_str(), TypeMbcsString);
+                    dbuilder.AddString(iterValue->second.stringValue.c_str());
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueArrayString:
+                {
+                    addMetaData = false;
+                    builder.AddField(name.c_str(), TypeMbcsString);
+                    dbuilder.AddString(iterValue->second.stringValue.c_str());
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueGuid:
+                {
+
+                    if (iterValue->second.guidValue.size() > 0)
+                    {
+                        GUID temp = GUID_t::convertUintVectorToGUID(iterValue->second.guidValue[0]);
+                        if (false == error)
+                        {
+                            builder.AddField(name.c_str(), TypeGuid);
+                            dbuilder.AddBytes(&temp, sizeof(GUID));
+
+                            metadata.append(std::to_string(AriaTypeGuid));
+                        }
+                    }
+                    break;
+                }
+                case AriaProtocol::ValueKind::ValueArrayGuid:
+                {
+                    break;
+                }
+                }
+                if (false == error)
+                {
+                    if (iterValue->second.attributes.size() > 0)
+                    {
+                        if (iterValue->second.attributes[0].pii.size() > 0)
+                        {
+                            UINT8 ScrubType = 1; //PIIScrubber{ NotSet = 0, O365 = 1, SkypeBI = 2, SkypeData = 3} always set to O365
+                            metadata.append(";s:");
+                            metadata.append(std::to_string(ScrubType));
+
+                            UINT8 Kind = static_cast<UINT8>(iterValue->second.attributes[0].pii[0].Kind);
+                            metadata.append(";k:");
+                            metadata.append(std::to_string(Kind));
+                        }
+                        MD.push_back(metadata);
+                    }
+                    else
+                    {
+                        if (addMetaData)
+                        {
+                            MD.push_back(metadata);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 ProviderData UtcTelemetrySystem::getProviderFortoken(const std::string& tenantToken)
 {

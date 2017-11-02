@@ -24,7 +24,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     virtual void Initialize(IOfflineStorageObserver& observer) override;
     virtual void Shutdown() override;
     virtual bool StoreRecord(StorageRecord const& record) override;
-    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventPriority minPriority = EventPriority_Low, unsigned maxCount = 0) override;
+    virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
     virtual bool IsLastReadFromMemory() override;
     virtual unsigned LastReadRecordCount() override; 
     virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
@@ -32,7 +32,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     virtual bool StoreSetting(std::string const& name, std::string const& value) override;
     virtual std::string GetSetting(std::string const& name) override;
     virtual unsigned GetSize() override;
-    virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Low, unsigned maxCount = 0) override;
+    virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
     virtual bool ResizeDb() override;
 
   protected:

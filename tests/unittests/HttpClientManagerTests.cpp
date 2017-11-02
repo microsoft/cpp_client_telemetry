@@ -47,7 +47,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = std::move(req);
     ctx->recordIds.push_back("r1,r2");
-    ctx->priority = EventPriority_Normal;
+    ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
     IHttpResponseCallback* callback = nullptr;
@@ -79,7 +79,7 @@ TEST_F(HttpClientManagerTests, CancelAbortsRequests)
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = std::move(req);
     ctx->recordIds.push_back("r1,r2");
-    ctx->priority = EventPriority_Normal;
+    ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
     IHttpResponseCallback* callback = nullptr;

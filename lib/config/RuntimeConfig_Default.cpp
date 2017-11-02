@@ -43,11 +43,11 @@ void RuntimeConfig_Default::DecorateEvent(std::map<std::string, std::string>& ex
 	UNREFERENCED_PARAMETER(eventName);
 }
 
-EventPriority RuntimeConfig_Default::GetEventPriority(std::string const& tenantId, std::string const& eventName) const
+EventLatency RuntimeConfig_Default::GetEventLatency(std::string const& tenantId, std::string const& eventName) const
 {
 	UNREFERENCED_PARAMETER(tenantId);
 	UNREFERENCED_PARAMETER(eventName);
-    return EventPriority_Unspecified;
+    return EventLatency_Unspecified;
 }
 
 std::string RuntimeConfig_Default::GetMetaStatsTenantToken() const
@@ -101,11 +101,11 @@ unsigned RuntimeConfig_Default::GetMaximumUploadSizeBytes() const
     return m_maximumUploadSizeBytes;
 }
 
-void RuntimeConfig_Default::SetEventPriority(std::string const& tenantId, std::string const& eventName, EventPriority priority)
+void RuntimeConfig_Default::SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency)
 {
 	UNREFERENCED_PARAMETER(tenantId);
 	UNREFERENCED_PARAMETER(eventName);
-	UNREFERENCED_PARAMETER(priority);
+	UNREFERENCED_PARAMETER(latency);
 }
 
 bool RuntimeConfig_Default::IsClockSkewEnabled() const

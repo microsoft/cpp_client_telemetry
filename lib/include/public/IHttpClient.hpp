@@ -76,7 +76,7 @@ class IHttpRequest
     virtual void SetUrl(std::string const& url) = 0;
     virtual HttpHeaders& GetHeaders() = 0;
     virtual void SetBody(std::vector<uint8_t>& body) = 0;
-    virtual void SetPriority(EventPriority priority) = 0;
+    virtual void SetLatency(EventLatency priority) = 0;
     virtual size_t GetSizeEstimate() const = 0;
 };
 
@@ -111,13 +111,13 @@ class SimpleHttpRequest : public IHttpRequest {
     std::string          m_url;
     HttpHeaders          m_headers;
     std::vector<uint8_t> m_body;
-    EventPriority        m_priority;
+    EventLatency         m_latency;
 
   public:
     SimpleHttpRequest(std::string const& id)
       : m_id(id),
         m_method("GET"),
-        m_priority(EventPriority_Unspecified)
+        m_latency(EventLatency_Unspecified)
     {
     }
 
@@ -150,9 +150,9 @@ class SimpleHttpRequest : public IHttpRequest {
         m_body = std::move(body);
     }
 
-    virtual void SetPriority(EventPriority priority) override
+    virtual void SetLatency(EventLatency latency) override
     {
-        m_priority = priority;
+        m_latency = latency;
     }
 
     virtual size_t GetSizeEstimate() const override

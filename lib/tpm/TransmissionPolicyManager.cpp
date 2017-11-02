@@ -21,7 +21,7 @@ TransmissionPolicyManager::TransmissionPolicyManager(IRuntimeConfig& runtimeConf
     m_finishing(false),
     m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
     m_uploadInProgress(false),
-    m_runningPriority(EventPriority_High)
+    m_runningLatency(EventLatency_RealTime)
 {
     m_backoffConfig = "E,3000,300000,2,1";
     m_backoff = IBackoff::createFromConfig(m_backoffConfig);
@@ -48,9 +48,9 @@ void TransmissionPolicyManager::checkBackoffConfigUpdate()
     }
 }
 
-void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventPriority priority)
+void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency)
 {
-    ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec, priority= %d", delayInMs, priority);
+    ARIASDK_LOG_DETAIL("Scheduling another upload in %d msec, priority= %d", delayInMs, latency);
 
     if (m_isUploadScheduled)
     {
@@ -58,15 +58,15 @@ void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventPriority prio
         m_isUploadScheduled = false;
     }
 
-    m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync, priority);
+    m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync, latency);
     m_isUploadScheduled = true;
     m_uploadInProgress = true;
 }
 
-void TransmissionPolicyManager::uploadAsync(EventPriority priority)
+void TransmissionPolicyManager::uploadAsync(EventLatency latency)
 {
     m_isUploadScheduled = false;
-    m_runningPriority = priority;
+    m_runningLatency = latency;
 
     if (m_isPaused) {
         ARIASDK_LOG_DETAIL("Paused, not uploading anything until resumed");
@@ -88,13 +88,13 @@ void TransmissionPolicyManager::uploadAsync(EventPriority priority)
             unsigned delayMs = 1000;
             ARIASDK_LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
                 proposedBandwidthBps, minimumBandwidthBps, delayMs);
-            scheduleUpload(delayMs, priority);
+            scheduleUpload(delayMs, latency);
             return;
         }
     }
 
     EventsUploadContextPtr ctx = EventsUploadContext::create();
-    ctx->requestedMinPriority = m_runningPriority;// EventPriority_Low;
+    ctx->requestedMinLatency = m_runningLatency;// EventLatency_Low;
     m_activeUploads.insert(ctx);
     initiateUpload(ctx);
 }
@@ -121,7 +121,7 @@ void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, 
             m_isUploadScheduled = false;
         }
 
-        EventPriority proposed = calculateNewPriority();
+        EventLatency proposed = calculateNewPriority();
         scheduleUpload(nextUploadInMs, proposed);
     }
 }
@@ -129,7 +129,7 @@ void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, 
 bool TransmissionPolicyManager::handleStart()
 {
     m_isPaused = false;
-    scheduleUpload(0, EventPriority_Low);
+    scheduleUpload(0, EventLatency_Normal);
     return true;
 }
 
@@ -160,9 +160,9 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
         return;
     }
 
-    if (event->record.priority >= EventPriority_Immediate) {
+    if (event->record.latency > EventLatency_RealTime) {
         EventsUploadContextPtr ctx = EventsUploadContext::create();
-        ctx->requestedMinPriority = event->record.priority;
+        ctx->requestedMinLatency = event->record.latency;
         m_activeUploads.insert(ctx);
         initiateUpload(ctx);
     } 
@@ -183,66 +183,36 @@ void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const
             }
         }
        
-        EventPriority proposed = calculateNewPriority();
+        EventLatency proposed = calculateNewPriority();
            
         scheduleUpload(m_timerdelay, proposed);
     }
 }
 
-EventPriority TransmissionPolicyManager::calculateNewPriority()
+EventLatency TransmissionPolicyManager::calculateNewPriority()
 {
-    EventPriority proposed = m_runningPriority;
+    EventLatency proposed = m_runningLatency;
     if (m_timers.size() > 2)
     {
         if (m_timers[0] == m_timers[2])
         {
-            proposed = EventPriority_Low;
+            proposed = EventLatency_Normal;
         }
         else
         {
-            bool isLowPriorityEnabled = false;
-            if (m_timers[0] > -1)
+            if (m_runningLatency == EventLatency_RealTime)
             {
-                isLowPriorityEnabled = true;
+                proposed = EventLatency_Normal;
             }
-            bool isNormalPriorityEnabled = false;
-            if (m_timers[1] > -1)
+            else if (m_runningLatency == EventLatency_Normal)
             {
-                isNormalPriorityEnabled = true;
-            }
-            bool isHighPriorityEnabled = false;
-            if (m_timers[2] > -1)
-            {
-                isHighPriorityEnabled = true;
-            }
-
-            if (m_runningPriority == EventPriority_High)
-            {
-                if (isNormalPriorityEnabled)
-                {
-                    proposed = EventPriority_Normal;
-                }
-            }
-            else if (m_runningPriority == EventPriority_Normal)
-            {
-                if (isLowPriorityEnabled)
-                {
-                    proposed = EventPriority_Low;
-                }
-                else
-                {
-                    proposed = EventPriority_High;
-                }
-            }
-            else if (m_runningPriority == EventPriority_Low)
-            {
-                proposed = EventPriority_High;
+                proposed = EventLatency_RealTime;
             }
         }
     }
     else
     {
-        proposed = EventPriority_Low;
+        proposed = EventLatency_Normal;
     }
 
     return proposed;
@@ -252,7 +222,7 @@ void TransmissionPolicyManager::handleNothingToUpload(EventsUploadContextPtr con
 {
     ARIASDK_LOG_DETAIL("No stored events to send at the moment");	
     m_backoff->reset();
-    if (ctx->requestedMinPriority == EventPriority::EventPriority_Low)
+    if (ctx->requestedMinLatency == EventLatency_Normal)
     {
         finishUpload(ctx, -1);
     }

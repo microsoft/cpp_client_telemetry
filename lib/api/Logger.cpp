@@ -96,18 +96,18 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
     ARIASDK_LOG_DETAIL("%p: LogAppLifecycle(state=%u, properties.name=\"%s\", ...)",
         this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAppLifecycleMessage(record, state)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "AppLifecycle", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
 }
 
@@ -122,21 +122,21 @@ void Logger::LogEvent(EventProperties const& properties)
     ARIASDK_LOG_DETAIL("%p: LogEvent(properties.name=\"%s\", ...)",
         this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
-    if (properties.GetPriority() > EventPriority_Unspecified)
+    EventLatency latency = EventLatency_Normal;
+    if (properties.GetLatency() > EventLatency_Unspecified)
     {
-        priority = properties.GetPriority();
+        latency = properties.GetLatency();
     }
     
     ::AriaProtocol::CsEvent record;
 
-    if (!applyCommonDecorators(record, properties, priority)) {
+    if (!applyCommonDecorators(record, properties, latency)) {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "custom", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
 }
 
@@ -150,18 +150,18 @@ void Logger::LogFailure(
     ARIASDK_LOG_DETAIL("%p: LogFailure(signature=\"%s\", properties.name=\"%s\", ...)",
         this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateFailureMessage(record, signature, detail, category, id)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "Failure", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
 }
 
@@ -184,18 +184,18 @@ void Logger::LogPageView(
     ARIASDK_LOG_DETAIL("%p: LogPageView(id=\"%s\", properties.name=\"%s\", ...)",
         this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageViewMessage(record, id, pageName, category, uri, referrer)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "PageView", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
 }
 
@@ -223,18 +223,18 @@ void Logger::LogPageAction(
     ARIASDK_LOG_DETAIL("%p: LogPageAction(pageActionData.actionType=%u, properties.name=\"%s\", ...)",
         this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decoratePageActionMessage(record, pageActionData)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "PageAction", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
 }
 
@@ -250,18 +250,18 @@ void Logger::LogSampledMetric(
     ARIASDK_LOG_DETAIL("%p: LogSampledMetric(name=\"%s\", properties.name=\"%s\", ...)",
         this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "SampledMetric", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
 }
 
@@ -291,18 +291,18 @@ void Logger::LogAggregatedMetric(
     ARIASDK_LOG_DETAIL("%p: LogAggregatedMetric(name=\"%s\", properties.name=\"%s\", ...)",
         this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAggregatedMetricMessage(record, metricData)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "AggregatedMetric", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
 }
 
@@ -314,18 +314,18 @@ void Logger::LogTrace(
     ARIASDK_LOG_DETAIL("%p: LogTrace(level=%u, properties.name=\"%s\", ...)",
         this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateTraceMessage(record, level, message)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "Trace", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_TRACE);
 }
 
@@ -337,22 +337,22 @@ void Logger::LogUserState(
     ARIASDK_LOG_DETAIL("%p: LogUserState(state=%u, properties.name=\"%s\", ...)",
         this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
-    EventPriority priority = EventPriority_Normal;
+    EventLatency latency = EventLatency_Normal;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateUserStateMessage(record, state, timeToLiveInMillis)) ||
-        !applyCommonDecorators(record, properties, priority))
+        !applyCommonDecorators(record, properties, latency))
     {
         ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
             "UserState", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
 
-    submit(record, priority, properties.GetPolicyBitFlags());
+    submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
 }
 
-bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventPriority& priority)
+bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventLatency& latency)
 {
     record.name = properties.GetName();
     if (record.name.empty())
@@ -361,19 +361,22 @@ bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventPropert
     }
     record.iKey = "O:" + (*m_tenantTokenP).substr(0, (*m_tenantTokenP).find('-'));
     return  m_baseDecorator &&
-            m_baseDecorator->decorate(record, priority ) &&
+            m_baseDecorator->decorate(record) &&
             m_semanticApiDecorators &&
             m_semanticContextDecorator->decorate(record) &&
             m_eventPropertiesDecorator &&
-            m_eventPropertiesDecorator->decorate(record, priority, properties) &&
+            m_eventPropertiesDecorator->decorate(record, latency, properties) &&
             m_runtimeConfigDecorator &&
-            m_runtimeConfigDecorator->decorate(record, priority);
+            m_runtimeConfigDecorator->decorate(record);
            
 }
 
-void Logger::submit(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventPriority priority, std::uint64_t  const& policyBitFlags)
+void Logger::submit(::AriaProtocol::CsEvent& record, 
+                    ::Microsoft::Applications::Telemetry::EventLatency latency, 
+                    ::Microsoft::Applications::Telemetry::EventPersistence persistence, 
+                    std::uint64_t  const& policyBitFlags)
 {
-    if (priority == EventPriority_Off)
+    if (latency == EventLatency_Off)
     {
         LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
         ARIASDK_LOG_INFO("Event %s/%s dropped because of calculated priority 0 (Off)",
@@ -381,7 +384,7 @@ void Logger::submit(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::
         return;
     }
 
-    IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), *m_tenantTokenP, priority, &record);
+    IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), *m_tenantTokenP, latency, persistence, &record);
     event->policyBitFlags = policyBitFlags;
     m_logManager.addIncomingEvent(event);
 }
@@ -437,18 +440,18 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
             break;
         }
     }
-    EventPriority priority = EventPriority_High;
+    EventLatency latency = EventLatency_RealTime;
     ::AriaProtocol::CsEvent record;
 
     if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateSessionMessage(record, state, *m_sessionIdP, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration)) ||
-        !applyCommonDecorators(record, prop, priority))
+        !applyCommonDecorators(record, prop, latency))
     {
        ARIASDK_LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
            "Trace", tenantTokenToId(*m_tenantTokenP).c_str(), prop.GetName().empty() ? "<unnamed>" : prop.GetName().c_str());
        return;
     }
         
-    submit(record, priority, prop.GetPolicyBitFlags());
+    submit(record, latency, prop.GetPersistence(), prop.GetPolicyBitFlags());
     LogManager::DispatchEvent(DebugEventType::EVT_LOG_SESSION);
 }
 

@@ -38,13 +38,12 @@ class RuntimeConfigDecorator : public DecoratorBase {
 		if (m_experimentationProjectP) delete m_experimentationProjectP;
 	}
 
-    bool decorate(::AriaProtocol::CsEvent& record, EventPriority& priority)
+    bool decorate(::AriaProtocol::CsEvent& record)
     {
-		UNREFERENCED_PARAMETER(priority);
         UNREFERENCED_PARAMETER(record);
         //m_runtimeConfig.DecorateEvent(record.data.properties, *m_experimentationProjectP, record.baseType);
 
-   /*     EventPriority priorityOverride = m_runtimeConfig.GetEventPriority(m_tenantId, record.baseType);
+   /*     EventLatency priorityOverride = m_runtimeConfig.GetEventLatency(m_tenantId, record.baseType);
         if (priorityOverride != EventPriority_Unspecified && priorityOverride != priority) {
             ARIASDK_LOG_DETAIL("Priority of event %s/%s was %sgraded from %u (%s) to %u (%s)",
                 m_tenantId.c_str(), record.baseType.c_str(),

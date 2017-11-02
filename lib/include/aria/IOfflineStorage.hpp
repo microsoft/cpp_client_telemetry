@@ -21,7 +21,8 @@ using StorageBlob     = std::vector<uint8_t>;
 struct StorageRecord {
     StorageRecordId id;
     std::string     tenantToken;
-    EventPriority   priority      = EventPriority_Unspecified;
+    EventLatency    latency      = EventLatency_Unspecified;
+    EventPersistence persistence  = EventPersistence_Normal;
     int64_t         timestamp     = 0;
     StorageBlob     blob;
     int             retryCount    = 0;
@@ -30,13 +31,13 @@ struct StorageRecord {
     StorageRecord()
     {}
 
-    StorageRecord(std::string const& id, std::string const& tenantToken, EventPriority priority)
-      : id(id), tenantToken(tenantToken), priority(priority)
+    StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence)
+      : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence)
     {}
 
-    StorageRecord(std::string const& id, std::string const& tenantToken, EventPriority priority,
+    StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence,
         int64_t timestamp, std::vector<uint8_t>&& blob, int retryCount = 0, int64_t reservedUntil = 0)
-      : id(id), tenantToken(tenantToken), priority(priority), timestamp(timestamp), blob(blob), retryCount(retryCount), reservedUntil(reservedUntil)
+      : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence), timestamp(timestamp), blob(blob), retryCount(retryCount), reservedUntil(reservedUntil)
     {}
 };
 
@@ -159,7 +160,7 @@ class IOfflineStorage {
     /// the retrieval ended prematurely, records could not be reserved
     /// etc.</returns>
     virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, 
-		EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
+		EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) = 0;
 	
 	/// <summary>
 	/// return where the last read was memory or disk
@@ -241,7 +242,7 @@ class IOfflineStorage {
 	/// <param name="minPriority">lowest priority selected</param>
 	/// <param name="maxCount"> max count to be selected</param>
 	/// <returns>Value of the requested setting or an empty string</returns>
-	virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventPriority minPriority = EventPriority_Unspecified, unsigned maxCount = 0) = 0;
+	virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) = 0;
 
 
 	virtual bool ResizeDb() = 0;

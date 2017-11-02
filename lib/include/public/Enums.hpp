@@ -19,6 +19,15 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
         DataCategory_MAX = 2
     };
 
+
+    enum TicketType
+    {
+        TicketType_MSA = 0,  
+        TicketType_XAuth = 1,
+        TicketType_MSAdelegation = 2,
+        TicketType_AAD
+    };
+    
     enum SdkModeTypes
     {
         SdkModeTypes_Aria = 0, //This is default transmission mode
@@ -293,6 +302,44 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
                 /// Immediate: Event is to be transmitted as soon as possible
                         EventPriority_Immediate     = 4,
                         EventPriority_MAX           = EventPriority_Immediate
+            };
+
+
+            /// <summary>
+            /// Latency for an event to be transmitted
+            /// </summary>
+            enum EventLatency
+            {
+                /// Unspecified: Event Latency is not specified
+                EventLatency_Unspecified = -1,
+
+                /// Off: Latency is not to be transmitted
+                EventLatency_Off = 0,
+
+                /// Normal: Latency is to be transmitted at low priority
+                EventLatency_Normal = 1,
+
+                /// Cost Deffered: Latency is to be transmitted at cost deferred priority
+                EventLatency_CostDeferred = 2,
+
+                /// RealTime: Latency is to be transmitted at real time priority
+                EventLatency_RealTime = 3,
+
+                /// Max: Latency is to be transmitted as soon as possible
+                EventLatency_Max = 4,
+            };
+
+
+            /// <summary>
+            /// Persistence for an event
+            /// </summary>
+            enum EventPersistence
+            {
+                /// Normal
+                EventPersistence_Normal = 1,
+
+                /// Critical
+                EventPersistence_Critical = 2,
             };
 
 /// <summary>

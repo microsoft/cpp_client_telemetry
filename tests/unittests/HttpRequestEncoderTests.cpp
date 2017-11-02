@@ -38,7 +38,7 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
     ctx->compressed = false;
     ctx->body       = {1, 127, 255};
     ctx->packageIds["tenant1-token"] = 0;
-    ctx->priority   = EventPriority_High;
+    ctx->latency   = EventLatency_RealTime;
 
     encoder.encode(ctx);
 
@@ -52,9 +52,9 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
     EXPECT_THAT(req->m_headers, Contains(Pair("Client-Version",  PAL::getSdkVersion())));
     EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id",    "NO_AUTH")));
     EXPECT_THAT(req->m_headers, Contains(Pair("Content-Type", "application/bond-compact-binary")));
-    EXPECT_THAT(req->m_headers, Contains(Pair("X-APIKey",     "tenant1-token")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey",     "tenant1-token")));
     EXPECT_THAT(req->m_body,    Eq(std::vector<uint8_t>{1, 127, 255}));
-    EXPECT_THAT(req->m_priority, Eq(EventPriority_High));
+    EXPECT_THAT(req->m_latency, Eq(EventLatency_RealTime));
 }
 
 TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
@@ -81,18 +81,18 @@ TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
     SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
-    EXPECT_THAT(req->m_headers, Contains(Pair("X-APIKey", "")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "")));
 
     ctx->packageIds["tenant1-token"] = 0;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
     req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
-    EXPECT_THAT(req->m_headers, Contains(Pair("X-APIKey", "tenant1-token")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token")));
 
     ctx->packageIds["tenant2-token"] = 1;
     ctx->packageIds["tenant3-token"] = 2;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
     req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
-    EXPECT_THAT(req->m_headers, Contains(Pair("X-APIKey", "tenant1-token,tenant2-token,tenant3-token")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token,tenant2-token,tenant3-token")));
 }

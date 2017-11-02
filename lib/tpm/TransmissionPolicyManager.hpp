@@ -18,14 +18,14 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
   public:
     TransmissionPolicyManager(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController);
     virtual ~TransmissionPolicyManager();
-    virtual void scheduleUpload(int delayInMs, EventPriority priority);
+    virtual void scheduleUpload(int delayInMs, EventLatency latency);
     virtual bool isUploadInProgress() { return m_uploadInProgress; }
 
   protected:
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
     void checkBackoffConfigUpdate();
     
-    void uploadAsync(EventPriority priority);
+    void uploadAsync(EventLatency priority);
     void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
 
     bool handleStart();
@@ -41,7 +41,7 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     void handleEventsUploadFailed(EventsUploadContextPtr const& ctx);
     void handleEventsUploadAborted(EventsUploadContextPtr const& ctx);
 
-    EventPriority calculateNewPriority();
+    EventLatency calculateNewPriority();
 
   protected:
     std::mutex                       m_lock;
@@ -59,7 +59,7 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     std::set<EventsUploadContextPtr> m_activeUploads;
     int                              m_timerdelay;
     bool                             m_uploadInProgress;
-    EventPriority                    m_runningPriority;
+    EventLatency                     m_runningLatency;
     std::vector<int>                 m_timers;
 
   public:

@@ -50,7 +50,7 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
         EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
         EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventPriority(_, _)).WillRepeatedly(Return(EventPriority_Unspecified));
+        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
         EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
         EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
         EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
@@ -110,15 +110,24 @@ class BasicFuncTests : public ::testing::Test,
             // TODO
         }
                         
-        uint16_t data = 0;
+        size_t data = 0;
+        size_t length = request.content.size();
         while (data < request.content.size())
         {
             AriaProtocol::CsEvent result;
-            std::vector<uint8_t> input(request.content.data() + data, request.content.data() + request.content.size() - data);
-            bond_lite::CompactBinaryProtocolReader reader(input);
-            EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
-            data += sizeof(result) / sizeof(uint8_t);
-            vector.push_back(result);
+            size_t start = request.content.find("000", data);
+            if (-1 != start)
+            {
+                std::vector<uint8_t> input(request.content.data() + data, request.content.data() + length - data);
+                bond_lite::CompactBinaryProtocolReader reader(input);
+                EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
+                data += reader.getSize();// sizeof(result) / sizeof(uint8_t); reader.
+                vector.push_back(result);
+            }
+            else
+            {
+                break;
+            }
         }
 
 
@@ -361,8 +370,10 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
-    event1.SetPriority(Microsoft::Applications::Telemetry::EventPriority::EventPriority_High);
-    event2.SetPriority(Microsoft::Applications::Telemetry::EventPriority::EventPriority_High);
+    event1.SetLatency(Microsoft::Applications::Telemetry::EventLatency::EventLatency_RealTime);
+    event1.SetPersistence(Microsoft::Applications::Telemetry::EventPersistence::EventPersistence_Critical);
+    event2.SetLatency(Microsoft::Applications::Telemetry::EventLatency::EventLatency_RealTime);
+    event2.SetPersistence(Microsoft::Applications::Telemetry::EventPersistence::EventPersistence_Critical);
 
     EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
     logger->LogEvent(event1);

@@ -67,8 +67,8 @@ class IRuntimeConfig {
     /// note that it is not a tenant token</param>
     /// <param name="eventName">Specific event name as used in
     /// EventProperties</param>
-    /// <returns>EventPriority value for the event.</returns>
-    virtual EventPriority GetEventPriority(std::string const& tenantId  = std::string(), std::string const& eventName = std::string()) const = 0;
+    /// <returns>Eventlatency value for the event.</returns>
+    virtual EventLatency GetEventLatency(std::string const& tenantId  = std::string(), std::string const& eventName = std::string()) const = 0;
 
     /// <summary>
     /// Return Aria tenant token for statistic events about the SDK itself
@@ -183,7 +183,7 @@ class IRuntimeConfig {
     /// is not a tenant token</param>
     /// <param name="eventName">Specific event name as used in
     /// EventProperties</param>
-    virtual void SetEventPriority(std::string const& tenantId, std::string const& eventName, EventPriority priority) = 0;
+    virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) = 0;
 
 	/// <summary>
 	/// Clock Skew enabled

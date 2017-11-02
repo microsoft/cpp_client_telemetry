@@ -48,7 +48,7 @@ void OfflineStorage::handleRetrieveEvents(EventsUploadContextPtr const& ctx)
             return wantMore;
         };
 
-    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinPriority, ctx->requestedMaxCount))
+    if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
 	{
 		ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
         retrievalFailed(ctx);

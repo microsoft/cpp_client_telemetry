@@ -42,9 +42,9 @@ class MetaStats
 
     std::vector< ::AriaProtocol::CsEvent> generateStatsEvent(ActRollUpKind rollupKind);
 
-    void updateOnEventIncoming(unsigned size, EventPriority priority, bool metastats);
+    void updateOnEventIncoming(unsigned size, EventLatency latency, bool metastats);
     void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
-    void updateOnPackageSentSucceeded(EventPriority eventPriority, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
+    void updateOnPackageSentSucceeded(EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
     void updateOnPackageFailed(int statusCode);
     void updateOnPackageRetry(int statusCode, unsigned retryFailedTimes);
     void updateOnRecordsDropped(EventDroppedReason reason, unsigned droppedCount);

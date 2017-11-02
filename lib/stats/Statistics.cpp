@@ -57,7 +57,7 @@ void Statistics::send(ActRollUpKind rollupKind)
 
     for (auto& record : records)
     {
-        IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), tenantToken, EventPriority_High, &record);
+        IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
         if (nullptr == m_iTelemetrySystem)
         {
             eventGenerated(event);			
@@ -95,7 +95,7 @@ bool Statistics::handleOnStop()
 bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx)
 {
     bool metastats = (ctx->record.tenantToken == m_runtimeConfig.GetMetaStatsTenantToken());
-    m_metaStats.updateOnEventIncoming(static_cast<unsigned>(ctx->record.blob.size()), ctx->record.priority, metastats);
+    m_metaStats.updateOnEventIncoming(static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
     scheduleSend();
     
     LogManager::DispatchEvent(DebugEventType::EVT_ADDED);
@@ -137,7 +137,7 @@ bool Statistics::handleOnUploadSuccessful(EventsUploadContextPtr const& ctx)
     }
 
     bool metastatsOnly = (ctx->packageIds.count(m_runtimeConfig.GetMetaStatsTenantToken()) == ctx->packageIds.size());
-    m_metaStats.updateOnPackageSentSucceeded(ctx->priority, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
+    m_metaStats.updateOnPackageSentSucceeded(ctx->latency, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
     scheduleSend();
     return true;
 }

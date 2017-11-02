@@ -69,7 +69,7 @@ class MultipleLogManagersTests : public ::testing::Test,
         EXPECT_CALL(rc, GetCollectorUrl()).WillRepeatedly(Return(url));
         EXPECT_CALL(rc, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
         EXPECT_CALL(rc, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(rc, GetEventPriority(_, _)).WillRepeatedly(Return(EventPriority_Unspecified));
+        EXPECT_CALL(rc, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
         EXPECT_CALL(rc, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
         EXPECT_CALL(rc, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-token"));
         EXPECT_CALL(rc, GetMaximumRetryCount()).WillRepeatedly(Return(1));

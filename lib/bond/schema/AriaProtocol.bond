@@ -28,6 +28,14 @@ struct User
     1: optional string id;
     2: optional string localId;
     3: optional string authId;
+	4: optional string locale;
+}
+
+struct Loc
+{
+    1: optional string id;
+    2: optional string country;
+    3: optional string timezone;
 }
 
 struct Device
@@ -39,6 +47,8 @@ struct Device
     5: optional string deviceClass;
     6: optional string orgId;
     7: optional string orgAuthId;
+	8: optional string make;
+	9: optional string model;
 }
 
 struct Os
@@ -58,6 +68,7 @@ struct App
     4: optional int32 asId;
     5: optional string id;
     6: optional string ver;
+    7: optional string locale;
 }
 
 struct Utc
@@ -129,12 +140,34 @@ struct Protocol
 {
     1: optional int32 metadataCrc;
     2: optional vector<vector<string>> ticketKeys;
+	3: optional string devMake;
+    4: optional string devModel;
 }
 
 struct Receipts
 {
     1: optional int64 originalTime;
     2: optional int64 uploadTime;
+}
+
+struct Diag
+{
+    1: optional string orgtime;
+}
+
+struct Net
+{
+    1: optional string provider;
+    2: optional string cost;
+	3: optional string type;
+}
+
+
+struct Sdk
+{
+    1: optional string libVer;
+    2: optional string epoch;
+    3: optional int64 seq;
 }
 
 enum ValueKind
@@ -237,6 +270,10 @@ struct CsEvent
     27: optional vector<Xbl> extXbl;
     28: optional vector<Javascript> extJavascript;
     29: optional vector<Receipts> extReceipts;
+	30: optional vector<Diag> extDiag;	
+	31: optional vector<Net> extNet;	
+	32: optional vector<Sdk> extSdk;
+	33: optional vector<Loc> extLoc;
     41: optional vector<Data> ext;
     51: optional map<string, string> tags;
     60: optional string baseType;

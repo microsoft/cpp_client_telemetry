@@ -48,8 +48,11 @@ namespace Microsoft {
             EventProperties::EventProperties()
                 : m_timestampInMillis(0LL)
                 , m_eventPriority(EventPriority_Unspecified)
+                , m_eventLatency(EventLatency_Normal)
+                , m_eventPersistence( EventPersistence_Normal)
+                , m_eventPopSample(100)
                 , m_eventPolicyBitflags(0)
-                , m_eventNameP(new std::string("EventProperties default constructor"))
+                , m_eventNameP(new std::string("undefined"))
                 , m_eventTypeP(new std::string())
                 , m_propertiesP(new std::map<std::string, EventProperty>())
                 , m_propertiesBP(new std::map<std::string, EventProperty>())
@@ -59,17 +62,17 @@ namespace Microsoft {
             EventProperties::EventProperties(const string& name)
                 : m_timestampInMillis(0LL)
                 , m_eventPriority(EventPriority_Unspecified)
+                , m_eventLatency(EventLatency_Normal)
+                , m_eventPersistence(EventPersistence_Normal)
+                , m_eventPopSample(100)
                 , m_eventPolicyBitflags(0)
-                , m_eventNameP(new std::string("EventProperties Named constructor"))
+                , m_eventNameP(new std::string(name))
                 , m_eventTypeP(new std::string())
                 , m_propertiesP(new std::map<std::string, EventProperty>())
                 , m_propertiesBP(new std::map<std::string, EventProperty>())
             {
-                if (!name.empty())
+                if (name.empty())
                 {
-                    SetName(name);
-                }
-                else {
                     SetName("undefined");
                 }
             }
@@ -80,6 +83,9 @@ namespace Microsoft {
                 m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
                 m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
                 m_eventPriority = copy.m_eventPriority;
+                m_eventLatency = copy.m_eventLatency;
+                m_eventPersistence = copy.m_eventPersistence;
+                m_eventPopSample = copy.m_eventPopSample;
                 m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
                 m_timestampInMillis = copy.m_timestampInMillis;
                 
@@ -102,6 +108,9 @@ namespace Microsoft {
                 m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
                 m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
                 m_eventPriority = copy.m_eventPriority;
+                m_eventLatency = copy.m_eventLatency;
+                m_eventPersistence = copy.m_eventPersistence;
+                m_eventPopSample = copy.m_eventPopSample;
                 m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
                 m_timestampInMillis = copy.m_timestampInMillis;
 
@@ -182,7 +191,18 @@ namespace Microsoft {
             void EventProperties::SetPriority(EventPriority priority)
             {
                 m_eventPriority = priority;
-            }
+
+                if (m_eventPriority >= EventPriority_High)
+                {
+                    m_eventLatency = EventLatency_RealTime;
+                    m_eventPersistence = EventPersistence_Critical;
+                }
+                else
+                {
+                    m_eventLatency = EventLatency_Normal;
+                    m_eventPersistence = EventPersistence_Normal;
+                }
+            }           
 
             /// <summary>
             /// Get transmit priority of this event
@@ -192,6 +212,62 @@ namespace Microsoft {
             {
                 EventPriority result = m_eventPriority;
                 return result;
+            }
+
+            /// <summary>
+            /// Set transmit Latency of this event
+            /// Default transmit Latency will be used if none specified 
+            /// </summary>
+            void EventProperties::SetLatency(EventLatency latency)
+            {
+                m_eventLatency = latency;
+            }
+
+            /// <summary>
+            /// Get transmit priority of this event
+            /// Default transmit priority will be used if none specified 
+            /// </summary>
+            EventLatency EventProperties::GetLatency() const
+            {
+                EventLatency result = m_eventLatency;
+                return result;
+            }
+
+            /// <summary>
+            /// [optional] Specify Persistence priority of an event.
+            /// Default Persistence priority will be used for persisting the event if none was specified. 
+            /// </summary>
+            void EventProperties::SetPersistence(EventPersistence persistence)
+            {
+                m_eventPersistence = persistence;
+            }
+
+            /// <summary>
+            /// Get Persistence of this event
+            /// Default Persistence will be used if none specified 
+            /// </summary>
+            EventPersistence EventProperties::GetPersistence() const
+            {
+                EventPersistence result = m_eventPersistence;
+                return result;
+            }
+
+            /// <summary>
+            /// [optional] Specify popSample of an event.
+            /// </summary>
+            /// <param name="priority">popSample of the event</param>
+            void EventProperties::SetPopsample(double popSample)
+            {
+                m_eventPopSample = popSample;
+            }
+
+            /// <summary>
+            /// Get the popSample of the event.
+            /// </summary>
+            /// <returns>popSample of the event<returns>
+            double EventProperties::GetPopSample() const
+            {
+                return m_eventPopSample;
             }
 
             /// <summary>

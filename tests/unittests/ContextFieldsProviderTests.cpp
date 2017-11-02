@@ -77,7 +77,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     loggerCtx.writeToRecord(record1);
     EXPECT_THAT(record1.data[0].properties.size(), 10);
 
-    EXPECT_THAT(record1.extUser[0].id, Eq("userId"));
+    EXPECT_THAT(record1.extUser[0].localId, Eq("userId"));
 
     EXPECT_THAT(record1.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::MailSubject);
     EXPECT_THAT(record1.data[0].properties["sharedpii"].stringValue, Eq("latestpii"));
@@ -90,12 +90,12 @@ TEST(ContextFieldsProviderTests, SetProperties)
     EXPECT_THAT(record1.data[0].properties["parent"].stringValue, Eq("willremain"));
     EXPECT_THAT(record1.data[0].properties["child"].stringValue, Eq("specific"));
 
-    EXPECT_THAT(record1.appId, Eq("appId"));
+    EXPECT_THAT(record1.extApp[0].id, Eq("appId"));
     EXPECT_THAT(record1.extApp[0].expId, Eq("appExperimentIds"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Version"].stringValue, Eq("appVersion"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
-    EXPECT_THAT(record1.extDevice[0].id, Eq("deviceId"));
+    EXPECT_THAT(record1.extDevice[0].localId, Eq("deviceId"));
     //EXPECT_THAT(record1.extDevice[0]..properties["DeviceInfo.Make"].stringValue, Eq("deviceMake"));
     //EXPECT_THAT(record1.data[0].properties["DeviceInfo.Model"].stringValue, Eq("deviceModel"));
 
@@ -103,8 +103,8 @@ TEST(ContextFieldsProviderTests, SetProperties)
   //  EXPECT_THAT(record1.data[0].properties["DeviceInfo.NetworkProvider"].stringValue, Eq("networkProvider"));
   //  EXPECT_THAT(record1.data[0].properties["DeviceInfo.NetworkType"].stringValue, Eq("Wired"));
 
-    EXPECT_THAT(record1.os, Eq("osName"));
-    EXPECT_THAT(record1.osVer, Eq("osVersion"));
+    EXPECT_THAT(record1.extOs[0].name, Eq("osName"));
+    EXPECT_THAT(record1.extOs[0].ver, Eq("osBuild"));
     //EXPECT_THAT(record1.data[0].properties["DeviceInfo.OsBuild"].stringValue, Eq("osBuild"));
 
     //EXPECT_THAT(record1.data[0].properties["UserInfo.MsaId"].stringValue, Eq("userMsaId"));
@@ -121,9 +121,9 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
     ::AriaProtocol::CsEvent record;
     ctx.writeToRecord(record);
 
-    EXPECT_THAT(record.extDevice[0].id,          Not(IsEmpty()));
-    EXPECT_THAT(record.extDevice[0].authSecId,   Not(IsEmpty()));
+    EXPECT_THAT(record.extDevice[0].localId,          Not(IsEmpty()));
+    //EXPECT_THAT(record.extDevice[0].authSecId,   Not(IsEmpty()));
     //EXPECT_THAT(record.data[0].properties["DeviceInfo.NetworkType"].stringValue, Not(IsEmpty()));
-    EXPECT_THAT(record.os,      Not(IsEmpty()));
-    EXPECT_THAT(record.osVer,   Not(IsEmpty()));
+    EXPECT_THAT(record.extOs[0].name,      Not(IsEmpty()));
+    EXPECT_THAT(record.extOs[0].ver,   Not(IsEmpty()));
 }

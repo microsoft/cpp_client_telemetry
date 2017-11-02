@@ -7,6 +7,7 @@
 #include <api/LogConfiguration.hpp>
 #include "system/Contexts.hpp"
 #include "stats/Statistics.hpp"
+#include "traceloggingdynamic.h"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -84,6 +85,10 @@ class UtcTelemetrySystem : public PAL::RefCountedImpl<UtcTelemetrySystem>,
     void preparedIncomingEventAsync(IncomingEventContextPtr const& event);
     int sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx);
     ProviderData getProviderFortoken(const std::string& tenantToken);
+    void UtcTelemetrySystem::PutData(std::vector< ::AriaProtocol::Data>& ext,
+        std::vector<std::string>& MD,
+        tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
+        tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
 
   protected:
     bool                      m_isPaused;

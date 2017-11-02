@@ -104,11 +104,49 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// <param name="priority">Transmit priority of the event</param>
 		void SetPriority(EventPriority priority);
 
-		/// <summary>
+        /// <summary>
 		/// Get the transmit priority of the event.
 		/// </summary>
 		/// <returns>Transmit priority of the event<returns>
 		EventPriority GetPriority() const;
+
+        /// <summary>
+        /// [optional] Specify transmit Latency of an event.
+        /// Default transmit Latency will be used for transmitting the event if none was specified. 
+        /// </summary>
+        /// <param name="priority">Transmit Latency of the event</param>
+        void SetLatency(EventLatency latency);
+
+        /// <summary>
+        /// Get the transmit Latency of the event.
+        /// </summary>
+        /// <returns>Transmit Latency of the event<returns>
+        EventLatency GetLatency() const;
+
+        /// <summary>
+        /// [optional] Specify Persistence priority of an event.
+        /// Default Persistence priority will be used for persisting the event if none was specified. 
+        /// </summary>
+        /// <param name="priority">Persistence of the event</param>
+        void SetPersistence(EventPersistence persistence);
+
+        /// <summary>
+        /// Get the transmit Latency of the event.
+        /// </summary>
+        /// <returns>Transmit Latency of the event<returns>
+        EventPersistence GetPersistence() const;
+
+        /// <summary>
+        /// [optional] Specify popSample of an event.
+        /// </summary>
+        /// <param name="priority">popSample of the event</param>
+        void SetPopsample(double popSample);
+
+        /// <summary>
+        /// Get the popSample of the event.
+        /// </summary>
+        /// <returns>popSample of the event<returns>
+        double GetPopSample() const;
 
 		/// <summary>
 		/// [optional] Specify Policy Bit flags for UTC usage of an event.
@@ -242,6 +280,9 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		std::string*     m_eventNameP;
 		std::string*     m_eventTypeP;
 		EventPriority    m_eventPriority;
+        EventLatency     m_eventLatency;
+        EventPersistence m_eventPersistence;
+        double           m_eventPopSample;
 		uint64_t         m_eventPolicyBitflags;
 		int64_t          m_timestampInMillis;
 

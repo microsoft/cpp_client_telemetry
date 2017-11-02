@@ -55,6 +55,7 @@ class ContextFieldsProvider : public ISemanticContext
     virtual void SetUserAdvertisingId(std::string const& userAdvertingId) override;
     virtual void SetUserLanguage(std::string const& language) override;
     virtual void SetUserTimeZone(std::string const& timeZone) override;
+    virtual void SetTicket(TicketType type, std::string const& ticketValue) override;
 
     
 
@@ -68,6 +69,7 @@ class ContextFieldsProvider : public ISemanticContext
     // mapping from an event name to a list of CSV'ed ECS configIds
     std::map<std::string, std::string>* m_commonContextEventToConfigIdsP;
     std::string* m_CommonFieldsAppExperimentIdsP;
+    std::map<TicketType, std::string>* m_ticketsMapP;
 };
 
 

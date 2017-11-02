@@ -15,7 +15,7 @@ class MockIOfflineStorage : public ARIASDK_NS::IOfflineStorage {
     MOCK_METHOD1(Initialize, void(ARIASDK_NS::IOfflineStorageObserver & observer));
     MOCK_METHOD0(Shutdown, void());
     MOCK_METHOD1(StoreRecord, bool(ARIASDK_NS::StorageRecord const &));
-    MOCK_METHOD4(GetAndReserveRecords, bool(std::function<bool(ARIASDK_NS::StorageRecord&&)> const &, unsigned, ARIASDK_NS::EventPriority, unsigned));
+    MOCK_METHOD4(GetAndReserveRecords, bool(std::function<bool(ARIASDK_NS::StorageRecord&&)> const &, unsigned, ARIASDK_NS::EventLatency, unsigned));
     MOCK_METHOD0(IsLastReadFromMemory, bool());
     MOCK_METHOD0(LastReadRecordCount, unsigned());
     MOCK_METHOD3(DeleteRecords, void(std::vector<ARIASDK_NS::StorageRecordId> const &, ARIASDK_NS::HttpHeaders, bool& ));
@@ -23,7 +23,7 @@ class MockIOfflineStorage : public ARIASDK_NS::IOfflineStorage {
     MOCK_METHOD2(StoreSetting, bool(std::string const &, std::string const &));
     MOCK_METHOD1(GetSetting, std::string(std::string const &));
     MOCK_METHOD0(GetSize, unsigned());
-    MOCK_METHOD3(GetRecords, std::vector<ARIASDK_NS::StorageRecord>*(bool, ARIASDK_NS::EventPriority, unsigned));
+    MOCK_METHOD3(GetRecords, std::vector<ARIASDK_NS::StorageRecord>*(bool, ARIASDK_NS::EventLatency, unsigned));
 	MOCK_METHOD0(ResizeDb, bool());
 };
 

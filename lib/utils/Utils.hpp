@@ -37,23 +37,23 @@ inline std::string tenantTokenToId(std::string const& tenantToken)
     return tenantToken.substr(0, tenantToken.find('-'));
 }
 
-inline const char* priorityToStr(EventPriority priority)
+inline const char* priorityToStr(EventLatency priority)
 {
     switch (priority) {
-        case EventPriority_Unspecified:
+        case EventLatency_Unspecified:
             return "Unspecified";
 
-        case EventPriority_Off:
+        case EventLatency_Off:
             return "Off";
 
-        case EventPriority_Low:
-            return "Low";
-
-        case EventPriority_Normal:
+        case EventLatency_Normal:
             return "Normal";
 
-        case EventPriority_High:
-            return "High";
+        case EventLatency_CostDeferred:
+            return "CostDeferred";
+
+        case EventLatency_RealTime:
+            return "RealTime";
 
         case EventPriority_Immediate:
             return "Immediate";

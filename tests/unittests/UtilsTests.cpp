@@ -72,10 +72,7 @@ TEST(UtilsTests, TestValidatePropertyName)
 #endif // ARIASDK_PAL_SKYPE
 		)
 		{
-			// non-alphanumeric characters are not allowed - by itself
-			EXPECT_FALSE(validatePropertyName(curString));
-
-			// or as part of the bigger string
+           // or as part of the bigger string
 			if (curChar != '.' && curChar != '_')
 			{
 				EXPECT_FALSE(validatePropertyName(abc + ABC + curString + d20));
@@ -90,8 +87,8 @@ TEST(UtilsTests, TestValidatePropertyName)
 			// dots and underscores are not allowed in the begginging or in the end
 			EXPECT_FALSE(validatePropertyName("." + curString));
 			EXPECT_FALSE(validatePropertyName(curString + "."));
-			EXPECT_FALSE(validatePropertyName("_" + curString));
-			EXPECT_FALSE(validatePropertyName(curString + "_"));
+			EXPECT_TRUE(validatePropertyName("_" + curString));
+			EXPECT_TRUE(validatePropertyName(curString + "_"));
 		}
 	}
 
