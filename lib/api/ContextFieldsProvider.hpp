@@ -37,22 +37,23 @@ class ContextFieldsProvider : public ISemanticContext
     virtual void SetAppLanguage(std::string const& appLanguage) override;
     virtual void SetAppVersion(std::string const& appVersion) override;
 
-    virtual void SetDeviceId(std::string const& deviceId) override;
-    virtual void SetDeviceMake(std::string const& deviceMake) override;
-    virtual void SetDeviceModel(std::string const& deviceModel) override;
+    virtual void SetDeviceId(std::string const& deviceId);
+    virtual void SetDeviceMake(std::string const& deviceMake);
+    virtual void SetDeviceModel(std::string const& deviceModel);
+    virtual void SetDeviceClass(std::string const& deviceCLass);
 
-    virtual void SetNetworkCost(NetworkCost networkCost) override;
-    virtual void SetNetworkProvider(std::string const& networkProvider) override;
-    virtual void SetNetworkType(NetworkType networkType) override;
+    virtual void SetNetworkCost(NetworkCost networkCost);
+    virtual void SetNetworkProvider(std::string const& networkProvider);
+    virtual void SetNetworkType(NetworkType networkType);
 
-    virtual void SetOsBuild(std::string const& osBuild) override;
-    virtual void SetOsName(std::string const& osName) override;
-    virtual void SetOsVersion(std::string const& osVersion) override;
+    virtual void SetOsBuild(std::string const& osBuild);
+    virtual void SetOsName(std::string const& osName);
+    virtual void SetOsVersion(std::string const& osVersion);
 
     virtual void SetUserId(std::string const& userId, PiiKind piiKind = PiiKind_Identity) override;
-    virtual void SetUserMsaId(std::string const& userMsaId) override;
-    virtual void SetUserANID(std::string const& userANID) override;
-    virtual void SetUserAdvertisingId(std::string const& userAdvertingId) override;
+    virtual void SetUserMsaId(std::string const& userMsaId);
+    virtual void SetUserANID(std::string const& userANID);
+    virtual void SetUserAdvertisingId(std::string const& userAdvertingId);
     virtual void SetUserLanguage(std::string const& language) override;
     virtual void SetUserTimeZone(std::string const& timeZone) override;
     virtual void SetTicket(TicketType type, std::string const& ticketValue) override;

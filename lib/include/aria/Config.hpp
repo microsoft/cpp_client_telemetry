@@ -271,6 +271,7 @@ const char* const COMMONFIELDS_NETWORK_COST         = "DeviceInfo.NetworkCost";
 const char* const COMMONFIELDS_OS_NAME              = "DeviceInfo.OsName";
 const char* const COMMONFIELDS_OS_VERSION           = "DeviceInfo.OsVersion";
 const char* const COMMONFIELDS_OS_BUILD             = "DeviceInfo.OsBuild";
+const char* const COMMONFIELDS_DEVICE_CLASS         = "DeviceInfo.Class";
 
 
 const char* const COMMONFIELDS_EVENT_SDK_TYPE       = "S_t";

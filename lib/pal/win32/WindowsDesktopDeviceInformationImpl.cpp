@@ -3,7 +3,7 @@
 #include "pal/DeviceInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
-#include <winsock2.h>
+//#include <winsock2.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <stdio.h>

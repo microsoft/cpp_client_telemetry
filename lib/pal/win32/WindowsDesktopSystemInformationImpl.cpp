@@ -40,13 +40,39 @@ namespace Microsoft {
                         m_app_id = app_name;
                     }
 
-                    OSVERSIONINFO osvi = { 0 };
-                    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-                    // FIXME: [MG] - C4996 'GetVersionExW': was declared deprecated
-                    GetVersionEx(&osvi);
+                    HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
+                    typedef HRESULT NTSTATUS;
+                    typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
+                    RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
 
-                    m_os_major_version = std::to_string((long long)osvi.dwMajorVersion) + "." + std::to_string((long long)osvi.dwMinorVersion);
-                    m_os_full_version = m_os_major_version + "." + std::to_string((long long)osvi.dwBuildNumber);
+                    RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
+                    if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
+                    {
+                       m_os_major_version = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
+                       m_os_full_version = m_os_major_version + "." + std::to_string((long long)rtlOsvi.dwBuildNumber);
+                    }                   
+
+                    typedef HRESULT NTSTATUS;
+                    typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*,unsigned long*,PWSTR,PWSTR);
+                    RtlConvertDeviceFamilyInfoToString_t pRtlConvertDeviceFamilyInfoToString = hNtDll ? reinterpret_cast<RtlConvertDeviceFamilyInfoToString_t>(::GetProcAddress(hNtDll, "RtlConvertDeviceFamilyInfoToString")) : nullptr;
+
+                    if (pRtlConvertDeviceFamilyInfoToString)
+                    {
+                        unsigned long platformBufferSize = 0;
+                        unsigned long deviceClassBufferSize = 0;
+
+                        unsigned long status = pRtlConvertDeviceFamilyInfoToString(&platformBufferSize, &deviceClassBufferSize, nullptr, nullptr);
+                        if (status == 0xC0000023L) // #define STATUS_BUFFER_TOO_SMALL          ((NTSTATUS)0xC0000023L)
+                        {
+                            auto platformString = std::make_unique<wchar_t[]>(platformBufferSize);
+                            auto deviceString = std::make_unique<wchar_t[]>(deviceClassBufferSize);
+                            pRtlConvertDeviceFamilyInfoToString(&platformBufferSize, &deviceClassBufferSize, platformString.get(), deviceString.get());
+                            std::wstring temp;
+                            temp.assign(platformString.get());
+                            std::string str(temp.begin(), temp.end());
+                            m_device_family = str;
+                        }
+                    }
                 }
 
                 SystemInformationImpl::~SystemInformationImpl()

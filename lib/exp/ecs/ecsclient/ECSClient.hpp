@@ -55,6 +55,8 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 
         virtual std::string GetETag();
 
+        virtual std::string GetConfigs();
+
         virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue);
 
         virtual bool GetSetting(const std::string& agentName, const std::string& settingPath, const bool defaultValue);
@@ -96,6 +98,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		std::set<IECSClientCallback *>      m_listeners;
         ECSConfigCache*         m_configCache;
         ECSConfig*              m_configActive;
+        std::string             m_inProgressRequestName;
 		ExpCommon               m_EXPCommon;
 		unsigned int            m_minExpireTimeInSecs;		
      

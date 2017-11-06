@@ -33,6 +33,14 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             m_OfflineStoragePath = storagePath;
         }
 
+        int* xPtr = nullptr;
+        int IntptrSize = sizeof(xPtr);
+        if (IntptrSize > 4) // on 64 bit system, we want session to have different file because FIFO has trouble opening 32 bit file in 64 bit mode
+        {
+            m_OfflineStoragePath = m_OfflineStoragePath + "64";
+        }
+        UNREFERENCED_PARAMETER(xPtr);
+
         // always add a default config
         ECSConfig config;
         m_configs[config.requestName] = config;
@@ -211,7 +219,8 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             {
                 // according to http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
                 // section 3.11, an entity tag consists of an opaque quoted string
-                str += "\",\"etag\":\"\\";
+                if (!str.empty()) str += ",";
+                str += "\"etag\":\"\\";
                 str.append((*it).etag, 0, (*it).etag.size() - 1);
                 str += "\\\"";
             }

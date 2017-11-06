@@ -160,8 +160,15 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
             record.extApp[0].expId = value;
         }
 
+        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFieldsP->end())
+        {
+            AriaProtocol::Value temp;
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
+            temp.stringValue = prop.as_string;
 
-        //common Experiement fields   COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, 
+            ext[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID] = temp;
+        }
+
         if (m_commonContextFieldsP->find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFieldsP->end())
         {
             AriaProtocol::Value temp;
@@ -201,10 +208,16 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
             record.extDevice[0].make = prop.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end())// 
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end()) 
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MODEL];
-            record.extDevice[0].model= prop.as_string;
+            record.extDevice[0].model = prop.as_string;
+        }
+
+        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_CLASS) != m_commonContextFieldsP->end()) 
+        {
+            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_CLASS];
+            record.extDevice[0].deviceClass = prop.as_string;
         }
         
         if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
@@ -562,5 +575,9 @@ void ContextFieldsProvider::SetTicket(TicketType type, std::string const& ticket
     }
 }
 
+void ContextFieldsProvider::SetDeviceClass(std::string const& deviceCLass)
+{
+    setCommonField(COMMONFIELDS_DEVICE_CLASS, deviceCLass);
+}
 
 } ARIASDK_NS_END

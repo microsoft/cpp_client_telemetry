@@ -143,6 +143,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\SQLiteWrapper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.hpp" />

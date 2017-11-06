@@ -60,6 +60,12 @@ public:
     /// </summary>
     /// <returns>Advertising Id</returns>
     virtual std::string const& GetUserAdvertisingId() const = 0;
+
+    /// <summary>
+    /// Gets the Device class like desktop, tablet, phone, xbox.
+    /// </summary>
+    /// <returns>Advertising Id</returns>
+    virtual std::string const& GetDeviceClass() const = 0;
 };
 
 } // PlatformAbstraction

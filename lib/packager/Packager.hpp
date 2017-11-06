@@ -3,11 +3,11 @@
 #pragma once
 #include <IOfflineStorage.hpp>
 #include <api/LogConfiguration.hpp>
+#include "DataPackage.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
 namespace ARIASDK_NS_BEGIN {
-
 
 class Packager {
   public:

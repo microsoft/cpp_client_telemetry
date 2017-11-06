@@ -57,7 +57,7 @@ class  ARIASDK_LIBABI ISemanticContext
 	/// </summary>
 	/// <param name="appVersion">list of IDs of experimentations into which the application is enlisted</param>
 	virtual void  SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds) = 0;
-
+/*
     /// <summary>
     /// Set the device identifier context information of telemetry event.
     /// </summary>
@@ -111,14 +111,14 @@ class  ARIASDK_LIBABI ISemanticContext
     /// </summary>
     /// <param name="osBuild">The system build, retrieved programmatically where possible and is app/platform specific</param>
     virtual void  SetOsBuild(std::string const& osBuild) = 0;
-
+*/
     /// <summary>
     /// Set the userId context information of telemetry event.
     /// </summary>
     /// <param name="userId">Identifier that uniquely identifies a user in the application-specific user namespace</param>
     /// <param name='piiKind'>PIIKind of the userId. Default to PiiKind_Identity, set it to PiiKind_None to denote it as non-PII.</param>
     virtual void  SetUserId(std::string const& userId, PiiKind piiKind = PiiKind_Identity) = 0;
-
+/*
     /// <summary>
     /// Set the user MsaId context information of telemetry event.
     /// </summary>
@@ -136,7 +136,7 @@ class  ARIASDK_LIBABI ISemanticContext
     /// </summary>
     /// <param name="userAdvertingId">Advertising Id of a user to use in an application-specific user namespace</param>
     virtual void  SetUserAdvertisingId(std::string const& userAdvertingId) = 0;
-
+*/
     /// <summary>
     /// Set the user language context information of telemetry event.
     /// </summary>

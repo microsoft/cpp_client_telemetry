@@ -1,8 +1,6 @@
 #pragma once
-
+#include"Version.hpp"
 #include <Enums.hpp>
-#include <ILogManager.hpp>
-
 #include <cstdint>
 #include <vector>
 #include <string>

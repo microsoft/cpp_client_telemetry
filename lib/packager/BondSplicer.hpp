@@ -2,9 +2,9 @@
 
 #pragma once
 #include <Version.hpp>
-#include "Enums.hpp"
-#include "bond/generated/AriaProtocol_types.hpp"
+#include "DataPackage.hpp"
 #include <list>
+#include <vector>
 
 namespace ARIASDK_NS_BEGIN {
 

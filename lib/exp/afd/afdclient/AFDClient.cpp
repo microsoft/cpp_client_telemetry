@@ -352,6 +352,7 @@ namespace Microsoft {
                                 }
                             }
 
+                            LoadActiveConfigs();
 
 
                             // TODO: notify listener if the Etag of the active configuration is different from default
@@ -365,7 +366,6 @@ namespace Microsoft {
 
                             // notify listners if the active config is either updated on EXP server or changed to a different one
                             FireClientEvent(ET_CONFIG_UPDATE_SUCCEEDED, false);
-
                         }
                     }
 
@@ -386,6 +386,74 @@ namespace Microsoft {
                     _LogEXPCleintStateChangeEvent(EXP_STARTED);
 
                     return true;
+                }
+
+                void AFDClient::LoadActiveConfigs()
+                {
+                    if (0 == m_configActive->configs.size())
+                    {
+                        auto itConfigs = m_configActive->configSettings.find("Configs");
+                        if (m_configActive->configSettings.end() != itConfigs)
+                        {
+                            for (auto it = itConfigs.value().begin(); it != itConfigs.value().end(); ++it)
+                            {
+                                json val = it.value();
+                                auto id = val.find("Id");
+                                std::string idValue;
+                                if (val.end() != id)
+                                {
+                                    idValue = id.value().get<std::string>();
+                                }
+
+                                auto parameters = val.find("Parameters");
+                                std::string parametersValue;
+                                if (val.end() != parameters)
+                                {
+                                    bool first = true;
+                                    for (auto itParameter = val["Parameters"].begin(); itParameter != val["Parameters"].end(); ++itParameter)
+                                    {
+                                        if (first)
+                                        {
+                                            first = false;
+                                        }
+                                        else
+                                        {
+                                            parametersValue += ",";
+                                        }
+                                        std::string test(itParameter.key());
+                                        test.append("=");
+                                        json valParameter = itParameter.value();
+                                        if (valParameter.is_string())
+                                        {
+                                            test.append(valParameter.get<std::string>());
+                                        }
+
+                                        if (valParameter.is_number_integer())
+                                        {
+                                            test.append(std::to_string(valParameter.get<int>()));
+                                        }
+
+                                        if (valParameter.is_boolean())
+                                        {
+                                            test.append(std::to_string(valParameter.get<int>()));
+                                        }
+
+                                        if (valParameter.is_number_float())
+                                        {
+                                            test.append(std::to_string(valParameter.get<int>()));
+                                        }                                 
+
+                                        parametersValue += test;
+                                    }
+                                }
+
+                                if (!idValue.empty())
+                                {
+                                    m_configActive->configs[idValue] = parametersValue;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 /******************************************************************************
@@ -518,6 +586,7 @@ namespace Microsoft {
                         evtContext.configExpiryTimeInSec = (unsigned int)m_configActive->GetExpiryTimeInSec();
                         evtContext.features = m_configActive->features;
                         evtContext.flights = m_configActive->flights;
+                        evtContext.configs = m_configActive->configs;
                     }
 
                     //pre-condition: m_smalllock is held in caller while this function is called
@@ -588,8 +657,8 @@ namespace Microsoft {
                         //Update the active config version after getting new one from AFD server
                         m_configActive->clientVersion = m_AFDClientConfiguration.clientVersion;
 
-                        //string test("{\"Flights\" :{\"numberlineFoo\": \"FlightsFoo\",\"numberlineBar\" : \"FlightsBar\"},\"FlightingVersion\": 508,\"ImpressionId\":\"05A26685ABE1446C95013CDD74CC60EE\"}");
-
+                        //string test("{\"Features\":[\"heads\",\"rt-afdcpv01c\",\"rt-afdcpv02c\",\"rt-afdcpv03t\",\"control123\",\"twithig\"],\"Flights\":{\"rt-validation01\":\"rt-afdcpv01c\",\"rt-validation02\":\"rt-afdcpv02c\",\"rt-validation03\":\"rt-afdcpv03t\"},\"Configs\":[{\"Id\":\"Flight_tryexp2rows8columns\",\"Parameters\":{}},{\"Id\":\"Flight_tryexptvdemo3rows\",\"Parameters\":{}},{\"Id\":\"Flight_tryexptvdemodefault\",\"Parameters\":{}},{\"Id\":\"TryExP\",\"Parameters\":{}}],\"FlightingVersion\":505,\"ImpressionId\":\"F45813A6A5D049AE9C1EDA79E1FBE8D0\"}");
+                       
                         try
                         {
                             if (msg.body.size() > 0)
@@ -637,6 +706,8 @@ namespace Microsoft {
                             }
                         }
 
+                        LoadActiveConfigs();
+                        
                         auto itVersion = m_configActive->configSettings.find("FlightingVersion");
                         if (m_configActive->configSettings.end() != itVersion)
                         {
@@ -994,6 +1065,11 @@ namespace Microsoft {
                 std::vector<std::string> AFDClient::GetFeatures()
                 {
                     return m_configActive->features;
+                }
+
+                std::map<std::string, std::string> AFDClient::GetConfigs()
+                {
+                    return m_configActive->configs;
                 }
 
                 std::vector<std::string> AFDClient::GetKeys(

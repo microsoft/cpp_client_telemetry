@@ -104,15 +104,15 @@ void * NativeLogger::CreateLogger(bool useUtc)
 	// Windows SDK Test - Int: Default Ingestion Token.
 	std::string tenantToken = "0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582";
 
-	LogConfiguration configuration;
+	ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 	configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, "offlinestorage.db"); //":memory:"; //"offlinestorage.db";
-	configuration.traceLevelMask = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+	configuration.SetIntProperty("traceLevelMask", 0xFFFFFFFF ^ 128); // API calls + Global mask for general messages - less SQL
 													 //  configuration.minimumTraceLevel = ACTTraceLevel_Debug;
-	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
+	configuration.SetMinimumTraceLevel(ACTTraceLevel_Trace);
 	//configuration.multiTenantEnabled = true;
-	configuration.cacheFileSizeLimitInBytes = 150 * 1024 * 1024;
-	configuration.cacheMemorySizeLimitInBytes = 50 * 1024 * 1024;
-	configuration.maxTeardownUploadTimeInSec = 5;
+	configuration.SetIntProperty("cacheFileSizeLimitInBytes", 150 * 1024 * 1024);
+	configuration.SetIntProperty("cacheMemorySizeLimitInBytes", 50 * 1024 * 1024);
+	configuration.SetIntProperty("maxTeardownUploadTimeInSec", 5);
 
 	configuration.SetProperty(CFG_BOOL_ENABLE_CRC32, "true");
 	configuration.SetProperty(CFG_BOOL_ENABLE_HMAC, "false");
@@ -121,7 +121,7 @@ void * NativeLogger::CreateLogger(bool useUtc)
 	configuration.SetProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, "20");
 	std::string temp = configuration.GetProperty("dsadasdsad");
 
-	configuration.sdkmode = useUtc ? SdkModeTypes::SdkModeTypes_UTCAriaBackCompat : SdkModeTypes::SdkModeTypes_Aria;
+	configuration.SetSdkModeType(useUtc ? SdkModeTypes::SdkModeTypes_UTCAriaBackCompat : SdkModeTypes::SdkModeTypes_Aria);
 
 	//"https://pipe.dev.trafficmanager.net/OneCollector/1.0/");
 	//"https://pipe.int.trafficmanager.net/Collector/3.0/");
@@ -131,7 +131,7 @@ void * NativeLogger::CreateLogger(bool useUtc)
 
 	// Apply the profile before initialize
 	LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
-	ILogger *result = LogManager::Initialize(tenantToken, configuration);
+	ILogger *result = LogManager::Initialize(tenantToken);
 
 	// TC for SetContext(<const char*,const char*, PiiKind>)
 	const char* gc_value = "1234 :-)";

@@ -515,6 +515,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.hpp">
       <Filter>api</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp">
+      <Filter>packager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

@@ -24,6 +24,7 @@ namespace Microsoft {
                     std::string     clientVersion;
                     std::vector<std::string>     features;
                     std::vector<std::string>     flights;
+                    std::map<std::string, std::string> configs;
 
                     AFDConfig()
                     {

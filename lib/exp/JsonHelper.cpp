@@ -156,7 +156,7 @@ namespace Microsoft {
 			std::string JsonHelper::GetValueString(const json& var, const std::string& path, const std::string& defaultValue)
 			{
 				json tmp;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_string())
 					{
@@ -169,7 +169,7 @@ namespace Microsoft {
 			int JsonHelper::GetValueInt(const json& var, const std::string& path, const int& defaultValue)
 			{
 				json tmp;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_number_integer())
 					{
@@ -182,7 +182,7 @@ namespace Microsoft {
 			bool JsonHelper::GetValueBool(const json& var, const std::string& path, const bool& defaultValue)
 			{
 				json tmp;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_boolean())
 					{
@@ -195,7 +195,7 @@ namespace Microsoft {
 			double JsonHelper::GetValueDouble(const json& var, const std::string& path, const double& defaultValue)
 			{
 				json tmp;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_number_float())
 					{

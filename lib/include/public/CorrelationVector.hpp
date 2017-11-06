@@ -135,7 +135,7 @@ namespace ARIASDK_NS_BEGIN
         // Internal, unsynchronized class method implementations.
         std::string GetValueInternal();
         bool IncrementInternal();
-        size_t GetLengthInternal(unsigned int vectorValue);
+        size_t GetLengthInternal(size_t vectorValue);
         bool CanExtendInternal();
         bool CanIncrementInternal();
 

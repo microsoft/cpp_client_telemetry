@@ -2,7 +2,8 @@
 
 #include "PAL.hpp"
 #include "LogManager.hpp"
-#include <ISemanticContext.hpp>
+#include "api/ContextFieldsProvider.hpp"
+//#include <ISemanticContext.hpp>
 #include "utils/Utils.hpp"
 #include <IPHlpApi.h>
 #include <algorithm>
@@ -306,7 +307,7 @@ static ISystemInformation* g_SystemInformation;
 static INetworkInformation* g_NetworkInformation;
 static IDeviceInformation*  g_DeviceInformation;
 
-void registerSemanticContext(ISemanticContext* context)
+void registerSemanticContext(ContextFieldsProvider* context)
 {
 	if (g_DeviceInformation != nullptr)
 	{
@@ -321,6 +322,7 @@ void registerSemanticContext(ISemanticContext* context)
 		context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
 		context->SetOsName(g_SystemInformation->GetOsName());
 		context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
+        context->SetDeviceClass(g_SystemInformation->GetDeviceClass());
 
 		// AppInfo fields
 		context->SetAppId(g_SystemInformation->GetAppId());
@@ -330,7 +332,7 @@ void registerSemanticContext(ISemanticContext* context)
 		// UserInfo fields.
 		context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
 		context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
-		context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
+		//context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
 	}
 	if(g_NetworkInformation != nullptr)
 	{		
@@ -341,7 +343,7 @@ void registerSemanticContext(ISemanticContext* context)
 	}   
 }
 
-void unregisterSemanticContext(ISemanticContext* context)
+void unregisterSemanticContext(ContextFieldsProvider* context)
 {
 	UNREFERENCED_PARAMETER(context);
     OACR_USE_PTR(this);

@@ -634,30 +634,36 @@ namespace Microsoft {
                     switch (msg.statusCode)
                     {
                     case 200:
+                    {
+                        ECSConfig*  configRequireUpdate = m_configActive;
+                        if (m_inProgressRequestName != m_configActive->requestName)
+                        {
+                            configRequireUpdate = m_configCache->GetConfigByRequestName(m_inProgressRequestName);
+                        }
                         // Config retrieved successfully from ECS, update the local cache
                         ARIASDK_LOG_DETAIL("_HandleHttpCallback: config retrieved from ECS, ETag=%s", msg.headers.get("ETag").c_str());
-                        m_configActive->expiryUtcTimestamp = getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
+                        configRequireUpdate->expiryUtcTimestamp = getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
 
-                        m_configActive->etag = msg.headers.get("ETag");
+                        configRequireUpdate->etag = msg.headers.get("ETag");
                         //Update the active config version after getting new one from ECS server
-                        m_configActive->clientVersion = m_ecsClientConfiguration.clientVersion;
-						try
-						{
-							if (msg.body.size() > 0)
-							{
-								m_configActive->configSettings = json::parse(msg.body.c_str());
-							}
-						}
-						catch (...)
-						{
-							ARIASDK_LOG_DETAIL("Json pasring failed");
-						}
-                        
-						// notify listners if the active config is updated on ECS server
+                        configRequireUpdate->clientVersion = m_ecsClientConfiguration.clientVersion;
+                        try
+                        {
+                            if (msg.body.size() > 0)
+                            {
+                                configRequireUpdate->configSettings = json::parse(msg.body.c_str());
+                            }
+                        }
+                        catch (...)
+                        {
+                            ARIASDK_LOG_DETAIL("Json pasring failed");
+                        }
+
+                        // notify listners if the active config is updated on ECS server
                         isActiveConfigUpdatedOnECS = true;
                         isActiveConfigUpdatedOnECSSaveNeeded = true;
                         break;
-
+                    }
                     case 304:
                         // ECS server returns HTTP status code 304 and empty configuration in case it generated 
                         // the same ETag as the one that was passed in the 'If-None-Match' header value of request
@@ -683,6 +689,7 @@ namespace Microsoft {
 						m_EXPCommon.m_serverUrlIdx%= m_EXPCommon.m_serverUrls.size();
                         break;
                     }
+                    m_inProgressRequestName = "";
                 }
 
                 /******************************************************************************
@@ -810,6 +817,7 @@ namespace Microsoft {
 
 						std::string url = m_EXPCommon.m_serverUrls.at(m_EXPCommon.m_serverUrlIdx);
 
+                        m_inProgressRequestName = m_configActive->requestName;
 						m_EXPCommon.SendRequestAsync(url);
 						ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Config refetch request successfully sent to EXP.");
 						return true;
@@ -874,6 +882,11 @@ namespace Microsoft {
 					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
                     return (m_configActive != NULL) ? m_configActive->etag : "";
+                }
+
+                string ECSClient::GetConfigs()
+                {
+                    return (m_configActive != NULL) ? m_configActive->configSettings.dump() : "";
                 }
 
                 std::vector<std::string> ECSClient::GetKeys(

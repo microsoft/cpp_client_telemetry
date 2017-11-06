@@ -80,7 +80,7 @@ App::App()
 {
     InitializeComponent();
     Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
-	LogConfiguration configuration;
+	ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 	// configuration.cacheFilePath = "of";
 
 	// Windows SDK Test - Prod: Default Ingestion Token.
@@ -89,13 +89,13 @@ App::App()
 	// https://aria.microsoft.com/developer/start-now/using-aria/send-events
 
 	// Always enable debug output
-	configuration.traceLevelMask = 0xFFFFFFFF; // API calls + Global mask for general messages
-	configuration.minimumTraceLevel = ACTTraceLevel_Trace;
-	configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
+	configuration.SetIntProperty("traceLevelMask",  0xFFFFFFFF); // API calls + Global mask for general messages
+	configuration.SetMinimumTraceLevel(ACTTraceLevel_Trace);
+	configuration.SetSdkModeType( SdkModeTypes::SdkModeTypes_UTCAriaBackCompat);
 
 #if 1 /* Use INT */
-	configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
-	logger = LogManager::Initialize("0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582", configuration);   // Windows SDK Test - INT on INT collector
+	configuration.SetProperty("eventCollectorUri", "https://pipe.int.trafficmanager.net/Collector/3.0/");
+	logger = LogManager::Initialize("0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582");   // Windows SDK Test - INT on INT collector
 #else
 	logger = LogManager::Initialize("6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322", configuration);
 #endif

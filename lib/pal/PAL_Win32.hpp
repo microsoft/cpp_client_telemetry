@@ -4,7 +4,7 @@
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
-#include <ISemanticContext.hpp>
+#include "api/ContextFieldsProvider.hpp"
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
 #endif
@@ -539,9 +539,9 @@ inline void sleep(unsigned delayMs)
     ::Sleep(delayMs);
 }
 
-// Populate per-platform fields in ISemanticContext and keep them updated during runtime.
-void registerSemanticContext(ISemanticContext * context);
-void unregisterSemanticContext(ISemanticContext * context);
+// Populate per-platform fields in ContextFieldsProvider and keep them updated during runtime.
+void registerSemanticContext(ContextFieldsProvider * context);
+void unregisterSemanticContext(ContextFieldsProvider * context);
 
 // Convert various numeric types and bool to string in an uniform manner.
 template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>

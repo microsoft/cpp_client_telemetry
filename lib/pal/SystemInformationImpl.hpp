@@ -23,6 +23,7 @@ namespace PAL {
         virtual std::string const& GetOsFullVersion() const { return m_os_full_version; };
         virtual std::string const& GetOsMajorVersion() const { return m_os_major_version; };
         virtual std::string const& GetOsName() const { return m_os_name; };
+        virtual std::string const& GetDeviceClass() const { return m_device_family; };
 
         virtual std::string const& GetUserLanguage() const { return m_user_language; };
         virtual std::string const& GetUserTimeZone() const { return m_user_timezone; };
@@ -36,6 +37,7 @@ namespace PAL {
         std::string m_os_major_version;
         std::string m_os_full_version;
         std::string m_os_name;
+        std::string m_device_family;
 
         std::string m_user_language;
         std::string m_user_timezone;

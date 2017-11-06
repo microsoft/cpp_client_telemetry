@@ -56,6 +56,8 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         
         virtual std::vector<std::string> GetFeatures();
 
+        virtual std::map<std::string, std::string> GetConfigs();
+
         virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue);
 
         virtual bool GetSetting(const std::string& agentName, const std::string& settingPath, const bool defaultValue);
@@ -89,6 +91,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Telemetry::ILogger* pLogger, std::string agentName);
         void _UpdateLoggersWithEXPConfig();
         std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
+        void LoadActiveConfigs();
        
         
         

@@ -36,7 +36,13 @@ namespace Microsoft {
                     {
                         m_OfflineStoragePath = storagePath;
                     }
-
+                    int* xPtr = nullptr;
+                    int IntptrSize = sizeof(xPtr);
+                    if (IntptrSize > 4) // on 64 bit system, we want session to have different file because FIFO has trouble opening 32 bit file in 64 bit mode
+                    {
+                        m_OfflineStoragePath = m_OfflineStoragePath + "64";
+                    }
+                    UNREFERENCED_PARAMETER(xPtr);
                     // always add a default config
                     AFDConfig config;
                     m_configs[config.requestName] = config;
@@ -253,7 +259,8 @@ namespace Microsoft {
                         }
 
                         // serialize "expiryUtcTimestamp'
-                        str += "\",\"expiryUtcTimestamp\":";
+                        if (!str.empty()) str += ",";
+                        str += "\"expiryUtcTimestamp\":";
                         str += std::to_string((*it).expiryUtcTimestamp);// itoaBuffer;
 
                         if (!(*it).clientVersion.empty())

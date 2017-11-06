@@ -14,6 +14,14 @@ namespace ARIASDK_NS_BEGIN {
         std::string sessionPath = cacheFilePath.empty() ? "" : (cacheFilePath + ".session").c_str();
         if (!sessionPath.empty())
         {
+            int* xPtr = nullptr;
+            int IntptrSize = sizeof(xPtr);
+            if (IntptrSize > 4) // on 64 bit system, we want session to have different file because FIFO has trouble opening 32 bit file in 64 bit mode
+            {
+                sessionPath = sessionPath + "64";
+            }
+            UNREFERENCED_PARAMETER(xPtr);
+
             //ARIASDK_LOG_DETAIL("%s: sessionPath=%s", __FUNCTION__, sessionPath.c_str());
             if (StartSessionStorage(sessionPath)) {
                 PopulateSession();

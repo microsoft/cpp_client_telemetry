@@ -107,6 +107,7 @@ namespace Microsoft {
                 {
                     (void)Stop();
                 }
+                CancelRequestsAsync();
                 
                 if (m_messageProcessingTaskScheduled)
                 {
@@ -116,6 +117,9 @@ namespace Microsoft {
                 if (m_httpClient) delete m_httpClient;
 
                 ARIASDK_NS::PAL::shutdown();
+
+                std::lock_guard<std::mutex> lockguard(m_smalllock);
+                std::lock_guard<std::mutex> lock(m_lock);                
             }
 
             /******************************************************************************
@@ -652,6 +656,8 @@ namespace Microsoft {
             ******************************************************************************/
             void ExpCommon::OnHttpResponse(IHttpResponse const* response)
             {
+                std::lock_guard<std::mutex> lock(m_lock);
+                m_httpRequestId = "";
                 if (response->GetStatusCode() != 200)
                 {
                     if (m_retrybackoffTimesIndex < static_cast<unsigned>(m_retryBackoffTimes.size()))
@@ -707,8 +713,10 @@ namespace Microsoft {
 
             bool ExpCommon::CancelRequestsAsync()
             {
-                m_httpClient->CancelRequestAsync(m_httpRequestId);
-
+                if (!m_httpRequestId.empty())
+                {
+                    m_httpClient->CancelRequestAsync(m_httpRequestId);
+                }
                 return true;
             }
         }

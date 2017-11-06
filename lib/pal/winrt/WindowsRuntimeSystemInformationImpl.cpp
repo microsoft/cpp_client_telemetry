@@ -73,6 +73,7 @@ namespace Microsoft {
                         m_os_major_version = "10.0";
                     }
 
+                    m_device_family = FromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily);
                     if (FromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily) == DeviceFamily_Mobile)
                     {
                         m_os_name = WindowsPhoneOSName;

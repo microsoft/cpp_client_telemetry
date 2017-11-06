@@ -189,7 +189,7 @@ namespace ARIASDK_NS_BEGIN
         return (newLength <= m_maxLength);
     }
     
-    size_t CorrelationVector::GetLengthInternal(unsigned int vectorValue)
+    size_t CorrelationVector::GetLengthInternal(size_t vectorValue)
     {
         size_t vectorSize = GetDigitCount(vectorValue);
         
