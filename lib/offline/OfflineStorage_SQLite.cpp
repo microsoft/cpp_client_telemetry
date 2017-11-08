@@ -126,8 +126,8 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         return false;
     }
 
-    ARIASDK_LOG_DETAIL("Retrieving max. %u%s events of priority at least %d (%s)",
-        maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, priorityToStr(static_cast<EventLatency>(minLatency)));
+    ARIASDK_LOG_DETAIL("Retrieving max. %u%s events of latency at least %d (%s)",
+        maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, latencyToStr(static_cast<EventLatency>(minLatency)));
 
     if (!commitIfInTransaction()) {
         ARIASDK_LOG_ERROR("Failed to commit queued events: Database error has occurred, recreating database");
@@ -275,7 +275,7 @@ std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, Eve
     }
     else
     {
-        SqliteStatement selectStmt(*m_db, m_stmtSelectEventsMinPriority);
+        SqliteStatement selectStmt(*m_db, m_stmtSelectEventsMinlatency);
         if (selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1))
         {
             int latency;
@@ -546,7 +546,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
         "record_id"      " TEXT,"
         "tenant_token"   " TEXT NOT NULL,"
-        "priority"       " INTEGER,"
+        "latency"       " INTEGER,"
         "persistence"    " INTEGER,"
         "timestamp"      " INTEGER,"
         "retry_count"    " INTEGER DEFAULT 0,"
@@ -556,8 +556,8 @@ bool OfflineStorage_SQLite::initializeDatabase()
         ).execute()) { return false; }
 
     if (!SqliteStatement(*m_db,
-        "CREATE INDEX IF NOT EXISTS k_priority_timestamp ON " TABLE_NAME_EVENTS
-        " (priority DESC, persistence DESC, timestamp ASC)"
+        "CREATE INDEX IF NOT EXISTS k_latency_timestamp ON " TABLE_NAME_EVENTS
+        " (latency DESC, persistence DESC, timestamp ASC)"
         ).execute()) { return false; }
 
     if (!SqliteStatement(*m_db,
@@ -601,19 +601,19 @@ bool OfflineStorage_SQLite::initializeDatabase()
         " SET reserved_until=0, retry_count=retry_count+1"
         " WHERE reserved_until<>0 AND reserved_until<=?");
     PREPARE_SQL(m_stmtSelectEvents,
-        "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+        "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
-        " WHERE priority>=? AND reserved_until=0"
-        " ORDER BY priority DESC,persistence DESC, timestamp ASC LIMIT ?");
+        " WHERE latency>=? AND reserved_until=0"
+        " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
     PREPARE_SQL(m_stmtSelectEventAtShutdown,
-        "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+        "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
-        " WHERE priority>=?"
-        " ORDER BY priority DESC,persistence DESC, timestamp ASC LIMIT ?");
-    PREPARE_SQL(m_stmtSelectEventsMinPriority,
-        "SELECT record_id,tenant_token,priority,timestamp,retry_count,reserved_until,payload"
+        " WHERE latency>=?"
+        " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
+    PREPARE_SQL(m_stmtSelectEventsMinlatency,
+        "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
         " FROM " TABLE_NAME_EVENTS
-        " WHERE priority=(SELECT MIN(priority) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND priority>=?) AND reserved_until=0"
+        " WHERE latency=(SELECT MIN(latency) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND latency>=?) AND reserved_until=0"
         " ORDER BY timestamp ASC LIMIT ?");
 
     PREPARE_SQL(m_stmtReserveEvents,
@@ -630,7 +630,7 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "DELETE FROM " TABLE_NAME_EVENTS
         " WHERE retry_count>?");
     PREPARE_SQL(m_stmtInsertEvent_id_tenant_prio_ts_data,
-        "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,priority,persistence,timestamp,payload) VALUES (?,?,?,?,?,?)");
+        "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,latency,persistence,timestamp,payload) VALUES (?,?,?,?,?,?)");
     PREPARE_SQL(m_stmtInsertSetting_name_value,
         "REPLACE INTO " TABLE_NAME_SETTINGS " (name,value) VALUES (?,?)");
     PREPARE_SQL(m_stmtDeleteSetting_name,

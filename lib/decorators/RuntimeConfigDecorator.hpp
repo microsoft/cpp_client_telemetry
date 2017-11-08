@@ -41,7 +41,8 @@ class RuntimeConfigDecorator : public DecoratorBase {
     bool decorate(::AriaProtocol::CsEvent& record)
     {
         UNREFERENCED_PARAMETER(record);
-        //m_runtimeConfig.DecorateEvent(record.data.properties, *m_experimentationProjectP, record.baseType);
+        //Test use runtimeconfig decorate to verify an event is logged. I just passed tags, nothing gets changed in runtime config decorators.
+        m_runtimeConfig.DecorateEvent(record.tags, *m_experimentationProjectP, record.baseType);
 
    /*     EventLatency priorityOverride = m_runtimeConfig.GetEventLatency(m_tenantId, record.baseType);
         if (priorityOverride != EventPriority_Unspecified && priorityOverride != priority) {

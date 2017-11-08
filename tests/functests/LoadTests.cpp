@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -131,26 +131,61 @@ class LoadTests : public Test,
     {
         UNREFERENCED_PARAMETER(response);
         UNREFERENCED_PARAMETER(request);
-/*        auto payload = decodeRequest(request, false);
-        for (auto const& packagesPerTenant : payload.TokenToDataPackagesMap) {
-            for (auto const& package : packagesPerTenant.second) {
-                recordsReceived += static_cast<unsigned int>(package.Records.size());
-            }
-        }
-*/
+        auto payload = decodeRequest(request, false);
+        recordsReceived += static_cast<unsigned int>(payload.size());
+
         return 200;
     }
-/*
-    AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request, bool decompress)
+
+    std::vector<AriaProtocol::CsEvent> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
-        UNREFERENCED_PARAMETER(decompress);
-        AriaProtocol::ClientToCollectorRequest result;
-        std::vector<uint8_t> input(request.content.data(), request.content.data() + request.content.size());
-        bond_lite::CompactBinaryProtocolReader reader(input);
-        EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
-        return result;
+        std::vector<AriaProtocol::CsEvent> vector;
+
+        if (decompress) {
+            // TODO
+        }
+
+        size_t data = 0;
+        size_t length = 0;
+        while (data < request.content.size())
+        {
+            AriaProtocol::CsEvent result;
+            length = request.content.size() - data;
+            std::vector<uint8_t> test(request.content.data() + data, request.content.data() + data + length);
+            size_t index = 3;
+            bool found = false;
+            while (index < length)
+            {
+                while (index < length && test[index] != '\x3')
+                {
+                    index++;
+                }
+
+                if (index < length)
+                {
+                    if (test[index + 1] == '3' && test[index + 2] == '.')
+                    {
+                        found = true;
+                        break;
+                    }
+                    index++;
+                }
+            }
+            if (!found)
+            {
+                index += 1;
+            }
+            std::vector<uint8_t> input(request.content.data() + data, request.content.data() + data + index - 1);
+
+            bond_lite::CompactBinaryProtocolReader reader(input);
+            EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
+            data += index - 1;
+            vector.push_back(result);
+
+        }
+        return vector;
     }
-*/
+
     void waitForTotalRecordsReceived(unsigned timeout, unsigned expectedCount)
     {
         auto start = PAL::getUtcSystemTimeMs();

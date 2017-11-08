@@ -1,9 +1,10 @@
 #define LOG_MODULE DBG_API
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
-//#include <winsock2.h>
+#include <winsock2.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <stdio.h>

@@ -30,7 +30,7 @@ bool BondSerializer::handleSerialize(IncomingEventContextPtr const& ctx)
 
     ARIASDK_LOG_INFO("Event %s/%s submitted, priority %u (%s), serialized size %u bytes, ID %s",
         tenantTokenToId(ctx->record.tenantToken).c_str(), ctx->source->baseType.c_str(),
-        ctx->record.latency, priorityToStr(ctx->record.latency),
+        ctx->record.latency, latencyToStr(ctx->record.latency),
         static_cast<unsigned>(ctx->record.blob.size()), ctx->record.id.c_str());
 
     return true;

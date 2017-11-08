@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "common/Common.hpp"
 #if ARIASDK_PAL_SKYPE
     #include "http/HttpClient_HttpStack.hpp"

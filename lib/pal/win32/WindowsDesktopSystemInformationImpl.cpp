@@ -1,11 +1,11 @@
 #pragma warning( disable : 4996 )
 #include "Version.hpp"
-#include <Windows.h>
 #include "ISystemInformation.hpp"
 #include "pal/SystemInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
 #include <string>
+#include <Windows.h>
 
 namespace Microsoft {
     namespace Applications {
@@ -17,6 +17,85 @@ namespace Microsoft {
 				ISystemInformation* SystemInformationImpl::Create()
                 {
                     return  new SystemInformationImpl();
+                }
+
+                std::string getApplicationFullPath()
+                {
+                    DWORD maxBufferLength = 0x7fff;
+                    DWORD curBufferLength = MAX_PATH;
+                    bool getFileNameSucceeded = false;
+
+                    std::vector<CHAR> curExeFullPathBuffer(curBufferLength);
+
+                    // Try increasing buffer size until it work or until we reach the maximum size of 0x7fff (32 Kb)
+                    do
+                    {
+                        curExeFullPathBuffer.resize(curBufferLength);
+
+                        DWORD result = GetModuleFileName(GetModuleHandle(NULL), &curExeFullPathBuffer[0], curBufferLength);
+
+                        if (result == curBufferLength)
+                        {
+                            // insufficient buffer, increase it
+                            curBufferLength = (curBufferLength < maxBufferLength ? (2 * curBufferLength) % (maxBufferLength + 1) : maxBufferLength + 1);
+                        }
+                        else if (result > 0)
+                        {
+                            // call succeeded
+                            curExeFullPathBuffer.resize(result + 1);
+                            getFileNameSucceeded = true;
+                            break;
+                        }
+                        else
+                        {
+                            // call failed for other reason
+                            break;
+                        }
+                    } while (curBufferLength <= maxBufferLength);
+
+                    if (getFileNameSucceeded)
+                    {
+                        return std::string(curExeFullPathBuffer.begin(), curExeFullPathBuffer.end());
+                    }
+
+                    return{};
+                }
+
+                std::string collectAppVer()
+                {
+                    DWORD   dwVersionInfoSize;
+                    DWORD   dwUnused;
+                    UINT    nUnused;
+                    std::vector<BYTE> buffer;
+                    VS_FIXEDFILEINFO* pffi;
+
+                    // Get the filename of the current process
+                    std::string applicationFullPath = getApplicationFullPath();
+
+                    // Get the product version information from the current process filename 
+                    dwVersionInfoSize = GetFileVersionInfoSize(applicationFullPath.data(), &dwUnused);
+
+                    if (dwVersionInfoSize == 0)
+                    {
+                        return{};
+                    }
+
+                    buffer.resize(dwVersionInfoSize);
+
+                    if (GetFileVersionInfo(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)
+                    {
+                        return{};
+                    }
+
+                    if (VerQueryValue(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
+                    {
+                        return{};
+                    }
+
+                    return std::to_string(static_cast<int>(HIWORD(pffi->dwProductVersionMS))) + "." +
+                        std::to_string(static_cast<int>(LOWORD(pffi->dwProductVersionMS))) + "." +
+                        std::to_string(static_cast<int>(HIWORD(pffi->dwProductVersionLS))) + "." +
+                        std::to_string(static_cast<int>(LOWORD(pffi->dwProductVersionLS)));
                 }
 
                 SystemInformationImpl::SystemInformationImpl()
@@ -39,6 +118,7 @@ namespace Microsoft {
                         }
                         m_app_id = app_name;
                     }
+                    m_app_version = collectAppVer();
 
                     HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
                     typedef HRESULT NTSTATUS;
@@ -50,7 +130,18 @@ namespace Microsoft {
                     {
                        m_os_major_version = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
                        m_os_full_version = m_os_major_version + "." + std::to_string((long long)rtlOsvi.dwBuildNumber);
-                    }                   
+
+                       const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+                       const PCSTR c_buildLabEx_ValueName = "BuildLabEx";
+
+                       DWORD size = sizeof(buff);
+
+                       if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(c_currentVersion_Key), TEXT(c_buildLabEx_ValueName), RRF_RT_REG_SZ, NULL, (char*)buff, &size))
+                       {
+                           const std::string tmp(buff);
+                           m_os_full_version = m_os_major_version + "." + tmp;
+                       }
+                    }
 
                     typedef HRESULT NTSTATUS;
                     typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*,unsigned long*,PWSTR,PWSTR);

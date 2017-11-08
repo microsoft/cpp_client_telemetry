@@ -756,7 +756,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
 	FIFOFileStorage  storeFile;
 	storeFile.DeleteFileLocal(filename);
 
-	IStorage* pOfflineStorage = new FIFOFileStorage();
+    Microsoft::Applications::Telemetry::IStorage* pOfflineStorage = new FIFOFileStorage();
 	EXPECT_TRUE(pOfflineStorage != NULL);
 
 	EXPECT_TRUE(pOfflineStorage->Open(filename, 1000 * (32 * 1024)) == 0);

@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"

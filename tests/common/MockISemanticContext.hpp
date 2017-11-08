@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <ISemanticContext.hpp>
+#include <api/ContextFieldsProvider.hpp>
 
 namespace testing {
 
 
-class MockISemanticContext : public ARIASDK_NS::ISemanticContext {
+class MockISemanticContext : public ARIASDK_NS::ContextFieldsProvider {
   public:
     MockISemanticContext();
     virtual ~MockISemanticContext();
@@ -15,15 +15,6 @@ class MockISemanticContext : public ARIASDK_NS::ISemanticContext {
     MOCK_METHOD1(SetAppVersion,        void(std::string const & appVersion));
     MOCK_METHOD1(SetAppLanguage,       void(std::string const & appLanguage));
     MOCK_METHOD1(SetAppExperimentIds,  void(std::string const & appExperimentIds));
-    MOCK_METHOD1(SetDeviceId,          void(std::string const & deviceId));
-    MOCK_METHOD1(SetDeviceMake,        void(std::string const & deviceMake));
-    MOCK_METHOD1(SetDeviceModel,       void(std::string const & deviceModel));
-    MOCK_METHOD1(SetNetworkCost,       void(ARIASDK_NS::NetworkCost networkCost));
-    MOCK_METHOD1(SetNetworkProvider,   void(std::string const & networkProvider));
-    MOCK_METHOD1(SetNetworkType,       void(ARIASDK_NS::NetworkType networkType));
-    MOCK_METHOD1(SetOsName,            void(std::string const & osName));
-    MOCK_METHOD1(SetOsVersion,         void(std::string const & osVersion));
-    MOCK_METHOD1(SetOsBuild,           void(std::string const & osBuild));
     MOCK_METHOD2(SetUserId,            void(std::string const & userId, ARIASDK_NS::PiiKind piiKind));
     MOCK_METHOD1(SetUserMsaId,         void(std::string const & userMsaId));
     MOCK_METHOD1(SetUserANID,          void(std::string const & userANID));

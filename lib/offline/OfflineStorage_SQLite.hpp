@@ -65,7 +65,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     int                         m_stmtReleaseExpiredEvents;
     int                         m_stmtSelectEvents;
     int                         m_stmtSelectEventAtShutdown;
-    int                         m_stmtSelectEventsMinPriority;
+    int                         m_stmtSelectEventsMinlatency;
     int                         m_stmtReserveEvents;
     int                         m_stmtReleaseEvents_ids_retryCountDelta;
     int                         m_stmtDeleteEventsRetried_maxRetryCount;

@@ -36,8 +36,9 @@ void TestCorrelationVectorVersion(int version, int baseLength, int maxLength, co
     ASSERT_EQ(incValue, baseValue + ".1") << "Incremented value is incorrect";
 
     // test extending until the max length
-    int curLength = cv.GetValue().length();
-    for (int i = curLength; i + 2 <= maxLength; i += 2)
+    size_t curLength = cv.GetValue().length();
+    size_t length = static_cast<size_t>(maxLength);
+    for (size_t i = curLength; i + 2 <= length; i += 2)
     {
         EXPECT_TRUE(cv.CanExtend());
         EXPECT_TRUE(cv.Extend());

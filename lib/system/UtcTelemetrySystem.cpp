@@ -345,6 +345,70 @@ int UtcTelemetrySystem::sendAriaEventToUTC(IncomingEventContextPtr const& eventC
         dbuilder.AddString(eventCtx->source->cV.c_str());
     }
 
+
+    //PartA_Exts_CommonFields
+    builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
+    std::string iKey(IKEY_PRE_TEXT);
+    iKey.append(eventCtx->record.tenantToken);
+    dbuilder.AddString(iKey.c_str());
+
+    if (!appInfoAppName.empty())
+    {
+        builder.AddField(UTC_PARTA_APP_NAME, TypeMbcsString);
+        dbuilder.AddString(appInfoAppName.c_str());
+    }
+
+    std::string appInfoExpIds = eventCtx->source->extApp[0].expId;
+    if (!appInfoExpIds.empty())
+    {
+        builder.AddField(UTC_APP_EXPERIMENT_IDS, TypeMbcsString);
+        dbuilder.AddString(appInfoExpIds.c_str());
+    }
+
+    std::string deviceInfoNetworkProvider = eventCtx->source->extNet[0].provider;
+    if (!deviceInfoNetworkProvider.empty())
+    {
+        builder.AddField(UTC_PARTA_NET_PROVIDER, TypeMbcsString);
+        dbuilder.AddString(deviceInfoNetworkProvider.c_str());
+    }
+
+    std::string deviceInfoNetworkCost = eventCtx->source->extNet[0].cost;
+    if (!deviceInfoNetworkCost.empty())
+    {
+        builder.AddField(UTC_PARTA_NET_COST, TypeMbcsString);
+        dbuilder.AddString(deviceInfoNetworkCost.c_str());
+    }
+
+    std::string deviceInfoNetworkType = eventCtx->source->extNet[0].type;
+    if (!deviceInfoNetworkType.empty())
+    {
+        builder.AddField(UTC_PARTA_NET_TYPE, TypeMbcsString);
+        dbuilder.AddString(deviceInfoNetworkType.c_str());
+    }
+
+  /*  std::string eventInfoSequence = eventCtx->source->Extension[EventInfo_Sequence];
+    eventCtx->source->Extension.erase(EventInfo_Sequence);
+    if (!eventInfoSequence.empty())
+    {
+        builder.AddField(UTC_PARTA_APP_SEQ_NUM, TypeMbcsString);
+        dbuilder.AddString(eventInfoSequence.c_str());
+    }
+*/
+    std::string ariaUserId(eventCtx->source->extUser[0].localId);
+    if (!ariaUserId.empty())
+    {
+        std::string userId("e:");
+        userId.append(ariaUserId);
+        builder.AddField(UTC_PARTA_APP_USERID, TypeMbcsString);
+        dbuilder.AddString(userId.c_str());
+    }
+
+    std::string userInfoLanguage = eventCtx->source->extUser[0].locale;
+    if (!userInfoLanguage.empty())
+    {
+        builder.AddField(UTC_PARTA_OS_LOCALE, TypeMbcsString);
+        dbuilder.AddString(userInfoLanguage.c_str());
+    }
    
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_MSAID);
     eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_ID);

@@ -37,7 +37,7 @@ inline std::string tenantTokenToId(std::string const& tenantToken)
     return tenantToken.substr(0, tenantToken.find('-'));
 }
 
-inline const char* priorityToStr(EventLatency priority)
+inline const char* latencyToStr(EventLatency priority)
 {
     switch (priority) {
         case EventLatency_Unspecified:
