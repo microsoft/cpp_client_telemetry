@@ -219,7 +219,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp">
       <Filter>system</Filter>
     </ClCompile>
-    <ClCompile Include="C:\build\aria-cpp-v2-master\Solutions\Clienttelemetry\..\..\lib\system\JsonTransport.cpp">
+   <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonTransport.cpp" />
       <Filter>system</Filter>
     </ClCompile>
   </ItemGroup>
