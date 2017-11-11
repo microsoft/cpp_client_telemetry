@@ -29,10 +29,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="Sample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sample.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

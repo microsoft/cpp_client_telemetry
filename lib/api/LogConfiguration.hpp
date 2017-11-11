@@ -52,6 +52,8 @@ namespace Microsoft {
                 ///<summary>LogConfiguration destructor</summary>
                 virtual ~LogConfiguration();
 
+                ///<summary>Legacy parameter for backwards compat (deprecated)</summary>
+                uint64_t traceLevelMask;
             };
         }
     }

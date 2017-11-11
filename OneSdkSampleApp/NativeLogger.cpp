@@ -119,7 +119,7 @@ void * NativeLogger::CreateLogger(bool useUtc)
 	configuration.SetProperty(CFG_BOOL_ENABLE_DB_COMPRESS, "true");
 	configuration.SetProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, "false");
 	configuration.SetProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, "20");
-	std::string temp = configuration.GetProperty("dsadasdsad");
+//  std::string temp = configuration.GetProperty("dsadasdsad");
 
 	configuration.SetSdkModeType(useUtc ? SdkModeTypes::SdkModeTypes_UTCAriaBackCompat : SdkModeTypes::SdkModeTypes_Aria);
 

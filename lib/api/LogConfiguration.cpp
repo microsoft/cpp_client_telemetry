@@ -192,6 +192,11 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
+    ConfigKey ILogConfiguration::operator[](const char *key)
+    {
+        return ConfigKey(this, key);
+    }
 
+    bool ILogConfiguration::err = false;
 
 } ARIASDK_NS_END

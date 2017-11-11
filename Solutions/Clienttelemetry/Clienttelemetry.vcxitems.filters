@@ -219,6 +219,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp">
       <Filter>system</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)OneSDKTransport.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)JsonTransport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">

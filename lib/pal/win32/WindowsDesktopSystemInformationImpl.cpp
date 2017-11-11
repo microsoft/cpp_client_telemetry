@@ -19,13 +19,13 @@ namespace Microsoft {
                     return  new SystemInformationImpl();
                 }
 
-                std::string getApplicationFullPath()
+                std::wstring getApplicationFullPath()
                 {
                     DWORD maxBufferLength = 0x7fff;
                     DWORD curBufferLength = MAX_PATH;
                     bool getFileNameSucceeded = false;
 
-                    std::vector<CHAR> curExeFullPathBuffer(curBufferLength);
+                    std::vector<TCHAR> curExeFullPathBuffer(curBufferLength);
 
                     // Try increasing buffer size until it work or until we reach the maximum size of 0x7fff (32 Kb)
                     do
@@ -55,7 +55,7 @@ namespace Microsoft {
 
                     if (getFileNameSucceeded)
                     {
-                        return std::string(curExeFullPathBuffer.begin(), curExeFullPathBuffer.end());
+                        return std::wstring(curExeFullPathBuffer.begin(), curExeFullPathBuffer.end());
                     }
 
                     return{};
@@ -70,10 +70,10 @@ namespace Microsoft {
                     VS_FIXEDFILEINFO* pffi;
 
                     // Get the filename of the current process
-                    std::string applicationFullPath = getApplicationFullPath();
+                    std::wstring applicationFullPath = getApplicationFullPath();
 
                     // Get the product version information from the current process filename 
-                    dwVersionInfoSize = GetFileVersionInfoSize(applicationFullPath.data(), &dwUnused);
+                    dwVersionInfoSize = GetFileVersionInfoSizeW(applicationFullPath.data(), &dwUnused);
 
                     if (dwVersionInfoSize == 0)
                     {
@@ -82,12 +82,12 @@ namespace Microsoft {
 
                     buffer.resize(dwVersionInfoSize);
 
-                    if (GetFileVersionInfo(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)
+                    if (GetFileVersionInfoW(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)
                     {
                         return{};
                     }
 
-                    if (VerQueryValue(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
+                    if (VerQueryValueA(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
                     {
                         return{};
                     }
@@ -136,7 +136,7 @@ namespace Microsoft {
 
                        DWORD size = sizeof(buff);
 
-                       if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(c_currentVersion_Key), TEXT(c_buildLabEx_ValueName), RRF_RT_REG_SZ, NULL, (char*)buff, &size))
+                       if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ, NULL, (char*)buff, &size))
                        {
                            const std::string tmp(buff);
                            m_os_full_version = m_os_major_version + "." + tmp;

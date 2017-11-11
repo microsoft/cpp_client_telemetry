@@ -19,6 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Clienttelemetry\AssemblyInfo.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
+    </ClCompile>
     <ClCompile Include="..\net40\dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +144,10 @@
       <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Async</ExceptionHandling>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Cdecl</CallingConvention>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Cdecl</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,6 +205,10 @@
       <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Async</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Async</ExceptionHandling>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Cdecl</CallingConvention>
+      <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Cdecl</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
