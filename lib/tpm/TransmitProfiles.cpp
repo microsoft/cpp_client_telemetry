@@ -4,6 +4,9 @@
 #include "TransmitProfiles.hpp"
 #include <set>
 #include "utils/Utils.hpp"
+#include <mutex>
+
+
 
 using namespace Microsoft::Applications::Telemetry;
 using namespace std;
@@ -106,7 +109,7 @@ namespace ARIASDK_NS_BEGIN {
             static const char* ATTR_NAME  = "name";     /// <summary>name  attribute</summary>
             static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
 
-            mutex       TransmitProfiles::profiles_mtx;
+            static std::mutex      profiles_mtx;
             map<string, TransmitProfileRules>      TransmitProfiles::profiles;
             string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
             size_t      TransmitProfiles::currRule        = 0;

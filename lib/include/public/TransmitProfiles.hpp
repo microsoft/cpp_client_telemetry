@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <mutex>
 #include <map>
 #include <algorithm>
 
@@ -48,12 +47,6 @@ namespace ARIASDK_NS_BEGIN {
             class TransmitProfiles {
 
             protected:
-
-                /// <summary>
-                /// Mutex that provides thread-safety for profiles
-                /// </summary>
-                static std::mutex      profiles_mtx;
-
                 /// <summary>
                 /// Collection of all transmit profiles
                 /// </summary>
