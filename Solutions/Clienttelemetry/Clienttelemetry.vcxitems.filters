@@ -221,6 +221,8 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)OneSDKTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JsonTransport.cpp" />
+      <Filter>system</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
