@@ -54,30 +54,66 @@ namespace Microsoft {
 
             void SendAsJSON(const EventProperties& props, const std::string& token)
             {
-                std::string O_key = "O:";
+                static int64_t seq = 0;
+                seq++;
+
+                std::string O_key = "o:";
                 O_key += tenantTokenToId(token);
 
                 int64_t t = PAL::getUtcSystemTimeMs();
                 std::string ts = PAL::formatUtcTimestampMsAsISO8601(t);
 
-                json j =
+                std::string eventName = "Aria.";
+                eventName += props.GetName();
+
+                json j1 =
                 {
-                    { "name", props.GetName().c_str() },
+                    { "name", eventName },
                     { "time", ts /* "2017-11-10T23:50:03.757Z" */ },
                     { "iKey", O_key },
-                    { "ver" , "3.0" }
+                    { "ver" , "3.0" },
+//                    { "epoch", "12652" },
+//                    { "seqNum" , seq },
+//                    { "os", "Win32NT" },
+//                    { "osVer" , "6.2.9200.0" },
+//                    { "appId" , "S:Sample.exe" },
+//                    { "appVer", "1.0" }
                 };
 
+                json j;
                 j["ext"] = json({});
+
                 j["ext"]["os"] =
                 {
                     { "name", "Windows" },
                     { "ver", "10" }
                 };
 
+                j["ext"]["sdk"] = 
+                {
+                    { "ver", "ACT-C++-OneSDK-2.0.0" }
+                };
+
+                j["ext"]["app"] = 
+                {
+                    { "locale", "en-US" },
+                    { "user",
+                        {
+                            { "locale", "en-US" },
+                            { "loc",
+                                {
+                                    { "timeZone", "-08:00" }
+                                }
+                            }
+                        }
+                    }
+                };
+
                 j["data"] = json({});
-                j["data"]["baseData"] = json({});
+                j["data"]["baseType"] = "";
+                j["data"]["baseData"] = ""; // json({});
                 j["data"]["baseDataType"] = "custom";
+                j["data"]["eventName"] = eventName;
 
                 for (auto &kv : props.GetProperties())
                 {
@@ -106,7 +142,22 @@ namespace Microsoft {
                     }
                 };
 
-                std::string s = j.dump();
+                j["data"]["DeviceInfo"] = {
+                    { "SDKUid", "2e570610-f98c-4d0a-ac5d-ea23f724da55" }
+                };
+                j["data"]["EventInfo"] = {
+                    { "InitId", "fb441644-7de0-4f1b-b84c-6cfb7e6a09cf" },
+                    { "Sequence", seq }
+                };
+
+                std::string s1 = j1.dump();
+                std::string s2 = j.dump();
+                std::string s = "{";
+                s += s1.substr(1, s1.length() - 2);
+                s += ",";
+                s += s2.substr(1, s2.length() - 2);
+                s += "}";
+
                 printf("%s\n", s.c_str());
 
                 std::vector<uint8_t> body;
@@ -123,7 +174,9 @@ namespace Microsoft {
                 headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
 
                 std::string url;
-                url = "https://pipe.int.trafficmanager.net/OneCollector/1.0?cors=true&client-id=NO_AUTH&client-version=ACT-ONE-SDK-1&";
+                url = "https://v10.events.data.microsoft.com/OneCollector/1.0?cors=true&client-id=NO_AUTH&client-version=ACT-ONE-SDK-1&";
+                // url = "https://events.data.microsoft.com/onecollector/1.0?cors=true&client-id=NO_AUTH&client-version=ACT-ONE-SDK-1&";
+                // "https://pipe.int.trafficmanager.net/OneCollector/1.0?cors=true&client-id=NO_AUTH&client-version=ACT-ONE-SDK-1&";
                 url += "x-apikey=";
                 url += token;
                 url += "&upload-time=";
