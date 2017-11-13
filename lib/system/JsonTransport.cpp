@@ -63,8 +63,8 @@ namespace Microsoft {
                 int64_t t = PAL::getUtcSystemTimeMs();
                 std::string ts = PAL::formatUtcTimestampMsAsISO8601(t);
 
-                std::string eventName = "Aria.";
-                eventName += props.GetName();
+                std::string eventName = props.GetName();
+                std::replace(eventName.begin(), eventName.end(), '_', '.');
 
                 json j1 =
                 {
