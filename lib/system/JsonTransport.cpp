@@ -94,6 +94,20 @@ namespace Microsoft {
                     { "ver", "ACT-C++-OneSDK-2.0.0" }
                 };
 
+                j["ext"]["device"] =
+                {
+                    { "localId", "s:F11CFE51-7009-475E-B307-F5086ADBE4B1" },
+                    { "deviceClass", "Windows.Desktop" },
+                    { "id", "g:6896134429636487" } ,
+                    { "authId" , "g:6896134429636487" }
+                };
+                
+                j["ext"]["user"] =
+                {
+                    { "localId" , "w:355B7300-07A5-4FE3-5C24-5619C241F373" },
+                    { "id" , "w:355B7300-07A5-4FE3-5C24-5619C241F373" },
+                };
+
                 j["ext"]["app"] = 
                 {
                     { "locale", "en-US" },

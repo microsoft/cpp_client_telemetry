@@ -51,6 +51,7 @@ int main(int argc, char* argv[])
             props.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
             props.SetProperty("strKey", "someValue");
             props.SetProperty("intKey", 12345L);
+            props.SetProperty("boolKey", (bool)true);
             logger->LogEvent(props);
         }
 
