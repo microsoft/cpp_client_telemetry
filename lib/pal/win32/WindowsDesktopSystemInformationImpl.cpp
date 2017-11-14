@@ -14,12 +14,15 @@ namespace Microsoft {
             {
                 const std::string WindowsOSName = "Windows Desktop";
 
-				ISystemInformation* SystemInformationImpl::Create()
+                ISystemInformation* SystemInformationImpl::Create()
                 {
                     return  new SystemInformationImpl();
                 }
 
-                std::wstring getApplicationFullPath()
+                /**
+                 * Get executable full path as wide string
+                 */
+                std::wstring getAppFullPath()
                 {
                     DWORD maxBufferLength = 0x7fff;
                     DWORD curBufferLength = MAX_PATH;
@@ -61,7 +64,10 @@ namespace Microsoft {
                     return{};
                 }
 
-                std::string collectAppVer()
+                /**
+                 * Get app module version
+                 */
+                std::string getAppVersion()
                 {
                     DWORD   dwVersionInfoSize;
                     DWORD   dwUnused;
@@ -70,7 +76,7 @@ namespace Microsoft {
                     VS_FIXEDFILEINFO* pffi;
 
                     // Get the filename of the current process
-                    std::wstring applicationFullPath = getApplicationFullPath();
+                    std::wstring applicationFullPath = getAppFullPath();
 
                     // Get the product version information from the current process filename 
                     dwVersionInfoSize = GetFileVersionInfoSizeW(applicationFullPath.data(), &dwUnused);
@@ -92,33 +98,32 @@ namespace Microsoft {
                         return{};
                     }
 
-                    return std::to_string(static_cast<int>(HIWORD(pffi->dwProductVersionMS))) + "." +
+                    return
+                        std::to_string(static_cast<int>(HIWORD(pffi->dwProductVersionMS))) + "." +
                         std::to_string(static_cast<int>(LOWORD(pffi->dwProductVersionMS))) + "." +
                         std::to_string(static_cast<int>(HIWORD(pffi->dwProductVersionLS))) + "." +
                         std::to_string(static_cast<int>(LOWORD(pffi->dwProductVersionLS)));
                 }
 
-                SystemInformationImpl::SystemInformationImpl()
-                    : m_info_helper()
+                /**
+                 * Get OS BuildLabEx string
+                 */
+                std::string getOsBuildLabEx()
                 {
-                    m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
-                    m_os_name = WindowsOSName;
-
-                    // Auto-detect the app name - executable name without .exe suffix
                     char buff[MAX_PATH] = { 0 };
-                    if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
-					{
-                        //std::wstring app_name_w(buff);
-						std::string  app_name(buff);// app_name_w.begin(), app_name_w.end());
-                        size_t pos_dot = app_name.rfind(".");
-                        size_t pos_slash = app_name.rfind("\\");
-                        if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
-						{
-                            app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
-                        }
-                        m_app_id = app_name;
-                    }
-                    m_app_version = collectAppVer();
+                    const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+                    const PCSTR c_buildLabEx_ValueName = "BuildLabEx";
+                    DWORD size = sizeof(buff);
+                    RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ, NULL, (char*)buff, &size);
+                    return buff;
+                }
+
+                /**
+                 * Get OS major and full version strings
+                 */
+                void getOsVersion(std::string& osMajorVersion, std::string& osFullVersion)
+                {
+                    std::string buildLabEx = getOsBuildLabEx();
 
                     HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
                     typedef HRESULT NTSTATUS;
@@ -128,23 +133,47 @@ namespace Microsoft {
                     RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
                     if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
                     {
-                       m_os_major_version = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
-                       m_os_full_version = m_os_major_version + "." + std::to_string((long long)rtlOsvi.dwBuildNumber);
-
-                       const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
-                       const PCSTR c_buildLabEx_ValueName = "BuildLabEx";
-
-                       DWORD size = sizeof(buff);
-
-                       if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ, NULL, (char*)buff, &size))
-                       {
-                           const std::string tmp(buff);
-                           m_os_full_version = m_os_major_version + "." + tmp;
-                       }
+                        osMajorVersion = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
+                        osFullVersion = osMajorVersion + "." + std::to_string((long long)rtlOsvi.dwBuildNumber);
+                        osFullVersion = osMajorVersion + "." + buildLabEx;
                     }
+                }
 
+                /**
+                 * Get App Id
+                 */
+                std::string getAppId()
+                {
+                    // Auto-detect the app name - executable name without .exe suffix
+                    char buff[MAX_PATH] = { 0 };
+                    std::string appId;
+                    if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
+                    {
+                        std::string  app_name(buff);
+                        size_t pos_dot = app_name.rfind(".");
+                        size_t pos_slash = app_name.rfind("\\");
+                        if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
+                        {
+                            app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
+                        }
+                        appId = app_name;
+                    }
+                    return appId;
+                }
+
+                SystemInformationImpl::SystemInformationImpl()
+                    : m_info_helper()
+                {
+                    m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
+                    m_os_name       = WindowsOSName;
+                    m_app_id        = getAppId();
+                    m_app_version   = getAppVersion();
+
+                    getOsVersion(m_os_major_version, m_os_full_version);
+
+                    HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
                     typedef HRESULT NTSTATUS;
-                    typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*,unsigned long*,PWSTR,PWSTR);
+                    typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*, unsigned long*, PWSTR, PWSTR);
                     RtlConvertDeviceFamilyInfoToString_t pRtlConvertDeviceFamilyInfoToString = hNtDll ? reinterpret_cast<RtlConvertDeviceFamilyInfoToString_t>(::GetProcAddress(hNtDll, "RtlConvertDeviceFamilyInfoToString")) : nullptr;
 
                     if (pRtlConvertDeviceFamilyInfoToString)

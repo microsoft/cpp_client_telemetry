@@ -250,12 +250,16 @@ std::string generateUuidString()
     }
 }
 
+/**
+ * TODO: enhance ticks precision by adding milliseconds
+ */
 int64_t getUtcSystemTimeinTicks()
 {
-    ULARGE_INTEGER now;
-    ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
-    return (now.QuadPart - 116444736000000000ull);
+    std::time_t t = std::time(nullptr);
+    std::gmtime(&t);
+    return time_ticks_t(&t).ticks;
 }
+
 int64_t getUtcSystemTimeMs()
 {
     ULARGE_INTEGER now;
