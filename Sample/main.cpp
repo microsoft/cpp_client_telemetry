@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
         ILogger* logger = init(flipFlop);
         for (size_t i = 0; i < 10; i++)
         {
-            EventProperties props("Aria.onesdkdemo");
+            EventProperties props("OneSdkDemo.TestEvent");
             props.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
             props.SetProperty("strKey",   "someValue");
             props.SetProperty("intKey",   12345L);
