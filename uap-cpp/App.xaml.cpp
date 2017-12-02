@@ -35,8 +35,9 @@ extern "C" void SendTelemetryEvents() {
 	logger->LogEvent("Event_Simple");
 	logger2->LogEvent("Event_Simple");
 
-	EventProperties properties("YOUR_EVENT_NAME");
+	EventProperties properties("Test_EVENT_NAME");
 	properties.SetPriority(EventPriority_High);
+    properties.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
 	properties.SetProperty("String_Property", "String Value");
 
 	AggregatedMetricData metricData("Aggregated Metric 1", 10, 100);
