@@ -2,7 +2,7 @@
 
 #include "CorrelationVector.hpp"
 #include "UtcTelemetrySystem.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "pal/UtcHelpers.hpp"
 #include "utils/Utils.hpp"
 #include "MicrosoftTelemetry.h"
@@ -232,7 +232,7 @@ void UtcTelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr con
     //send event to UTC here
     if (0 != sendAriaEventToUTC(event))
     {
-        LogManager::DispatchEvent(DebugEventType::EVT_LOG_FAILURE); 
+        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
     }
 }
 

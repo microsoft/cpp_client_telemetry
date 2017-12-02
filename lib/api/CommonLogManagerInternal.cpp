@@ -1,9 +1,8 @@
 #define LOG_MODULE DBG_API
 #include "pal/PAL.hpp"
-#include "LogManager.hpp"
-#include "LogManagerProvider.hpp"
-#include "HostGuestLogManager.hpp"
-#include "LogConfiguration.hpp"
+#include "Enums.hpp"
+#include "CommonLogManagerInternal.hpp"
+#include "LogManagerImpl.hpp"
 #include "TransmitProfiles.hpp"
 
 
@@ -15,29 +14,75 @@ namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
 
-			std::mutex*          our_lockP = new std::mutex();
-			IHostLogManager*     our_pLogManagerSingletonInstanceP = nullptr;
-            LogConfiguration*    our_LogConfigurationP = new LogConfiguration();
+			std::mutex*          our_CommonLogManagerInternallockP = new std::mutex();
+			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
+            static volatile LONG our_CommonLogManagerInternalStarted = 0;
+            HANDLE syncEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+            LogSessionData*      our_LogSessionDataP = nullptr;
+            bool                 our_IsRuningWithDefaultConfig = false;
+            LogConfiguration*    our_LogConfiguration = new LogConfiguration();
 
-			ILogger* LogManager::Initialize(const std::string& tenantToken)
+            bool CommonLogManagerInternal::IsInitialized()
+            {
+                std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                if (our_CommonLogManagerInternalStarted > 0)
+                    return true;
+                else
+                    return false;
+            }
+
+            ACTStatus CommonLogManagerInternal::Initialize( LogConfiguration* logConfigurationP)
 			{
-				ARIASDK_LOG_DETAIL("Initialize[2]: tenantToken=%s, configuration=0x%X", tenantToken.c_str(), our_LogConfigurationP);
-				std::lock_guard<std::mutex> lock(*our_lockP);
-
-				if (nullptr == our_pLogManagerSingletonInstanceP)
-				{
-                    ACTStatus error;
-                    std::string cacheFilePath = our_LogConfigurationP->GetProperty(CFG_STR_CACHE_FILE_PATH, error);
-                    if (cacheFilePath.empty())
+				ARIASDK_LOG_DETAIL("Initialize[1]:configuration=0x%X", logConfigurationP);
+				
+                if (InterlockedIncrementAcquire(&our_CommonLogManagerInternalStarted) == 1)
+                {
+                    std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                    if (nullptr == our_pLogManagerSingletonInstanceP)
                     {
-                        our_LogConfigurationP->SetProperty(CFG_STR_CACHE_FILE_PATH, tenantToken.c_str());
+                        if (logConfigurationP)
+                        {
+                            delete our_LogConfiguration;
+                            our_LogConfiguration = logConfigurationP;
+                        }
+                        else
+                        {
+                            our_IsRuningWithDefaultConfig = true;
+                        }
+                        our_pLogManagerSingletonInstanceP = ILogManager::Create(*our_LogConfiguration, nullptr);
+                        ::SetEvent(syncEvent);
+
+                        if (nullptr == our_LogSessionDataP)
+                        {
+                            ACTStatus error;
+                            our_LogSessionDataP = new LogSessionData(our_LogConfiguration->GetProperty(CFG_STR_CACHE_FILE_PATH, error));
+                        }
                     }
-					our_pLogManagerSingletonInstanceP = LogManagerProvider::GetHostLogManager(*our_LogConfigurationP,"OldInterface", error);
-				}
+                }
+                else
+                {
+                    ::WaitForSingleObject(syncEvent, INFINITE);
+                    if (our_IsRuningWithDefaultConfig && logConfigurationP)
+                    {// running with default config, means only gusts are running, Now host showed up, we ned to reset the system
+                        our_IsRuningWithDefaultConfig = false;
+                        delete our_LogConfiguration;
+                        our_LogConfiguration = logConfigurationP;
+                        
+                        std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                        ::ResetEvent(syncEvent);
+                        if (nullptr != our_pLogManagerSingletonInstanceP)
+                        {
+                            ILogManager* temp = ILogManager::Create(*our_LogConfiguration, nullptr);
+                            our_pLogManagerSingletonInstanceP->FlushAndTeardown();
+                            delete our_pLogManagerSingletonInstanceP;
+                            our_pLogManagerSingletonInstanceP = temp;
 
-				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
+                            ::SetEvent(syncEvent);
+                        }
+                    }
+                }
 
-                switch (our_LogConfigurationP->GetMinimumTraceLevel())
+                switch (our_LogConfiguration->GetMinimumTraceLevel())
                 {
                 case    ACTTraceLevel_Debug:
                     ARIASDK_SET_LOG_LEVEL_(PAL::LogLevel::Error);
@@ -61,96 +106,104 @@ namespace Microsoft {
                     break;
                 }
 
-				return result;
+				return ACTStatus::ACTStatus_OK;
 			}
 
-            void LogManager::FlushAndTeardown()
+            ACTStatus CommonLogManagerInternal::FlushAndTeardown()
             {
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                ARIASDK_LOG_DETAIL("FlushAndTeardown()");
+                if (InterlockedDecrementAcquire(&our_CommonLogManagerInternalStarted) == 0)
                 {
-                    ARIASDK_LOG_DETAIL("FlushAndTeardown()");
-                   
-                    std::lock_guard<std::mutex> lock(*our_lockP);
-
+                    std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                    ::ResetEvent(syncEvent);
                     if (nullptr != our_pLogManagerSingletonInstanceP)
-                    {
+                    {                        
                         our_pLogManagerSingletonInstanceP->FlushAndTeardown();
-                        LogManagerProvider::DestroyLogManager("OldInterface");
+                        delete our_pLogManagerSingletonInstanceP;
                         our_pLogManagerSingletonInstanceP = nullptr;
                     }
+                    else
+                    {
+                        ACTStatus::ACTStatus_NoOp;
+                    }
                 }
-                else 
-                {
-                    ARIASDK_LOG_DETAIL("FlushAndTeardown() has been already called.");
-                }
+                return ACTStatus::ACTStatus_OK;
             }
 
-            void LogManager::UploadNow()
+            ACTStatus CommonLogManagerInternal::UploadNow()
             {
                 ARIASDK_LOG_DETAIL("UploadNow()");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->UploadNow();
                 }
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>
             /// Save all unsent records to offline storage.
             /// </summary>
-            void LogManager::Flush()
+            ACTStatus CommonLogManagerInternal::Flush()
             {
                 ARIASDK_LOG_DETAIL("Flush()");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->Flush();
                 }
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>
             /// Pause telemetry event transmission
             /// </summary>
-            void LogManager::PauseTransmission()
+            ACTStatus CommonLogManagerInternal::PauseTransmission()
             {
                 ARIASDK_LOG_DETAIL("PauseTransmission()");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->PauseTransmission();
                 }
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>
             /// Resume telemetry event transmission
             /// </summary>
-            void LogManager::ResumeTransmission()
+            ACTStatus CommonLogManagerInternal::ResumeTransmission()
             {
                 ARIASDK_LOG_DETAIL("ResumeTransmission()");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->ResumeTransmission();
                 }
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>
             /// Select one of several predefined transmission profiles.
             /// </summary>
             /// <param name="profile"></param>
-            void LogManager::SetTransmitProfile(TransmitProfile profile)
+            ACTStatus CommonLogManagerInternal::SetTransmitProfile(TransmitProfile profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%d", profile);
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
                 }
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>
             /// Select one of several predefined transmission profiles.
             /// </summary>
             /// <param name="profile"></param>
-            bool LogManager::SetTransmitProfile(const std::string& profile)
+            ACTStatus CommonLogManagerInternal::SetTransmitProfile(const std::string& profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%s", profile.c_str());
-				return TransmitProfiles::setProfile(profile);
+                if (TransmitProfiles::setProfile(profile))
+                    return ACTStatus::ACTStatus_OK;
+                else
+                    return ACTStatus::ACTStatus_Fail;
             }
 
             /// <summary>
@@ -158,24 +211,27 @@ namespace Microsoft {
             /// </summary>
             /// <param name="profiles_json">JSON config (see example above)</param>
             /// <returns>true on successful profiles load, false if config is invalid</returns>
-            bool LogManager::LoadTransmitProfiles(std::string profiles_json)
+            ACTStatus CommonLogManagerInternal::LoadTransmitProfiles(std::string profiles_json)
             {
                 ARIASDK_LOG_DETAIL("LoadTransmitProfiles");
-                return TransmitProfiles::load(profiles_json);
+                if (TransmitProfiles::load(profiles_json))
+                    return ACTStatus::ACTStatus_OK;
+                else
+                    return ACTStatus::ACTStatus_Fail;
             }
 
             /// <summary>
             /// Reset transmission profiles to default settings
             /// </summary>
-            void LogManager::ResetTransmitProfiles()
+            ACTStatus CommonLogManagerInternal::ResetTransmitProfiles()
             {
                 ARIASDK_LOG_DETAIL("ResetTransmitProfiles");
                 TransmitProfiles::reset();
+                return ACTStatus::ACTStatus_OK;
             }
 
-            const std::string LogManager::GetTransmitProfileName(TransmitProfile profile)
+            const std::string& CommonLogManagerInternal::GetTransmitProfileName()
             {
-				UNREFERENCED_PARAMETER(profile);
                return TransmitProfiles::getProfile();
             };
 
@@ -183,7 +239,7 @@ namespace Microsoft {
             /// Get global semantic context.
             /// </summary>
             /// <returns></returns>
-			ISemanticContext* LogManager::GetSemanticContext()
+			ISemanticContext* CommonLogManagerInternal::GetSemanticContext()
             {
                 ARIASDK_LOG_DETAIL("GetSemanticContext()");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
@@ -205,7 +261,7 @@ namespace Microsoft {
             /// <param name="value">value</param>
             /// <param name="piiKind">Pii kind</param>
             template <typename T>
-            void LogManager::_SetContext(const string& name, T value, PiiKind piiKind)
+            ACTStatus CommonLogManagerInternal::_SetContext(const string& name, T value, PiiKind piiKind)
             {
                 ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
@@ -220,13 +276,14 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, const std::string& value, PiiKind piiKind) 
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, const std::string& value, PiiKind piiKind) 
 			{
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
             /// <summary>
@@ -235,12 +292,13 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, double value, PiiKind piiKind) {
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, double value, PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
             /// <summary>
@@ -249,12 +307,13 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, int64_t value,            PiiKind piiKind) {
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, int64_t value,            PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
             /// <summary>
@@ -263,12 +322,13 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, bool value,               PiiKind piiKind) {
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, bool value,               PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
             /// <summary>
@@ -277,12 +337,13 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, time_ticks_t value,       PiiKind piiKind) {
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, time_ticks_t value,       PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
             /// <summary>
@@ -291,26 +352,21 @@ namespace Microsoft {
             /// <param name="name"></param>
             /// <param name="value"></param>
             /// <param name="piiKind"></param>
-            void LogManager::SetContext(const std::string& name, GUID_t value,             PiiKind piiKind) {
+            ACTStatus CommonLogManagerInternal::SetContext(const std::string& name, GUID_t value,             PiiKind piiKind) {
 				ARIASDK_LOG_DETAIL("SetContext");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
                     our_pLogManagerSingletonInstanceP->SetContext(name, value, piiKind);
                 }
+                return ACTStatus::ACTStatus_OK;
 			}
 
-            ILogger* LogManager::GetLogger()
+            ILogger* CommonLogManagerInternal::GetLogger(const std::string& tenantToken, ContextFieldsProvider* context)
             {
-                ARIASDK_LOG_DETAIL("GetLogger()");
-                return nullptr;
-            }
-
-            ILogger* LogManager::GetLogger(const string& source)
-            {
-                ARIASDK_LOG_DETAIL("GetLogger[1]: source=%s", source.c_str() );
+                ARIASDK_LOG_DETAIL("GetLogger[1]: tenantToken=%s", tenantToken.c_str());
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
-                    return our_pLogManagerSingletonInstanceP->GetLogger(source);
+                    return our_pLogManagerSingletonInstanceP->GetLogger(tenantToken, context);
                 }
                 else
                 {
@@ -318,46 +374,55 @@ namespace Microsoft {
                 }
             }
 
-            ILogger* LogManager::GetLogger(const std::string& tenantToken, const string& source)
+            void CommonLogManagerInternal::AddIncomingEvent(IncomingEventContextPtr const& event)
             {
-                ARIASDK_LOG_DETAIL("GetLogger[2]: tenantToken=%s, source=%s", tenantToken.c_str(), source.c_str() );
+                ARIASDK_LOG_DETAIL("AddIncomingEvent");
                 if (nullptr != our_pLogManagerSingletonInstanceP)
                 {
-                    return our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
-                }
-                else
-                {
-                    return nullptr;
+                    return our_pLogManagerSingletonInstanceP->addIncomingEvent(event);
                 }
             }
 
-            __inline void LogManager::checkup() { };
+            __inline ACTStatus CommonLogManagerInternal::checkup() { };
 
+            /// <summary>Debug callback implementation</summary>
+            static DebugEventSource debugEventSource;
+            
             /// <summary>Add debug event listener.</summary>
             /// <param name="type"></param>
             /// <param name="listener"></param>
-            void LogManager::AddEventListener(DebugEventType type, DebugEventListener &listener) 
+            ACTStatus CommonLogManagerInternal::AddEventListener(DebugEventType type, DebugEventListener &listener)
             {
-                if (nullptr != our_pLogManagerSingletonInstanceP)
-                {
-                    our_pLogManagerSingletonInstanceP->AddEventListener(type, listener);
-                }
+                debugEventSource.AddEventListener(type, listener);
+                return ACTStatus::ACTStatus_OK;
             }
 
             /// <summary>Remove debug event listener.</summary>
             /// <param name="type"></param>
             /// <param name="listener"></param>
-            void LogManager::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
+            ACTStatus CommonLogManagerInternal::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
             {
-                if (nullptr != our_pLogManagerSingletonInstanceP)
-                {
-                    our_pLogManagerSingletonInstanceP->RemoveEventListener(type, listener);
-                }
+                debugEventSource.RemoveEventListener(type, listener);
+                return ACTStatus::ACTStatus_OK;
             }
 
-            ILogConfiguration& LogManager::GetLogConfiguration()
+            /// <summary>[internal] Dispatch debug event to debug event listener.</summary>
+            /// <param name="type"></param>
+            /// <param name="listener"></param>
+            bool CommonLogManagerInternal::DispatchEvent(DebugEventType type) {
+                return debugEventSource.DispatchEvent(type);
+            }
+
+            /// <summary>[internal] Dispatch debug event to debug event listener.</summary>
+            /// <param name="evt"></param>
+            /// <returns></returns>
+            bool CommonLogManagerInternal::DispatchEvent(DebugEvent &evt) {
+                return debugEventSource.DispatchEvent(evt);
+            }
+
+            LogSessionData* CommonLogManagerInternal::GetLogSessionData()
             {
-                return *our_LogConfigurationP;;
+                return our_LogSessionDataP;;
             }
         }
     }

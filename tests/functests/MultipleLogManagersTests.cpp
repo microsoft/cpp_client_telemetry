@@ -3,7 +3,7 @@
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include <ILogManager.hpp>
+#include <api/ILogManager.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -45,7 +45,7 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         config1.SetProperty("cacheFilePath","lm1.db");
         //config1.runtimeConfig = &runtimeConfig1;
-        bool error;
+        ACTStatus error;
         ::remove(config1.GetProperty("cacheFilePath", error));
 
         config2.SetProperty("cacheFilePath", "lm2.db");
@@ -58,7 +58,7 @@ class MultipleLogManagersTests : public ::testing::Test,
     {
         sqlite3_shutdown();
         server.stop();
-        bool error;
+        ACTStatus error;
         ::remove(config1.GetProperty("cacheFilePath", error));
         ::remove(config2.GetProperty("cacheFilePath", error));
     }
@@ -119,24 +119,21 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     lm1->SetContext("test1", "abc");
 
     lm2->GetSemanticContext().SetAppId("123");
+    ContextFieldsProvider temp;
+    ILogger* l1a = lm1->GetLogger("aaa", &temp);
 
-    ILogger* l1a = lm1->GetLogger("aaa");
-
-    ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
+    ILogger* l2a = lm2->GetLogger("aaa", &temp, "aaa-source");
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("x", "y");
-    EXPECT_CALL(runtimeConfig2, DecorateEvent(_, _, _)).WillOnce(Return());
     l2a->LogEvent(l2a1p);
 
     EventProperties l1a1p("l1a1");
     l1a1p.SetProperty("X", "Y");
-    EXPECT_CALL(runtimeConfig1, DecorateEvent(_, _, _)).WillOnce(Return());
     l1a->LogEvent(l1a1p);
 
-    ILogger* l1b = lm1->GetLogger("bbb");
+    ILogger* l1b = lm1->GetLogger("bbb", &temp);
     EventProperties l1b1p("l1b1");
     l1b1p.SetProperty("asdf", 1234);
-    EXPECT_CALL(runtimeConfig1, DecorateEvent(_, _, _)).WillOnce(Return());
     l1b->LogEvent(l1b1p);
 
     waitForRequests(5000, 2);

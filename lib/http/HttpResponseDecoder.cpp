@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpResponseDecoder.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include <IHttpClient.hpp>
 #include "utils/Utils.hpp"
+#include "json.hpp"
 #include <algorithm>
+
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -43,12 +45,66 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             break;
     }
 
+    if (response.GetBody().size() > 0)
+    { // parse the response 
+        nlohmann::json responseBody;       
+        try
+        {
+            responseBody = nlohmann::json::parse((char*)(response.GetBody().data()));
+            int accepted = 0;
+            auto acc = responseBody.find("acc");
+            if (responseBody.end() != acc)
+            {
+                if (acc.value().is_number())
+                {
+                    accepted = acc.value().get<int>();
+                }
+            }
+
+            int rejected = 0;
+            auto rej = responseBody.find("rej");
+            if (responseBody.end() != rej)
+            {
+                if (rej.value().is_number())
+                {
+                    rejected = rej.value().get<int>();
+                }
+            }
+
+            auto efi = responseBody.find("efi");
+            if (responseBody.end() != efi)
+            {
+                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+                {
+                    std::string efiKey(it.key());
+                    nlohmann::json val = it.value();
+                    if (val.is_array())
+                    {
+                        //std::vector<int> failureVector = val.get<std::vector<int>>();
+                        // eventsRejected(ctx);     with only the ids in the vector above
+                    }
+                    if (val.is_string())
+                    {
+                        if ("all" == val.get<std::string>())
+                        {
+                            outcome = Rejected;
+                        }
+                    }
+                }
+            }
+        }
+        catch (...)
+        {
+            ARIASDK_LOG_ERROR("Http response jason parsing failed");
+        }
+    }
+
     switch (outcome) {
         case Accepted: {
             ARIASDK_LOG_INFO("HTTP request %s finished after %d ms, events were successfully uploaded to the server",
                 response.GetId().c_str(), ctx->durationMs);
             eventsAccepted(ctx);
-            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_OK);
+            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_OK);
             break;
         }
 
@@ -61,7 +117,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
 			DebugEvent evt;
 			evt.type = DebugEventType::EVT_HTTP_ERROR;
 			evt.param1 = response.GetStatusCode();
-            LogManager::DispatchEvent(evt);
+            CommonLogManagerInternal::DispatchEvent(evt);
             break;
         }
 
@@ -69,7 +125,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             ARIASDK_LOG_WARNING("HTTP request %s failed after %d ms, upload was aborted and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs);
             requestAborted(ctx);
-            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
+            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
 
@@ -79,7 +135,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
             ARIASDK_LOG_DETAIL("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
             temporaryServerFailure(ctx);
-            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
+            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
 
@@ -87,7 +143,7 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
             ARIASDK_LOG_WARNING("HTTP request %s failed after %d ms, a network error has occurred and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs);
             temporaryNetworkFailure(ctx);
-            LogManager::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
+            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
     }

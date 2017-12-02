@@ -24,18 +24,18 @@ namespace Microsoft {
 
             public:
 
-                virtual void SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) override;
+                virtual ACTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) override;
                 virtual ACTTraceLevel GetMinimumTraceLevel() const override;
-                virtual void SetSdkModeType(SdkModeTypes sdkmode) override;
+                virtual ACTStatus SetSdkModeType(SdkModeTypes sdkmode) override;
                 virtual SdkModeTypes GetSdkModeType() const override;
-                virtual void SetProperty(char const* key, char const* value) override;
-                virtual void SetIntProperty(char const* key, uint32_t value) override;
-                virtual void SetBoolProperty(char const* key, bool value) override;
-                virtual void SetPointerProperty(char const* key, void* value) override;
-                virtual char const* GetProperty(char const* key, bool& error) const override;
-                virtual uint32_t GetIntProperty(char const* key, bool& error) const override;
-                virtual bool GetBoolProperty(char const* key, bool& error) const override;
-                virtual void* GetPointerProperty(char const* key, bool& error) const override;
+                virtual ACTStatus SetProperty(char const* key, char const* value) override;
+                virtual ACTStatus SetIntProperty(char const* key, uint32_t value) override;
+                virtual ACTStatus SetBoolProperty(char const* key, bool value) override;
+                virtual ACTStatus SetPointerProperty(char const* key, void* value) override;
+                virtual char const* GetProperty(char const* key, ACTStatus& error) const override;
+                virtual uint32_t GetIntProperty(char const* key, ACTStatus& error) const override;
+                virtual bool GetBoolProperty(char const* key, ACTStatus& error) const override;
+                virtual void* GetPointerProperty(char const* key, ACTStatus& error) const override;
 
                 ///<summary>LogConfiguration constructor</summary>
                 LogConfiguration();

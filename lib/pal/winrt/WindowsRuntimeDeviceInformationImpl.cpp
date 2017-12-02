@@ -39,6 +39,11 @@ namespace Microsoft {
                     return PowerSource_Charging;
                 }
 
+                std::string DeviceInformationImpl::GetDeviceTicket()
+                {
+                    return m_deviceTicket;
+                }
+
                 ///// IDeviceInformation API
                 DeviceInformationImpl::DeviceInformationImpl() :
                     m_info_helper()

@@ -45,13 +45,12 @@ ILogManager* ILogManager::Create(LogConfiguration& configuration, IRuntimeConfig
 
 ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "AriaSDK.LogManager", "Aria telemetry client - LogManager class");
 
-LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* runtimeConfig)
+LogManagerImpl::LogManagerImpl(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig)
   : m_httpClient(nullptr),//(IHttpClient*)configuration.GetPointerProperty("httpClient")),
     m_runtimeConfig(runtimeConfig),
     m_bandwidthController(nullptr),//configuration.bandwidthController),
     m_offlineStorage(nullptr),
-    m_system(nullptr),
-    m_logConfiguration(configuration)
+    m_system(nullptr)
 {
     ARIASDK_LOG_DETAIL("New LogManager instance");
 
@@ -59,12 +58,12 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
 
     m_context.reset(new ContextFieldsProvider(nullptr));
 
-    m_defaultRuntimeConfig.initialize(m_logConfiguration);
+    m_defaultRuntimeConfig.initialize(configuration);
     if (m_runtimeConfig == nullptr) {
 #if ARIASDK_PAL_SKYPE
-        if (m_logConfiguration.skypeEcsClient) {
-            ARIASDK_LOG_DETAIL("RuntimeConfig: Skype ECS (provided IEcsClient=%p)", m_logConfiguration.skypeEcsClient);
-            m_ownRuntimeConfig.reset(new RuntimeConfig_ECS(*m_logConfiguration.skypeEcsClient));
+        if (configuration.skypeEcsClient) {
+            ARIASDK_LOG_DETAIL("RuntimeConfig: Skype ECS (provided IEcsClient=%p)", configuration.skypeEcsClient);
+            m_ownRuntimeConfig.reset(new RuntimeConfig_ECS(*configuration.skypeEcsClient));
         }
 #endif
         m_runtimeConfig = m_ownRuntimeConfig.get();
@@ -82,10 +81,10 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
 
     bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
     
-    if ((m_logConfiguration.GetSdkModeType() > SdkModeTypes::SdkModeTypes_Aria) && isWindowsUtcClientRegistrationEnable)
+    if ((configuration.GetSdkModeType() > SdkModeTypes::SdkModeTypes_Aria) && isWindowsUtcClientRegistrationEnable)
     {
         ARIASDK_LOG_DETAIL("Initializing UTC physical layer...");
-        m_system = new UtcTelemetrySystem(m_logConfiguration, *m_runtimeConfig, *m_context);
+        m_system = new UtcTelemetrySystem(configuration, *m_runtimeConfig, *m_context);
         m_system->start();
         m_alive = true;
         return;
@@ -93,8 +92,8 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
 
     if (m_httpClient == nullptr) {
 #if ARIASDK_PAL_SKYPE
-        ARIASDK_LOG_DETAIL("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", m_logConfiguration.skypeHttpStack);
-        m_ownHttpClient.reset(new HttpClient_HttpStack(m_logConfiguration.skypeHttpStack));
+        ARIASDK_LOG_DETAIL("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
+        m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
 #elif ARIASDK_PAL_WIN32
         ARIASDK_LOG_DETAIL("HttpClient: WinInet");
 #ifdef _WINRT_DLL
@@ -114,9 +113,9 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
 
     if (m_bandwidthController == nullptr) {
 #if ARIASDK_PAL_SKYPE
-        if (m_logConfiguration.skypeResourceManager) {
-            ARIASDK_LOG_DETAIL("BandwidthController: Skype ResourceManager (provided ResourceManager=%p)", m_logConfiguration.skypeResourceManager.raw());
-            m_ownBandwidthController.reset(new BandwidthController_ResourceManager(m_logConfiguration.skypeResourceManager));
+        if (configuration.skypeResourceManager) {
+            ARIASDK_LOG_DETAIL("BandwidthController: Skype ResourceManager (provided ResourceManager=%p)", configuration.skypeResourceManager.raw());
+            m_ownBandwidthController.reset(new BandwidthController_ResourceManager(configuration.skypeResourceManager));
         }
 #endif
         m_bandwidthController = m_ownBandwidthController.get();
@@ -127,9 +126,9 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
         ARIASDK_LOG_DETAIL("BandwidthController: None");
     }
 
-    m_offlineStorage.reset(new OfflineStorageHandler(m_logConfiguration, *m_runtimeConfig));
+    m_offlineStorage.reset(new OfflineStorageHandler(configuration, *m_runtimeConfig));
 
-    m_system = new TelemetrySystem(m_logConfiguration, *m_runtimeConfig, *m_offlineStorage, *m_httpClient, *m_context, m_bandwidthController);
+    m_system = new TelemetrySystem(configuration, *m_runtimeConfig, *m_offlineStorage, *m_httpClient, *m_context, m_bandwidthController);
     ARIASDK_LOG_DETAIL("Telemetry system created, starting up...");
     if (m_system)
     {
@@ -166,10 +165,10 @@ void LogManagerImpl::FlushAndTeardown()
             m_system = nullptr;
         }
 
- //       for (auto& record : m_loggers) {
- //           delete record.second;
- //       }
- //       m_loggers.clear();
+        for (auto& record : m_loggers) {
+            delete record.second;
+        }
+        m_loggers.clear();
 
         m_offlineStorage.reset();
 
@@ -276,6 +275,20 @@ ISemanticContext& LogManagerImpl::GetSemanticContext()
     return *m_context;
 }
 
+void LogManagerImpl::SetContext(const std::string& name, const std::string& value, CustomerContentKind ccKind)
+{
+    ARIASDK_LOG_DETAIL("SetContext(\"%s\", ..., %u)", name.c_str(), ccKind);
+    EventProperty prop(value, ccKind);
+    m_context->setCustomField(name, prop);
+}
+
+void LogManagerImpl::SetContext(const std::string& name, const char *value, CustomerContentKind ccKind)
+{
+    ARIASDK_LOG_DETAIL("SetContext(\"%s\", ..., %u)", name.c_str(), ccKind);
+    EventProperty prop(value, ccKind);
+    m_context->setCustomField(name, prop);
+}
+
 /// <summary>
 /// Set global context field - string
 /// </summary>
@@ -351,7 +364,7 @@ void LogManagerImpl::SetContext(const std::string& name, GUID_t value, PiiKind p
 }
 
 
-ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, ContextFieldsProvider* parentContext, std::string const& source, std::string const& experimentationProject)
+ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject)
 {
     if (m_alive)
     {
@@ -362,10 +375,10 @@ ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, ContextFields
         std::string normalizedSource = toLower(source);
 
         std::lock_guard<std::mutex> lock(m_lock);
- //       auto& logger = m_loggers[normalizedTenantToken];
- //       if (!logger) {
-        auto  logger = new Logger(normalizedTenantToken, normalizedSource, experimentationProject, this, parentContext /*m_context.get()*/, m_runtimeConfig);
-//        }
+        auto& logger = m_loggers[normalizedTenantToken];
+        if (!logger) {
+            logger = new Logger(normalizedTenantToken, normalizedSource, experimentationProject, *this, m_context.get(), *m_runtimeConfig);
+        }
         return logger;
     }
     return nullptr;

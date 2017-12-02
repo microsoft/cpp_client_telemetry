@@ -2,7 +2,7 @@
 
 #include "OfflineStorageHandler.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -24,7 +24,7 @@ OfflineStorageHandler::OfflineStorageHandler(LogConfiguration& configuration, IR
     m_queryDbSize(0),
     m_isStorageFullNotificationSend(false)
 {
-    bool error;
+    ACTStatus error;
     int percentage = configuration.GetIntProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE, error);
     unsigned int cacheMemorySizeLimitInBytes = configuration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
     if (percentage > 0 && percentage <= 100)
@@ -49,7 +49,7 @@ OfflineStorageHandler::~OfflineStorageHandler()
 void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
 {
     m_observer = &observer;
-    bool error;
+    ACTStatus error;
     unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
     if (cacheMemorySizeLimitInBytes > 0)
     {
@@ -114,10 +114,10 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
             DebugEvent evt;
             evt.type = DebugEventType::EVT_STORAGE_FULL;
             evt.param1 = 1;
-            LogManager::DispatchEvent(evt);
+            CommonLogManagerInternal::DispatchEvent(evt);
             m_isStorageFullNotificationSend = true;
         }
-        bool error;
+        ACTStatus error;
         unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
 
         if (m_queryDbSize > cacheMemorySizeLimitInBytes)

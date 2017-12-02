@@ -5,7 +5,7 @@
 #include "config/RuntimeConfig_Default.hpp"
 #include "system/Contexts.hpp"
 #include <IHttpClient.hpp>
-#include <ILogManager.hpp>
+#include <api/ILogManager.hpp>
 #include <api/LogConfiguration.hpp>
 #include <DebugEvents.hpp>
 #include <memory>
@@ -15,14 +15,10 @@ namespace ARIASDK_NS_BEGIN {
 
 class ITelemetrySystem;
 
-class ILogManagerInternal : public ILogManager {
-  public:
-    virtual void addIncomingEvent(IncomingEventContextPtr const& event) = 0;
-};
 
-class LogManagerImpl : public ILogManagerInternal {
+class LogManagerImpl : public ILogManager {
   public:
-    LogManagerImpl(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig);
+    LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* runtimeConfig);
     virtual ~LogManagerImpl() override;
     virtual void FlushAndTeardown() override;
     virtual void Flush() override;
@@ -35,8 +31,6 @@ class LogManagerImpl : public ILogManagerInternal {
 	virtual void  SetTransmitProfile(TransmitProfile profile) override;
 	virtual const std::string& GetTransmitProfileName() override;
 	virtual ISemanticContext& GetSemanticContext() override;
-    virtual void SetContext(const std::string& name, const std::string& value, CustomerContentKind ccKind) override;
-    virtual void SetContext(const std::string& name, const char *value, CustomerContentKind ccKind) override;
 	virtual void SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) override;
 	virtual void SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
 	virtual void SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
@@ -51,7 +45,7 @@ class LogManagerImpl : public ILogManagerInternal {
 	virtual void  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
 	virtual void  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override;
 	virtual void  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
-    virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) override;
+    virtual ILogger* GetLogger(std::string const& tenantToken, ContextFieldsProvider* parentContext, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) override;
 
     virtual void addIncomingEvent(IncomingEventContextPtr const& event) override;
 
@@ -59,7 +53,7 @@ class LogManagerImpl : public ILogManagerInternal {
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
 
     std::mutex                             m_lock;
-    std::map<std::string, Logger*>         m_loggers;
+    //std::map<std::string, Logger*>         m_loggers;
     std::unique_ptr<ContextFieldsProvider> m_context;
 
     IHttpClient*                           m_httpClient;
@@ -77,6 +71,7 @@ class LogManagerImpl : public ILogManagerInternal {
     ITelemetrySystem*                      m_system;
 
     bool                                   m_alive;
+    LogConfiguration                       m_logConfiguration;
 };
 
 

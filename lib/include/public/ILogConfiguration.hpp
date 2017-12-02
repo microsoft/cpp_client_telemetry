@@ -59,7 +59,7 @@ namespace Microsoft {
 
                 /// <summary>[optional] Debug trace level mask controls global verbosity level.<br>
                 /// default is ACTTraceLevel_Error</summary>
-                virtual void SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) = 0;
+                virtual ACTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) = 0;
 
                 /// <summary>[optional] Debug trace level mask controls global verbosity level.<br>
                 /// default is ACTTraceLevel_Error</summary>
@@ -67,7 +67,7 @@ namespace Microsoft {
 
                 /// <summary>Api to set Aria SDK mode with Non UTC, UTC with common Schema or UTC with Aria Schema.<br>
                 /// default is Non UTC</summary>
-                virtual void SetSdkModeType(SdkModeTypes sdkmode) = 0;
+                virtual ACTStatus SetSdkModeType(SdkModeTypes sdkmode) = 0;
 
                 /// <summary>Api to get Aria SDK mode with Non UTC, UTC with common Schema or UTC with Aria Schema.<br>
                 /// default is Non UTC</summary>
@@ -77,49 +77,49 @@ namespace Microsoft {
                 /// ILogConfiguration properties API allows to configure Aria string setting
                 /// </summary>
                 /// 
-                virtual void SetProperty(char const* key, char const* value) = 0;
+                virtual ACTStatus SetProperty(char const* key, char const* value) = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to configure Aria int setting
                 /// </summary>
                 /// 
-                virtual void SetIntProperty(char const* key, uint32_t value) = 0;
+                virtual ACTStatus SetIntProperty(char const* key, uint32_t value) = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to configure Aria bool setting
                 /// </summary>
                 /// 
-                virtual void SetBoolProperty(char const* key, bool value) = 0;
+                virtual ACTStatus SetBoolProperty(char const* key, bool value) = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to configure Aria pointer setting
                 /// </summary>
                 /// 
-                virtual void SetPointerProperty(char const* key, void* value) = 0;
+                virtual ACTStatus SetPointerProperty(char const* key, void* value) = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to get Aria string setting
                 /// </summary>
                 /// 
-                virtual char const* GetProperty(char const* key, bool& error) const = 0;
+                virtual char const* GetProperty(char const* key, ACTStatus& error) const = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to get Aria int setting
                 /// </summary>
                 /// 
-                virtual uint32_t GetIntProperty(char const* key, bool& error) const = 0;
+                virtual uint32_t GetIntProperty(char const* key, ACTStatus& error) const = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to get Aria bool setting
                 /// </summary>
                 /// 
-                virtual bool GetBoolProperty(char const* key, bool& error) const = 0;
+                virtual bool GetBoolProperty(char const* key, ACTStatus& error) const = 0;
 
                 /// <summary>
                 /// ILogConfiguration properties API allows to get Aria pointer setting
                 /// </summary>
                 /// 
-                virtual void* GetPointerProperty(char const* key, bool& error) const = 0;
+                virtual void* GetPointerProperty(char const* key, ACTStatus& error) const = 0;
             };
         }
     }

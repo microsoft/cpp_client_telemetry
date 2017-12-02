@@ -4,7 +4,7 @@
 #include "LogSessionData.hpp"
 #include "Config.hpp"
 #include "utils/Utils.hpp"
-#include "LogManager.hpp"
+#include "CommonLogManagerInternal.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -14,6 +14,7 @@ ContextFieldsProvider::ContextFieldsProvider()
     , m_parent( NULL)
     , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
     , m_customContextFieldsP(new std::map<std::string, EventProperty>())
+    , m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
     , m_CommonFieldsAppExperimentIdsP( new std::string())
     , m_ticketsMapP(new std::map<TicketType, std::string>())
 {
@@ -31,10 +32,10 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
     if (!m_parent) 
     {
         PAL::registerSemanticContext(this);        
-        LogSessionData* sessionData = LogManager::GetLogSessionData();
+        LogSessionData* sessionData = CommonLogManagerInternal::GetLogSessionData();
         if (sessionData)
         {
-            setCommonField("act_session_id", LogManager::GetLogSessionData()->getSessionSDKUid());
+            setCommonField("act_session_id", CommonLogManagerInternal::GetLogSessionData()->getSessionSDKUid());
         }
         else
         {

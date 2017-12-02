@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Statistics.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
@@ -98,7 +98,7 @@ bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ct
     m_metaStats.updateOnEventIncoming(static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
     scheduleSend();
     
-    LogManager::DispatchEvent(DebugEventType::EVT_ADDED);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_ADDED);
     return true;
 }
 
@@ -108,7 +108,7 @@ bool Statistics::handleOnIncomingEventFailed(IncomingEventContextPtr const& ctx)
     m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, 1);
     scheduleSend();
 
-    LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_DROPPED);
     return true;
 }
 

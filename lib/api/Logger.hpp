@@ -13,20 +13,18 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ILogManagerInternal;
+class ILogManager;
 
 class ARIASDK_LIBABI Logger : public ILogger
 {
   public:
     Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-        ILogManagerInternal& logManager, ContextFieldsProvider* parentContext, IRuntimeConfig& runtimeConfig);
+        ILogManager* logManager, ContextFieldsProvider* parentContext, IRuntimeConfig* runtimeConfig);
     Logger(Logger const&) = delete;
     Logger& operator=(Logger const&) = delete;
      ~Logger();
 
   public:
-    virtual void SetContext(const std::string& k, const char v[], CustomerContentKind ccKind) override;
-    virtual void SetContext(const std::string& k, const std::string &v, CustomerContentKind ccKind) override;
     virtual void SetContext(const std::string& name, const char value[], PiiKind piiKind = PiiKind_None)  override;
     virtual void SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None) override;
     virtual void SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
@@ -104,9 +102,8 @@ class ARIASDK_LIBABI Logger : public ILogger
     std::mutex*              m_lockP;
     std::string*             m_tenantTokenP;
     std::string*             m_sourceP;
-    ILogManagerInternal&     m_logManager;
+    ILogManager*             m_logManagerP;
     ContextFieldsProvider*   m_context;
-    IRuntimeConfig&          m_runtimeConfig;
 
     BaseDecorator*            m_baseDecorator;
     EventPropertiesDecorator* m_eventPropertiesDecorator;

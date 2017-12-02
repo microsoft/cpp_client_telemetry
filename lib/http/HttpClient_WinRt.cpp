@@ -154,11 +154,25 @@ namespace ARIASDK_NS_BEGIN {
 						onRequestComplete(m_httpResponseMessage);
 					}
 				}
-				catch (Platform::Exception ^ex) {
+				catch (Platform::Exception ^ex) 
+                {
+                    HttpResponseMessage^ failed = nullptr;
+                    if (ex->HResult == 0x80072ee7)
+                    {
+                        failed = ref new HttpResponseMessage(HttpStatusCode::NotFound);
+                    }
+                    else
+                    {
+                        failed = ref new HttpResponseMessage(HttpStatusCode::BadRequest);
+                    }
+
+                    onRequestComplete(failed);
 					printf("Connection failed!\n");
 				}
 				catch (...)
 				{
+                    HttpResponseMessage^ failed = ref new HttpResponseMessage(HttpStatusCode::BadRequest);
+                    onRequestComplete(failed);
 					printf("Some other unknown exception!\n");
 				}
 			});
@@ -217,10 +231,7 @@ namespace ARIASDK_NS_BEGIN {
 					}
 				}
 			}
-			else
-			{
-				response->m_result = HttpResult_LocalFailure;
-			}
+			
 
 			m_appCallback->OnHttpResponse(response.release());
 			m_parent->signalDoneAndErase(m_id);

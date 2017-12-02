@@ -393,7 +393,7 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
 TEST_F(OfflineStorageTests_SQLite, OnInvalidFilenameInitializeCreatesTemporaryDb)
 {
     offlineStorage->Shutdown();
-    bool error;
+    ACTStatus error;
     std::string origCacheFilePath = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);
     ::remove(origCacheFilePath.c_str());
 

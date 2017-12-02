@@ -32,7 +32,7 @@ namespace Microsoft {
                     {
                         curExeFullPathBuffer.resize(curBufferLength);
 
-                        DWORD result = GetModuleFileName(GetModuleHandle(NULL), &curExeFullPathBuffer[0], curBufferLength);
+                        DWORD result = GetModuleFileNameA(GetModuleHandle(NULL), &curExeFullPathBuffer[0], curBufferLength);
 
                         if (result == curBufferLength)
                         {
@@ -73,7 +73,7 @@ namespace Microsoft {
                     std::string applicationFullPath = getApplicationFullPath();
 
                     // Get the product version information from the current process filename 
-                    dwVersionInfoSize = GetFileVersionInfoSize(applicationFullPath.data(), &dwUnused);
+                    dwVersionInfoSize = GetFileVersionInfoSizeA(applicationFullPath.data(), &dwUnused);
 
                     if (dwVersionInfoSize == 0)
                     {
@@ -82,12 +82,12 @@ namespace Microsoft {
 
                     buffer.resize(dwVersionInfoSize);
 
-                    if (GetFileVersionInfo(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)
+                    if (GetFileVersionInfoA(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)
                     {
                         return{};
                     }
 
-                    if (VerQueryValue(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
+                    if (VerQueryValueA(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
                     {
                         return{};
                     }
@@ -106,7 +106,7 @@ namespace Microsoft {
 
                     // Auto-detect the app name - executable name without .exe suffix
                     char buff[MAX_PATH] = { 0 };
-                    if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
+                    if (GetModuleFileNameA(GetModuleHandleA(NULL), &buff[0], MAX_PATH) > 0)
 					{
                         //std::wstring app_name_w(buff);
 						std::string  app_name(buff);// app_name_w.begin(), app_name_w.end());
@@ -120,7 +120,7 @@ namespace Microsoft {
                     }
                     m_app_version = collectAppVer();
 
-                    HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
+                    HMODULE hNtDll = ::GetModuleHandleA("ntdll.dll");
                     typedef HRESULT NTSTATUS;
                     typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
                     RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
@@ -136,7 +136,7 @@ namespace Microsoft {
 
                        DWORD size = sizeof(buff);
 
-                       if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(c_currentVersion_Key), TEXT(c_buildLabEx_ValueName), RRF_RT_REG_SZ, NULL, (char*)buff, &size))
+                       if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ, NULL, (char*)buff, &size))
                        {
                            const std::string tmp(buff);
                            m_os_full_version = m_os_major_version + "." + tmp;

@@ -10,7 +10,7 @@ int main()
 }
 
 */
-#include <public/ILogManager.hpp>
+//#include <public/ILogManager.hpp>
 //#include <aria/DebugEvents.hpp>
 #include "public/LogManager.hpp"
 #include "public/Enums.hpp"
@@ -423,7 +423,7 @@ EventProperties CreateSampleEvent(const char *name, EventLatency prio) {
 	});
 #endif
 	props.SetProperty("win_guid", GUID_t(win_guid));
-    props.SetProperty("Customer", "value", CustomerContentKind::CustomerContentKind_GenericData);
+    props.SetProperty("Customer", "value", PiiKind::CustomerContentKind_GenericData);
 
 	 GUID_t guidKey5("00000000-0000-0000-0000-000000000001");
 //	 GUID_t &g = guidKey5;
@@ -487,7 +487,7 @@ void sendEmptyEvent(ILogger *logger)
 }
 
 ILogConfiguration& configuration = LogManager::GetLogConfiguration();
-ILogManager* lm;
+//ILogManager* lm;
 
 ILogger* init() {
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH,"offlinestorage.db"); //":memory:"; //"offlinestorage.db";
@@ -504,11 +504,11 @@ ILogger* init() {
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_DB_COMPRESS, true);
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, false);
     configuration.SetIntProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, 20);
-    bool error;
+    ACTStatus error;
     std::string temp = configuration.GetProperty("dsadasdsad", error);
 
 	// Force UTC uploader on Windows 10 even if it's not RS2
-	//configuration.sdkmode = SdkModeTypes::SdkModeTypes_UTCAriaBackCompat;
+	//configuration.SetSdkModeType( SdkModeTypes::SdkModeTypes_UTCAriaBackCompat);
 
 #ifdef USE_INT
     configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://pipe.int.trafficmanager.net/OneCollector/1.0");//"https://pipe.dev.trafficmanager.net/OneCollector/1.0/"); //"https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
@@ -536,7 +536,13 @@ ILogger* init() {
 )";
 #endif
 
-	
+    std::cout << "LogManager::Initialize..." << endl;
+
+    std::cout << "LogManager::Initialize..." << endl;
+
+    // Apply the profile before initialize
+    LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
+    ILogger *result = LogManager::Initialize(cTenantToken);
 
 	
 	LogManager::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
@@ -554,13 +560,7 @@ ILogger* init() {
 	LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
     LogManager::AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
 
-	std::cout << "LogManager::Initialize..." << endl;
-
-	std::cout << "LogManager::Initialize..." << endl;
-
-	// Apply the profile before initialize
-	LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
-	ILogger *result = LogManager::Initialize(cTenantToken);
+	
 
 	// TC for SetContext(<const char*,const char*, PiiKind>)
 	const char* gc_value = "1234 :-)";
@@ -776,7 +776,7 @@ int main(int argc, char* argv[])
 
 
     listener.print = false;
-	delete lm;
+//	delete lm;
 /*	// 2nd run after initialize
 	{		
 		printf("Reinitialize test...\n");

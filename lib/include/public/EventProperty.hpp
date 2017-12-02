@@ -184,9 +184,6 @@ namespace Microsoft {
                 /// <summary>Event field Pii kind</summary>
                 PiiKind piiKind;
 
-                 /// <summary>Event field CustomerContent kind</summary>
-                CustomerContentKind ccKind = CustomerContentKind_None;
-
                 /// <summary>Event field Data Category</summary>
                 DataCategory dataCategory = DataCategory_PartC;
 
@@ -312,20 +309,6 @@ namespace Microsoft {
                 /// <param name="value">string value</param>
                 /// <param name="piiKind">Pii kind</param>
                 EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for string value
-                /// </summary>
-                /// <param name="value">string value</param>
-                /// <param name="ccKind">Customer content kind</param>
-                EventProperty(const char* value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for string value
-                /// </summary>
-                /// <param name="value">string value</param>
-                /// <param name="ccKind">Customer content kind</param>
-                EventProperty(const std::string& value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC);
 
                 /// <summary>
                 /// EventProperty constructor for int64 value

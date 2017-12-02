@@ -413,41 +413,6 @@ namespace Microsoft {
                 
                 return pIIExtensions;
             }
-            
-            /// <summary>
-            /// Get Customer content properties map
-            /// </summary>
-            /// <returns></returns>
-            const map<string, pair<string, CustomerContentKind> > EventProperties::GetCustomerContentProperties(DataCategory category) const
-            {
-                std::map<string, pair<string, CustomerContentKind> > customerContentKindExtensions;
-                if (category == DataCategory_PartC)
-                {
-                    for (const auto &kv : (*m_propertiesP))
-                    {
-                        auto k = kv.first;
-                        auto v = kv.second;
-                        if (v.ccKind != CustomerContentKind_None)
-                        {
-                            customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
-                        }
-                    }
-                }
-                else
-                {
-                    for (const auto &kv : (*m_propertiesBP))
-                    {
-                        auto k = kv.first;
-                        auto v = kv.second;
-                        if (v.ccKind != CustomerContentKind_None)
-                        {
-                            customerContentKindExtensions[k] = std::pair<string, CustomerContentKind>(v.to_string(), v.ccKind);
-                        }
-                    }
-                }
-
-                return customerContentKindExtensions;
-            }
         }
     }
 }

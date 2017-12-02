@@ -2,7 +2,7 @@
 
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -94,7 +94,7 @@ void TelemetrySystem::start()
 
 void TelemetrySystem::stop()
 {
-    bool error;
+    ACTStatus error;
     unsigned int timeoutInSec = configuration.GetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, error);
     if (timeoutInSec > 0)
     {        
@@ -145,7 +145,7 @@ void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const&
 {
     if (event->record.blob.size() > 2097152)//2MB ( 2 X 1024 X 1024 )
     {
-        LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
+        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_DROPPED);
         ARIASDK_LOG_INFO("Event %s/%s dropped because size more than 2 MB",
             tenantTokenToId(event->record.tenantToken).c_str(), event->source->baseType.c_str());
         return;

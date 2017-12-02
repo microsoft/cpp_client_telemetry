@@ -248,14 +248,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// All integer types are currently being converted to int64_t.
 		void SetProperty(const std::string& name, uint64_t     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
-        /// <summary>
-        /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
-        void SetProperty(const std::string& name, char const*  value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC) { SetProperty(name, EventProperty(value, ccKind, category)); }
-        
-        /// <summary>
-        /// Specify a property for an event. It either creates a new property if none exists or overwrites the existing one.<br>
-        void SetProperty(const std::string& name, std::string  value, CustomerContentKind ccKind, DataCategory category = DataCategory_PartC) { SetProperty(name, EventProperty(value, ccKind, category)); }
-
 		/// <summary>
 		/// Get the properties bag of an event.
 		/// </summary>
@@ -267,12 +259,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// </summary>
 		/// <returns>Pii Properties bag of the event</returns>
 		const std::map<std::string, std::pair<std::string, PiiKind> > GetPiiProperties(DataCategory category = DataCategory_PartC) const;
-
-        /// <summary>
-        /// Get the Costomer content properties bag of an event.
-        /// </summary>
-        /// <returns>Customer content Properties bag of the event</returns>
-        const std::map<std::string, std::pair<std::string, CustomerContentKind> > GetCustomerContentProperties(DataCategory category = DataCategory_PartC) const;
 
 		virtual ~EventProperties();
 

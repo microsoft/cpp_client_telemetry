@@ -4,7 +4,7 @@
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <ILogManager.hpp>
+#include <api/ILogManager.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -278,7 +278,8 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
     unsigned const RESTART_COUNT = 100;
 
     // Store some events so that system has to do something each time after startup.
-    ILogger* logger = logManager->GetLogger("loadtests-tenant-token");
+    ContextFieldsProvider temp;
+    ILogger* logger = logManager->GetLogger("loadtests-tenant-token", &temp);
     for (unsigned i = 0; i < EVENTS_COUNT; i++) {
         EventProperties event("event" + toString(i));
         event.SetProperty("data", std::string(1234, '\42'));
@@ -300,9 +301,9 @@ TEST_F(LoadTests, ManyEventsFromManyThreadsAreHandledSafely)
     unsigned const TEST_DURATION_MS = 30000;
 
     EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(3));
-
-    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token");
-    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token");
+    ContextFieldsProvider temp;
+    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token", &temp);
+    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token", &temp);
     ILogger* logger = logger1;
 
     std::vector<std::unique_ptr<EventSender>> senders;

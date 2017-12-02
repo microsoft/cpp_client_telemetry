@@ -6,7 +6,7 @@
 #include "NetworkDetector.hpp"
 #include <algorithm>
 
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "DebugEvents.hpp"
 #include "utils/Utils.hpp"
 
@@ -94,7 +94,7 @@ namespace Microsoft {
                     evt.type = DebugEventType::EVT_NET_CHANGED;
                     evt.param1 = m_currentNetworkCost;
                     evt.param2 = mbDetected;
-                    LogManager::DispatchEvent(evt);
+                    CommonLogManagerInternal::DispatchEvent(evt);
 
                     return m_currentNetworkCost;
                 }

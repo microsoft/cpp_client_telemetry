@@ -49,10 +49,13 @@ namespace PAL {
 
         virtual PowerSource GetPowerSource() const { return m_powerSource; }
 
+        virtual std::string GetDeviceTicket();
+
     private:
         std::string m_device_id;
         std::string m_manufacturer;
         std::string m_model;
+        std::string m_deviceTicket;
 
         std::string m_cpu_manufacturer;
         std::string m_cpu_model;

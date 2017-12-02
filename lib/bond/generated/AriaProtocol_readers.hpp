@@ -471,6 +471,13 @@ bool Deserialize(TReader& reader, ::AriaProtocol::App& value, bool isBase)
                 break;
             }
 
+            case 8: {
+                if (!reader.ReadString(value.name)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -1136,51 +1143,6 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Receipts& value, bool isBase)
 }
 
 template<typename TReader>
-bool Deserialize(TReader& reader, ::AriaProtocol::Diag& value, bool isBase)
-{
-    if (!reader.ReadStructBegin(isBase)) {
-        return false;
-    }
-
-    uint8_t type;
-    uint16_t id;
-    for (;;) {
-        if (!reader.ReadFieldBegin(type, id)) {
-            return false;
-        }
-
-        if (type == BT_STOP || type == BT_STOP_BASE) {
-            if (isBase != (type == BT_STOP_BASE)) {
-                return false;
-            }
-            break;
-        }
-
-        switch (id) {
-            case 1: {
-                if (!reader.ReadString(value.orgtime)) {
-                    return false;
-                }
-                break;
-            }
-
-            default:
-                return false;
-        }
-
-        if (!reader.ReadFieldEnd()) {
-            return false;
-        }
-    }
-
-    if (!reader.ReadStructEnd(isBase)) {
-        return false;
-    }
-
-    return true;
-}
-
-template<typename TReader>
 bool Deserialize(TReader& reader, ::AriaProtocol::Net& value, bool isBase)
 {
     if (!reader.ReadStructBegin(isBase)) {
@@ -1277,6 +1239,100 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Sdk& value, bool isBase)
 
             case 3: {
                 if (!reader.ReadInt64(value.seq)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadString(value.installId)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::Cloud& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.fullEnvName)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.location)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.environment)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadString(value.deploymentUnit)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 5: {
+                if (!reader.ReadString(value.name)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 6: {
+                if (!reader.ReadString(value.roleInstance)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 7: {
+                if (!reader.ReadString(value.role)) {
                     return false;
                 }
                 break;
@@ -2096,27 +2152,6 @@ bool Deserialize(TReader& reader, ::AriaProtocol::CsEvent& value, bool isBase)
                 break;
             }
 
-            case 30: {
-                uint32_t size4;
-                uint8_t type4;
-                if (!reader.ReadContainerBegin(size4, type4)) {
-                    return false;
-                }
-                if (type4 != BT_STRUCT) {
-                    return false;
-                }
-                value.extDiag.resize(size4);
-                for (unsigned i4 = 0; i4 < size4; i4++) {
-                    if (!Deserialize(reader, value.extDiag[i4], false)) {
-                        return false;
-                    }
-                }
-                if (!reader.ReadContainerEnd()) {
-                    return false;
-                }
-                break;
-            }
-
             case 31: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2171,6 +2206,27 @@ bool Deserialize(TReader& reader, ::AriaProtocol::CsEvent& value, bool isBase)
                 value.extLoc.resize(size4);
                 for (unsigned i4 = 0; i4 < size4; i4++) {
                     if (!Deserialize(reader, value.extLoc[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 34: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extCloud.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extCloud[i4], false)) {
                         return false;
                     }
                 }

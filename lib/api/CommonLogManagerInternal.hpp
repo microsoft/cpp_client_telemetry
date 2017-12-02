@@ -1,9 +1,11 @@
 
-#ifndef ARIA_LOGMANAGER_HPP
-#define ARIA_LOGMANAGER_HPP
+#ifndef ARIA_CommonLogManagerInternal_HPP
+#define ARIA_CommonLogManagerInternal_HPP
 
 #include "ILogger.hpp"
-#include "ILogConfiguration.hpp"
+#include "LogConfiguration.hpp"
+#include "system/Contexts.hpp"
+#include "LogSessionData.hpp"
 #ifdef _WIN32
 #include "TransmitProfiles.hpp"
 #include "DebugEvents.hpp"
@@ -18,36 +20,36 @@ namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
 
-            class LogSessionData;
-
             /// <summary>
             /// This class is used to manage the Telemetry logging system
             /// </summary>
-            class ARIASDK_LIBABI LogManager
+            class CommonLogManagerInternal
             {
             public:
+
+                static bool IsInitialized();
                 /// <summary>
                 /// Initializes the telemetry logging system with default configuration.
                 /// </summary>
                 /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
                 /// <returns>A logger instance instantiated with the tenantToken</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL Initialize(
+                static ACTStatus  Initialize(
 #ifdef ANDROID
                     JNIEnv *env,
                     jclass contextClass,
                     jobject  contextObject,
 #endif
-                    const std::string& tenantToken);
+                    LogConfiguration* logConfigurationP);
 
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL FlushAndTeardown();
+                static ACTStatus  FlushAndTeardown();
 
                 /// <summary>
                 /// Try to send any pending telemetry events in memory or on disk.
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL UploadNow();
+                static ACTStatus  UploadNow();
 
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
@@ -55,18 +57,18 @@ namespace Microsoft {
                 /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
                 /// time consuming.
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL Flush();
+                static ACTStatus  Flush();
 
                 /// <summary>
                 /// Pauses the transmission of events to data collector.
                 /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL PauseTransmission();
+                static ACTStatus  PauseTransmission();
 
                 /// <summary>
                 /// Resumes the transmission of events to data collector.
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL ResumeTransmission();
+                static ACTStatus  ResumeTransmission();
 
                 /// <summary>
                 /// Sets transmit profile for event transmission to one of the built-in profiles.
@@ -75,7 +77,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>This function doesn't return any value because it always succeeds.</returns>
-                static void ARIASDK_LIBABI_CDECL SetTransmitProfile(TransmitProfile profile);
+                static ACTStatus  SetTransmitProfile(TransmitProfile profile);
 #ifndef ANDROID
                 /// <summary>
                 /// Sets transmit profile for event transmission.
@@ -84,23 +86,23 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>true if profile is successfully applied, false otherwise</returns>
-                static bool ARIASDK_LIBABI_CDECL SetTransmitProfile(const std::string& profile);
+                static ACTStatus  SetTransmitProfile(const std::string& profile);
 
                 /// <summary>
                 /// Load transmit profiles from JSON config
                 /// </summary>
                 /// <param name="profiles_json">JSON config (see example above)</param>
                 /// <returns>true on successful profiles load, false if config is invalid</returns>
-                static bool ARIASDK_LIBABI_CDECL LoadTransmitProfiles(std::string profiles_json);
+                static ACTStatus  LoadTransmitProfiles(std::string profiles_json);
 
                 /// <summary>
                 /// Reset transmission profiles to default settings
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL ResetTransmitProfiles();
+                static ACTStatus  ResetTransmitProfiles();
 
                 /// <summary>Get profile name based on built-in profile enum<summary>
                 /// <param name="profile">Transmit profile</param>
-                static const std::string ARIASDK_LIBABI_CDECL GetTransmitProfileName(TransmitProfile profile);
+                static const std::string&  GetTransmitProfileName();
 #endif
                 /// <summary>
                 /// Retrieve an ISemanticContext interface through which to specify context information 
@@ -109,7 +111,7 @@ namespace Microsoft {
                 /// are overwritten by individual logger instance.
                 /// </summary>
                 /// <returns>ISemanticContext interface pointer</returns>
-                static ISemanticContext* ARIASDK_LIBABI_CDECL GetSemanticContext();
+                static ISemanticContext*  GetSemanticContext();
 
                 /// <summary>
                 /// Adds or overrides a property of the custom context for the telemetry logging system.
@@ -119,7 +121,7 @@ namespace Microsoft {
                 /// <param name="name">Name of the context property</param>
                 /// <param name="value">Value of the context property</param>
                 /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None);
+                static ACTStatus  SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the custom context for the telemetry logging system.
@@ -129,21 +131,21 @@ namespace Microsoft {
                 /// <param name="name">Name of the context property</param>
                 /// <param name="value">Value of the context property</param>
                 /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); SetContext(name, val, piiKind); };
+                static ACTStatus  SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); SetContext(name, val, piiKind); };
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">Double value of the property</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None);
+                static ACTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">64-bit Integer value of the property</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);
+                static ACTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -151,7 +153,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">8-bit Integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -159,7 +161,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">16-bit Integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -167,7 +169,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">32-bit Integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -175,7 +177,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">8-bit unsigned integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -183,7 +185,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">16-bit unsigned integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -191,7 +193,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">32-bit unsigned integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -199,41 +201,28 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">64-bit unsigned integer value of the property</param>
-                static inline void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline ACTStatus  SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">Boolean value of the property</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
+                static ACTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">.NET time ticks</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
+                static ACTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">GUID</param>
-                static void ARIASDK_LIBABI_CDECL SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
-
-                /// <summary>
-                /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
-                /// </summary>
-                /// <returns>Pointer to the Ilogger interface of an logger instance</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL GetLogger();
-
-                /// <summary>
-                /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
-                /// </summary>
-                /// <param name="source">Source name of events sent by this logger instance</param>
-                /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL GetLogger(const std::string& source);
+                static ACTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -241,59 +230,69 @@ namespace Microsoft {
                 /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
                 /// <param name="source">Source name of events sent by this logger instance</param>
                 /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
-                static ILogger* ARIASDK_LIBABI_CDECL GetLogger(const std::string& tenantToken, const std::string& source);
+                static ILogger*  GetLogger(const std::string& tenantToken, ContextFieldsProvider* context);
 
-                /// <summary>
-                /// Get LogConfiguration
-                /// </summary>
-                static ILogConfiguration& ARIASDK_LIBABI_CDECL GetLogConfiguration();
+                static void AddIncomingEvent(IncomingEventContextPtr const& event);
+
 #ifdef _WIN32
 
                 /// <summary>
                 /// Add Debug callback
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL AddEventListener(DebugEventType type, DebugEventListener &listener);
+                static ACTStatus  AddEventListener(DebugEventType type, DebugEventListener &listener);
 
                 /// <summary>
                 /// Remove Debug callback
                 /// </summary>
-                static void ARIASDK_LIBABI_CDECL RemoveEventListener(DebugEventType type, DebugEventListener &listener);
-               
+                static ACTStatus  RemoveEventListener(DebugEventType type, DebugEventListener &listener);
+
+                /// <summary>
+                /// Dispatch debug event
+                /// </summary>
+                static bool  DispatchEvent(DebugEventType type);
+
+                /// <summary>
+                /// Dispatch debug event
+                /// </summary>
+                static bool  DispatchEvent(DebugEvent &evt);
+
 #endif
 #ifdef ANDROID
                 static jclass  GetGlobalInternalMgrImpl();
 #endif
-
-
+                /// <summary>
+                /// Get Session data
+                /// </summary>
+                static LogSessionData* GetLogSessionData();
 
             protected:
 
                 /// <summary>
-                /// LogManager constructor
+                /// CommonLogManagerInternal constructor
                 /// </summary>
-                LogManager();
+                CommonLogManagerInternal();
 
                 /// <summary>
-                /// LogManager copy constructor
+                /// CommonLogManagerInternal copy constructor
                 /// </summary>
-                LogManager(const LogManager&);
+                CommonLogManagerInternal(const CommonLogManagerInternal&);
 
                 /// <summary>
-                /// [not implemented] LogManager assignment operator
+                /// [not implemented] CommonLogManagerInternal assignment operator
                 /// </summary>
-                LogManager& operator=(const LogManager&);
+                CommonLogManagerInternal& operator=(const CommonLogManagerInternal&);
 
                 /// <summary>
-                /// LogManager destructor
+                /// CommonLogManagerInternal destructor
                 /// </summary>
-                virtual ~LogManager() {};
+                virtual ~CommonLogManagerInternal() {};
 
                 /// <summary>
-                /// Debug routine that validates if LogManager has been initialized. May trigger a warning message if not.
+                /// Debug routine that validates if CommonLogManagerInternal has been initialized. May trigger a warning message if not.
                 /// </summary>
-                static void checkup();
+                static ACTStatus checkup();
             };
         }
     }
 }
-#endif //ARIA_LOGMANAGER_H
+#endif //ARIA_CommonLogManagerInternal_H

@@ -97,6 +97,11 @@ namespace Microsoft {
                     return converterX.to_bytes(wstr);
                 }
 
+                std::string DeviceInformationImpl::GetDeviceTicket()
+                {
+                    return m_deviceTicket;
+                }
+
                 ///// IDeviceInformation API
                 DeviceInformationImpl::DeviceInformationImpl() :
                     m_info_helper()

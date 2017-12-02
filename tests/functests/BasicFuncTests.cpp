@@ -4,7 +4,7 @@
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <ILogManager.hpp>
+#include <api/ILogManager.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -28,6 +28,7 @@ class BasicFuncTests : public ::testing::Test,
     ILogger* logger;
     ILogger* logger2;
     LogConfiguration configuration;
+    ContextFieldsProvider context;
 
   public:
     virtual void SetUp() override
@@ -43,7 +44,7 @@ class BasicFuncTests : public ::testing::Test,
                 
         configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
         configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-        bool error;
+        ACTStatus error;
         ::remove(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
@@ -59,8 +60,9 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
 
         logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
-        logger = logManager->GetLogger("functests-Tenant-Token", "source");
-        logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+       
+        logger = logManager->GetLogger("functests-Tenant-Token", &context,"source");
+        logger2 = logManager->GetLogger("FuncTests2-tenant-token", &context, "Source");
 
         server.start();
     }
@@ -193,10 +195,58 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_THAT(actual.baseType, expected.GetName());
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
         {
-            if (prop.second.piiKind == PiiKind_None &&
-                prop.second.ccKind == CustomerContentKind_None)
+            if (prop.second.piiKind == PiiKind_None)
             {
-                //EXPECT_THAT(actual.data[0].properties[prop.first].stringValue, prop.second.to_string());
+                std::map<std::string, AriaProtocol::Value>::const_iterator iter = actual.data[0].properties.find(prop.first);
+                if (iter != actual.data[0].properties.end())
+                {
+                    AriaProtocol::Value temp = iter->second;
+                    switch (temp.type)
+                    {
+                    case ::AriaProtocol::ValueInt64:
+                    case ::AriaProtocol::ValueUInt64:
+                    case ::AriaProtocol::ValueInt32:
+                    case ::AriaProtocol::ValueUInt32:
+                    case ::AriaProtocol::ValueBool:
+                    case ::AriaProtocol::ValueDateTime:
+                    {
+                        EXPECT_THAT(temp.longValue, prop.second.as_int64);
+                        break;
+                    }
+                    case ::AriaProtocol::ValueDouble:
+                    {
+                        EXPECT_THAT(temp.doubleValue, prop.second.as_double);
+                        break;
+                    } 
+                    case ::AriaProtocol::ValueString:
+                    {
+                        EXPECT_THAT(temp.stringValue, prop.second.as_string);
+                        break;
+                    }                    
+                    case ::AriaProtocol::ValueGuid:
+                    {
+                        //EXPECT_THAT(temp.guidValue, prop.second.as_guid.to_bytes);
+                        break;
+                    }
+
+                    case ::AriaProtocol::ValueArrayInt64:
+                    case ::AriaProtocol::ValueArrayUInt64:
+                    case ::AriaProtocol::ValueArrayInt32:
+                    case ::AriaProtocol::ValueArrayUInt32:
+                    case ::AriaProtocol::ValueArrayDouble:
+                    case ::AriaProtocol::ValueArrayString:
+                    case ::AriaProtocol::ValueArrayBool:
+                    case ::AriaProtocol::ValueArrayDateTime:
+                    case ::AriaProtocol::ValueArrayGuid:
+                    {
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                    }                
+                }
             }
         }
         for (auto const& property : expected.GetPiiProperties())
@@ -206,12 +256,13 @@ class BasicFuncTests : public ::testing::Test,
            // EXPECT_THAT(actual.PIIExtensions, Contains(Pair(property.first, pii)));
         }
 
-        for (auto const& property : expected.GetCustomerContentProperties())
+ /*       for (auto const& property : expected.GetCustomerContentProperties())
         {
             ::AriaProtocol::CustomerContent cc;
             cc.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(property.second.second);
             //EXPECT_THAT(actual.CustomerContentExtensions, Contains(Pair(property.first, cc)));
         }
+*/
     }
 
     int64_t getFileSize(std::string const& filename)
@@ -232,7 +283,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     EventProperties event("first_event");
     event.SetProperty("property", "value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event);
 }
 
@@ -241,14 +292,14 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     EventProperties event("first_event");
     event.SetProperty("property", "value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event2);
 
     waitForEvents(50, 3);
@@ -268,7 +319,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -278,7 +329,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event2);
 
     waitForEvents(50, 3);
@@ -299,7 +350,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -309,7 +360,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
+    
     logger->LogEvent(event2);
 
     PAL::sleep(100); // Some time to let events be saved to DB
@@ -338,14 +389,12 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     EventProperties event1("first_event");
     event1.SetProperty("property", "value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger2->LogEvent(event2);
 
     waitForEvents(50, 3);
@@ -367,26 +416,15 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 TEST_F(BasicFuncTests, configDecorations)
 {
     EventProperties event("first_event");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Return());
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Invoke([](std::map<std::string, std::string>& ext, std::string const&, std::string const&) {
-        ext["AppInfo.Decoration"] = "123";
-    }));
     logger->LogEvent(event2);
 
     EventProperties event3("third_event");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Invoke([](std::map<std::string, std::string>& ext, std::string const&, std::string const& name) {
-        ext["AppInfo.Decoration"] = "abcdef";
-        ext["AppInfo.EventName"]  = name;
-    }));
     logger->LogEvent(event3);
 
     EventProperties event4("");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillOnce(Invoke([](std::map<std::string, std::string>& ext, std::string const&, std::string const& name) {
-        ext["AppInfo.EventName"] = name;
-    }));
     logger->LogAppLifecycle(AppLifecycleState_Launch, event4);
 
     PAL::sleep(100);
@@ -420,7 +458,6 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     event2.SetLatency(Microsoft::Applications::Telemetry::EventLatency::EventLatency_RealTime);
     event2.SetPersistence(Microsoft::Applications::Telemetry::EventPersistence::EventPersistence_Critical);
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
     logger->LogEvent(event1);
     logger->LogEvent(event2);
 
@@ -459,16 +496,16 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE,4096 * 20);
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
 
+    ContextFieldsProvider temp;
     logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
-    logger = logManager->GetLogger("functests-Tenant-Token", "source");
-    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+    logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
     logger->LogEvent(event1);
     logger->LogEvent(event2);
 
@@ -502,17 +539,17 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
     configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 5);
    
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    
+
+    ContextFieldsProvider temp;
     logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
-    logger = logManager->GetLogger("functests-Tenant-Token", "source");
-    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+    logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
     logger->LogEvent(event1);
     logger->LogEvent(event2);
 
@@ -538,8 +575,8 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME); 
     logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
-
-	logger = logManager->GetLogger("functests-Tenant-Token", "source");
+    ContextFieldsProvider temp;
+	logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
 
 
     static int64_t const ONE_EVENT_SIZE   = 500 * 1024;
@@ -560,7 +597,6 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
         event.SetPriority(EventPriority_Normal);
         event.SetProperty("property", "value");
         event.SetProperty("big_data", std::string(ONE_EVENT_SIZE, '\42'));
-        EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _));
         logger->LogEvent(event);
 
         // Slow down to make sure the events are saved to the database and
@@ -599,7 +635,6 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     // Wait a bit so that the initial check for unsent events does not send our events too early.
     PAL::sleep(200);
 
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).Times(2).WillRepeatedly(Return());
 
     EventProperties event1("first_event");
     event1.SetPriority(EventPriority_High);
@@ -653,8 +688,6 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
 
     EventProperties event("event");
     event.SetProperty("property", "value");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _))
-        .WillOnce(Return());
     logger->LogEvent(event);
 
     // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry, wait 3 seconds, send 2nd retry.
@@ -690,8 +723,7 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 
     EventProperties event("event");
     event.SetProperty("property", "value");
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _))
-        .WillOnce(Return());
+    
     logger->LogEvent(event);
 
     // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry and stop.
@@ -728,8 +760,6 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
     ASSERT_THAT(receivedRequests, SizeIs(1));
 
 	receivedRequests.clear();
-    EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _))
-        .WillOnce(Return());
     EventProperties event("some_event");
     event.SetPriority(EventPriority_Immediate);
     logger->LogEvent(event);

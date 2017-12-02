@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Packager.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "utils/Utils.hpp"
 #include "IRuntimeConfig.hpp"
 #include <algorithm>
@@ -12,7 +12,7 @@ Packager::Packager(LogConfiguration& configuration, IRuntimeConfig const& runtim
   : m_runtimeConfig(runtimeConfig)    
 {  
     UNREFERENCED_PARAMETER(configuration);
-    bool error;
+    ACTStatus error;
     m_forcedTenantToken = toLower(configuration.GetProperty("forcedTenantToken", error));   
 }
 
@@ -82,7 +82,7 @@ void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     evt.type = EVT_SENT;
     evt.param1 = ctx->recordIds.size();
     evt.size = ctx->recordIds.size();
-    LogManager::DispatchEvent(evt);
+    CommonLogManagerInternal::DispatchEvent(evt);
 }
 
 

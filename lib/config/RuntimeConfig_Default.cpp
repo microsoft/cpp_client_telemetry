@@ -15,7 +15,7 @@ RuntimeConfig_Default::~RuntimeConfig_Default()
 
 void RuntimeConfig_Default::initialize(LogConfiguration& configuration)
 {
-    bool error;
+    ACTStatus error;
     std::string url = configuration.GetProperty(CFG_STR_COLLECTOR_URL, error);
     if (!url.empty()) {
         m_collectorUrl = url;

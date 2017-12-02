@@ -147,6 +147,9 @@ struct App
 
     [Description("Language and region (IETF language tag)")]
     7: optional string locale = nothing;
+	
+	[Description("Name the client application")]
+    8: optional string name = nothing;
 }
 
 [Description("Describes the properties that might be populated by a logging library on Windows.")]
@@ -345,16 +348,13 @@ struct Protocol
 [Description("Describes the fields related to the receipts extension, added by the service.")]
 struct Receipts
 {
-   	[Description("Client-side upload time")]
-    1: optional int64 uploadTime;
-}
-
-[Description("Time of the event as logged by the client. May be different than “time” if clock skew correction was performed at ingest timeDescription.")]
-struct Diag
-{
     [Description("Original time - Original event time (if clock skew correction applied)")]
     1: optional int64 originalTime;
+	
+   	[Description("Client-side upload time")]
+    2: optional int64 uploadTime;
 }
+
 
 [Description("Network properties.")]
 struct Net
@@ -381,6 +381,27 @@ struct Sdk
 	
 	[Description("SDK seq.")]
     3: optional int64 seq  = nothing;
+	
+	[Description("ID created on first-time SDK initialization")]
+    4: optional string installId = nothing;
+}
+
+Description("Cloud service related properties.")]
+struct Cloud
+{
+	1: optional string fullEnvName = nothing;
+
+	2: optional string location = nothing;
+
+	3: optional string environment = nothing;
+
+	4: optional string deploymentUnit = nothing;
+
+	5: optional string name = nothing;
+
+	6: optional string roleInstance = nothing;
+
+	7: optional string role = nothing;
 }
 
 
@@ -513,13 +534,13 @@ struct CsEvent
 
 	29: optional nullable<Receipts> extReceipts;
 	
-	30: optional nullable<Diag> extDiag;
-	
 	31: optional nullable<Net> extNet;
 	
 	32: optional nullable<Sdk> extSdk;
 	
 	33: optional nullable<Loc> extLoc;
+	
+	34: optional nullable<Cloud> extCloud;
 	
 	//////////////////////////////////////////////////////////////////////////////////////
 

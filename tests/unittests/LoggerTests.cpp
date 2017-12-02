@@ -32,7 +32,7 @@ class Logger4Test : public Logger {
 class LoggerTests : public Test {
   protected:
     StrictMock<MockIRuntimeConfig>      _runtimeConfigMock;
-    StrictMock<MockILogManagerInternal> _logManagerMock;
+    StrictMock<MockILogManager>         _logManagerMock;
     Logger4Test                         _logger;
 
     EventProperties                     _emptyProperties;
@@ -45,7 +45,7 @@ class LoggerTests : public Test {
 
   protected:
     LoggerTests()
-      : _logger("testtenantid-tenanttoken", "test-source", "ecs-project", _logManagerMock, nullptr, _runtimeConfigMock),
+      : _logger("testtenantid-tenanttoken", "test-source", "ecs-project", &_logManagerMock, nullptr, &_runtimeConfigMock),
         _emptyProperties("")
     {
     }
@@ -92,7 +92,7 @@ class LoggerTests : public Test {
         // Base
         EXPECT_THAT(_submittedRecord.name, Not(IsEmpty()));
         int64_t now = PAL::getUtcSystemTimeinTicks();
-        EXPECT_THAT(_submittedRecord.time, Gt(now - 60000));
+        EXPECT_THAT(_submittedRecord.time, Gt(now - 60000000));
         EXPECT_THAT(_submittedRecord.time, Le(now));
         EXPECT_THAT(_submittedRecord.baseType, Not(IsEmpty()));
         //EXPECT_THAT(_submittedRecord.name["EventInfo.Name",       _submittedRecord.baseType)));

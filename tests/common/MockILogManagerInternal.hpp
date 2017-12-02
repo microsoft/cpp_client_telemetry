@@ -3,6 +3,7 @@
 #pragma once
 #include "Common.hpp"
 #include "api/LogManagerImpl.hpp"
+#include "api/ContextFieldsProvider.hpp"
 #include "Enums.hpp"
 #include "ILogger.hpp"
 
@@ -10,11 +11,11 @@
 namespace testing {
 
 
-class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
+class MockILogManager : public ARIASDK_NS::ILogManager
 {
   public:
-    MockILogManagerInternal();
-    ~MockILogManagerInternal();
+    MockILogManager();
+    ~MockILogManager();
 
     MOCK_METHOD0(FlushAndTeardown, void());
     MOCK_METHOD0(Flush, void());
@@ -27,8 +28,6 @@ class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
 	MOCK_METHOD0(ResetTransmitProfiles, void());
 	MOCK_METHOD0(GetTransmitProfileName, std::string&());
     MOCK_METHOD0(GetSemanticContext, ARIASDK_NS::ISemanticContext & ());
-    MOCK_METHOD3(SetContext, void(std::string const &, std::string const &, ARIASDK_NS::CustomerContentKind));
-    MOCK_METHOD3(SetContext, void(const std::string&, const char*, ARIASDK_NS::CustomerContentKind));
     MOCK_METHOD3(SetContext, void(std::string const &, std::string const &, ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, const char* , ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, double, ARIASDK_NS::PiiKind));
@@ -43,7 +42,7 @@ class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
 	MOCK_METHOD3(SetContext, void(const std::string&, bool, ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, ARIASDK_NS::time_ticks_t, ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, ARIASDK_NS::GUID_t, ARIASDK_NS::PiiKind));
-    MOCK_METHOD3(GetLogger, ARIASDK_NS::ILogger * (std::string const &, std::string const &, std::string const &));
+    MOCK_METHOD4(GetLogger, ARIASDK_NS::ILogger * (std::string const &, ARIASDK_NS::ContextFieldsProvider*, std::string const &, std::string const &));
     MOCK_METHOD1(addIncomingEvent, void(ARIASDK_NS::IncomingEventContextPtr const &));
 };
 

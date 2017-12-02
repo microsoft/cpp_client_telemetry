@@ -4,7 +4,7 @@
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <ILogManager.hpp>
+#include <api/ILogManager.hpp>
 #include <IAFDClient.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
@@ -96,7 +96,7 @@ class BasicAfdFuncTests : public ::testing::Test,
 
         configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
         configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-        bool error;
+        ACTStatus error;
         ::remove(configuration.GetProperty("cacheFilePath", error));
 
 
@@ -116,8 +116,9 @@ class BasicAfdFuncTests : public ::testing::Test,
         m_pAFDClient = IAFDClient::CreateInstance();
 
         logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
-        logger = logManager->GetLogger("functests-Tenant-Token", "source");
-        logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
+        ContextFieldsProvider temp;
+        logger = logManager->GetLogger("functests-Tenant-Token",&temp, "source");
+        logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
 
         m_pAFDClient->AddListener(&listner);
         m_pAFDClient->RegisterLogger(logger, TEST_CLIENT_NAME);

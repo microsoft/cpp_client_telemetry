@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage_SQLite.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "SQLiteWrapper.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>
@@ -25,7 +25,7 @@ OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration& configuration, IR
     m_lastReadCount(0),
     m_isStorageFullNotificationSend(false)
 {
-    bool error;
+    ACTStatus error;
     int percentage  = configuration.GetIntProperty(CFG_INT_CACHE_FILE_FULL_NOTIFICATION_PERCENTAGE, error);
     int cacheFileSizeLimitInBytes = configuration.GetIntProperty(CFG_INT_CACHE_FILE_SIZE, error);
     m_offlineStorageFileName = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);
@@ -753,7 +753,7 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
         DebugEvent evt;
         evt.type = DebugEventType::EVT_STORAGE_FULL;
         evt.param1 = 2;
-        LogManager::DispatchEvent(evt);
+        CommonLogManagerInternal::DispatchEvent(evt);
         m_isStorageFullNotificationSend = true;
     }
        

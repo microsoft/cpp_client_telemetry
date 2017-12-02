@@ -401,8 +401,6 @@ TEST_F(PalTests, PseudoRandomGenerator)
 TEST_F(PalTests, SystemTime)
 {
     int64_t t0 = PAL::getUtcSystemTimeMs();
-    EXPECT_THAT(t0, Gt(1451606400000)); // 2016-01-01 00:00:00.000
-    EXPECT_THAT(t0, Lt(1609459200000)); // 2021-01-01 00:00:00.000
 
     PAL::sleep(369);
 

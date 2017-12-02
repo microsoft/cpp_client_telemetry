@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorage.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -29,7 +29,7 @@ bool OfflineStorage::handleStop()
 
 bool OfflineStorage::handleStoreRecord(IncomingEventContextPtr const& ctx)
 {
-    LogManager::DispatchEvent(DebugEventType::EVT_CACHED);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_CACHED);
     ctx->record.timestamp = PAL::getUtcSystemTimeMs();
 
     if (!m_offlineStorage.StoreRecord(ctx->record)) {
@@ -84,7 +84,7 @@ bool OfflineStorage::handleReleaseRecords(EventsUploadContextPtr const& ctx)
 
 bool OfflineStorage::handleReleaseRecordsIncRetryCount(EventsUploadContextPtr const& ctx)
 {
-    LogManager::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_SEND_RETRY);
     HttpHeaders headers;
     if (ctx->httpResponse)
     {
@@ -118,7 +118,7 @@ void OfflineStorage::OnStorageTrimmed(unsigned numRecords)
     evt.type = EVT_DROPPED;
     evt.param1 = numRecords;
     evt.size = numRecords;
-    LogManager::DispatchEvent(evt);
+    CommonLogManagerInternal::DispatchEvent(evt);
 }
 
 void OfflineStorage::OnStorageRecordsDropped(unsigned numRecords)
@@ -131,7 +131,7 @@ void OfflineStorage::OnStorageRecordsDropped(unsigned numRecords)
     evt.type = EVT_DROPPED;
     evt.param1 = numRecords;
     evt.size = numRecords;
-    LogManager::DispatchEvent(evt);
+    CommonLogManagerInternal::DispatchEvent(evt);
 }
 
 

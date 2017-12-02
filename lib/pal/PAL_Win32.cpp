@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "PAL.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "api/ContextFieldsProvider.hpp"
 //#include <ISemanticContext.hpp>
 #include "utils/Utils.hpp"
@@ -136,7 +136,7 @@ class WorkerThread
             evt.type = EVT_UNKNOWN;
             evt.param1 = m_timerQueue.size();
             evt.param2 = m_queue.size();
-            LogManager::DispatchEvent(evt);
+            CommonLogManagerInternal::DispatchEvent(evt);
 		}
         m_event.post();
     }
@@ -252,15 +252,17 @@ std::string generateUuidString()
 
 int64_t getUtcSystemTimeinTicks()
 {
-    ULARGE_INTEGER now;
-    ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
-    return (now.QuadPart - 116444736000000000ull);
+    FILETIME tocks;
+    ::GetSystemTimeAsFileTime(&tocks);
+    ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;
+    // number of days from beginning to 1601 multiplied by ticks per day
+    return ticks + 0x701ce1722770000ULL;
 }
 int64_t getUtcSystemTimeMs()
-{
+{    
     ULARGE_INTEGER now;
     ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
-    return (now.QuadPart - 116444736000000000ull) / 10000;
+    return (now.QuadPart - 116444736000000000ull) / 10000;// Unix epoch
 }
 
 int64_t getUtcSystemTime()

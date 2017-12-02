@@ -73,18 +73,16 @@ class EventPropertiesDecorator : public DecoratorBase {
 			}
 			auto k = kv.first;
 			auto v = kv.second;
-			if (v.piiKind != PiiKind_None ||
-                v.ccKind != CustomerContentKind_None)
+			if (v.piiKind != PiiKind_None)
             {
-                if (v.piiKind != PiiKind_None)
-                {   //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                    AriaProtocol::PII pii;
-                    pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
+                if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
+                {  //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                    AriaProtocol::CustomerContent cc;
+                    cc.Kind = AriaProtocol::CustomerContentKind::GenericContent;
                     AriaProtocol::Value temp;
 
                     AriaProtocol::Attributes attrib;
-                    attrib.pii.push_back(pii);
-
+                    attrib.customerContent.push_back(cc);
 
                     temp.attributes.push_back(attrib);
                     temp.stringValue = v.to_string();
@@ -96,15 +94,17 @@ class EventPropertiesDecorator : public DecoratorBase {
                     {
                         ext[k] = temp;
                     }
+                 
                 }
                 else
-                {  //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                    AriaProtocol::CustomerContent cc;
-                    cc.Kind = static_cast<AriaProtocol::CustomerContentKind>(v.ccKind);
+                { //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                    AriaProtocol::PII pii;
+                    pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
                     AriaProtocol::Value temp;
-                   
+
                     AriaProtocol::Attributes attrib;
-                    attrib.customerContent.push_back(cc);
+                    attrib.pii.push_back(pii);
+
 
                     temp.attributes.push_back(attrib);
                     temp.stringValue = v.to_string();

@@ -23,8 +23,8 @@ namespace testing {
 MockIHttpClient::MockIHttpClient() {}
 MockIHttpClient::~MockIHttpClient() {}
 
-MockILogManagerInternal::MockILogManagerInternal() {}
-MockILogManagerInternal::~MockILogManagerInternal() {}
+MockILogManager::MockILogManager() {}
+MockILogManager::~MockILogManager() {}
 
 MockIOfflineStorageObserver::MockIOfflineStorageObserver() {}
 MockIOfflineStorageObserver::~MockIOfflineStorageObserver() {}

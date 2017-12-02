@@ -69,6 +69,7 @@ struct App
     5: optional string id;
     6: optional string ver;
     7: optional string locale;
+    8: optional string name;
 }
 
 struct Utc
@@ -150,11 +151,6 @@ struct Receipts
     2: optional int64 uploadTime;
 }
 
-struct Diag
-{
-    1: optional string orgtime;
-}
-
 struct Net
 {
     1: optional string provider;
@@ -162,13 +158,25 @@ struct Net
 	3: optional string type;
 }
 
-
 struct Sdk
 {
     1: optional string libVer;
     2: optional string epoch;
     3: optional int64 seq;
+    4: optional string installId;
 }
+
+struct Cloud
+{
+	1: optional string fullEnvName;
+	2: optional string location;
+	3: optional string environment;
+	4: optional string deploymentUnit;
+	5: optional string name;
+	6: optional string roleInstance;
+	7: optional string role;
+}
+
 
 enum ValueKind
 {
@@ -270,10 +278,10 @@ struct CsEvent
     27: optional vector<Xbl> extXbl;
     28: optional vector<Javascript> extJavascript;
     29: optional vector<Receipts> extReceipts;
-	30: optional vector<Diag> extDiag;	
 	31: optional vector<Net> extNet;	
 	32: optional vector<Sdk> extSdk;
 	33: optional vector<Loc> extLoc;
+	34: optional vector<Cloud> extCloud;
     41: optional vector<Data> ext;
     51: optional map<string, string> tags;
     60: optional string baseType;

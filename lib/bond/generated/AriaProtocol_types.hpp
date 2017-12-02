@@ -176,6 +176,8 @@ struct App {
     std::string ver;
     // 7: optional string locale
     std::string locale;
+    // 8: optional string name
+    std::string name;
 
     bool operator==(App const& other) const
     {
@@ -185,7 +187,8 @@ struct App {
             && (asId == other.asId)
             && (id == other.id)
             && (ver == other.ver)
-            && (locale == other.locale);
+            && (locale == other.locale)
+            && (name == other.name);
     }
 
     bool operator!=(App const& other) const
@@ -431,21 +434,6 @@ struct Receipts {
     }
 };
 
-struct Diag {
-    // 1: optional string orgtime
-    std::string orgtime;
-
-    bool operator==(Diag const& other) const
-    {
-        return (orgtime == other.orgtime);
-    }
-
-    bool operator!=(Diag const& other) const
-    {
-        return !(*this == other);
-    }
-};
-
 struct Net {
     // 1: optional string provider
     std::string provider;
@@ -474,15 +462,51 @@ struct Sdk {
     std::string epoch;
     // 3: optional int64 seq
     int64_t seq = 0;
+    // 4: optional string installId
+    std::string installId;
 
     bool operator==(Sdk const& other) const
     {
         return (libVer == other.libVer)
             && (epoch == other.epoch)
-            && (seq == other.seq);
+            && (seq == other.seq)
+            && (installId == other.installId);
     }
 
     bool operator!=(Sdk const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Cloud {
+    // 1: optional string fullEnvName
+    std::string fullEnvName;
+    // 2: optional string location
+    std::string location;
+    // 3: optional string environment
+    std::string environment;
+    // 4: optional string deploymentUnit
+    std::string deploymentUnit;
+    // 5: optional string name
+    std::string name;
+    // 6: optional string roleInstance
+    std::string roleInstance;
+    // 7: optional string role
+    std::string role;
+
+    bool operator==(Cloud const& other) const
+    {
+        return (fullEnvName == other.fullEnvName)
+            && (location == other.location)
+            && (environment == other.environment)
+            && (deploymentUnit == other.deploymentUnit)
+            && (name == other.name)
+            && (roleInstance == other.roleInstance)
+            && (role == other.role);
+    }
+
+    bool operator!=(Cloud const& other) const
     {
         return !(*this == other);
     }
@@ -686,14 +710,14 @@ struct CsEvent {
     std::vector< ::AriaProtocol::Javascript> extJavascript;
     // 29: optional vector<Receipts> extReceipts
     std::vector< ::AriaProtocol::Receipts> extReceipts;
-    // 30: optional vector<Diag> extDiag
-    std::vector< ::AriaProtocol::Diag> extDiag;
     // 31: optional vector<Net> extNet
     std::vector< ::AriaProtocol::Net> extNet;
     // 32: optional vector<Sdk> extSdk
     std::vector< ::AriaProtocol::Sdk> extSdk;
     // 33: optional vector<Loc> extLoc
     std::vector< ::AriaProtocol::Loc> extLoc;
+    // 34: optional vector<Cloud> extCloud
+    std::vector< ::AriaProtocol::Cloud> extCloud;
     // 41: optional vector<Data> ext
     std::vector< ::AriaProtocol::Data> ext;
     // 51: optional map<string, string> tags
@@ -724,10 +748,10 @@ struct CsEvent {
             && (extXbl == other.extXbl)
             && (extJavascript == other.extJavascript)
             && (extReceipts == other.extReceipts)
-            && (extDiag == other.extDiag)
             && (extNet == other.extNet)
             && (extSdk == other.extSdk)
             && (extLoc == other.extLoc)
+            && (extCloud == other.extCloud)
             && (ext == other.ext)
             && (tags == other.tags)
             && (baseType == other.baseType)

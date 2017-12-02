@@ -39,7 +39,30 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
     ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
-      
+ /*   if (!deviceTicketToken.empty())
+    {
+        // If we have the ticket add it in a header
+        AddRequestHeader(headers, L"AuthMsaDeviceTicket", deviceTicketToken);
+    }
+
+    if (!xtokenAuthHeader.empty())
+    {
+        // If we an XToken auth header, add it.
+        AddRequestHeader(headers, L"AuthXToken", xtokenAuthHeader);
+    }
+
+    if (!ticketHeader.empty())
+    {
+        // If we have an XToken / MSA User id mapping header, add it.
+        AddRequestHeader(headers, L"Tickets", ticketHeader);
+    }
+
+    if (!aadTicketHeader.empty())
+    {
+        // If we have a base 64 encoded AAD device ticket, add it.
+        AddRequestHeader(headers, L"Aad-Token", aadTicketHeader);
+    }
+ */ 
     std::string tenantTokens;
     tenantTokens.reserve(ctx->packageIds.size() * 75); // Tenants tokens are usually 74 chars long.
     for (auto const& item : ctx->packageIds) {

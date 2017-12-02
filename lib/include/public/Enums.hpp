@@ -11,6 +11,23 @@
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
 
+    /// <summary> 
+    /// The ACTStatus enumeration contains a set of status code. 
+    /// </summary> 
+    enum ACTStatus
+    {
+        /// <summary>Not supported.</summary> 
+        ACTStatus_NotSupported = -2,
+        /// <summary>General failure</summary> 
+        ACTStatus_Fail = -1,
+        /// <summary>Success.</summary> 
+        ACTStatus_OK = 0,
+        /// <summary>Already Initialized</summary> 
+        ACTStatus_AlreadyInitialized = 1,
+        /// <summary>No action done</summary> 
+        ACTStatus_NoOp = 2,
+    };
+
     enum DataCategory
     {
         DataCategory_PartC = 0, //This is default transmission mode
@@ -70,16 +87,8 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
                 PiiKind_Identity            = 10,
                 PiiKind_Uri                 = 11,
                 PiiKind_Fqdn                = 12,
-                PiiKind_IPv4AddressLegacy   = 13
-            };
-
-
-/// <summary>
-/// Customer specific contenat kind used to indicate an event property value
-/// </summary>
-            enum CustomerContentKind {
-                CustomerContentKind_None = 0,
-                CustomerContentKind_GenericData = 1,
+                PiiKind_IPv4AddressLegacy   = 13,
+                CustomerContentKind_GenericData = 32
             };
 
 /// <summary>

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Logger.hpp"
-#include "LogManager.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "LogSessionData.hpp"
 #include "LogManagerImpl.hpp"
 #include "utils/Utils.hpp"
@@ -13,15 +13,14 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 
 
 Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-    ILogManagerInternal& logManager, ContextFieldsProvider* parentContext, IRuntimeConfig& runtimeConfig)
+    ILogManager* logManager, ContextFieldsProvider* parentContext, IRuntimeConfig* runtimeConfig)
   : m_lockP(new std::mutex()),
     m_tenantTokenP(new std::string(tenantToken)),
     m_sourceP(new std::string(source)),
-    m_logManager(logManager),
+    m_logManagerP(logManager),
     m_context(new ContextFieldsProvider(parentContext)),
-    m_runtimeConfig(runtimeConfig),
     m_baseDecorator(new BaseDecorator(source)),
-    m_runtimeConfigDecorator(new RuntimeConfigDecorator(m_runtimeConfig, tenantTokenToId(tenantToken), experimentationProject)),
+    m_runtimeConfigDecorator(new RuntimeConfigDecorator(runtimeConfig, tenantTokenToId(tenantToken), experimentationProject)),
     m_semanticContextDecorator(new SemanticContextDecorator(*m_context)),
     m_eventPropertiesDecorator( new EventPropertiesDecorator()),
     m_semanticApiDecorators( new SemanticApiDecorators()),
@@ -67,7 +66,7 @@ void Logger::SetContext(const std::string& name, EventProperty prop)
 
     if (!validatePropertyName(name)) 
     {
-        LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
+        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_REJECTED);
         ARIASDK_LOG_ERROR("Context name is invalid: %s", name.c_str());
         return;
     }
@@ -80,8 +79,6 @@ void Logger::SetContext(const std::string& name, EventProperty prop)
     }
 }
 
-void Logger::SetContext(const std::string& k, const char       v[], CustomerContentKind ccKind) { SetContext(k, EventProperty(v, ccKind)); }
-void Logger::SetContext(const std::string& k, const std::string &v, CustomerContentKind ccKind) { SetContext(k, EventProperty(v, ccKind)); }
 void Logger::SetContext(const std::string& k, const char       v[], PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
 void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
 void Logger::SetContext(const std::string& k, double             v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
@@ -108,7 +105,7 @@ void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& pro
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
 }
 
 void Logger::LogEvent(std::string const& name)
@@ -137,7 +134,7 @@ void Logger::LogEvent(EventProperties const& properties)
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
 }
 
 void Logger::LogFailure(
@@ -162,7 +159,7 @@ void Logger::LogFailure(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
 }
 
 void Logger::LogFailure(
@@ -196,7 +193,7 @@ void Logger::LogPageView(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
 }
 
 void Logger::LogPageView(
@@ -235,7 +232,7 @@ void Logger::LogPageAction(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
 }
 
 void Logger::LogSampledMetric(
@@ -262,7 +259,7 @@ void Logger::LogSampledMetric(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
 }
 
 void Logger::LogSampledMetric(
@@ -303,7 +300,7 @@ void Logger::LogAggregatedMetric(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
 }
 
 void Logger::LogTrace(
@@ -326,7 +323,7 @@ void Logger::LogTrace(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_TRACE);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_TRACE);
 }
 
 void Logger::LogUserState(
@@ -349,7 +346,7 @@ void Logger::LogUserState(
     }
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
 }
 
 bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventLatency& latency)
@@ -378,7 +375,7 @@ void Logger::submit(::AriaProtocol::CsEvent& record,
 {
     if (latency == EventLatency_Off)
     {
-        LogManager::DispatchEvent(DebugEventType::EVT_DROPPED);
+        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_DROPPED);
         ARIASDK_LOG_INFO("Event %s/%s dropped because of calculated priority 0 (Off)",
             tenantTokenToId(*m_tenantTokenP).c_str(), record.baseType.c_str());
         return;
@@ -386,7 +383,14 @@ void Logger::submit(::AriaProtocol::CsEvent& record,
 
     IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), *m_tenantTokenP, latency, persistence, &record);
     event->policyBitFlags = policyBitFlags;
-    m_logManager.addIncomingEvent(event);
+    if (m_logManagerP)
+    {
+        m_logManagerP->addIncomingEvent(event);
+    }
+    else
+    {
+        CommonLogManagerInternal::AddIncomingEvent(event);
+    }
 }
 
 /******************************************************************************
@@ -397,7 +401,7 @@ void Logger::submit(::AriaProtocol::CsEvent& record,
 ******************************************************************************/
 void Logger::LogSession(SessionState state, const EventProperties& prop)
 {
-    LogSessionData* logSessionData = LogManager::GetLogSessionData();
+    LogSessionData* logSessionData = CommonLogManagerInternal::GetLogSessionData();
     std::string sessionSDKUid = logSessionData->getSessionSDKUid();
     unsigned long long sessionFirstTime = logSessionData->getSesionFirstTime();
 
@@ -410,7 +414,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
     if (!validateEventName(prop.GetName()))
     {
         ARIASDK_LOG_ERROR("Invalid event properties!");
-        LogManager::DispatchEvent(DebugEventType::EVT_REJECTED);
+        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_REJECTED);
         return;
     }
 
@@ -452,7 +456,7 @@ void Logger::LogSession(SessionState state, const EventProperties& prop)
     }
         
     submit(record, latency, prop.GetPersistence(), prop.GetPolicyBitFlags());
-    LogManager::DispatchEvent(DebugEventType::EVT_LOG_SESSION);
+    CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_SESSION);
 }
 
 }}} // namespace Microsoft::Applications::Telemetry
