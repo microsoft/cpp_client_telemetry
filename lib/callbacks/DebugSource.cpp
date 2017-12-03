@@ -33,7 +33,7 @@ namespace ARIASDK_NS_BEGIN {
         bool DebugEventSource::DispatchEvent(DebugEvent &evt)
         {
             seq++;
-            evt.seq = seq.load();
+            evt.seq = seq;
             evt.ts = PAL::getUtcSystemTime();
             bool dispatched = false;
 

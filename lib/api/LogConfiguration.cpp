@@ -12,7 +12,7 @@ namespace ARIASDK_NS_BEGIN {
     ACTStatus LogConfiguration::SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel)
     {
         m_minimumTraceLevel = minimumTraceLevel;
-        return ACTStatus::ACTStatus_OK;
+        return  ACTStatus::ACTStatus_OK;
     }
 
     ACTTraceLevel LogConfiguration::GetMinimumTraceLevel() const
@@ -22,7 +22,7 @@ namespace ARIASDK_NS_BEGIN {
     ACTStatus LogConfiguration::SetSdkModeType(SdkModeTypes sdkmode)
     {
         m_sdkmode = sdkmode;
-        return ACTStatus::ACTStatus_OK;
+        return  ACTStatus::ACTStatus_OK;
     }
     SdkModeTypes LogConfiguration::GetSdkModeType() const
     {
@@ -38,10 +38,10 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 strProps[keyString] = value;
-                return ACTStatus::ACTStatus_OK;
+                return  ACTStatus::ACTStatus_OK;
             }
         }
-        return ACTStatus::ACTStatus_Fail;
+        return  ACTStatus::ACTStatus_Fail;
     }
     ACTStatus LogConfiguration::SetIntProperty(char const* key, unsigned int value)
     {
@@ -52,12 +52,11 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 intProps[keyString] = value;
-                return ACTStatus::ACTStatus_OK;
+                return  ACTStatus::ACTStatus_OK;
             }
         }
-        return ACTStatus::ACTStatus_Fail;
+        return  ACTStatus::ACTStatus_Fail;
     }
-
     ACTStatus LogConfiguration::SetBoolProperty(char const* key, bool value)
     {
         if (nullptr != key)
@@ -67,17 +66,16 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 boolProps[keyString] = value;
-                return ACTStatus::ACTStatus_OK;
+                return  ACTStatus::ACTStatus_OK;
             }
         }
-        return ACTStatus::ACTStatus_Fail;
+        return  ACTStatus::ACTStatus_Fail;
     }
-
     ACTStatus LogConfiguration::SetPointerProperty(char const* key, void* value)
     {
         UNREFERENCED_PARAMETER(key);
         UNREFERENCED_PARAMETER(value);
-        return ACTStatus::ACTStatus_Fail;
+        return  ACTStatus::ACTStatus_OK;
     }
    
     char const* LogConfiguration::GetProperty(char const* key, ACTStatus& error) const
@@ -91,7 +89,7 @@ namespace ARIASDK_NS_BEGIN {
                 return strProps.at(keyString).c_str();
             }
         }
-        error = ACTStatus::ACTStatus_Fail;
+        error =  ACTStatus::ACTStatus_Fail;
         return "";
     }
 
@@ -201,6 +199,9 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
-
+    ConfigKey ILogConfiguration::operator[](const char *key)
+    {
+        return ConfigKey(this, key);
+    }
 
 } ARIASDK_NS_END

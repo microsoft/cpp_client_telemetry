@@ -11,6 +11,7 @@
 namespace Microsoft { namespace Applications { namespace Telemetry {
 // *INDENT-ON*
 
+//    extern void SendAsJSON(const EventProperties& properties, const std::string& token);
 
 Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
     ILogManager* logManager, ContextFieldsProvider* parentContext, IRuntimeConfig* runtimeConfig)
@@ -116,6 +117,7 @@ void Logger::LogEvent(std::string const& name)
 
 void Logger::LogEvent(EventProperties const& properties)
 {
+
     ARIASDK_LOG_DETAIL("%p: LogEvent(properties.name=\"%s\", ...)",
         this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
@@ -132,6 +134,10 @@ void Logger::LogEvent(EventProperties const& properties)
             "custom", tenantTokenToId(*m_tenantTokenP).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
         return;
     }
+
+#if 1 /* Send to shadow */
+ //   SendAsJSON(properties, *m_tenantTokenP);
+#endif
 
     submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
     CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_EVENT);

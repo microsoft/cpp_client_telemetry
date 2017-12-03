@@ -19,6 +19,29 @@ namespace Microsoft {
                 using namespace Microsoft::Applications::Telemetry::Windows;
                 using namespace ::Windows::Security::ExchangeActiveSyncProvisioning;
 
+                /**
+                * Returns the GUID of the 1st network adapter.
+                */
+                const char * getDeviceId()
+                {
+                    std::string deviceId;
+                    try 
+                    {
+                        auto networkProfiles = NetworkInformation::GetConnectionProfiles();
+                        if (networkProfiles->Size != 0)
+                        {
+                            // The first adapter is always LAN and cannot be removed. // TODO: Normalize the value using MD5 (per Root Tools).
+                            auto  adapter = networkProfiles->GetAt(0)->NetworkAdapter;
+                            deviceId = FromPlatformString(adapter->NetworkAdapterId.ToString());
+                        }
+                    }
+                    catch (...)
+                    {// Workaround for Windows OS bug VSO: 11314171 - sometimes NetworkInformation triggers exception
+                        deviceId = DEFAULT_DEVICE_ID;
+                    }
+                    return deviceId.c_str();
+                }
+
                 // Helper functions.
                 PowerSource GetCurrentPowerSource()
                 {
@@ -53,22 +76,7 @@ namespace Microsoft {
                     auto easClientDeviceInformation = ref new ::Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation();
                     m_model = FromPlatformString(easClientDeviceInformation->SystemProductName);
                     m_manufacturer = FromPlatformString(easClientDeviceInformation->SystemManufacturer);
-
-                    try {
-                        auto networkProfiles = NetworkInformation::GetConnectionProfiles();
-                        if (networkProfiles->Size != 0)
-                        {
-                            // The first adapter is always LAN and cannot be removed.
-                            // TODO: Normalize the value using MD5 (per Root Tools).
-                            auto  adapter = networkProfiles->GetAt(0)->NetworkAdapter;
-                            m_device_id = FromPlatformString(adapter->NetworkAdapterId.ToString());
-                        }
-                    }
-                    catch (...)
-                    {
-                        // Workaround for Windows OS bug VSO: 11314171 - sometimes NetworkInformation triggers exception
-                        m_device_id = DEFAULT_DEVICE_ID;
-                    }
+                    m_device_id = getDeviceId();
 
 #ifdef _WIN32_WINNT_WIN10
 #else // Windows 8.1 SDK
@@ -78,24 +86,6 @@ namespace Microsoft {
                     m_cpu_manufacturer = FromPlatformString(deviceInformation->SystemManufacturer);
                     m_cpu_model = FromPlatformString(deviceInformation->SystemProductName);
 #endif
-                    auto mouseCapabilities = ref new MouseCapabilities();
-                    auto keyboardCapabilities = ref new KeyboardCapabilities();
-                    auto touchCapabilities = ref new TouchCapabilities();
-
-                    m_mouseCount = mouseCapabilities->MousePresent;
-                    m_keyboardCount = keyboardCapabilities->KeyboardPresent;
-                    m_touchCount = touchCapabilities->TouchPresent;
-
-                    m_digitizerCount = 0;
-                    IVectorView<PointerDevice^>^ pointerDeviceList = PointerDevice::GetPointerDevices();
-                    for (auto device : pointerDeviceList)
-                    {
-                        if (device->PointerDeviceType == PointerDeviceType::Pen)
-                        {
-                            m_digitizerCount++;
-                        }
-                    }
-
                     m_powerSource = GetCurrentPowerSource();
 #ifdef _WIN32_WINNT_WIN10
                     // Windows.System.Power was introduced in Windows 10.
@@ -115,7 +105,6 @@ namespace Microsoft {
 
                     ::Windows::System::Power::PowerManager::BatteryStatusChanged += onPowerSourceChanged;
                     ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged += onPowerSourceChanged;
-
 #endif
                 }
 

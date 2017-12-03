@@ -71,7 +71,7 @@ namespace Microsoft {
                     }
 #endif
                     m_currentNetworkCost = NetworkCost_Unknown;
-                    __try {
+                    try {
                         m_currentNetworkCost = _GetCurrentNetworkCost();
                     }
                     //******************************************************************************************************************************
@@ -83,7 +83,7 @@ namespace Microsoft {
                     // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
                     // If there is a handler for this exception, the program may be safely continued.
                     //*******************************************************************************************************************************
-                    __except (EXCEPTION_EXECUTE_HANDLER)
+                    catch(...)
                     {
                         ARIASDK_LOG_ERROR("Unable to obtain network state!");
                         m_currentNetworkCost = NetworkCost_Unknown;
@@ -384,7 +384,7 @@ namespace Microsoft {
                         return;
                     }
 
-                    __try
+                    try
                     {
                         HRESULT hr = CoInitialize(nullptr);
                         if (FAILED(hr))
@@ -419,7 +419,7 @@ namespace Microsoft {
                             };
                         }
                     }
-                    __except (EXCEPTION_EXECUTE_HANDLER)
+                    catch(...)
                     {
                         ARIASDK_LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
                         isRunning = false;

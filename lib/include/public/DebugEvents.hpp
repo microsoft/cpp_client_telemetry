@@ -138,7 +138,7 @@ namespace ARIASDK_NS_BEGIN
     class DebugEventSource
     {
     public:
-        DebugEventSource() : seq(0) {}
+        DebugEventSource() { seq = 0; }
         virtual ~DebugEventSource() {};
 
         /// <summary>Add event listener for specific debug event type.</summary>
@@ -152,10 +152,11 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>
         virtual bool DispatchEvent(DebugEvent &evt);
+
     private:
         /// <summary>Collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
-        std::atomic<int64_t> seq;
+        int64_t seq;
     };
 
 } ARIASDK_NS_END

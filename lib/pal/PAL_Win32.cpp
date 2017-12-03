@@ -258,6 +258,7 @@ int64_t getUtcSystemTimeinTicks()
     // number of days from beginning to 1601 multiplied by ticks per day
     return ticks + 0x701ce1722770000ULL;
 }
+
 int64_t getUtcSystemTimeMs()
 {    
     ULARGE_INTEGER now;
