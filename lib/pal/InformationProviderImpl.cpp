@@ -50,9 +50,7 @@ void InformatonProviderImpl::UnRegisterInformationChangedCallback(int callbackTo
 
 void InformatonProviderImpl::OnChanged(std::string const& propertyName, std::string const& propertyValue)
 {
-#ifdef _WIN32
     try {
-#endif
         // OnChange shouldn't block new callbacks to be registered.
         // However, those newly registered callbacks are not called by
         // this current notification.
@@ -80,13 +78,11 @@ void InformatonProviderImpl::OnChanged(std::string const& propertyName, std::str
                 cur_callback->OnChanged(propertyName, propertyValue);
             }
         }
-#ifdef _WIN32
-    } catch (...)
+    }
+    catch (...)
     {
 
     }
-#endif
-
 }
 
 } // PlatformAbstraction

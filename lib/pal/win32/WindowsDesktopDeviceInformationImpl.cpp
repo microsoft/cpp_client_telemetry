@@ -138,15 +138,6 @@ namespace Microsoft {
                 {
 					return  new DeviceInformationImpl();
                 }
-
-                size_t DeviceInformationImpl::GetMemorySize() const
-                {
-                    MEMORYSTATUSEX statex;
-                    statex.dwLength = sizeof(statex);
-                    GlobalMemoryStatusEx(&statex);
-                    // Memory in KBs
-                    return (size_t)(statex.ullTotalPhys / 1024);
-                }
             }
         }
     }
