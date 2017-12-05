@@ -3,8 +3,6 @@
 
 #include "stdafx.h"
 
-//#include <public/ILogManager.hpp>
-//#include <aria/DebugEvents.hpp>
 #include "public/LogManagerProvider.hpp"
 #include "public/IGuestLogManager .hpp"
 #include "public/IHostLogManager.hpp"
@@ -309,7 +307,7 @@ public:
 MyDebugEventListener listener;
 
 #define MAX_STRESS_COUNT            32
-#define MAX_STRESS_THREADS          100
+#define MAX_STRESS_THREADS          1000
 
 /// <summary>
 /// New fluent syntax
@@ -642,8 +640,6 @@ void run(ILogger* logger, int maxStressRuns) {
                 EventProperties props("LogSessionTest");
                 props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
                 props.SetPriority(EventPriority_High);
-                logger->LogSession(SessionState::Session_Started, props);
-                logger->LogSession(SessionState::Session_Ended, props);
             }
 
             if (doResume) {
@@ -841,6 +837,17 @@ int main(int argc, char* argv[])
     printf("numDropped:     p1=%u\n", numDropped._My_val);
     printf("numSent:        p1=%u\n", numSent._My_val);
     printf("numStorageFull: p1=%u\n", numStorageFull._My_val);
+
+
+    LogManagerProvider::DestroyLogManager("test");
+    std::cout << "GuestLogManager::destroyed..." << endl;
+
+    LogManagerProvider::DestroyLogManager("test1");
+    std::cout << "GuestLogManager2::destroyed..." << endl;
+
+    LogManagerProvider::DestroyLogManager("host");
+    std::cout << "HostLogManager::DestroyLogManager..." << endl;
+
 
     return 0;
 }

@@ -14,7 +14,7 @@
 
 #include "NativeLogger.h"
 
-#include "ILogManager.hpp"
+#include "api/ILogManagerInternal.hpp"
 #include "LogManager.hpp"
 #include "Enums.hpp"
 #include "CorrelationVector.hpp"

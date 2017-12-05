@@ -5,7 +5,7 @@
 #include "config/RuntimeConfig_Default.hpp"
 #include "system/Contexts.hpp"
 #include <IHttpClient.hpp>
-#include <api/ILogManager.hpp>
+#include <api/ILogManagerInternal.hpp>
 #include <api/LogConfiguration.hpp>
 #include <DebugEvents.hpp>
 #include <memory>
@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
 class ITelemetrySystem;
 
 
-class LogManagerImpl : public ILogManager {
+class LogManagerImpl : public ILogManagerInternal {
   public:
     LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* runtimeConfig);
     virtual ~LogManagerImpl() override;

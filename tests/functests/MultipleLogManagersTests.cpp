@@ -3,7 +3,7 @@
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include <api/ILogManager.hpp>
+#include <api/ILogManagerInternal.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -112,9 +112,9 @@ class MultipleLogManagersTests : public ::testing::Test,
 
 TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
 {
-    std::unique_ptr<ILogManager> lm1(ILogManager::Create(config1, &runtimeConfig1));
+    std::unique_ptr<ILogManagerInternal> lm1(ILogManagerInternal::Create(config1, &runtimeConfig1));
 
-    std::unique_ptr<ILogManager> lm2(ILogManager::Create(config2, &runtimeConfig2));
+    std::unique_ptr<ILogManagerInternal> lm2(ILogManagerInternal::Create(config2, &runtimeConfig2));
 
     lm1->SetContext("test1", "abc");
 

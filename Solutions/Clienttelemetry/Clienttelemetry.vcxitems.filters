@@ -536,11 +536,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManager.hpp">
       <Filter>api</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManager.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManagerInternal.hpp">
+      <Filter>api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -622,8 +622,6 @@ void run(ILogger* logger, int maxStressRuns) {
                 EventProperties props("LogSessionTest");
                 props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
                 props.SetPriority(EventPriority_High);
-                logger->LogSession(SessionState::Session_Started, props);
-                logger->LogSession(SessionState::Session_Ended, props);
             }
 
             if (doResume) {

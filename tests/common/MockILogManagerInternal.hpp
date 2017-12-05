@@ -11,11 +11,11 @@
 namespace testing {
 
 
-class MockILogManager : public ARIASDK_NS::ILogManager
+class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
 {
   public:
-    MockILogManager();
-    ~MockILogManager();
+    MockILogManagerInternal();
+    ~MockILogManagerInternal();
 
     MOCK_METHOD0(FlushAndTeardown, void());
     MOCK_METHOD0(Flush, void());

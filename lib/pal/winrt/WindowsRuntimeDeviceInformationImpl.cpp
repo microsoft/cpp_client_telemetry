@@ -112,11 +112,6 @@ namespace Microsoft {
                 {
                     return new DeviceInformationImpl();
                 }		
-
-				size_t DeviceInformationImpl::GetMemorySize() const
-				{
-					return 0;
-				}
             }
         }
     }

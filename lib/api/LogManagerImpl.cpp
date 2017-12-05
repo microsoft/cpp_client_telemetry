@@ -30,11 +30,11 @@ namespace ARIASDK_NS_BEGIN {
 
 
 #ifdef ANDROID
-extern ILogManager* g_jniLogManager;
+extern ILogManagerInternal* g_jnILogManagerInternal;
 #endif
 
 
-ILogManager* ILogManager::Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig)
+ILogManagerInternal* ILogManagerInternal::Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig)
 {
     return new LogManagerImpl(configuration, runtimeConfig);
 }
@@ -140,8 +140,8 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
     m_alive = true;
 
 #ifdef ANDROID
-    if (g_jniLogManager == nullptr) {
-        g_jniLogManager = this;
+    if (g_jnILogManagerInternal == nullptr) {
+        g_jnILogManagerInternal = this;
     }
 #endif
 }
@@ -192,8 +192,8 @@ void LogManagerImpl::FlushAndTeardown()
     m_alive = false;
 
 #ifdef ANDROID
-    if (g_jniLogManager == this) {
-        g_jniLogManager = nullptr;
+    if (g_jnILogManagerInternal == this) {
+        g_jnILogManagerInternal = nullptr;
     }
 #endif
 }

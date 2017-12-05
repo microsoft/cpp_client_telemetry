@@ -15,7 +15,7 @@ namespace Microsoft {
         namespace Telemetry {
 
 			std::mutex*          our_CommonLogManagerInternallockP = new std::mutex();
-			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
+			ILogManagerInternal*         our_pLogManagerSingletonInstanceP = nullptr;
             static volatile LONG our_CommonLogManagerInternalStarted = 0;
             HANDLE syncEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
             LogSessionData*      our_LogSessionDataP = nullptr;
@@ -49,7 +49,7 @@ namespace Microsoft {
                         {
                             our_IsRuningWithDefaultConfig = true;
                         }
-                        our_pLogManagerSingletonInstanceP = ILogManager::Create(*our_LogConfiguration, nullptr);
+                        our_pLogManagerSingletonInstanceP = ILogManagerInternal::Create(*our_LogConfiguration, nullptr);
                         ::SetEvent(syncEvent);
 
                         if (nullptr == our_LogSessionDataP)
@@ -72,7 +72,7 @@ namespace Microsoft {
                         ::ResetEvent(syncEvent);
                         if (nullptr != our_pLogManagerSingletonInstanceP)
                         {
-                            ILogManager* temp = ILogManager::Create(*our_LogConfiguration, nullptr);
+                            ILogManagerInternal* temp = ILogManagerInternal::Create(*our_LogConfiguration, nullptr);
                             our_pLogManagerSingletonInstanceP->FlushAndTeardown();
                             delete our_pLogManagerSingletonInstanceP;
                             our_pLogManagerSingletonInstanceP = temp;

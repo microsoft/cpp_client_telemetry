@@ -17,7 +17,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 /// <summary>
 /// This class is used to manage the Telemetry logging system
 /// </summary>
-class ILogManager
+class ILogManagerInternal
 {
   public:
     /// <summary>
@@ -25,12 +25,12 @@ class ILogManager
     /// </summary>
     /// <param name="configuration">Configuration settings to apply to the telemetry logging system</param>
     /// <returns>A telemetry logging system instance created with the specified configuration</returns>
-    static ILogManager* Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig);
+    static ILogManagerInternal* Create(LogConfiguration& configuration, IRuntimeConfig* runtimeConfig);
 
     /// <summary>
     /// Destroy the telemetry logging system instance. Calls `FlushAndTeardown()` implicitly.
     /// </summary>
-    virtual ~ILogManager() {}
+    virtual ~ILogManagerInternal() {}
 
     /// <summary>
     /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.

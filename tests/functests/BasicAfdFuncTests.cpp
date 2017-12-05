@@ -4,7 +4,7 @@
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <api/ILogManager.hpp>
+#include <api/ILogManagerInternal.hpp>
 #include <IAFDClient.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
@@ -71,7 +71,7 @@ class BasicAfdFuncTests : public ::testing::Test,
     std::string serverAddress;
     MockIRuntimeConfig runtimeConfig;
     HttpServer server;
-    std::unique_ptr<ILogManager> logManager;
+    std::unique_ptr<ILogManagerInternal> logManager;
     ILogger* logger;
     ILogger* logger2;
     IAFDClient* m_pAFDClient;
@@ -115,7 +115,7 @@ class BasicAfdFuncTests : public ::testing::Test,
         
         m_pAFDClient = IAFDClient::CreateInstance();
 
-        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
         ContextFieldsProvider temp;
         logger = logManager->GetLogger("functests-Tenant-Token",&temp, "source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");

@@ -40,24 +40,6 @@ extern "C" void SendTelemetryEvents() {
     properties.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
 	properties.SetProperty("String_Property", "String Value");
 
-	AggregatedMetricData metricData("Aggregated Metric 1", 10, 100);
-	logger->LogAggregatedMetric(metricData, properties);
-	logger2->LogAggregatedMetric(metricData, properties);
-
-	PageActionData pageData("page_view_id", ActionType_Click);
-
-	logger->LogPageAction(pageData, properties);
-	logger2->LogPageAction(pageData, properties);
-
-	logger->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
-	logger2->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
-
-	logger->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
-	logger->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
-
-	logger2->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
-	logger2->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
-
 	try {
 		EventProperties properties2("Bad_Event");
 		properties2.SetProperty("12345", 12345L);

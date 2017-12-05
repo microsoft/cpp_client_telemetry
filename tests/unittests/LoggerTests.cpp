@@ -32,7 +32,7 @@ class Logger4Test : public Logger {
 class LoggerTests : public Test {
   protected:
     StrictMock<MockIRuntimeConfig>      _runtimeConfigMock;
-    StrictMock<MockILogManager>         _logManagerMock;
+    StrictMock<MockILogManagerInternal>         _logManagerMock;
     Logger4Test                         _logger;
 
     EventProperties                     _emptyProperties;

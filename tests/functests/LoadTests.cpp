@@ -4,7 +4,7 @@
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <api/ILogManager.hpp>
+#include <api/ILogManagerInternal.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -67,7 +67,7 @@ class LoadTests : public Test,
     LogConfiguration             configuration;
     MockIRuntimeConfig           runtimeConfig;
     HttpServer                   server;
-    std::unique_ptr<ILogManager> logManager;
+    std::unique_ptr<ILogManagerInternal> logManager;
     unsigned                     recordsReceived;
     PDH_HQUERY                   cpuQuery;
     PDH_HQUERY                   diskQuery;
@@ -101,7 +101,7 @@ class LoadTests : public Test,
         EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
         EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillRepeatedly(Return());
 
-        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
 
         PdhOpenQuery(NULL, NULL, &cpuQuery);
         PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
@@ -237,7 +237,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     for (unsigned i = 0; i < RESTART_COUNT; i++)
     {
         logManager.reset();
-        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
     }
 
     time = PAL::getMonotonicTimeMs() - time;
@@ -288,7 +288,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     for (unsigned i = 0; i < RESTART_COUNT; i++) {
         logManager.reset();
-        logManager.reset(ILogManager::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
     }
 
     // All events should eventually come.

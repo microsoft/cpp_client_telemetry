@@ -72,7 +72,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\CommonLogManagerInternal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManagerInternal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />

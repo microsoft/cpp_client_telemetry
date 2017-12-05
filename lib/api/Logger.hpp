@@ -13,13 +13,13 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class ILogManager;
+class ILogManagerInternal;
 
 class ARIASDK_LIBABI Logger : public ILogger
 {
   public:
     Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-        ILogManager* logManager, ContextFieldsProvider* parentContext, IRuntimeConfig* runtimeConfig);
+        ILogManagerInternal* logManager, ContextFieldsProvider* parentContext, IRuntimeConfig* runtimeConfig);
     Logger(Logger const&) = delete;
     Logger& operator=(Logger const&) = delete;
      ~Logger();
@@ -41,57 +41,10 @@ class ARIASDK_LIBABI Logger : public ILogger
 	virtual void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override { SetContext(name, (int64_t)value, piiKind); }
 
     virtual ISemanticContext*   GetSemanticContext() const override;
-    virtual void  LogAppLifecycle(AppLifecycleState state, EventProperties const& properties) override;
-    virtual void  LogSession(SessionState state, const EventProperties& properties) override;
     virtual void  LogEvent(std::string const& name) override;
     virtual void  LogEvent(EventProperties const& properties) override;
-    virtual void  LogFailure(std::string const& signature,
-        std::string const& detail,
-        std::string const& category,
-        std::string const& id,
-        EventProperties const& properties) override;
-    virtual void  LogFailure(std::string const& signature,
-        std::string const& detail,
-        EventProperties const& properties) override;
-    virtual void  LogPageView(std::string const& id,
-        std::string const& pageName,
-        std::string const& category,
-        std::string const& uri,
-        std::string const& referrerUri,
-        EventProperties const& properties) override;
-    virtual void  LogPageView(std::string const& id,
-        std::string const& pageName,
-        EventProperties const& properties) override;
-    virtual void  LogPageAction(std::string const& pageViewId,
-        ActionType actionType,
-        EventProperties const& properties) override;
-    virtual void  LogPageAction(PageActionData const& pageActionData,
-        EventProperties const& properties) override;
-    virtual void  LogSampledMetric(std::string const& name,
-        double value,
-        std::string const& units,
-        std::string const& instanceName,
-        std::string const& objectClass,
-        std::string const& objectId,
-        EventProperties const& properties) override;
-    virtual void  LogSampledMetric(std::string const& name,
-        double value,
-        std::string const& units,
-        EventProperties const& properties) override;
-    virtual void  LogAggregatedMetric(std::string const& name,
-        long duration,
-        long count,
-        EventProperties const& properties) override;
-    virtual void  LogAggregatedMetric(AggregatedMetricData const& metricData,
-        EventProperties const& properties) override;
-    virtual void  LogTrace(TraceLevel level,
-        std::string const& message,
-        EventProperties const& properties) override;
-    virtual void  LogUserState(UserState state,
-        long timeToLiveInMillis,
-        EventProperties const& properties) override;
 
-    protected:
+  protected:
     bool applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventLatency& latency);
     virtual void submit(::AriaProtocol::CsEvent& record, 
                         ::Microsoft::Applications::Telemetry::EventLatency latency,
@@ -102,7 +55,7 @@ class ARIASDK_LIBABI Logger : public ILogger
     std::mutex*              m_lockP;
     std::string*             m_tenantTokenP;
     std::string*             m_sourceP;
-    ILogManager*             m_logManagerP;
+    ILogManagerInternal*             m_logManagerP;
     ContextFieldsProvider*   m_context;
 
     BaseDecorator*            m_baseDecorator;
