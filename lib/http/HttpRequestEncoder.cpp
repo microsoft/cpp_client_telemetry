@@ -5,7 +5,7 @@
 #include "pal/PAL.hpp"
 #include <memory>
 #include <string>
-
+#include "api/CommonLogManagerInternal.hpp"
 #include "utils/Utils.hpp"
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_writers.hpp"
@@ -39,30 +39,76 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
     ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
- /*   if (!deviceTicketToken.empty())
+
+    if (CommonLogManagerInternal::GetAuthTokensController()->GetDeviceTokens().size() > 0)
     {
-        // If we have the ticket add it in a header
-        AddRequestHeader(headers, L"AuthMsaDeviceTicket", deviceTicketToken);
+        std::map<TicketType, std::string>& map = CommonLogManagerInternal::GetAuthTokensController()->GetDeviceTokens();
+        if (map.end() != map.find(TicketType::TicketType_MSA_Device))
+        {
+            ctx->httpRequest->GetHeaders().set("AuthMsaDeviceTicket", map[TicketType::TicketType_MSA_Device]);
+        }
+
+        if (map.end() != map.find(TicketType::TicketType_XAuth_Device))
+        {
+            ctx->httpRequest->GetHeaders().set("AuthXToken", map[TicketType::TicketType_XAuth_Device]);
+        }
+
+        if (map.end() != map.find(TicketType::TicketType_AAD))
+        {
+            ctx->httpRequest->GetHeaders().set("Aad-Token", map[TicketType::TicketType_AAD]);
+        }
     }
 
-    if (!xtokenAuthHeader.empty())
-    {
-        // If we an XToken auth header, add it.
-        AddRequestHeader(headers, L"AuthXToken", xtokenAuthHeader);
-    }
+    if (CommonLogManagerInternal::GetAuthTokensController()->GetUserTokens().size() > 0)
+    {  //create Ticket header
+        std::map<TicketType, std::string>& map = CommonLogManagerInternal::GetAuthTokensController()->GetUserTokens();
 
-    if (!ticketHeader.empty())
-    {
-        // If we have an XToken / MSA User id mapping header, add it.
-        AddRequestHeader(headers, L"Tickets", ticketHeader);
-    }
+        std::string ticketHeader;
+        // We know that each ticket is about 1kb in size, so pre-reserve space for the appends
+        ticketHeader.reserve(CommonLogManagerInternal::GetAuthTokensController()->GetUserTokens().size() * 1024);//
 
-    if (!aadTicketHeader.empty())
-    {
-        // If we have a base 64 encoded AAD device ticket, add it.
-        AddRequestHeader(headers, L"Aad-Token", aadTicketHeader);
+        if (map.end() != map.find(TicketType::TicketType_MSA_User))
+        {
+            ticketHeader.append("\"");
+            ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_MSA_User));
+            ticketHeader.append("\"=\"");
+            ticketHeader.append("p:");
+            ticketHeader.append(map[TicketType::TicketType_MSA_User]);
+            ticketHeader.append("\"");
+        }
+        if (map.end() != map.find(TicketType::TicketType_XAuth_User))
+        {
+            if (!ticketHeader.empty())
+            {
+                ticketHeader.append(";");
+            }
+            ticketHeader.append("\"");
+            ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_XAuth_User));
+            ticketHeader.append("\"=\"");
+            ticketHeader.append("x:XBL3.0 x=");
+            ticketHeader.append(map[TicketType::TicketType_XAuth_User]);
+            ticketHeader.append("\"");
+        }
+        if (map.end() != map.find(TicketType::TicketType_AAD_User))
+        {
+            if (!ticketHeader.empty())
+            {
+                ticketHeader.append(";");
+            }
+            ticketHeader.append("\"");
+            ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_AAD_User));
+            ticketHeader.append("\"=\"");
+            ticketHeader.append("at:");
+            ticketHeader.append(map[TicketType::TicketType_AAD_User]);
+            ticketHeader.append("\"");
+        }
+
+        if (!ticketHeader.empty())
+        {
+            ctx->httpRequest->GetHeaders().set("Tickets", ticketHeader);
+        }
     }
- */ 
+       
     std::string tenantTokens;
     tenantTokens.reserve(ctx->packageIds.size() * 75); // Tenants tokens are usually 74 chars long.
     for (auto const& item : ctx->packageIds) {

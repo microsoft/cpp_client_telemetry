@@ -38,10 +38,12 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 
     enum TicketType
     {
-        TicketType_MSA = 0,  
-        TicketType_XAuth = 1,
-        TicketType_MSAdelegation = 2,
-        TicketType_AAD
+        TicketType_MSA_Device = 0,  
+        TicketType_MSA_User = 1,
+        TicketType_XAuth_Device = 2,
+        TicketType_XAuth_User = 3,        
+        TicketType_AAD = 4,
+        TicketType_AAD_User = 5,
     };
     
     enum SdkModeTypes

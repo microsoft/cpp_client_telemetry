@@ -547,6 +547,9 @@ ILogger* init() {
     LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
     LogManager::AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
 
+    LogManager::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_Device, "deviceToken");
+    LogManager::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_User, "UserToken");
+
 	
 
     // TC for SetContext(<const char*,const char*, PiiKind>)

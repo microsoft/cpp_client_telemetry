@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "pal/PAL.hpp"
 #include "HostGuestLogManager.hpp"
+#include "LogController.hpp"
 #include "CommonLogManagerInternal.hpp"
 #include "utils/Utils.hpp"
 
@@ -8,17 +9,36 @@ namespace ARIASDK_NS_BEGIN {
 
 ARIASDK_LOG_INST_COMPONENT_CLASS(HostGuestLogManager, "AriaSDK.HostGuestLogManager", "Aria telemetry client - HostGuestLogManager class");
 
-HostGuestLogManager::HostGuestLogManager(LogConfiguration* config)
-    :m_isCreated(false)
+HostGuestLogManager::HostGuestLogManager(LogConfiguration* config, bool wantController)
+    :m_logController(nullptr)
 {
     ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (!CommonLogManagerInternal::IsInitialized())
+        if (wantController)
         {
+            if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(config, wantController))
+            {//create controller, wanted host and created as host
+                m_logController = new LogController();
+            }
         }
-        CommonLogManagerInternal::Initialize(config);
-        m_isCreated = true;
+        m_context.reset(new ContextFieldsProvider(nullptr));
+    }
+}
+
+HostGuestLogManager::HostGuestLogManager(bool wantController)
+    :m_logController(nullptr)
+{
+    ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
+    {
+        std::lock_guard<std::mutex> lock(m_lock);
+        if (wantController)
+        {
+            if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(nullptr, wantController))
+            {//create controller, wanted host and created as host
+                m_logController = new LogController();
+            }
+        }
         m_context.reset(new ContextFieldsProvider(nullptr));
     }
 }
@@ -28,101 +48,30 @@ HostGuestLogManager::~HostGuestLogManager()
     ARIASDK_LOG_INFO("destructor");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (m_isCreated)
-        {
-            m_isCreated = false;
-            CommonLogManagerInternal::FlushAndTeardown();
-        }
+        CommonLogManagerInternal::FlushAndTeardown();
         for (auto& record : m_loggers) 
         {
             delete record.second;
         }
         m_loggers.clear();
+        if (m_logController) delete m_logController;
     }
 }
-
-ACTStatus HostGuestLogManager::FlushAndTeardown()
-{
-    ARIASDK_LOG_INFO("Shutting down...");
-    {
-        std::lock_guard<std::mutex> lock(m_lock);
-        if (m_isCreated)
-        {
-            m_isCreated = false;
-            return CommonLogManagerInternal::FlushAndTeardown();
-        }
-    }
-    return ACTStatus::ACTStatus_Fail;
-}
-
-ACTStatus HostGuestLogManager::Flush()
-{
-    ARIASDK_LOG_ERROR("Flush() is not implemented");
-    return ACTStatus::ACTStatus_NotSupported;
-}
-
-ACTStatus HostGuestLogManager::UploadNow()
-{
-    return CommonLogManagerInternal::UploadNow();
-}
-
-ACTStatus HostGuestLogManager::PauseTransmission()
-{
-    ARIASDK_LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
-    return CommonLogManagerInternal::PauseTransmission();
-}
-
-ACTStatus HostGuestLogManager::ResumeTransmission()
-{
-    ARIASDK_LOG_INFO("Resuming transmission...");
-    return CommonLogManagerInternal::ResumeTransmission();
-}
-
-/// <summary>Sets the transmit profile by enum</summary>
-/// <param name="profile">Profile enum</param>
-ACTStatus HostGuestLogManager::SetTransmitProfile(TransmitProfile profile)
-{
-    return CommonLogManagerInternal::SetTransmitProfile(profile);
-}
-
-/// <summary>
-/// Select one of several predefined transmission profiles.
-/// </summary>
-/// <param name="profile"></param>
-ACTStatus HostGuestLogManager::SetTransmitProfile(const std::string& profile)
-{
-    ARIASDK_LOG_INFO("SetTransmitProfile: profile=%s", profile.c_str());
-    return CommonLogManagerInternal::SetTransmitProfile(profile);
-}
-
-/// <summary>
-/// Load transmit profiles from JSON config
-/// </summary>
-/// <param name="profiles_json">JSON config (see example above)</param>
-/// <returns>true on successful profiles load, false if config is invalid</returns>
-ACTStatus HostGuestLogManager::LoadTransmitProfiles(std::string profiles_json)
-{
-    ARIASDK_LOG_INFO("LoadTransmitProfiles");
-    return CommonLogManagerInternal::LoadTransmitProfiles(profiles_json);
-}
-
-/// <summary>
-/// Reset transmission profiles to default settings
-/// </summary>
-ACTStatus HostGuestLogManager::ResetTransmitProfiles()
-{
-    ARIASDK_LOG_INFO("ResetTransmitProfiles");
-    return CommonLogManagerInternal::ResetTransmitProfiles();
-}
-
-const std::string& HostGuestLogManager::GetTransmitProfileName()
-{
-    return CommonLogManagerInternal::GetTransmitProfileName();
-};
 
 ISemanticContext& HostGuestLogManager::GetSemanticContext()
 {
     return *m_context;
+}
+
+ILogController* HostGuestLogManager::GetLogController()
+{ 
+    return m_logController;
+}
+
+IAuthTokensController*  HostGuestLogManager::GetAutheTokensController()
+{
+    AuthTokensController* temp = CommonLogManagerInternal::GetAuthTokensController();
+    return temp;
 }
 
 /// <summary>
@@ -222,21 +171,4 @@ ILogger* HostGuestLogManager::GetLogger(std::string const& tenantToken)
           return logger;
      }
 }
-
-/// <summary>
-/// Add Debug callback
-/// </summary>
-void HostGuestLogManager::AddEventListener(DebugEventType type, DebugEventListener &listener)
-{
-    CommonLogManagerInternal::AddEventListener(type, listener);
-}
-
-/// <summary>
-/// Remove Debug callback
-/// </summary>
-void HostGuestLogManager::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
-{
-    CommonLogManagerInternal::RemoveEventListener(type, listener);
-}
-
 }}} // namespace Microsoft::Applications::Telemetry

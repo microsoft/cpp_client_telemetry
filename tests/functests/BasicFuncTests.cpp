@@ -424,8 +424,8 @@ TEST_F(BasicFuncTests, configDecorations)
     EventProperties event3("third_event");
     logger->LogEvent(event3);
 
-    EventProperties event4("");
-    logger->LogAppLifecycle(AppLifecycleState_Launch, event4);
+    EventProperties event4("4th_event");
+    logger->LogEvent(event4);
 
     PAL::sleep(100);
     waitForEvents(50, 5);

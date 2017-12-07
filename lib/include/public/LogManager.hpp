@@ -3,6 +3,7 @@
 #define ARIA_LOGMANAGER_HPP
 
 #include "ILogger.hpp"
+#include "IAuthTokensController.hpp"
 #include "ILogConfiguration.hpp"
 #ifdef _WIN32
 #include "TransmitProfiles.hpp"
@@ -247,6 +248,11 @@ namespace Microsoft {
                 /// Get LogConfiguration
                 /// </summary>
                 static ILogConfiguration& ARIASDK_LIBABI_CDECL GetLogConfiguration();
+
+                /// <summary>
+                /// Get Auth token controller
+                /// </summary>
+                static IAuthTokensController* ARIASDK_LIBABI_CDECL GetAuthTokenController();
 #ifdef _WIN32
 
                 /// <summary>

@@ -50,7 +50,8 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
         nlohmann::json responseBody;       
         try
         {
-            responseBody = nlohmann::json::parse((char*)(response.GetBody().data()));
+            std::string body(response.GetBody().begin(), response.GetBody().end());
+            responseBody = nlohmann::json::parse(body.c_str());
             int accepted = 0;
             auto acc = responseBody.find("acc");
             if (responseBody.end() != acc)

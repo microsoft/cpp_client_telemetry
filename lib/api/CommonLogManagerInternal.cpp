@@ -15,12 +15,13 @@ namespace Microsoft {
         namespace Telemetry {
 
 			std::mutex*          our_CommonLogManagerInternallockP = new std::mutex();
-			ILogManagerInternal*         our_pLogManagerSingletonInstanceP = nullptr;
+			ILogManagerInternal* our_pLogManagerSingletonInstanceP = nullptr;
             static volatile LONG our_CommonLogManagerInternalStarted = 0;
             HANDLE syncEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
             LogSessionData*      our_LogSessionDataP = nullptr;
-            bool                 our_IsRuningWithDefaultConfig = false;
+            bool                 our_IsRuningasHost = false;
             LogConfiguration*    our_LogConfiguration = new LogConfiguration();
+            AuthTokensController* our_AuthTokenControllerP = new AuthTokensController();
 
             bool CommonLogManagerInternal::IsInitialized()
             {
@@ -31,9 +32,19 @@ namespace Microsoft {
                     return false;
             }
 
-            ACTStatus CommonLogManagerInternal::Initialize( LogConfiguration* logConfigurationP)
+            bool CommonLogManagerInternal::IsInitializedAsHost()
+            {
+                std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                if (our_IsRuningasHost)
+                    return true;
+                else
+                    return false;
+            }
+
+            ACTStatus CommonLogManagerInternal::Initialize( LogConfiguration* logConfigurationP, bool wantController)
 			{
 				ARIASDK_LOG_DETAIL("Initialize[1]:configuration=0x%X", logConfigurationP);
+                ACTStatus status = ACTStatus::ACTStatus_OK;
 				
                 if (InterlockedIncrementAcquire(&our_CommonLogManagerInternalStarted) == 1)
                 {
@@ -45,10 +56,7 @@ namespace Microsoft {
                             delete our_LogConfiguration;
                             our_LogConfiguration = logConfigurationP;
                         }
-                        else
-                        {
-                            our_IsRuningWithDefaultConfig = true;
-                        }
+                      
                         our_pLogManagerSingletonInstanceP = ILogManagerInternal::Create(*our_LogConfiguration, nullptr);
                         ::SetEvent(syncEvent);
 
@@ -57,16 +65,24 @@ namespace Microsoft {
                             ACTStatus error;
                             our_LogSessionDataP = new LogSessionData(our_LogConfiguration->GetProperty(CFG_STR_CACHE_FILE_PATH, error));
                         }
+                        if (wantController & !our_IsRuningasHost)
+                        {
+                            our_IsRuningasHost = true;
+                        }
                     }
                 }
                 else
                 {
                     ::WaitForSingleObject(syncEvent, INFINITE);
-                    if (our_IsRuningWithDefaultConfig && logConfigurationP)
+
+                    if (wantController & !our_IsRuningasHost)
                     {// running with default config, means only gusts are running, Now host showed up, we ned to reset the system
-                        our_IsRuningWithDefaultConfig = false;
-                        delete our_LogConfiguration;
-                        our_LogConfiguration = logConfigurationP;
+                        our_IsRuningasHost = true;
+                        if (logConfigurationP)
+                        {
+                            delete our_LogConfiguration;
+                            our_LogConfiguration = logConfigurationP;
+                        }
                         
                         std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
                         ::ResetEvent(syncEvent);
@@ -78,6 +94,13 @@ namespace Microsoft {
                             our_pLogManagerSingletonInstanceP = temp;
 
                             ::SetEvent(syncEvent);
+                        }
+                    }
+                    else
+                    {
+                        if (wantController)
+                        {
+                            status = ACTStatus::ACTStatus_AlreadyInitialized;
                         }
                     }
                 }
@@ -106,7 +129,7 @@ namespace Microsoft {
                     break;
                 }
 
-				return ACTStatus::ACTStatus_OK;
+				return status;
 			}
 
             ACTStatus CommonLogManagerInternal::FlushAndTeardown()
@@ -422,7 +445,15 @@ namespace Microsoft {
 
             LogSessionData* CommonLogManagerInternal::GetLogSessionData()
             {
-                return our_LogSessionDataP;;
+                return our_LogSessionDataP;
+            }
+
+            /// <summary>
+            /// Get AuthTokens controller
+            /// </summary>
+            AuthTokensController* CommonLogManagerInternal::GetAuthTokensController()
+            {
+                return our_AuthTokenControllerP;
             }
         }
     }

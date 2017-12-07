@@ -4,15 +4,13 @@
 
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
-#include "IHostLogManager.hpp"
-#include "IGuestLogManager .hpp"
-
+#include "ILogManager.hpp"
 
 namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
 
-            uint32_t const CurrentTargetVersion = 0x0200;// 2.0 
+            uint32_t const CurrentTargetVersion = 0x0100;// 1.0
             /// <summary>
             /// This class is used to manage the Telemetry logging system
             /// </summary>
@@ -32,7 +30,7 @@ namespace Microsoft {
                 static ILogConfiguration& CreateLogConfiguration();
 
                 /// <summary> 
-                /// Gets the Host LogManager.  The passed in configuration is used to 
+                /// Gets the LogManager.  The passed in configuration is used to 
                 /// initialize the telemetry system, if it hasn't been initialized. 
                 /// If the telemetry system was already initialized then the passed in 
                 /// configuration is ignored. 
@@ -40,27 +38,30 @@ namespace Microsoft {
                 /// <param name="logConfiguration">Configuration settings.</param> 
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 
+                /// <param name="wantController">WantController.</param> 
                 /// </summary> 
-                static IHostLogManager* GetHostLogManager(ILogConfiguration& logConfiguration, 
-                                                          char const* apiKey,
-                                                          ACTStatus& status,
-                                                          uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* GetLogManager(char const* apiKey,
+                                                  bool wantController,
+                                                  ILogConfiguration& logConfiguration,
+                                                  ACTStatus& status,
+                                                  uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
-                /// Gets the Host LogManager with the current configuration. 
-                /// The same IHostLogManager is returned for the same apiKey specified. 
+                /// Gets the LogManager with the current configuration. 
+                /// The same ILogManager is returned for the same apiKey specified. 
+                /// <param name="apiKey">API Key.</param> 
+                /// <param name="status">Status.</param> 
+                /// <param name="wantController">WantController.</param> 
+                /// </summary> 
+                static ILogManager* GetLogManager(char const* apiKey, bool wantController, ACTStatus& status,  uint32_t targetVersion = CurrentTargetVersion);
+
+                /// <summary> 
+                /// Gets the LogManager with the current configuration. 
+                /// The same ILogManager is returned for the same apiKey specified. 
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 
                 /// </summary> 
-                static IHostLogManager* GetHostLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
-
-                /// <summary> 
-                /// Gets the Guest LogManager with the current configuration. 
-                /// The same IGuestLogManager is returned for the same apiKey specified. 
-                /// <param name="apiKey">API Key.</param> 
-                /// <param name="status">Status.</param> 
-                /// </summary> 
-                static IGuestLogManager* GetGuestLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* GetLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
                 /// Removes an guste or host LogManager created with passed API key with the current configuration. 

@@ -313,5 +313,7 @@ const char* const SESSION_SDKUID                    = "DeviceInfo.SDKUid";
 bool  const ENABLE_HMAC_SHA256                      = true;
 const char* const HMAC_ENCRYPTION_KEY               = "bdyt7XVQVWYzXCviDbKMDktZZBIbjA7g9pdjXEYtsSUNPQHpBPofMgx9SrFFNZI9";
 const char* const HMAC_CLIENT_ID                    = "CppNativeLibrary";
+const char* const TICKETS_PREPAND_STRING            = "1000";
+
 
 } ARIASDK_NS_END

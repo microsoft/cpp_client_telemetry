@@ -16,8 +16,15 @@ namespace Microsoft {
         namespace Telemetry {
 
 			std::mutex*          our_lockP = new std::mutex();
-			IHostLogManager*     our_pLogManagerSingletonInstanceP = nullptr;
+			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
             LogConfiguration*    our_LogConfigurationP = new LogConfiguration();
+            ILogController*      our_LogController = nullptr;
+            IAuthTokensController* our_AuthTokenController = nullptr;
+
+            IAuthTokensController* LogManager::GetAuthTokenController()
+            {
+                return our_AuthTokenController;
+            }
 
 			ILogger* LogManager::Initialize(const std::string& tenantToken)
 			{
@@ -32,7 +39,9 @@ namespace Microsoft {
                     {
                         our_LogConfigurationP->SetProperty(CFG_STR_CACHE_FILE_PATH, tenantToken.c_str());
                     }
-					our_pLogManagerSingletonInstanceP = LogManagerProvider::GetHostLogManager(*our_LogConfigurationP,"OldInterface", error);
+					our_pLogManagerSingletonInstanceP = LogManagerProvider::GetLogManager("OldInterface",true,*our_LogConfigurationP, error);
+                    our_LogController = our_pLogManagerSingletonInstanceP->GetLogController();
+                    our_AuthTokenController = our_pLogManagerSingletonInstanceP->GetAutheTokensController();
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);
@@ -74,7 +83,6 @@ namespace Microsoft {
 
                     if (nullptr != our_pLogManagerSingletonInstanceP)
                     {
-                        our_pLogManagerSingletonInstanceP->FlushAndTeardown();
                         LogManagerProvider::DestroyLogManager("OldInterface");
                         our_pLogManagerSingletonInstanceP = nullptr;
                     }
@@ -88,9 +96,9 @@ namespace Microsoft {
             void LogManager::UploadNow()
             {
                 ARIASDK_LOG_DETAIL("UploadNow()");
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->UploadNow();
+                    our_LogController->UploadNow();
                 }
             }
 
@@ -100,9 +108,9 @@ namespace Microsoft {
             void LogManager::Flush()
             {
                 ARIASDK_LOG_DETAIL("Flush()");
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->Flush();
+                    our_LogController->Flush();
                 }
             }
 
@@ -112,9 +120,9 @@ namespace Microsoft {
             void LogManager::PauseTransmission()
             {
                 ARIASDK_LOG_DETAIL("PauseTransmission()");
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->PauseTransmission();
+                    our_LogController->PauseTransmission();
                 }
             }
 
@@ -124,9 +132,9 @@ namespace Microsoft {
             void LogManager::ResumeTransmission()
             {
                 ARIASDK_LOG_DETAIL("ResumeTransmission()");
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->ResumeTransmission();
+                    our_LogController->ResumeTransmission();
                 }
             }
 
@@ -137,9 +145,9 @@ namespace Microsoft {
             void LogManager::SetTransmitProfile(TransmitProfile profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%d", profile);
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->SetTransmitProfile(profile);
+                    our_LogController->SetTransmitProfile(profile);
                 }
             }
 
@@ -150,7 +158,7 @@ namespace Microsoft {
             bool LogManager::SetTransmitProfile(const std::string& profile)
             {
                 ARIASDK_LOG_DETAIL("SetTransmitProfile: profile=%s", profile.c_str());
-				return TransmitProfiles::setProfile(profile);
+                return TransmitProfiles::setProfile(profile);
             }
 
             /// <summary>
@@ -338,9 +346,9 @@ namespace Microsoft {
             /// <param name="listener"></param>
             void LogManager::AddEventListener(DebugEventType type, DebugEventListener &listener) 
             {
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->AddEventListener(type, listener);
+                    our_LogController->AddEventListener(type, listener);
                 }
             }
 
@@ -349,9 +357,9 @@ namespace Microsoft {
             /// <param name="listener"></param>
             void LogManager::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
             {
-                if (nullptr != our_pLogManagerSingletonInstanceP)
+                if (nullptr != our_LogController)
                 {
-                    our_pLogManagerSingletonInstanceP->RemoveEventListener(type, listener);
+                    our_LogController->RemoveEventListener(type, listener);
                 }
             }
 

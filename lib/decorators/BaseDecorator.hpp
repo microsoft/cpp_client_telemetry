@@ -2,6 +2,7 @@
 
 #pragma once
 #include "IDecorator.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "Config.hpp"
 #include <Enums.hpp>
 #include <algorithm>
@@ -69,6 +70,27 @@ class BaseDecorator : public DecoratorBase {
         record.extSdk[0].epoch = *m_initIdP;
         std::string sdkVersion = PAL::getSdkVersion();
         record.extSdk[0].libVer = sdkVersion;
+
+
+        //set Tickets
+        if (CommonLogManagerInternal::GetAuthTokensController()->GetTickets().size() > 0)
+        {
+            if (record.extProtocol.size() == 0)
+            {
+                ::AriaProtocol::Protocol temp;
+                record.extProtocol.push_back(temp);
+            }
+            if (record.extProtocol[0].ticketKeys.size() == 0)
+            {
+                std::vector<std::string> temp;
+                record.extProtocol[0].ticketKeys.push_back(temp);
+            }
+            for (auto ticket : CommonLogManagerInternal::GetAuthTokensController()->GetTickets())
+            {
+                record.extProtocol[0].ticketKeys[0].push_back(ticket);
+            }           
+        }
+    
 
         return true;
     }

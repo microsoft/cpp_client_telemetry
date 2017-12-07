@@ -4,8 +4,8 @@
 #include "stdafx.h"
 
 #include "public/LogManagerProvider.hpp"
-#include "public/IGuestLogManager .hpp"
-#include "public/IHostLogManager.hpp"
+#include "public/ILogManager.hpp"
+#include "public/ILogController.hpp"
 #include "public/Enums.hpp"
 #include <iostream>
 
@@ -138,9 +138,9 @@ std::atomic<unsigned>   numStorageFull = 0;
 std::uint64_t testStartMs;
 
 
-IGuestLogManager* guest;
-IGuestLogManager* guest1;
-IHostLogManager*  host;
+ILogManager* guest;
+ILogManager* guest1;
+ILogManager*  host;
 
 class MyDebugEventListener : public DebugEventListener {
 public:
@@ -448,7 +448,7 @@ EventProperties CreateSampleEvent(const char *name, EventLatency prio) {
 void test_ProfileSwitch(ILogger *logger)
 {
     printf("switching profile to Office_Telemetry_OneMinute\n");
-    host->SetTransmitProfile("Office_Telemetry_OneMinute");
+    host->GetLogController()->SetTransmitProfile("Office_Telemetry_OneMinute");
     for (int i = 0; i < 10; i++)
     {
         std::string eventName = "eventName_5min_";
@@ -462,7 +462,7 @@ void test_ProfileSwitch(ILogger *logger)
 #endif
 
     printf("switching profile to Office_Telemetry_TenSeconds\n");
-    host->SetTransmitProfile("Office_Telemetry_TenSeconds");
+    host->GetLogController()->SetTransmitProfile("Office_Telemetry_TenSeconds");
     for (int i = 0; i < 10; i++)
     {
         std::string eventName = "eventName_10sec_";
@@ -535,35 +535,35 @@ ILogger* init() {
 
     std::cout << "GuestLogManager::Initialize..." << endl;
     
-    guest = LogManagerProvider::GetGuestLogManager("test", error);
+    guest = LogManagerProvider::GetLogManager("test",false,error);
     std::cout << "GuestLogManager::Initialized..." << endl;
 
     std::cout << "GuestLogManager2::Initialize..." << endl;
-    guest1 = LogManagerProvider::GetGuestLogManager("test1", error);
+    guest1 = LogManagerProvider::GetLogManager("test1", false, error);
     std::cout << "GuestLogManager2::Initialized..." << endl;
 
     std::cout << "HostLogManager::Initialize..." << endl;
-    host = LogManagerProvider::GetHostLogManager(configuration,"host", error);
+    host = LogManagerProvider::GetLogManager("host", true, configuration, error);
 
     // Apply the profile before initialize
-    host->SetTransmitProfile("Office_Telemetry_TenSeconds");
+    host->GetLogController()->SetTransmitProfile("Office_Telemetry_TenSeconds");
     ILogger *result = host->GetLogger(cTenantToken);
 
 
-    host->AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
-    host->AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    host->AddEventListener(DebugEventType::EVT_REJECTED, listener);
-    host->AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
-    host->AddEventListener(DebugEventType::EVT_SENT, listener);
-    host->AddEventListener(DebugEventType::EVT_DROPPED, listener);
-    host->AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    host->AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    host->AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
-    host->AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
-    host->AddEventListener(DebugEventType::EVT_CACHED, listener);
-    host->AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
-    host->AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
-    host->AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_REJECTED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_SENT, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_CACHED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    host->GetLogController()->AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
 
 
 
@@ -585,7 +585,7 @@ void run(ILogger* logger, int maxStressRuns) {
             bool doResume = false;
 
             if (doPause) {
-                host->PauseTransmission();
+                host->GetLogController()->PauseTransmission();
             }
 
             {
@@ -643,7 +643,7 @@ void run(ILogger* logger, int maxStressRuns) {
             }
 
             if (doResume) {
-                host->ResumeTransmission();
+                host->GetLogController()->ResumeTransmission();
             }
 
 #ifdef _RANDOM_DELAY_AFTER_LOG
@@ -673,7 +673,6 @@ void test_failure(ILogger *logger) {
 
 void done() {
     std::cout << "host->FlushAndTeardown()..." << std::endl;
-    host->FlushAndTeardown();
 }
 
 void DumpMemoryLeaks()
@@ -703,8 +702,8 @@ int main(int argc, char* argv[])
     std::thread t[MAX_STRESS_THREADS];
 
     ILogger* logger = init();
-    host->LoadTransmitProfiles(transmitProfileDefinitions);
-    host->SetTransmitProfile("Office_Telemetry_OneMinute");
+    host->GetLogController()->LoadTransmitProfiles(transmitProfileDefinitions);
+    host->GetLogController()->SetTransmitProfile("Office_Telemetry_OneMinute");
 
     ILogger* logger2 = guest->GetLogger(TOKEN2);
 
@@ -757,7 +756,7 @@ int main(int argc, char* argv[])
 
     //host->UploadNow();
     // save to disk
-    host->Flush();
+    host->GetLogController()->Flush();
 
     //all_done:
 

@@ -6,6 +6,7 @@
 #include "LogConfiguration.hpp"
 #include "system/Contexts.hpp"
 #include "LogSessionData.hpp"
+#include "AuthTokensController.hpp"
 #ifdef _WIN32
 #include "TransmitProfiles.hpp"
 #include "DebugEvents.hpp"
@@ -28,6 +29,11 @@ namespace Microsoft {
             public:
 
                 static bool IsInitialized();
+                static bool IsInitializedAsHost();
+                /// <summary>
+                /// Get AuthTokens controller
+                /// </summary>
+                static AuthTokensController* GetAuthTokensController();
                 /// <summary>
                 /// Initializes the telemetry logging system with default configuration.
                 /// </summary>
@@ -39,7 +45,8 @@ namespace Microsoft {
                     jclass contextClass,
                     jobject  contextObject,
 #endif
-                    LogConfiguration* logConfigurationP);
+                    LogConfiguration* logConfigurationP,
+                    bool wantController);
 
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
@@ -263,7 +270,7 @@ namespace Microsoft {
                 /// <summary>
                 /// Get Session data
                 /// </summary>
-                static LogSessionData* GetLogSessionData();
+                static LogSessionData* GetLogSessionData();             
 
             protected:
 

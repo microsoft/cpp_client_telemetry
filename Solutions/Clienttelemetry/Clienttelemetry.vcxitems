@@ -15,11 +15,13 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CommonLogManagerInternal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CorrelationVector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogController.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.cpp" />
@@ -69,11 +71,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\CommonLogManagerInternal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManagerInternal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\Backoff_ExponentialWithJitter.hpp" />
@@ -127,10 +131,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\EventProperties.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\EventProperty.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IBandwidthController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IECSClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IGuestLogManager .hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IHostLogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IHttpClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogConfiguration.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogger.hpp" />
