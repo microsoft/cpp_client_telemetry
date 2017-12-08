@@ -26,7 +26,7 @@ class LogManagerImpl : public ILogManagerInternal {
     virtual void PauseTransmission() override;
     virtual void ResumeTransmission() override;
 	virtual bool SetTransmitProfile(const std::string& profile) override;
-	virtual bool LoadTransmitProfiles(std::string profiles_json) override;
+	virtual bool LoadTransmitProfiles(const std::string& profiles_json) override;
 	virtual void ResetTransmitProfiles();
 	virtual void  SetTransmitProfile(TransmitProfile profile) override;
 	virtual const std::string& GetTransmitProfileName() override;

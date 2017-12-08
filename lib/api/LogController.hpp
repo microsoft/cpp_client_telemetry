@@ -72,7 +72,7 @@ class LogController : public ILogController
 	/// </summary>
 	/// <param name="profiles_json">JSON config (see example above)</param>
 	/// <returns>true on successful profiles load, false if config is invalid</returns>
-	virtual ACTStatus  LoadTransmitProfiles(std::string profiles_json) ;
+	virtual ACTStatus  LoadTransmitProfiles(const std::string& profiles_json) ;
 
 	/// <summary>
 	/// Reset transmission profiles to default settings

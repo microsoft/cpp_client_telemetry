@@ -100,7 +100,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profiles_json">JSON config (see example above)</param>
                 /// <returns>true on successful profiles load, false if config is invalid</returns>
-                static ACTStatus  LoadTransmitProfiles(std::string profiles_json);
+                static ACTStatus  LoadTransmitProfiles(const std::string& profiles_json);
 
                 /// <summary>
                 /// Reset transmission profiles to default settings

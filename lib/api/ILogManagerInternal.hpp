@@ -84,7 +84,7 @@ class ILogManagerInternal
 	/// </summary>
 	/// <param name="profiles_json">JSON config (see example above)</param>
 	/// <returns>true on successful profiles load, false if config is invalid</returns>
-	virtual bool  LoadTransmitProfiles(std::string profiles_json)  = 0;
+	virtual bool  LoadTransmitProfiles(const std::string& profiles_json)  = 0;
 
 	/// <summary>
 	/// Reset transmission profiles to default settings

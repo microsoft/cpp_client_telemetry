@@ -166,7 +166,7 @@ namespace Microsoft {
             /// </summary>
             /// <param name="profiles_json">JSON config (see example above)</param>
             /// <returns>true on successful profiles load, false if config is invalid</returns>
-            bool LogManager::LoadTransmitProfiles(std::string profiles_json)
+            bool LogManager::LoadTransmitProfiles(const std::string& profiles_json)
             {
                 ARIASDK_LOG_DETAIL("LoadTransmitProfiles");
                 return TransmitProfiles::load(profiles_json);

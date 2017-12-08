@@ -180,7 +180,7 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// Specify a property for an event.
 		/// It either creates a new property if none exists or overwrites the existing one.
 		/// </summary>
-		void SetProperty(const std::string& name, std::string  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+		void SetProperty(const std::string& name, const std::string&  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
 
 		/// <summary>
 		/// Specify a property for an event.

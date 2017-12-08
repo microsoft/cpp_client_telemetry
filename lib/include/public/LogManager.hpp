@@ -92,7 +92,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profiles_json">JSON config (see example above)</param>
                 /// <returns>true on successful profiles load, false if config is invalid</returns>
-                static bool ARIASDK_LIBABI_CDECL LoadTransmitProfiles(std::string profiles_json);
+                static bool ARIASDK_LIBABI_CDECL LoadTransmitProfiles(const std::string& profiles_json);
 
                 /// <summary>
                 /// Reset transmission profiles to default settings
