@@ -68,7 +68,7 @@ ILogController* HostGuestLogManager::GetLogController()
     return m_logController;
 }
 
-IAuthTokensController*  HostGuestLogManager::GetAutheTokensController()
+IAuthTokensController*  HostGuestLogManager::GetAuthTokensController()
 {
     AuthTokensController* temp = CommonLogManagerInternal::GetAuthTokensController();
     return temp;

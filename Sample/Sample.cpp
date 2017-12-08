@@ -132,6 +132,8 @@ std::atomic<unsigned>   numCached = 0;
 std::atomic<unsigned>   numStorageFull = 0;
 std::uint64_t testStartMs;
 
+
+
 class MyDebugEventListener : public DebugEventListener {
 public:
     bool print = false;
@@ -592,12 +594,23 @@ void run(ILogger* logger, int maxStressRuns) {
 
                 {
                     EventProperties props = CreateSampleEvent("Sample.Event.Low", EventLatency_Normal);
+
+                    std::vector<GUID_t> longVector;
+                    GUID_t guid1("00010203-0405-0607-0809-0A0B0C0D0E0F");
+                    GUID_t guid2("00010203-0405-0607-0809-0A0B0C0D0E0F");
+                    longVector.push_back(guid1); longVector.push_back(guid2);
+                    EventProperty propertyl(longVector);
+                    props.SetProperty("GuidArray", propertyl);
                     loggerl->LogEvent(props);
                 }
 
                 if ((stressRuns % 2) == 0)
                 {
                     EventProperties props = CreateSampleEvent("Sample.Event.Normal", EventLatency_CostDeferred);
+                    std::vector<int64_t> longVector;
+                    longVector.push_back(67); longVector.push_back(10000000000);
+                    EventProperty propertyl(longVector);
+                    props.SetProperty("LongArray", propertyl);
                     loggerl->LogEvent(props);
                 }
 
@@ -605,12 +618,21 @@ void run(ILogger* logger, int maxStressRuns) {
                 {
                     EventProperties props = CreateSampleEvent("Sample.Event.High", EventLatency_RealTime);
                     props.SetType("My.Super.Duper.Fancy.Event.Type.For.MDM.Export");
+                    std::vector<double> longVector;
+                    longVector.push_back(67.00); longVector.push_back(10000000000.00);
+                    EventProperty propertyl(longVector);
+                    props.SetProperty("DoubleArray", propertyl);
                     loggerl->LogEvent(props);
                 }
 
                 if ((stressRuns % 8) == 0)
                 {
-                    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventLatency_RealTime);// EventPriority_Immediate);                    
+                    EventProperties props = CreateSampleEvent("Sample.Event.Immediate", EventLatency_RealTime);// EventPriority_Immediate); 
+
+                    std::vector<std::string> longVector;
+                    longVector.push_back("gggggg"); longVector.push_back("dsdsasd");
+                    EventProperty propertyl(longVector);
+                    props.SetProperty("StringArray", propertyl);
                     loggerl->LogEvent(props);
                 }
             }
@@ -753,7 +775,7 @@ int main(int argc, char* argv[])
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     //listener.print = true;
     // Flush and Teardown
-    done();
+    
 
 
     bool waitForUser = true;
@@ -761,6 +783,7 @@ int main(int argc, char* argv[])
         std::cout << "Press <ENTER> to FlushAndTeardown" << std::endl;
         fflush(stdout);
         fgetc(stdin);
+        done();
     }
 
 

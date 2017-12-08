@@ -217,6 +217,74 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
+                    case EventProperty::TYPE_INT64_ARRAY:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueArrayInt64;
+                        temp.longArray.push_back(*v.as_longArray);
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+                        break;
+                    }
+                    case EventProperty::TYPE_DOUBLE_ARRAY:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueArrayDouble;
+                        temp.doubleArray.push_back(*v.as_doubleArray);
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+                        break;
+                    }
+                    case EventProperty::TYPE_STRING_ARRAY:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueArrayString;
+                        temp.stringArray.push_back(*v.as_stringArray);
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+                        break;
+                    }
+                    case EventProperty::TYPE_GUID_ARRAY:
+                    {
+                        AriaProtocol::Value temp;
+                        temp.type = ::AriaProtocol::ValueKind::ValueArrayGuid;
+
+                        std::vector<std::vector<uint8_t>> values;
+                        for (GUID_t tempValue : *v.as_guidArray)
+                        {
+                            tempValue.to_bytes(guid_bytes);
+                            guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+                            values.push_back(guid);                            
+                        }
+                        temp.guidArray.push_back(values);
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+                        break;
+                    }
 				    default:
                     {
                         // Convert all unknown types to string

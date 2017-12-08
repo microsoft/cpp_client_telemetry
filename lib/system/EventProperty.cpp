@@ -4,6 +4,12 @@
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
 
 
 using namespace std;
@@ -233,7 +239,41 @@ namespace Microsoft {
             }
 
 
+            void EventProperty::copydata(EventProperty const* source)
+            {
+                switch (type)
+                {
+                case TYPE_STRING:
+                {
+                    size_t len = strlen(source->as_string);
+                    as_string = new char[len + 1];
+                    memcpy((void*)as_string, (void*)source->as_string, len);
+                    as_string[len] = 0;
+                    break;
+                }
+                case TYPE_INT64_ARRAY:
+                {
+                    as_longArray = new std::vector<int64_t>(*source->as_longArray);
+                    break;
+                }
 
+                case TYPE_DOUBLE_ARRAY:
+                {
+                    as_doubleArray = new std::vector<double>(*source->as_doubleArray);
+                    break;
+                }
+                case TYPE_GUID_ARRAY:
+                {
+                    as_guidArray = new std::vector<GUID_t>(*source->as_guidArray);
+                    break;
+                }
+                case TYPE_STRING_ARRAY:
+                {
+                    as_stringArray = new std::vector<std::string>(*source->as_stringArray);
+                    break;
+                }
+                }
+            }
 
 
             /// <summary>
@@ -244,13 +284,7 @@ namespace Microsoft {
                 type(source.type)
             {
                 memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                if (type == TYPE_STRING)
-                {
-                    size_t len = strlen(source.as_string);
-                    as_string = new char[len + 1];
-                    memcpy((void*)as_string, (void*)source.as_string, len);
-                    as_string[len] = 0;
-                }
+                copydata(&source);
             }
 
             /// <summary>
@@ -261,13 +295,7 @@ namespace Microsoft {
                 type(source.type)
             {
                 memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                if (type == TYPE_STRING)
-                {
-                    size_t len = strlen(source.as_string);
-                    as_string = new char[len + 1];
-                    memcpy((void*)as_string, (void*)source.as_string, len);
-                    as_string[len] = 0;
-                }
+                copydata(&source);
             }
 
 
@@ -276,7 +304,6 @@ namespace Microsoft {
             /// </summary>
             bool EventProperty::operator==(const EventProperty& source) const
             {
-
                 if (piiKind != source.piiKind)
                 {
                     return false;
@@ -330,7 +357,39 @@ namespace Microsoft {
                         }
                         break;
                     }
+                    case TYPE_INT64_ARRAY:
+                    {
+                        if (*as_longArray == *source.as_longArray)
+                        {
+                            return true;
+                        }
+                        break;
+                    }
 
+                    case TYPE_DOUBLE_ARRAY:
+                    {
+                        if (*as_doubleArray == *source.as_doubleArray)
+                        {
+                            return true;
+                        }
+                        break;
+                    }
+                    case TYPE_GUID_ARRAY:
+                    {
+                        if (*as_guidArray == *source.as_guidArray)
+                        {
+                            return true;
+                        }
+                        break;
+                    }
+                    case TYPE_STRING_ARRAY:
+                    {
+                        if (*as_stringArray == *source.as_stringArray)
+                        {
+                            return true;
+                        }
+                        break;
+                    }
                     }
                 }
                 return false;
@@ -343,13 +402,7 @@ namespace Microsoft {
             {
                 clear();
                 memcpy((void*)this, (void*)&source, sizeof(EventProperty));
-                if (type == TYPE_STRING)
-                {
-                    size_t len = strlen(source.as_string);
-                    as_string = new char[len + 1];
-                    memcpy((void*)as_string, (void*)source.as_string, len);
-                    as_string[len] = 0;
-                }
+                copydata(&source);
                 return (*this);
             }
 
@@ -397,6 +450,14 @@ namespace Microsoft {
                     return "bool";
                 case TYPE_GUID:
                     return "guid";
+                case TYPE_INT64_ARRAY:
+                    return "int64Array";
+                case TYPE_DOUBLE_ARRAY:
+                    return "doubleArray";
+                case TYPE_GUID_ARRAY:
+                    return "guidArray";
+                case TYPE_STRING_ARRAY:
+                    return "stringArray";
                 default:
                     return "unknown";
                 }
@@ -462,17 +523,94 @@ namespace Microsoft {
                 return (*this);
             }
 
+            EventProperty& EventProperty::operator=(std::vector<int64_t> value)
+            {
+                clear();
+                type = TYPE_INT64_ARRAY;
+                as_longArray = new std::vector<int64_t>(value);
+                return (*this);
+            }
+
+            EventProperty& EventProperty::operator=(std::vector<double> value)
+            {
+                clear();
+                type = TYPE_DOUBLE_ARRAY;
+                as_doubleArray = new std::vector<double>(value);
+                return (*this);
+            }
+            EventProperty& EventProperty::operator=(std::vector<GUID_t> value)
+            {
+                clear();
+                type = TYPE_GUID_ARRAY;
+                as_guidArray = new std::vector<GUID_t>(value);
+                return (*this);
+            }
+            EventProperty& EventProperty::operator=(std::vector<std::string> value)
+            {
+                clear();
+                type = TYPE_STRING_ARRAY;
+                as_stringArray = new std::vector<std::string>(value);
+                return (*this);
+            }
+
             /// <summary>
             /// Clears value object, deallocating memory if needed
             /// </summary>
-            void EventProperty::clear() {
-                if (type == TYPE_STRING) {
-                    if (as_string != NULL) {
+            void EventProperty::clear() 
+            {
+                switch (type)
+                {
+                case TYPE_STRING:
+                {
+                    if (as_string != NULL)
+                    {
                         delete as_string;
                         as_string = NULL;
                     }
+                    break;
+                }
+                case TYPE_INT64_ARRAY:
+                {
+                    if (as_longArray != NULL)
+                    {
+                        delete as_longArray;
+                        as_longArray = NULL;
+                    }
+                    break;
+                }
+
+                case TYPE_DOUBLE_ARRAY:
+                {
+                    if (as_doubleArray != NULL)
+                    {
+                        delete as_doubleArray;
+                        as_doubleArray = NULL;
+                    }
+                    break;
+                }
+                case TYPE_GUID_ARRAY:
+                {
+                    if (as_guidArray != NULL)
+                    {
+                        delete as_guidArray;
+                        as_guidArray = NULL;
+                    }
+                    break;
+                }
+                case TYPE_STRING_ARRAY:
+                {
+                    if (as_stringArray != NULL)
+                    {
+                        delete as_stringArray;
+                        as_stringArray = NULL;
+                    }
+                    break;
+                }
+                default:
+                    break;// nothing to delete
                 }
                 piiKind = PiiKind::PiiKind_None;
+                dataCategory = DataCategory_PartC;
             }
 
             /// EventProperty destructor
@@ -588,6 +726,37 @@ namespace Microsoft {
                 return ((type == TYPE_STRING) && (strlen(as_string) == 0));
             }
 
+            EventProperty::EventProperty(std::vector<int64_t>& value, PiiKind piiKind, DataCategory category):
+                type(TYPE_INT64_ARRAY),
+                piiKind(piiKind),
+                dataCategory(category)
+            {
+                as_longArray = new std::vector<int64_t>(value);
+            }
+            
+            EventProperty::EventProperty(std::vector<double>& value, PiiKind piiKind, DataCategory category):
+                type(TYPE_DOUBLE_ARRAY),
+                piiKind(piiKind),
+                dataCategory(category)
+            {
+                as_doubleArray = new std::vector<double>(value);
+
+            }
+            EventProperty::EventProperty(std::vector<GUID_t>& value, PiiKind piiKind, DataCategory category):
+                type(TYPE_GUID_ARRAY),
+                piiKind(piiKind),
+                dataCategory(category)
+            {
+                as_guidArray = new std::vector<GUID_t>(value);
+            }
+            EventProperty::EventProperty(std::vector<std::string>& value, PiiKind piiKind, DataCategory category):
+                type(TYPE_STRING_ARRAY),
+                piiKind(piiKind),
+                dataCategory(category)
+            {
+                as_stringArray = new std::vector<std::string>(value);
+            }
+
             /// <summary>Return a string representation of this value object</summary>
             std::string EventProperty::to_string() const {
                 std::string result;
@@ -611,6 +780,66 @@ namespace Microsoft {
                 case TYPE_GUID:
                     result = as_guid.to_string();
                     break;
+                case TYPE_INT64_ARRAY:
+                {
+                    if (as_longArray != NULL)
+                    {
+                        stringstream ss;
+                        for (int64_t element : *as_longArray)
+                        {
+                            ss << element;
+                            ss << ",";
+                        }
+                        string s = ss.str();
+                        result = s.substr(0, s.length() - 1);  // get rid of the trailing space
+                    }
+                    break;
+                }
+                case TYPE_DOUBLE_ARRAY:
+                {
+                    if (as_doubleArray != NULL)
+                    {
+                        stringstream ss;
+                        for (double element : *as_doubleArray)
+                        {
+                            ss << element;
+                            ss << ",";
+                        }
+                        string s = ss.str();
+                        result = s.substr(0, s.length() - 1);  // get rid of the trailing space
+                    }
+                    break;
+                }
+                case TYPE_GUID_ARRAY:
+                {
+                    if (as_guidArray != NULL)
+                    {
+                       stringstream ss;
+                        for (GUID_t element : *as_guidArray)
+                        {
+                            ss << element.to_string();
+                            ss << ",";
+                        }
+                        string s = ss.str();
+                        result = s.substr(0, s.length() - 1);  // get rid of the trailing space
+                    }
+                    break;
+                }
+                case TYPE_STRING_ARRAY:
+                {
+                    if (as_stringArray != NULL)
+                    {
+                        stringstream ss;
+                        for (std::string element : *as_stringArray)
+                        {
+                            ss << element;
+                            ss << ",";
+                        }
+                        string s = ss.str();
+                        result = s.substr(0, s.length() - 1);  // get rid of the trailing space
+                    }
+                    break;
+                }
                 default:
                     result = "";
                     break;

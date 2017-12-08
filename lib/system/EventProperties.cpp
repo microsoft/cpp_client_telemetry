@@ -367,6 +367,11 @@ namespace Microsoft {
             void EventProperties::SetProperty(const std::string& name, time_ticks_t value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
             void EventProperties::SetProperty(const std::string& name, GUID_t       value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
 
+            void EventProperties::SetProperty(const std::string& name, std::vector<int64_t>&     value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, std::vector<double>&      value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, std::vector<GUID_t>&      value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+            void EventProperties::SetProperty(const std::string& name, std::vector<std::string>& value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }
+
             const map<string, EventProperty>& EventProperties::GetProperties(DataCategory category) const
             {
                 if (category == DataCategory_PartC)

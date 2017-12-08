@@ -179,6 +179,14 @@ namespace Microsoft {
                     TYPE_BOOLEAN,
                     /// <summary>GUID</summary>
                     TYPE_GUID,
+                    /// <summary>String</summary>
+                    TYPE_STRING_ARRAY,
+                    /// <summary>64-bit signed integer</summary>
+                    TYPE_INT64_ARRAY,
+                    /// <summary>double</summary>
+                    TYPE_DOUBLE_ARRAY,
+                    /// <summary>GUID</summary>
+                    TYPE_GUID_ARRAY,
                 } type;
 
                 /// <summary>Event field Pii kind</summary>
@@ -192,24 +200,18 @@ namespace Microsoft {
                 /// </summary>
                 union
                 {
-                    char*  as_string;
+                    char*        as_string;
                     int64_t      as_int64;
                     double       as_double;
                     bool         as_bool;
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
-                }; // end of anonymous union for vs2013
-#endif
-                /* *** C++11 compatibility quirk of vs2013 ***
-                 * Unfortunately vs2013 is not fully C++11 compliant: it does not support complex
-                 * variant objects within anonymous union. So the structure has to occcupy more
-                 * RAM by placing these two members outside of the union.
-                 * The rest of code logic remains the same. */
                     GUID_t       as_guid;
                     time_ticks_t as_time_ticks;
-#if !(defined(_MSC_VER) && (_MSC_VER < 1900))
-                }; // end of anonymous union for other C++11 compilers (sigh)
-#endif
-
+                    std::vector<int64_t>*     as_longArray;
+                    std::vector<double>*      as_doubleArray;
+                    std::vector<GUID_t>*      as_guidArray;
+                    std::vector<std::string>* as_stringArray;
+                };
+                
                 /// <summary>Debug routine that returns string representation of type name</summary>
                 static const char *type_name(unsigned typeId);
             
@@ -261,6 +263,10 @@ namespace Microsoft {
                 EventProperty& operator=(uint16_t value); 
                 EventProperty& operator=(uint32_t value); 
                 EventProperty& operator=(uint64_t value); 
+                EventProperty& operator=(std::vector<int64_t> value);
+                EventProperty& operator=(std::vector<double> value);
+                EventProperty& operator=(std::vector<GUID_t> value);
+                EventProperty& operator=(std::vector<std::string> value);
 
                 /// <summary>
                 /// EventProperty assignment operator
@@ -357,11 +363,19 @@ namespace Microsoft {
                 EventProperty(uint32_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
                 EventProperty(uint64_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
 
+                EventProperty(std::vector<int64_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+                EventProperty(std::vector<double>& value,  PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+                EventProperty(std::vector<GUID_t>& value,  PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+                EventProperty(std::vector<std::string>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
                 /// <summary>Returns true whether the type is string AND the value is empty (i.e. whether its length is 0).</summary>
                 bool empty();
 
                 /// <summary>Return a string representation of this value object</summary>
                 virtual std::string to_string() const;
+
+            private:
+                void EventProperty::copydata(EventProperty const* source);
 
             };
 

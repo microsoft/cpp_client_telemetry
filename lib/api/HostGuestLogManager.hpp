@@ -167,7 +167,7 @@ class HostGuestLogManager : public ILogManager
     /// <summary>
     /// Get the Auth ticket controller.
     /// </summary>
-    virtual  IAuthTokensController*  GetAutheTokensController();
+    virtual  IAuthTokensController*  GetAuthTokensController();
 
   private:
       ARIASDK_LOG_DECL_COMPONENT_CLASS();

@@ -1770,12 +1770,12 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Value& value, bool isBase)
                         if (!reader.ReadContainerBegin(size6, type6)) {
                             return false;
                         }
-                        if (type6 != BT_INT64) {
+                        if (type6 != BT_UINT8) {
                             return false;
                         }
                         value.guidArray[i4][i5].resize(size6);
                         for (unsigned i6 = 0; i6 < size6; i6++) {
-                            if (!reader.ReadInt64(value.guidArray[i4][i5][i6])) {
+                            if (!reader.ReadUInt8(value.guidArray[i4][i5][i6])) {
                                 return false;
                             }
                         }

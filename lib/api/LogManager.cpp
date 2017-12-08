@@ -41,7 +41,7 @@ namespace Microsoft {
                     }
 					our_pLogManagerSingletonInstanceP = LogManagerProvider::GetLogManager("OldInterface",true,*our_LogConfigurationP, error);
                     our_LogController = our_pLogManagerSingletonInstanceP->GetLogController();
-                    our_AuthTokenController = our_pLogManagerSingletonInstanceP->GetAutheTokensController();
+                    our_AuthTokenController = our_pLogManagerSingletonInstanceP->GetAuthTokensController();
 				}
 
 				ILogger *result = our_pLogManagerSingletonInstanceP->GetLogger(tenantToken);

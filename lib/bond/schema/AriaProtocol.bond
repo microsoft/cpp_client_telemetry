@@ -251,7 +251,7 @@ struct Value
     10: optional vector<vector<string>> stringArray;
     11: optional vector<vector<int64>> longArray; // all vectors of integer types, data time, bool are represented here
     12: optional vector<vector<double>> doubleArray;
-    13: optional vector<vector<vector<int64>>> guidArray;
+    13: optional vector<vector<vector<uint8>>> guidArray;
 }
 
 struct Data
@@ -278,10 +278,10 @@ struct CsEvent
     27: optional vector<Xbl> extXbl;
     28: optional vector<Javascript> extJavascript;
     29: optional vector<Receipts> extReceipts;
-	31: optional vector<Net> extNet;	
-	32: optional vector<Sdk> extSdk;
-	33: optional vector<Loc> extLoc;
-	34: optional vector<Cloud> extCloud;
+    31: optional vector<Net> extNet;	
+    32: optional vector<Sdk> extSdk;
+    33: optional vector<Loc> extLoc;
+    34: optional vector<Cloud> extCloud;
     41: optional vector<Data> ext;
     51: optional map<string, string> tags;
     60: optional string baseType;

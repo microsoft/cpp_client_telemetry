@@ -140,6 +140,12 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         ::AriaProtocol::Net net;
         record.extNet.push_back(net);
     }
+
+    if (record.extProtocol.size() == 0)
+    {
+        ::AriaProtocol::Protocol proto;
+        record.extProtocol.push_back(proto);
+    }
     
     std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
     {
@@ -206,13 +212,13 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
         if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE) != m_commonContextFieldsP->end())
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MAKE];
-            record.extDevice[0].make = prop.as_string;
+            record.extProtocol[0].devMake = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end()) 
         {
             EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MODEL];
-            record.extDevice[0].model = prop.as_string;
+            record.extProtocol[0].devModel = prop.as_string;
         }
 
         if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_CLASS) != m_commonContextFieldsP->end()) 

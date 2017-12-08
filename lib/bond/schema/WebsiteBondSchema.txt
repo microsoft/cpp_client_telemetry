@@ -480,7 +480,7 @@ struct Value
     10: optional nullable<vector<string>> stringArray;
     11: optional nullable<vector<int64>> longArray; // all vectors of integer types, data time, bool are represented here
     12: optional nullable<vector<double>> doubleArray;
-    13: optional nullable<vector<vector<int64>>> guidArray;
+    13: optional nullable<vector<vector<uint8>>> guidArray;
 }
 
 struct Data

@@ -163,6 +163,6 @@ class ARIASDK_LIBABI ILogManager
     /// <summary>
     /// Set the Auth ticket controller
     /// </summary>
-    virtual IAuthTokensController*  GetAutheTokensController() = 0;
+    virtual IAuthTokensController*  GetAuthTokensController() = 0;
 };
 }}} // namespace Microsoft::Applications::Telemetry

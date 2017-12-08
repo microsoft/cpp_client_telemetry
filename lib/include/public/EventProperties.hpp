@@ -248,7 +248,31 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
 		/// All integer types are currently being converted to int64_t.
 		void SetProperty(const std::string& name, uint64_t     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC) { SetProperty(name, (int64_t)value, piiKind, category); }
 
-		/// <summary>
+        /// <summary>
+        /// Specify a property for an event.
+        /// It either creates a new property if none exists or overwrites the existing one.
+        /// </summary>
+        void SetProperty(const std::string& name, std::vector<std::string>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// Specify a property for an event.
+        /// It either creates a new property if none exists or overwrites the existing one.
+        /// </summary>
+        void SetProperty(const std::string& name, std::vector<GUID_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// Specify a property for an event.
+        /// It either creates a new property if none exists or overwrites the existing one.
+        /// </summary>
+        void SetProperty(const std::string& name, std::vector<double>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// Specify a property for an event.
+        /// It either creates a new property if none exists or overwrites the existing one.
+        /// </summary>
+        void SetProperty(const std::string& name, std::vector<int64_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+        
+        /// <summary>
 		/// Get the properties bag of an event.
 		/// </summary>
 		/// <returns>Properties bag of the event</returns>

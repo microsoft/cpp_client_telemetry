@@ -1197,9 +1197,9 @@ void Serialize(TWriter& writer, ::AriaProtocol::Value const& value, bool isBase)
         for (auto const& item2 : value.guidArray) {
             writer.WriteContainerBegin(item2.size(), BT_LIST);
             for (auto const& item3 : item2) {
-                writer.WriteContainerBegin(item3.size(), BT_INT64);
+                writer.WriteContainerBegin(item3.size(), BT_UINT8);
                 for (auto const& item4 : item3) {
-                    writer.WriteInt64(item4);
+                    writer.WriteUInt8(item4);
                 }
                 writer.WriteContainerEnd();
             }

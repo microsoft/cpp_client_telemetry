@@ -637,8 +637,8 @@ struct Value {
     std::vector<std::vector<int64_t>> longArray;
     // 12: optional vector<vector<double>> doubleArray
     std::vector<std::vector<double>> doubleArray;
-    // 13: optional vector<vector<vector<int64>>> guidArray
-    std::vector<std::vector<std::vector<int64_t>>> guidArray;
+    // 13: optional vector<vector<vector<uint8>>> guidArray
+    std::vector<std::vector<std::vector<uint8_t>>> guidArray;
 
     bool operator==(Value const& other) const
     {
