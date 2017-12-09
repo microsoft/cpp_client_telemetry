@@ -30,7 +30,7 @@ namespace Microsoft {
                 static ILogConfiguration& CreateLogConfiguration();
 
                 /// <summary> 
-                /// Gets the LogManager.  The passed in configuration is used to 
+                /// Creates the LogManager.  The passed in configuration is used to 
                 /// initialize the telemetry system, if it hasn't been initialized. 
                 /// If the telemetry system was already initialized then the passed in 
                 /// configuration is ignored. 
@@ -40,23 +40,32 @@ namespace Microsoft {
                 /// <param name="status">Status.</param> 
                 /// <param name="wantController">WantController.</param> 
                 /// </summary> 
-                static ILogManager* GetLogManager(char const* apiKey,
-                                                  bool wantController,
-                                                  ILogConfiguration& logConfiguration,
-                                                  ACTStatus& status,
-                                                  uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* CreateLogManager(char const* apiKey,
+                                                     bool wantController,
+                                                     ILogConfiguration& logConfiguration,
+                                                     ACTStatus& status,
+                                                     uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
-                /// Gets the LogManager with the current configuration. 
+                /// Creates the LogManager with the current configuration. 
                 /// The same ILogManager is returned for the same apiKey specified. 
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 
                 /// <param name="wantController">WantController.</param> 
                 /// </summary> 
-                static ILogManager* GetLogManager(char const* apiKey, bool wantController, ACTStatus& status,  uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* CreateLogManager(char const* apiKey, bool wantController, ACTStatus& status,  uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
-                /// Gets the LogManager with the current configuration. 
+                /// Creates the LogManager with the current configuration. 
+                /// The same ILogManager is returned for the same apiKey specified. 
+                /// <param name="apiKey">API Key.</param> 
+                /// <param name="status">Status.</param> 
+                /// </summary> 
+                static ILogManager* CreateLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
+
+
+                /// <summary> 
+                /// Gets the LogManager with the current configuration. This does not create the a log manager, only return exists one or nullptr 
                 /// The same ILogManager is returned for the same apiKey specified. 
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 

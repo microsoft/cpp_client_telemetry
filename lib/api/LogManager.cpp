@@ -39,7 +39,7 @@ namespace Microsoft {
                     {
                         our_LogConfigurationP->SetProperty(CFG_STR_CACHE_FILE_PATH, tenantToken.c_str());
                     }
-					our_pLogManagerSingletonInstanceP = LogManagerProvider::GetLogManager("OldInterface",true,*our_LogConfigurationP, error);
+					our_pLogManagerSingletonInstanceP = LogManagerProvider::CreateLogManager("OldInterface",true,*our_LogConfigurationP, error);
                     our_LogController = our_pLogManagerSingletonInstanceP->GetLogController();
                     our_AuthTokenController = our_pLogManagerSingletonInstanceP->GetAuthTokensController();
 				}

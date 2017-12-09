@@ -31,11 +31,11 @@ namespace Microsoft {
                 return *temp;
             }
 
-            ILogManager* LogManagerProvider::GetLogManager(char const* apiKey,
-                                                           bool wantController,
-                                                           ILogConfiguration& logConfiguration,
-                                                           ACTStatus& status,
-                                                           uint32_t targetVersion)
+            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey,
+                                                              bool wantController,
+                                                              ILogConfiguration& logConfiguration,
+                                                              ACTStatus& status,
+                                                              uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[2]: apiKey=%s, configuration=0x%X", apiKey, logConfiguration);
 
@@ -68,7 +68,7 @@ namespace Microsoft {
                 return our_LogManagers[apiKey].hostLogManager;
             }
 
-            ILogManager* LogManagerProvider::GetLogManager(char const* apiKey, bool wantController, ACTStatus& status, uint32_t targetVersion)
+            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, bool wantController, ACTStatus& status, uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
                 if (!apiKey)
@@ -79,6 +79,7 @@ namespace Microsoft {
                 if (CurrentTargetVersion != targetVersion)
                 {
                     status = ACTStatus::ACTStatus_NotSupported;
+                    return nullptr;
                 }
 
                 {
@@ -100,6 +101,12 @@ namespace Microsoft {
                 return our_LogManagers[apiKey].hostLogManager;
             }
 
+            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion)
+            {
+                ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
+                return LogManagerProvider::CreateLogManager(apiKey, false, status, targetVersion);
+            }   
+
             ILogManager* LogManagerProvider::GetLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
@@ -111,26 +118,21 @@ namespace Microsoft {
                 if (CurrentTargetVersion != targetVersion)
                 {
                     status = ACTStatus::ACTStatus_NotSupported;
+                    return nullptr;
                 }
 
                 {
                     std::lock_guard<std::mutex> lock(*our_LogManagerProviderlockP);
-                    if (our_LogManagers.find(apiKey) == our_LogManagers.end())
+                    if (our_LogManagers.find(apiKey) != our_LogManagers.end())
                     {
-                        hostLogManagerHolder temp;
-                        temp.hostLogManager = new HostGuestLogManager(nullptr, false);
-                        temp.refcount = 1;
-                        our_LogManagers[apiKey] = temp;
-                    }
-                    else
-                    {
-                        our_LogManagers[apiKey].refcount++;
+                        status = ACTStatus::ACTStatus_OK;
+                        return our_LogManagers[apiKey].hostLogManager;
                     }
                 }
-                
-                status = ACTStatus::ACTStatus_OK;
-                return our_LogManagers[apiKey].hostLogManager;
-            }   
+                status = ACTStatus::ACTStatus_Fail;
+
+                return nullptr;
+            }
 
             ACTStatus LogManagerProvider::DestroyLogManager(char const* apiKey)
             {

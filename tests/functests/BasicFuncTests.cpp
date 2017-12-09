@@ -189,8 +189,8 @@ class BasicFuncTests : public ::testing::Test,
     void verifyEvent(EventProperties const& expected, ::AriaProtocol::CsEvent const& actual)
     {
         EXPECT_THAT(actual.name, Not(IsEmpty()));
-        int64_t now = PAL::getUtcSystemTimeMs();
-        EXPECT_THAT(actual.time, Gt(now - 60000));
+        int64_t now = PAL::getUtcSystemTimeinTicks();
+        EXPECT_THAT(actual.time, Gt(now - 60000000000));
         EXPECT_THAT(actual.time, Le(now));
         EXPECT_THAT(actual.baseType, expected.GetName());
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
@@ -225,20 +225,82 @@ class BasicFuncTests : public ::testing::Test,
                     }                    
                     case ::AriaProtocol::ValueGuid:
                     {
-                        //EXPECT_THAT(temp.guidValue, prop.second.as_guid.to_bytes);
+                        uint8_t guid_bytes[16] = { 0 };
+                        prop.second.as_guid.to_bytes(guid_bytes);
+                        std::vector<uint8_t> guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+                        
+                        EXPECT_THAT(temp.guidValue[0].size(), guid.size());
+                        for (size_t index = 0; index < guid.size(); index++)
+                        {
+                            UINT8 val1 = temp.guidValue.at(0).at(index);
+                            UINT8 val2 = guid[index];
+                            EXPECT_THAT(val1, val2 );
+                        }
                         break;
                     }
-
                     case ::AriaProtocol::ValueArrayInt64:
                     case ::AriaProtocol::ValueArrayUInt64:
                     case ::AriaProtocol::ValueArrayInt32:
                     case ::AriaProtocol::ValueArrayUInt32:
-                    case ::AriaProtocol::ValueArrayDouble:
-                    case ::AriaProtocol::ValueArrayString:
                     case ::AriaProtocol::ValueArrayBool:
                     case ::AriaProtocol::ValueArrayDateTime:
+                    {                        
+                        std::vector<int64_t>& vectror = temp.longArray.at(0);
+                        EXPECT_THAT(vectror.size(), prop.second.as_longArray->size());
+                        for (size_t index = 0; index < prop.second.as_longArray->size(); index++)
+                        {
+                           uint64_t val1 = vectror.at(index);
+                           uint64_t val2 = prop.second.as_longArray->at(index);
+                           EXPECT_THAT(val1, val2);
+                        }
+
+                        break;
+                    }                   
+                    case ::AriaProtocol::ValueArrayDouble:
+                    {
+                        std::vector<double>& vectror = temp.doubleArray.at(0);
+                        EXPECT_THAT(vectror.size(), prop.second.as_doubleArray->size());
+                        for (size_t index = 0; index < prop.second.as_doubleArray->size(); index++)
+                        {
+                            double val1 = vectror.at(index);
+                            double val2 = prop.second.as_doubleArray->at(index);
+                            EXPECT_THAT(val1, val2);
+                        }
+
+                        break;
+                    }
+                    case ::AriaProtocol::ValueArrayString:
+                    {
+                        std::vector<std::string>& vectror = temp.stringArray.at(0);
+                        EXPECT_THAT(vectror.size(), prop.second.as_stringArray->size());
+                        for (size_t index = 0; index < prop.second.as_stringArray->size(); index++)
+                        {
+                            std::string val1 = vectror.at(index);
+                            std::string val2 = prop.second.as_stringArray->at(index);
+                            EXPECT_THAT(val1, val2);
+                        }
+                        break;
+                    }
                     case ::AriaProtocol::ValueArrayGuid:
                     {
+                       // EXPECT_THAT(temp.guidArray, prop.second.as_guidArray);
+                        std::vector<std::vector<uint8_t>>& vectror = temp.guidArray.at(0);
+                        EXPECT_THAT(vectror.size(), prop.second.as_guidArray->size());
+                        for (size_t index = 0; index < prop.second.as_guidArray->size(); index++)
+                        {
+                            uint8_t guid_bytes[16] = { 0 };
+                            prop.second.as_guidArray->at(index).to_bytes(guid_bytes);
+                            std::vector<uint8_t> guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+
+                            EXPECT_THAT(vectror.at(index).size(), guid.size());
+                            for (size_t index1 = 0; index1 < guid.size(); index1++)
+                            {
+                                UINT8 val1 = vectror.at(index).at(index1);
+                                UINT8 val2 = guid[index1];
+                                EXPECT_THAT(val1, val2);
+                            }
+                        }
+
                         break;
                     }
                     default:
@@ -305,12 +367,9 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     waitForEvents(50, 3);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-    //ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    //ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    //auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    //ASSERT_THAT(dp.Records, SizeIs(2));
-    //verifyEvent(event, dp.Records[0]);
-    //verifyEvent(event2, dp.Records[1]);
+    ASSERT_THAT(payload, SizeIs(3));
+    verifyEvent(event, payload[1]);
+    verifyEvent(event2,payload[2]);
 }
 
 TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
@@ -318,6 +377,25 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
+    std::vector<int64_t> intvector(8);
+    std::fill(intvector.begin(), intvector.begin() + 4, 5);
+    std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
+    event.SetProperty("property1", intvector);
+
+    std::vector<double> dvector(8);
+    std::fill(dvector.begin(), dvector.begin() + 4, 4.9999);
+    std::fill(dvector.begin() + 3, dvector.end() - 2, 7.9999);
+    event.SetProperty("property2", dvector);
+
+    std::vector<std::string> svector(8);
+    std::fill(svector.begin(), svector.begin() + 4, "string");
+    std::fill(svector.begin() + 3, svector.end() - 2, "string2");
+    event.SetProperty("property3", svector);
+
+    std::vector<GUID_t> gvector(8);
+    std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
+    std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
+    event.SetProperty("property4", gvector);
 
     
     logger->LogEvent(event);
@@ -334,14 +412,10 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
 
     waitForEvents(50, 3);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-/*
-    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(2));
-    verifyEvent(event, dp.Records[0]);
-    verifyEvent(event2, dp.Records[1]);
-    */
+ 
+    ASSERT_THAT(payload, SizeIs(3));
+    verifyEvent(event, payload[1]);
+    verifyEvent(event2, payload[2]);
 }
 
 TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
@@ -367,21 +441,9 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     waitForEvents(50, 3);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
- //   ASSERT_THAT(payload1.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-//    ASSERT_THAT(payload1.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-//    auto const& dp1 = payload1.TokenToDataPackagesMap["functests-tenant-token"][0];
-//    ASSERT_THAT(dp1.Records, SizeIs(2));
-//    verifyEvent(event2, dp1.Records[0]);
-//	verifyEvent(event, dp1.Records[1]);
-
-	/*
-    auto payload2 = decodeRequest(receivedRequests[1], false);
-    ASSERT_THAT(payload2.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    ASSERT_THAT(payload2.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    auto const& dp2 = payload2.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp2.Records, SizeIs(1));
-    verifyEvent(event, dp2.Records[0]);
-	*/
+    ASSERT_THAT(payload, SizeIs(3));
+    verifyEvent(event2, payload[1]);
+	verifyEvent(event, payload[2]);
 }
 
 TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
@@ -400,15 +462,10 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     waitForEvents(50, 3);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-//    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-//    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-//    auto const& dp1 = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-//    ASSERT_THAT(dp1.Records, SizeIs(1));
-//    verifyEvent(event1, dp1.Records[0]);
+    ASSERT_THAT(payload, SizeIs(3));
+    verifyEvent(event1, payload[1]);
+    verifyEvent(event2, payload[2]);
 
-//    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests2-tenant-token")));
-//    ASSERT_THAT(payload.TokenToDataPackagesMap["functests2-tenant-token"], SizeIs(1));
- //   auto const& dp2 = payload.TokenToDataPackagesMap["functests2-tenant-token"][0];
  //   ASSERT_THAT(dp2.Records, SizeIs(1));
 //    verifyEvent(event2, dp2.Records[0]);
 }
@@ -431,16 +488,12 @@ TEST_F(BasicFuncTests, configDecorations)
     waitForEvents(50, 5);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-/*    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-//    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-//    auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(4));
-    EXPECT_THAT(dp.Records[0].Extension, Not(Contains(Key("AppInfo.Decoration"))));
-    EXPECT_THAT(dp.Records[1].Extension, Contains(Pair("AppInfo.Decoration", "123")));
-    EXPECT_THAT(dp.Records[2].Extension, Contains(Pair("AppInfo.Decoration", "abcdef")));
-    EXPECT_THAT(dp.Records[2].Extension, Contains(Pair("AppInfo.EventName",  "third_event")));
-    EXPECT_THAT(dp.Records[3].Extension, Contains(Pair("AppInfo.EventName",  "AppLifecycle")));
-*/
+    ASSERT_THAT(payload, SizeIs(5));
+
+    verifyEvent(event, payload[1]);
+    verifyEvent(event2, payload[2]);
+    verifyEvent(event3, payload[3]);
+    verifyEvent(event4, payload[4]);
 }
 
 TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
@@ -481,9 +534,9 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(2));
-    verifyEvent(event1, dp.Records[0]);
-    verifyEvent(event2, dp.Records[1]);
+    ASSERT_THAT(payload, SizeIs(2));
+    verifyEvent(event1, payload[0]);
+    verifyEvent(event2, payload[1]);
     */
 }
 
@@ -523,9 +576,9 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(2));
-    verifyEvent(event1, dp.Records[0]);
-    verifyEvent(event2, dp.Records[1]);
+    ASSERT_THAT(payload, SizeIs(2));
+    verifyEvent(event1, payload[0]);
+    verifyEvent(event2, payload[1]);
     */
 }
 
@@ -620,13 +673,13 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 /*    auto payload = decodeRequest(receivedRequests[0], false);
     ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(2));
-    EXPECT_THAT(dp.Records[0].Id, Not(IsEmpty()));
-    EXPECT_THAT(dp.Records[0].Type, Eq("client_telemetry"));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+    ASSERT_THAT(payload, SizeIs(2));
+    EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+    EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
     // The expected number of dropped events is hard to estimate because of database overhead,
     // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
     */
 }
 
@@ -660,11 +713,11 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
     ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(2));
-    EXPECT_THAT(dp.Records[1].Id, Not(IsEmpty()));
-    EXPECT_THAT(dp.Records[1].Type, Eq("client_telemetry"));
-    EXPECT_THAT(dp.Records[1].Extension, Contains(Pair("records_received_count", "3")));
-    EXPECT_THAT(dp.Records[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
+    ASSERT_THAT(payload, SizeIs(2));
+    EXPECT_THAT(payload[1].Id, Not(IsEmpty()));
+    EXPECT_THAT(payload[1].Type, Eq("client_telemetry"));
+    EXPECT_THAT(payload[1].Extension, Contains(Pair("records_received_count", "3")));
+    EXPECT_THAT(payload[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
     */
 }
 
@@ -742,11 +795,11 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     waitForEvents(100, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(1));
-    EXPECT_THAT(dp.Records[0].Id, Not(IsEmpty()));
-    EXPECT_THAT(dp.Records[0].Type, Eq("client_telemetry"));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
+    ASSERT_THAT(payload, SizeIs(1));
+    EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+    EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
     */
 }
 
@@ -773,10 +826,10 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
 /*    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("metastats-tenant-token")));
     ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
     auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(dp.Records, SizeIs(1));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("records_received_count", "2")));
-    EXPECT_THAT(dp.Records[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
+    ASSERT_THAT(payload, SizeIs(1));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_received_count", "2")));
+    EXPECT_THAT(payload[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
 
     // Wait a few more seconds to see that no more events are being sent.
     PAL::sleep(3500);

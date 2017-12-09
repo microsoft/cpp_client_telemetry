@@ -535,15 +535,15 @@ ILogger* init() {
 
     std::cout << "GuestLogManager::Initialize..." << endl;
     
-    guest = LogManagerProvider::GetLogManager("test",false,error);
+    guest = LogManagerProvider::CreateLogManager("test",false,error);
     std::cout << "GuestLogManager::Initialized..." << endl;
 
     std::cout << "GuestLogManager2::Initialize..." << endl;
-    guest1 = LogManagerProvider::GetLogManager("test1", false, error);
+    guest1 = LogManagerProvider::CreateLogManager("test1", false, error);
     std::cout << "GuestLogManager2::Initialized..." << endl;
 
     std::cout << "HostLogManager::Initialize..." << endl;
-    host = LogManagerProvider::GetLogManager("host", true, configuration, error);
+    host = LogManagerProvider::CreateLogManager("host", true, configuration, error);
 
     // Apply the profile before initialize
     host->GetLogController()->SetTransmitProfile("Office_Telemetry_TenSeconds");
