@@ -423,6 +423,25 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
+    std::vector<int64_t> intvector(8);
+    std::fill(intvector.begin(), intvector.begin() + 4, 5);
+    std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
+    event.SetProperty("property1", intvector);
+
+    std::vector<double> dvector(8);
+    std::fill(dvector.begin(), dvector.begin() + 4, 4.9999);
+    std::fill(dvector.begin() + 3, dvector.end() - 2, 7.9999);
+    event.SetProperty("property2", dvector);
+
+    std::vector<std::string> svector(8);
+    std::fill(svector.begin(), svector.begin() + 4, "string");
+    std::fill(svector.begin() + 3, svector.end() - 2, "string2");
+    event.SetProperty("property3", svector);
+
+    std::vector<GUID_t> gvector(8);
+    std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
+    std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
+    event.SetProperty("property4", gvector);
 
     
     logger->LogEvent(event);
@@ -450,6 +469,25 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 {
     EventProperties event1("first_event");
     event1.SetProperty("property", "value");
+    std::vector<int64_t> intvector(8);
+    std::fill(intvector.begin(), intvector.begin() + 4, 5);
+    std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
+    event.SetProperty("property1", intvector);
+
+    std::vector<double> dvector(8);
+    std::fill(dvector.begin(), dvector.begin() + 4, 4.9999);
+    std::fill(dvector.begin() + 3, dvector.end() - 2, 7.9999);
+    event.SetProperty("property2", dvector);
+
+    std::vector<std::string> svector(8);
+    std::fill(svector.begin(), svector.begin() + 4, "string");
+    std::fill(svector.begin() + 3, svector.end() - 2, "string2");
+    event.SetProperty("property3", svector);
+
+    std::vector<GUID_t> gvector(8);
+    std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
+    std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
+    event.SetProperty("property4", gvector);
 
     logger->LogEvent(event1);
 
