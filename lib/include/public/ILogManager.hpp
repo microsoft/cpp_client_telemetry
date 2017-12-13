@@ -3,7 +3,6 @@
 #pragma once
 #include "Version.hpp"
 #include "Enums.hpp"
-#include "DebugEvents.hpp"
 #include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
 #include "ISemanticContext.hpp"

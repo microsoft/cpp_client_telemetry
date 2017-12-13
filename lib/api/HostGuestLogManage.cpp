@@ -15,12 +15,9 @@ HostGuestLogManager::HostGuestLogManager(LogConfiguration* config, bool wantCont
     ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (wantController)
-        {
-            if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(config, wantController))
-            {//create controller, wanted host and created as host
-                m_logController = new LogController();
-            }
+        if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(config, wantController) && wantController)
+        {//create controller, wanted host and created as host
+             m_logController = new LogController();
         }
         m_context.reset(new ContextFieldsProvider(nullptr));
     }
@@ -32,12 +29,9 @@ HostGuestLogManager::HostGuestLogManager(bool wantController)
     ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (wantController)
-        {
-            if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(nullptr, wantController))
-            {//create controller, wanted host and created as host
-                m_logController = new LogController();
-            }
+        if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(nullptr, wantController) && wantController)
+        {//create controller, wanted host and created as host
+            m_logController = new LogController();
         }
         m_context.reset(new ContextFieldsProvider(nullptr));
     }

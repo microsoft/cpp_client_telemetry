@@ -285,14 +285,17 @@ namespace Microsoft {
                 /// <param name="value">A uint32_t that contains the value.</param>
                 inline ACTStatus SetProperty(const char *key, uint32_t value) { return SetIntProperty(key, value); };
 
+#ifdef _WIN32
                 /// <summary>
                 /// Property access [] operator to assign Aria config properties
                 /// </summary>
                 ///
                 virtual ConfigKey operator[](const char *key);
+#endif            
 
             };
 
+#ifdef _WIN32
             /// <summary>
             /// Internal temporary helper class to facilitate ILogConfiguration[] property assignment
             /// </summary>
@@ -345,6 +348,7 @@ namespace Microsoft {
                 }
 
             };
+#endif  
 
 
         }

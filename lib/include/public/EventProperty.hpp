@@ -375,7 +375,7 @@ namespace Microsoft {
                 virtual std::string to_string() const;
 
             private:
-                void EventProperty::copydata(EventProperty const* source);
+                void copydata(EventProperty const* source);
 
             };
 

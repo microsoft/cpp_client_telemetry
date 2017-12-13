@@ -1,9 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#pragma once
+#ifndef ARIA_ILOG_CONTROLLER_HPP
+#define ARIA_ILOG_CONTROLLER_HPP
 #include "Version.hpp"
 #include "Enums.hpp"
+#ifdef _WIN32
 #include "DebugEvents.hpp"
+#endif
 #include "ILogger.hpp"
 #include <string>
 
@@ -84,7 +87,7 @@ namespace Microsoft {
                 /// Reset transmission profiles to default settings
                 /// </summary>
                 virtual const std::string& GetTransmitProfileName() = 0;
-
+#ifdef _WIN32
                 /// <summary>
                 /// Add Debug callback
                 /// </summary>
@@ -94,7 +97,10 @@ namespace Microsoft {
                 /// Remove Debug callback
                 /// </summary>
                 virtual void RemoveEventListener(DebugEventType type, DebugEventListener &listener) = 0;
+#endif
             };
         }
     }
 } // namespace Microsoft::Applications::Telemetry
+
+#endif //ARIA_ILOG_CONTROLLER_HPP

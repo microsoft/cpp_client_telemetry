@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#pragma once
+#ifndef ARIA_HOSTGUEST_LOGMANAGER_HPP
+#define ARIA_HOSTGUEST_LOGMANAGER_HPP
+
 #include "Version.hpp"
 #include "Enums.hpp"
 #include "ILogManager.hpp"
@@ -179,3 +181,4 @@ class HostGuestLogManager : public ILogManager
 
 
 }}} // namespace Microsoft::Applications::Telemetry
+#endif //ARIA_HOSTGUEST_LOGMANAGER_HPP

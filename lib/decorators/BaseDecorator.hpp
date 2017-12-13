@@ -52,8 +52,6 @@ class BaseDecorator : public DecoratorBase {
             record.extSdk.push_back(sdk);
         }
       
-
-        //record.Id         = PAL::generateUuidString();
         record.time       = PAL::getUtcSystemTimeinTicks();       
         record.ver = "3.0";        
         if (record.baseType.empty())
@@ -61,15 +59,11 @@ class BaseDecorator : public DecoratorBase {
             record.baseType = record.name;
         }     
 
-      
-        //if (record.data.size() == 0) {        AriaProtocol::Data temp;            record.data.push_back(temp);        }
-        //setIfNotEmpty(record.data[0].properties,            EventInfo_Source,     *m_sourceP);
-        //setIfNotEmpty(record.data[0].properties,            COMMONFIELDS_EVENT_TIME,       PAL::formatUtcTimestampMsAsISO8601(record.time));
-        //setIfNotEmpty(record.data[0].properties,            EventInfo_InitId,     *m_initIdP);
         record.extSdk[0].seq = ++m_sequenceId;        
         record.extSdk[0].epoch = *m_initIdP;
         std::string sdkVersion = PAL::getSdkVersion();
         record.extSdk[0].libVer = sdkVersion;
+        record.extSdk[0].installId = CommonLogManagerInternal::GetLogSessionData()->getSessionSDKUid();
 
 
         //set Tickets

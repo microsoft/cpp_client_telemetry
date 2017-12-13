@@ -44,6 +44,11 @@ namespace Microsoft {
                                                      bool wantController,
                                                      ILogConfiguration& logConfiguration,
                                                      ACTStatus& status,
+#ifdef ANDROID
+                                                     JNIEnv *env,
+                                                     jclass contextClass,
+                                                     jobject  contextObject,
+#endif
                                                      uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
@@ -53,7 +58,15 @@ namespace Microsoft {
                 /// <param name="status">Status.</param> 
                 /// <param name="wantController">WantController.</param> 
                 /// </summary> 
-                static ILogManager* CreateLogManager(char const* apiKey, bool wantController, ACTStatus& status,  uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* CreateLogManager(char const* apiKey, 
+                                                     bool wantController, 
+                                                     ACTStatus& status,  
+#ifdef ANDROID
+                                                     JNIEnv *env,
+                                                     jclass contextClass,
+                                                     jobject  contextObject,
+#endif
+                                                     uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
                 /// Creates the LogManager with the current configuration. 
@@ -61,7 +74,14 @@ namespace Microsoft {
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 
                 /// </summary> 
-                static ILogManager* CreateLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* CreateLogManager(char const* apiKey, 
+                                                     ACTStatus& status, 
+#ifdef ANDROID
+                                                     JNIEnv *env,
+                                                     jclass contextClass,
+                                                     jobject  contextObject,
+#endif
+                                                     uint32_t targetVersion = CurrentTargetVersion);
 
 
                 /// <summary> 
@@ -81,4 +101,4 @@ namespace Microsoft {
         }
     }
 }
-#endif //ARIA_LOGMANAGER_H
+#endif //ARIA_LOGMANAGER_PROVIDER_HPP

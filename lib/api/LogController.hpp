@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#pragma once
+#ifndef ARIA_LOG_CONTROLLER_HPP
+#define ARIA_LOG_CONTROLLER_HPP
 #include "Version.hpp"
 #include "Enums.hpp"
 #include "ILogController.hpp"
@@ -101,3 +102,4 @@ class LogController : public ILogController
 
 
 }}} // namespace Microsoft::Applications::Telemetry
+#endif //ARIA_LOG_CONTROLLER_HPP
