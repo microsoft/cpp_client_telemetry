@@ -31,6 +31,7 @@ namespace PAL {
         OsArchitectureType m_os_architecture;
         PowerSource m_powerSource;
         InformatonProviderImpl m_info_helper;
+        int          m_registredCount;
         // Disable copy constructor and assignment operator.
         DeviceInformationImpl(DeviceInformationImpl const& other);
         DeviceInformationImpl& operator=(DeviceInformationImpl const& other);

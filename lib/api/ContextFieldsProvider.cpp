@@ -31,16 +31,7 @@ ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
 {
     if (!m_parent) 
     {
-        PAL::registerSemanticContext(this);        
-        LogSessionData* sessionData = CommonLogManagerInternal::GetLogSessionData();
-        if (sessionData)
-        {
-            setCommonField("act_session_id", CommonLogManagerInternal::GetLogSessionData()->getSessionSDKUid());
-        }
-        else
-        {
-            setCommonField("act_session_id", PAL::generateUuidString());
-        }
+        PAL::registerSemanticContext(this);
     }
 }
 

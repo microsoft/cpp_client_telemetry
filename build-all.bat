@@ -20,11 +20,14 @@ echo ***************************************************************************
 echo ** Creating Win32 Debug ...                                                                      **
 echo ***************************************************************************************************
 echo ***************************************************************************************************
+msbuild zlib\contrib\vstudio\vc14\zlibvc.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
+msbuild Solutions\net40\net40.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild Solutions\tests\functests\FuncTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
 
@@ -34,11 +37,16 @@ echo ***************************************************************************
 echo ** Creating Win32 Release ...                                                                    **
 echo ***************************************************************************************************
 echo ***************************************************************************************************
+msbuild zlib\contrib\vstudio\vc14\zlibvc.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
+msbuild Solutions\net40\net40.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
+msbuild Solutions\tests\functests\FuncTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
+msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32
 
 
 echo ***************************************************************************************************
@@ -47,11 +55,14 @@ echo ** Creating x64 debug...                                                   
 echo ***************************************************************************************************
 echo ***************************************************************************************************
 
+msbuild zlib\contrib\vstudio\vc14\zlibvc.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
+msbuild Solutions\net40\net40.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild Solutions\tests\functests\FuncTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=x64
 
@@ -62,8 +73,36 @@ echo ** Creating x64 release...                                                 
 echo ***************************************************************************************************
 echo ***************************************************************************************************
 
+msbuild zlib\contrib\vstudio\vc14\zlibvc.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
 msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
 msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
 msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
 msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
+msbuild Solutions\net40\net40.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
+msbuild Solutions\tests\functests\FuncTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
+msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=x64
+
+
+echo ***************************************************************************************************
+echo ***************************************************************************************************
+echo ** Creating ARM Debug ...                                                                      **
+echo ***************************************************************************************************
+echo ***************************************************************************************************
+msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=ARM
+msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=ARM
+msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=ARM
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=ARM
+
+
+echo ***************************************************************************************************
+echo ***************************************************************************************************
+echo ** Creating ARM Release ...                                                                    **
+echo ***************************************************************************************************
+echo ***************************************************************************************************
+msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=ARM
+msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=ARM
+msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=ARM
+msbuild Solutions\win10-cs\win10-cs.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=ARM
+

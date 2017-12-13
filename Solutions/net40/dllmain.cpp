@@ -5,11 +5,6 @@
 // Windows Header Files:
 #include <windows.h>
 #include <Objbase.h>
-
-//#include "api\LogManager.hpp"
-
-//using namespace Microsoft::Applications::Telemetry;
-
 /// <summary>
 /// Prevent unloading DLL until we finalized FlushAndTeardown
 /// </summary>

@@ -459,9 +459,7 @@ TEST_F(PalTests, SdkVersion)
     EXPECT_THAT(v, StartsWith(ARIASDK_VERSION_PREFIX "-"));
     EXPECT_THAT(v.at(v.find('-', 0) + 1), Ne('-'));
     EXPECT_THAT(v, HasSubstr("-C++-No-"));
-    std::ostringstream buildVersion;
-    buildVersion << '-' << (ARIASDK_NS::Version >> 48) << '.' << ((ARIASDK_NS::Version >> 32) & 65535) << '.' << ((ARIASDK_NS::Version >> 16) & 65535) << '.' << (ARIASDK_NS::Version & 65535);
-    EXPECT_THAT(v, EndsWith(buildVersion.str()));
+    EXPECT_THAT(v, EndsWith(BUILD_VERSION_STR));
 
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
 }

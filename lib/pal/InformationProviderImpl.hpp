@@ -25,6 +25,7 @@ namespace PAL {
     private:
         std::mutex m_lock;
         std::vector<IPropertyChangedCallback*> m_callbacks;
+        int m_registredCount;
     };
 
 } // PlatformAbstraction

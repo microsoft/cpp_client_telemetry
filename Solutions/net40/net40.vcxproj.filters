@@ -3,40 +3,22 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="WindowsDesktopHelpers.cpp" />
-    <ClCompile Include="..\shared\ECSClientCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\EventPropertiesCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\LogConfigurationCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\LoggerCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\LogManagerCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\SemanticContextCX.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\TimedEvent.cpp">
-      <Filter>shared-win32</Filter>
-    </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="..\..\lib\shared\ECSClientCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\EventPropertiesCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LogConfigurationCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LoggerCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LogManagerCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\SemanticContextCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\TimedEvent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="$(SolutionDir)\PAL\win32\WindowsEnvironmentInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{91c1ea2c-8de0-462e-bf51-a0a995addbf2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="shared-win32">
-      <UniqueIdentifier>{91f9f29a-32a9-4ad2-86a8-f0a86e741a70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

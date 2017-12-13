@@ -63,8 +63,11 @@ class BaseDecorator : public DecoratorBase {
         record.extSdk[0].epoch = *m_initIdP;
         std::string sdkVersion = PAL::getSdkVersion();
         record.extSdk[0].libVer = sdkVersion;
-        record.extSdk[0].installId = CommonLogManagerInternal::GetLogSessionData()->getSessionSDKUid();
-
+        LogSessionData* logSessionData = CommonLogManagerInternal::GetLogSessionData();
+        if (logSessionData)
+        {
+            record.extSdk[0].installId = CommonLogManagerInternal::GetLogSessionData()->getSessionSDKUid();
+        }
 
         //set Tickets
         if (CommonLogManagerInternal::GetAuthTokensController()->GetTickets().size() > 0)

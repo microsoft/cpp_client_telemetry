@@ -53,7 +53,7 @@ void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, Storag
         DataPackage package;
         package.Type          = "Client";
         package.Source        = "act_default_source"; // from ReferenceSDK
-        package.Version       = VersionString;
+        package.Version       = BUILD_VERSION_STR;
         package.DataPackageId = PAL::generateUuidString();
         package.Timestamp     = PAL::getUtcSystemTimeMs();
         it = ctx->packageIds.insert(it, {tenantToken, ctx->splicer.addDataPackage(tenantToken, package)});

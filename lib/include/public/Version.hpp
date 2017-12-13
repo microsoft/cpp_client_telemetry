@@ -12,29 +12,17 @@
 #define ARIASDK_NS       Microsoft::Applications::Telemetry
 
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
 
 
-uint64_t const Version =
-    (2ull << 48) |
-    (0ull << 32) |
-    (0ull << 16) |
-     0ull;
-
-char const VersionString[] =
-    "2.0.0.0";
-
-
-namespace {
 #ifdef __GNUC__
     #define ARIASDK_UNUSED __attribute__((unused))
 #else
     #define ARIASDK_UNUSED
 #endif
-}
+
 
 
 #define ARIASDK_PAL_WIN32 1
+#define BUILD_VERSION_STR "2.0.0.0"
+#define BUILD_VERSION     2,0,0,0
 
-
-}}} // namespace Microsoft::Applications::Telemetry

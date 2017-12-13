@@ -14,8 +14,8 @@ namespace PAL {
         static INetworkInformation* Create();
 
         // IInformationProvider API
-        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { return m_info_helper.RegisterInformationChangedCallback(pCallback); }
-        virtual void UnRegisterInformationChangedCallback(int callbackToken) { m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
+        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registredCount;  m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
 
         // INetworkInformation API
         virtual std::string const& GetNetworkProvider() { return m_provider; };
@@ -33,6 +33,7 @@ namespace PAL {
         std::string m_provider;
         NetworkType m_type;
         NetworkCost m_cost;
+        int         m_registredCount;
 
         InformatonProviderImpl m_info_helper;
 

@@ -12,6 +12,6 @@
     <None Include="RCa31256" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VersionInfo.rc" />
+    <ResourceCompile Include="..\VersionInfo.rc" />
   </ItemGroup>
 </Project>

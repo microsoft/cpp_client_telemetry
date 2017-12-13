@@ -93,7 +93,7 @@ namespace Microsoft {
                         return{};
                     }
 
-                    if (VerQueryValueA(&buffer[0], "\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
+                    if (VerQueryValueW(&buffer[0], L"\\", reinterpret_cast<LPVOID*> (&pffi), &nUnused) == 0)
                     {
                         return{};
                     }

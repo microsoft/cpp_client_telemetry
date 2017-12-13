@@ -6,11 +6,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(SolutionDir)\VersionInfo.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\shared\dllmain.cpp" />
+    <ClCompile Include="..\..\lib\shared\dllmain.cpp" />
+    <ClCompile Include="..\..\lib\shared\ECSClientCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\EventPropertiesCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LogConfigurationCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LoggerCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\LogManagerCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\SemanticContextCX.cpp" />
+    <ClCompile Include="..\..\lib\shared\TimedEvent.cpp" />
+    <ClCompile Include="..\..\lib\shared\WindowsRTHelpers.cpp" />
+    <ClCompile Include="..\..\lib\shared\WindowsRTPlatformEventHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\shared\IPlatformEventReceiver.h" />
+    <ClInclude Include="..\..\lib\shared\ITestCallback.h" />
+    <ClInclude Include="..\..\lib\shared\LogManagerEventReceiver.h" />
+    <ClInclude Include="..\..\lib\shared\PageActionData.h" />
+    <ClInclude Include="..\..\lib\shared\PlatformHelpers.h" />
+    <ClInclude Include="..\..\lib\shared\SchemaStub.h" />
+    <ClInclude Include="..\..\lib\shared\TimedEvent.hpp" />
+    <ClInclude Include="..\..\lib\shared\WindowsRTPlatformEventHandler.h" />
+    <ClInclude Include="..\..\lib\shared\include\AggregatedMetricData.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\ECSClientCX.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\EventPropertiesCX.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\LogConfigurationCX.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\LoggerCX.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\LogManagerCX.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\SchemaStub.hpp" />
+    <ClInclude Include="..\..\lib\shared\include\SemanticContextCX.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\lib\shared\Shared.vcxitems" />
+    <None Include="..\..\lib\shared\Shared.vcxitems.filters" />
   </ItemGroup>
 </Project>

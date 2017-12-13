@@ -103,7 +103,7 @@ namespace Microsoft {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl() :
+                DeviceInformationImpl::DeviceInformationImpl() :m_registredCount(0),
                     m_info_helper()
                 {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();

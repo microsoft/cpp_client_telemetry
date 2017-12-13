@@ -78,6 +78,7 @@ namespace Microsoft {
 
                 void ThrowPlatformInvalidArgumentException(String^ message)
                 {
+                    UNREFERENCED_PARAMETER(message);
 #ifndef NDEBUG
                     throw gcnew System::ArgumentException(message);
 #endif
@@ -85,6 +86,7 @@ namespace Microsoft {
 
                 void ThrowPlatformException(String^ message)
                 {
+                    UNREFERENCED_PARAMETER(message);
 #ifndef NDEBUG
                     throw gcnew Exception(message);
 #endif

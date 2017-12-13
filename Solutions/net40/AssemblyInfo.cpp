@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "../../internal/version.hpp"
+#include "Version.hpp"
 
 using namespace System;
 using namespace System::Reflection;
@@ -34,8 +34,8 @@ using namespace System::Security::Permissions;
 // You can specify all the value or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly:AssemblyFileVersion(BUILD_VERSION)];
-[assembly:AssemblyVersionAttribute(BUILD_VERSION)];
+[assembly:AssemblyFileVersion(BUILD_VERSION_STR)];
+[assembly:AssemblyVersionAttribute(BUILD_VERSION_STR)];
 
 [assembly:ComVisible(false)];
 

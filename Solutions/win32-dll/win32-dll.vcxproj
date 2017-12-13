@@ -29,6 +29,9 @@
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\VersionInfo.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{216A8E97-21F7-4BEF-9E52-7F772C177C32}</ProjectGuid>
     <Keyword>Win32DllProj</Keyword>

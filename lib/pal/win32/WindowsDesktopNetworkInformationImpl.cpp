@@ -14,7 +14,7 @@ namespace Microsoft {
             {
                 namespace MATP = ::Microsoft::Applications::Telemetry::PAL;
 
-                NetworkInformationImpl::NetworkInformationImpl(): m_info_helper() { };
+                NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0){ };
 
                 class Win32NetworkInformation : public NetworkInformationImpl
                 {

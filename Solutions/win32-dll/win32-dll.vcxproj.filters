@@ -11,4 +11,7 @@
   <ItemGroup>
     <ClInclude Include="..\net40\targetver.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\VersionInfo.rc" />
+  </ItemGroup>
 </Project>

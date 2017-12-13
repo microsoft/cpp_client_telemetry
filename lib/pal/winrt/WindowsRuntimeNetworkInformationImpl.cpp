@@ -61,7 +61,7 @@ namespace Microsoft {
                     return NetworkCost_Unknown;
                 }
 
-                NetworkInformationImpl::NetworkInformationImpl() : m_info_helper() 
+                NetworkInformationImpl::NetworkInformationImpl() : m_info_helper(), m_registredCount(0)
                 {
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
                     // some unknown scenarios on some Windows versions (Windows API bug),
@@ -84,25 +84,28 @@ namespace Microsoft {
                         // No need to use WeakReference as this is not ref counted.
                         // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
                         try {
-                            auto profile = NetworkInformation::GetInternetConnectionProfile();
-                            NetworkType networkType = NetworkType_Unknown;
-                            NetworkCost networkCost = NetworkCost_Unknown;
-                            if (profile != nullptr)
+                            if (m_registredCount > 0)
                             {
-                                networkType = GetNetworkTypeForProfile(profile);
-                                networkCost = GetNetworkCostForProfile(profile);
-                            }
-                            // No need for the lock here - the event is called syncronously.
-                            if (m_type != networkType)
-                            {
-                                m_type = networkType;
-                                m_info_helper.OnChanged(NETWORK_TYPE, std::to_string(networkType));
-                            }
+                                auto profile = NetworkInformation::GetInternetConnectionProfile();
+                                NetworkType networkType = NetworkType_Unknown;
+                                NetworkCost networkCost = NetworkCost_Unknown;
+                                if (profile != nullptr)
+                                {
+                                    networkType = GetNetworkTypeForProfile(profile);
+                                    networkCost = GetNetworkCostForProfile(profile);
+                                }
+                                // No need for the lock here - the event is called syncronously.
+                                if (m_type != networkType)
+                                {
+                                    m_type = networkType;
+                                    m_info_helper.OnChanged(NETWORK_TYPE, std::to_string(networkType));
+                                }
 
-                            if (m_cost != networkCost)
-                            {
-                                m_cost = networkCost;
-                                m_info_helper.OnChanged(NETWORK_COST, std::to_string(networkCost));
+                                if (m_cost != networkCost)
+                                {
+                                    m_cost = networkCost;
+                                    m_info_helper.OnChanged(NETWORK_COST, std::to_string(networkCost));
+                                }
                             }
                         }
                         catch (...) {

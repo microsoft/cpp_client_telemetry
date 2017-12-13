@@ -356,7 +356,7 @@ void unregisterSemanticContext(ContextFieldsProvider* context)
 
 std::string getSdkVersion()
 {
-    return std::string(ARIASDK_VERSION_PREFIX "-Windows-C++-No-") + VersionString;
+    return std::string(ARIASDK_VERSION_PREFIX "-Windows-C++-No-") + BUILD_VERSION_STR;
 }
 
 //---
