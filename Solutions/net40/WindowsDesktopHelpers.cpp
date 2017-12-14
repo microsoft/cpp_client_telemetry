@@ -5,7 +5,7 @@
 
 namespace Microsoft {
 	namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 DateTime SetPlatformDateTime(int64_t universalTime)

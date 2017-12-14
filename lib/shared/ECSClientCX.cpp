@@ -7,11 +7,11 @@
 
 
 namespace MAEE = Microsoft::Applications::Experimentation::ECS;
-namespace MATW = Microsoft::Applications::Telemetry::Windows;
+namespace MATW = Microsoft::Applications::Events::Windows;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows {
 
                 /**
@@ -99,7 +99,7 @@ namespace Microsoft {
                     return m_ecsClient->AddListener(callback);
                 }
 
-                bool ECSClientCallbackProxy::compare(Microsoft::Applications::Telemetry::Windows::IECSClientCallback^ inlistener) {
+                bool ECSClientCallbackProxy::compare(Microsoft::Applications::Events ::Windows::IECSClientCallback^ inlistener) {
                    // CTDEBUGLOG("[ECSClientCX] ECSClientCallbackProxy::compare");
 #ifdef _WINRT_DLL
                     return (this->listener == inlistener);
@@ -123,7 +123,7 @@ namespace Microsoft {
                     return result;
                 }
 
-                bool ECSClient::RegisterLogger(Microsoft::Applications::Telemetry::Windows::ILogger ^ pLogger, String ^ agentName)
+                bool ECSClient::RegisterLogger(Microsoft::Applications::Events ::Windows::ILogger ^ pLogger, String ^ agentName)
                 {
                     //CTDEBUGLOG("[ECSClientCX] ECSClient::RegisterLogger");
                     Logger ^logger = static_cast<Logger^>(pLogger);
@@ -249,7 +249,7 @@ namespace Microsoft {
                     return ToPlatformVector(m_ecsClient->GetSettings(name, path));
                 }
 
-                ECSClientCallbackProxy::ECSClientCallbackProxy(Microsoft::Applications::Telemetry::Windows::IECSClientCallback ^ listener)
+                ECSClientCallbackProxy::ECSClientCallbackProxy(Microsoft::Applications::Events ::Windows::IECSClientCallback ^ listener)
                 {
                     //CTDEBUGLOG("[ECSClientCX] ECSClientCallbackProxy::ECSClientCallbackProxy");
                     this->listener = listener;

@@ -8,7 +8,7 @@
 #include "../bondlite/tests/FullDumpBinaryBlob.hpp"
 
 using namespace testing;
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events;
 
 class ShadowBondSplicer : protected ARIASDK_NS::BondSplicer
 {

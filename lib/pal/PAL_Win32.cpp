@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
 namespace PAL {
 
 
-ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.PAL", "Aria telemetry client - platform abstraction layer");
+ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.PAL", "Events telemetry client - platform abstraction layer");
 
 
 namespace detail {

@@ -9,7 +9,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 const unsigned int DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE = 75;
@@ -249,4 +249,4 @@ class IOfflineStorage {
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

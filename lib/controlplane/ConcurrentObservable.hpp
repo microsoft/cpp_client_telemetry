@@ -5,7 +5,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
+namespace Microsoft { namespace Applications { namespace Events  { namespace ControlPlane
 // *INDENT-ON*
 {
     template <class TObserverType, class TNotifyDataType>
@@ -92,4 +92,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         const GUID_t & m_ariaTenantId;
     };
 
-}}}} // namespace Microsoft::Applications::Telemetry::ControlPlane
+}}}} // namespace Microsoft::Applications::Events ::ControlPlane

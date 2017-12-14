@@ -12,7 +12,7 @@
 #include <excpt.h>
 #endif
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
 InformatonProviderImpl::InformatonProviderImpl():m_registredCount(0)

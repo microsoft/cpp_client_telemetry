@@ -26,7 +26,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace PAL
             {
                 /* Value returned on computers with no network adapter available */

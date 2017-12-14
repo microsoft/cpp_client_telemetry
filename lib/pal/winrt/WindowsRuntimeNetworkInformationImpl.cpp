@@ -4,7 +4,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace PAL 
             {
                 using namespace ::Windows::Networking::Connectivity;

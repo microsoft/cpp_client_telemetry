@@ -7,7 +7,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(HostGuestLogManager, "AriaSDK.HostGuestLogManager", "Aria telemetry client - HostGuestLogManager class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(HostGuestLogManager, "EventsSDK.HostGuestLogManager", "Events telemetry client - HostGuestLogManager class");
 
 HostGuestLogManager::HostGuestLogManager(LogConfiguration* config, bool wantController)
     :m_logController(nullptr)
@@ -15,7 +15,7 @@ HostGuestLogManager::HostGuestLogManager(LogConfiguration* config, bool wantCont
     ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(config, wantController) && wantController)
+        if (EVTStatus::EVTStatus_OK == CommonLogManagerInternal::Initialize(config, wantController) && wantController)
         {//create controller, wanted host and created as host
              m_logController = new LogController();
         }
@@ -29,7 +29,7 @@ HostGuestLogManager::HostGuestLogManager(bool wantController)
     ARIASDK_LOG_DETAIL("New HostGuestLogManager instance");
     {
         std::lock_guard<std::mutex> lock(m_lock);
-        if (ACTStatus::ACTStatus_OK == CommonLogManagerInternal::Initialize(nullptr, wantController) && wantController)
+        if (EVTStatus::EVTStatus_OK == CommonLogManagerInternal::Initialize(nullptr, wantController) && wantController)
         {//create controller, wanted host and created as host
             m_logController = new LogController();
         }
@@ -74,12 +74,12 @@ IAuthTokensController*  HostGuestLogManager::GetAuthTokensController()
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(std::string const& name, std::string const& value, PiiKind piiKind)
+EVTStatus HostGuestLogManager::SetContext(std::string const& name, std::string const& value, PiiKind piiKind)
 {
     ARIASDK_LOG_DETAIL("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop);
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 /// <summary>
@@ -88,12 +88,12 @@ ACTStatus HostGuestLogManager::SetContext(std::string const& name, std::string c
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(const std::string& name, double value, PiiKind piiKind) 
+EVTStatus HostGuestLogManager::SetContext(const std::string& name, double value, PiiKind piiKind) 
 {
     ARIASDK_LOG_INFO("SetContext");
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop); 
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 /// <summary>
@@ -102,11 +102,11 @@ ACTStatus HostGuestLogManager::SetContext(const std::string& name, double value,
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(const std::string& name, int64_t value, PiiKind piiKind) {
+EVTStatus HostGuestLogManager::SetContext(const std::string& name, int64_t value, PiiKind piiKind) {
     ARIASDK_LOG_INFO("SetContext");
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop);
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 /// <summary>
@@ -115,11 +115,11 @@ ACTStatus HostGuestLogManager::SetContext(const std::string& name, int64_t value
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(const std::string& name, bool value, PiiKind piiKind) {
+EVTStatus HostGuestLogManager::SetContext(const std::string& name, bool value, PiiKind piiKind) {
     ARIASDK_LOG_INFO("SetContext");
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop);
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 /// <summary>
@@ -128,11 +128,11 @@ ACTStatus HostGuestLogManager::SetContext(const std::string& name, bool value, P
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind) {
+EVTStatus HostGuestLogManager::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind) {
     ARIASDK_LOG_INFO("SetContext");
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop);
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 /// <summary>
@@ -141,11 +141,11 @@ ACTStatus HostGuestLogManager::SetContext(const std::string& name, time_ticks_t 
 /// <param name="name"></param>
 /// <param name="value"></param>
 /// <param name="piiKind"></param>
-ACTStatus HostGuestLogManager::SetContext(const std::string& name, GUID_t value, PiiKind piiKind) {
+EVTStatus HostGuestLogManager::SetContext(const std::string& name, GUID_t value, PiiKind piiKind) {
     ARIASDK_LOG_INFO("SetContext");
     EventProperty prop(value, piiKind);
     m_context->setCustomField(name, prop);
-    return ACTStatus::ACTStatus_OK;
+    return EVTStatus::EVTStatus_OK;
 }
 
 
@@ -165,4 +165,4 @@ ILogger* HostGuestLogManager::GetLogger(std::string const& tenantToken)
           return logger;
      }
 }
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

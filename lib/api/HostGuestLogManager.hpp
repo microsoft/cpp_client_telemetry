@@ -15,12 +15,12 @@
 #include <mutex>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
 /// <summary>
-/// This class is used to manage the Telemetry logging system
+/// This class is used to manage the Events  logging system
 /// </summary>
 class HostGuestLogManager : public ILogManager
 {
@@ -50,7 +50,7 @@ class HostGuestLogManager : public ILogManager
     /// <param name="name">Name of the context property</param>
     /// <param name="value">String value of the context property</param>
     /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-    virtual ACTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None);
+    virtual EVTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None);
 
 	/// <summary>
 	/// Adds or s a property of the custom context for the telemetry logging system.
@@ -60,21 +60,21 @@ class HostGuestLogManager : public ILogManager
 	/// <param name="name">Name of the context property</param>
 	/// <param name="value">Value of the context property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual ACTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); return SetContext(name, val, piiKind); };
+	virtual EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); return SetContext(name, val, piiKind); };
 
 	/// <summary>
 	/// Adds or s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">Double value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) ;
+	virtual EVTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) ;
 
 	/// <summary>
 	/// Adds or s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">64-bit Integer value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);;
+	virtual EVTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);;
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -82,7 +82,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit Integer value of the property</param>
-	virtual ACTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -90,7 +90,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit Integer value of the property</param>
-	virtual ACTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -98,7 +98,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit Integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual  EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -106,7 +106,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual  EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -114,7 +114,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual  EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -122,7 +122,7 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual  EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.<br>
@@ -130,28 +130,28 @@ class HostGuestLogManager : public ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">64-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
+	virtual  EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { return SetContext(name, (int64_t)value, piiKind); }
 
 	/// <summary>
 	/// Adds or s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">Boolean value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
+	virtual EVTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
 
 	/// <summary>
 	/// Adds or s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">.NET time ticks</param>
-	virtual ACTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
+	virtual EVTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
 
 	/// <summary>
 	/// Adds or overrides a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">GUID</param>
-	virtual ACTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
+	virtual EVTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
 
     /// <summary>
     /// Retrieves the ILogger interface of a Logger instance through which to log telemetry events.
@@ -180,5 +180,5 @@ class HostGuestLogManager : public ILogManager
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 #endif //ARIA_HOSTGUEST_LOGMANAGER_HPP

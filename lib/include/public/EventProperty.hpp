@@ -19,7 +19,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             const uint64_t ticksPerSecond = 10000000UL;
             // Thursday, January 01, 1970 12:00:00 AM

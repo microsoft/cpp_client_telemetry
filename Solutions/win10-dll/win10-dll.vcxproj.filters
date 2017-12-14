@@ -14,4 +14,7 @@
   <ItemGroup>
     <ResourceCompile Include="..\VersionInfo.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
 </Project>

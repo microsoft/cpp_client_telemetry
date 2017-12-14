@@ -45,10 +45,10 @@ class ARIASDK_LIBABI Logger : public ILogger
     virtual void  LogEvent(EventProperties const& properties) override;
 
   protected:
-    bool applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventLatency& latency);
+    bool applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Events ::EventLatency& latency);
     virtual void submit(::AriaProtocol::CsEvent& record, 
-                        ::Microsoft::Applications::Telemetry::EventLatency latency,
-                        ::Microsoft::Applications::Telemetry::EventPersistence persistence,
+                        ::Microsoft::Applications::Events ::EventLatency latency,
+                        ::Microsoft::Applications::Events ::EventPersistence persistence,
                         std::uint64_t  const& policyBitFlags);
     void SetContext(const std::string& name, EventProperty prop);
  // protected:

@@ -10,7 +10,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "AriaSDK.StorageHandler", "Aria telemetry client - OfflineStorageHandler class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
 OfflineStorageHandler::OfflineStorageHandler(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
     : m_logConfiguration(configuration),
@@ -24,7 +24,7 @@ OfflineStorageHandler::OfflineStorageHandler(LogConfiguration& configuration, IR
     m_queryDbSize(0),
     m_isStorageFullNotificationSend(false)
 {
-    ACTStatus error;
+    EVTStatus error;
     int percentage = configuration.GetIntProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE, error);
     unsigned int cacheMemorySizeLimitInBytes = configuration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
     if (percentage > 0 && percentage <= 100)
@@ -49,7 +49,7 @@ OfflineStorageHandler::~OfflineStorageHandler()
 void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
 {
     m_observer = &observer;
-    ACTStatus error;
+    EVTStatus error;
     unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
     if (cacheMemorySizeLimitInBytes > 0)
     {
@@ -117,7 +117,7 @@ bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
             CommonLogManagerInternal::DispatchEvent(evt);
             m_isStorageFullNotificationSend = true;
         }
-        ACTStatus error;
+        EVTStatus error;
         unsigned int cacheMemorySizeLimitInBytes = m_logConfiguration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
 
         if (m_queryDbSize > cacheMemorySizeLimitInBytes)

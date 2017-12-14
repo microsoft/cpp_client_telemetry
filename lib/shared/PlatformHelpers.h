@@ -65,7 +65,7 @@ namespace Microsoft {
         class EventCore;
         class ITestCallback;
 
-        namespace Telemetry 
+        namespace Events  
         {
             using namespace std;
 
@@ -228,7 +228,7 @@ namespace Microsoft {
                 MeasurementMap^ ToPlatformMeasurementMap(const std::map<std::string, double>& map);
 
                 EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, std::string>& map);
-                EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, Microsoft::Applications::Telemetry::EventProperty>& map);
+                EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, Microsoft::Applications::Events ::EventProperty>& map);
 
                 EditableMeasurementMap^ ToPlatformEditableMeasurementMap(const std::map<std::string, double>& map);
                 EditablePropertyMap^ CreateEditablePropertyMap(PropertyMap^source = nullptr); // ref new Map<String^, String^>();
@@ -252,6 +252,6 @@ namespace Microsoft {
 	}
 }
 
-namespace MAT = Microsoft::Applications::Telemetry;
+namespace MAT = Microsoft::Applications::Events ;
 
 #endif

@@ -5,7 +5,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 class LogManagerEventReceiver : public IPlatformEventReceiver
@@ -17,8 +17,8 @@ namespace Microsoft {
                     {
                         if (m_configuration->AutoLogAppSuspend)
                         {
-//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Telemetry::AppLifecycleState)AppLifeCycleState::Suspend,
-//                                Telemetry::EventProperties(""));
+//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Events ::AppLifecycleState)AppLifeCycleState::Suspend,
+//                                Events ::EventProperties(""));
                         }
 
                         // We may need tear-down to avoid AUF initialization issues.
@@ -29,13 +29,13 @@ namespace Microsoft {
                     virtual void Resume()
                     {
                         //  We only need to initialize if we do FlushAndTeardown.
-                        //Telemetry::LogManager::Initialize(FromPlatformString(m_configuration->TenantToken),
+                        //Events ::LogManager::Initialize(FromPlatformString(m_configuration->TenantToken),
                         //    m_configuration->ToLogConfigurationCore());
 
                         if (m_configuration->AutoLogAppResume)
                         {
-//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Telemetry::AppLifecycleState)AppLifeCycleState::Resume,
-//                                Telemetry::EventProperties(""));
+//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Events ::AppLifecycleState)AppLifeCycleState::Resume,
+//                                Events ::EventProperties(""));
                         }
                     }
 

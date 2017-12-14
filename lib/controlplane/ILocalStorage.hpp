@@ -7,7 +7,7 @@
 #include "IControlPlane.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
+namespace Microsoft { namespace Applications { namespace Events  { namespace ControlPlane
 // *INDENT-ON*
 {
     // Forward reference is needed for change handler declaration
@@ -94,4 +94,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         virtual TenantDataPtr DeserializeTenantData(const std::string& string) const = 0;
     };
 
-}}}} // namespace Microsoft::Applications::Telemetry::ControlPlane
+}}}} // namespace Microsoft::Applications::Events ::ControlPlane

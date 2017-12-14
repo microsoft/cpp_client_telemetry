@@ -4,7 +4,7 @@
 #include "ConcurrentObservable.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
+namespace Microsoft { namespace Applications { namespace Events  { namespace ControlPlane
 // *INDENT-ON*
 {
     struct ControlPlaneChangeData : public ChangeDataTemplate<IControlPlane>
@@ -23,4 +23,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         }
     };
 
-}}}} // namespace Microsoft::Applications::Telemetry::ControlPlane
+}}}} // namespace Microsoft::Applications::Events ::ControlPlane

@@ -8,7 +8,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
@@ -288,4 +288,4 @@ class IHttpClient
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

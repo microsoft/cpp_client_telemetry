@@ -8,11 +8,11 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             namespace PAL 
             {
-                namespace MATP = ::Microsoft::Applications::Telemetry::PAL;
+                namespace MATP = ::Microsoft::Applications::Events ::PAL;
 
                 NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0){ };
 

@@ -4,7 +4,7 @@
 #include "Version.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
@@ -27,4 +27,4 @@ class IBandwidthController {
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

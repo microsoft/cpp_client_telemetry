@@ -26,7 +26,7 @@ struct ECSConfig
 
     std::int64_t GetExpiryTimeInSec() const
     {
-        std::int64_t currUtcTimestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTime();
+        std::int64_t currUtcTimestamp = Microsoft::Applications::Events ::PAL::getUtcSystemTime();
 
         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
     }

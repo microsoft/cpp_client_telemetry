@@ -2,7 +2,7 @@
 namespace Microsoft {
 	namespace Applications 
 	{
-		namespace Telemetry
+		namespace Events 
 		{
 			class EventProperties;
 		}
@@ -11,7 +11,7 @@ namespace Microsoft {
 		{
 		public:
 			virtual bool IsTestCallbackSet() = 0;
-			virtual void TestCallback(const Telemetry::EventProperties& propertiesCore) = 0;
+			virtual void TestCallback(const Events ::EventProperties& propertiesCore) = 0;
 			virtual ~ITestCallback() {};
 		};
 	}

@@ -21,14 +21,14 @@
 #endif
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
-using namespace Microsoft::Applications::Telemetry::PAL;
+using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Events ::PAL;
 
 namespace Microsoft {
     namespace Applications {
         namespace Experimentation {
 
-        ARIASDK_LOG_INST_COMPONENT_CLASS(ExpCommon, "AriaSDK.ExpCommonClient", "Aria experimentation client - common client class");
+        ARIASDK_LOG_INST_COMPONENT_CLASS(ExpCommon, "EventsSDK.ExpCommonClient", "Aria experimentation client - common client class");
 
             const std::string ExpCommon::EXPClientStatus2STR[EXP_COUNT] =
             {

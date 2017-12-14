@@ -7,7 +7,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 void LogConfiguration::ToLogConfigurationCore()

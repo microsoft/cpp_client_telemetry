@@ -11,7 +11,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 void CheckRequiredParam(String^ value, String^ parameterName)
@@ -45,7 +45,7 @@ namespace Microsoft {
 
                 void Logger::SetContext(String ^ name, String ^ value, PiiKind piiKind)
                 {
-                    m_loggerCore->SetContext(FromPlatformString(name), FromPlatformString(value), (Telemetry::PiiKind)piiKind);
+                    m_loggerCore->SetContext(FromPlatformString(name), FromPlatformString(value), (Events ::PiiKind)piiKind);
                 }
 
                 Logger::Logger(MAT::ILogger* loggerCore) : m_loggerCore(loggerCore)

@@ -35,7 +35,7 @@ namespace Microsoft {
 
                     std::int64_t GetExpiryTimeInSec() const
                     {
-                        std::int64_t currUtcTimestamp = Microsoft::Applications::Telemetry::PAL::getUtcSystemTime();
+                        std::int64_t currUtcTimestamp = Microsoft::Applications::Events ::PAL::getUtcSystemTime();
                         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
                     }
 
@@ -55,11 +55,11 @@ namespace Microsoft {
                     AFDConfig* GetConfigByRequestName(const std::string& requestName);
 
                 private:
-                    Microsoft::Applications::Telemetry::IStorage* _CreateOfflineStorage(const std::string& storagePath);
+                    Microsoft::Applications::Events ::IStorage* _CreateOfflineStorage(const std::string& storagePath);
 
                 private:
                     std::string m_OfflineStoragePath;
-                    Microsoft::Applications::Telemetry::IStorage* m_pOfflineStorage;
+                    Microsoft::Applications::Events ::IStorage* m_pOfflineStorage;
 
                     std::map<std::string, AFDConfig> m_configs;
 

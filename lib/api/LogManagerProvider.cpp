@@ -12,7 +12,7 @@ using namespace std;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             struct hostLogManagerHolder
             {
                 int refcount = 0;
@@ -34,19 +34,19 @@ namespace Microsoft {
             ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey,
                                                               bool wantController,
                                                               ILogConfiguration& logConfiguration,
-                                                              ACTStatus& status,
+                                                              EVTStatus& status,
                                                               uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[2]: apiKey=%s, configuration=0x%X", apiKey, logConfiguration);
 
                 if (!apiKey)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                     return nullptr;
                 }
                 if (CurrentTargetVersion != targetVersion)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                 }
 
                 LogConfiguration* config = dynamic_cast<LogConfiguration*>(&logConfiguration);
@@ -64,21 +64,21 @@ namespace Microsoft {
                         our_LogManagers[apiKey].refcount++;
                     }
                 }
-                status = ACTStatus::ACTStatus_OK;
+                status = EVTStatus::EVTStatus_OK;
                 return our_LogManagers[apiKey].hostLogManager;
             }
 
-            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, bool wantController, ACTStatus& status, uint32_t targetVersion)
+            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, bool wantController, EVTStatus& status, uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
                 if (!apiKey)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                     return nullptr;
                 }
                 if (CurrentTargetVersion != targetVersion)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                     return nullptr;
                 }
 
@@ -97,27 +97,27 @@ namespace Microsoft {
                     }
                 }
                 
-                status = ACTStatus::ACTStatus_OK;
+                status = EVTStatus::EVTStatus_OK;
                 return our_LogManagers[apiKey].hostLogManager;
             }
 
-            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion)
+            ILogManager* LogManagerProvider::CreateLogManager(char const* apiKey, EVTStatus& status, uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
                 return LogManagerProvider::CreateLogManager(apiKey, false, status, targetVersion);
             }   
 
-            ILogManager* LogManagerProvider::GetLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion)
+            ILogManager* LogManagerProvider::GetLogManager(char const* apiKey, EVTStatus& status, uint32_t targetVersion)
             {
                 ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
                 if (!apiKey)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                     return nullptr;
                 }
                 if (CurrentTargetVersion != targetVersion)
                 {
-                    status = ACTStatus::ACTStatus_NotSupported;
+                    status = EVTStatus::EVTStatus_NotSupported;
                     return nullptr;
                 }
 
@@ -125,20 +125,20 @@ namespace Microsoft {
                     std::lock_guard<std::mutex> lock(*our_LogManagerProviderlockP);
                     if (our_LogManagers.find(apiKey) != our_LogManagers.end())
                     {
-                        status = ACTStatus::ACTStatus_OK;
+                        status = EVTStatus::EVTStatus_OK;
                         return our_LogManagers[apiKey].hostLogManager;
                     }
                 }
-                status = ACTStatus::ACTStatus_Fail;
+                status = EVTStatus::EVTStatus_Fail;
 
                 return nullptr;
             }
 
-            ACTStatus LogManagerProvider::DestroyLogManager(char const* apiKey)
+            EVTStatus LogManagerProvider::DestroyLogManager(char const* apiKey)
             {
                 if (!apiKey)
                 {
-                    return ACTStatus::ACTStatus_NotSupported;
+                    return EVTStatus::EVTStatus_NotSupported;
                 }
                 {
                     std::lock_guard<std::mutex> lock(*our_LogManagerProviderlockP);
@@ -152,7 +152,7 @@ namespace Microsoft {
                         }
                     }
                 }
-                return ACTStatus::ACTStatus_OK;
+                return EVTStatus::EVTStatus_OK;
             }
         }
     }

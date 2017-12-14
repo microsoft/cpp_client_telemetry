@@ -13,7 +13,7 @@ namespace Microsoft {
         namespace Experimentation {
             namespace ECS {
 
-				ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.ECS", "Aria ECS");
+				ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.ECS", "Aria ECS");
 
 				// replace "/" in clientVersion with "_"
 				std::string ConvertClientVersion(const std::string& clientVersion)

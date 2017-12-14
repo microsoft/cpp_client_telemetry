@@ -5,14 +5,14 @@
 #include <stdint.h>
 
 
-//#define Telemetry Telemetry_v@BUILD_VERSION_MAJOR@
+//#define Events  Telemetry_v@BUILD_VERSION_MAJOR@
 
-#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Telemetry
+#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Events 
 #define ARIASDK_NS_END   }}
-#define ARIASDK_NS       Microsoft::Applications::Telemetry
+#define ARIASDK_NS       Microsoft::Applications::Events 
 
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 
 
 uint64_t const Version =
@@ -37,4 +37,4 @@ namespace {
 #define ARIASDK_PAL_@PAL_IMPLEMENTATION_UPPER@ 1
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

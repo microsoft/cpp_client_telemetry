@@ -7,7 +7,7 @@
 #include "pal/UtcHelpers.hpp"
 #include "ECSClientUtils.hpp"
 
-using namespace Microsoft::Applications::Telemetry::PAL;
+using namespace Microsoft::Applications::Events ::PAL;
 using namespace std;
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
@@ -159,7 +159,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             }
 
             // handle the case where local clock is reset
-            std::int64_t value = Microsoft::Applications::Telemetry::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX;
+            std::int64_t value = Microsoft::Applications::Events ::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX;
             if (config.expiryUtcTimestamp > value)
             {
                 config.expiryUtcTimestamp = value;
@@ -279,7 +279,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         }
 
         int ret = m_pOfflineStorage->SaveItem(configsStr.c_str(), configsStr.size() + 1, NULL);
-        if (Microsoft::Applications::Telemetry::RES_SUCC != ret)
+        if (Microsoft::Applications::Events ::RES_SUCC != ret)
         {
             ARIASDK_LOG_ERROR("[ECSClient]: Failed to save configs to offline storage, error=%d).", ret);
             return false;
@@ -293,7 +293,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
     ARIASDK_NS::IStorage* ECSConfigCache::_CreateOfflineStorage(const string& storagePath)
     {
         // create offline storage
-        ARIASDK_NS::IStorage* pOfflineStorage = new Microsoft::Applications::Telemetry::FIFOFileStorage();
+        ARIASDK_NS::IStorage* pOfflineStorage = new Microsoft::Applications::Events ::FIFOFileStorage();
         if (!pOfflineStorage)
         {
             ARIASDK_LOG_ERROR("[ECSClient]: Failed to create offline storage");

@@ -9,12 +9,12 @@
 #include <string>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
     class ILogController;
 /// <summary>
-/// This class is used to manage the Telemetry logging system
+/// This class is used to manage the Events  logging system
 /// </summary>
 class ARIASDK_LIBABI ILogManager
 {
@@ -42,7 +42,7 @@ class ARIASDK_LIBABI ILogManager
     /// <param name="name">Name of the context property</param>
     /// <param name="value">String value of the context property</param>
     /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-    virtual ACTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) = 0;
+    virtual EVTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the custom context for the telemetry logging system.
@@ -52,21 +52,21 @@ class ARIASDK_LIBABI ILogManager
 	/// <param name="name">Name of the context property</param>
 	/// <param name="value">Value of the context property</param>
 	/// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-	virtual ACTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">Double value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)  = 0;
+	virtual EVTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)  = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">64-bit Integer value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) = 0;;
+	virtual EVTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) = 0;;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -74,7 +74,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit Integer value of the property</param>
-	virtual ACTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -82,7 +82,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit Integer value of the property</param>
-	virtual ACTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -90,7 +90,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit Integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual  EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -98,7 +98,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">8-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual  EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -106,7 +106,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">16-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual  EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -114,7 +114,7 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">32-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual  EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.<br>
@@ -122,28 +122,28 @@ class ARIASDK_LIBABI ILogManager
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">64-bit unsigned integer value of the property</param>
-	virtual  ACTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual  EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">Boolean value of the property</param>
-	virtual ACTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or  = 0s a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">.NET time ticks</param>
-	virtual ACTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) = 0;
 
 	/// <summary>
 	/// Adds or overrides a property of the global context.
 	/// </summary>
 	/// <param name="name">Name of the property</param>
 	/// <param name="value">GUID</param>
-	virtual ACTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) = 0;
+	virtual EVTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) = 0;
 
     /// <summary>
     /// Retrieves the ILogger interface of a Logger instance through which to log telemetry events.
@@ -164,4 +164,4 @@ class ARIASDK_LIBABI ILogManager
     /// </summary>
     virtual IAuthTokensController*  GetAuthTokensController() = 0;
 };
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

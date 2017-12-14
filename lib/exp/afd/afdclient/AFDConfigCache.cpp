@@ -8,8 +8,8 @@
 #include "pal/UtcHelpers.hpp"
 #include "AFDClientUtils.hpp"
 
-using namespace Microsoft::Applications::Telemetry;
-using namespace Microsoft::Applications::Telemetry::PAL;
+using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Events ::PAL;
 using namespace std;
 
 namespace Microsoft {
@@ -375,10 +375,10 @@ namespace Microsoft {
                     return true;
                 }
 
-                Microsoft::Applications::Telemetry::IStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
+                Microsoft::Applications::Events ::IStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
                 {
                     // create offline storage
-                    Microsoft::Applications::Telemetry::IStorage* pOfflineStorage = new FIFOFileStorage(); ;
+                    Microsoft::Applications::Events ::IStorage* pOfflineStorage = new FIFOFileStorage(); ;
                     if (!pOfflineStorage)
                     {
                         ARIASDK_LOG_ERROR("[AFDClient]: Failed to create offline storage");

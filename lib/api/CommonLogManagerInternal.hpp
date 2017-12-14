@@ -19,10 +19,10 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             /// <summary>
-            /// This class is used to manage the Telemetry logging system
+            /// This class is used to manage the Events  logging system
             /// </summary>
             class CommonLogManagerInternal
             {
@@ -39,7 +39,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
                 /// <returns>A logger instance instantiated with the tenantToken</returns>
-                static ACTStatus  Initialize(
+                static EVTStatus  Initialize(
 #ifdef ANDROID
                     JNIEnv *env,
                     jclass contextClass,
@@ -51,12 +51,12 @@ namespace Microsoft {
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
                 /// </summary>
-                static ACTStatus  FlushAndTeardown();
+                static EVTStatus  FlushAndTeardown();
 
                 /// <summary>
                 /// Try to send any pending telemetry events in memory or on disk.
                 /// </summary>
-                static ACTStatus  UploadNow();
+                static EVTStatus  UploadNow();
 
                 /// <summary>
                 /// Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
@@ -64,18 +64,18 @@ namespace Microsoft {
                 /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
                 /// time consuming.
                 /// </summary>
-                static ACTStatus  Flush();
+                static EVTStatus  Flush();
 
                 /// <summary>
                 /// Pauses the transmission of events to data collector.
                 /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
                 /// </summary>
-                static ACTStatus  PauseTransmission();
+                static EVTStatus  PauseTransmission();
 
                 /// <summary>
                 /// Resumes the transmission of events to data collector.
                 /// </summary>
-                static ACTStatus  ResumeTransmission();
+                static EVTStatus  ResumeTransmission();
 
                 /// <summary>
                 /// Sets transmit profile for event transmission to one of the built-in profiles.
@@ -84,7 +84,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>This function doesn't return any value because it always succeeds.</returns>
-                static ACTStatus  SetTransmitProfile(TransmitProfile profile);
+                static EVTStatus  SetTransmitProfile(TransmitProfile profile);
 #ifndef ANDROID
                 /// <summary>
                 /// Sets transmit profile for event transmission.
@@ -93,19 +93,19 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>true if profile is successfully applied, false otherwise</returns>
-                static ACTStatus  SetTransmitProfile(const std::string& profile);
+                static EVTStatus  SetTransmitProfile(const std::string& profile);
 
                 /// <summary>
                 /// Load transmit profiles from JSON config
                 /// </summary>
                 /// <param name="profiles_json">JSON config (see example above)</param>
                 /// <returns>true on successful profiles load, false if config is invalid</returns>
-                static ACTStatus  LoadTransmitProfiles(const std::string& profiles_json);
+                static EVTStatus  LoadTransmitProfiles(const std::string& profiles_json);
 
                 /// <summary>
                 /// Reset transmission profiles to default settings
                 /// </summary>
-                static ACTStatus  ResetTransmitProfiles();
+                static EVTStatus  ResetTransmitProfiles();
 
                 /// <summary>Get profile name based on built-in profile enum<summary>
                 /// <param name="profile">Transmit profile</param>
@@ -128,7 +128,7 @@ namespace Microsoft {
                 /// <param name="name">Name of the context property</param>
                 /// <param name="value">Value of the context property</param>
                 /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-                static ACTStatus  SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the custom context for the telemetry logging system.
@@ -138,21 +138,21 @@ namespace Microsoft {
                 /// <param name="name">Name of the context property</param>
                 /// <param name="value">Value of the context property</param>
                 /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-                static ACTStatus  SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); SetContext(name, val, piiKind); };
+                static EVTStatus  SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) { const std::string val(value); SetContext(name, val, piiKind); };
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">Double value of the property</param>
-                static ACTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">64-bit Integer value of the property</param>
-                static ACTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -160,7 +160,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">8-bit Integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -168,7 +168,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">16-bit Integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -176,7 +176,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">32-bit Integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -184,7 +184,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">8-bit unsigned integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -192,7 +192,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">16-bit unsigned integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -200,7 +200,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">32-bit unsigned integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.<br>
@@ -208,28 +208,28 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">64-bit unsigned integer value of the property</param>
-                static inline ACTStatus  SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
+                static inline EVTStatus  SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) { SetContext(name, (int64_t)value, piiKind); }
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">Boolean value of the property</param>
-                static ACTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">.NET time ticks</param>
-                static ACTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Adds or overrides a property of the global context.
                 /// </summary>
                 /// <param name="name">Name of the property</param>
                 /// <param name="value">GUID</param>
-                static ACTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
+                static EVTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None);
 
                 /// <summary>
                 /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -246,12 +246,12 @@ namespace Microsoft {
                 /// <summary>
                 /// Add Debug callback
                 /// </summary>
-                static ACTStatus  AddEventListener(DebugEventType type, DebugEventListener &listener);
+                static EVTStatus  AddEventListener(DebugEventType type, DebugEventListener &listener);
 
                 /// <summary>
                 /// Remove Debug callback
                 /// </summary>
-                static ACTStatus  RemoveEventListener(DebugEventType type, DebugEventListener &listener);
+                static EVTStatus  RemoveEventListener(DebugEventType type, DebugEventListener &listener);
 
                 /// <summary>
                 /// Dispatch debug event
@@ -297,7 +297,7 @@ namespace Microsoft {
                 /// <summary>
                 /// Debug routine that validates if CommonLogManagerInternal has been initialized. May trigger a warning message if not.
                 /// </summary>
-                static ACTStatus checkup();
+                static EVTStatus checkup();
             };
         }
     }

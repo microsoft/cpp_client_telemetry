@@ -13,7 +13,7 @@
 #include <map>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 //Data Type Flags
@@ -164,6 +164,6 @@ class ARIASDK_LIBABI ILogger
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 
 #endif //ARIA_ILOGGER_H

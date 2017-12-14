@@ -6,7 +6,7 @@
 #include <vector>
 #include <mutex>
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
     class InformatonProviderImpl : public IInformationProvider

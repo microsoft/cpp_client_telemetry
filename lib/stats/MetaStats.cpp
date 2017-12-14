@@ -635,7 +635,7 @@ static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::CsEvent& r
 
 //---
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(MetaStats, "AriaSDK.MetaStats", "Aria SDK statistics");
+ARIASDK_LOG_INST_COMPONENT_CLASS(MetaStats, "EventsSDK.MetaStats", "Aria SDK statistics");
 
 MetaStats::MetaStats(IRuntimeConfig const& runtimeConfig, ContextFieldsProvider const& parentContext)
   : m_runtimeConfig(runtimeConfig),

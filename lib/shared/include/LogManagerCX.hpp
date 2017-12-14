@@ -8,7 +8,7 @@ namespace Microsoft {
     namespace Applications 
     {
         class IPlatformEventReceiver;
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 class WindowsEnvironmentInfo;

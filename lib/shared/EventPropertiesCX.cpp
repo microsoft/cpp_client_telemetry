@@ -7,7 +7,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 void EventProperties::PopulateEventProperties(MAT::EventProperties& propertiesCore)
@@ -27,12 +27,12 @@ namespace Microsoft {
                         propertiesCore.SetTimestamp(GetPlatformDateTime(this->Timestamp) / WINDOWS_TICK_MILLISEC - MILLISEC_TO_UNIVERSAL_EPOCH);
                     }
 
-                    propertiesCore.SetPriority((Microsoft::Applications::Telemetry::EventPriority)this->Priority);
+                    propertiesCore.SetPriority((Microsoft::Applications::Events ::EventPriority)this->Priority);
                     propertiesCore.SetPolicyBitFlags(this->PolicyBitFlags);
 
                     map<string, double> measurements;
                     map<string, string> properties;
-                    map<string, Microsoft::Applications::Telemetry::PiiKind> piiTags;
+                    map<string, Microsoft::Applications::Events ::PiiKind> piiTags;
 
                     FromPlatformMap(this->Properties, properties);
                     FromPlatformMap(this->Measurements, measurements);
@@ -50,7 +50,7 @@ namespace Microsoft {
 
                     for (auto it = properties.begin(); it != properties.end(); ++it)
                     {
-                        auto piiType = Microsoft::Applications::Telemetry::PiiKind_None;
+                        auto piiType = Microsoft::Applications::Events ::PiiKind_None;
                         auto tag = piiTags.find(it->first);
 
                         if (tag != piiTags.end())

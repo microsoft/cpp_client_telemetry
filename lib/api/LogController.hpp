@@ -9,12 +9,12 @@
 #include <mutex>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
 /// <summary>
-/// This class is used to manage the Telemetry logging system
+/// This class is used to manage the Events  logging system
 /// </summary>
 class LogController : public ILogController
 {
@@ -32,23 +32,23 @@ class LogController : public ILogController
     /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
     /// time consuming.
     /// </summary>
-    virtual ACTStatus Flush();
+    virtual EVTStatus Flush();
 
 	/// <summary>
 	/// Try to send any pending telemetry events in memory or on disk.
 	/// </summary>
-	virtual ACTStatus UploadNow();
+	virtual EVTStatus UploadNow();
 
     /// <summary>
     /// Pauses the transmission of events to data collector.
     /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
     /// </summary>
-    virtual ACTStatus PauseTransmission();
+    virtual EVTStatus PauseTransmission();
 
     /// <summary>
     /// Resumes the transmission of events to data collector.
     /// </summary>
-    virtual ACTStatus ResumeTransmission();
+    virtual EVTStatus ResumeTransmission();
 
 	/// <summary>
 	/// Sets transmit profile for event transmission to one of the built-in profiles.
@@ -57,7 +57,7 @@ class LogController : public ILogController
 	/// </summary>
 	/// <param name="profile">Transmit profile</param>
 	/// <returns>This function doesn't return any value because it always succeeds.</returns>
-	virtual ACTStatus  SetTransmitProfile(TransmitProfile profile);
+	virtual EVTStatus  SetTransmitProfile(TransmitProfile profile);
 
   	/// <summary>
 	/// Sets transmit profile for event transmission.
@@ -66,19 +66,19 @@ class LogController : public ILogController
 	/// </summary>
 	/// <param name="profile">Transmit profile</param>
 	/// <returns>true if profile is successfully applied, false otherwise</returns>
-	virtual ACTStatus  SetTransmitProfile(const std::string& profile) ;
+	virtual EVTStatus  SetTransmitProfile(const std::string& profile) ;
 
 	/// <summary>
 	/// Load transmit profiles from JSON config
 	/// </summary>
 	/// <param name="profiles_json">JSON config (see example above)</param>
 	/// <returns>true on successful profiles load, false if config is invalid</returns>
-	virtual ACTStatus  LoadTransmitProfiles(const std::string& profiles_json) ;
+	virtual EVTStatus  LoadTransmitProfiles(const std::string& profiles_json) ;
 
 	/// <summary>
 	/// Reset transmission profiles to default settings
 	/// </summary>
-	virtual ACTStatus  ResetTransmitProfiles();
+	virtual EVTStatus  ResetTransmitProfiles();
 
 	/// <summary>
 	/// Reset transmission profiles to default settings
@@ -101,5 +101,5 @@ class LogController : public ILogController
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 #endif //ARIA_LOG_CONTROLLER_HPP

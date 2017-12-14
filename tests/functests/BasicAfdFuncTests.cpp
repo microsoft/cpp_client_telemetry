@@ -96,7 +96,7 @@ class BasicAfdFuncTests : public ::testing::Test,
 
         configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
         configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-        ACTStatus error;
+        EVTStatus error;
         ::remove(configuration.GetProperty("cacheFilePath", error));
 
 

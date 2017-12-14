@@ -7,7 +7,7 @@
 #include "MainPage.xaml.h"
 #include "public/LogManager.hpp"
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 
 using namespace uap_cpp;
 

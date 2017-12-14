@@ -49,7 +49,7 @@ AriaProtocol::Value toAriaProtocolValue(uint64_t val)
 }
 
 
-AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Telemetry::EventLatency val)
+AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Events::EventLatency val)
 {
     AriaProtocol::Value temp;
     temp.type = AriaProtocol::ValueArrayInt32;

@@ -1,6 +1,6 @@
 #include "DeviceInformationImpl.hpp"
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
 ///// IDeviceInformation API

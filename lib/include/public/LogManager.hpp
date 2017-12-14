@@ -17,12 +17,12 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             class LogSessionData;
 
             /// <summary>
-            /// This class is used to manage the Telemetry logging system
+            /// This class is used to manage the Events  logging system
             /// </summary>
             class ARIASDK_LIBABI LogManager
             {

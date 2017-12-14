@@ -4,11 +4,11 @@
 #include "PlatformHelpers.h"
 #include "SchemaStub.hpp"
 
-namespace MAT = Microsoft::Applications::Telemetry;
+namespace MAT = Microsoft::Applications::Events ;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
 

@@ -3,7 +3,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry
+        namespace Events 
         {
             // Convert a bias in minutes to the ISO 8601 time zone representaiton.
             // ISO 8601 examples: +01:30, -08

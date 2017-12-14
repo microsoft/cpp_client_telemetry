@@ -9,7 +9,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace PAL
             {
                 const std::string WindowsOSName = "Windows Desktop";

@@ -12,7 +12,7 @@
 #include <map>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
@@ -300,6 +300,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
         std::map<std::string, EventProperty>* m_propertiesBP;
 	};
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 
 #endif //MYAPPLICATION_EVENTPROPERTIES_H

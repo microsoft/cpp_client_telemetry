@@ -298,7 +298,7 @@ class SqliteDB {
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
 };
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "AriaSDK.SQLiteDB", "Aria telemetry client - SqliteDB class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
 
 //---
 
@@ -561,7 +561,7 @@ class SqliteStatement {
     ARIASDK_LOG_DECL_COMPONENT_CLASS();
 };
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "AriaSDK.SQLiteStatement", "Aria telemetry client - Sqlite statement class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
 
 
 } ARIASDK_NS_END

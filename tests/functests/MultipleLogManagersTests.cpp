@@ -45,7 +45,7 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         config1.SetProperty("cacheFilePath","lm1.db");
         //config1.runtimeConfig = &runtimeConfig1;
-        ACTStatus error;
+        EVTStatus error;
         ::remove(config1.GetProperty("cacheFilePath", error));
 
         config2.SetProperty("cacheFilePath", "lm2.db");
@@ -58,7 +58,7 @@ class MultipleLogManagersTests : public ::testing::Test,
     {
         sqlite3_shutdown();
         server.stop();
-        ACTStatus error;
+        EVTStatus error;
         ::remove(config1.GetProperty("cacheFilePath", error));
         ::remove(config2.GetProperty("cacheFilePath", error));
     }

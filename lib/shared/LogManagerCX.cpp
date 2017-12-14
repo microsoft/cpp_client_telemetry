@@ -21,7 +21,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows {
                     const string OfflineStorageFileExtension = ".storage";
 
@@ -164,7 +164,7 @@ namespace Microsoft {
                     void LogManager::SetTransmitProfile(TransmitProfile profile)
                     {
                         //ARIASDK_LOG_DETAIL("LogManager::SetTransmitProfile()");
-                        MAT::LogManager::SetTransmitProfile((Telemetry::TransmitProfile)profile);
+                        MAT::LogManager::SetTransmitProfile((Events ::TransmitProfile)profile);
                     }
 
                     void LogManager::SetTransmitProfile(String^ profileName)
@@ -184,7 +184,7 @@ namespace Microsoft {
                     void LogManager::SetContext(String ^ name, String ^ value, PiiKind piiKind)
                     {
                         //ARIASDK_LOG_DETAIL("LogManager::SetContext[3]");
-                        MAT::LogManager::SetContext(FromPlatformString(name), FromPlatformString(value), (Telemetry::PiiKind)piiKind);
+                        MAT::LogManager::SetContext(FromPlatformString(name), FromPlatformString(value), (Events ::PiiKind)piiKind);
                     }
 
                     ISemanticContext^ LogManager::SemanticContext::get()

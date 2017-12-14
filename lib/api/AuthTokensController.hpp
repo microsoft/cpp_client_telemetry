@@ -9,7 +9,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
@@ -31,7 +31,7 @@ class AuthTokensController : public IAuthTokensController
     /// </summary>
     /// <param name="type">Ticket type</param>
     /// <param name="ticketValue">Ticketvalue</param>
-    virtual ACTStatus  SetTicketToken(TicketType type, char const* tokenValue);
+    virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue);
 
     /// <summary>
     /// Set the Auth ticket.
@@ -62,4 +62,4 @@ class AuthTokensController : public IAuthTokensController
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

@@ -13,7 +13,7 @@ using namespace std;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
 			std::mutex*          our_lockP = new std::mutex();
 			ILogManager*         our_pLogManagerSingletonInstanceP = nullptr;
@@ -33,7 +33,7 @@ namespace Microsoft {
 
 				if (nullptr == our_pLogManagerSingletonInstanceP)
 				{
-                    ACTStatus error;
+                    EVTStatus error;
                     std::string cacheFilePath = our_LogConfigurationP->GetProperty(CFG_STR_CACHE_FILE_PATH, error);
                     if (cacheFilePath.empty())
                     {

@@ -6,7 +6,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "AriaSDK.AuthTokensController", "Aria telemetry client - AuthTokensController class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
 
 AuthTokensController::AuthTokensController()
 {
@@ -18,7 +18,7 @@ AuthTokensController::~AuthTokensController()
     ARIASDK_LOG_INFO("destructor");
 }
 
-ACTStatus  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
+EVTStatus  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
 {
     if (nullptr != tokenValue)
     {        
@@ -33,9 +33,9 @@ ACTStatus  AuthTokensController::SetTicketToken(TicketType type, char const* tok
             m_tickets.push_back(TICKETS_PREPAND_STRING + std::to_string(type));
             m_userTokens[type] = std::string(tokenValue);
         }
-        return ACTStatus::ACTStatus_OK;
+        return EVTStatus::EVTStatus_OK;
     }
-    return ACTStatus::ACTStatus_Fail;
+    return EVTStatus::EVTStatus_Fail;
 }
 
 std::vector<std::string>&  AuthTokensController::GetTickets()
@@ -52,4 +52,4 @@ std::map<TicketType, std::string>&  AuthTokensController::GetUserTokens()
 {
     return m_userTokens;
 }
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

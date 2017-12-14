@@ -5,7 +5,7 @@
 #include "EventProperties.hpp"
 
 using namespace testing;
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events;
 
 TEST(GuidTests, BuildWithUpperCaseAndBraces_ToString_ReturnsUpperCaseWithNoBraces)
 {

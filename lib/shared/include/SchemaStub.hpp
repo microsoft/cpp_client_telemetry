@@ -3,7 +3,7 @@
 // TODO: Replace with actual Bond-generated interfaces.
 namespace Microsoft {
 	namespace Applications {
-		namespace Telemetry {
+		namespace Events  {
 			namespace Windows
 			{
                 /// <summary>
@@ -265,11 +265,11 @@ namespace Microsoft {
 	{
 		// Bringing enums defined in the public namespace.
 		// TODO: align with the ACT enums.
-		typedef Telemetry::Windows::ActionType ActionType;
-		typedef Telemetry::Windows::InputDeviceType InputDeviceType;
-		typedef Telemetry::Windows::AppLifeCycleState AppLifeCycleState;
-		typedef Telemetry::Windows::RawActionType RawActionType;
-		typedef Telemetry::Windows::EventPriority EventPriority;
+		typedef Events ::Windows::ActionType ActionType;
+		typedef Events ::Windows::InputDeviceType InputDeviceType;
+		typedef Events ::Windows::AppLifeCycleState AppLifeCycleState;
+		typedef Events ::Windows::RawActionType RawActionType;
+		typedef Events ::Windows::EventPriority EventPriority;
 		
 		enum class NetworkType
 		{

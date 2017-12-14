@@ -6,7 +6,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-   ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK", "Aria telemetry client");
+   ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK", "Events telemetry client");
 
 
 } ARIASDK_NS_END

@@ -4,7 +4,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 public ref struct PageActionData sealed

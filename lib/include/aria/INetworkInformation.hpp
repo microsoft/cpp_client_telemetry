@@ -12,7 +12,7 @@
 #define NETWORK_COST "NetworkCost"
 #define NETWORK_TYPE "NetworkType"
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
 class INetworkInformation : public IInformationProvider

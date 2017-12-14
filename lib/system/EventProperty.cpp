@@ -13,11 +13,11 @@
 
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             /// <summary>
             /// Default constructor for an empty object

@@ -81,7 +81,7 @@ void SetThreadName(const char* threadName)
 
 
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 //using namespace ARIASDK_NS_BEGIN;
 using namespace std;
 
@@ -493,7 +493,7 @@ ILogger* init() {
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_DB_COMPRESS, true);
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, false);
     configuration.SetIntProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, 20);
-    ACTStatus error;
+    EVTStatus error;
     std::string temp = configuration.GetProperty("dsadasdsad", error);
 
     // Force UTC uploader on Windows 10 even if it's not RS2

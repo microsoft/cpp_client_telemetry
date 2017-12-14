@@ -8,7 +8,7 @@
 #include <algorithm>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 //    extern void SendAsJSON(const EventProperties& properties, const std::string& token);
@@ -122,7 +122,7 @@ void Logger::LogEvent(EventProperties const& properties)
     CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_LOG_EVENT);
 }
 
-bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Telemetry::EventLatency& latency)
+bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Events ::EventLatency& latency)
 {
     record.name = properties.GetName();
     if (record.name.empty())
@@ -142,8 +142,8 @@ bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventPropert
 }
 
 void Logger::submit(::AriaProtocol::CsEvent& record, 
-                    ::Microsoft::Applications::Telemetry::EventLatency latency, 
-                    ::Microsoft::Applications::Telemetry::EventPersistence persistence, 
+                    ::Microsoft::Applications::Events ::EventLatency latency, 
+                    ::Microsoft::Applications::Events ::EventPersistence persistence, 
                     std::uint64_t  const& policyBitFlags)
 {
     if (latency == EventLatency_Off)
@@ -166,4 +166,4 @@ void Logger::submit(::AriaProtocol::CsEvent& record,
     }
 }
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

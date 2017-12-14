@@ -3,10 +3,10 @@
 #include "SingleControlPlane.hpp"
 #include "utils/Utils.hpp"
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
+namespace Microsoft { namespace Applications { namespace Events  { namespace ControlPlane
 // *INDENT-ON*
 {
     SingleControlPlane::SingleControlPlane(std::unique_ptr<ILocalStorageReader>& localStorageReader)
@@ -164,4 +164,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         return dummyTenantData;
     }
 
-}}}} // namespace Microsoft::Applications::Telemetry::ControlPlane
+}}}} // namespace Microsoft::Applications::Events ::ControlPlane

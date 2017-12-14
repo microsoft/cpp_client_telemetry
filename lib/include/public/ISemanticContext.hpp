@@ -7,7 +7,7 @@
 #include <string>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 class  ARIASDK_LIBABI ISemanticContext
@@ -151,6 +151,6 @@ class  ARIASDK_LIBABI ISemanticContext
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 
 #endif //ISEMANTICCONTEXT_H

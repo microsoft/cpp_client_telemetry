@@ -5,11 +5,11 @@
 #include <stdint.h>
 
 
-//#define Telemetry Telemetry_v5
+//#define Events  Telemetry_v5
 
-#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Telemetry
+#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Events 
 #define ARIASDK_NS_END   }}
-#define ARIASDK_NS       Microsoft::Applications::Telemetry
+#define ARIASDK_NS       Microsoft::Applications::Events 
 
 
 

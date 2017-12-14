@@ -10,12 +10,12 @@
 #include <string>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
 
 /// <summary>
-/// This class is used to manage the Telemetry logging system
+/// This class is used to manage the Events  logging system
 /// </summary>
 class ILogManagerInternal
 {
@@ -230,4 +230,4 @@ class ILogManagerInternal
 };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

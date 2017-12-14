@@ -3,11 +3,11 @@
 #include "SchemaStub.hpp"
 #include "ISemanticContext.hpp"
 
-namespace MAT = Microsoft::Applications::Telemetry;
+namespace MAT = Microsoft::Applications::Events ;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 public interface class ISemanticContext

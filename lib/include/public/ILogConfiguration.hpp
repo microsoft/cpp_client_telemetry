@@ -9,7 +9,7 @@
 // *INDENT-OFF*
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             // *INDENT-ON*
             class IHttpClient;
             class IRuntimeConfig;
@@ -177,7 +177,7 @@ namespace Microsoft {
                 /// The default value is <i>ACTTraceLevel_Error</i>.
                 /// </summary>
                 /// <param name="minimumTraceLevel">The minimum trace level as one of the ACTTraceLevel enumeration values.</param>
-                virtual ACTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) = 0;
+                virtual EVTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) = 0;
 
                 /// <summary>
                 /// [optional] Gets the debug trace level mask, which controls the global verbosity level.
@@ -193,7 +193,7 @@ namespace Microsoft {
                 /// The default value is <i>Non UTC</i>.
                 /// </summary>
                 /// <param name="sdkmode">The SDK mode as one of the SdkModeTypes enumeration values.</param>
-                virtual ACTStatus SetSdkModeType(SdkModeTypes sdkmode) = 0;
+                virtual EVTStatus SetSdkModeType(SdkModeTypes sdkmode) = 0;
 
                 /// <summary>
                 /// Gets the Aria SDK mode (either <i>Non UTC</i>, 
@@ -209,28 +209,28 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="value">A pointer to a character constant that contains the value string.</param>
-                virtual ACTStatus SetProperty(char const* key, char const* value) = 0;
+                virtual EVTStatus SetProperty(char const* key, char const* value) = 0;
 
                 /// <summary>
                 /// Sets an ILogConfiguration property, taking a string for the key, and a uint32_t for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="value">A uint32_t that contains the value.</param>
-                virtual ACTStatus SetIntProperty(char const* key, uint32_t value) = 0;
+                virtual EVTStatus SetIntProperty(char const* key, uint32_t value) = 0;
 
                 /// <summary>
                 /// Sets an ILogConfiguration property, taking a string for the key, and a boolean for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="value">A boolean that contains the value.</param>
-                virtual ACTStatus SetBoolProperty(char const* key, bool value) = 0;
+                virtual EVTStatus SetBoolProperty(char const* key, bool value) = 0;
 
                 /// <summary>
-                /// Sets an ILogConfiguration property, taking a string for the name, and a ACTStatus pointer for the value.
+                /// Sets an ILogConfiguration property, taking a string for the name, and a EVTStatus pointer for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
-                /// <param name="value">A ACTStatus pointer that points to the value.</param>
-                virtual ACTStatus SetPointerProperty(char const* key, void* value) = 0;
+                /// <param name="value">A EVTStatus pointer that points to the value.</param>
+                virtual EVTStatus SetPointerProperty(char const* key, void* value) = 0;
 
                 /// <summary>
                 /// Gets an ILogConfiguration property, taking a string for the key, and a boolean for the error.
@@ -238,7 +238,7 @@ namespace Microsoft {
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="error">A reference to a boolean that contains the error</param>
                 /// <returns>The property, pointed to by a character constant pointer.</returns>
-                virtual char const* GetProperty(char const* key, ACTStatus& error) const = 0;
+                virtual char const* GetProperty(char const* key, EVTStatus& error) const = 0;
 
                 /// <summary>
                 /// Gets an ILogConfiguration property, taking a string for the key, and a boolean for the error.
@@ -246,7 +246,7 @@ namespace Microsoft {
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="error">A reference to a boolean that contains the error.</param>
                 /// <returns>The property in a uint32_t.</returns>
-                virtual uint32_t GetIntProperty(char const* key, ACTStatus& error) const = 0;
+                virtual uint32_t GetIntProperty(char const* key, EVTStatus& error) const = 0;
 
                 /// <summary>
                 /// Gets an ILogConfiguration property, taking a string for the key, and a boolean for the error.
@@ -254,36 +254,36 @@ namespace Microsoft {
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="error">A reference to a boolean that contains the error.</param>
                 /// <returns>The property in a boolean.</returns>
-                virtual bool GetBoolProperty(char const* key, ACTStatus& error) const = 0;
+                virtual bool GetBoolProperty(char const* key, EVTStatus& error) const = 0;
 
                 /// <summary>
                 /// Gets an ILogConfiguration property,  API allows to get Aria pointer setting
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="error">A reference to a boolean that contains the error.</param>
-                /// <returns>The property pointed to by a ACTStatus pointer.</returns>
-                virtual void* GetPointerProperty(char const* key, ACTStatus& error) const = 0;
+                /// <returns>The property pointed to by a EVTStatus pointer.</returns>
+                virtual void* GetPointerProperty(char const* key, EVTStatus& error) const = 0;
 
                 /// <summary>
                 /// Sets an ILogConfiguration property, taking a string for the key, and a boolean for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="value">A boolean that contains the value.</param>
-                inline ACTStatus SetProperty(const char *key, bool value) { return SetBoolProperty(key, value); };
+                inline EVTStatus SetProperty(const char *key, bool value) { return SetBoolProperty(key, value); };
 
                 /// <summary>
-                /// Sets an ILogConfiguration property, taking a string for the name, and a ACTStatus pointer for the value.
+                /// Sets an ILogConfiguration property, taking a string for the name, and a EVTStatus pointer for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
-                /// <param name="value">A ACTStatus pointer that points to the value.</param>
-                inline ACTStatus SetProperty(const char *key, ACTStatus* value) { return SetPointerProperty(key, value); };
+                /// <param name="value">A EVTStatus pointer that points to the value.</param>
+                inline EVTStatus SetProperty(const char *key, EVTStatus* value) { return SetPointerProperty(key, value); };
 
                 /// <summary>
                 /// Sets an ILogConfiguration property, taking a string for the key, and a uint32_t for the value.
                 /// </summary>
                 /// <param name="key">A pointer to a character constant that contains the key string.</param>
                 /// <param name="value">A uint32_t that contains the value.</param>
-                inline ACTStatus SetProperty(const char *key, uint32_t value) { return SetIntProperty(key, value); };
+                inline EVTStatus SetProperty(const char *key, uint32_t value) { return SetIntProperty(key, value); };
 
 #ifdef _WIN32
                 /// <summary>
@@ -332,10 +332,10 @@ namespace Microsoft {
                     return (*this);
                 }
 
-                inline ConfigKey &operator=(const ACTStatus* value)
+                inline ConfigKey &operator=(const EVTStatus* value)
                 {
                     type = TypePtr;
-                    config->SetProperty(key, (ACTStatus *)value);
+                    config->SetProperty(key, (EVTStatus *)value);
                     return (*this);
                 }
 
@@ -353,5 +353,5 @@ namespace Microsoft {
 
         }
     }
-} // namespace Microsoft::Applications::Telemetry
+} // namespace Microsoft::Applications::Events 
 #endif 

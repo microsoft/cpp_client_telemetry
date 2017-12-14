@@ -8,7 +8,7 @@
 
 
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 using namespace std;
 using nlohmann::json;
 

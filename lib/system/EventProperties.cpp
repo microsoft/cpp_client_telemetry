@@ -10,11 +10,11 @@
 
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             EventProperties::EventProperties(const std::string& name, const std::map<std::string, EventProperty> &properties) :
                 EventProperties(name)

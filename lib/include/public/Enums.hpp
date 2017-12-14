@@ -8,24 +8,24 @@
 #include <map>
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 
     /// <summary> 
-    /// The ACTStatus enumeration contains a set of status code. 
+    /// The EVTStatus enumeration contains a set of status code. 
     /// </summary> 
-    enum ACTStatus
+    enum EVTStatus
     {
         /// <summary>Not supported.</summary> 
-        ACTStatus_NotSupported = -2,
+        EVTStatus_NotSupported = -2,
         /// <summary>General failure</summary> 
-        ACTStatus_Fail = -1,
+        EVTStatus_Fail = -1,
         /// <summary>Success.</summary> 
-        ACTStatus_OK = 0,
+        EVTStatus_OK = 0,
         /// <summary>Already Initialized</summary> 
-        ACTStatus_AlreadyInitialized = 1,
+        EVTStatus_AlreadyInitialized = 1,
         /// <summary>No action done</summary> 
-        ACTStatus_NoOp = 2,
+        EVTStatus_NoOp = 2,
     };
 
     enum DataCategory
@@ -418,6 +418,6 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
             const static unsigned gc_NumRejectedReasons = REJECTED_REASON_COUNT;
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 
 #endif //EVENTPRIORITY_H

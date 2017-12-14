@@ -10,7 +10,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry::PAL;
+using namespace Microsoft::Applications::Events ::PAL;
 
 
 /******************************************************************************

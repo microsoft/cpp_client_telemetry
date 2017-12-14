@@ -20,7 +20,7 @@ const static int MAX_RETRY_TIMES = 5;
 const static int DEFAULT_RETRY_TIME_FACTOR = 8;
 
 
-namespace PAL = ::Microsoft::Applications::Telemetry::PAL;
+namespace PAL = ::Microsoft::Applications::Events ::PAL;
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
@@ -37,7 +37,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual bool RemoveListener(IECSClientCallback* listener);
 
         // Register a logger to auto-tag events sent by the logger with ECS configuration infos like ETag
-        virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName);
+        virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName);
 
         virtual bool SetUserId(const std::string& userId);
 
@@ -89,7 +89,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         void _ValidateECSClientConfiguration(const ECSClientConfiguration& config);
 		void _LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source);
 		void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-		void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Telemetry::ILogger* pLogger, std::string agentName);
+		void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events ::ILogger* pLogger, std::string agentName);
 		void _UpdateLoggersWithEXPConfig();
 		std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
 

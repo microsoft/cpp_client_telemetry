@@ -94,7 +94,7 @@ void TelemetrySystem::start()
 
 void TelemetrySystem::stop()
 {
-    ACTStatus error;
+    EVTStatus error;
     unsigned int timeoutInSec = configuration.GetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, error);
     if (timeoutInSec > 0)
     {        

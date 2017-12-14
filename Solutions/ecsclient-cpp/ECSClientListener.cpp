@@ -7,7 +7,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 using namespace Microsoft::Applications::Experimentation::ECS;
 
 const std::string TEST_CLIENT_NAME = "Skype";

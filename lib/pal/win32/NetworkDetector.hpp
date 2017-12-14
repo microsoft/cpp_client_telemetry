@@ -59,7 +59,7 @@ using namespace std;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events {
 
             namespace Windows {
 
@@ -256,8 +256,8 @@ namespace Microsoft {
     }
 }
 
-namespace MAT  = Microsoft::Applications::Telemetry;
-namespace MATW = Microsoft::Applications::Telemetry::Windows;
+namespace MAT  = Microsoft::Applications::Events;
+namespace MATW = Microsoft::Applications::Events::Windows;
 
 #endif
 

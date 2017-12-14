@@ -34,7 +34,7 @@ AriaProtocol::Value toAriaProtocolValue(bool val);
 AriaProtocol::Value toAriaProtocolValue(double val);
 AriaProtocol::Value toAriaProtocolValue(int64_t val);
 AriaProtocol::Value toAriaProtocolValue(uint64_t val);
-AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Telemetry::EventLatency val);
+AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Events::EventLatency val);
 
 
 MATCHER_P(BinaryHasSubstr, str, "")

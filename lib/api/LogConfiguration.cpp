@@ -9,27 +9,27 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    ACTStatus LogConfiguration::SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel)
+    EVTStatus LogConfiguration::SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel)
     {
         m_minimumTraceLevel = minimumTraceLevel;
-        return  ACTStatus::ACTStatus_OK;
+        return  EVTStatus::EVTStatus_OK;
     }
 
     ACTTraceLevel LogConfiguration::GetMinimumTraceLevel() const
     {
         return m_minimumTraceLevel;
     }
-    ACTStatus LogConfiguration::SetSdkModeType(SdkModeTypes sdkmode)
+    EVTStatus LogConfiguration::SetSdkModeType(SdkModeTypes sdkmode)
     {
         m_sdkmode = sdkmode;
-        return  ACTStatus::ACTStatus_OK;
+        return  EVTStatus::EVTStatus_OK;
     }
     SdkModeTypes LogConfiguration::GetSdkModeType() const
     {
         return m_sdkmode;
     }
 
-    ACTStatus LogConfiguration::SetProperty(char const* key, char const* value)
+    EVTStatus LogConfiguration::SetProperty(char const* key, char const* value)
     {
         if (nullptr != key && nullptr != value)
         {
@@ -38,12 +38,12 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 strProps[keyString] = value;
-                return  ACTStatus::ACTStatus_OK;
+                return  EVTStatus::EVTStatus_OK;
             }
         }
-        return  ACTStatus::ACTStatus_Fail;
+        return  EVTStatus::EVTStatus_Fail;
     }
-    ACTStatus LogConfiguration::SetIntProperty(char const* key, unsigned int value)
+    EVTStatus LogConfiguration::SetIntProperty(char const* key, unsigned int value)
     {
         if (nullptr != key)
         {
@@ -52,12 +52,12 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 intProps[keyString] = value;
-                return  ACTStatus::ACTStatus_OK;
+                return  EVTStatus::EVTStatus_OK;
             }
         }
-        return  ACTStatus::ACTStatus_Fail;
+        return  EVTStatus::EVTStatus_Fail;
     }
-    ACTStatus LogConfiguration::SetBoolProperty(char const* key, bool value)
+    EVTStatus LogConfiguration::SetBoolProperty(char const* key, bool value)
     {
         if (nullptr != key)
         {
@@ -66,66 +66,66 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
                 boolProps[keyString] = value;
-                return  ACTStatus::ACTStatus_OK;
+                return  EVTStatus::EVTStatus_OK;
             }
         }
-        return  ACTStatus::ACTStatus_Fail;
+        return  EVTStatus::EVTStatus_Fail;
     }
-    ACTStatus LogConfiguration::SetPointerProperty(char const* key, void* value)
+    EVTStatus LogConfiguration::SetPointerProperty(char const* key, void* value)
     {
         UNREFERENCED_PARAMETER(key);
         UNREFERENCED_PARAMETER(value);
-        return  ACTStatus::ACTStatus_OK;
+        return  EVTStatus::EVTStatus_OK;
     }
    
-    char const* LogConfiguration::GetProperty(char const* key, ACTStatus& error) const
+    char const* LogConfiguration::GetProperty(char const* key, EVTStatus& error) const
     {
         if (nullptr != key)
         {
             std::string keyString(key);
             if (!keyString.empty() && strProps.find(keyString) != strProps.end())
             {
-                error = ACTStatus::ACTStatus_OK;
+                error = EVTStatus::EVTStatus_OK;
                 return strProps.at(keyString).c_str();
             }
         }
-        error =  ACTStatus::ACTStatus_Fail;
+        error =  EVTStatus::EVTStatus_Fail;
         return "";
     }
 
-    uint32_t LogConfiguration::GetIntProperty(char const* key, ACTStatus& error) const
+    uint32_t LogConfiguration::GetIntProperty(char const* key, EVTStatus& error) const
     {
         if (nullptr != key)
         {
             std::string keyString(key);
             if (!keyString.empty() && intProps.find(keyString) != intProps.end())
             {
-                error = ACTStatus::ACTStatus_OK;
+                error = EVTStatus::EVTStatus_OK;
                 return intProps.at(keyString);
             }
         }
-        error = ACTStatus::ACTStatus_Fail;
+        error = EVTStatus::EVTStatus_Fail;
         return 0;
     }
-    bool LogConfiguration::GetBoolProperty(char const* key, ACTStatus& error) const
+    bool LogConfiguration::GetBoolProperty(char const* key, EVTStatus& error) const
     {
         if (nullptr != key)
         {
             std::string keyString(key);
             if (!keyString.empty() && boolProps.find(keyString) != boolProps.end())
             {
-                error = ACTStatus::ACTStatus_OK;
+                error = EVTStatus::EVTStatus_OK;
                 return boolProps.at(keyString);
             }
         }
-        error = ACTStatus::ACTStatus_Fail;
+        error = EVTStatus::EVTStatus_Fail;
         return false;
     }
 
-    void* LogConfiguration::GetPointerProperty(char const* key, ACTStatus& error) const
+    void* LogConfiguration::GetPointerProperty(char const* key, EVTStatus& error) const
     {
         UNREFERENCED_PARAMETER(key);
-        error = ACTStatus::ACTStatus_Fail;
+        error = EVTStatus::EVTStatus_Fail;
         return nullptr;
     }
 
@@ -160,9 +160,9 @@ namespace ARIASDK_NS_BEGIN {
         strProps.insert(src.strProps.begin(), src.strProps.end());
         intProps.insert(src.intProps.begin(), src.intProps.end());
         boolProps.insert(src.boolProps.begin(), src.boolProps.end());
-        ACTStatus error;
+        EVTStatus error;
         std::string url = src.GetProperty(CFG_STR_COLLECTOR_URL, error);
-        if (url.empty() || error == ACTStatus::ACTStatus_Fail)
+        if (url.empty() || error == EVTStatus::EVTStatus_Fail)
         {
             SetProperty(CFG_STR_COLLECTOR_URL, TC_DEFAULT_EVENT_COLLECTOR_URL_PROD);
         }
@@ -190,9 +190,9 @@ namespace ARIASDK_NS_BEGIN {
         strProps.insert(src.strProps.begin(), src.strProps.end());
         intProps.insert(src.intProps.begin(), src.intProps.end());
         boolProps.insert(src.boolProps.begin(), src.boolProps.end());
-        ACTStatus error;
+        EVTStatus error;
         std::string url = src.GetProperty(CFG_STR_COLLECTOR_URL, error);
-        if (url.empty() || error == ACTStatus::ACTStatus_Fail)
+        if (url.empty() || error == EVTStatus::EVTStatus_Fail)
         {
             SetProperty(CFG_STR_COLLECTOR_URL, TC_DEFAULT_EVENT_COLLECTOR_URL_PROD);
         }

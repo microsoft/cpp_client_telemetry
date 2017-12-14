@@ -7,7 +7,7 @@
 #define STORAGE_SIZE "StorageSize"
 #define POWER_SOURCE "PowerSource"
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
 class IDeviceInformation : public IInformationProvider

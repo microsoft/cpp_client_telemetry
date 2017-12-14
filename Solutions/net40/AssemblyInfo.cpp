@@ -12,7 +12,7 @@ using namespace System::Security::Permissions;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly:AssemblyTitleAttribute(L"Microsoft.Applications.Telemetry.Windows")];
+[assembly:AssemblyTitleAttribute(L"Microsoft.Applications.Events .Windows")];
 [assembly:AssemblyDescriptionAttribute(L"Microsoft data file")];
 [assembly:AssemblyConfigurationAttribute(L"Retail")];
 [assembly:AssemblyCompanyAttribute(L"Microsoft")];

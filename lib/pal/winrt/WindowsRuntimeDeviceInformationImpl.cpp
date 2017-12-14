@@ -10,13 +10,13 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace PAL
             {
                 using namespace ::Windows::Networking::Connectivity;
                 using namespace ::Windows::Devices::Input;
 
-                using namespace Microsoft::Applications::Telemetry::Windows;
+                using namespace Microsoft::Applications::Events ::Windows;
                 using namespace ::Windows::Security::ExchangeActiveSyncProvisioning;
 
                 /**

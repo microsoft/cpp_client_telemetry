@@ -8,11 +8,11 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             uint32_t const CurrentTargetVersion = 0x0100;// 1.0
             /// <summary>
-            /// This class is used to manage the Telemetry logging system
+            /// This class is used to manage the Events  logging system
             /// </summary>
             class ARIASDK_LIBABI LogManagerProvider
             {
@@ -43,7 +43,7 @@ namespace Microsoft {
                 static ILogManager* CreateLogManager(char const* apiKey,
                                                      bool wantController,
                                                      ILogConfiguration& logConfiguration,
-                                                     ACTStatus& status,
+                                                     EVTStatus& status,
 #ifdef ANDROID
                                                      JNIEnv *env,
                                                      jclass contextClass,
@@ -60,7 +60,7 @@ namespace Microsoft {
                 /// </summary> 
                 static ILogManager* CreateLogManager(char const* apiKey, 
                                                      bool wantController, 
-                                                     ACTStatus& status,  
+                                                     EVTStatus& status,  
 #ifdef ANDROID
                                                      JNIEnv *env,
                                                      jclass contextClass,
@@ -75,7 +75,7 @@ namespace Microsoft {
                 /// <param name="status">Status.</param> 
                 /// </summary> 
                 static ILogManager* CreateLogManager(char const* apiKey, 
-                                                     ACTStatus& status, 
+                                                     EVTStatus& status, 
 #ifdef ANDROID
                                                      JNIEnv *env,
                                                      jclass contextClass,
@@ -90,13 +90,13 @@ namespace Microsoft {
                 /// <param name="apiKey">API Key.</param> 
                 /// <param name="status">Status.</param> 
                 /// </summary> 
-                static ILogManager* GetLogManager(char const* apiKey, ACTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
+                static ILogManager* GetLogManager(char const* apiKey, EVTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
 
                 /// <summary> 
                 /// Removes an guste or host LogManager created with passed API key with the current configuration. 
                 /// <param name="apiKey">API Key.</param> 
                 /// </summary> 
-                static ACTStatus DestroyLogManager(char const* apiKey);
+                static EVTStatus DestroyLogManager(char const* apiKey);
                };
         }
     }

@@ -22,7 +22,7 @@
     <ProjectGuid>{DC91621E-A203-42DF-8E03-3A23DD0602B1}</ProjectGuid>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
-    <RootNamespace>Microsoft.Applications.Telemetry.Windows</RootNamespace>
+    <RootNamespace>Microsoft.Applications.Events.Windows</RootNamespace>
     <ProjectName>net40</ProjectName>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <CLRSupport>true</CLRSupport>
@@ -73,7 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>Microsoft.Applications.Telemetry.Windows</TargetName>
+    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>

@@ -44,7 +44,7 @@ class BasicFuncTests : public ::testing::Test,
                 
         configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
         configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-        ACTStatus error;
+        EVTStatus error;
         ::remove(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 
         EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
@@ -544,10 +544,10 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
-    event1.SetLatency(Microsoft::Applications::Telemetry::EventLatency::EventLatency_RealTime);
-    event1.SetPersistence(Microsoft::Applications::Telemetry::EventPersistence::EventPersistence_Critical);
-    event2.SetLatency(Microsoft::Applications::Telemetry::EventLatency::EventLatency_RealTime);
-    event2.SetPersistence(Microsoft::Applications::Telemetry::EventPersistence::EventPersistence_Critical);
+    event1.SetLatency(Microsoft::Applications::Events::EventLatency::EventLatency_RealTime);
+    event1.SetPersistence(Microsoft::Applications::Events::EventPersistence::EventPersistence_Critical);
+    event2.SetLatency(Microsoft::Applications::Events::EventLatency::EventLatency_RealTime);
+    event2.SetPersistence(Microsoft::Applications::Events::EventPersistence::EventPersistence_Critical);
 
     logger->LogEvent(event1);
     logger->LogEvent(event2);

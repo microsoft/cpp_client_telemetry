@@ -16,8 +16,8 @@
 
 using namespace std;
 using namespace nlohmann; 
-using namespace Microsoft::Applications::Telemetry;
-using namespace Microsoft::Applications::Telemetry::PAL;
+using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Events ::PAL;
 
 namespace Microsoft {
     namespace Applications {

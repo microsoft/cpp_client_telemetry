@@ -6,10 +6,10 @@
 #include "Enums.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 // *INDENT-ON*
 /// <summary>
-/// This class is used to manage the Telemetry logging system
+/// This class is used to manage the Events  logging system
 /// </summary>
     class ARIASDK_LIBABI IAuthTokensController
     {
@@ -24,11 +24,11 @@ namespace Microsoft { namespace Applications { namespace Telemetry {
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual ACTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;
+        virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;
 
     };
 
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 
 
 #endif //ARIA_IAUTHTOKENS_HPP

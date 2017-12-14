@@ -3,7 +3,7 @@
 #include "IInformationProvider.hpp"
 #include "InformationProviderImpl.hpp"
 
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace PAL {
 
     class SystemInformationImpl : public ISystemInformation

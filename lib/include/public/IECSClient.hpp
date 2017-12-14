@@ -160,7 +160,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="pLoger">The logger to be registered with the ECS client</param>
         /// <param name="agentName">A string that contains the name of the agent.</param>
         /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName) = 0;
+        virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName) = 0;
 
         /// <summary>
         /// Sets a user ID used as the request parameter for retrieving configurations from the ECS server.

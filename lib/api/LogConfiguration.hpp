@@ -10,7 +10,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
 
             class LogConfiguration : public ILogConfiguration
             {
@@ -24,18 +24,18 @@ namespace Microsoft {
 
             public:
 
-                virtual ACTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) override;
+                virtual EVTStatus SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel) override;
                 virtual ACTTraceLevel GetMinimumTraceLevel() const override;
-                virtual ACTStatus SetSdkModeType(SdkModeTypes sdkmode) override;
+                virtual EVTStatus SetSdkModeType(SdkModeTypes sdkmode) override;
                 virtual SdkModeTypes GetSdkModeType() const override;
-                virtual ACTStatus SetProperty(char const* key, char const* value) override;
-                virtual ACTStatus SetIntProperty(char const* key, uint32_t value) override;
-                virtual ACTStatus SetBoolProperty(char const* key, bool value) override;
-                virtual ACTStatus SetPointerProperty(char const* key, void* value) override;
-                virtual char const* GetProperty(char const* key, ACTStatus& error) const override;
-                virtual uint32_t GetIntProperty(char const* key, ACTStatus& error) const override;
-                virtual bool GetBoolProperty(char const* key, ACTStatus& error) const override;
-                virtual void* GetPointerProperty(char const* key, ACTStatus& error) const override;
+                virtual EVTStatus SetProperty(char const* key, char const* value) override;
+                virtual EVTStatus SetIntProperty(char const* key, uint32_t value) override;
+                virtual EVTStatus SetBoolProperty(char const* key, bool value) override;
+                virtual EVTStatus SetPointerProperty(char const* key, void* value) override;
+                virtual char const* GetProperty(char const* key, EVTStatus& error) const override;
+                virtual uint32_t GetIntProperty(char const* key, EVTStatus& error) const override;
+                virtual bool GetBoolProperty(char const* key, EVTStatus& error) const override;
+                virtual void* GetPointerProperty(char const* key, EVTStatus& error) const override;
 
                 ///<summary>LogConfiguration constructor</summary>
                 LogConfiguration();
@@ -57,5 +57,5 @@ namespace Microsoft {
             };
         }
     }
-} // namespace Microsoft::Applications::Telemetry
+} // namespace Microsoft::Applications::Events 
 #endif //MYAPPLICATION_EVENTPROPERTIES_H

@@ -12,7 +12,7 @@ Packager::Packager(LogConfiguration& configuration, IRuntimeConfig const& runtim
   : m_runtimeConfig(runtimeConfig)    
 {  
     UNREFERENCED_PARAMETER(configuration);
-    ACTStatus error;
+    EVTStatus error;
     m_forcedTenantToken = toLower(configuration.GetProperty("forcedTenantToken", error));   
 }
 

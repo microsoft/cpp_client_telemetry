@@ -10,7 +10,7 @@ namespace ARIASDK_NS_BEGIN {
 
 		bool IsUtcRegistrationEnabledinWindows()
 		{
-			return ::Windows::Foundation::Metadata::ApiInformation::IsTypePresent("Windows.System.Diagnostics.Telemetry.PlatformTelemetryClient");
+			return ::Windows::Foundation::Metadata::ApiInformation::IsTypePresent("Windows.System.Diagnostics.Events .PlatformTelemetryClient");
 		}
 
 		bool RegisterIkeyWithWindowsTelemetry(std::string const& ikey, int storageSize, int uploadQuotaSize)

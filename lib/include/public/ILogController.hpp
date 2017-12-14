@@ -13,12 +13,12 @@
 // *INDENT-OFF*
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             // *INDENT-ON*
 
 
             /// <summary>
-            /// This class is used to manage the Telemetry logging system
+            /// This class is used to manage the Events  logging system
             /// </summary>
             class ARIASDK_LIBABI ILogController
             {
@@ -35,23 +35,23 @@ namespace Microsoft {
                 /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
                 /// time consuming.
                 /// </summary>
-                virtual ACTStatus Flush() = 0;
+                virtual EVTStatus Flush() = 0;
 
                 /// <summary>
                 /// Try to send any pending telemetry events in memory or on disk.
                 /// </summary>
-                virtual ACTStatus UploadNow() = 0;
+                virtual EVTStatus UploadNow() = 0;
 
                 /// <summary>
                 /// Pauses the transmission of events to data collector.
                 /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
                 /// </summary>
-                virtual ACTStatus PauseTransmission() = 0;
+                virtual EVTStatus PauseTransmission() = 0;
 
                 /// <summary>
                 /// Resumes the transmission of events to data collector.
                 /// </summary>
-                virtual ACTStatus ResumeTransmission() = 0;
+                virtual EVTStatus ResumeTransmission() = 0;
 
                 /// <summary>
                 /// Sets transmit profile for event transmission to one of the built-in profiles.
@@ -60,7 +60,7 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>This function doesn't return any value because it always succeeds.</returns>
-                virtual ACTStatus  SetTransmitProfile(TransmitProfile profile) = 0;
+                virtual EVTStatus  SetTransmitProfile(TransmitProfile profile) = 0;
 
                 /// <summary>
                 /// Sets transmit profile for event transmission.
@@ -69,19 +69,19 @@ namespace Microsoft {
                 /// </summary>
                 /// <param name="profile">Transmit profile</param>
                 /// <returns>true if profile is successfully applied, false otherwise</returns>
-                virtual ACTStatus  SetTransmitProfile(const std::string& profile) = 0;
+                virtual EVTStatus  SetTransmitProfile(const std::string& profile) = 0;
 
                 /// <summary>
                 /// Load transmit profiles from JSON config
                 /// </summary>
                 /// <param name="profiles_json">JSON config (see example above)</param>
                 /// <returns>true on successful profiles load, false if config is invalid</returns>
-                virtual ACTStatus  LoadTransmitProfiles(const std::string& profiles_json) = 0;
+                virtual EVTStatus  LoadTransmitProfiles(const std::string& profiles_json) = 0;
 
                 /// <summary>
                 /// Reset transmission profiles to default settings
                 /// </summary>
-                virtual ACTStatus  ResetTransmitProfiles() = 0;
+                virtual EVTStatus  ResetTransmitProfiles() = 0;
 
                 /// <summary>
                 /// Reset transmission profiles to default settings
@@ -101,6 +101,6 @@ namespace Microsoft {
             };
         }
     }
-} // namespace Microsoft::Applications::Telemetry
+} // namespace Microsoft::Applications::Events 
 
 #endif //ARIA_ILOG_CONTROLLER_HPP

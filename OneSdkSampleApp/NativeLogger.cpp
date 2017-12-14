@@ -19,7 +19,7 @@
 #include "Enums.hpp"
 #include "CorrelationVector.hpp"
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events ;
 using namespace std;
 
 NativeLogger::NativeLogger() : m_pLogger(nullptr), m_eventCount(0)

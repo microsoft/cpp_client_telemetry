@@ -5,7 +5,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             class WindowsEnvironmentInfo
             {
             public:

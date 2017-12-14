@@ -2,7 +2,7 @@
 #include "ILogger.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events  {
 namespace Models {
 // *INDENT-ON*
 

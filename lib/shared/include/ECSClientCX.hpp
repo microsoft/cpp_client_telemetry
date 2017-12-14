@@ -19,7 +19,7 @@ namespace MAEE = Microsoft::Applications::Experimentation::ECS;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows {
 
                 class ECSClientCallbackProxy;
@@ -113,7 +113,7 @@ namespace Microsoft {
                     /// <param name="pLoger">logger to be registered with the ECS client</param>
                     /// <param name="agentName">name of the agent whose experiments configIds will be auto-tagged to event sent by the logger</param>
                     /// <return>true if logger is registered successfully, false otherwise</return>
-                    bool RegisterLogger(Microsoft::Applications::Telemetry::Windows::ILogger^ pLoger, String^ agentName);
+                    bool RegisterLogger(Microsoft::Applications::Events ::Windows::ILogger^ pLoger, String^ agentName);
 
                     /// <summary>
                     /// Specify a user Id to be used as the request parameter for retrieving configurations from ECS server
@@ -239,14 +239,14 @@ namespace Microsoft {
 
                 class ECSClientCallbackProxy : public MAEE::IECSClientCallback {
                 public:
-                    ECSClientCallbackProxy(Microsoft::Applications::Telemetry::Windows::IECSClientCallback^ listener);
+                    ECSClientCallbackProxy(Microsoft::Applications::Events ::Windows::IECSClientCallback^ listener);
                     virtual void OnECSClientEvent(MAEE::IECSClientCallback::ECSClientEventType evtType, MAEE::IECSClientCallback::ECSClientEventContext evtContext);
-                    bool compare(Microsoft::Applications::Telemetry::Windows::IECSClientCallback^ listener);
+                    bool compare(Microsoft::Applications::Events ::Windows::IECSClientCallback^ listener);
                 protected:
 #ifdef _WINRT_DLL
-                    Microsoft::Applications::Telemetry::Windows::IECSClientCallback^ listener;
+                    Microsoft::Applications::Events ::Windows::IECSClientCallback^ listener;
 #else
-                    gcroot<Microsoft::Applications::Telemetry::Windows::IECSClientCallback^> listener;
+                    gcroot<Microsoft::Applications::Events ::Windows::IECSClientCallback^> listener;
 #endif
                 };
 

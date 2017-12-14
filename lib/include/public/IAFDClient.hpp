@@ -210,7 +210,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		/// <param name="agentName">A string that contains the name of the agent whose experiment configIds will be 
 		/// auto-tagged to events sent by the logger.</param>
 		/// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-		virtual bool RegisterLogger(Microsoft::Applications::Telemetry::ILogger* pLoger, const std::string& agentName) = 0;
+		virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName) = 0;
 
 		/// <summary>
 		/// Sets a list of custom parameters for the request to use to retrieve configurations from the AFD server.

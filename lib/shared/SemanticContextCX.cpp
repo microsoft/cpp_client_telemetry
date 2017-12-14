@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "SemanticContextCX.hpp"
 
-namespace MAT = Microsoft::Applications::Telemetry;
+namespace MAT = Microsoft::Applications::Events ;
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 void SemanticContextImpl::SetUserId(String ^ userId, PiiKind piiKind)

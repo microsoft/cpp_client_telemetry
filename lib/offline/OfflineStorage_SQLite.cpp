@@ -11,7 +11,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "AriaSDK.Storage", "Aria telemetry client - OfflineStorage_SQLite class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
 
 static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"
@@ -25,7 +25,7 @@ OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration& configuration, IR
     m_lastReadCount(0),
     m_isStorageFullNotificationSend(false)
 {
-    ACTStatus error;
+    EVTStatus error;
     int percentage  = configuration.GetIntProperty(CFG_INT_CACHE_FILE_FULL_NOTIFICATION_PERCENTAGE, error);
     int cacheFileSizeLimitInBytes = configuration.GetIntProperty(CFG_INT_CACHE_FILE_SIZE, error);
     m_offlineStorageFileName = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);

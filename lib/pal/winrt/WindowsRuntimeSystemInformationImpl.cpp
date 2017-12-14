@@ -8,7 +8,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace PAL
             {
 				using namespace std;
@@ -17,7 +17,7 @@ namespace Microsoft {
                 using namespace ::Windows::System::Profile;
                 using namespace ::Windows::Globalization;
 
-                using namespace Microsoft::Applications::Telemetry::Windows;
+                using namespace Microsoft::Applications::Events ::Windows;
 
                 const string WindowsOSName = "Windows";
                 const string WindowsPhoneOSName = "Windows for Phones";

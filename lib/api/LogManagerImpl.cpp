@@ -43,7 +43,7 @@ ILogManagerInternal* ILogManagerInternal::Create(LogConfiguration& configuration
 //---
 
 
-ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "AriaSDK.LogManager", "Aria telemetry client - LogManager class");
+ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Events telemetry client - LogManager class");
 
 LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* runtimeConfig)
   : m_httpClient(nullptr),//(IHttpClient*)configuration.GetPointerProperty("httpClient")),
@@ -130,7 +130,7 @@ LogManagerImpl::LogManagerImpl(LogConfiguration configuration, IRuntimeConfig* r
     m_offlineStorage.reset(new OfflineStorageHandler(m_logConfiguration, *m_runtimeConfig));
 
     m_system = new TelemetrySystem(m_logConfiguration, *m_runtimeConfig, *m_offlineStorage, *m_httpClient, *m_context, m_bandwidthController);
-    ARIASDK_LOG_DETAIL("Telemetry system created, starting up...");
+    ARIASDK_LOG_DETAIL("Events  system created, starting up...");
     if (m_system)
     {
         m_system->start();
@@ -162,7 +162,7 @@ void LogManagerImpl::FlushAndTeardown()
         if (m_system)
         {
             m_system->stop();
-            ARIASDK_LOG_DETAIL("Telemetry system stopped");
+            ARIASDK_LOG_DETAIL("Events  system stopped");
             m_system = nullptr;
         }
 
@@ -379,4 +379,4 @@ void LogManagerImpl::addIncomingEvent(IncomingEventContextPtr const& event)
     }
 }
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events 

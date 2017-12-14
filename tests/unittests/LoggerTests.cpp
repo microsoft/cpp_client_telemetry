@@ -18,11 +18,11 @@ class Logger4Test : public Logger {
     }
 
     MOCK_METHOD4(submit, void(::AriaProtocol::CsEvent &, 
-                              ::Microsoft::Applications::Telemetry::EventLatency,
-                              ::Microsoft::Applications::Telemetry::EventPersistence, 
+                              ::Microsoft::Applications::Events::EventLatency,
+                              ::Microsoft::Applications::Events::EventPersistence, 
                               std::uint64_t  const& ));
 
-    void submit_(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Telemetry::EventLatency latency, ::Microsoft::Applications::Telemetry::EventPersistence persistence, std::uint64_t  const& policyBitFlags)
+    void submit_(::AriaProtocol::CsEvent& record, ::Microsoft::Applications::Events::EventLatency latency, ::Microsoft::Applications::Events::EventPersistence persistence, std::uint64_t  const& policyBitFlags)
     {
         return Logger::submit(record, latency, persistence, policyBitFlags);
     }

@@ -8,7 +8,7 @@
 using namespace nlohmann;
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Telemetry { namespace ControlPlane
+namespace Microsoft { namespace Applications { namespace Events  { namespace ControlPlane
 // *INDENT-ON*
 {
     LPCSTR TenantDataSerializer::BOOL_MAP_NAME = "BoolMap";
@@ -100,4 +100,4 @@ namespace Microsoft { namespace Applications { namespace Telemetry { namespace C
         }
     }
 
-}}}} // namespace Microsoft::Applications::Telemetry::ControlPlane
+}}}} // namespace Microsoft::Applications::Events ::ControlPlane

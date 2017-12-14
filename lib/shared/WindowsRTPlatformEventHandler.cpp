@@ -5,7 +5,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Events  {
             namespace Windows
             {
                 using namespace ::Windows::UI::Xaml;
