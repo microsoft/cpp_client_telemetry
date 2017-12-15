@@ -85,14 +85,6 @@ namespace Microsoft {
 
 
                 /// <summary> 
-                /// Gets the LogManager with the current configuration. This does not create the a log manager, only return exists one or nullptr 
-                /// The same ILogManager is returned for the same apiKey specified. 
-                /// <param name="apiKey">API Key.</param> 
-                /// <param name="status">Status.</param> 
-                /// </summary> 
-                static ILogManager* GetLogManager(char const* apiKey, EVTStatus& status, uint32_t targetVersion = CurrentTargetVersion);
-
-                /// <summary> 
                 /// Removes an guste or host LogManager created with passed API key with the current configuration. 
                 /// <param name="apiKey">API Key.</param> 
                 /// </summary> 
