@@ -8,6 +8,7 @@ namespace Microsoft {
             namespace PAL 
             {
                 using namespace ::Windows::Networking::Connectivity;
+                Windows::Foundation::EventRegistrationToken token;
 
                 // Helper method. Retrieves network type based on the specified connection profile.
                 NetworkType GetNetworkTypeForProfile(ConnectionProfile^ profile)
@@ -78,7 +79,7 @@ namespace Microsoft {
                         return;
                     }
 
-                    NetworkInformation::NetworkStatusChanged +=
+                    token = NetworkInformation::NetworkStatusChanged +=
                         ref new NetworkStatusChangedEventHandler([this](Platform::Object^ sender)
                     {
                         // No need to use WeakReference as this is not ref counted.
@@ -120,6 +121,10 @@ namespace Microsoft {
 
                 }
 				               
+                NetworkInformationImpl::~NetworkInformationImpl()
+                {
+                    NetworkInformation::NetworkStatusChanged -= token;
+                };
 
 				INetworkInformation* NetworkInformationImpl::Create()
                 {

@@ -58,8 +58,13 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     packager.finalizePackage(ctx);
 
     EXPECT_THAT(ctx->body, Not(IsEmpty()));
-    EXPECT_THAT(ctx->recordIds, SizeIs(1));
-    EXPECT_THAT(ctx->recordIds, Contains("r1"));
+    EXPECT_THAT(ctx->recordIdsAndTenantIds, SizeIs(1));
+    std::vector<std::string> recordIds;
+    for (auto element : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(element.first);
+    }
+    EXPECT_THAT(recordIds, Contains("r1"));
     EXPECT_THAT(ctx->packageIds, SizeIs(1));
     EXPECT_THAT(ctx->packageIds, Contains(Key("tenant1-token")));
 
@@ -79,9 +84,15 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     packager.finalizePackage(ctx);
 
     EXPECT_THAT(ctx->body, Not(IsEmpty()));
-    EXPECT_THAT(ctx->recordIds, SizeIs(2));
-    EXPECT_THAT(ctx->recordIds, Contains("r1"));
-    EXPECT_THAT(ctx->recordIds, Contains("r2"));
+    EXPECT_THAT(ctx->recordIdsAndTenantIds, SizeIs(2));
+
+    recordIds.clear();
+    for (auto element : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(element.first);
+    }
+    EXPECT_THAT(recordIds, Contains("r1"));
+    EXPECT_THAT(recordIds, Contains("r2"));
     EXPECT_THAT(ctx->packageIds, SizeIs(2));
     EXPECT_THAT(ctx->packageIds, Contains(Key("tenant1-token")));
     EXPECT_THAT(ctx->packageIds, Contains(Key("tenant2-token")));

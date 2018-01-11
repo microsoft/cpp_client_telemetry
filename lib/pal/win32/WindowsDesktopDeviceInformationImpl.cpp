@@ -133,6 +133,9 @@ namespace Microsoft {
                     m_powerSource = GetCurrentPowerSource();
 
                 }
+                DeviceInformationImpl::~DeviceInformationImpl()
+                {
+                }
 
 				IDeviceInformation* DeviceInformationImpl::Create()
                 {

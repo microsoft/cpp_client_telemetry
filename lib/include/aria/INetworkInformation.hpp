@@ -18,6 +18,7 @@ namespace PAL {
 class INetworkInformation : public IInformationProvider
 {
 public:
+    virtual ~INetworkInformation() {};
     /// <summary>
     /// Gets the current network provider for the device
     /// </summary>

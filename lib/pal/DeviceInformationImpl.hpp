@@ -37,7 +37,7 @@ namespace PAL {
         DeviceInformationImpl& operator=(DeviceInformationImpl const& other);
 
         DeviceInformationImpl();
-        ~DeviceInformationImpl() {}
+        virtual ~DeviceInformationImpl();
     };
 
 } // PAL

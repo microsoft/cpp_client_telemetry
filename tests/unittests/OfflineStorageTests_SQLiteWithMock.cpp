@@ -1645,6 +1645,20 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_SucceedsAnd
         .WillOnce(Return(3))
         .RetiresOnSaturation();
 
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 1, 3))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE retry_count>.*"), 1, 3))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
@@ -1652,7 +1666,9 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_SucceedsAnd
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageRecordsDropped(123))
+    std::map<std::string, size_t> dropedRecord;
+    dropedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageRecordsDropped(dropedRecord))
         .RetiresOnSaturation();
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "COMMIT")))
@@ -1749,6 +1765,10 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesDele
         .WillOnce(Return(3))
         .RetiresOnSaturation();
 
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 1, 3))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE retry_count>.*"), 1, 3))
         .WillOnce(Return(SQLITE_NOMEM))
         .RetiresOnSaturation();
@@ -1784,6 +1804,18 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesFina
         .WillOnce(Return(3))
         .RetiresOnSaturation();
 
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 1, 3))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events WHERE retry_count>.*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")));
+
     EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE retry_count>.*"), 1, 3))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
@@ -1791,7 +1823,9 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, ReleaseRecords_HandlesFina
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageRecordsDropped(123))
+    std::map<std::string, size_t> dropedRecord;
+    dropedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageRecordsDropped(dropedRecord))
         .RetiresOnSaturation();
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "COMMIT")))
@@ -2004,7 +2038,7 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_SucceedsWit
     EXPECT_CALL(runtimeConfigMock, GetOfflineStorageMaximumSizeBytes())
         .WillRepeatedly(Return(1000000));
     EXPECT_CALL(runtimeConfigMock, GetOfflineStorageResizeThresholdPct())
-        .WillRepeatedly(Return(75));
+        .WillRepeatedly(Return(5));
 
     InSequence order;
 
@@ -2020,14 +2054,31 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_SucceedsWit
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 5))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-/*    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC,  timestamp ASC .*")))
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+    
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 5))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events WHERE record_id .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
-*/
-    EXPECT_CALL(observerMock, OnStorageTrimmed(123));
+
+    std::map<std::string, size_t> trimmedRecord;
+    trimmedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimmedRecord));
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "PRAGMA incremental_vacuum\\(0\\)")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
@@ -2039,8 +2090,9 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_SucceedsWit
     EXPECT_CALL(sqliteMock, sqlite3_column_int64(PreparedStatement(this, "PRAGMA page_count"), 0))
         .WillOnce(Return((1000000 / 1024) - 100))
         .RetiresOnSaturation();
-
+       
     EXPECT_THAT(os->trimDbIfNeeded(20000), true);
+ 
 }
 
 TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_HandlesCurrentPageCountFailure)
@@ -2102,7 +2154,21 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_HandlesDele
         .WillOnce(Return((1000000 / 1024) + 100))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+         .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 75))
         .WillOnce(Return(SQLITE_NOMEM))
         .RetiresOnSaturation();
     EXPECT_CALL(sqliteMock, sqlite3_errmsg(dbHandle))
@@ -2128,14 +2194,31 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_HandlesVacu
         .WillOnce(Return((1000000 / 1024) + 100))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*")))
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 75))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events WHERE record_id .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageTrimmed(123));
+    std::map<std::string, size_t> trimmedRecord;
+    trimmedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimmedRecord));
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "PRAGMA incremental_vacuum\\(0\\)")))
         .WillOnce(Return(SQLITE_IOERR))
@@ -2163,14 +2246,31 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_HandlesVacu
         .WillOnce(Return((1000000 / 1024) + 100))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*")))
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 75))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events WHERE record_id .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageTrimmed(123));
+    std::map<std::string, size_t> trimmedRecord;
+    trimmedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimmedRecord));
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "PRAGMA incremental_vacuum\\(0\\)")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
@@ -2206,14 +2306,31 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_HandlesNewP
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*")))
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 75))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events WHERE record_id .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageTrimmed(123));
+    std::map<std::string, size_t> trimmedRecord;
+    trimmedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimmedRecord));
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "PRAGMA incremental_vacuum\\(0\\)")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
@@ -2250,14 +2367,31 @@ TEST_F(OfflineStorageTests_SQLiteWithMockInitialized, trimDbIfNeeded_FailsIfNewS
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 1, 75))
         .WillOnce(Return(SQLITE_OK))
         .RetiresOnSaturation();
-    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events .* ORDER BY persistence ASC, timestamp ASC .*")))
+
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*")))
+        .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepRow))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_bytes(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(5))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_column_text(PreparedStatement(this, "SELECT tenant_token FROM events ORDER BY persistence ASC, timestamp ASC .*"), 0))
+        .WillOnce(Return(reinterpret_cast<unsigned const char*>("token")))
+        .RetiresOnSaturation();
+
+
+    EXPECT_CALL(sqliteMock, sqlite3_bind_int64(PreparedStatement(this, "DELETE FROM events WHERE record_id .*"), 1, 75))
+        .WillOnce(Return(SQLITE_OK))
+        .RetiresOnSaturation();
+    EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "DELETE FROM events WHERE record_id .*")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))
         .RetiresOnSaturation();
 
-    EXPECT_CALL(observerMock, OnStorageTrimmed(123));
+    std::map<std::string, size_t> trimmedRecord;
+    trimmedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimmedRecord));
 
     EXPECT_CALL(sqliteMock, sqlite3_step(PreparedStatement(this, "PRAGMA incremental_vacuum\\(0\\)")))
         .WillOnce(Invoke(this, &OfflineStorageTests_SQLiteWithMock::fakeStatementStepDone))

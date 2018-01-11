@@ -27,7 +27,7 @@ namespace PAL {
         virtual bool IsWwanAvailable();
 
         NetworkInformationImpl();
-        virtual ~NetworkInformationImpl() { };
+        virtual ~NetworkInformationImpl();
 
     protected:
         std::string m_provider;

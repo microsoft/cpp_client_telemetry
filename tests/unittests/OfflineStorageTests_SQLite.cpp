@@ -337,7 +337,9 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount
         EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventLatency_RealTime), true);
         ASSERT_THAT(consumer.records.size(), 1);
         EXPECT_THAT(consumer.records[0].retryCount, i);
-        EXPECT_CALL(observerMock, OnStorageRecordsDropped(1))
+        std::map<std::string, size_t> dropedRecord;
+        dropedRecord["token"] = 1;
+        EXPECT_CALL(observerMock, OnStorageRecordsDropped(dropedRecord))
             .Times((i == MaxRetryCount) ? 1 : 0);
         HttpHeaders test;
         bool fromMemory = false;
@@ -580,8 +582,10 @@ TEST_F(OfflineStorageTests_SQLite, ExceededStorageSizeCausesDbToDropOldestEvents
     ASSERT_THAT(offlineStorage->StoreRecord({"oldest with low prio ", "token", EventLatency_Normal, EventPersistence_Normal,    4, StorageBlob(1024 * 1024)}), true); // X
    
 
+    std::map<std::string, size_t> trimedRecord;
+    trimedRecord["token"] = 3;
     // This should exceed storage size and trigger resize
-    EXPECT_CALL(observerMock, OnStorageTrimmed(3));
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
     ASSERT_THAT(offlineStorage->StoreRecord({"newest with low prio", "token", EventLatency_Normal, EventPersistence_Normal, 5, StorageBlob(1024 * 1024)}), true); // X
 
     TestRecordConsumer consumer;
@@ -603,7 +607,9 @@ TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)
         .WillRepeatedly(Return(100 * 1024)); // 100 KB
     EXPECT_CALL(configMock, GetOfflineStorageResizeThresholdPct())
         .WillOnce(Return(10)); // 10% = 10 KB, not even one 33 KB event
-    EXPECT_CALL(observerMock, OnStorageTrimmed(1));
+    std::map<std::string, size_t> trimedRecord;
+    trimedRecord["token"] = 1;
+    EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
 
     ASSERT_THAT(offlineStorage->StoreRecord({"old", "token", EventLatency_Normal, EventPersistence_Normal, 1, StorageBlob(33 * 1024)}), true); // X
     ASSERT_THAT(offlineStorage->StoreRecord({"mid", "token", EventLatency_Normal, EventPersistence_Normal, 2, StorageBlob(33 * 1024)}), true);

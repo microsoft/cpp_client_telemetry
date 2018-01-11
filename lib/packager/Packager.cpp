@@ -27,7 +27,7 @@ void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, Storag
     }
     if (ctx->splicer.getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
         wantMore = false;
-        if (!ctx->recordIds.empty()) {
+        if (!ctx->recordIdsAndTenantIds.empty()) {
             ARIASDK_LOG_DETAIL("Maximum upload size %u bytes exceeded, not adding the next event (ID %s, size %u bytes)",
                 ctx->maxUploadSize, record.id.c_str(), static_cast<unsigned>(record.blob.size()));
             return;
@@ -61,7 +61,7 @@ void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, Storag
 
     ctx->splicer.addRecord(it->second, record.blob);
 
-    ctx->recordIds.push_back(record.id);
+    ctx->recordIdsAndTenantIds[record.id] = record.tenantToken;
     ctx->recordTimestamps.push_back(record.timestamp);
     ctx->maxRetryCountSeen = std::max<int>(ctx->maxRetryCountSeen, record.retryCount);
 }
@@ -80,8 +80,8 @@ void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     
     DebugEvent evt;
     evt.type = EVT_SENT;
-    evt.param1 = ctx->recordIds.size();
-    evt.size = ctx->recordIds.size();
+    evt.param1 = ctx->recordIdsAndTenantIds.size();
+    evt.size = ctx->recordIdsAndTenantIds.size();
     CommonLogManagerInternal::DispatchEvent(evt);
 }
 

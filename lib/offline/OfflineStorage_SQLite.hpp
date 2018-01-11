@@ -60,6 +60,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     int                         m_stmtRollbackTransaction;
     int                         m_stmtGetPageCount;
     int                         m_stmtIncrementalVacuum0;
+    int                         m_stmtPerTenantTrimCount;
     int                         m_stmtTrimEvents_percent;
     int                         m_stmtDeleteEvents_ids;
     int                         m_stmtReleaseExpiredEvents;
@@ -69,6 +70,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     int                         m_stmtReserveEvents;
     int                         m_stmtReleaseEvents_ids_retryCountDelta;
     int                         m_stmtDeleteEventsRetried_maxRetryCount;
+    int                         m_stmtSelectEventsRetried_maxRetryCount;
     int                         m_stmtInsertEvent_id_tenant_prio_ts_data;
     int                         m_stmtInsertSetting_name_value;
     int                         m_stmtDeleteSetting_name;

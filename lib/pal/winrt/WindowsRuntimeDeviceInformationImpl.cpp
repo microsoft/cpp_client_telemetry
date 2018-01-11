@@ -15,9 +15,13 @@ namespace Microsoft {
             {
                 using namespace ::Windows::Networking::Connectivity;
                 using namespace ::Windows::Devices::Input;
+                using namespace ::Windows::Foundation;
 
                 using namespace Microsoft::Applications::Events ::Windows;
                 using namespace ::Windows::Security::ExchangeActiveSyncProvisioning;
+                EventRegistrationToken token1;
+                EventRegistrationToken token2;
+
 
                 /**
                 * Returns the GUID of the 1st network adapter.
@@ -113,10 +117,17 @@ namespace Microsoft {
                         }
                     });
 
-                    ::Windows::System::Power::PowerManager::BatteryStatusChanged += onPowerSourceChanged;
-                    ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged += onPowerSourceChanged;
+                    token1 = ::Windows::System::Power::PowerManager::BatteryStatusChanged += onPowerSourceChanged;
+                    token2 = ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged += onPowerSourceChanged;
 #endif
                 }
+
+                DeviceInformationImpl::~DeviceInformationImpl()
+                {
+                    ::Windows::System::Power::PowerManager::BatteryStatusChanged -= token1;
+                    ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
+                }
+
 
 				IDeviceInformation* DeviceInformationImpl::Create()
                 {

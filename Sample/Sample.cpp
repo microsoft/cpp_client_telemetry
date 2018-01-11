@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 //#include <aria/DebugEvents.hpp>
-#include "LogManager.hpp"
+#include "LogManagerSimple.hpp"
 #include "Enums.hpp"
 #include <iostream>
 
@@ -94,7 +94,7 @@ using namespace std;
 
 #ifdef USE_INT
 // Windows SDK Test - Int: Default Ingestion Token.
-#define TOKEN   "0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582"
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 //"112b4296adfa44b68570a476ec2b2e1b-b7a01aa4-4f7b-4b2e-ad82-f3f48f15833c-7683"
 //"0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582" // //
 // Windows SDK Test 2 - Int: Default Ingestion Token.
@@ -251,7 +251,7 @@ public:
             if (evt.param1 >= 75) {
                 // UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
                 // or notify the main app that it has to do the profile timers housekeeping / force the upload...
-                //std::thread([]() { LogManager::UploadNow(); }).detach();
+                //std::thread([]() { LogManagerSimple::UploadNow(); }).detach();
             }
             break;
         case EVT_CONN_FAILURE:
@@ -440,7 +440,7 @@ EventProperties CreateSampleEvent(const char *name, EventLatency prio) {
 void test_ProfileSwitch(ILogger *logger)
 {
     printf("switching profile to Office_Telemetry_OneMinute\n");
-    LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
+    LogManagerSimple::SetTransmitProfile("Office_Telemetry_OneMinute");
     for (int i = 0; i < 10; i++)
     {
         std::string eventName = "eventName_5min_";
@@ -454,7 +454,7 @@ void test_ProfileSwitch(ILogger *logger)
 #endif
 
     printf("switching profile to Office_Telemetry_TenSeconds\n");
-    LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
+    LogManagerSimple::SetTransmitProfile("Office_Telemetry_TenSeconds");
     for (int i = 0; i < 10; i++)
     {
         std::string eventName = "eventName_10sec_";
@@ -476,7 +476,7 @@ void sendEmptyEvent(ILogger *logger)
     logger->LogEvent(props);
 }
 
-ILogConfiguration& configuration = LogManager::GetLogConfiguration();
+ILogConfiguration& configuration = LogManagerSimple::GetLogConfiguration();
 
 ILogger* init() {
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, "offlinestorage.db");    //":memory:"; //"offlinestorage.db";
@@ -500,7 +500,7 @@ ILogger* init() {
 	//configuration.SetSdkModeType( SdkModeTypes::SdkModeTypes_UTCAriaBackCompat);
 
 #ifdef USE_INT
-    configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://pipe.int.trafficmanager.net/OneCollector/1.0");//"https://pipe.dev.trafficmanager.net/OneCollector/1.0/"); //"https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
+    configuration.SetProperty(CFG_STR_COLLECTOR_URL, "https://mobile.events.data.microsoft.com/OneCollector/1.0/");// "https://pipe.int.trafficmanager.net/OneCollector/1.0");//"https://pipe.dev.trafficmanager.net/OneCollector/1.0/"); //"https://pipe.int.trafficmanager.net/Collector/3.0/"); //"https://mobile.pipe.aria.microsoft.com/Collector/3.0/";// 
 #endif
 
 #ifdef USE_BOGUS_URL
@@ -525,38 +525,38 @@ ILogger* init() {
 )";
 #endif
 
-    std::cout << "LogManager::Initialize..." << endl;
+    std::cout << "LogManagerSimple::Initialize..." << endl;
 
-    std::cout << "LogManager::Initialize..." << endl;
+    std::cout << "LogManagerSimple::Initialize..." << endl;
 
     // Apply the profile before initialize
-    LogManager::SetTransmitProfile("Office_Telemetry_TenSeconds");
-    ILogger *result = LogManager::Initialize(cTenantToken);
+    LogManagerSimple::SetTransmitProfile("Office_Telemetry_TenSeconds");
+    LogManagerSimple::Start();
+    ILogger *result = LogManagerSimple::GetLogger(cTenantToken);
 
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_REJECTED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_SENT, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_CACHED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    LogManagerSimple::AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
 
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_UNKNOWN, listener);
-
-    LogManager::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_Device, "deviceToken");
-    LogManager::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_User, "UserToken");
+    LogManagerSimple::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_Device, "deviceToken");
+    LogManagerSimple::GetAuthTokenController()->SetTicketToken(TicketType::TicketType_MSA_User, "UserToken");
 
 	
 
     // TC for SetContext(<const char*,const char*, PiiKind>)
     const char* gc_value = "1234 :-)";
-    LogManager::SetContext("GLOBAL_context", gc_value, PiiKind_MailSubject);
+    LogManagerSimple::SetContext("GLOBAL_context", gc_value, PiiKind_MailSubject);
 
     return result;
 }
@@ -572,12 +572,12 @@ void run(ILogger* logger, int maxStressRuns) {
             bool doResume = false;
 
             if (doPause) {
-                LogManager::PauseTransmission();
+                LogManagerSimple::PauseTransmission();
             }
 
             {
                 // ignore the logger passed from above
-                ILogger *loggerl = LogManager::GetLogger(cTenantToken);
+                ILogger *loggerl = LogManagerSimple::GetLogger(cTenantToken);
 
                 // Set the custom context to be sent with every telemetry event.
                 loggerl->SetContext("TeamName", "ARIA");
@@ -650,7 +650,7 @@ void run(ILogger* logger, int maxStressRuns) {
             }
 
             if (doResume) {
-                LogManager::ResumeTransmission();
+                LogManagerSimple::ResumeTransmission();
             }
 
 #ifdef _RANDOM_DELAY_AFTER_LOG
@@ -664,7 +664,7 @@ void run(ILogger* logger, int maxStressRuns) {
             //std::this_thread::sleep_for(std::chrono::milliseconds(300));
         }
 
-        //LogManager::UploadNow();
+        //LogManagerSimple::UploadNow();
     }
 }
 
@@ -679,8 +679,8 @@ void test_failure(ILogger *logger) {
 }
 
 void done() {
-    std::cout << "LogManager::FlushAndTeardown()..." << std::endl;
-    LogManager::FlushAndTeardown();
+    std::cout << "LogManagerSimple::FlushAndTeardown()..." << std::endl;
+    LogManagerSimple::Teardown();
 }
 
 void DumpMemoryLeaks()
@@ -705,14 +705,14 @@ int main(int argc, char* argv[])
 #endif
 
     DWORD start = GetTickCount();
-    LogManager::LoadTransmitProfiles(transmitProfileDefinitions);
-    LogManager::SetTransmitProfile("Office_Telemetry_OneMinute");
+    LogManagerSimple::LoadTransmitProfiles(transmitProfileDefinitions);
+    LogManagerSimple::SetTransmitProfile("Office_Telemetry_OneMinute");
 
     std::vector<std::thread> workers;
     std::thread t[MAX_STRESS_THREADS];
 
     ILogger* logger = init();
-    ILogger* logger2 = LogManager::GetLogger(TOKEN2, "tenant2");
+    ILogger* logger2 = LogManagerSimple::GetLogger(TOKEN2, "tenant2");
 
     {
         EventProperties props = CreateSampleEvent("Sample.Event.Low", EventLatency_Normal);
@@ -761,9 +761,9 @@ int main(int argc, char* argv[])
         }
     });
 
-    //LogManager::UploadNow();
+    //LogManagerSimple::UploadNow();
     // save to disk
-    LogManager::Flush();
+    LogManagerSimple::Flush();
 
     //all_done:
 
@@ -795,17 +795,17 @@ int main(int argc, char* argv[])
             ILogger* logger = init();
 
             std::map<std::string, ILogger*> loggers;
-            //loggers["logger.noparam"] = LogManager::GetLogger();
-            //loggers["logger.blank"] = LogManager::GetLogger("");
-            //loggers["logger.blank.s1"] = LogManager::GetLogger("", "s1");
-            //loggers["logger.blank.s2"] = LogManager::GetLogger("", "s2");
-            //loggers["logger.invalid"] = LogManager::GetLogger("s3", "12345");
-            //loggers["logger.invalid"] = LogManager::GetLogger("12345", "s3");
-            loggers["logger.primary"] = LogManager::Initialize(TOKEN, configuration);
-            loggers["logger.t1s1"] = LogManager::GetLogger(TOKEN, "s1");
-            loggers["logger.t1s2"] = LogManager::GetLogger(TOKEN, "s2");
-            loggers["logger.t2s1"] = LogManager::GetLogger(TOKEN2, "s1");
-            loggers["logger.t2s2"] = LogManager::GetLogger(TOKEN2, "s2");
+            //loggers["logger.noparam"] = LogManagerSimple::GetLogger();
+            //loggers["logger.blank"] = LogManagerSimple::GetLogger("");
+            //loggers["logger.blank.s1"] = LogManagerSimple::GetLogger("", "s1");
+            //loggers["logger.blank.s2"] = LogManagerSimple::GetLogger("", "s2");
+            //loggers["logger.invalid"] = LogManagerSimple::GetLogger("s3", "12345");
+            //loggers["logger.invalid"] = LogManagerSimple::GetLogger("12345", "s3");
+            loggers["logger.primary"] = LogManagerSimple::Initialize(TOKEN, configuration);
+            loggers["logger.t1s1"] = LogManagerSimple::GetLogger(TOKEN, "s1");
+            loggers["logger.t1s2"] = LogManagerSimple::GetLogger(TOKEN, "s2");
+            loggers["logger.t2s1"] = LogManagerSimple::GetLogger(TOKEN2, "s1");
+            loggers["logger.t2s2"] = LogManagerSimple::GetLogger(TOKEN2, "s2");
             for (auto &kv : loggers)
             {
                 for (size_t i = 0; i < MAX_STRESS_COUNT; i++)
@@ -819,7 +819,7 @@ int main(int argc, char* argv[])
                     loggerl->LogTrace(TraceLevel_Error, "some error occurred", props);
                 }
             };
-            LogManager::UploadNow();
+            LogManagerSimple::UploadNow();
 
             listener.print = true;
             {

@@ -27,8 +27,9 @@ class OfflineStorage : public IOfflineStorageObserver {
   protected:
     virtual void OnStorageOpened(std::string const& type) override;
     virtual void OnStorageFailed(std::string const& reason) override;
-    virtual void OnStorageTrimmed(unsigned numRecords) override;
-    virtual void OnStorageRecordsDropped(unsigned numRecords) override;
+    virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) override;
+    virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) override;
+    virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;    
 
   protected:
     IOfflineStorage& m_offlineStorage;
@@ -54,6 +55,7 @@ class OfflineStorage : public IOfflineStorageObserver {
     RouteSource<StorageNotificationContext const*>                          failed;
     RouteSource<StorageNotificationContext const*>                          trimmed;
     RouteSource<StorageNotificationContext const*>                          recordsDropped;
+    RouteSource<StorageNotificationContext const*>                          recordsRejected;
 };
 
 

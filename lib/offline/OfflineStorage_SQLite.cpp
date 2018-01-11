@@ -165,6 +165,8 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
 
     std::vector<StorageRecordId> consumedIds;
     std::vector<StorageRecordId> killedConsumedIds;
+    std::map<std::string, size_t> deletedData;
+   
     StorageRecord record;
     int latency;
     while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
@@ -190,6 +192,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
             if (!m_killSwitchManager.isRetryAfterActive())
             {
                 killedConsumedIds.push_back(record.id);
+                deletedData[record.tenantToken]++;
             }
         }
     }
@@ -239,7 +242,7 @@ bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecor
         HttpHeaders temp;
         bool fromMemory = false;
         DeleteRecords(killedConsumedIds, temp, fromMemory);
-        m_observer->OnStorageRecordsDropped(static_cast<unsigned int>(killedConsumedIds.size()));
+        m_observer->OnStorageRecordsRejected(deletedData);
     }
 
     return true;
@@ -372,9 +375,27 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
     ARIASDK_LOG_DETAIL("Successfully released %u requested event(s), %u were not found anymore",
         releaseStmt.changes(), static_cast<unsigned>(ids.size()) - releaseStmt.changes());
 
-    if (incrementRetryCount) {
+    if (incrementRetryCount)
+    {
         unsigned maxRetryCount = m_runtimeConfig.GetMaximumRetryCount();
 
+        SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtSelectEventsRetried_maxRetryCount);
+        if (!getRowstobedeleteStmt.select(maxRetryCount)) {
+            ARIASDK_LOG_ERROR("Failed to get events with exceeded retry count: Database error occurred, recreating database");
+            recreate(404);
+            return;
+        }
+
+        std::map<std::string, size_t> deletedData;
+        std::string tenantToken;
+        while (getRowstobedeleteStmt.getRow(tenantToken))
+        {
+            deletedData[tenantToken]++;
+        }
+
+        getRowstobedeleteStmt.reset();
+
+        
         SqliteStatement deleteStmt(*m_db, m_stmtDeleteEventsRetried_maxRetryCount);
         if (!deleteStmt.execute(maxRetryCount)) {
             ARIASDK_LOG_ERROR("Failed to delete events with exceeded retry count: Database error occurred, recreating database");
@@ -387,7 +408,7 @@ void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& i
         {
             ARIASDK_LOG_ERROR("Deleted %u events over maximum retry count %u",
                 droppedCount, maxRetryCount);
-            m_observer->OnStorageRecordsDropped(droppedCount);
+            m_observer->OnStorageRecordsDropped(deletedData);
         }
     }
 
@@ -587,6 +608,10 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "PRAGMA page_count");
     PREPARE_SQL(m_stmtIncrementalVacuum0,
         "PRAGMA incremental_vacuum(0)");
+    PREPARE_SQL(m_stmtPerTenantTrimCount,
+        "SELECT tenant_token FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
+        "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
+        "* ? / 100)");    
     PREPARE_SQL(m_stmtTrimEvents_percent,
         "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
         "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
@@ -626,6 +651,9 @@ bool OfflineStorage_SQLite::initializeDatabase()
         "UPDATE " TABLE_NAME_EVENTS
         " SET reserved_until=0, retry_count=retry_count+?"
         " WHERE record_id IN ids AND reserved_until>0");
+    PREPARE_SQL(m_stmtSelectEventsRetried_maxRetryCount,
+        "SELECT tenant_token FROM " TABLE_NAME_EVENTS
+        " WHERE retry_count>?");
     PREPARE_SQL(m_stmtDeleteEventsRetried_maxRetryCount,
         "DELETE FROM " TABLE_NAME_EVENTS
         " WHERE retry_count>?");
@@ -774,6 +802,21 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
         return false;
     }
 
+    SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtPerTenantTrimCount);
+    if (!getRowstobedeleteStmt.select(pct)) {
+        ARIASDK_LOG_ERROR("Failed to get infor on events to be deleted to reduce size: Database error has occurred, recreating database");
+        return false;
+    }
+
+    std::map<std::string, size_t> deletedData;
+    std::string tenantToken;
+    while (getRowstobedeleteStmt.getRow(tenantToken))
+    {
+        deletedData[tenantToken]++;
+    }
+
+    getRowstobedeleteStmt.reset();
+
     SqliteStatement deleteStmt(*m_db, m_stmtTrimEvents_percent);
     if (!deleteStmt.execute(pct)) {
         ARIASDK_LOG_ERROR("Failed to delete events to reduce size: Database error has occurred, recreating database");
@@ -783,7 +826,7 @@ bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
     unsigned droppedCount = deleteStmt.changes();
     ARIASDK_LOG_ERROR("Deleted %u event(s) in %u ms",
         droppedCount, deleteStmt.duration());
-    m_observer->OnStorageTrimmed(droppedCount);
+    m_observer->OnStorageTrimmed(deletedData);
 
     SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
     if (!trimStmt.select()) {

@@ -36,6 +36,7 @@ class Statistics : public PAL::RefCountedImpl<Statistics> {
     bool handleOnStorageFailed(StorageNotificationContext const* ctx);
     bool handleOnStorageTrimmed(StorageNotificationContext const* ctx);
     bool handleOnStorageRecordsDropped(StorageNotificationContext const* ctx);
+    bool handleOnStorageRecordsRejected(StorageNotificationContext const* ctx);
 
   protected:
     MetaStats                   m_metaStats;
@@ -67,6 +68,7 @@ class Statistics : public PAL::RefCountedImpl<Statistics> {
     RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageFailed{this, &Statistics::handleOnStorageFailed};
     RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageTrimmed{this, &Statistics::handleOnStorageTrimmed};
     RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsDropped{this, &Statistics::handleOnStorageRecordsDropped};
+    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsRejected{ this, &Statistics::handleOnStorageRecordsRejected };
 };
 
 

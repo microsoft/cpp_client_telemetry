@@ -45,7 +45,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     unsigned                             maxUploadSize = 0;
     EventLatency                         latency = EventLatency_Unspecified;
     std::map<std::string, size_t>        packageIds;
-    std::vector<std::string>             recordIds;
+    std::map<std::string, std::string>   recordIdsAndTenantIds;
     std::vector<int64_t>                 recordTimestamps;
     unsigned                             maxRetryCountSeen = 0;
 
@@ -69,7 +69,7 @@ using EventsUploadContextPtr = PAL::RefCountedPtr<EventsUploadContext>;
 
 struct StorageNotificationContext {
     std::string str;
-    unsigned    count;
+    std::map<std::string, size_t> countonTenant;
 };
 
 

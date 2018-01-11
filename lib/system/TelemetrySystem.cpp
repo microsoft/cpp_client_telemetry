@@ -81,6 +81,7 @@ TelemetrySystem::TelemetrySystem(LogConfiguration& configuration, IRuntimeConfig
     storage.failed         >> stats.onStorageFailed;
     storage.trimmed        >> stats.onStorageTrimmed;
     storage.recordsDropped >> stats.onStorageRecordsDropped;
+    storage.recordsRejected >> stats.onStorageRecordsRejected;
 }
 
 TelemetrySystem::~TelemetrySystem()

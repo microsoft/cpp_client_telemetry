@@ -67,7 +67,12 @@ bool OfflineStorage::handleDeleteRecords(EventsUploadContextPtr const& ctx)
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.DeleteRecords(ctx->recordIds, headers, ctx->fromMemory);
+    std::vector<StorageRecordId> recordIds;
+    for (auto item : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(item.first);
+    }
+    m_offlineStorage.DeleteRecords(recordIds, headers, ctx->fromMemory);
     return true;
 }
 
@@ -78,7 +83,12 @@ bool OfflineStorage::handleReleaseRecords(EventsUploadContextPtr const& ctx)
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, false, headers, ctx->fromMemory);
+    std::vector<StorageRecordId> recordIds;
+    for (auto item : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(item.first);
+    }
+    m_offlineStorage.ReleaseRecords(recordIds, false, headers, ctx->fromMemory);
     return true;
 }
 
@@ -90,7 +100,13 @@ bool OfflineStorage::handleReleaseRecordsIncRetryCount(EventsUploadContextPtr co
     {
         headers = ctx->httpResponse->GetHeaders();
     }
-    m_offlineStorage.ReleaseRecords(ctx->recordIds, true, headers, ctx->fromMemory);
+    std::vector<StorageRecordId> recordIds;
+    for (auto item : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(item.first);
+    }
+
+    m_offlineStorage.ReleaseRecords(recordIds, true, headers, ctx->fromMemory);
     return true;
 }
 
@@ -108,31 +124,59 @@ void OfflineStorage::OnStorageFailed(std::string const& reason)
     failed(&ctx);
 }
 
-void OfflineStorage::OnStorageTrimmed(unsigned numRecords)
+void OfflineStorage::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)
 {   
     StorageNotificationContext ctx;
-    ctx.count = numRecords;
+   
+    size_t overallCount = 0;
+    for (auto records : numRecords)
+    {
+        ctx.countonTenant[records.first] = records.second;
+        overallCount += records.second;
+    }
     trimmed(&ctx);
 
     DebugEvent evt;
     evt.type = EVT_DROPPED;
-    evt.param1 = numRecords;
-    evt.size = numRecords;
+    evt.param1 = overallCount;
+    evt.size = overallCount;
     CommonLogManagerInternal::DispatchEvent(evt);
 }
 
-void OfflineStorage::OnStorageRecordsDropped(unsigned numRecords)
+void OfflineStorage::OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords)
 {
     StorageNotificationContext ctx;
-    ctx.count = numRecords;
+    size_t overallCount = 0;
+    for (auto records : numRecords)
+    {
+        ctx.countonTenant[records.first] = records.second;
+        overallCount += records.second;
+    }
     recordsDropped(&ctx);
    
     DebugEvent evt;
     evt.type = EVT_DROPPED;
-    evt.param1 = numRecords;
-    evt.size = numRecords;
+    evt.param1 = overallCount;
+    evt.size = overallCount;
     CommonLogManagerInternal::DispatchEvent(evt);
 }
 
+void OfflineStorage::OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords)
+{
+    StorageNotificationContext ctx;
+    size_t overallCount = 0;
+    for (auto records : numRecords)
+    {
+        ctx.countonTenant[records.first] = records.second;
+        overallCount += records.second;
+    }
+    recordsRejected(&ctx);
+
+    DebugEvent evt;
+    evt.type = EVT_REJECTED;
+    evt.param1 = overallCount;
+    evt.size = overallCount;
+    CommonLogManagerInternal::DispatchEvent(evt);
+}
 
 } ARIASDK_NS_END

@@ -258,14 +258,18 @@ void OfflineStorageHandler::OnStorageFailed(std::string const& reason)
     m_observer->OnStorageFailed(reason);
 }
 
-void OfflineStorageHandler::OnStorageTrimmed(unsigned numRecords)
+void OfflineStorageHandler::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)
 {
     m_observer->OnStorageTrimmed(numRecords);
 }
 
-void OfflineStorageHandler::OnStorageRecordsDropped(unsigned numRecords)
+void OfflineStorageHandler::OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords)
 {
     m_observer->OnStorageRecordsDropped(numRecords);
 }
 
+void OfflineStorageHandler::OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords)
+{
+    m_observer->OnStorageRecordsRejected(numRecords);
+}
 } ARIASDK_NS_END

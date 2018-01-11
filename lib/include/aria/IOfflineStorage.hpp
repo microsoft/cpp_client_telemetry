@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <map>
 
 // *INDENT-OFF*
 namespace Microsoft { namespace Applications { namespace Events  {
@@ -76,14 +77,21 @@ class IOfflineStorageObserver {
     /// maintain its configured size limit
     /// <summary>
     /// <param name="numRecords">Number of records trimmed</param>
-    virtual void OnStorageTrimmed(unsigned numRecords) = 0;
+    virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) = 0;
 
     /// <summary>
     /// Called when the offline storage drops some records with retry count
     /// over the configured limit
     /// <summary>
     /// <param name="numRecords">Number of records dropped</param>
-    virtual void OnStorageRecordsDropped(unsigned numRecords) = 0;
+    virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) = 0;
+
+    /// <summary>
+    /// Called when the offline storage rejects some records for reason like killSwitch
+    /// over the configured limit
+    /// <summary>
+    /// <param name="numRecords">Number of records dropped</param>
+    virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) = 0;
 };
 
 class IOfflineStorage {

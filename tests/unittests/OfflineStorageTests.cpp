@@ -134,7 +134,12 @@ TEST_F(OfflineStorageTests, DeleteRecordsIsForwarded)
     auto ctx = EventsUploadContext::create();
     HttpHeaders test;
     bool fromMemory = false;
-    EXPECT_CALL(offlineStorageMock, DeleteRecords(Ref(ctx->recordIds),test, fromMemory)).WillOnce(Return());
+    std::vector<std::string> recordIds;
+    for (auto element : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(element.first);
+    }
+    EXPECT_CALL(offlineStorageMock, DeleteRecords(recordIds,test, fromMemory)).WillOnce(Return());
     EXPECT_THAT(offlineStorage.deleteRecords(ctx), true);
 }
 
@@ -143,11 +148,16 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
     auto ctx = EventsUploadContext::create();
     HttpHeaders test;
     bool fromMemory = false;
-    EXPECT_CALL(offlineStorageMock, ReleaseRecords(Ref(ctx->recordIds), false, test, fromMemory))
+    std::vector<std::string> recordIds;
+    for (auto element : ctx->recordIdsAndTenantIds)
+    {
+        recordIds.push_back(element.first);
+    }
+    EXPECT_CALL(offlineStorageMock, ReleaseRecords(recordIds, false, test, fromMemory))
         .WillOnce(Return());
     EXPECT_THAT(offlineStorage.releaseRecords(ctx), true);
     fromMemory = false;
-    EXPECT_CALL(offlineStorageMock, ReleaseRecords(Ref(ctx->recordIds), true, test, fromMemory))
+    EXPECT_CALL(offlineStorageMock, ReleaseRecords(recordIds, true, test, fromMemory))
         .WillOnce(Return());
     EXPECT_THAT(offlineStorage.releaseRecordsIncRetryCount(ctx), true);
 }

@@ -15,6 +15,7 @@ namespace Microsoft {
                 namespace MATP = ::Microsoft::Applications::Events ::PAL;
 
                 NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0){ };
+                NetworkInformationImpl::~NetworkInformationImpl() { };
 
                 class Win32NetworkInformation : public NetworkInformationImpl
                 {

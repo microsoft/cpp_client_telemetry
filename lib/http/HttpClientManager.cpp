@@ -47,7 +47,7 @@ void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     m_httpCallbacks.push_back(callback.get());
 
     ARIASDK_LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
-        static_cast<unsigned>(ctx->recordIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
+        static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
         ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
     m_httpClient.SendRequestAsync(ctx->httpRequest.release(), callback.release());
 }

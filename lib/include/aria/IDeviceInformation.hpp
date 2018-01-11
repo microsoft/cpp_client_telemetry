@@ -13,6 +13,7 @@ namespace PAL {
 class IDeviceInformation : public IInformationProvider
 {
 public:
+    virtual ~IDeviceInformation() {};
     /// <summary>
     /// Gets the unique ID of the current device
     /// </summary>

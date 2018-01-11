@@ -46,7 +46,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     auto ctx = EventsUploadContext::create();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = std::move(req);
-    ctx->recordIds.push_back("r1,r2");
+    ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
     ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
@@ -78,7 +78,7 @@ TEST_F(HttpClientManagerTests, CancelAbortsRequests)
     auto ctx = EventsUploadContext::create();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = std::move(req);
-    ctx->recordIds.push_back("r1,r2");
+    ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
     ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 

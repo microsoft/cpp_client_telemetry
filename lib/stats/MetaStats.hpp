@@ -25,9 +25,6 @@ enum EventDroppedReason
 {
     DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED,
     DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW,
-    DROPPED_REASON_SERVER_DECLINED_4XX,
-    DROPPED_REASON_SERVER_DECLINED_5XX,
-    DROPPED_REASON_SERVER_DECLINED_OTHER,
     DROPPED_REASON_RETRY_EXCEEDED,
     DROPPED_REASON_COUNT
 };
@@ -42,12 +39,14 @@ class MetaStats
 
     std::vector< ::AriaProtocol::CsEvent> generateStatsEvent(ActRollUpKind rollupKind);
 
-    void updateOnEventIncoming(unsigned size, EventLatency latency, bool metastats);
+    void updateOnEventIncoming(std::string const& tenanttoken, unsigned size, EventLatency latency, bool metastats);
     void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
-    void updateOnPackageSentSucceeded(EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
+    void updateOnPackageSentSucceeded( std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
     void updateOnPackageFailed(int statusCode);
     void updateOnPackageRetry(int statusCode, unsigned retryFailedTimes);
-    void updateOnRecordsDropped(EventDroppedReason reason, unsigned droppedCount);
+    void updateOnRecordsDropped(EventDroppedReason reason, std::map<std::string, size_t> const& droppedCount);
+    void updateOnRecordsOverFlown(std::map<std::string, size_t> const& overflownCount);
+    void updateOnRecordsRejected(EventRejectedReason reason, std::map<std::string, size_t> const& rejectedCount);
     void updateOnStorageOpened(std::string const& type);
     void updateOnStorageFailed(std::string const& reason);
 
@@ -81,8 +80,12 @@ class MetaStats
     IRuntimeConfig const&           m_runtimeConfig;
     std::unique_ptr<StatsConfig>    m_statsConfig;
     std::unique_ptr<TelemetryStats> m_telemetryStats;
+    std::map<std::string,TelemetryStats*>  m_telemetryTenantStats;
     BaseDecorator                   m_baseDecorator;
     SemanticContextDecorator        m_semanticContextDecorator;
+private:
+    void privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& records, ActRollUpKind rollupKind, TelemetryStats* telemetryStats);
+    void privateClearStats(TelemetryStats* telemetryStats);
 };
 
 

@@ -58,9 +58,6 @@ namespace ARIASDK_NS_BEGIN {
 			ARIASDK_LOG_DETAIL("%p WinRtRequestWrapper()", this);
 		}
 
-		//WinRtRequestWrapper(WinRtRequestWrapper const&) = delete;
-		//WinRtRequestWrapper& operator=(WinRtRequestWrapper const&) = delete;
-
 		~WinRtRequestWrapper()
 		{
 			ARIASDK_LOG_DETAIL("%p ~WinRtRequestWrapper()", this);
@@ -76,8 +73,7 @@ namespace ARIASDK_NS_BEGIN {
 		{
 			m_cancellationTokenSource.cancel();
 			::WaitForSingleObject(m_hDoneEvent, INFINITE);
-			if (m_httpRequestMessage) delete m_httpRequestMessage;
-			m_httpRequestMessage = nullptr;
+            //m_httpRequestMessage, don't need to delete, ref object framework will delete it
 		}
 
 		void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
@@ -302,7 +298,6 @@ void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCall
 
 void HttpClient_WinRt::CancelRequestAsync(std::string const& id)
 {
-	std::lock_guard<std::mutex> lock(m_requestsMutex);
 	auto it = m_requests.find(id);
 	if (it != m_requests.end())
 	{

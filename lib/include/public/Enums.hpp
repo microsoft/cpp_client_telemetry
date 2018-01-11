@@ -410,7 +410,9 @@ namespace Microsoft { namespace Applications { namespace Events  {
                 /// <summary>Event expired.</summary>
                 REJECTED_REASON_EVENT_EXPIRED,
                 /// <summary>Server declined.</summary>
-                REJECTED_REASON_SERVER_DECLINED_4XX,
+                REJECTED_REASON_SERVER_DECLINED,
+                /// <summary>Server declined.</summary>
+                REJECTED_REASON_TENANT_KILLED,
                 /// <summary>Reject reason count.</summary>
                 REJECTED_REASON_COUNT
             };

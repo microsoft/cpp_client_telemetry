@@ -95,7 +95,7 @@ bool Statistics::handleOnStop()
 bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx)
 {
     bool metastats = (ctx->record.tenantToken == m_runtimeConfig.GetMetaStatsTenantToken());
-    m_metaStats.updateOnEventIncoming(static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
+    m_metaStats.updateOnEventIncoming(ctx->record.tenantToken, static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
     scheduleSend();
     
     CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_ADDED);
@@ -105,7 +105,9 @@ bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ct
 bool Statistics::handleOnIncomingEventFailed(IncomingEventContextPtr const& ctx)
 {
     UNREFERENCED_PARAMETER(ctx);
-    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, 1);
+    std::map<std::string, size_t> failedData;
+    failedData[ctx->record.tenantToken] = 1;
+    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, failedData);
     scheduleSend();
 
     CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_DROPPED);
@@ -132,12 +134,13 @@ bool Statistics::handleOnUploadSuccessful(EventsUploadContextPtr const& ctx)
     int64_t now = PAL::getUtcSystemTimeMs();
     std::vector<unsigned> latencyToSendMs;
     latencyToSendMs.reserve(ctx->recordTimestamps.size());
-    for (int64_t ts : ctx->recordTimestamps) {
+    for (int64_t ts : ctx->recordTimestamps)
+    {
         latencyToSendMs.push_back(static_cast<unsigned>(std::max<int64_t>(0, std::min<int64_t>(0xFFFFFFFFu, now - ts))));
     }
 
     bool metastatsOnly = (ctx->packageIds.count(m_runtimeConfig.GetMetaStatsTenantToken()) == ctx->packageIds.size());
-    m_metaStats.updateOnPackageSentSucceeded(ctx->latency, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
+    m_metaStats.updateOnPackageSentSucceeded(ctx->recordIdsAndTenantIds, ctx->latency, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
     scheduleSend();
     return true;
 }
@@ -147,10 +150,13 @@ bool Statistics::handleOnUploadRejected(EventsUploadContextPtr const& ctx)
     unsigned status = ctx->httpResponse->GetStatusCode();
     m_metaStats.updateOnPackageFailed(status);
 
-    auto reason = (status >= 400 && status < 500) ? DROPPED_REASON_SERVER_DECLINED_4XX
-        : (status >= 500 && status < 600) ? DROPPED_REASON_SERVER_DECLINED_5XX
-        : DROPPED_REASON_SERVER_DECLINED_OTHER;
-    m_metaStats.updateOnRecordsDropped(reason, static_cast<unsigned>(ctx->recordIds.size()));
+    std::map<std::string, size_t> countOnTenant;
+    for (auto recordAndTenant : ctx->recordIdsAndTenantIds)
+    {
+        countOnTenant[recordAndTenant.second]++;
+    }
+
+    m_metaStats.updateOnRecordsRejected(REJECTED_REASON_SERVER_DECLINED, countOnTenant);
 
     scheduleSend();
     return true;
@@ -177,17 +183,22 @@ bool Statistics::handleOnStorageFailed(StorageNotificationContext const* ctx)
 
 bool Statistics::handleOnStorageTrimmed(StorageNotificationContext const* ctx)
 {
-    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW, ctx->count);
+    m_metaStats.updateOnRecordsOverFlown(ctx->countonTenant);
     scheduleSend();
     return true;
 }
 
 bool Statistics::handleOnStorageRecordsDropped(StorageNotificationContext const* ctx)
 {
-    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, ctx->count);
+    m_metaStats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, ctx->countonTenant);
     scheduleSend();
     return true;
 }
 
-
+bool Statistics::handleOnStorageRecordsRejected(StorageNotificationContext const* ctx)
+{
+    m_metaStats.updateOnRecordsRejected(REJECTED_REASON_TENANT_KILLED, ctx->countonTenant);
+    scheduleSend();
+    return true;
+}
 } ARIASDK_NS_END
