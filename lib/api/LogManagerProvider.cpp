@@ -107,33 +107,6 @@ namespace Microsoft {
                 return LogManagerProvider::CreateLogManager(apiKey, false, status, targetVersion);
             }   
 
-            ILogManager* LogManagerProvider::GetLogManager(char const* apiKey, EVTStatus& status, uint32_t targetVersion)
-            {
-                ARIASDK_LOG_DETAIL("Initialize[1]: apiKey=%s", apiKey);
-                if (!apiKey)
-                {
-                    status = EVTStatus::EVTStatus_NotSupported;
-                    return nullptr;
-                }
-                if (CurrentTargetVersion != targetVersion)
-                {
-                    status = EVTStatus::EVTStatus_NotSupported;
-                    return nullptr;
-                }
-
-                {
-                    std::lock_guard<std::mutex> lock(*our_LogManagerProviderlockP);
-                    if (our_LogManagers.find(apiKey) != our_LogManagers.end())
-                    {
-                        status = EVTStatus::EVTStatus_OK;
-                        return our_LogManagers[apiKey].hostLogManager;
-                    }
-                }
-                status = EVTStatus::EVTStatus_Fail;
-
-                return nullptr;
-            }
-
             EVTStatus LogManagerProvider::DestroyLogManager(char const* apiKey)
             {
                 if (!apiKey)
