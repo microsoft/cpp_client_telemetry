@@ -93,6 +93,14 @@ void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
                     }
                 }
             }
+
+            auto ticket = responseBody.find("TokenCrackingFailure");
+            if (responseBody.end() != ticket)
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+                CommonLogManagerInternal::DispatchEvent(evt);
+            }
         }
         catch (...)
         {

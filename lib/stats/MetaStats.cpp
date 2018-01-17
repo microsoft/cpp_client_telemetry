@@ -1218,9 +1218,9 @@ void MetaStats::updateOnRecordsDropped(EventDroppedReason reason, std::map<std::
         }
 
         TelemetryStats* temp = m_telemetryTenantStats[dropcouttenant.first];
-        temp->recordStats.droppedCountReasonDistribution[reason] += dropcouttenant.second;
-        temp->recordStats.droppedCount += dropcouttenant.second;
-        overallCount += dropcouttenant.second;
+        temp->recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(dropcouttenant.second);
+        temp->recordStats.droppedCount += static_cast<unsigned int>(dropcouttenant.second);
+        overallCount += static_cast<unsigned int>(dropcouttenant.second);
     }
     m_telemetryStats->recordStats.droppedCountReasonDistribution[reason] += overallCount;
     m_telemetryStats->recordStats.droppedCount += overallCount;
@@ -1237,8 +1237,8 @@ void MetaStats::updateOnRecordsOverFlown(std::map<std::string, size_t> const& ov
         }
 
         TelemetryStats* temp = m_telemetryTenantStats[overflowntenant.first];
-        temp->recordStats.overflownCount += overflowntenant.second;
-        overallCount += overflowntenant.second;
+        temp->recordStats.overflownCount += static_cast<unsigned int>(overflowntenant.second);
+        overallCount += static_cast<unsigned int>(overflowntenant.second);
     }
     m_telemetryStats->recordStats.overflownCount += overallCount;
 }
@@ -1254,9 +1254,9 @@ void MetaStats::updateOnRecordsRejected(EventRejectedReason reason, std::map<std
         }
 
         TelemetryStats* temp = m_telemetryTenantStats[rejecttenant.first];
-        temp->recordStats.droppedCountReasonDistribution[reason] += rejecttenant.second;
-        temp->recordStats.rejectedCount += rejecttenant.second;
-        overallCount += rejecttenant.second;
+        temp->recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(rejecttenant.second);
+        temp->recordStats.rejectedCount += static_cast<unsigned int>(rejecttenant.second);
+        overallCount += static_cast<unsigned int>(rejecttenant.second);
     }
     m_telemetryStats->recordStats.droppedCountReasonDistribution[reason] += overallCount;
 }
