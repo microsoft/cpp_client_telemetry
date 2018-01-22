@@ -89,23 +89,6 @@ namespace Microsoft {
                 class NetworkDetector: public INetworkEvents, INetworkConnectionEvents, INetworkListManagerEvents {
 
                 private:
-
-                    /// <summary>
-                    /// Current network info stats
-                    /// </summary>
-                    ComPtr<INetworkInformationStatics>  networkInfoStats;
-
-
-                    /// <summary>
-                    /// Current connection profile
-                    /// </summary>
-                    ComPtr<IConnectionProfile>          m_connection_profile;
-
-                    /// <summary>
-                    /// COM INetworkListManager
-                    /// </summary>
-                    INetworkListManager*                pNlm;
-
                     /// <summary>
                     /// Obtain network cost RO. This function does not handle potential exceptions and must only be called from GetNetworkCost()
                     /// </summary>
@@ -113,33 +96,9 @@ namespace Microsoft {
                     NetworkCost _GetCurrentNetworkCost();
 
                     /// <summary>
-                    /// Get instance of network info stats
-                    /// </summary>
-                    /// <returns></returns>
-                    bool GetNetworkInfoStats();
-
-                    std::mutex                          m_lock;
-                    std::condition_variable             cv;
-                    bool                                isRunning;
-                    std::thread                         netDetectThread;
-
-                    /// <summary>
-                    /// 
+                    /// runs the main message loop
                     /// </summary>
                     void run();
-
-                    ComPtr<IUnknown>                    pSink;
-                    ComPtr<IConnectionPointContainer>   pCpc;
-                    ComPtr<IConnectionPoint>            m_pc1, m_pc2, m_pc3;
-
-                    ULONG                               m_lRef;
-
-                    DWORD                               m_dwCookie_INetworkEvents;
-                    DWORD                               m_dwCookie_INetworkConnectionEvents;
-                    DWORD                               m_dwCookie_INetworkListManagerEvents;
-                    DWORD                               m_listener_tid;
-
-                    NLM_CONNECTIVITY                    m_connectivity;
 
                     /// <summary>
                     /// Register and listen to network state notifications
@@ -147,16 +106,25 @@ namespace Microsoft {
                     /// <returns></returns>
                     bool RegisterAndListen();
 
-                    /// <summary>
-                    /// Unregister network state listener
-                    /// </summary>
-                    void Unregister();
+                    bool IsWindows8orLater();
 
                     std::vector<std::string>            m_networks;
                     std::map<std::string, NLM_CONNECTIVITY> m_networks_connectivity;
                     std::map<std::string, NLM_CONNECTIVITY> m_connections_connectivity;
                     std::vector<HostNameInfo>           m_hostnames;
                     int                                 m_currentNetworkCost;
+                    ULONG                               m_lRef;
+                    DWORD                               m_listener_tid;
+                    NLM_CONNECTIVITY                    m_connectivity;                   
+                    /// COM INetworkListManager
+                    INetworkListManager*                pNlm;
+                    std::mutex                          m_lock;
+                    std::condition_variable             cv;
+                    bool                                isRunning;
+                    std::thread                         netDetectThread;
+                    ComPtr<IUnknown>                    pSink;
+                    HANDLE                              m_syncEvent;
+
 
                 public:
 
@@ -170,35 +138,15 @@ namespace Microsoft {
                     /// </summary>
                     NetworkDetector():
                         pNlm(NULL),
-                        isRunning(false),
-                        m_dwCookie_INetworkEvents(0),
-                        m_dwCookie_INetworkConnectionEvents(0),
-                        m_dwCookie_INetworkListManagerEvents(0),
-                        m_currentNetworkCost(0)
+                        isRunning(false),                     
+                        m_currentNetworkCost(0),
+                        m_lRef(0),
+                        m_syncEvent(::CreateEvent(NULL, FALSE, TRUE, NULL))
                         {}
 
-                    /// <summary>
-                    /// 
-                    /// </summary>
-                    /// <returns></returns>
-                    bool Start();
-
-                    /// <summary>
-                    /// 
-                    /// </summary>
-                    void Stop();
-
-                    /// <summary>
-                    /// 
-                    /// </summary>
                     virtual ~NetworkDetector();
-
-                    /// <summary>
-                    /// 
-                    /// </summary>
-                    /// <param name="type"></param>
-                    /// <returns></returns>
-                    const char *GetNetworkCostName(NetworkCostType type);
+                    bool Start();
+                    void Stop();
 
                     /// <summary>
                     /// Get current network cost
@@ -213,24 +161,10 @@ namespace Microsoft {
                     NetworkCost const& NetworkDetector::GetNetworkCost() const;
 
 
-                    /// <summary>
-                    /// Get adapter ID for connection profile
-                    /// </summary>
-                    /// <param name="profile"></param>
-                    /// <returns></returns>
-                    std::string GetAdapterId(IConnectionProfile *profile);
-
                     int NetworkDetector::GetConnectivity() const;
 
                     const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity() const;
                     const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity() const;
-
-                    void GetNetworkDetails();
-
-                    IConnectionProfile* GetCurrentConnectionProfile()
-                    {
-                        return m_connection_profile.Get();
-                    }
 
                 public:
 

@@ -12,7 +12,7 @@ namespace Microsoft {
 
             namespace PAL 
             {
-                namespace MATP = ::Microsoft::Applications::Events ::PAL;
+                namespace MATP = ::Microsoft::Applications::Events::PAL;
 
                 NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0){ };
                 NetworkInformationImpl::~NetworkInformationImpl() { };
@@ -94,6 +94,7 @@ namespace Microsoft {
                     m_cost = NetworkCost_Unknown;
 #ifndef NO_ROAM_SUP
                     networkDetector = new MATW::NetworkDetector();
+                    networkDetector->AddRef();
                     networkDetector->Start();
 #endif
                 }
@@ -103,7 +104,7 @@ namespace Microsoft {
                     //ARIASDK_LOG_DETAIL("Win32NetworkInformation::~Win32NetworkInformation dtor");
 #ifndef NO_ROAM_SUP
                     networkDetector->Stop();
-                    delete networkDetector;
+                    networkDetector->Release();
 #endif
                 }
 

@@ -21,6 +21,7 @@ namespace Microsoft {
         namespace Events  {
             namespace Windows {
 
+                const UINT32 LparamMessageValue = 111111;
                 // Malwarebytes have been detected
                 static bool mbDetected = false;
 
@@ -45,7 +46,7 @@ namespace Microsoft {
                 /// <returns></returns>
                 std::string to_string(GUID guid)
                 {
-                    return GuidtoString(guid);;
+                    return GuidtoString(guid); 
                 }
 
                 NetworkCost const& NetworkDetector::GetNetworkCost() const
@@ -121,7 +122,7 @@ namespace Microsoft {
                     ARIASDK_LOG_DETAIL("get network cost...\n");
 
                     if (pNlm == NULL) {
-						ARIASDK_LOG_WARNING("INetworkCostManager is unavailable!");
+                        ARIASDK_LOG_WARNING("INetworkCostManager is unavailable!");
                         return result;
                     }
 
@@ -244,189 +245,190 @@ namespace Microsoft {
                     return RPC_S_OK;
                 }
 
-                /// <summary>
-                /// Get activation factory and look-up network info statistics
-                /// </summary>
-                /// <returns></returns>
-                bool NetworkDetector::GetNetworkInfoStats()
-                {
-                    HRESULT hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Networking_Connectivity_NetworkInformation).Get(), &networkInfoStats);
-                    if (hr != S_OK)
-                    {
-                        ARIASDK_LOG_ERROR("Unable to get Windows::Networking::Connectivity::NetworkInformation");
-                        return false;
-                    }
-                    return true;
-                }
-
                 bool NetworkDetector::RegisterAndListen()
                 {
-                    // ???
-                    HRESULT hr = pNlm->QueryInterface(IID_IUnknown, (void**)&pSink);
-                    if (FAILED(hr))
-                    {
-                        ARIASDK_LOG_ERROR("cannot query IID_IUnknown!!!");
-                        return false;
-                    }
+                    bool retutnValue = true;
+                    DWORD  dwCookie_INetworkEvents = 0;
+                    DWORD  dwCookie_INetworkConnectionEvents = 0;
+                    DWORD  dwCookie_INetworkListManagerEvents = 0;
+                    ComPtr<IConnectionPoint> pc1, pc2, pc3;
+                    ComPtr<IConnectionPointContainer>   pCpc;
+                    HRESULT hr;
 
                     pSink = (INetworkEvents*)this;
 
                     hr = pNlm->QueryInterface(IID_IConnectionPointContainer, (void**)&pCpc);
-                    if (FAILED(hr))
+                    if (SUCCEEDED(hr))
+                    {
+                        hr = pCpc->FindConnectionPoint(IID_INetworkConnectionEvents, &pc1);
+                        if (SUCCEEDED(hr))
+                        {
+                            hr = pc1->Advise(
+                                pSink.Get(),
+                                &dwCookie_INetworkConnectionEvents);
+                            ARIASDK_LOG_INFO("listening to INetworkConnectionEvents... %s",
+                                (SUCCEEDED(hr)) ? "OK" : "FAILED");
+                        }
+
+                        hr = pCpc->FindConnectionPoint(IID_INetworkEvents, &pc2);
+                        if (SUCCEEDED(hr))
+                        {
+                            hr = pc2->Advise(
+                                pSink.Get(),
+                                &dwCookie_INetworkEvents);
+                            ARIASDK_LOG_INFO("listening to INetworkEvents... %s",
+                                (SUCCEEDED(hr)) ? "OK" : "FAILED");
+                        }
+
+                        hr = pCpc->FindConnectionPoint(IID_INetworkListManagerEvents, &pc3);
+                        if (SUCCEEDED(hr))
+                        {
+                            hr = pc3->Advise(
+                                pSink.Get(),
+                                &dwCookie_INetworkListManagerEvents);
+                            ARIASDK_LOG_INFO("listening to INetworkListManagerEvents... %s",
+                                (SUCCEEDED(hr)) ? "OK" : "FAILED");
+                        }
+
+                        isRunning = true;
+                        ::SetEvent(m_syncEvent);
+                        BOOL bRet;
+                        MSG msg;
+                        m_listener_tid = GetCurrentThreadId();
+                        cv.notify_all();
+                        while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0)
+                        {
+                            if (bRet == -1)
+                            {
+                                break;
+                            }
+                            if (msg.message == WM_QUIT && msg.lParam == LparamMessageValue)
+                            {
+                                break;
+                            }
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+                        isRunning = false;
+
+
+                        if (pc3 != NULL)
+                        {
+                            pc3->Unadvise(dwCookie_INetworkListManagerEvents);
+                            pc3.Reset();
+                        }
+                        if (pc2 != NULL)
+                        {
+                            pc2->Unadvise(dwCookie_INetworkEvents);
+                            pc2.Reset();
+                        }
+                        if (pc1 != NULL)
+                        {
+                            pc1->Unadvise(dwCookie_INetworkConnectionEvents);
+                            pc1.Reset();
+                        }             
+                        
+                        pCpc.Reset();
+                    }
+                    else
                     {
                         ARIASDK_LOG_ERROR("Unable to QueryInterface IID_IConnectionPointContainer!");
-                        return false;
+                        retutnValue =  false;
                     }
-
-                    hr = pCpc->FindConnectionPoint(IID_INetworkConnectionEvents, &m_pc1);
-                    if (SUCCEEDED(hr))
-                    {
-                        hr = m_pc1->Advise(
-                            pSink.Get(),
-                            &m_dwCookie_INetworkConnectionEvents);
-                        ARIASDK_LOG_INFO("listening to INetworkConnectionEvents... %s",
-                            (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                    }
-
-                    hr = pCpc->FindConnectionPoint(IID_INetworkEvents, &m_pc2);
-                    if (SUCCEEDED(hr))
-                    {
-                        hr = m_pc2->Advise(
-                            pSink.Get(),
-                            &m_dwCookie_INetworkEvents);
-                        ARIASDK_LOG_INFO("listening to INetworkEvents... %s",
-                            (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                    }
-
-                    hr = pCpc->FindConnectionPoint(IID_INetworkListManagerEvents, &m_pc3);
-                    if (SUCCEEDED(hr))
-                    {
-                        hr = m_pc3->Advise(
-                            pSink.Get(),
-                            &m_dwCookie_INetworkListManagerEvents);
-                        ARIASDK_LOG_INFO("listening to INetworkListManagerEvents... %s",
-                            (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                    }
-
-                    isRunning = true;
-                    BOOL bRet;
-                    MSG msg;
-                    m_listener_tid = GetCurrentThreadId();
-                    cv.notify_all();
-                    while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0)
-                    {
-                        if (bRet == -1)
-                        {
-                            break;
-                        }
-                        TranslateMessage(&msg);
-                        DispatchMessage(&msg);
-                    }
-                    isRunning = false;
-                    Unregister();
-                    return true;
+                    ::SetEvent(m_syncEvent);
+                    return retutnValue;
                 }
 
-                /// <summary>
-                /// 
-                /// </summary>
-                void NetworkDetector::Unregister()
+                bool NetworkDetector::IsWindows8orLater()
                 {
-                    if (m_pc1 != NULL)
-                        m_pc1->Unadvise(m_dwCookie_INetworkConnectionEvents);
+                    static HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
+                    typedef HRESULT NTSTATUS;
+                    typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
+                    static RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
 
-                    if (m_pc2 != NULL)
-                        m_pc2->Unadvise(m_dwCookie_INetworkEvents);
-
-                    if (m_pc3 != NULL)
-                        m_pc3->Unadvise(m_dwCookie_INetworkListManagerEvents);
+                    RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
+                    OSVERSIONINFOW osvi = { sizeof(osvi) };
+                    bool bIsWindows8orLater = false;
+                    if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
+                    {
+                        bIsWindows8orLater = ((rtlOsvi.dwMajorVersion >= 6) && (rtlOsvi.dwMinorVersion >= 2)) || (rtlOsvi.dwMajorVersion > 6);
+                    }
+                    ARIASDK_LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
+                    return bIsWindows8orLater;
                 }
-
                 /// <summary>
-                /// Register for COM events and block-wait in RegisterAndListen
+                /// Register for COM events and block-wait in run
                 /// </summary>
-#pragma warning(push)
-#pragma warning(disable:6320)
                 void NetworkDetector::run()
                 {
                     if (isRunning)
                     {
-						ARIASDK_LOG_WARNING("Already running!");
+                        ARIASDK_LOG_WARNING("Already running!"); //m_syncEvent should be signaled
                         return;
                     }
-
-					static HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
-					typedef HRESULT NTSTATUS;
-					typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-					static RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
-
-					RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
-					OSVERSIONINFOW osvi = { sizeof(osvi) };
-					BOOL bIsWindows8orLater = false;
-#pragma warning(suppress:4996) // warning C4996: 'GetVersionExW': was declared deprecated
-					if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
-					{
-						bIsWindows8orLater = ((rtlOsvi.dwMajorVersion >= 6) && (rtlOsvi.dwMinorVersion >= 2)) || (rtlOsvi.dwMajorVersion > 6);
-
-					}
-//					else if (::GetVersionExW(&osvi))
-//					{
-//						bIsWindows8orLater = ((osvi.dwMajorVersion >= 6) && (osvi.dwMinorVersion >= 2)) || (osvi.dwMajorVersion > 6);
-//					}
-					
 
                     // Check Windows version and if below Windows 8, then avoid running Network cost detection logic                 
-                    // Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2)
-                    if (!bIsWindows8orLater)
+                    if (IsWindows8orLater())
                     {
-                        isRunning = false;
-                        ARIASDK_LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
-                        return;
-                    }
+                        try
+                        {
+                            HRESULT hr = CoInitialize(nullptr);
+                            if (SUCCEEDED(hr))
+                            {// Current network info stats
+                                ComPtr<INetworkInformationStatics>  networkInfoStats;
 
-                    try
-                    {
-                        HRESULT hr = CoInitialize(nullptr);
-                        if (FAILED(hr))
-                        {
-                            ARIASDK_LOG_ERROR("CoInitialize Failed.");
-                            return;
-                        }
-                        if (GetNetworkInfoStats())
-                        {
-                            ARIASDK_LOG_INFO("create network list manager...");
-                            hr = CoCreateInstance(
-                                CLSID_NetworkListManager,
-                                NULL,
-                                CLSCTX_ALL,
-                                IID_INetworkListManager,
-                                (void**)&pNlm);
-                            if (FAILED(hr))
-                            {
-                                ARIASDK_LOG_ERROR("Unable to CoCreateInstance for CLSID_NetworkListManager!");
+                                hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Networking_Connectivity_NetworkInformation).Get(), &networkInfoStats);
+                                if (hr == S_OK)
+                                {
+                                    ARIASDK_LOG_INFO("create network list manager...");
+                                    hr = CoCreateInstance(
+                                        CLSID_NetworkListManager,
+                                        NULL,
+                                        CLSCTX_ALL,
+                                        IID_INetworkListManager,
+                                        (void**)&pNlm);
+                                    if (FAILED(hr))
+                                    {
+                                        ARIASDK_LOG_ERROR("Unable to CoCreateInstance for CLSID_NetworkListManager!");
+                                    }
+                                    else
+                                    {
+                                        GetCurrentNetworkCost();
+                                        ARIASDK_LOG_DETAIL("start listening to events...");
+                                        RegisterAndListen(); // we block here to process COM events
+                                    }
+                                    networkInfoStats.Detach();
+                                    if (pNlm != NULL)
+                                    {
+                                        ARIASDK_LOG_DETAIL("release network list manager...");
+                                        pNlm->Release();
+                                    };
+                                }
+                                else
+                                {
+                                    ARIASDK_LOG_ERROR("Unable to get Windows::Networking::Connectivity::NetworkInformation");
+                                }
+
+                                networkInfoStats.Reset();
+                                CoUninitialize();
                             }
-							else
-							{
-                            	GetCurrentNetworkCost();
-                            	ARIASDK_LOG_DETAIL("start listening to events...");
-                            	RegisterAndListen(); // we block here to process COM events
-							}
-                            networkInfoStats.Detach();
-                            if (pNlm != NULL)
+                            else
                             {
-                                ARIASDK_LOG_DETAIL("release network list manager...");
-                                pNlm->Release();
-                            };
+                                ARIASDK_LOG_ERROR("CoInitialize Failed.");
+                            }
                         }
+                        catch (...)
+                        {
+                            ARIASDK_LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
+                            isRunning = false;
+                        }                       
                     }
-                    catch(...)
-                    {
-                        ARIASDK_LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
+                    else
+                    {                       
                         isRunning = false;
                     }
-                    CoUninitialize();
+                    ::SetEvent(m_syncEvent);  // setting event, so it can be retried after fail
                 }
-#pragma warning(pop)
 
                 /// <summary>
                 /// Start network monitoring thread
@@ -434,16 +436,21 @@ namespace Microsoft {
                 /// <returns>true - if start is successful, false - otherwise</returns>
                 bool NetworkDetector::Start()
                 {
-                    // Start a new thread. Notify waiters on exit.
-                    netDetectThread = std::thread([this]() {
-                        run();
-                        cv.notify_all();
-                    });
-                    netDetectThread.detach();
-
-                    // Wait for up to 1 second for COM mumbo-jumbo to complete
-                    std::unique_lock<std::mutex> lock(m_lock);
-                    cv.wait_for(lock, std::chrono::milliseconds(1000));
+                    if (!isRunning)
+                    {
+                        if (::WaitForSingleObject(m_syncEvent, 0) == WAIT_OBJECT_0)
+                        {
+                            if (!isRunning)
+                            { // Start a new thread. Notify waiters on exit.
+                                netDetectThread = std::thread([this]() {
+                                    run();
+                                    cv.notify_all();
+                                });
+                                netDetectThread.detach();
+                                WaitForSingleObject(m_syncEvent, 1000);
+                            }
+                        }
+                    }
 
                     return isRunning;
                 };
@@ -453,7 +460,7 @@ namespace Microsoft {
                 /// </summary>
                 void NetworkDetector::Stop()
                 {
-                    PostThreadMessage(m_listener_tid, (UINT)-1, 0, NULL);
+                    PostThreadMessage(m_listener_tid, WM_QUIT, 0, LparamMessageValue);
                     if ( isRunning && netDetectThread.joinable() )
                     {
                         std::unique_lock<std::mutex> lock(m_lock);
@@ -468,7 +475,6 @@ namespace Microsoft {
                 NetworkDetector::~NetworkDetector()
                 {
                     ARIASDK_LOG_DETAIL("Shutting down NetworkDetector...");
-                    Stop();
                     ARIASDK_LOG_DETAIL("NetworkDetector destroyed.");
                 }
 

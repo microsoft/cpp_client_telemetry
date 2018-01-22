@@ -756,46 +756,46 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     record.name = "stats";
 
     // session fileds
-    insertNonZero(ext, "session_start_timestamp", telemetryStats->sessionStartTimestamp);
-    insertNonZero(ext, "stats_start_timestamp", telemetryStats->statsStartTimestamp);
-    insertNonZero(ext, "session_startup_time_in_millisec", telemetryStats->session_startup_time_in_millisec);
-    insertNonZero(ext, "stats_end_timestamp", PAL::getUtcSystemTimeMs());
+    insertNonZero(ext, "s_stime", telemetryStats->sessionStartTimestamp);
+    insertNonZero(ext, "stats_stime", telemetryStats->statsStartTimestamp);
+    insertNonZero(ext, "s_Firststime", telemetryStats->session_startup_time_in_millisec);
+    insertNonZero(ext, "stats_etime", PAL::getUtcSystemTimeMs());
     ::AriaProtocol::Value rollupKindValue;
     rollupKindValue.stringValue = ActRollUpKindToString(rollupKind);
     ext["stats_rollup_kind"] = rollupKindValue;
-    insertNonZero(ext, "stats_send_frequency_secs", m_runtimeConfig.GetMetaStatsSendIntervalSec());
+    insertNonZero(ext, "st_freq", m_runtimeConfig.GetMetaStatsSendIntervalSec());
 
     if (telemetryStats->offlineStorageEnabled) {
         const TelemetryStats::OfflineStorageStats& storageStats = telemetryStats->offlineStorageStats;
         ::AriaProtocol::Value storageFormatValue;
         storageFormatValue.stringValue = storageStats.storageFormat;
-        ext["offline_storage_format_type"] = storageFormatValue;
+        ext["off_type"] = storageFormatValue;
         if (!storageStats.lastFailureReason.empty())
         {
             ::AriaProtocol::Value lastFailureReasonValue;
             lastFailureReasonValue.stringValue = storageStats.lastFailureReason;
-            ext["offline_storage_last_failure"] = lastFailureReasonValue;
+            ext["off_last_failure"] = lastFailureReasonValue;
         }
-        insertNonZero(ext, "config_offline_storage_size_bytes", storageStats.fileSizeInBytes);
+        insertNonZero(ext, "config_off_size", storageStats.fileSizeInBytes);
     }
 
     //package stats
     const TelemetryStats::PackageStats& packageStats = telemetryStats->packageStats;
-    insertNonZero(ext, "requests_not_to_be_acked", packageStats.totalPkgsNotToBeAcked);
-    insertNonZero(ext, "requests_to_be_acked", packageStats.totalPkgsToBeAcked);
-    insertNonZero(ext, "requests_acked", packageStats.totalPkgsAcked);
-    insertNonZero(ext, "requests_acked_succeeded", packageStats.successPkgsAcked);
-    insertNonZero(ext, "requests_acked_retried", packageStats.retryPkgsAcked);
-    insertNonZero(ext, "requests_acked_dropped", packageStats.dropPkgsAcked);
-    addCountsPerHttpReturnCodeToRecordFields(record, "requests_acked_dropped_on_HTTP", packageStats.dropPkgsPerHttpReturnCode);
-    addCountsPerHttpReturnCodeToRecordFields(record, "requests_acked_retried_on_HTTP", packageStats.retryPkgsPerHttpReturnCode);
+    insertNonZero(ext, "rqs_not_to_be_acked", packageStats.totalPkgsNotToBeAcked);
+    insertNonZero(ext, "rqs_to_be_acked", packageStats.totalPkgsToBeAcked);
+    insertNonZero(ext, "rqs_acked", packageStats.totalPkgsAcked);
+    insertNonZero(ext, "rqs_acked_succ", packageStats.successPkgsAcked);
+    insertNonZero(ext, "rqs_acked_ret", packageStats.retryPkgsAcked);
+    insertNonZero(ext, "rqs_acked_drp", packageStats.dropPkgsAcked);
+    addCountsPerHttpReturnCodeToRecordFields(record, "rqs_acked_drp_on_HTTP", packageStats.dropPkgsPerHttpReturnCode);
+    addCountsPerHttpReturnCodeToRecordFields(record, "rqs_acked_ret_on_HTTP", packageStats.retryPkgsPerHttpReturnCode);
 
     insertNonZero(ext, "rm_bw_bytes_consumed_count", packageStats.totalBandwidthConsumedInBytes);
       
     //InternalHttpStackRetriesStats
     if (packageStats.totalPkgsAcked > 0) {
         ARIASDK_LOG_DETAIL("httpstack_retries stats is added to record extension field");
-        addAggregatedMapToRecordFields(record, "requests_fail_on_HTTP_retries_count_distribution",
+        addAggregatedMapToRecordFields(record, "rqs_fail_on_HTTP_retries_count_distribution",
             telemetryStats->internalHttpStackRetriesStats.retriesCountDistribution, false);
     }
 
@@ -816,8 +816,8 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "rcv", recordStats.receivedCount);// records_received_count
 
     insertNonZero(ext, "snt", recordStats.sentCount);//records_sent_count
-    insertNonZero(ext, "records_sent_curr_session", recordStats.sentCountFromCurrentSession);
-    insertNonZero(ext, "records_sent_prev_session", recordStats.sentCountFromPreviousSession);
+    insertNonZero(ext, "rcds_sent_curr_session", recordStats.sentCountFromCurrentSession);
+    insertNonZero(ext, "rcds_sent_prev_session", recordStats.sentCountFromPreviousSession);
 
     insertNonZero(ext, "rej", recordStats.rejectedCount);//records_rejected_count
     addRecordsPerRejectedReasonToRecordFields(record, recordStats.rejectedCountReasonDistribution);
@@ -826,18 +826,18 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "d_disk_full", recordStats.overflownCount);
     insertNonZero(ext, "d_io_fail",   recordStats.droppedCountReasonDistribution[DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED]);    
     insertNonZero(ext, "d_retry_lmt", recordStats.droppedCountReasonDistribution[DROPPED_REASON_RETRY_EXCEEDED]);
-    addCountsPerHttpReturnCodeToRecordFields(record, "records_dropped_on_HTTP", recordStats.droppedCountPerHttpReturnCode);
+    addCountsPerHttpReturnCodeToRecordFields(record, "rcds_drp_on_HTTP", recordStats.droppedCountPerHttpReturnCode);
 
     addAggregatedMapToRecordFields(record, "exceptions_per_eventtype_count", recordStats.semanticToExceptionCountMap);
-    addAggregatedMapToRecordFields(record, "records_per_eventtype_count", recordStats.semanticToRecordCountMap);
+    addAggregatedMapToRecordFields(record, "rcds_per_eventtype_count", recordStats.semanticToRecordCountMap);
 
     if (recordStats.receivedCount > 0) {
         ARIASDK_LOG_DETAIL("source stats and record size stats in recordStats"
             " are added to record ext field");
-        insertNonZero(ext, "record_size_bytes_max", recordStats.maxOfRecordSizeInBytes);
-        insertNonZero(ext, "record_size_bytes_min", recordStats.minOfRecordSizeInBytes);
-        insertNonZero(ext, "records_received_size_bytes", recordStats.totalRecordsSizeInBytes);
-        addAggregatedMapToRecordFields(record, "record_size_kb_distribution", recordStats.sizeInKBytesDistribution);
+        insertNonZero(ext, "rcd_size_bytes_max", recordStats.maxOfRecordSizeInBytes);
+        insertNonZero(ext, "rcd_size_bytes_min", recordStats.minOfRecordSizeInBytes);
+        insertNonZero(ext, "rcds_received_size_bytes", recordStats.totalRecordsSizeInBytes);
+        addAggregatedMapToRecordFields(record, "rcd_size_kb_distribution", recordStats.sizeInKBytesDistribution);
     }
 
     // Low priority RecordStats
@@ -845,15 +845,15 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "ln_r_ban", lowPriorityrecordStats.bannedCount);
     insertNonZero(ext, "ln_rcv",   lowPriorityrecordStats.receivedCount);
     insertNonZero(ext, "ln_snt",   lowPriorityrecordStats.sentCount);
-    insertNonZero(ext, "ln_records_sent_count_current_session", lowPriorityrecordStats.sentCountFromCurrentSession);
-    insertNonZero(ext, "ln_records_sent_count_previous_sessions", lowPriorityrecordStats.sentCountFromPreviousSession);
+    insertNonZero(ext, "ln_rcds_sent_count_current_session", lowPriorityrecordStats.sentCountFromCurrentSession);
+    insertNonZero(ext, "ln_rcds_sent_count_previous_sessions", lowPriorityrecordStats.sentCountFromPreviousSession);
     insertNonZero(ext, "ln_drp",   lowPriorityrecordStats.droppedCount);
     insertNonZero(ext, "ln_d_disk_full", lowPriorityrecordStats.overflownCount);
     insertNonZero(ext, "ln_rej",   lowPriorityrecordStats.rejectedCount);
     if (lowPriorityrecordStats.receivedCount > 0) {
         ARIASDK_LOG_DETAIL("Low priority source stats and record size stats in recordStats"
             " are added to record ext field");
-        insertNonZero(ext, "ln_records_received_size_bytes", lowPriorityrecordStats.totalRecordsSizeInBytes);
+        insertNonZero(ext, "ln_rcds_received_size_bytes", lowPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (lowPriorityrecordStats.sentCount > 0) {
         const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyLow = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_Normal];
@@ -867,15 +867,15 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "ld_r_ban", normalPriorityrecordStats.bannedCount);
     insertNonZero(ext, "ld_rcv",   normalPriorityrecordStats.receivedCount);
     insertNonZero(ext, "ld_snt",   normalPriorityrecordStats.sentCount);
-    insertNonZero(ext, "ld_records_sent_count_current_session", normalPriorityrecordStats.sentCountFromCurrentSession);
-    insertNonZero(ext, "ld_records_sent_count_previous_sessions", normalPriorityrecordStats.sentCountFromPreviousSession);
+    insertNonZero(ext, "ld_rcds_sent_count_current_session", normalPriorityrecordStats.sentCountFromCurrentSession);
+    insertNonZero(ext, "ld_rcds_sent_count_previous_sessions", normalPriorityrecordStats.sentCountFromPreviousSession);
     insertNonZero(ext, "ld_drp",   normalPriorityrecordStats.droppedCount);
     insertNonZero(ext, "ld_d_disk_full", normalPriorityrecordStats.overflownCount);
     insertNonZero(ext, "ld_rej",   normalPriorityrecordStats.rejectedCount);
     if (normalPriorityrecordStats.receivedCount > 0) {
         ARIASDK_LOG_DETAIL("Normal priority source stats and record size stats in recordStats"
             " are added to record ext field");
-        insertNonZero(ext, "ld_records_received_size_bytes", normalPriorityrecordStats.totalRecordsSizeInBytes);
+        insertNonZero(ext, "ld_rcds_received_size_bytes", normalPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (normalPriorityrecordStats.sentCount > 0) {
         const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyNormal = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_CostDeferred];
@@ -889,15 +889,15 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "lr_r_ban", highPriorityrecordStats.bannedCount);
     insertNonZero(ext, "lr_rcv", highPriorityrecordStats.receivedCount);
     insertNonZero(ext, "lr_snt", highPriorityrecordStats.sentCount);
-    insertNonZero(ext, "lr_records_sent_count_current_session", highPriorityrecordStats.sentCountFromCurrentSession);
-    insertNonZero(ext, "lr_records_sent_count_previous_sessions", highPriorityrecordStats.sentCountFromPreviousSession);
+    insertNonZero(ext, "lr_rcds_sent_count_current_session", highPriorityrecordStats.sentCountFromCurrentSession);
+    insertNonZero(ext, "lr_rcds_sent_count_previous_sessions", highPriorityrecordStats.sentCountFromPreviousSession);
     insertNonZero(ext, "lr_drp", highPriorityrecordStats.droppedCount);
     insertNonZero(ext, "ld_d_disk_full", normalPriorityrecordStats.overflownCount);
     insertNonZero(ext, "lr_rej", highPriorityrecordStats.rejectedCount);
     if (highPriorityrecordStats.receivedCount > 0) {
         ARIASDK_LOG_DETAIL("High priority source stats and record size stats in recordStats"
             " are added to record ext field");
-        insertNonZero(ext, "lr_records_received_size_bytes", highPriorityrecordStats.totalRecordsSizeInBytes);
+        insertNonZero(ext, "lr_rcds_received_size_bytes", highPriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (highPriorityrecordStats.sentCount > 0) {
         const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyHigh = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_RealTime];
@@ -911,13 +911,13 @@ void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& 
     insertNonZero(ext, "lm_r_ban", immediatePriorityrecordStats.bannedCount);
     insertNonZero(ext, "lm_rcv",   immediatePriorityrecordStats.receivedCount);
     insertNonZero(ext, "lm_snt",   immediatePriorityrecordStats.sentCount);
-    insertNonZero(ext, "lm_records_sent_count_current_session", immediatePriorityrecordStats.sentCountFromCurrentSession);
-    insertNonZero(ext, "lm_records_sent_count_previous_sessions", immediatePriorityrecordStats.sentCountFromPreviousSession);
+    insertNonZero(ext, "lm_rcds_sent_count_current_session", immediatePriorityrecordStats.sentCountFromCurrentSession);
+    insertNonZero(ext, "lm_rcds_sent_count_previous_sessions", immediatePriorityrecordStats.sentCountFromPreviousSession);
     insertNonZero(ext, "lm_drp",   immediatePriorityrecordStats.droppedCount);
     insertNonZero(ext, "lm_snt",   immediatePriorityrecordStats.rejectedCount);
     if (immediatePriorityrecordStats.receivedCount > 0) {
         ARIASDK_LOG_DETAIL(" high latency source stats and record size stats in recordStats are added to record ext field");
-        insertNonZero(ext, "lm_records_received_size_bytes", immediatePriorityrecordStats.totalRecordsSizeInBytes);
+        insertNonZero(ext, "lm_rcds_received_size_bytes", immediatePriorityrecordStats.totalRecordsSizeInBytes);
     }
     if (immediatePriorityrecordStats.sentCount > 0) {
         const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyImmediate = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_Max];
