@@ -116,18 +116,39 @@ class BasicFuncTests : public ::testing::Test,
             unsigned receivedEvnetsLocal = 0;
             if (waitForRequests(timeout))
             {
-                for (auto request : receivedRequests)
+                size_t size = receivedRequests.size();
+                for (size_t index = 0; index < size; index++)
                 {
+                    auto request = receivedRequests.at(index);
                     auto payload = decodeRequest(request, false);
                     receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
                 }
                 receivedEvnets = receivedEvnetsLocal;
 
-                if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
+                if (receivedEvnets < expected_count)
                 {
-                    GTEST_FATAL_FAILURE_("Didn't receive records within given timeout");
+                    if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
+                    {
+                        GTEST_FATAL_FAILURE_("Didn't receive records within given timeout");
+                    }
+                    PAL::sleep(100);
+                    //requests can come within 100 milisec sleep
+                    receivedEvnetsLocal = 0;
+                    size = receivedRequests.size();
+                    for (size_t index = 0; index < size; index++)
+                    {
+                        auto request = receivedRequests.at(index);
+                        auto payload = decodeRequestNoCheck(request, false);
+                        for (auto package : payload.TokenToDataPackagesMap)
+                        {
+                            for (auto pack : package.second)
+                            {
+                                receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)pack.Records.size();
+                            }
+                        }
+                    }
+                    receivedEvnets = receivedEvnetsLocal;
                 }
-                PAL::sleep(100);
             }
             else
             {
