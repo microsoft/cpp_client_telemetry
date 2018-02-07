@@ -32,7 +32,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <summary>
         /// [optional] An unsigned integer that contains the default time (in minutes) to expire the cached configuration.
         /// </summary>
-        unsigned int defaultExpiryTimeInMin;
+        unsigned int defaultExpiryTimeInMin = 0;
 
         /// <summary>
         /// [optional] A standard vector of strings that contains the ECS server URIs.
@@ -160,7 +160,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="pLoger">The logger to be registered with the ECS client</param>
         /// <param name="agentName">A string that contains the name of the agent.</param>
         /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName) = 0;
+        virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName) = 0;
 
         /// <summary>
         /// Sets a user ID used as the request parameter for retrieving configurations from the ECS server.
@@ -231,6 +231,51 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual std::vector<std::string> GetKeys(const std::string& agentName, const std::string& keysPath) = 0;
 
         /// <summary>
+        /// Tries to get the setting for the specified agent, from the specified configuration path
+        /// </summary>
+        /// <param name="agentName">A string that contains the name of the agent.</param>
+        /// <param name="settingPath">A string that contains the configuration path.</param>
+        /// <param name="value">Receives the setting if it is found. Is unchanged if not found.</param>
+        /// <returns>True if the setting was successfully found.</returns>
+        virtual bool TryGetSetting(const std::string& agentName, const std::string& settingPath, std::string& value) = 0;
+
+        /// <summary>
+        /// Tries to get the setting for the specified agent, from the specified configuration path
+        /// </summary>
+        /// <param name="agentName">A string that contains the name of the agent.</param>
+        /// <param name="settingPath">A string that contains the configuration path.</param>
+        /// <param name="value">Receives the setting if it is found. Is unchanged if not found.</param>
+        /// <returns>True if the setting was successfully found.</returns>
+        virtual bool TryGetBoolSetting(const std::string& agentName, const std::string& settingPath, bool& value) = 0;
+
+        /// <summary>
+        /// Tries to get the setting for the specified agent, from the specified configuration path
+        /// </summary>
+        /// <param name="agentName">A string that contains the name of the agent.</param>
+        /// <param name="settingPath">A string that contains the configuration path.</param>
+        /// <param name="value">Receives the setting if it is found. Is unchanged if not found.</param>
+        /// <returns>True if the setting was successfully found.</returns>
+        virtual bool TryGetIntSetting(const std::string& agentName, const std::string& settingPath, int& value) = 0;
+
+        /// <summary>
+        /// Tries to get the setting for the specified agent, from the specified configuration path
+        /// </summary>
+        /// <param name="agentName">A string that contains the name of the agent.</param>
+        /// <param name="settingPath">A string that contains the configuration path.</param>
+        /// <param name="value">Receives the setting if it is found. Is unchanged if not found.</param>
+        /// <returns>True if the setting was successfully found.</returns>
+        virtual bool TryGetLongSetting(const std::string& agentName, const std::string& settingPath, long& value) = 0;
+
+        /// <summary>
+        /// Tries to get the setting for the specified agent, from the specified configuration path
+        /// </summary>
+        /// <param name="agentName">A string that contains the name of the agent.</param>
+        /// <param name="settingPath">A string that contains the configuration path.</param>
+        /// <param name="value">Receives the setting if it is found. Is unchanged if not found.</param>
+        /// <returns>True if the setting was successfully found.</returns>
+        virtual bool TryGetDoubleSetting(const std::string& agentName, const std::string& settingPath, double& value) = 0;
+
+        /// <summary>
         /// Gets the setting for the specified agent, from the specified configuration path, taking a default string value.
         /// </summary>
         /// <param name="agentName">A string that contains the name of the agent.</param>
@@ -289,6 +334,11 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="settingPath">A string that contains the configuration path.</param>
         /// <returns>A vector that contains the settings as doubles.</returns>
         virtual std::vector<double> GetSettingsAsDbls(const std::string& agentName, const std::string& settingPath) = 0;
+
+        /// <summary>
+        /// Sets the Time used for retring.
+        /// </summary>
+        virtual void SetRetryTimeFactor(int time) = 0;
     };
 
 }}}} // namespaces

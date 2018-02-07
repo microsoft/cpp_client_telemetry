@@ -413,6 +413,8 @@ namespace Microsoft { namespace Applications { namespace Events  {
                 REJECTED_REASON_SERVER_DECLINED,
                 /// <summary>Server declined.</summary>
                 REJECTED_REASON_TENANT_KILLED,
+                /// <summary>Reject reason OK.</summary>
+                REJECTED_REASON_OK,
                 /// <summary>Reject reason count.</summary>
                 REJECTED_REASON_COUNT
             };

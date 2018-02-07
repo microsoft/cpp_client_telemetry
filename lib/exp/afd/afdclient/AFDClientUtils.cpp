@@ -13,7 +13,7 @@ namespace Microsoft {
         namespace Experimentation {
             namespace AFD {
 
-                ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.AFD", "Aria AFD");
+                ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.AFD", "Aria AFD");
 
                 std::vector<std::string> splitString(std::string str, char delimiter)
                 {

@@ -14,18 +14,18 @@ namespace Microsoft {
     namespace Applications {
         namespace Events  {
 
-			std::mutex*          our_CommonLogManagerInternallockP = new std::mutex();
+			std::mutex           our_CommonLogManagerInternallock;
 			ILogManagerInternal* our_pLogManagerSingletonInstanceP = nullptr;
             static volatile LONG our_CommonLogManagerInternalStarted = 0;
             HANDLE syncEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
             LogSessionData*      our_LogSessionDataP = nullptr;
             bool                 our_IsRuningasHost = false;
             LogConfiguration*    our_LogConfiguration = new LogConfiguration();
-            AuthTokensController* our_AuthTokenControllerP = new AuthTokensController();
+            AuthTokensController* our_AuthTokenControllerP = nullptr;
 
             bool CommonLogManagerInternal::IsInitialized()
             {
-                std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                std::lock_guard<std::mutex> lock(our_CommonLogManagerInternallock);
                 if (our_CommonLogManagerInternalStarted > 0)
                     return true;
                 else
@@ -34,7 +34,7 @@ namespace Microsoft {
 
             bool CommonLogManagerInternal::IsInitializedAsHost()
             {
-                std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                std::lock_guard<std::mutex> lock(our_CommonLogManagerInternallock);
                 if (our_IsRuningasHost)
                     return true;
                 else
@@ -48,7 +48,7 @@ namespace Microsoft {
 				
                 if (InterlockedIncrementAcquire(&our_CommonLogManagerInternalStarted) == 1)
                 {
-                    std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                    std::lock_guard<std::mutex> lock(our_CommonLogManagerInternallock);
                     if (nullptr == our_pLogManagerSingletonInstanceP)
                     {
                         if (logConfigurationP)
@@ -65,6 +65,8 @@ namespace Microsoft {
                             EVTStatus error;
                             our_LogSessionDataP = new LogSessionData(our_LogConfiguration->GetProperty(CFG_STR_CACHE_FILE_PATH, error));
                         }
+                        
+                        our_AuthTokenControllerP = new AuthTokensController();
                         if (wantController & !our_IsRuningasHost)
                         {
                             our_IsRuningasHost = true;
@@ -84,7 +86,7 @@ namespace Microsoft {
                             our_LogConfiguration = logConfigurationP;
                         }
                         
-                        std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                        std::lock_guard<std::mutex> lock(our_CommonLogManagerInternallock);
                         ::ResetEvent(syncEvent);
                         if (nullptr != our_pLogManagerSingletonInstanceP)
                         {
@@ -137,7 +139,7 @@ namespace Microsoft {
                 ARIASDK_LOG_DETAIL("FlushAndTeardown()");
                 if (InterlockedDecrementAcquire(&our_CommonLogManagerInternalStarted) == 0)
                 {
-                    std::lock_guard<std::mutex> lock(*our_CommonLogManagerInternallockP);
+                    std::lock_guard<std::mutex> lock(our_CommonLogManagerInternallock);
                     ::ResetEvent(syncEvent);
                     if (nullptr != our_pLogManagerSingletonInstanceP)
                     {                        
@@ -148,6 +150,19 @@ namespace Microsoft {
                     else
                     {
                         EVTStatus::EVTStatus_NoOp;
+                    }
+                    if (nullptr != our_LogSessionDataP)
+                    {
+                        delete our_LogSessionDataP;
+                    }
+
+                    if (our_AuthTokenControllerP)
+                    {
+                        delete our_AuthTokenControllerP;
+                    }
+                    if (our_LogConfiguration)
+                    {
+                        delete our_LogConfiguration;
                     }
                 }
                 return EVTStatus::EVTStatus_OK;

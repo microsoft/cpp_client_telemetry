@@ -4,7 +4,7 @@
 #include "pal/PAL.hpp"
 #include "Logger.hpp"
 #include "DebugEvents.hpp"
-#include "offline/FifoFileSTorage.hpp"
+#include "offline/FifoFileStorage.hpp"
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {
@@ -152,7 +152,7 @@ namespace ARIASDK_NS_BEGIN {
         if (!timeFound) {
             // Populate the first time launch
             StorageItemKey fileItemInfo = {};
-            strncpy_s(fileItemInfo.CustomProperty3, SESSION_FIRST_TIME, strlen(SESSION_FIRST_TIME));
+            strncpy_s(fileItemInfo.CustomProperty3, sizeof(fileItemInfo.CustomProperty3), SESSION_FIRST_TIME, strlen(SESSION_FIRST_TIME));
             ARIASDK_LOG_DETAIL("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
             m_sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
             std::string timeNow = std::to_string(m_sessionFirstTimeLaunch);
@@ -169,7 +169,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             // Populate SDK UUID
             StorageItemKey fileItemInfo = {};
-            strncpy_s(fileItemInfo.CustomProperty3, SESSION_SDKU_ID, strlen(SESSION_SDKU_ID));
+            strncpy_s(fileItemInfo.CustomProperty3, sizeof(fileItemInfo.CustomProperty3), SESSION_SDKU_ID, strlen(SESSION_SDKU_ID));
             ARIASDK_LOG_DETAIL("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
             m_sessionSDKUid = PAL::generateUuidString();
             if (m_sessionStorage->SaveItem(m_sessionSDKUid.c_str(), m_sessionSDKUid.length(), &fileItemInfo))

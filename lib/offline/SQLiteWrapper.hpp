@@ -93,6 +93,11 @@ class RealSqlite3Proxy : public ISqlite3Proxy {
     int sqlite3_step(sqlite3_stmt* stmt) override
     { return ::sqlite3_step(stmt); }
 
+    int64_t sqlite3_soft_heap_limit64(int64_t N)
+    {
+        return ::sqlite3_soft_heap_limit64((sqlite3_int64)N);
+    }
+
     void const* sqlite3_value_blob(sqlite3_value* value) override
     { return ::sqlite3_value_blob(value); }
 
@@ -127,7 +132,7 @@ class SqliteDB {
     {
     }
 
-    bool initialize(std::string const& filename, bool deletePrevious)
+    bool initialize(std::string const& filename, bool deletePrevious, size_t maxHeapLimit = 0)
     {
         int result;
 
@@ -181,6 +186,13 @@ class SqliteDB {
             return false;
         }
 
+#ifdef linux
+        if (maxHeapLimit) {
+            g_sqlite3Proxy->sqlite3_soft_heap_limit64(maxHeapLimit);
+        }
+#else
+        maxHeapLimit = maxHeapLimit;
+#endif
         ARIASDK_LOG_DETAIL("Database file was successfully opened");
         return true;
     }

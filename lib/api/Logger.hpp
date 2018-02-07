@@ -51,7 +51,6 @@ class ARIASDK_LIBABI Logger : public ILogger
                         ::Microsoft::Applications::Events ::EventPersistence persistence,
                         std::uint64_t  const& policyBitFlags);
     void SetContext(const std::string& name, EventProperty prop);
- // protected:
     std::mutex*              m_lockP;
     std::string*             m_tenantTokenP;
     std::string*             m_sourceP;

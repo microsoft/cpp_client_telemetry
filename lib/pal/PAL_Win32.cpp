@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "PAL.hpp"
-#include "api/CommonLogManagerInternal.hpp"
-#include "api/ContextFieldsProvider.hpp"
-//#include <ISemanticContext.hpp>
+#ifdef ARIASDK_PAL_WIN32
+#include <ISemanticContext.hpp>
 #include "utils/Utils.hpp"
+#include "ModularShims.hpp"
+#include "modular/DebugLogger.hpp"
+#include "api/CommonLogManagerInternal.hpp"
+#include "utils/Utils.hpp"
+#include "EventProperty.hpp"
 #include <IPHlpApi.h>
 #include <algorithm>
 #include <list>
@@ -70,38 +74,45 @@ class WorkerThreadShutdownItem : public RefCountedImpl<WorkerThreadShutdownItem,
 
 class WorkerThread
 {
+    static IThreadManager* _threadManager;
+    static std::mutex      _threadManagerMutex;
+
+    // Avoid loader lock by lazy initializing _threadManager
+    static void EnsureThreadManager()
+    {
+        if (_threadManager == nullptr)
+        {
+            std::lock_guard<std::mutex> guard(_threadManagerMutex);
+            {
+                if (_threadManager == nullptr)
+                {
+                    _threadManager = ::ARIASDK_NS::GetThreadManager(::ARIASDK_NS::GetDebugLogger());
+                }
+            }
+        }
+    }
+
   protected:
-    HANDLE                                 m_hThread;
+    uintptr_t                              m_hThread;
     std::mutex                             m_lock;
     std::list<detail::WorkerThreadItemPtr> m_queue;
     std::list<detail::WorkerThreadItemPtr> m_timerQueue;
     Event                                  m_event;
-	int count = 0;
+    detail::WorkerThreadItemPtr            m_itemInProgress;
+    int count = 0;
 
   public:
     WorkerThread()
       : m_lock()
     {
-        m_hThread = ::CreateThread(NULL, 0, &WorkerThread::threadFunc, static_cast<void*>(this), 0, NULL);
+        EnsureThreadManager();
+        m_hThread = _threadManager->StartThread(&WorkerThread::threadFunc, static_cast<void*>(this));
     }
 
     ~WorkerThread()
     {
-        if (m_hThread != INVALID_HANDLE_VALUE)
-		{
-			DWORD dwWaitResult = ::WaitForSingleObject(m_hThread, 0);
-			switch (dwWaitResult)
-			{
-			case WAIT_OBJECT_0:
-				//thread is in signal state
-				return;
-				break;
-				// The thread got ownership of an abandoned mutex
-				// The database is in an indeterminate state
-			case WAIT_ABANDONED:
-				return;
-			}			
-
+        if (_threadManager->IsThreadRunning(m_hThread))
+        {
             join();
         }
     }
@@ -110,16 +121,14 @@ class WorkerThread
     {
         auto item = WorkerThreadShutdownItem::create();
         queue(item);
-        ::WaitForSingleObject(m_hThread, INFINITE);
-        CloseHandle(m_hThread);
-        m_hThread = INVALID_HANDLE_VALUE;
+        _threadManager->SafelyCloseThread(m_hThread);
         assert(m_queue.empty());
         assert(m_timerQueue.empty());
     }
 
     void queue(detail::WorkerThreadItemPtr const& item)
     {
-		std::lock_guard<std::mutex> guard(m_lock);
+        std::lock_guard<std::mutex> guard(m_lock);
         if (item->type == detail::WorkerThreadItem::TimedCall) {
             auto it = m_timerQueue.begin();
             while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
@@ -129,22 +138,26 @@ class WorkerThread
         } else {
             m_queue.push_back(item);
         }
-		count++;
-		if (count == (count / 100) * 100)
-		{
+        count++;
+        if (count == (count / 100) * 100)
+        {
             DebugEvent evt;
             evt.type = EVT_UNKNOWN;
             evt.param1 = m_timerQueue.size();
             evt.param2 = m_queue.size();
             CommonLogManagerInternal::DispatchEvent(evt);
-		}
+        }
         m_event.post();
     }
 
     void cancel(detail::WorkerThreadItemPtr const& item)
     {
+        if (m_itemInProgress == item)
+        {// cann't cancel an item, while it is being processed
+            return;
+        }
         {
-			std::lock_guard<std::mutex> guard(m_lock);
+            std::lock_guard<std::mutex> guard(m_lock);
 
             if (item->type == detail::WorkerThreadItem::Done) {
                 // Already done
@@ -163,7 +176,7 @@ class WorkerThread
 
         for (;;) {
             {
-				std::lock_guard<std::mutex> guard(m_lock);
+                std::lock_guard<std::mutex> guard(m_lock);
                 if (item->type == detail::WorkerThreadItem::Done) {
                     return;
                 }
@@ -173,7 +186,7 @@ class WorkerThread
     }
 
   protected:
-    static DWORD WINAPI threadFunc(LPVOID lpThreadParameter)
+    static uint32_t WINAPI threadFunc(LPVOID lpThreadParameter)
     {
         WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
 
@@ -181,7 +194,7 @@ class WorkerThread
         for (;;) {
             unsigned nextTimerInMs = INFINITE;
             {
-				std::lock_guard<std::mutex> guard(self->m_lock);
+                std::lock_guard<std::mutex> guard(self->m_lock);
                 if (item) {
                     item->type = detail::WorkerThreadItem::Done;
                     item.reset();
@@ -211,12 +224,17 @@ class WorkerThread
                 break;
             }
 
+            self->m_itemInProgress = item;
             (*item)();
+            self->m_itemInProgress.reset();
         }
 
         return 0;
     }
 };
+
+IThreadManager* WorkerThread::_threadManager = nullptr;
+std::mutex WorkerThread::_threadManagerMutex;
 
 static std::unique_ptr<WorkerThread> g_workerThread;
 
@@ -238,16 +256,8 @@ void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
 std::string generateUuidString()
 {
 	GUID uuid;
-    if (S_OK == CoCreateGuid(&uuid))
-    {
-        //UUID uuid;
-        //::UuidCreate(&uuid);
-        return GuidtoString(uuid);
-    }
-    else
-    {
-        return GuidtoString(uuid);
-    }
+    CoCreateGuid(&uuid);
+    return toString(uuid);
 }
 
 int64_t getUtcSystemTimeinTicks()
@@ -260,10 +270,10 @@ int64_t getUtcSystemTimeinTicks()
 }
 
 int64_t getUtcSystemTimeMs()
-{    
+{
     ULARGE_INTEGER now;
     ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
-    return (now.QuadPart - 116444736000000000ull) / 10000;// Unix epoch
+    return (now.QuadPart - 116444736000000000ull) / 10000;
 }
 
 int64_t getUtcSystemTime()
@@ -312,38 +322,37 @@ static IDeviceInformation*  g_DeviceInformation;
 
 void registerSemanticContext(ContextFieldsProvider* context)
 {
-	if (g_DeviceInformation != nullptr)
-	{
-		context->SetDeviceId(g_DeviceInformation->GetDeviceId());
-		context->SetDeviceModel(g_DeviceInformation->GetModel());
-		context->SetDeviceMake(g_DeviceInformation->GetManufacturer());
-	}
+    if (g_DeviceInformation != nullptr)
+    {
+        context->SetDeviceId(g_DeviceInformation->GetDeviceId());
+        context->SetDeviceModel(g_DeviceInformation->GetModel());
+        context->SetDeviceMake(g_DeviceInformation->GetManufacturer());
+    }
 
-	if (g_SystemInformation != nullptr)
-	{
-		// Get SystemInfo common fields
-		context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
-		context->SetOsName(g_SystemInformation->GetOsName());
-		context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
-        context->SetDeviceClass(g_SystemInformation->GetDeviceClass());
+    if (g_SystemInformation != nullptr)
+    {
+        // Get SystemInfo common fields
+        context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
+        context->SetOsName(g_SystemInformation->GetOsName());
+        context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
 
-		// AppInfo fields
-		context->SetAppId(g_SystemInformation->GetAppId());
-		context->SetAppVersion(g_SystemInformation->GetAppVersion());
-		context->SetAppLanguage(g_SystemInformation->GetAppLanguage());
+        // AppInfo fields
+        context->SetAppId(g_SystemInformation->GetAppId());
+        context->SetAppVersion(g_SystemInformation->GetAppVersion());
+        context->SetAppLanguage(g_SystemInformation->GetAppLanguage());
 
-		// UserInfo fields.
-		context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
-		context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
-		//context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
-	}
-	if(g_NetworkInformation != nullptr)
-	{		
-		// Get NetworkInfo common fields
-		context->SetNetworkProvider(g_NetworkInformation->GetNetworkProvider());
-		context->SetNetworkCost(g_NetworkInformation->GetNetworkCost());
-		context->SetNetworkType(g_NetworkInformation->GetNetworkType());
-	}   
+        // UserInfo fields.
+        context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
+        context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
+        context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
+    }
+    if (g_NetworkInformation != nullptr)
+    {
+        // Get NetworkInfo common fields
+        context->SetNetworkProvider(g_NetworkInformation->GetNetworkProvider());
+        context->SetNetworkCost(g_NetworkInformation->GetNetworkCost());
+        context->SetNetworkType(g_NetworkInformation->GetNetworkType());
+    }
 }
 
 void unregisterSemanticContext(ContextFieldsProvider* context)
@@ -411,3 +420,4 @@ void shutdown()
 
 } // namespace PAL
 } ARIASDK_NS_END
+#endif

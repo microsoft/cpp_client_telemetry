@@ -11,24 +11,26 @@
 #include <string>
 #include <memory>
 
-#if ARIASDK_PAL_WIN32
+// TODO: this section of code would benefit from common PAL HTTP header that includes
+// either of the impl headers.
+
+#if defined(ARIASDK_PAL_WIN32) || defined(_MSC_VER)
 #ifdef _WINRT_DLL
 #include "http/HttpClient_WinRt.hpp"
 #else 
 #include "http/HttpClient_WinInet.hpp"
 #endif
-//    #include "http/HttpClient_WinInet.hpp"
 #endif
 
 using namespace std;
-using namespace Microsoft::Applications::Events ;
-using namespace Microsoft::Applications::Events ::PAL;
+using namespace Microsoft::Applications::Events;
+using namespace Microsoft::Applications::Events::PAL;
 
 namespace Microsoft {
     namespace Applications {
         namespace Experimentation {
 
-        ARIASDK_LOG_INST_COMPONENT_CLASS(ExpCommon, "EventsSDK.ExpCommonClient", "Aria experimentation client - common client class");
+        ARIASDK_LOG_INST_COMPONENT_CLASS(ExpCommon, "AriaSDK.ExpCommonClient", "Aria experimentation client - common client class");
 
             const std::string ExpCommon::EXPClientStatus2STR[EXP_COUNT] =
             {
@@ -75,11 +77,14 @@ namespace Microsoft {
                 ARIASDK_LOG_DETAIL("ExpCommonClient c'tor: this=0x%x", this);
 
                 ARIASDK_NS::PAL::initialize();
+
 #if ARIASDK_PAL_SKYPE
                 ARIASDK_LOG_DETAIL("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
                 m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
-#elif ARIASDK_PAL_WIN32
-                
+#define HTTP_AVAIL
+#endif
+
+#if ARIASDK_PAL_WIN32 || defined(_MSC_VER)
 #ifdef _WINRT_DLL
                 ARIASDK_LOG_DETAIL("HttpClient: WinRt");
                 m_httpClient = new HttpClient_WinRt();
@@ -87,7 +92,12 @@ namespace Microsoft {
                 ARIASDK_LOG_DETAIL("HttpClient: WinInet");
                 m_httpClient = new HttpClient_WinInet();
 #endif
-#else
+#define HTTP_AVAIL
+#endif
+
+                // TODO: add support for EXPCommonClient in Linux
+
+#ifndef HTTP_AVAIL
 #error The library cannot work without an HTTP client implementation.
 #endif
 
@@ -347,7 +357,7 @@ namespace Microsoft {
 
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
+                    ARIASDK_LOG_DETAIL("handleMessageTask: [Status=%d]", m_status);
                     return;
                 }
                                 
@@ -373,6 +383,12 @@ namespace Microsoft {
                 {
                     m_clientPtr->HandleUpdateClient(isActiveConfigSwitched, isActiveConfigUpdatedOnEXP, isActiveConfigUpdatedOnEXPSaveNeeded);
                 }				
+
+                if (m_status != EXP_STARTED)
+                {
+                    ARIASDK_LOG_DETAIL("handleMessageTask: [Status=%d]", m_status);
+                    return;
+                }
 
                 if (m_clientPtr && (isActiveConfigSwitchedSaveNeeded || isActiveConfigUpdatedOnEXPSaveNeeded))
                 {
@@ -440,8 +456,10 @@ namespace Microsoft {
                     {
                         m_clientPtr->HandleConfigReload(msgPending, isActiveConfigSwitched, isActiveConfigSwitchedSaveNeeded);
                     }
-                    _HandleConfigRefetch(msgPending, isActiveConfigSwitched, isActiveConfigSwitchedSaveNeeded);
                 }
+                
+                //this is required to check after Http Response message and Reload message
+                _HandleConfigRefetch(msgPending, isActiveConfigSwitched, isActiveConfigSwitchedSaveNeeded);
             }
 
             /******************************************************************************
@@ -482,8 +500,6 @@ namespace Microsoft {
                     return;
                 }
 
-                assert(msg.type == MT_RELOAD_CONFIG);
-
                 // Check if the active config has expired or not, refetch config from EXP if expired.
                 // Otherwise set a timer to expire it and notify all listeners if it has now changed.
 
@@ -498,6 +514,11 @@ namespace Microsoft {
 
             void ExpCommon::_ScheduleFetch(unsigned int seconds /* default value 0*/) // handles retry
             {
+                if (m_status != EXP_STARTED)
+                {
+                    ARIASDK_LOG_DETAIL("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
+                    return;
+                }
                 unsigned int expiryTimeInSec = 0;
 
                 if (m_clientPtr)
@@ -515,7 +536,6 @@ namespace Microsoft {
                 }
 
                 ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Config still valid [Expires in %d sec]", expiryTimeInSec);
-
 
                 if (m_messageProcessingTaskScheduled)
                 {
@@ -654,11 +674,16 @@ namespace Microsoft {
             * Custom HTTP callback used for EXP instead of default HCM callback
             *
             ******************************************************************************/
-            void ExpCommon::OnHttpResponse(IHttpResponse const* response)
+            void ExpCommon::OnHttpResponse(IHttpResponse* response)
             {
+                if (m_status != EXP_STARTED)
+                {
+                    return;
+                }
                 std::lock_guard<std::mutex> lock(m_lock);
                 m_httpRequestId = "";
-                if (response->GetStatusCode() != 200)
+                if (response->GetStatusCode() != 200 && 
+                    response->GetStatusCode() != 404)
                 {
                     if (m_retrybackoffTimesIndex < static_cast<unsigned>(m_retryBackoffTimes.size()))
                     {
@@ -671,8 +696,8 @@ namespace Microsoft {
                         }
                         // create new timer
                         _ScheduleFetch(expiryTimeInSec);
-                    }									
-                    return;
+                        return;
+                    }
                 }
 
                 m_retrybackoffTimesIndex = 0;

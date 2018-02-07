@@ -64,7 +64,6 @@ void Statistics::send(ActRollUpKind rollupKind)
         }
         else
         {   //Utc Stats go back to Utc
-            event->policyBitFlags = MICROSOFT_EVENTTAG_REALTIME_LATENCY | MICROSOFT_KEYWORD_CRITICAL_DATA;
             m_iTelemetrySystem->addIncomingEventSystem(event);			
         }
     }

@@ -16,8 +16,8 @@
 
 using namespace std;
 using namespace nlohmann; 
-using namespace Microsoft::Applications::Events ;
-using namespace Microsoft::Applications::Events ::PAL;
+using namespace Microsoft::Applications::Events;
+using namespace Microsoft::Applications::Events::PAL;
 
 namespace Microsoft {
     namespace Applications {
@@ -164,6 +164,8 @@ namespace Microsoft {
                 ECSClient::~ECSClient()
                 {
                     ARIASDK_LOG_DETAIL("EcsClient d'tor: this=0x%x", this);
+                     
+                    Stop();
 
                     if (m_configCache != NULL)
                     {
@@ -641,10 +643,10 @@ namespace Microsoft {
                             configRequireUpdate = m_configCache->GetConfigByRequestName(m_inProgressRequestName);
                         }
                         // Config retrieved successfully from ECS, update the local cache
-                        ARIASDK_LOG_DETAIL("_HandleHttpCallback: config retrieved from ECS, ETag=%s", msg.headers.get("ETag").c_str());
+                        ARIASDK_LOG_DETAIL("_HandleHttpCallback: config retrieved from ECS, ETag=%s", msg.headers.get("etag").c_str());
                         configRequireUpdate->expiryUtcTimestamp = getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
 
-                        configRequireUpdate->etag = msg.headers.get("ETag");
+                        configRequireUpdate->etag = msg.headers.get("etag");
                         //Update the active config version after getting new one from ECS server
                         configRequireUpdate->clientVersion = m_ecsClientConfiguration.clientVersion;
                         try
@@ -716,7 +718,14 @@ namespace Microsoft {
                         ECSConfig* pConfig = m_configCache->GetConfigByRequestName(msg.requestName);
                         if (pConfig == NULL)
                         {
+                            
+                            unsigned int timeoutinSec = m_ecsClientConfiguration.defaultExpiryTimeInMin * 60;
+                            if (timeoutinSec == 0)
+                            {
+                                timeoutinSec = m_minExpireTimeInSecs;
+                            }
                             ECSConfig config;
+                            config.expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + timeoutinSec;
                             config.requestName = msg.requestName;
 
                             pConfig = m_configCache->AddConfig(config);
@@ -757,6 +766,10 @@ namespace Microsoft {
 				******************************************************************************/
 				void ECSClient::HandleUpdateClient(bool isActiveConfigSwitched, bool isActiveConfigUpdatedOnEXP, bool isActiveConfigUpdatedOnEXPSaveNeeded)
 				{
+                    if (m_EXPCommon.m_status != EXP_STARTED)
+                    {
+                        return;
+                    }
 					if (isActiveConfigSwitched || isActiveConfigUpdatedOnEXP)
 					{
 						if (isActiveConfigSwitched)
@@ -865,11 +878,21 @@ namespace Microsoft {
                     }
 				}
 
+                void ECSClient::SetRetryTimeFactor(int time)
+                {
+                    m_EXPCommon.m_retryTimeFactor = time;
+                }
 
 				unsigned int ECSClient::GetExpiryTimeInSec()
 				{
-					return static_cast<unsigned int>(m_configActive->GetExpiryTimeInSec());
-				}
+                    int64_t value = m_configActive->GetExpiryTimeInSec();
+                    if (0 == value)
+                    {
+                        value = m_minExpireTimeInSecs;
+                    }
+
+                    return static_cast<unsigned int>(value);
+                }
                               
                 json ECSClient::_GetActiveConfigVariant()
                 {
@@ -879,8 +902,6 @@ namespace Microsoft {
                 // IECSClient APIs
                 string ECSClient::GetETag()
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     return (m_configActive != NULL) ? m_configActive->etag : "";
                 }
 
@@ -893,11 +914,59 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& keysPath)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, keysPath, '/');
 
                     return JsonHelper::GetKeys(_GetActiveConfigVariant(), fullPath);
+                }
+
+                bool ECSClient::TryGetSetting(
+                    const std::string& agentName,
+                    const std::string& settingPath,
+                    std::string& value)
+                {
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
+
+                    return JsonHelper::TryGetValueString(_GetActiveConfigVariant(), fullPath, value);
+                }
+
+                bool ECSClient::TryGetBoolSetting(
+                    const std::string& agentName,
+                    const std::string& settingPath,
+                    bool& value)
+                {
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
+
+                    return JsonHelper::TryGetValueBool(_GetActiveConfigVariant(), fullPath, value);
+                }
+
+                bool ECSClient::TryGetIntSetting(
+                    const std::string& agentName,
+                    const std::string& settingPath,
+                    int& value)
+                {
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
+
+                    return JsonHelper::TryGetValueInt(_GetActiveConfigVariant(), fullPath, value);
+                }
+
+                bool ECSClient::TryGetLongSetting(
+                    const std::string& agentName,
+                    const std::string& settingPath,
+                    long& value)
+                {
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
+
+                    return JsonHelper::TryGetValueLong(_GetActiveConfigVariant(), fullPath, value);
+                }
+
+                bool ECSClient::TryGetDoubleSetting(
+                    const std::string& agentName,
+                    const std::string& settingPath,
+                    double& value)
+                {
+                    string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
+
+                    return JsonHelper::TryGetValueDouble(_GetActiveConfigVariant(), fullPath, value);
                 }
 
                 string ECSClient::GetSetting(
@@ -905,8 +974,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const std::string& defaultValue)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueString(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -917,8 +984,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const bool defaultValue)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueBool(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -929,8 +994,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const int defaultValue)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueInt(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -941,8 +1004,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const double defaultValue)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueDouble(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -952,8 +1013,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValuesString(_GetActiveConfigVariant(), fullPath);
@@ -963,8 +1022,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValuesInt(_GetActiveConfigVariant(), fullPath);
@@ -974,8 +1031,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-					//std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValuesDouble(_GetActiveConfigVariant(), fullPath);
@@ -983,8 +1038,8 @@ namespace Microsoft {
 
                 std::int64_t ECSClient::_GetExpiryTimeInSecFromHeader(Message& msg)
                 {
-                    std::string expireInHeaderStr = msg.headers.get("Expires");
-                    std::string dateInHeaderStr = msg.headers.get("Date");
+                    std::string expireInHeaderStr = msg.headers.get("expires");
+                    std::string dateInHeaderStr = msg.headers.get("date");
 
                     if (expireInHeaderStr.empty() || dateInHeaderStr.empty())
                     {

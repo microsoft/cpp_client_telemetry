@@ -25,7 +25,13 @@ class EventPropertiesDecorator : public DecoratorBase {
         } 
         else 
         {
-            if (!validateEventName(eventProperties.GetName())) {
+            EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
+            if (isValidEventName != REJECTED_REASON_OK) {
+                ARIASDK_LOG_ERROR("Invalid event properties!");
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_REJECTED;
+                evt.param1 = isValidEventName;
+                CommonLogManagerInternal::DispatchEvent(evt);
                 return false;
             }
         }
@@ -68,7 +74,13 @@ class EventPropertiesDecorator : public DecoratorBase {
 
 		for (auto &kv : eventProperties.GetProperties()) {
 
-			if (!validatePropertyName(kv.first)) {
+            EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
+            if (isValidPropertyName != REJECTED_REASON_OK)
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_REJECTED;
+                evt.param1 = isValidPropertyName;
+                CommonLogManagerInternal::DispatchEvent(evt);
 				return false;
 			}
 			auto k = kv.first;

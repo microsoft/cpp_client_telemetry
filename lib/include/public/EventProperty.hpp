@@ -124,10 +124,12 @@ namespace Microsoft {
                 std::string to_string() const;
 
                 // The output from this method is compatible with std::unordered_map.
-                std::size_t HashForMap() const;
+                std::size_t Hash() const;
 
                 // Are 2 GUID_t objects equivalent? (needed for maps)
                 bool operator==(GUID_t const& other) const;
+
+                bool GUID_t::operator<(GUID_t const& other) const;
             };
 
             /// <summary>
@@ -137,7 +139,7 @@ namespace Microsoft {
             {
                 inline std::size_t operator()(GUID_t const& key) const
                 {
-                    return key.HashForMap();
+                    return key.Hash();
                 }
             };
 

@@ -37,6 +37,10 @@ OfflineStorage_SQLite::OfflineStorage_SQLite(LogConfiguration& configuration, IR
     {// incase user has specified bad percentage, we stck to 75%
         m_DbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheFileSizeLimitInBytes) / 100;
     }
+
+    // Impose optional RAM size on sqlite3 heap
+    m_DbSizeHeapLimit = configuration.GetIntProperty(CFG_INT_RAM_QUEUE_SIZE, error);
+
     std::string skipSqliteInitAndShutdownString = configuration.GetProperty("skipSqliteInitAndShutdown", error);
     if (skipSqliteInitAndShutdownString == "true")
     {
@@ -58,7 +62,7 @@ void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
 
     ARIASDK_LOG_DETAIL("Initializing offline storage");
    
-    if (m_db->initialize(m_offlineStorageFileName, false) && initializeDatabase()) {
+    if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit) && initializeDatabase()) {
         ARIASDK_LOG_INFO("Using configured on-disk database");
         m_observer->OnStorageOpened("SQLite/Default");
         return;

@@ -65,9 +65,13 @@ void Logger::SetContext(const std::string& name, EventProperty prop)
     ARIASDK_LOG_DETAIL("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
         this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
 
-    if (!validatePropertyName(name)) 
+    EventRejectedReason isValidPropertyName = validatePropertyName(name);
+    if (isValidPropertyName != REJECTED_REASON_OK)
     {
-        CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_REJECTED);
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_REJECTED;
+        evt.param1 = isValidPropertyName;
+        CommonLogManagerInternal::DispatchEvent(evt);
         ARIASDK_LOG_ERROR("Context name is invalid: %s", name.c_str());
         return;
     }
@@ -125,6 +129,7 @@ void Logger::LogEvent(EventProperties const& properties)
 bool Logger::applyCommonDecorators(::AriaProtocol::CsEvent& record, EventProperties const& properties, ::Microsoft::Applications::Events ::EventLatency& latency)
 {
     record.name = properties.GetName();
+    record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
     if (record.name.empty())
     {
         record.name = "NotSpecified";

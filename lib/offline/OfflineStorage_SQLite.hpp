@@ -80,6 +80,7 @@ class OfflineStorage_SQLite : public IOfflineStorage,
     unsigned                    m_lastReadCount;
     std::string                 m_offlineStorageFileName;
     unsigned                    m_DbSizeNotificationLimit;
+    size_t                      m_DbSizeHeapLimit;
     bool                        m_isStorageFullNotificationSend;
 
   protected:

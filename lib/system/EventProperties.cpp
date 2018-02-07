@@ -2,12 +2,15 @@
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "EventProperty.hpp"
 #include "EventProperties.hpp"
+#include "DebugEvents.hpp"
+#include "api/CommonLogManagerInternal.hpp"
 #include "utils/Utils.hpp"
 #include <string>
 #include <algorithm>
 #include <cctype>
 #include <map>
 
+#include "utils/annex_k.hpp"
 
 using namespace std;
 using namespace Microsoft::Applications::Events ;
@@ -296,8 +299,13 @@ namespace Microsoft {
                 // Normalize the name of EventProperties
                 m_eventName = toLower(name);
                 m_eventName = sanitizeIdentifier(m_eventName);
-                bool isValidEventName = validateEventName(m_eventName);
-                if (!isValidEventName) {
+                EventRejectedReason isValidEventName = validateEventName(m_eventName);
+                if (isValidEventName != REJECTED_REASON_OK) {
+                    ARIASDK_LOG_ERROR("Invalid event properties!");
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_REJECTED;
+                    evt.param1 = isValidEventName;
+                    CommonLogManagerInternal::DispatchEvent(evt);
                     return false;
                 }
                 this->m_eventNameP->assign(m_eventName);
@@ -322,8 +330,13 @@ namespace Microsoft {
                 // Normalize the type of EventProperties
                 m_eventType = toLower(recordType);
                 m_eventType = sanitizeIdentifier(m_eventType);
-                bool isValidEventType = validateEventName(m_eventType);
-                if (!isValidEventType) {
+                EventRejectedReason isValidEventName = validateEventName(m_eventType);
+                if (isValidEventName != REJECTED_REASON_OK) {
+                    ARIASDK_LOG_ERROR("Invalid event properties!");
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_REJECTED;
+                    evt.param1 = isValidEventName;
+                    CommonLogManagerInternal::DispatchEvent(evt);
                     return false;
                 }
                 this->m_eventTypeP->assign(m_eventType);
@@ -348,10 +361,14 @@ namespace Microsoft {
             /// </summary>
             void EventProperties::SetProperty(const string& name, EventProperty prop)
             {
-                bool isValidPropertyName = validatePropertyName(name);
-                if (!isValidPropertyName)
+                EventRejectedReason isValidPropertyName = validatePropertyName(name);
+                if(isValidPropertyName != REJECTED_REASON_OK)
                 {
-                    // FIXME: add a callback for the case where we reject properties as invalid
+                    ARIASDK_LOG_ERROR("Context name is invalid: %s", name.c_str());
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_REJECTED;
+                    evt.param1 = isValidPropertyName;
+                    CommonLogManagerInternal::DispatchEvent(evt);
                     return;
                 }
                

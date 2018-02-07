@@ -210,7 +210,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		/// <param name="agentName">A string that contains the name of the agent whose experiment configIds will be 
 		/// auto-tagged to events sent by the logger.</param>
 		/// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-		virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName) = 0;
+		virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName) = 0;
 
 		/// <summary>
 		/// Sets a list of custom parameters for the request to use to retrieve configurations from the AFD server.
@@ -248,7 +248,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		/// Resumes the AFDClient so it continues to retrieve configuration updates from the AFD server.
 		/// </summary>
 		/// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-		virtual bool Resume() = 0;
+		virtual bool Resume( bool fetchConfig = true) = 0;
 
 		/// <summary>
 		/// Gets the flights of the currently active AFD configuration.
@@ -341,7 +341,19 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		/// <param name="settingPath">A string that contains the configuration path.</param>
 		/// <returns>A standard vector that contains doubles that contain the list of settings.</returns>
 		virtual std::vector<double> GetSettingsAsDbls(const std::string& agentName, const std::string& settingPath) = 0;
-	};
+
+        /// <summary>
+        /// Gets the IAFDClient configuration json as string.
+        /// </summary>
+        /// <returns>A string that contains the ETag.</returns>
+        virtual std::string GetAFDConfiguration() = 0; 
+
+        /// <summary>
+        /// Sets the Time used for retring.
+        /// </summary>
+        virtual void SetRetryTimeFactor(int time) = 0;
+        
+    };
    
 }}}} // namespaces
 

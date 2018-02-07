@@ -46,7 +46,7 @@ namespace Microsoft {
                 /// <returns></returns>
                 std::string to_string(GUID guid)
                 {
-                    return GuidtoString(guid); 
+                    return toString(guid);
                 }
 
                 NetworkCost const& NetworkDetector::GetNetworkCost() const

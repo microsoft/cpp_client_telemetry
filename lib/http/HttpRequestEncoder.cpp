@@ -26,7 +26,7 @@ HttpRequestEncoder::~HttpRequestEncoder()
 
 bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
 {
-    ctx->httpRequest.reset(m_httpClient.CreateRequest());
+    ctx->httpRequest = m_httpClient.CreateRequest();
     ctx->httpRequestId = ctx->httpRequest->GetId();
 
     ctx->httpRequest->SetMethod("POST");

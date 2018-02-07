@@ -2,7 +2,21 @@
 #include "Version.hpp"
 #include "Utils.hpp"
 #include "CorrelationVector.hpp"
+
+#include "pal/PAL.hpp"
 #include <algorithm>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <paths.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -15,6 +29,70 @@ namespace ARIASDK_NS_BEGIN {
 namespace ARIASDK_NS_BEGIN {
 	
 
+    void print_backtrace(void)
+    {
+#ifdef USE_BACKTRACE
+        // Debug builds only
+#ifdef __unix__
+        void *array[10] = { 0 };
+        size_t size = 0;
+        char **strings;
+        size_t i;
+        size = backtrace(array, sizeof(array) / sizeof(array[0]));
+        strings = backtrace_symbols(array, size);
+        printf("XXXXXXXXXXXXXXXXXXXX Obtained %zd stack frames:\n", size);
+        for (i = 0; i < size; i++)
+            printf("[%2lu] %s\n", i, demangle(strings[i]).c_str());
+        printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+        free(strings);
+#endif
+#endif
+    }
+
+    long GetCurrentProcessId()
+    {
+#ifndef _WIN32
+        return getpid();
+#else
+        return ::GetCurrentProcessId();
+#endif
+    }
+
+    std::string GetTempDirectory()
+    {
+#ifdef _WIN32
+        std::string path = "";
+        wchar_t lpTempPathBuffer[MAX_PATH + 1] = { 0 };
+        if (GetTempPathW(MAX_PATH, lpTempPathBuffer))
+        {
+            std::wstring tmp = lpTempPathBuffer;
+            return std::string(tmp.begin(), tmp.end());
+        }
+        return path;
+#else
+        std::string result;
+        char *tmp = getenv("TMPDIR");
+        if (tmp != NULL) {
+            result = tmp;
+        }
+        else {
+#ifdef P_tmpdir
+            if (P_tmpdir != NULL)
+                result = P_tmpdir;
+#endif
+        }
+        if (result.empty())
+        {
+            result = _PATH_TMP;
+        }
+        if (result.empty())
+        {
+            result = "/tmp";
+        }
+        result += "/";
+        return result;
+#endif
+    }
 std::string toString(char const*        value) { return std::string(value); }
 std::string toString(bool               value) { return value ? "true" : "false"; }
 std::string toString(char               value) { return ARIASDK_NS::PAL::numericToString("%d", value); }
@@ -56,31 +134,31 @@ std::string sanitizeIdentifier(std::string str)
 	return str;
 }
 
-bool validateEventName(std::string const& name)
+EventRejectedReason validateEventName(std::string const& name)
 {
-	// Data collector uses this regex (avoided here for code size reasons):
-	// ^[a-zA-Z0-9]([a-zA-Z0-9]|_){2,98}[a-zA-Z0-9]$
+    // Data collector uses this regex (avoided here for code size reasons):
+    // ^[a-zA-Z0-9]([a-zA-Z0-9]|_){2,98}[a-zA-Z0-9]$
 
-	if (name.length() < 1 + 2 + 1 || name.length() > 1 + 98 + 1) {
-		ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must be between 4 and 100 characters long", name.c_str());
-		return false;
-	}
+    if (name.length() < 1 + 2 + 1 || name.length() > 1 + 98 + 1) {
+        ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must be between 4 and 100 characters long", name.c_str());
+        return EventRejectedReason::REJECTED_REASON_VALIDATION_FAILED;
+    }
 
-	auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.'); };
-	if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
-		ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
-		return false;
-	}
+    auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.'); };
+    if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
+        ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
+        return REJECTED_REASON_VALIDATION_FAILED;
+    }
 
-	if (name.front() == '_' || name.back() == '_') {
-		ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must not start or end with an underscore", name.c_str());
-		return false;
-	}
+    if (name.front() == '_' || name.back() == '_') {
+        ARIASDK_LOG_ERROR("Invalid event name - \"%s\": must not start or end with an underscore", name.c_str());
+        return EventRejectedReason::REJECTED_REASON_VALIDATION_FAILED;
+    }
 
-	return true;
+    return EventRejectedReason::REJECTED_REASON_OK;
 }
 
- bool validatePropertyName(std::string const& name)
+EventRejectedReason validatePropertyName(std::string const& name)
 {
 	// Data collector does not seem to validate property names at all.
 	// The ObjC SDK uses this regex (avoided here for code size reasons):
@@ -88,7 +166,7 @@ bool validateEventName(std::string const& name)
 
 	if (name.length() < 1 + 0 || name.length() > 1 + 98 + 1) {
 		ARIASDK_LOG_ERROR("Invalid property name - \"%s\": must be between 1 and 100 characters long", name.c_str());
-		return false;
+		return  EventRejectedReason::REJECTED_REASON_VALIDATION_FAILED;;
 	}
 
 #if ARIASDK_PAL_SKYPE
@@ -101,22 +179,22 @@ bool validateEventName(std::string const& name)
 
 	if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
 		ARIASDK_LOG_ERROR("Invalid property name - \"%s\": must contain [0-9A-Za-z_.] characters only", name.c_str());
-		return false;
+		return  EventRejectedReason::REJECTED_REASON_VALIDATION_FAILED;;
 	}
 
 	if (name.front() == '.' || name.back() == '.')
 	{
 		ARIASDK_LOG_ERROR("Invalid property name - \"%s\": must not start or end with _ or . characters", name.c_str());
-		return false;
+		return  EventRejectedReason::REJECTED_REASON_VALIDATION_FAILED;;
 	}
 
-	return true;
+	return EventRejectedReason::REJECTED_REASON_OK;;
 }
  
  
- std::string GuidtoString(GUID uuid)
- {
-     static char inttoHex[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
+std::string toString(GUID_t uuid)
+{
+     static char inttoHex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
      const unsigned buffSize = 36 + 1;  // 36 + null-termination
      char buf[buffSize];
      
@@ -191,5 +269,24 @@ bool validateEventName(std::string const& name)
      buf[36] = 0;
      return std::string(buf);
  }
+
+/**
+* Read file contents into std::string.
+*
+* TODO: This function is in use by Linux SDK only.
+*
+* It needs an improvement to use wide strings for UTF-8
+* support on Windows 7. Latest Windows 10 RS4 should
+* natively support UTF-8.
+*
+* @param       flename
+* @return      File contents
+*/
+std::string ReadFile(const char *filename)
+{
+    std::ifstream t(filename);
+    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    return str;
+}
 
 } ARIASDK_NS_END

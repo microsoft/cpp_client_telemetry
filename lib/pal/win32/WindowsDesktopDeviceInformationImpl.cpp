@@ -4,6 +4,8 @@
 #include "pal/DeviceInformationImpl.hpp"
 #include "WindowsEnvironmentInfo.h"
 
+ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
+
 #include <winsock2.h>
 #include <iphlpapi.h>
 #include <windows.h>

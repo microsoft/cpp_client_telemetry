@@ -112,7 +112,7 @@ namespace ARIASDK_NS_BEGIN {
                 /// </summary>
                 /// <param name="profiles_json"></param>
                 /// <returns></returns>
-                static bool load(std::string profiles_json);
+                static bool load(const std::string profiles_json);
 
                 /// <summary>
                 /// Reset transmit profiles to defaults.
@@ -137,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
                 /// Get current priority timers
                 /// </summary>
                 /// <returns></returns>
-                static void TransmitProfiles::getTimers(std::vector<int>& out);
+                static void getTimers(std::vector<int>& out);
 
                 /// <summary>
                 /// Get current transmit profile name

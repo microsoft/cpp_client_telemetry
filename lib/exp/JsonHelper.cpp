@@ -79,7 +79,7 @@ namespace Microsoft {
 			{
 				std::vector<std::string> keyvec;
 				json tmp;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 					for (auto it = tmp.begin(); it != tmp.end(); ++it)
 					{
@@ -96,7 +96,7 @@ namespace Microsoft {
 			{
 				json tmp;
 				std::vector<std::string> keyvec;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 
 					for (auto it = tmp.begin(); it != tmp.end(); ++it)
@@ -117,7 +117,7 @@ namespace Microsoft {
 			{
 				json tmp;
 				std::vector<int> keyvec;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
 
 					for (auto it = tmp.begin(); it != tmp.end(); ++it)
@@ -139,9 +139,8 @@ namespace Microsoft {
 			{
 				json tmp;
 				std::vector<double> keyvec;
-				if (GetJson(var, path, tmp) && tmp.is_object())
+				if (GetJson(var, path, tmp))
 				{
-
 					for (auto it = tmp.begin(); it != tmp.end(); ++it)
 					{
 						if (it.value().is_number_float())
@@ -153,54 +152,122 @@ namespace Microsoft {
 				return keyvec;
 			}
 
-			std::string JsonHelper::GetValueString(const json& var, const std::string& path, const std::string& defaultValue)
+			bool JsonHelper::TryGetValueString(const json& var, const std::string& path, std::string& value)
 			{
 				json tmp;
 				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_string())
 					{
-						return tmp.get<std::string>();
+						value = tmp.get<std::string>();
+						return true;
 					}
+				}
+				return false;
+			}
+
+			std::string JsonHelper::GetValueString(const json& var, const std::string& path, const std::string& defaultValue)
+			{
+				std::string value;
+				if (TryGetValueString(var, path, value))
+				{
+					return value;
 				}
 				return defaultValue;
 			}
 
-			int JsonHelper::GetValueInt(const json& var, const std::string& path, const int& defaultValue)
+			bool JsonHelper::TryGetValueInt(const json& var, const std::string& path, int& value)
 			{
 				json tmp;
 				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_number_integer())
 					{
-						return tmp.get<int>();
+						value = tmp.get<int>();
+						return true;
 					}
+				}
+				return false;
+			}
+
+			int JsonHelper::GetValueInt(const json& var, const std::string& path, const int& defaultValue)
+			{
+				int value;
+				if (TryGetValueInt(var, path, value))
+				{
+					return value;
 				}
 				return defaultValue;
 			}
 
-			bool JsonHelper::GetValueBool(const json& var, const std::string& path, const bool& defaultValue)
+			bool JsonHelper::TryGetValueLong(const json& var, const std::string& path, long& value)
+			{
+				json tmp;
+				if (GetJson(var, path, tmp))
+				{
+					if (tmp.is_number_integer())
+					{
+						value = tmp.get<long>();
+						return true;
+					}
+				}
+				return false;
+			}
+
+			long JsonHelper::GetValueLong(const json& var, const std::string& path, const long& defaultValue)
+			{
+				long value;
+				if (TryGetValueLong(var, path, value))
+				{
+					return value;
+				}
+				return defaultValue;
+			}
+
+			bool JsonHelper::TryGetValueBool(const json& var, const std::string& path, bool& value)
 			{
 				json tmp;
 				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_boolean())
 					{
-						return tmp.get<bool>();
+						value = tmp.get<bool>();
+						return true;
 					}
+				}
+				return false;
+			}
+
+			bool JsonHelper::GetValueBool(const json& var, const std::string& path, const bool& defaultValue)
+			{
+				bool value;
+				if (TryGetValueBool(var, path, value))
+				{
+					return value;
 				}
 				return defaultValue;
 			}
 
-			double JsonHelper::GetValueDouble(const json& var, const std::string& path, const double& defaultValue)
+			bool JsonHelper::TryGetValueDouble(const json& var, const std::string& path, double& value)
 			{
 				json tmp;
 				if (GetJson(var, path, tmp))
 				{
 					if (tmp.is_number_float())
 					{
-						return tmp.get<float>();
+						value = tmp.get<float>();
+						return true;
 					}
+				}
+				return false;
+			}
+
+			double JsonHelper::GetValueDouble(const json& var, const std::string& path, const double& defaultValue)
+			{
+				double value;
+				if (TryGetValueDouble(var, path, value))
+				{
+					return value;
 				}
 				return defaultValue;
 			}

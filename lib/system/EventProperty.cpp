@@ -13,7 +13,7 @@
 
 
 using namespace std;
-using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Events;
 
 namespace Microsoft {
     namespace Applications {
@@ -67,7 +67,8 @@ namespace Microsoft {
                     str++;
                 }
                 // Convert to set of integer values
-                unsigned int p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
+                unsigned long p0;
+                unsigned int p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
                 if (11 == sscanf_s(str,
                     "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
                     &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10))
@@ -206,18 +207,11 @@ namespace Microsoft {
 #endif
             std::string GUID_t::to_string() const
             {
-                GUID guid;
-                guid.Data1 = this->Data1;
-                guid.Data2 = this->Data2;
-                guid.Data3 = this->Data3;
-                memcpy(&(guid.Data4[0]), &(this->Data4[0]), sizeof(guid.Data4));
-
-                std::string temp = GuidtoString(guid);
-                return toUpper(temp);
+                return toString(*this);
             }
 
             // The output from this method is compatible with std::unordered_map.
-            std::size_t GUID_t::HashForMap() const
+            std::size_t GUID_t::Hash() const
             {
                 // Compute individual hash values for Data1, Data2, Data3, and parts of Data4
                 // http://stackoverflow.com/a/1646913/126995
@@ -238,6 +232,14 @@ namespace Microsoft {
                     (0 == memcmp(Data4, other.Data4, sizeof(Data4)));
             }
 
+            // How to sort 2 objects (needed for maps)
+            bool GUID_t::operator<(GUID_t const& other) const
+            {
+                return Data1 < other.Data1 ||
+                    Data2 < other.Data2 ||
+                    Data3 == other.Data3 ||
+                    (memcmp(Data4, other.Data4, sizeof(Data4)) < 0);
+            }
 
             void EventProperty::copydata(EventProperty const* source)
             {
@@ -474,7 +476,9 @@ namespace Microsoft {
             }
 
             // All other integer types get converted to int64_t
+#ifndef LONG_IS_INT64_T
             EventProperty& EventProperty::operator=(long    value) { return ((*this) = (int64_t)value); }
+#endif
             EventProperty& EventProperty::operator=(int8_t  value) { return ((*this) = (int64_t)value); }
             EventProperty& EventProperty::operator=(int16_t value) { return ((*this) = (int64_t)value); }
             EventProperty& EventProperty::operator=(int32_t value) { return ((*this) = (int64_t)value); }
@@ -711,7 +715,9 @@ namespace Microsoft {
             EventProperty::EventProperty(GUID_t        value, PiiKind piiKind, DataCategory category) : type(TYPE_GUID), piiKind(piiKind), dataCategory(category), as_guid(value) {};
 
             // All other integer types get converted to int64_t
+#ifndef LONG_IS_INT64_T
             EventProperty::EventProperty(long     value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+#endif
             EventProperty::EventProperty(int8_t   value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
             EventProperty::EventProperty(int16_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
             EventProperty::EventProperty(int32_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};

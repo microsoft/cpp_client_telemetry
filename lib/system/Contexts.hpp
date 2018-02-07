@@ -5,9 +5,12 @@
 #include <IOfflineStorage.hpp>
 #include "packager/BondSplicer.hpp"
 #include "pal/PAL.hpp"
+#include "utils/Utils.hpp"
 #include <map>
 #include <memory>
 #include <vector>
+#include <atomic>
+
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -28,6 +31,10 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
         record{id, tenantToken, latency, persistence}
     {
     }
+
+    virtual ~IncomingEventContext()
+    {
+    }
 };
 
 using IncomingEventContextPtr = PAL::RefCountedPtr<IncomingEventContext>;
@@ -35,6 +42,37 @@ using IncomingEventContextPtr = PAL::RefCountedPtr<IncomingEventContext>;
 //---
 
 class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
+
+    private:
+#ifdef CRT_DEBUG_LEAKS
+        // Track # of outstanding EventUploadContext objects remaining
+        long objCount(long delta)
+        {
+            static std::atomic<long> seq(0);
+            seq += delta;
+            return seq;
+        }
+#endif
+    /**
+    * Release unmanaged pointers associated with EventsUploadContext
+    */
+    void clear()
+    {
+#ifndef _WIN32  /* FIXME: [MG] - debug this memory leak on Windows!!! */
+        if (httpRequest != nullptr) {
+            delete httpRequest;
+            httpRequest = nullptr;
+        }
+        /* Note that httpResponse is released by httpRequest destructor */
+#else
+        //httpRequest gets deleted in the SendRequestAsync of WinInt and WinRt
+        if (httpResponse != nullptr) {
+            delete httpResponse;
+            httpResponse = nullptr;
+        }
+
+#endif
+    }
   public:
     // Retrieving
     EventLatency                         requestedMinLatency = EventLatency_Unspecified;
@@ -54,13 +92,31 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     bool                                 compressed = false;
 
     // Sending
-    std::unique_ptr<IHttpRequest>        httpRequest;
+    IHttpRequest*                        httpRequest;
     std::string                          httpRequestId;
 
     // Receiving
-    std::unique_ptr<IHttpResponse const> httpResponse;
+    IHttpResponse*                       httpResponse;
     int                                  durationMs = -1;
     bool                                 fromMemory;
+
+    EventsUploadContext() :
+        httpRequest(nullptr),
+        httpResponse(nullptr)
+    {
+#ifdef CRT_DEBUG_LEAKS
+        printf("[new]EventsUploadContext=%p [%ld]\n", this, objCount(1));
+#endif
+
+    }
+
+    virtual ~EventsUploadContext()
+    {
+#ifdef CRT_DEBUG_LEAKS
+        printf("[del]EventsUploadContext=%p [%ld]\n", this, objCount(-1));
+#endif
+        clear();
+    }
 };
 
 using EventsUploadContextPtr = PAL::RefCountedPtr<EventsUploadContext>;

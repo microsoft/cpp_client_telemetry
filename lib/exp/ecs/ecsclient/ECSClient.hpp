@@ -20,7 +20,7 @@ const static int MAX_RETRY_TIMES = 5;
 const static int DEFAULT_RETRY_TIME_FACTOR = 8;
 
 
-namespace PAL = ::Microsoft::Applications::Events ::PAL;
+namespace PAL = ::Microsoft::Applications::Events::PAL;
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
@@ -37,7 +37,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual bool RemoveListener(IECSClientCallback* listener);
 
         // Register a logger to auto-tag events sent by the logger with ECS configuration infos like ETag
-        virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName);
+        virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName);
 
         virtual bool SetUserId(const std::string& userId);
 
@@ -56,6 +56,16 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual std::string GetETag();
 
         virtual std::string GetConfigs();
+
+        virtual bool TryGetSetting(const std::string& agentName, const std::string& settingPath, std::string& value);
+
+        virtual bool TryGetBoolSetting(const std::string& agentName, const std::string& settingPath, bool& value);
+
+        virtual bool TryGetIntSetting(const std::string& agentName, const std::string& settingPath, int& value);
+
+        virtual bool TryGetLongSetting(const std::string& agentName, const std::string& settingPath, long& value);
+
+        virtual bool TryGetDoubleSetting(const std::string& agentName, const std::string& settingPath, double& value);
 
         virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue);
 
@@ -83,13 +93,15 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		virtual unsigned int GetExpiryTimeInSec();
 		virtual nlohmann::json GetActiveConfigVariant();
 
+        virtual void SetRetryTimeFactor(int time);
+
 
     private:
 		nlohmann::json _GetActiveConfigVariant();
         void _ValidateECSClientConfiguration(const ECSClientConfiguration& config);
 		void _LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source);
 		void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-		void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events ::ILogger* pLogger, std::string agentName);
+		void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events::ILogger* pLogger, std::string agentName);
 		void _UpdateLoggersWithEXPConfig();
 		std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
 

@@ -48,6 +48,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\ThreadManagerShim.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
@@ -147,6 +149,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogSessionData.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ClockSkewManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
@@ -159,6 +162,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DefaultThreadManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.hpp" />

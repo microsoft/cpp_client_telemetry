@@ -18,9 +18,9 @@ namespace Microsoft {
                 ACTTraceLevel m_minimumTraceLevel;
                 SdkModeTypes m_sdkmode;
                 std::mutex m_mutex;
-                std::map<std::string, std::string>  strProps;
-                std::map<std::string, uint32_t>     intProps;
-                std::map<std::string, bool>         boolProps;
+                mutable std::map<std::string, std::string>  strProps;
+                mutable std::map<std::string, uint32_t>     intProps;
+                mutable std::map<std::string, bool>         boolProps;
 
             public:
 

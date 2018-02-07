@@ -16,11 +16,16 @@ class HttpClientManager::HttpCallback : public IHttpResponseCallback {
     {
     }
 
-    virtual void OnHttpResponse(IHttpResponse const* response) override
+    virtual void OnHttpResponse(IHttpResponse* response) override
     {
         m_ctx->durationMs = static_cast<int>(PAL::getMonotonicTimeMs() - m_startTime);
-        m_ctx->httpResponse.reset(response);
+        m_ctx->httpResponse = response;
+#ifdef USE_SYNC_HTTPRESPONSE_HANDLER // handle HTTP callback synchronously in context of a callback thread
+        // We need to decide on pros and cons of synchronous vs. asynchronous callback
+        m_hcm.onHttpResponse(this);
+#else
         m_hcm.scheduleOnHttpResponse(this);
+#endif
     }
 
   public:
@@ -43,13 +48,14 @@ HttpClientManager::~HttpClientManager()
 
 void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
 {
-    std::unique_ptr<HttpCallback> callback(new HttpCallback(*this, ctx));
-    m_httpCallbacks.push_back(callback.get());
+    HttpCallback *callback = new HttpCallback(*this, ctx);
+    m_httpCallbacks.push_back(callback);
 
     ARIASDK_LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
         static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
         ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
-    m_httpClient.SendRequestAsync(ctx->httpRequest.release(), callback.release());
+
+    m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
 }
 
 void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
@@ -59,17 +65,20 @@ void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
 
 void HttpClientManager::onHttpResponse(HttpCallback* callback)
 {
-    EventsUploadContextPtr ctx = callback->m_ctx;
+    EventsUploadContextPtr &ctx = callback->m_ctx;
 
     assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
-    m_httpCallbacks.remove(callback);
-    delete callback;
 
-    IHttpResponse const& response = *ctx->httpResponse;
+    IHttpResponse const& response = (*ctx->httpResponse);
     ARIASDK_LOG_DETAIL("HTTP response %s: result=%u, status=%u, body=%u bytes",
         response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
 
     requestDone(ctx);
+    // request done should be handled by now
+
+    ARIASDK_LOG_DETAIL("HTTP remove callback=%p", callback);
+    m_httpCallbacks.remove(callback);
+    delete callback;
 }
 
 bool HttpClientManager::handleCancelAllRequestsAsync()

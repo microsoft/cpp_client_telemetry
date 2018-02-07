@@ -18,10 +18,10 @@ bool BondSerializer::handleSerialize(IncomingEventContextPtr const& ctx)
         bond_lite::Serialize(writer, *ctx->source);
     }
 
-    AriaProtocol::CsEvent result;
-    std::vector<uint8_t> input(ctx->record.blob.data(), ctx->record.blob.data() + ctx->record.blob.size());
-    bond_lite::CompactBinaryProtocolReader reader(input);
-    bond_lite::Deserialize(reader, result);
+//    AriaProtocol::CsEvent result;
+//    std::vector<uint8_t> input(ctx->record.blob.data(), ctx->record.blob.data() + ctx->record.blob.size());
+//    bond_lite::CompactBinaryProtocolReader reader(input);
+//    bond_lite::Deserialize(reader, result);
 
 
  //   AriaProtocol::CsEvent r;

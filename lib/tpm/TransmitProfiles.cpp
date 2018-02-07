@@ -356,7 +356,7 @@ parsing_failed:
             /// </summary>
             /// <param name="profiles_json"></param>
             /// <returns></returns>
-            bool TransmitProfiles::load(std::string profiles_json) {
+            bool TransmitProfiles::load(const std::string profiles_json) {
                 if (!profiles.size()) {
                     ARIASDK_LOG_DETAIL("Loading default profiles...");
                     reset();

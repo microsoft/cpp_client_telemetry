@@ -70,6 +70,9 @@
     <Filter Include="include\public">
       <UniqueIdentifier>{745547c2-8b4f-47bf-bb27-aa23eeb6303f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modular">
+      <UniqueIdentifier>{0454a90a-9431-4e4b-8b06-f1d073a7081c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp">
@@ -236,6 +239,12 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerSimple.cpp">
       <Filter>api</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.cpp">
+      <Filter>Modular</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\ThreadManagerShim.cpp">
+      <Filter>Modular</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -559,6 +568,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerSimple.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.hpp">
+      <Filter>Modular</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DefaultThreadManager.hpp">
+      <Filter>pal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

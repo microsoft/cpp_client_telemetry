@@ -27,10 +27,21 @@ namespace Microsoft {
 
 				static int GetValueInt(const json& var, const std::string& path, const int& defaultValue);
 
+				static long GetValueLong(const json& var, const std::string& path, const long& defaultValue);
+
 				static bool GetValueBool(const json& var, const std::string& path, const bool& defaultValue);
 
 				static double GetValueDouble(const json& var, const std::string& path, const double& defaultValue);
 
+				static bool TryGetValueString(const json& var, const std::string& path, std::string& value);
+
+				static bool TryGetValueInt(const json& var, const std::string& path, int& value);
+
+				static bool TryGetValueLong(const json& var, const std::string& path, long& value);
+
+				static bool TryGetValueBool(const json& var, const std::string& path, bool& value);
+
+				static bool TryGetValueDouble(const json& var, const std::string& path, double& value);
 
 			private:
 

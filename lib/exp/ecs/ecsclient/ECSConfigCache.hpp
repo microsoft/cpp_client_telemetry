@@ -21,12 +21,12 @@ struct ECSConfig
     ECSConfig()
     {
         etag = DEFAULT_CONFIG_ETAG;
-        expiryUtcTimestamp = 0;
+        expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN;
     }
 
     std::int64_t GetExpiryTimeInSec() const
     {
-        std::int64_t currUtcTimestamp = Microsoft::Applications::Events ::PAL::getUtcSystemTime();
+        std::int64_t currUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime();
 
         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
     }
@@ -48,12 +48,13 @@ public:
 
 private:
     ARIASDK_NS::IStorage* _CreateOfflineStorage(const std::string& storagePath);
-
-private:
+    bool _LoadConfig();
+    bool _SaveConfig(const ECSConfig& config);
     std::string m_OfflineStoragePath;
     ARIASDK_NS::IStorage* m_pOfflineStorage;
 
     std::map<std::string, ECSConfig> m_configs;
+    std::mutex                       m_lock;
 
 #ifdef _USE_TEST_INJECTION_ECSCLIENT_
     _USE_TEST_INJECTION_ECSCLIENT_

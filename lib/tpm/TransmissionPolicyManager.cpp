@@ -101,7 +101,18 @@ void TransmissionPolicyManager::uploadAsync(EventLatency latency)
 
 void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
 {
-    m_activeUploads.erase(ctx);
+    ARIASDK_LOG_DETAIL("HTTP upload finished for ctx=%p", ctx);
+    if (m_activeUploads.find(ctx) != m_activeUploads.cend())
+    {
+        ARIASDK_LOG_DETAIL("HTTP removing from active uploads ctx=%p", ctx);
+        m_activeUploads.erase(ctx);
+        ((EventsUploadContextPtr*)(&ctx))->reset();
+    }
+    else
+    {
+        ARIASDK_LOG_WARNING("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx);
+    }
+
     if (m_activeUploads.empty())
     {
         m_uploadInProgress = false;

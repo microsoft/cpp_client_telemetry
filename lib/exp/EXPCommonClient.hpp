@@ -99,7 +99,7 @@ namespace Microsoft {
                 std::string         requestName;
                 int                 httpstackError;
                 int                 statusCode;
-                Microsoft::Applications::Events ::HttpHeaders         headers;
+                Microsoft::Applications::Events::HttpHeaders         headers;
                 std::string         body;
 
                 Message(MessageType type)
@@ -148,29 +148,29 @@ namespace Microsoft {
             };
 
 
-            class ExpRequestContext : public Microsoft::Applications::Events ::PAL::RefCountedImpl<ExpRequestContext>
+            class ExpRequestContext : public Microsoft::Applications::Events::PAL::RefCountedImpl<ExpRequestContext>
             {
             public:
                 // Sending
-                std::unique_ptr<Microsoft::Applications::Events ::IHttpRequest>        httpRequest;
+                std::unique_ptr<Microsoft::Applications::Events::IHttpRequest>        httpRequest;
                 std::string                          httpRequestId;
 
                 // Receiving
-                std::unique_ptr<Microsoft::Applications::Events ::IHttpResponse const> httpResponse;
+                std::unique_ptr<Microsoft::Applications::Events::IHttpResponse const> httpResponse;
             };
 
-            using ExpRequestContextPtr = Microsoft::Applications::Events ::PAL::RefCountedPtr<ExpRequestContext>;
+            using ExpRequestContextPtr = Microsoft::Applications::Events::PAL::RefCountedPtr<ExpRequestContext>;
 
 
-            class ExpCommon : public Microsoft::Applications::Events ::PAL::RefCountedImpl<ExpCommon>,
-                public Microsoft::Applications::Events ::IHttpResponseCallback
+            class ExpCommon : public Microsoft::Applications::Events::PAL::RefCountedImpl<ExpCommon>,
+                public Microsoft::Applications::Events::IHttpResponseCallback
             {
             public:
                 ExpCommon(IExpCommonClient* client, std::string retry_Queue_Name);
                 ~ExpCommon();
 
                 // Register a logger to auto-tag events sent by the logger with EXP configuration infos like ETag
-                virtual bool RegisterLogger(Microsoft::Applications::Events ::ILogger* pLoger, const std::string& agentName);
+                virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName);
 
                 virtual bool Start(std::vector<int>& retryTimes);
 
@@ -192,15 +192,15 @@ namespace Microsoft {
                 void _HandleConfigRefetch(Message& msg, bool& isActiveConfigSwitched, bool& isActiveConfigSwitchedSaveNeeded);
 
                 // IHttpClientManagerCallback
-                virtual void OnHttpResponse(Microsoft::Applications::Events ::IHttpResponse const* response) override;
+                virtual void OnHttpResponse(Microsoft::Applications::Events::IHttpResponse* response) override;
                 void SendRequestAsync(std::string const& url);
                 bool CancelRequestsAsync();
 
                 void handleMessageTask();				
 
-                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events ::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::string configIds);
-                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events ::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds);
-                void _LogEXPConfigEvent(Microsoft::Applications::Events ::EventProperties& evtProperties);
+                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::string configIds);
+                void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds);
+                void _LogEXPConfigEvent(Microsoft::Applications::Events::EventProperties& evtProperties);
                 void _ScheduleFetch(unsigned int seconds = 0);				
 
             
@@ -208,7 +208,7 @@ namespace Microsoft {
                 std::mutex                          m_lock;
                 std::mutex                          m_smalllock;
                 std::vector<std::string>            m_serverUrls;
-                std::map<Microsoft::Applications::Events ::ILogger*, std::string>     m_registeredLoggers;
+                std::map<Microsoft::Applications::Events::ILogger*, std::string>     m_registeredLoggers;
                 std::map<std::string, std::string>  m_configActiveRequestParams;
                 std::map<std::string, std::string>  m_configActiveHeaders;
                 std::string                         m_configActiveUserId;
@@ -227,17 +227,17 @@ namespace Microsoft {
 
             private:
                 volatile bool                            m_isTimerCancelling;
-                Microsoft::Applications::Events ::PAL::DeferredCallbackHandle              m_messageProcessingTask;
+                Microsoft::Applications::Events::PAL::DeferredCallbackHandle              m_messageProcessingTask;
                 bool                                     m_messageProcessingTaskScheduled;
                 std::vector<int>                         m_retryBackoffTimes;
                 unsigned int                             m_retrybackoffTimesIndex;
                 unsigned int                             m_minExpireTimeInSEXP;
                 IExpCommonClient*                        m_clientPtr;
                 std::string                              m_retry_Queue_Name;
-                std::unique_ptr<Microsoft::Applications::Events ::IHttpClient>             m_ownHttpClient;
-                std::unique_ptr<Microsoft::Applications::Events ::IHttpResponseCallback>   m_httpCallback;
+                std::unique_ptr<Microsoft::Applications::Events::IHttpClient>             m_ownHttpClient;
+                std::unique_ptr<Microsoft::Applications::Events::IHttpResponseCallback>   m_httpCallback;
 
-                Microsoft::Applications::Events ::IHttpClient*             m_httpClient;
+                Microsoft::Applications::Events::IHttpClient*             m_httpClient;
                 std::string              m_httpRequestId;
 
 

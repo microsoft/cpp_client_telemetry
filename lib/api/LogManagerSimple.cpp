@@ -33,7 +33,7 @@ namespace Microsoft {
 				if (nullptr == our_pLogManagerSimpleSingletonInstanceP)
 				{
                     EVTStatus error;
-                  	our_pLogManagerSimpleSingletonInstanceP = LogManagerProvider::CreateLogManager("DEFAULT_TOKEN",true,*our_LogSimpleConfigurationP, error);
+                  	our_pLogManagerSimpleSingletonInstanceP = LogManagerProvider::CreateLogManager("SimpleInterface",true,*our_LogSimpleConfigurationP, error);
                     our_LogSimpleController = our_pLogManagerSimpleSingletonInstanceP->GetLogController();
                     our_AuthTokenSimpleController = our_pLogManagerSimpleSingletonInstanceP->GetAuthTokensController();
                     return EVTStatus::EVTStatus_OK;
@@ -52,7 +52,7 @@ namespace Microsoft {
 
                     if (nullptr != our_pLogManagerSimpleSingletonInstanceP)
                     {
-                        LogManagerProvider::DestroyLogManager("OldInterface");
+                        LogManagerProvider::DestroyLogManager("SimpleInterface");
                         our_pLogManagerSimpleSingletonInstanceP = nullptr;
                     }
                     return EVTStatus::EVTStatus_OK;

@@ -17,8 +17,8 @@
 
 using namespace std;
 using namespace nlohmann;
-using namespace Microsoft::Applications::Events ;
-using namespace Microsoft::Applications::Events ::PAL;
+using namespace Microsoft::Applications::Events;
+using namespace Microsoft::Applications::Events::PAL;
 
 namespace Microsoft {
     namespace Applications {
@@ -64,6 +64,8 @@ namespace Microsoft {
                 AFDClient::~AFDClient()
                 {
                     ARIASDK_LOG_DETAIL("AFDClient d'tor: this=0x%x", this);
+
+                    Stop();
 
                     if (m_configCache != NULL)
                     {
@@ -462,7 +464,7 @@ namespace Microsoft {
                 * Resume the AFD client to retrieve configuration from AFD server
                 *
                 ******************************************************************************/
-                bool AFDClient::Resume()
+                bool AFDClient::Resume(bool fetchConfig)
                 {
                     std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
 
@@ -472,7 +474,7 @@ namespace Microsoft {
                         ARIASDK_LOG_ERROR("Resume: ExpCommon wasn't suspended");
                         return false;
                     }
-                    m_EXPCommon.m_forceRefech = true;
+                    m_EXPCommon.m_forceRefech = fetchConfig;
                     m_EXPCommon.Resume();
                     // log EVENT_TYPE_ExpCommon_STATE_CHANGE event to all registered loggers 
                     _LogEXPCleintStateChangeEvent(EXP_STARTED);
@@ -620,7 +622,7 @@ namespace Microsoft {
                     ARIASDK_LOG_DETAIL("_HandleHttpCallback: HTTPstack error=%u, HTTP status code=%u",
                         msg.httpstackError, msg.statusCode);
 
-                    isActiveConfigUpdatedOnAFD = false;
+                    isActiveConfigUpdatedOnAFD = true;
                     isActiveConfigUpdatedOnAFDSaveNeeded = false;
 
                     switch (msg.statusCode)
@@ -870,8 +872,15 @@ namespace Microsoft {
                         // Reload config from local cache and set it as active config if necessary
                         AFDConfig* pConfig = m_configCache->GetConfigByRequestName(msg.requestName);
                         if (pConfig == NULL)
-                        {
+                        {                            
+                            unsigned int timeoutinSec = m_AFDClientConfiguration.defaultExpiryTimeInMin * 60;
+                            if (timeoutinSec == 0 )
+                            {
+                                timeoutinSec = m_minExpireTimeInSecs;
+                            }
+
                             AFDConfig config;
+                            config.expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + timeoutinSec;
                             config.requestName = msg.requestName;
                             pConfig = m_configCache->AddConfig(config);
                         }
@@ -911,6 +920,10 @@ namespace Microsoft {
                 ******************************************************************************/
                 void AFDClient::HandleUpdateClient(bool isActiveConfigSwitched, bool isActiveConfigUpdatedOnEXP, bool isActiveConfigUpdatedOnEXPSaveNeeded)
                 {
+                    if (m_EXPCommon.m_status != EXP_STARTED)
+                    {
+                        return;
+                    }
                     if (isActiveConfigSwitched || isActiveConfigUpdatedOnEXP)
                     {
                         if (isActiveConfigSwitched)
@@ -1036,7 +1049,19 @@ namespace Microsoft {
 
                 unsigned int AFDClient::GetExpiryTimeInSec()
                 {
-                    return static_cast<unsigned int>(m_configActive->GetExpiryTimeInSec());
+                    int64_t value = m_configActive->GetExpiryTimeInSec();
+                    if (0 == value)
+                    {
+                        Message test(MT_UNKNOWN);
+                        value = _GetExpiryTimeInSecFromHeader(test);
+                    }
+
+                    return static_cast<unsigned int>(value);
+                }
+
+                void AFDClient::SetRetryTimeFactor(int time)
+                {
+                    m_EXPCommon.m_retryTimeFactor = time;
                 }
 
                 json AFDClient::_GetActiveConfigVariant()
@@ -1052,8 +1077,6 @@ namespace Microsoft {
                 // IAFDClient APIs
                 string AFDClient::GetETag()
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     return (m_configActive != NULL) ? m_configActive->etag : "";
                 }
 
@@ -1076,8 +1099,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& keysPath)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, keysPath, '/');
 
                     return JsonHelper::GetKeys(_GetActiveConfigVariant(), fullPath);
@@ -1088,8 +1109,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const std::string& defaultValue)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueString(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -1100,8 +1119,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const bool defaultValue)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueBool(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -1112,8 +1129,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const int defaultValue)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueInt(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -1124,8 +1139,6 @@ namespace Microsoft {
                     const std::string& settingPath,
                     const double defaultValue)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValueDouble(_GetActiveConfigVariant(), fullPath, defaultValue);
@@ -1135,8 +1148,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
                     return JsonHelper::GetValuesString(_GetActiveConfigVariant(), fullPath);
                 }
@@ -1145,8 +1156,6 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValuesInt(_GetActiveConfigVariant(), fullPath);
@@ -1156,11 +1165,14 @@ namespace Microsoft {
                     const std::string& agentName,
                     const std::string& settingPath)
                 {
-                    std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
-
                     string fullPath = JsonHelper::Combine(agentName, settingPath, '/');
 
                     return JsonHelper::GetValuesDouble(_GetActiveConfigVariant(), fullPath);
+                }
+
+                std::string AFDClient::GetAFDConfiguration()
+                {
+                    return (m_configActive != NULL) ? m_configActive->configSettings.dump() : "";
                 }
             }
         }

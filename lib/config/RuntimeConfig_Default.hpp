@@ -6,6 +6,13 @@
 
 namespace ARIASDK_NS_BEGIN {
 
+// TODO: [MG] - move out some constants here and below to a separate config.hpp header file
+#if defined(__linux__) || defined(__gnu_linux__)
+#define STATS_TOKEN_PROD "37f99178d02b46a4815783b92b8a5c91-4dc3ce45-9251-4684-9874-40f475c74a32-6908"
+#else
+#define STATS_TOKEN_PROD "ead4d35d9f17486581d6c09afbe41263-01b1a12d-a157-460b-8efd-af9a10b09682-7259"
+#endif
+#define STATS_TOKEN_INT  "8130ef8ff472405d89d6f420038927ea-0c0d561e-cca5-4c81-90ed-0aa9ad786a03-7166"
 
 class RuntimeConfig_Default : public IRuntimeConfig {
   public:
@@ -34,8 +41,8 @@ class RuntimeConfig_Default : public IRuntimeConfig {
 
   protected:
     std::string m_collectorUrl                    = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
-	std::string m_metaStatsTenantToken            = "ead4d35d9f17486581d6c09afbe41263-01b1a12d-a157-460b-8efd-af9a10b09682-7259";
-	std::string m_metaStatsTenantToken_INT        = "8130ef8ff472405d89d6f420038927ea-0c0d561e-cca5-4c81-90ed-0aa9ad786a03-7166";
+	std::string m_metaStatsTenantToken            = STATS_TOKEN_PROD;
+	std::string m_metaStatsTenantToken_INT        = STATS_TOKEN_INT;
     std::string m_uploadRetryBackoffConfig        = "E,3000,300000,2,1";
     unsigned    m_metaStatsSendIntervalSec        = 300;
     unsigned    m_offlineStorageMaximumSize       = 3 * 1024 * 1024;

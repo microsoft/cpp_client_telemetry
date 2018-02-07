@@ -235,7 +235,7 @@ class IHttpResponseCallback
     /// must deleted through its virtual destructor.
     /// </summary>
     /// <param name="response">Object with response data</param>
-    virtual void OnHttpResponse(IHttpResponse const* response) = 0;
+    virtual void OnHttpResponse(IHttpResponse* response) = 0;
 };
 
 //---
