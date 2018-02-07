@@ -43,7 +43,7 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
     encoder.encode(ctx);
 
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
 
     EXPECT_THAT(req->m_id, Eq("HttpRequestEncoderTests"));
     EXPECT_THAT(req->m_method, Eq("POST"));
@@ -64,13 +64,13 @@ TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
     ctx->compressed = false;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Not(Contains(Pair("Content-Encoding", "deflate"))));
 
     ctx->compressed = true;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("Content-Encoding", "deflate")));
 }
 
@@ -80,19 +80,19 @@ TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
 
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    SimpleHttpRequest const* req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "")));
 
     ctx->packageIds["tenant1-token"] = 0;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token")));
 
     ctx->packageIds["tenant2-token"] = 1;
     ctx->packageIds["tenant3-token"] = 2;
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
-    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest.get());
+    req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token,tenant2-token,tenant3-token")));
 }

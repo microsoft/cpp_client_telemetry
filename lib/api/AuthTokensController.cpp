@@ -38,6 +38,14 @@ EVTStatus  AuthTokensController::SetTicketToken(TicketType type, char const* tok
     return EVTStatus::EVTStatus_Fail;
 }
 
+EVTStatus  AuthTokensController::Clear()
+{
+    m_deviceTokens.clear();
+    m_userTokens.clear();
+    m_tickets.clear();
+    return EVTStatus::EVTStatus_OK;
+}
+
 std::vector<std::string>&  AuthTokensController::GetTickets()
 {
     return m_tickets;

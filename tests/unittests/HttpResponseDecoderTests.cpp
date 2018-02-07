@@ -35,14 +35,14 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
 
     EventsUploadContextPtr createContextWith(HttpResult result, int status, std::string const& body)
     {
-        std::unique_ptr<SimpleHttpResponse> rsp(new SimpleHttpResponse("HttpResponseDecoderTests"));
+        SimpleHttpResponse* rsp = (new SimpleHttpResponse("HttpResponseDecoderTests"));
         rsp->m_result     = result;
         rsp->m_statusCode = status;
         rsp->m_body.assign(reinterpret_cast<uint8_t const*>(body.data()), reinterpret_cast<uint8_t const*>(body.data()) + body.size());
 
         EventsUploadContextPtr ctx = EventsUploadContext::create();
         ctx->httpRequestId = rsp->GetId();
-        ctx->httpResponse = std::move(rsp);
+        ctx->httpResponse = (rsp);
         ctx->durationMs = 1234;
         return ctx;
     }

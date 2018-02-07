@@ -41,6 +41,7 @@ class MockISqlite3Proxy : public ARIASDK_NS::ISqlite3Proxy {
     MOCK_METHOD0(sqlite3_shutdown, int());
     MOCK_METHOD1(sqlite3_step, int(sqlite3_stmt * stmt));
     MOCK_METHOD1(sqlite3_value_blob, void const*(sqlite3_value * value));
+    MOCK_METHOD1(sqlite3_soft_heap_limit64, int64_t(int64_t N));
     MOCK_METHOD1(sqlite3_value_bytes, int(sqlite3_value * value));
     MOCK_METHOD1(sqlite3_vfs_find, sqlite3_vfs * (char const* zVfsName));
 };

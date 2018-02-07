@@ -139,6 +139,7 @@ TEST_F(OfflineStorageTests, DeleteRecordsIsForwarded)
     {
         recordIds.push_back(element.first);
     }
+    ctx->fromMemory = fromMemory;
     EXPECT_CALL(offlineStorageMock, DeleteRecords(recordIds,test, fromMemory)).WillOnce(Return());
     EXPECT_THAT(offlineStorage.deleteRecords(ctx), true);
 }
@@ -153,6 +154,7 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
     {
         recordIds.push_back(element.first);
     }
+    ctx->fromMemory = fromMemory;
     EXPECT_CALL(offlineStorageMock, ReleaseRecords(recordIds, false, test, fromMemory))
         .WillOnce(Return());
     EXPECT_THAT(offlineStorage.releaseRecords(ctx), true);

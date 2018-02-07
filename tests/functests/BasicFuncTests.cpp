@@ -138,14 +138,8 @@ class BasicFuncTests : public ::testing::Test,
                     for (size_t index = 0; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
-                        auto payload = decodeRequestNoCheck(request, false);
-                        for (auto package : payload.TokenToDataPackagesMap)
-                        {
-                            for (auto pack : package.second)
-                            {
-                                receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)pack.Records.size();
-                            }
-                        }
+                        auto payload = decodeRequest(request, false);
+                        receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
                     }
                     receivedEvnets = receivedEvnetsLocal;
                 }
@@ -213,7 +207,7 @@ class BasicFuncTests : public ::testing::Test,
         int64_t now = PAL::getUtcSystemTimeinTicks();
         EXPECT_THAT(actual.time, Gt(now - 60000000000));
         EXPECT_THAT(actual.time, Le(now));
-        EXPECT_THAT(actual.baseType, expected.GetName());
+        EXPECT_THAT(actual.name, expected.GetName());
         for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None)
