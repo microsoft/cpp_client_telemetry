@@ -26,6 +26,11 @@ namespace Microsoft { namespace Applications { namespace Events  {
         /// <param name="ticketValue">Ticketvalue</param>
         virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;
 
+        /// <summary>
+        /// clears all tokens.
+        /// </summary>
+        virtual EVTStatus  Clear() = 0;
+
     };
 
 

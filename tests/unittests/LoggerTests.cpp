@@ -118,14 +118,14 @@ TEST_F(LoggerTests, LogEvent)
     _logger.LogEvent("name_only");
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq("name_only"));
+    EXPECT_THAT(_submittedRecord.name, Eq("name_only"));
 
     expectSubmit();
     EventProperties props1("name_only_props");
     _logger.LogEvent(props1);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq("name_only_props"));
+    EXPECT_THAT(_submittedRecord.name, Eq("name_only_props"));
 
     expectSubmit();
     EventProperties props2("custom_event");
@@ -135,7 +135,7 @@ TEST_F(LoggerTests, LogEvent)
     _logger.LogEvent(props2);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq("custom_event"));
+    EXPECT_THAT(_submittedRecord.name, Eq("custom_event"));
     EXPECT_THAT(_submittedRecord.data[0].properties["test"].stringValue, "value");
     EXPECT_THAT(_submittedRecord.data[0].properties["auxiliary"].stringValue, "long content");
     ::AriaProtocol::PII pii;
@@ -163,14 +163,14 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq(props.GetName()));
+    EXPECT_THAT(_submittedRecord.name, Eq(props.GetName()));
 
     expectSubmit();
     props.SetName(std::string(100, 'a'));
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq(props.GetName()));
+    EXPECT_THAT(_submittedRecord.name, Eq(props.GetName()));
 
     expectSubmit();
     props.SetName(std::string(101, 'a'));
@@ -195,7 +195,7 @@ TEST_F(LoggerTests, CustomEventNameValidation)
     _logger.LogEvent(props);
     ASSERT_THAT(_submitted, true);
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq("0123456789_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz"));
+    EXPECT_THAT(_submittedRecord.name, Eq("0123456789_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz"));
 
     std::string banned("\x01" R"( !"#$%&'()*+,-./:;<=>?@[\]^`{|}~)" "\x81");
     EXPECT_CALL(_logger, submit(_, _, _, _)).WillRepeatedly(Assign(&_submitted, true));
@@ -334,7 +334,7 @@ TEST_F(LoggerTests, CustomEventPropertiesCanOverrideOrEraseContextOnes)
     ASSERT_THAT(_submitted, true);
 
     checkBaseAndContextAndRuntimeConfigProps();
-    EXPECT_THAT(_submittedRecord.baseType, Eq("overridden_event"));
+    EXPECT_THAT(_submittedRecord.name, Eq("overridden_event"));
 
     EXPECT_THAT(_submittedRecord.data[0].properties["plain1"].stringValue, "overridden");
     EXPECT_THAT(_submittedRecord.data[0].properties["plain2"].stringValue, "");

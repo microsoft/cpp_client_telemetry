@@ -41,17 +41,17 @@ class HttpClientManagerTests : public StrictMock<Test> {
 
 TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
-    std::unique_ptr<SimpleHttpRequest> req(new SimpleHttpRequest("HttpClientManagerTests"));
+    SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
     auto ctx = EventsUploadContext::create();
     ctx->httpRequestId = req->GetId();
-    ctx->httpRequest = std::move(req);
+    ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
     ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
     IHttpResponseCallback* callback = nullptr;
-    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest.get(), _))
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
         .WillOnce(SaveArg<1>(&callback));
     hcm.sendRequest(ctx);
     ASSERT_THAT(callback, NotNull());
@@ -64,26 +64,26 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 
     EXPECT_CALL(*this, resultRequestDone(ctx))
         .WillOnce(Return());
-    IHttpResponse const* rspRef = rsp.get();
+    IHttpResponse* rspRef = rsp.get();
     callback->OnHttpResponse(rsp.release());
 
-    EXPECT_THAT(ctx->httpResponse.get(), rspRef);
+    EXPECT_THAT(ctx->httpResponse, rspRef);
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
 
 TEST_F(HttpClientManagerTests, CancelAbortsRequests)
 {
-    std::unique_ptr<SimpleHttpRequest> req(new SimpleHttpRequest("HttpClientManagerTests"));
+    SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
     auto ctx = EventsUploadContext::create();
     ctx->httpRequestId = req->GetId();
-    ctx->httpRequest = std::move(req);
+    ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
     ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
     IHttpResponseCallback* callback = nullptr;
-    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest.get(), _))
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
         .WillOnce(SaveArg<1>(&callback));
     hcm.sendRequest(ctx);
     ASSERT_THAT(callback, NotNull());
@@ -97,8 +97,8 @@ TEST_F(HttpClientManagerTests, CancelAbortsRequests)
 
     EXPECT_CALL(*this, resultRequestDone(ctx))
         .WillOnce(Return());
-    IHttpResponse const* rspRef = rsp.get();
+    IHttpResponse* rspRef = rsp.get();
     callback->OnHttpResponse(rsp.release());
 
-    EXPECT_THAT(ctx->httpResponse.get(), rspRef);
+    EXPECT_THAT(ctx->httpResponse, rspRef);
 }

@@ -21,7 +21,7 @@ namespace Microsoft {
             LogSessionData*      our_LogSessionDataP = nullptr;
             bool                 our_IsRuningasHost = false;
             LogConfiguration*    our_LogConfiguration = new LogConfiguration();
-            AuthTokensController* our_AuthTokenControllerP = nullptr;
+            AuthTokensController* our_AuthTokenControllerP = new AuthTokensController();;
 
             bool CommonLogManagerInternal::IsInitialized()
             {
@@ -40,6 +40,13 @@ namespace Microsoft {
                 else
                     return false;
             }
+
+            void call_from_STD_thread(ILogManagerInternal* old_pLogManagerSingletonInstanceP)
+            {
+                old_pLogManagerSingletonInstanceP->FlushAndTeardown();
+                delete old_pLogManagerSingletonInstanceP;
+            }
+
 
             EVTStatus CommonLogManagerInternal::Initialize( LogConfiguration* logConfigurationP, bool wantController)
 			{
@@ -65,8 +72,7 @@ namespace Microsoft {
                             EVTStatus error;
                             our_LogSessionDataP = new LogSessionData(our_LogConfiguration->GetProperty(CFG_STR_CACHE_FILE_PATH, error));
                         }
-                        
-                        our_AuthTokenControllerP = new AuthTokensController();
+                                                
                         if (wantController & !our_IsRuningasHost)
                         {
                             our_IsRuningasHost = true;
@@ -90,11 +96,9 @@ namespace Microsoft {
                         ::ResetEvent(syncEvent);
                         if (nullptr != our_pLogManagerSingletonInstanceP)
                         {
-                            ILogManagerInternal* temp = ILogManagerInternal::Create(*our_LogConfiguration, nullptr);
-                            our_pLogManagerSingletonInstanceP->FlushAndTeardown();
-                            delete our_pLogManagerSingletonInstanceP;
-                            our_pLogManagerSingletonInstanceP = temp;
-
+                            ILogManagerInternal* temp = our_pLogManagerSingletonInstanceP;
+                            std::thread(call_from_STD_thread, temp);
+                            our_pLogManagerSingletonInstanceP = ILogManagerInternal::Create(*our_LogConfiguration, nullptr);
                             ::SetEvent(syncEvent);
                         }
                     }
@@ -158,7 +162,7 @@ namespace Microsoft {
 
                     if (our_AuthTokenControllerP)
                     {
-                        delete our_AuthTokenControllerP;
+                        our_AuthTokenControllerP->Clear();
                     }
                     if (our_LogConfiguration)
                     {

@@ -360,7 +360,7 @@ TEST_F(PalTests, UuidGeneration)
 
     std::string mask = uuid0;
     for (char& ch : mask) {
-        if (::isdigit(ch) || (::islower(ch) && ::isxdigit(ch))) {
+        if (::isdigit(ch) || (::isupper(ch) && ::isxdigit(ch))) {
             ch = 'x';
         }
     }

@@ -34,6 +34,11 @@ class AuthTokensController : public IAuthTokensController
     virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue);
 
     /// <summary>
+    /// Clears all tokens.
+    /// </summary>
+    virtual EVTStatus  Clear();
+
+    /// <summary>
     /// Set the Auth ticket.
     /// </summary>
     /// <param name="type">Ticket type</param>

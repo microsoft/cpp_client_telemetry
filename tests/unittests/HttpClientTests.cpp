@@ -93,7 +93,7 @@ class HttpClientTests : public PAL::RefCountedImpl<HttpClientTests>,
         return 0;
     }
 
-    virtual void OnHttpResponse(IHttpResponse const* inResponse) override
+    virtual void OnHttpResponse(IHttpResponse* inResponse) override
     {
 		std::lock_guard<std::mutex> lock(_lock);
 
