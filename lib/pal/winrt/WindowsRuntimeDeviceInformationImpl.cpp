@@ -6,6 +6,8 @@
 
 #define LOG_MODULE DBG_PAL
 
+ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "WinRt Desktop Device Information")
+
 #define DEFAULT_DEVICE_ID       "{deadbeef-fade-dead-c0de-cafebabefeed}"
 
 namespace Microsoft {
