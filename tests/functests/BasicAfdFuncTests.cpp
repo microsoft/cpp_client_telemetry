@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#include "pal/UtcHelpers.hpp"
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -125,7 +126,8 @@ class BasicAfdFuncTests : public ::testing::Test,
         
         
         server.start();		
-        PAL::initialize();
+        listner.flights.clear();
+        listner.features.clear();
     }
 
     virtual void TearDown() override
@@ -154,7 +156,25 @@ class BasicAfdFuncTests : public ::testing::Test,
         {
             printf("exception in logManager->FlushAndTeardown();");
         }
-        PAL::shutdown();
+        std::string storagePath(TEST_CACHE_FILE_PATH_NAME);
+
+        if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
+        {
+            std::string tempDirectroryPath = Microsoft::Applications::Events::PAL::GetAppLocalTempDirectory();
+            if (!tempDirectroryPath.empty())
+            {
+                storagePath = tempDirectroryPath + storagePath;
+            }
+        }
+
+        int* xPtr = nullptr;
+        int IntptrSize = sizeof(xPtr);
+        if (IntptrSize > 4) // on 64 bit system, we want session to have different file because FIFO has trouble opening 32 bit file in 64 bit mode
+        {
+            storagePath = storagePath + "64";
+        }
+        ::remove(storagePath.c_str());
+        UNREFERENCED_PARAMETER(xPtr);
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
