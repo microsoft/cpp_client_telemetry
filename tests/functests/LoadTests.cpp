@@ -223,7 +223,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
 #endif
     
     unsigned const RESTART_COUNT           = 100;
-    unsigned int MAX_TIME_PER_RESTART_MS = 250;
+    unsigned int MAX_TIME_PER_RESTART_MS = 1000;
 
     unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
 
