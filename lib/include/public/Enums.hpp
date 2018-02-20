@@ -44,6 +44,7 @@ namespace Microsoft { namespace Applications { namespace Events  {
         TicketType_XAuth_User = 3,        
         TicketType_AAD = 4,
         TicketType_AAD_User = 5,
+        TicketType_AAD_JWT = 6,
     };
     
     enum SdkModeTypes

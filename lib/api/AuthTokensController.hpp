@@ -39,6 +39,16 @@ class AuthTokensController : public IAuthTokensController
     virtual EVTStatus  Clear();
 
     /// <summary>
+    /// sets strict mode for application( all tokens in that app).
+    /// </summary>
+    virtual EVTStatus  SetStrictMode(bool value);
+
+    /// <summary>
+    /// gets strict mode for application.
+    /// </summary>
+    virtual bool  GetStrictMode();
+
+    /// <summary>
     /// Set the Auth ticket.
     /// </summary>
     /// <param name="type">Ticket type</param>
@@ -64,6 +74,7 @@ class AuthTokensController : public IAuthTokensController
       std::map<TicketType, std::string> m_deviceTokens;
       std::map<TicketType, std::string> m_userTokens;
       std::vector<std::string> m_tickets;
+      bool m_IsStrictModeEnabled;
 };
 
 
