@@ -57,6 +57,11 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
         {
             ctx->httpRequest->GetHeaders().set("Aad-Token", map[TicketType::TicketType_AAD]);
         }
+
+        if (map.end() != map.find(TicketType::TicketType_AAD_JWT))
+        {
+            ctx->httpRequest->GetHeaders().set("Aad-Jwt-Token", map[TicketType::TicketType_AAD_JWT]);
+        }
     }
 
     if (CommonLogManagerInternal::GetAuthTokensController()->GetUserTokens().size() > 0)
@@ -107,6 +112,11 @@ bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
         {
             ctx->httpRequest->GetHeaders().set("Tickets", ticketHeader);
         }
+    }
+    //strict mode
+    if (true == CommonLogManagerInternal::GetAuthTokensController()->GetStrictMode()) 
+    {
+        ctx->httpRequest->GetHeaders().set("Strict", "true");        
     }
        
     std::string tenantTokens;

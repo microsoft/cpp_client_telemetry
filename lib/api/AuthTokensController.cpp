@@ -9,6 +9,7 @@ namespace ARIASDK_NS_BEGIN {
 ARIASDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
 
 AuthTokensController::AuthTokensController()
+    :m_IsStrictModeEnabled(false)
 {
     ARIASDK_LOG_DETAIL("New AuthTokensController instance");
 }
@@ -44,6 +45,17 @@ EVTStatus  AuthTokensController::Clear()
     m_userTokens.clear();
     m_tickets.clear();
     return EVTStatus::EVTStatus_OK;
+}
+
+EVTStatus  AuthTokensController::SetStrictMode(bool value)
+{
+    m_IsStrictModeEnabled = value;
+    return EVTStatus::EVTStatus_OK;
+}
+
+bool  AuthTokensController::GetStrictMode()
+{
+    return m_IsStrictModeEnabled;
 }
 
 std::vector<std::string>&  AuthTokensController::GetTickets()

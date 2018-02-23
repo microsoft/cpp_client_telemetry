@@ -87,6 +87,11 @@ namespace Microsoft {
                 /// Reset transmission profiles to default settings
                 /// </summary>
                 virtual const std::string& GetTransmitProfileName() = 0;
+
+                /// <summary>
+                /// sets Authentication strict mode for application( all tokens in that app, and only autenticated data will be accepted by collector).
+                /// </summary>
+                virtual EVTStatus  SetAuthenticationStrictMode(bool value) = 0;
 #ifdef _WIN32
                 /// <summary>
                 /// Add Debug callback
