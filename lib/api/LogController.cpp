@@ -82,6 +82,7 @@ const std::string& LogController::GetTransmitProfileName()
 {
     return CommonLogManagerInternal::GetTransmitProfileName();
 }
+
 EVTStatus LogController::SetAuthenticationStrictMode(bool value)
 {
     return CommonLogManagerInternal::GetAuthTokensController()->SetStrictMode(value);
