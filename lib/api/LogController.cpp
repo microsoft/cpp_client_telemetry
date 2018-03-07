@@ -81,9 +81,9 @@ EVTStatus LogController::ResetTransmitProfiles()
 const std::string& LogController::GetTransmitProfileName()
 {
     return CommonLogManagerInternal::GetTransmitProfileName();
-};
+}
 
-EVTStatus  SetAuthenticationStrictMode(bool value)
+EVTStatus LogController::SetAuthenticationStrictMode(bool value)
 {
     return CommonLogManagerInternal::GetAuthTokensController()->SetStrictMode(value);
 }
