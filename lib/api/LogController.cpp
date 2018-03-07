@@ -86,7 +86,6 @@ EVTStatus LogController::SetAuthenticationStrictMode(bool value)
 {
     return CommonLogManagerInternal::GetAuthTokensController()->SetStrictMode(value);
 }
-;
 
 /// <summary>
 /// Add Debug callback
