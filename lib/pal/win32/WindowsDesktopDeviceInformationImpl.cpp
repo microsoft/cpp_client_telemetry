@@ -117,7 +117,7 @@ namespace Microsoft {
 
                     // Detect manufacturer
                     m_manufacturer = manufacturer;
-                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MANUFACTURER), RRF_RT_REG_SZ, NULL, (char*)buff, &size)) {
+                    if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, (SYSINFO), (MANUFACTURER), RRF_RT_REG_SZ, NULL, &buff, &size)) {
                         const std::string tmp(buff);
                         m_manufacturer = tmp;
                     }
@@ -126,7 +126,7 @@ namespace Microsoft {
                     // Detect model
                     size = sizeof(buff);
                     m_model = model;
-                    if (ERROR_SUCCESS == RegGetValue(HKEY_LOCAL_MACHINE, TEXT(SYSINFO), TEXT(MODEL), RRF_RT_REG_SZ, NULL, (char*)buff, &size)) {
+                    if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, (SYSINFO), (MODEL), RRF_RT_REG_SZ, NULL, &buff, &size)) {
                         std::string tmp(buff);
                         m_model = tmp;
                     }

@@ -175,102 +175,103 @@ void ContextFieldsProvider::writeToRecord(::AriaProtocol::CsEvent& record) const
 
             ext[COMMONFIELDS_APP_EXPERIMENTETAG] = temp;
         }
-
-        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_ID) != m_commonContextFieldsP->end())
+        std::map<std::string, EventProperty>::iterator iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_ID);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_ID];
-            record.extApp[0].id = prop.as_string;
+            record.extApp[0].id = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_VERSION) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_VERSION);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_VERSION];
-            record.extApp[0].ver = prop.as_string;
+            record.extApp[0].ver = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_LANGUAGE];
-            record.extApp[0].locale = prop.as_string;
+            record.extApp[0].locale = iter->second.as_string;
         }       
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_ID];
-            record.extDevice[0].localId = prop.as_string;
+            std::string temp("m:");
+            temp.append(iter->second.as_string);
+            record.extDevice[0].localId = temp;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MAKE];
-            record.extProtocol[0].devMake = prop.as_string;
+            record.extProtocol[0].devMake = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL) != m_commonContextFieldsP->end()) 
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_MODEL];
-            record.extProtocol[0].devModel = prop.as_string;
+            record.extProtocol[0].devModel = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_CLASS) != m_commonContextFieldsP->end()) 
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_CLASS);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_DEVICE_CLASS];
-            record.extDevice[0].deviceClass = prop.as_string;
+            record.extDevice[0].deviceClass = iter->second.as_string;
         }
         
-        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_NAME];
-            record.extOs[0].name = prop.as_string;
+            record.extOs[0].name = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_OS_BUILD) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_OS_BUILD);
+        if (iter != m_commonContextFieldsP->end())
         {
             //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
-            EventProperty prop1 = (*m_commonContextFieldsP)[COMMONFIELDS_OS_BUILD];// build has version in it
-            record.extOs[0].ver = prop1.as_string;
+            record.extOs[0].ver = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_ID) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_ID);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_ID];
-            record.extUser[0].localId = prop.as_string;
+            record.extUser[0].localId = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_LANGUAGE) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_LANGUAGE);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_LANGUAGE];
-            record.extUser[0].locale = prop.as_string;
+            record.extUser[0].locale = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_TIMEZONE) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_TIMEZONE);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_TIMEZONE];
-            record.extLoc[0].timezone = prop.as_string;
+            record.extLoc[0].timezone = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_USER_MSAID) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_MSAID);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_USER_MSAID];
-            record.extDevice[0].authSecId = prop.as_string;
+            record.extDevice[0].authSecId = iter->second.as_string;
         }
         
-        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_COST) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_COST);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_COST];
-            record.extNet[0].cost = prop.as_string;
+            record.extNet[0].cost = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_PROVIDER) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_PROVIDER);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_PROVIDER];
-            record.extNet[0].provider = prop.as_string;
+            record.extNet[0].provider = iter->second.as_string;
         }
 
-        if (m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_TYPE) != m_commonContextFieldsP->end())
+        iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_TYPE);
+        if (iter != m_commonContextFieldsP->end())
         {
-            EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_NETWORK_TYPE];
-            record.extNet[0].type = prop.as_string;
+            record.extNet[0].type = iter->second.as_string;
         }
 
         if (m_ticketsMapP->size() > 0)
