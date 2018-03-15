@@ -11,8 +11,8 @@ const char* const TC_DEFAULT_UI_VERSION = "1000/1.8.0.0";
 const char* const TC_DEFAULT_OFFLINE_STORAGE_PATH = "c:\\offlinestorage.db";
 
 /// Default collector url to send events to
-const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
-const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/Collector/3.0/";
+const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
+const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/OneCollector/1.0";
 
 /// Default collector url to send BOLBs to
 /// Note: the actual value of the DEFAULT_BLOB_COLLECTOR_URL_PROD is TBD
