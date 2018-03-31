@@ -1,4 +1,9 @@
-#pragma once
+#ifndef IAFGCLIENT_HPP
+#define IAFGCLIENT_HPP
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Version.hpp"
+
 #include "ctmacros.hpp"
 #include "ILogger.hpp"
 
@@ -6,7 +11,10 @@
 #include <vector>
 #include <map>
 
-namespace Microsoft { namespace Applications { namespace Experimentation { namespace AFD {
+namespace Microsoft {
+    namespace Applications {
+        namespace Experimentation {
+            namespace AFD {
 
     /// <summary>
     /// The AFDClientConfiguration structure configures the AFD client.
@@ -210,7 +218,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 		/// <param name="agentName">A string that contains the name of the agent whose experiment configIds will be 
 		/// auto-tagged to events sent by the logger.</param>
 		/// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-		virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName) = 0;
+                    virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName) = 0;
 
 		/// <summary>
 		/// Sets a list of custom parameters for the request to use to retrieve configurations from the AFD server.
@@ -355,5 +363,9 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         
     };
    
-}}}} // namespaces
+            }
+        }
+    }
+}
 
+#endif

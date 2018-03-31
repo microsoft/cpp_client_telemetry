@@ -30,7 +30,7 @@
     <ProjectGuid>{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>sqlite</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
     <OacrPath>OACR</OacrPath>
@@ -98,10 +98,6 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros">
-    <OutDir>$(ProjectDir)..\Solutions\out\$(OacrPath)\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\Solutions\out\$(OacrPath)\obj\sqlite\$(Configuration)\$(Platform)\</IntDir>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -210,6 +206,7 @@
   <ItemGroup>
     <ClInclude Include="sqlite3.h" />
   </ItemGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

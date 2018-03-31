@@ -1,5 +1,5 @@
-Aria Client Library API
-=======================
+1DS OneSDK Client Library API
+=============================
 
 ### Requirements
 
@@ -7,7 +7,7 @@ Aria Client Library API
     memory/resources ownership etc.).
 -   Allows writing correct tests (supports proper mocking/stubbing).
 -   Easy and enjoyable to use for library users.
--   Respects the unified Aria API documented at
+-   Respects the unified 1DS OneSDK API documented at
     <https://aria.microsoft.com/developer/api/aria-sdks/>
     -   The various icons above the topic list on that page switch
         between different platforms - cloud (.NET), Android, Apple
@@ -59,17 +59,17 @@ of utilities etc.
 
 ### Namespace
 
-API uses namespace `Microsoft::Applications::Telemetry`, as the rest of
+API uses namespace `Microsoft::Applications::Events`, as the rest of
 the SDKs.
 
 The public headers contain this boilerplate:
 
 ``` cpp
-namespace Microsoft { namespace Applications { namespace Telemetry {
+namespace Microsoft { namespace Applications { namespace Events {
   
 ...
 
-}}} // namespace Microsoft::Applications::Telemetry
+}}} // namespace Microsoft::Applications::Events
 ```
 
 ### Versioning
@@ -82,10 +82,6 @@ compatible manner result in increasing the minor version of the library.
 What is the exact level of "sufficient amount" is determined on a
 case-by-case basis.
 
-The versioning starts with version 5.0 to resolve existing ambiguities
-in version numbers between Skype Client Telemetry and Aria Client
-Telemetry packages.
-
 ##### Version.hpp
 
 There is a dynamically generated file `Version.hpp`, which contains
@@ -97,7 +93,7 @@ It contains these items:
 -   A preprocessor define `Telemetry`, which is defined to
     `Telemetry_vX`, where `X` is the major version number of
     the library. This affects the latest part `Telemetry` in the
-    namespace `Microsoft::Applications::Telemetry` everywhere.
+    namespace `Microsoft::Applications::Events` everywhere.
 
 -   An `uint64_t` constant `Version`, which contains a full version
     number encoded as four 16-bit values for major/minor/patch/build
@@ -105,7 +101,7 @@ It contains these items:
     Orient), patch and build version are set to 0 as it doesn't make
     sense to specify them.
 
--   A preprocessor define `ARIASDK_PAL_xxx`, where `xxx` is the name of
+-   A preprocessor define `EVENTS_PAL_xxx`, where `xxx` is the name of
     the selected PAL variant while building the library. This is needed
     for customizing `LogConfiguration` - see below.
 
@@ -159,11 +155,11 @@ These parts are behind `#ifdef` blocks, because of possible external
 type references. An example:
 
 ``` cpp
-    #ifdef ARIASDK_PAL_SKYPE
+    #ifdef EVENTS_PAL_SKYPE
         ::http_stack::IHttpStackPtr httpStack;
         ::ecsclient::IEcsClientPtr  ecsClient;
         ::rm::IResourceManagerPtr   resourceManager;
-    #elif ARIASDK_PAL_WIN32
+    #elif EVENTS_PAL_WIN32
         ...
     #endif
     };

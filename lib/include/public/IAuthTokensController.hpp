@@ -2,15 +2,16 @@
 #ifndef ARIA_IAUTHTOKENS_HPP
 #define ARIA_IAUTHTOKENS_HPP
 
+#include "Version.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 
-// *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Events  {
-// *INDENT-ON*
-/// <summary>
-/// This class is used to manage the Events  logging system
-/// </summary>
+namespace ARIASDK_NS_BEGIN
+{
+
+    /// <summary>
+    /// This class is used to manage the Events  logging system
+    /// </summary>
     class ARIASDK_LIBABI IAuthTokensController
     {
     public:
@@ -24,10 +25,46 @@ namespace Microsoft { namespace Applications { namespace Events  {
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;       
+        virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;
+
+        /// <summary>
+        /// Clears all tokens.
+        /// </summary>
+        virtual EVTStatus  Clear() = 0;
+
+        /// <summary>
+        /// sets strict mode for application( all tokens in that app).
+        /// </summary>
+        virtual EVTStatus  SetStrictMode(bool value) = 0;
+
+        /// <summary>
+        /// gets strict mode for application.
+        /// </summary>
+        virtual bool  GetStrictMode() = 0;
+
+        /// <summary>
+        /// Set the Auth ticket.
+        /// </summary>
+        /// <param name="type">Ticket type</param>
+        /// <param name="ticketValue">Ticketvalue</param>
+        virtual std::vector<std::string>&  GetTickets() = 0;
+
+        /// <summary>
+        /// Set the Auth ticket.
+        /// </summary>
+        /// <param name="type">Ticket type</param>
+        /// <param name="ticketValue">Ticketvalue</param>
+        virtual std::map<TicketType, std::string>&  GetDeviceTokens() = 0;
+
+        /// <summary>
+        /// Set the Auth ticket.
+        /// </summary>
+        /// <param name="type">Ticket type</param>
+        /// <param name="ticketValue">Ticketvalue</param>
+        virtual std::map<TicketType, std::string>&  GetUserTokens() = 0;
+
     };
 
-
-}}} // namespace Microsoft::Applications::Events 
+} ARIASDK_NS_END
 
 #endif //ARIA_IAUTHTOKENS_HPP

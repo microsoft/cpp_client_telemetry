@@ -2,8 +2,7 @@
 ## SDK Information
 
 #### Contact:
-* Dave Tryon (**Dave.Tryon@microsoft.com**)
-* Sanjay Gautam (**sanjayga@microsoft.com**)
+* Max Golovanov (**maxgolov@microsoft.com**)
 * saahme   (**Sajeed Ahmed**)
 * ariaesdks (**ARIA SDK Team**)
 

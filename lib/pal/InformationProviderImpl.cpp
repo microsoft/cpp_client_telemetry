@@ -1,7 +1,9 @@
-#include "Version.hpp"
-#include "pal\InformationProviderImpl.hpp"
+#include "pal/PAL.hpp"
+
+#include "InformationProviderImpl.hpp"
 
 #include <vector>
+
 #ifdef _WIN32
 // Add SEH handling to callbacks to avoid crashes on Windows 10 Phone as a temporary
 // solution to cover unknown Windows 10 Phone scenarios, where app goes to background,
@@ -12,82 +14,80 @@
 #include <excpt.h>
 #endif
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+namespace PAL_NS_BEGIN {
 
-InformatonProviderImpl::InformatonProviderImpl():m_registredCount(0)
-{
-}
-
-InformatonProviderImpl::~InformatonProviderImpl()
-{
-}
-
-// IInformationProvider API
-int InformatonProviderImpl::RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback)
-{
-	std::lock_guard<std::mutex> lock(m_lock);
-    // Use (index + 1) as the token.
-    m_callbacks.push_back(pCallback);
-    int token = (int)m_callbacks.size();
-    m_registredCount++;
-    return token;
-}
-
-void InformatonProviderImpl::UnRegisterInformationChangedCallback(int callbackToken)
-{
-    size_t index = (size_t)(callbackToken - 1);
-
-	std::lock_guard<std::mutex> lock(m_lock);
-    size_t count = m_callbacks.size();
-    if (index > 0 && index < count)
+    InformatonProviderImpl::InformatonProviderImpl() :m_registredCount(0)
     {
-        // Don't ever delete the item from the vector.
-        // Just set it to NULL.
-        m_callbacks[index] = NULL;
-        --m_registredCount;
     }
-}
 
-void InformatonProviderImpl::OnChanged(std::string const& propertyName, std::string const& propertyValue)
-{
-    try {
-        // OnChange shouldn't block new callbacks to be registered.
-        // However, those newly registered callbacks are not called by
-        // this current notification.
-        //
-        // OnChange shouldn't block unregistration of callbacks.  However,
-        // those callbacks will be called by this current notification?
-        // TODO: This means that after calling UnRegisterInformationChangedCallback
-        // the client code is not sure if the IPropertyChangedCallback can
-        // be deleted.  The current design is that IPropertyChangedCallback is
-        // not refcount'ed.  Should we refcount it?
+    InformatonProviderImpl::~InformatonProviderImpl()
+    {
+    }
 
-        if (m_registredCount > 0)
+    // IInformationProvider API
+    int InformatonProviderImpl::RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback)
+    {
+        std::lock_guard<std::mutex> lock(m_lock);
+
+        // Use (index + 1) as the token.
+        m_callbacks.push_back(pCallback);
+        int token = (int)m_callbacks.size();
+        m_registredCount++;
+        return token;
+    }
+
+    void InformatonProviderImpl::UnRegisterInformationChangedCallback(int callbackToken)
+    {
+        size_t index = (size_t)(callbackToken - 1);
+
+        std::lock_guard<std::mutex> lock(m_lock);
+        size_t count = m_callbacks.size();
+        if (index > 0 && index < count)
         {
-            std::vector<IPropertyChangedCallback*> local_callbacks;
+            // Don't ever delete the item from the vector.
+            // Just set it to NULL.
+            m_callbacks[index] = NULL;
+            --m_registredCount;
+        }
+    }
 
-            {
-                std::lock_guard<std::mutex> lock(m_lock);
-                local_callbacks.insert(local_callbacks.end(), m_callbacks.begin(), m_callbacks.end());
-            }
+    void InformatonProviderImpl::OnChanged(std::string const& propertyName, std::string const& propertyValue)
+    {
+        try {
+            // OnChange shouldn't block new callbacks to be registered.
+            // However, those newly registered callbacks are not called by
+            // this current notification.
+            //
+            // OnChange shouldn't block unregistration of callbacks.  However,
+            // those callbacks will be called by this current notification?
+            // TODO: This means that after calling UnRegisterInformationChangedCallback
+            // the client code is not sure if the IPropertyChangedCallback can
+            // be deleted.  The current design is that IPropertyChangedCallback is
+            // not refcount'ed.  Should we refcount it?
 
-            size_t count = local_callbacks.size();
-            for (size_t index = 0; index < count; ++index)
+            if (m_registredCount > 0)
             {
-                IPropertyChangedCallback* cur_callback = local_callbacks[index];
-                if (cur_callback != NULL)
+                std::vector<IPropertyChangedCallback*> local_callbacks;
                 {
-                    cur_callback->OnChanged(propertyName, propertyValue);
+                    std::lock_guard<std::mutex> lock(m_lock);
+                    local_callbacks.insert(local_callbacks.end(), m_callbacks.begin(), m_callbacks.end());
+                }
+
+                size_t count = local_callbacks.size();
+                for (size_t index = 0; index < count; ++index)
+                {
+                    IPropertyChangedCallback* cur_callback = local_callbacks[index];
+                    if (cur_callback != NULL)
+                    {
+                        cur_callback->OnChanged(propertyName, propertyValue);
+                    }
                 }
             }
         }
-    }
-    catch (...)
-    {
+        catch (...)
+        {
 
+        }
     }
-}
 
-} // PlatformAbstraction
-}}}
+} PAL_NS_END

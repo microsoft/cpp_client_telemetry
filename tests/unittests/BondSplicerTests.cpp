@@ -29,7 +29,7 @@ class ShadowBondSplicer : protected ARIASDK_NS::BondSplicer
         return index;
     }
 
-    void addRecord(size_t dataPackageIndex, ::AriaProtocol::CsEvent& record)
+    void addRecord(size_t dataPackageIndex, ::AriaProtocol::Record& record)
     {
         assert(dataPackageIndex < m_TokenToDataPackagesMap.size());
 
@@ -89,7 +89,7 @@ TEST_F(BondSplicerTests, OneDataPackageWithOneEmptyRecord)
     dp.SchemaVersion = 31;
     size_t dpIndex = bs.addDataPackage("tenant1", dp);
 
-    ::AriaProtocol::CsEvent r; 
+    ::AriaProtocol::Record r; 
     ::AriaProtocol::Data d; 
     r.data.push_back(d);
     bs.addRecord(dpIndex, r);
@@ -108,7 +108,7 @@ TEST_F(BondSplicerTests, MultipleDataPackagesWithRecords)
     dp1.SchemaVersion = 31;
     size_t dp1Index = bs.addDataPackage("tenant1", dp1);
 
-    ::AriaProtocol::CsEvent r1a;
+    ::AriaProtocol::Record r1a;
     r1a.name = "r1a";
     bs.addRecord(dp1Index, r1a);
 
@@ -120,15 +120,15 @@ TEST_F(BondSplicerTests, MultipleDataPackagesWithRecords)
     dp1.SchemaVersion = 32;
     size_t dp2Index = bs.addDataPackage("tenant2", dp2);
 
-    ::AriaProtocol::CsEvent r2a;
+    ::AriaProtocol::Record r2a;
     r2a.name = "r2a";
     bs.addRecord(dp2Index, r2a);
 
-    ::AriaProtocol::CsEvent r1b;
+    ::AriaProtocol::Record r1b;
     r1b.name = "r1b";
     bs.addRecord(dp1Index, r1b);
 
-    ::AriaProtocol::CsEvent r2b;
+    ::AriaProtocol::Record r2b;
     r2b.name = "r2b";
     bs.addRecord(dp2Index, r2b);
 
@@ -147,7 +147,7 @@ TEST_F(BondSplicerTests, MultipleEverything)
     size_t dp1index = bs.addDataPackage("tenant1", dp1);
 
     {
-        ::AriaProtocol::CsEvent r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
         r.name = "r1a";
         r.time = 111111;
         ::AriaProtocol::Value temp;
@@ -169,7 +169,7 @@ TEST_F(BondSplicerTests, MultipleEverything)
     }
 
     {
-        ::AriaProtocol::CsEvent r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
         r.name = "r1b";
         r.time = 222222;
         ::AriaProtocol::Value temp;
@@ -199,7 +199,7 @@ TEST_F(BondSplicerTests, MultipleEverything)
     size_t dp2index = bs.addDataPackage("tenant2", dp2);
 
     {
-        ::AriaProtocol::CsEvent r; ::AriaProtocol::Data d; r.data.push_back(d); 
+        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d); 
 
         r.name = "r2a";
         r.time = 333333;
@@ -210,7 +210,7 @@ TEST_F(BondSplicerTests, MultipleEverything)
     }
 
     {
-        ::AriaProtocol::CsEvent r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
         r.name = "r2b";
         r.time = 444444;
         ::AriaProtocol::Value temp3;
@@ -220,7 +220,7 @@ TEST_F(BondSplicerTests, MultipleEverything)
     }
 
     {
-        ::AriaProtocol::CsEvent r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
         r.name = "r2c";
         ::AriaProtocol::Value temp5;
 

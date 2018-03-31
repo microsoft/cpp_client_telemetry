@@ -3,8 +3,10 @@
 #pragma once
 #include "pal/PAL.hpp"
 #include <IOfflineStorage.hpp>
-#include <IRuntimeConfig.hpp>
-#include <api/LogConfiguration.hpp>
+
+#include "api/IRuntimeConfig.hpp"
+#include "ILogManager.hpp"
+
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {
@@ -14,7 +16,7 @@ class OfflineStorageHandler : public IOfflineStorage,
                               public PAL::RefCountedImpl<OfflineStorageHandler>
 {
   public:
-    OfflineStorageHandler(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig);
+    OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
     virtual ~OfflineStorageHandler() override;
     virtual void Initialize(IOfflineStorageObserver& observer) override;
     virtual void Shutdown() override;
@@ -37,10 +39,12 @@ class OfflineStorageHandler : public IOfflineStorage,
     virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;
 
   protected:
+
     IOfflineStorageObserver*    m_observer;
-    LogConfiguration            m_logConfiguration;
+    ILogManager &               m_logManager;
     std::string                 m_databasePath;
-    IRuntimeConfig&             m_runtimeConfig;
+    IRuntimeConfig&             m_config;
+
     std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
     std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
     bool                                   m_readFromMemory;

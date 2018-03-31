@@ -73,10 +73,10 @@ class HttpStackRequestWrapper : public auf::Object,
 
     void send(SimpleHttpRequest* req, IHttpResponseCallback* callback)
     {
-        ARIASDK_LOG_DETAIL("Sending HttpRequest(%s) to '%s'...", m_id.c_str(), req->m_url.c_str());
+        LOG_TRACE("Sending HttpRequest(%s) to '%s'...", m_id.c_str(), req->m_url.c_str());
         http_stack::HTTPSTACK_ERROR result = send2(req, callback);
         if (result != http_stack::HTTPSTACK_ERROR_OK) {
-            ARIASDK_LOG_WARNING("Unable to send HttpRequest(%s): %s",
+            LOG_WARN("Unable to send HttpRequest(%s): %s",
                 m_id.c_str(), http_stack::ErrorText(result));
             finish(nullptr, result);
         }
@@ -191,13 +191,13 @@ class HttpStackRequestWrapper : public auf::Object,
 
     virtual void OnResponseReceived(http_stack::IResponse& response) override
     {
-        ARIASDK_LOG_DETAIL("OnResponseReceived() for HttpRequest(%s)", m_id.c_str());
+        LOG_TRACE("OnResponseReceived() for HttpRequest(%s)", m_id.c_str());
         finish(&response, http_stack::HTTPSTACK_ERROR_OK);
     }
 
     virtual void OnFailure(http_stack::IResponse& response, http_stack::HTTPSTACK_ERROR failureReason) override
     {
-        ARIASDK_LOG_DETAIL("OnFailure() for HttpRequest(%s)", m_id.c_str());
+        LOG_TRACE("OnFailure() for HttpRequest(%s)", m_id.c_str());
         finish(&response, failureReason);
     }
 
@@ -218,7 +218,7 @@ unsigned HttpClient_HttpStack::s_nextRequestId = 0;
 HttpClient_HttpStack::HttpClient_HttpStack(http_stack::IHttpStack* httpStack)
   : m_httpStackRequestsMutex("AriaSDK/HttpStackRequests")
 {
-    ARIASDK_LOG_DETAIL("Initializing HttpStack...");
+    LOG_TRACE("Initializing HttpStack...");
 
     if (httpStack != nullptr) {
         m_httpStack.reset(httpStack);
@@ -239,7 +239,7 @@ HttpClient_HttpStack::HttpClient_HttpStack(http_stack::IHttpStack* httpStack)
 
 HttpClient_HttpStack::~HttpClient_HttpStack()
 {
-    ARIASDK_LOG_DETAIL("Shutting down HttpStack...");
+    LOG_TRACE("Shutting down HttpStack...");
 
     assert(m_httpStackRequests.empty());
     m_httpStackRequests.clear();
@@ -266,7 +266,7 @@ void HttpClient_HttpStack::CancelRequestAsync(std::string const& id)
     PAL::ScopedMutexLock guard(m_httpStackRequestsMutex);
     auto it = m_httpStackRequests.find(id);
     if (it != m_httpStackRequests.end()) {
-        ARIASDK_LOG_DETAIL("Aborting HttpRequest(%s)...", id.c_str());
+        LOG_TRACE("Aborting HttpRequest(%s)...", id.c_str());
         it->second->Abort();
         // The request gets removed from the map in the callback.
     }

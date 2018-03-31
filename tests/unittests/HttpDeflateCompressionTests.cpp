@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "compression/HttpDeflateCompression.hpp"
 
 using namespace testing;
@@ -10,7 +9,6 @@ using namespace ARIASDK_NS;
 
 class HttpDeflateCompressionTests : public StrictMock<Test> {
   protected:
-    MockIRuntimeConfig                                                    runtimeConfigMock;
     HttpDeflateCompression                                                compression;
     RouteSource<EventsUploadContextPtr const&>                            input;
     RouteSink<HttpDeflateCompressionTests, EventsUploadContextPtr const&> succeeded{this, &HttpDeflateCompressionTests::resultSucceeded};
@@ -18,7 +16,6 @@ class HttpDeflateCompressionTests : public StrictMock<Test> {
 
   protected:
     HttpDeflateCompressionTests()
-      : compression(runtimeConfigMock)
     {
         input                            >> compression.compress >> succeeded;
         compression.compressionFailed    >> failed;
@@ -31,9 +28,6 @@ class HttpDeflateCompressionTests : public StrictMock<Test> {
 
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
-    EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
-        .WillOnce(Return(false));
-
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
     event->body = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
@@ -47,9 +41,6 @@ TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 
 TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 {
-    EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
-        .WillOnce(Return(true));
-
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
     event->body = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
@@ -65,9 +56,6 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 
 TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 {
-    EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
-        .Times(3).WillRepeatedly(Return(true));
-
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
     event->body = {};
@@ -99,9 +87,6 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 #pragma warning(disable:4125)
 TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 {
-    EXPECT_CALL(runtimeConfigMock, IsHttpRequestCompressionEnabled())
-        .WillOnce(Return(true));
-
 #pragma warning( push )
 #pragma warning(disable: 4125)
 

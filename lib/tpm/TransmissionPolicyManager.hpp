@@ -2,23 +2,26 @@
 
 #pragma once
 #include <IBandwidthController.hpp>
-#include <IRuntimeConfig.hpp>
+
+#include "api/IRuntimeConfig.hpp"
 #include "backoff/IBackoff.hpp"
 #include "pal/PAL.hpp"
+
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
+#include "system/ITelemetrySystem.hpp"
+
 #include "DeviceStateHandler.hpp"
 #include <set>
 
 namespace ARIASDK_NS_BEGIN {
 
-
 class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyManager>
 {
   public:
-    TransmissionPolicyManager(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController);
+    TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
     virtual ~TransmissionPolicyManager();
-    virtual void scheduleUpload(int delayInMs, EventLatency latency);
+    virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
     virtual bool isUploadInProgress() { return m_uploadInProgress; }
 
   protected:
@@ -45,9 +48,12 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
 
   protected:
     std::mutex                       m_lock;
-    IRuntimeConfig&                  m_runtimeConfig;
+
+    ITelemetrySystem&                m_system;
+    IRuntimeConfig&                  m_config;
     IBandwidthController*            m_bandwidthController;
-    std::string                      m_backoffConfig;
+
+    std::string                      m_backoffConfig;           // TODO: [MG] - move to config
     std::unique_ptr<IBackoff>        m_backoff;
     DeviceStateHandler               m_deviceStateHandler;
 

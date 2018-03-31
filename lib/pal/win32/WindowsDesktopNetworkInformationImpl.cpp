@@ -6,15 +6,9 @@
 
 #include "NetworkDetector.hpp"
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
+namespace PAL_NS_BEGIN {
 
-            namespace PAL 
-            {
-                namespace MATP = ::Microsoft::Applications::Events::PAL;
-
-                NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0){ };
+                NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0) { };
                 NetworkInformationImpl::~NetworkInformationImpl() { };
 
                 class Win32NetworkInformation : public NetworkInformationImpl
@@ -101,8 +95,8 @@ namespace Microsoft {
 
                 Win32NetworkInformation::~Win32NetworkInformation()
                 {
-                    //ARIASDK_LOG_DETAIL("Win32NetworkInformation::~Win32NetworkInformation dtor");
-#ifndef NO_ROAM_SUP
+                    //LOG_TRACE("Win32NetworkInformation::~Win32NetworkInformation dtor");
+#ifndef NO_ROAM_SUP                    
                     networkDetector->Stop();
                     networkDetector->Release();
 #endif
@@ -112,7 +106,5 @@ namespace Microsoft {
                 {
                     return new Win32NetworkInformation();
                 }
-            }
-        }
-    }
-}
+} PAL_NS_END
+

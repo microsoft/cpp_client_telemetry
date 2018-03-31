@@ -21,12 +21,12 @@ struct ECSConfig
     ECSConfig()
     {
         etag = DEFAULT_CONFIG_ETAG;
-        expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN;
+        expiryUtcTimestamp = PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN;
     }
 
     std::int64_t GetExpiryTimeInSec() const
     {
-        std::int64_t currUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime();
+        std::int64_t currUtcTimestamp = PAL::getUtcSystemTime();
 
         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
     }

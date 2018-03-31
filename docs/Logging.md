@@ -7,7 +7,7 @@ both during library development and troubleshooting on customer's side.
 There are 4 preprocessor defines available for 4 log levels, each with a
 different usage recommendation:
 
--   `ARIASDK_LOG_ERROR()`  
+-   `LOG_ERROR()`  
     Errors potentially preventing the SDK from properly collecting or
     transmitting events.  
     Messages at this level should be written as nice sentences with
@@ -16,7 +16,7 @@ different usage recommendation:
     Examples: invalid input, damaged offline storage, events
     being dropped.
 
--   `ARIASDK_LOG_WARNING()`  
+-   `LOG_WARN()`
     Unexpected failures which may negatively affect performance or
     reliability of event collection and other important notices.  
     Messages at this level should be also written as nice sentences with
@@ -25,7 +25,7 @@ different usage recommendation:
     Examples: HTTP request failed (and must be retried), excessive size
     of an event, ???.
 
--   `ARIASDK_LOG_INFO()`  
+-   `LOG_INFO()`
     Higher-level information about actions performed by the library.  
     Messages at this level should be still written as nice sentences, so
     that even people not familiar with SDK internals can understand them
@@ -33,7 +33,7 @@ different usage recommendation:
     Examples: library started/stopped, event received, HTTP
     request sent.
 
--   `ARIASDK_LOG_DETAIL()`  
+-   `LOG_TRACE()`
     Other detailed information about library's processing for advanced
     debugging.  
     Messages at this level do not have to follow any particular style,
@@ -45,7 +45,7 @@ different usage recommendation:
 Nothing inside the parentheses gets evaluated unless the relevant log
 level is currently active. If that's not enough to disable some
 intrusive logging, one can use another set of macros,
-`ARIASDK_LOG_ENABLED_xxx()` where `xxx` is one of
+`EVENTS_LOG_ENABLED_xxx()` where `xxx` is one of
 `ERROR`/`WARNING`/`INFO`/`DETAIL` again, which evaluates to `true` or
 `false` depending on the state of the related log level.
 
@@ -84,11 +84,11 @@ used by the SDK:
     anything lower, we don't need to change anything on user's devices
     to see all our messages.
 
--   **`Debug4` = `ARIASDK_LOG_DETAIL()`**
+-   **`Debug4` = `LOG_TRACE()`**
 
--   **`Debug3` = `ARIASDK_LOG_INFO()`**
+-   **`Debug3` = `LOG_INFO()`**
 
--   **`Debug2` = `ARIASDK_LOG_WARNING()`**
+-   **`Debug2` = `LOG_WARN()`**
 
 -   `Debug1`  
     Never used by the SDK. This log level is "suitable for logging of
@@ -96,7 +96,7 @@ used by the SDK:
     call ended, or user login". A background service for telemetry
     collection does not have any such significant events to report.
 
--   **`Warning` = `ARIASDK_LOG_ERROR()`**  
+-   **`Warning` = `LOG_ERROR()`**  
     A log level "suitable for logging a warning when the app faced a
     potential problem that was mitigated without affecting the user
     experience in any way".

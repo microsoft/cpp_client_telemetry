@@ -1,19 +1,20 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Packager.hpp"
-#include "api/CommonLogManagerInternal.hpp"
+#include "ILogManager.hpp"
 #include "utils/Utils.hpp"
-#include "IRuntimeConfig.hpp"
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
 
-Packager::Packager(LogConfiguration& configuration, IRuntimeConfig const& runtimeConfig)
-  : m_runtimeConfig(runtimeConfig)    
+Packager::Packager(IRuntimeConfig& runtimeConfig)
+  : m_config(runtimeConfig)
 {  
-    UNREFERENCED_PARAMETER(configuration);
-    EVTStatus error;
-    m_forcedTenantToken = toLower(configuration.GetProperty("forcedTenantToken", error));   
+    const char *forcedTenantToken = runtimeConfig["forcedTenantToken"];
+    if (forcedTenantToken != nullptr)
+    {
+        m_forcedTenantToken = forcedTenantToken;
+    }
 }
 
 Packager::~Packager()
@@ -23,27 +24,27 @@ Packager::~Packager()
 void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore)
 {
     if (ctx->maxUploadSize == 0) {
-        ctx->maxUploadSize = m_runtimeConfig.GetMaximumUploadSizeBytes();
+        ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
     }
     if (ctx->splicer.getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
         wantMore = false;
         if (!ctx->recordIdsAndTenantIds.empty()) {
-            ARIASDK_LOG_DETAIL("Maximum upload size %u bytes exceeded, not adding the next event (ID %s, size %u bytes)",
+            LOG_TRACE("Maximum upload size %u bytes exceeded, not adding the next event (ID %s, size %u bytes)",
                 ctx->maxUploadSize, record.id.c_str(), static_cast<unsigned>(record.blob.size()));
             return;
         } else {
-            ARIASDK_LOG_INFO("Maximum upload size %u bytes exceeded by the first event",
+            LOG_INFO("Maximum upload size %u bytes exceeded by the first event",
                 ctx->maxUploadSize);
         }
     }
 
-    if (ctx->latency == EventPriority_Unspecified) {
+    if (ctx->latency == EventLatency_Unspecified) {
         ctx->latency = record.latency;
-        ARIASDK_LOG_DETAIL("The highest latency found was %d (%s)",
+        LOG_TRACE("The highest latency found was %d (%s)",
             ctx->latency, latencyToStr(ctx->latency));
     }
 
-    ARIASDK_LOG_DETAIL("Adding event %s:%s, size %u bytes",
+    LOG_TRACE("Adding event %s:%s, size %u bytes",
         tenantTokenToId(record.tenantToken).c_str(), record.id.c_str(), static_cast<unsigned>(record.blob.size()));
 
     std::string const& tenantToken = m_forcedTenantToken.empty() ? record.tenantToken : m_forcedTenantToken;
@@ -77,12 +78,6 @@ void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     ctx->splicer.clear();
 
     packagedEvents(ctx);
-    
-    DebugEvent evt;
-    evt.type = EVT_SENT;
-    evt.param1 = ctx->recordIdsAndTenantIds.size();
-    evt.size = ctx->recordIdsAndTenantIds.size();
-    CommonLogManagerInternal::DispatchEvent(evt);
 }
 
 

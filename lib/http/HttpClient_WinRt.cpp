@@ -55,12 +55,12 @@ namespace ARIASDK_NS_BEGIN {
 			m_httpRequestMessage(nullptr),
 			m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
 		{
-			ARIASDK_LOG_DETAIL("%p WinRtRequestWrapper()", this);
+			LOG_TRACE("%p WinRtRequestWrapper()", this);
 		}
 
 		~WinRtRequestWrapper()
 		{
-			ARIASDK_LOG_DETAIL("%p ~WinRtRequestWrapper()", this);
+			LOG_TRACE("%p ~WinRtRequestWrapper()", this);
 			::CloseHandle(m_hDoneEvent);
 		}
 
@@ -72,7 +72,7 @@ namespace ARIASDK_NS_BEGIN {
 		void cancel()
 		{
 			m_cancellationTokenSource.cancel();
-			::WaitForSingleObject(m_hDoneEvent, INFINITE);
+			::WaitForSingleObject(m_hDoneEvent, INFINITE);		
             //m_httpRequestMessage, don't need to delete, ref object framework will delete it
 		}
 
@@ -85,50 +85,65 @@ namespace ARIASDK_NS_BEGIN {
 				m_parent->m_requests[m_id] = this;
 			}
 
-			// Convert std::string to Uri
-			Uri ^ uri = ref new Uri(to_platform_string(request->m_url));
-			// Create new request message
-            if (request->m_method.compare("GET") == 0)
+            try
             {
-                m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Get, uri);
+                // Convert std::string to Uri
+                Uri ^ uri = ref new Uri(to_platform_string(request->m_url));
+                // Create new request message
+                if (request->m_method.compare("GET") == 0)
+                {
+                    m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Get, uri);
+                }
+                else
+                {
+                    m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Post, uri);
+                }
+
+                // Initialize the in-memory stream where data will be stored.
+                DataWriter^ dataWriter = ref new DataWriter();
+                dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(request->m_body.data()), (DWORD)request->m_body.size())));
+                IBuffer ^ibuffer = dataWriter->DetachBuffer();
+                HttpBufferContent^ httpBufferContent = ref new HttpBufferContent(ibuffer);
+
+                m_httpRequestMessage->Content = httpBufferContent;// ref new HttpBufferContent(ibuffer);
+
+                // Populate headers based on user-supplied headers
+                for (auto &kv : request->m_headers)
+                {
+                    Platform::String^ key = to_platform_string(kv.first);
+                    Platform::String^ value = to_platform_string(kv.second);
+
+                    if (kv.first.compare("Expect") == 0)
+                    {
+                        m_httpRequestMessage->Headers->Expect->TryParseAdd(value);
+                        continue;
+                    }
+                    if (kv.first.compare("Content-Encoding") == 0)
+                    {
+                        m_httpRequestMessage->Content->Headers->ContentEncoding->Append(ref new HttpContentCodingHeaderValue(value));
+                        continue;
+                    }
+                    if (kv.first.compare("Content-Type") == 0)
+                    {
+                        m_httpRequestMessage->Content->Headers->ContentType = ref new HttpMediaTypeHeaderValue(value);
+                        continue;
+                    }
+
+                    m_httpRequestMessage->Headers->TryAppendWithoutValidation(key, value);
+                }
             }
-            else
+            catch (Platform::Exception ^ex)
             {
-                m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Post, uri);
+                HttpResponseMessage^ failed = ref new HttpResponseMessage(HttpStatusCode::BadRequest);
+                onRequestComplete(failed);
+                return;
             }
-								
-			// Initialize the in-memory stream where data will be stored.
-			DataWriter^ dataWriter = ref new DataWriter();
-			dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(request->m_body.data()), (DWORD)request->m_body.size())));
-			IBuffer ^ibuffer = dataWriter->DetachBuffer();
-			HttpBufferContent^ httpBufferContent = ref new HttpBufferContent(ibuffer);
-
-			m_httpRequestMessage->Content = httpBufferContent;// ref new HttpBufferContent(ibuffer);
-			
-			// Populate headers based on user-supplied headers
-			for (auto &kv : request->m_headers)
-			{
-				Platform::String^ key = to_platform_string(kv.first);
-				Platform::String^ value = to_platform_string(kv.second);
-				
-				if (kv.first.compare("Expect") == 0)
-				{
-					m_httpRequestMessage->Headers->Expect->TryParseAdd(value);
-                    continue;
-				}
-				if (kv.first.compare("Content-Encoding") == 0)
-				{
-					m_httpRequestMessage->Content->Headers->ContentEncoding->Append(ref new HttpContentCodingHeaderValue(value));
-                    continue;
-				}
-				if (kv.first.compare("Content-Type") == 0)
-				{
-					m_httpRequestMessage->Content->Headers->ContentType = ref new HttpMediaTypeHeaderValue(value);
-                    continue;
-				}
-
-                m_httpRequestMessage->Headers->TryAppendWithoutValidation(key, value);
-			}
+            catch (...)
+            {
+                HttpResponseMessage^ failed = ref new HttpResponseMessage(HttpStatusCode::BadRequest);
+                onRequestComplete(failed);
+                return;
+            }
 
 			SendHttpAsyncRequest(m_httpRequestMessage);
 		}
@@ -163,13 +178,11 @@ namespace ARIASDK_NS_BEGIN {
                     }
 
                     onRequestComplete(failed);
-					printf("Connection failed!\n");
 				}
 				catch (...)
 				{
                     HttpResponseMessage^ failed = ref new HttpResponseMessage(HttpStatusCode::BadRequest);
                     onRequestComplete(failed);
-					printf("Some other unknown exception!\n");
 				}
 			});
 		}
@@ -227,11 +240,21 @@ namespace ARIASDK_NS_BEGIN {
 					}
 				}
 			}
-			
+            else
+            {
+                if (httpResponse->StatusCode == HttpStatusCode::BadRequest)
+                {
+                    response->m_result = HttpResult_LocalFailure;
+                }
+                else
+                {
+                    response->m_result = HttpResult_NetworkFailure;
+                }
+            }
 
 			m_appCallback->OnHttpResponse(response.release());
-			m_parent->signalDoneAndErase(m_id);
-			
+			m_parent->signalDoneAndErase(m_id);			
+
 		}
 	};
 

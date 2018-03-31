@@ -15,13 +15,13 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
     virtual void OnTestStart(testing::TestInfo const& test) override
     {
         using namespace testing;
-        ARIASDK_LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
+        LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
     }
 
     virtual void OnTestEnd(testing::TestInfo const& test) override
     {
         using namespace testing;
-        ARIASDK_LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
+        LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
     }
 };
 

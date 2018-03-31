@@ -1,12 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <IRuntimeConfig.hpp>
-#include <api/LogConfiguration.hpp>
+#include "api/IRuntimeConfig.hpp"
 
-namespace ARIASDK_NS_BEGIN {
-
-// TODO: [MG] - move out some constants here and below to a separate config.hpp header file
 #if defined(__linux__) || defined(__gnu_linux__)
 #define STATS_TOKEN_PROD "37f99178d02b46a4815783b92b8a5c91-4dc3ce45-9251-4684-9874-40f475c74a32-6908"
 #else
@@ -14,44 +10,166 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 #define STATS_TOKEN_INT  "8130ef8ff472405d89d6f420038927ea-0c0d561e-cca5-4c81-90ed-0aa9ad786a03-7166"
 
-class RuntimeConfig_Default : public IRuntimeConfig {
-  public:
-    RuntimeConfig_Default();
-    RuntimeConfig_Default(RuntimeConfig_Default const&) = delete;
-    RuntimeConfig_Default& operator=(RuntimeConfig_Default const&) = delete;
-    virtual ~RuntimeConfig_Default();
+namespace ARIASDK_NS_BEGIN {
 
-    void initialize(LogConfiguration& configuration);
+    static ILogConfiguration defaultRuntimeConfig
+    {
+        { CFG_INT_TRACE_LEVEL_MIN,       ACTTraceLevel::ACTTraceLevel_Error },
+        { CFG_INT_SDK_MODE,              SdkModeTypes::SdkModeTypes_Aria },
+        { CFG_BOOL_ENABLE_ANALYTICS,     false },
+        { CFG_INT_CACHE_FILE_SIZE,       3145728 },
+        { CFG_INT_RAM_QUEUE_SIZE,        524288 },
+        { CFG_BOOL_ENABLE_MULTITENANT,   true },
+        { CFG_INT_MAX_TEARDOWN_TIME,     1 },
+        { CFG_INT_MAX_PENDING_REQ,       4 },
+        { CFG_INT_RAM_QUEUE_BUFFERS,     3 },
+        { CFG_INT_TRACE_LEVEL_MASK,      0 },
+        { CFG_STR_COLLECTOR_URL,         COLLECTOR_URL_PROD },
+        { CFG_INT_STORAGE_FULL_PCT,      75 },
+        { CFG_INT_RAMCACHE_FULL_PCT,     75 },
+        { "stats",
+            {
+                { "interval",            60 },
+                { "tokenProd",           STATS_TOKEN_PROD },
+                { "tokenInt",            STATS_TOKEN_INT }
+            }
+        },
+        { "http",
+            {
+                { "compress",            false}
+            }
+        },
+        { "tpm",
+            {
+                { "maxBlobSize",        2097152 },
+                { "maxRetryCount",      5},
+                { "clockSkewEnabled",   true},
+            }
+        },
+        {
+            "sample",
+            {
+                { "rate",               0 }
+            }
+        }
+    };
 
-    virtual void SetDefaultConfig(IRuntimeConfig& defaultConfig) override;
-    virtual std::string GetCollectorUrl() const override;
-    virtual void DecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName) const override;
-    virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) const override;
-    virtual std::string GetMetaStatsTenantToken() const override;
-    virtual unsigned GetMetaStatsSendIntervalSec() const override;
-    virtual unsigned GetOfflineStorageMaximumSizeBytes() const override;
-    virtual unsigned GetOfflineStorageResizeThresholdPct() const override;
-    virtual unsigned GetMaximumRetryCount() const override;
-    virtual std::string GetUploadRetryBackoffConfig() const override;
-    virtual bool IsHttpRequestCompressionEnabled() const override;
-    virtual unsigned GetMinimumUploadBandwidthBps() const override;
-    virtual unsigned GetMaximumUploadSizeBytes() const override;
-    virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override;
-	virtual bool IsClockSkewEnabled() const override;
+    // TODO: [MG] - add ability to re-Configure with new custom config on-demand
+    
+/// <summary>
+/// This class overlays a custom configuration provided by the customer
+/// on top of default configuration above (defaultRuntimeConfig)
+/// </summary>
+/// <seealso cref="IRuntimeConfig" />
+    class RuntimeConfig_Default : public IRuntimeConfig {
 
-  protected:
-    std::string m_collectorUrl                    = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
-	std::string m_metaStatsTenantToken            = STATS_TOKEN_PROD;
-	std::string m_metaStatsTenantToken_INT        = STATS_TOKEN_INT;
-    std::string m_uploadRetryBackoffConfig        = "E,3000,300000,2,1";
-    unsigned    m_metaStatsSendIntervalSec        = 300;
-    unsigned    m_offlineStorageMaximumSize       = 3 * 1024 * 1024;
-    unsigned    m_offlineStorageResizeThreshold   = 20;
-    unsigned    m_maxRetryCount                   = 5;
-    unsigned    m_minimumUploadBandwidthBps       = 512;
-    unsigned    m_maximumUploadSizeBytes          = 1 * 1024 * 1024;
-    bool        m_isHttpRequestCompressionEnabled = true;
-};
+        ILogConfiguration config;
 
+    public:
+
+        RuntimeConfig_Default(ILogConfiguration& customConfig) :
+            RuntimeConfig_Default()
+        {
+            config.insert(customConfig.begin(), customConfig.end());
+        };
+
+        RuntimeConfig_Default()
+        {
+            config.insert(defaultRuntimeConfig.begin(), defaultRuntimeConfig.end());
+        }
+
+        virtual std::string GetCollectorUrl() override
+        {
+            const char * url = config[CFG_STR_COLLECTOR_URL];
+            return std::string(url);
+        }
+
+        virtual void DecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName) override
+        {
+            UNREFERENCED_PARAMETER(extension);
+            UNREFERENCED_PARAMETER(experimentationProject);
+            UNREFERENCED_PARAMETER(eventName);
+        };
+
+        virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) override
+        {
+            UNREFERENCED_PARAMETER(tenantId);
+            UNREFERENCED_PARAMETER(eventName);
+            return EventLatency_Normal;
+        };
+
+        virtual std::string GetMetaStatsTenantToken() override
+        {
+            const char* token = config["stats"]["tokenProd"];
+            return std::string(token);
+        };
+
+        virtual unsigned GetMetaStatsSendIntervalSec() override
+        {
+            return config["stats"]["interval"];
+        }
+
+        virtual unsigned GetOfflineStorageMaximumSizeBytes() override
+        {
+            return config[CFG_INT_CACHE_FILE_SIZE];
+        };
+
+        virtual unsigned GetOfflineStorageResizeThresholdPct() override
+        {
+            // FIXME
+            return 99;
+        }
+
+        virtual unsigned GetMaximumRetryCount() override
+        {
+            return config["tpm"]["maxRetryCount"];
+        }
+
+        virtual std::string GetUploadRetryBackoffConfig() override
+        {
+            // FIXME
+            return "";
+        }
+
+        virtual bool IsHttpRequestCompressionEnabled() override
+        {
+            return config["http"]["compress"];
+        }
+
+        virtual unsigned GetMinimumUploadBandwidthBps() override
+        {
+            // FIXME
+            return 0;
+        }
+
+        virtual unsigned GetMaximumUploadSizeBytes() override
+        {
+            return config["tpm"]["maxBlobSize"];
+        }
+
+        virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override
+        {
+            // FIXME
+            UNREFERENCED_PARAMETER(tenantId);
+            UNREFERENCED_PARAMETER(eventName);
+            UNREFERENCED_PARAMETER(latency);
+        }
+
+        virtual bool IsClockSkewEnabled() override
+        {
+            return config["tpm"]["clockSkewEnabled"];
+        }
+
+        uint32_t GetTeardownTime() override
+        {
+            return config[CFG_INT_MAX_TEARDOWN_TIME];
+        }
+
+        virtual Variant & operator[](const char* key)
+        {
+            return config[key];
+        }
+
+    };
 
 } ARIASDK_NS_END

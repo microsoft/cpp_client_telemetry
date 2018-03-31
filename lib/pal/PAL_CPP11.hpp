@@ -4,18 +4,14 @@
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
-#include <ISemanticContext.hpp>
 
-#include <atomic>
-#include <condition_variable>
-#include <climits>
-#include <chrono>
-#include <thread>
+#include <ISemanticContext.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+
 #include <Windows.h>
 #include <Rpc.h>
 #endif
@@ -25,6 +21,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+
 #include <functional>
 #include <list>
 #include <map>
@@ -33,15 +30,16 @@
 #include <type_traits>
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
+#include <climits>
+#include <chrono>
+#include <thread>
+
 #include "typename.hpp"
 
-
 namespace ARIASDK_NS_BEGIN {
-
     extern void print_backtrace();
-
-    namespace
-        PAL {
+}
 
 #ifdef _WIN32
 #define PATH_SEPARATOR_CHAR '\\'
@@ -49,6 +47,11 @@ namespace ARIASDK_NS_BEGIN {
 #define PATH_SEPARATOR_CHAR '/'
 #endif
 
+namespace PAL_NS_BEGIN {
+
+    class INetworkInformation;
+    class IDeviceInformation;
+    
 #ifdef USE_REFCOUNTER
         extern std::map<std::string, std::tuple<
             //size_t, size_t, size_t, size_t
@@ -396,16 +399,16 @@ namespace ARIASDK_NS_BEGIN {
                 Reset();
             }
 
-            bool wait(unsigned msec = UINT_MAX) const
+            bool wait(unsigned millis = UINT_MAX) const
             {
-                if (msec == UINT_MAX)
+                if (millis == UINT_MAX)
                 {
                     std::unique_lock< std::mutex > lock(m_mutex);
                     m_condition.wait(lock, [&]()->bool {return m_bFlag; });
                     return true;
                 }
 
-                auto crRelTime = std::chrono::microseconds(msec);
+                auto crRelTime = std::chrono::milliseconds(millis);
                 std::unique_lock<std::mutex> ulock(m_mutex);
                 if (!m_condition.wait_for(ulock, crRelTime, [&]()->bool {return m_bFlag; }))
                     return false;
@@ -544,7 +547,7 @@ namespace ARIASDK_NS_BEGIN {
         template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
         void executeOnWorkerThread(TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
         {
-        	// ARIASDK_LOG_INFO(">>>>>>>>>>>>>>>>>>>>> executeOnWorkerThread: %s (%p)", __typename(obj), obj);
+        	// LOG_INFO(">>>>>>>>>>>>>>>>>>>>> executeOnWorkerThread: %s (%p)", __typename(obj), obj);
             static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value, "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
 
             auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
@@ -564,7 +567,7 @@ namespace ARIASDK_NS_BEGIN {
         template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
         DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
         {
-        	// ARIASDK_LOG_INFO(">>>>>>>>>>>>>>>>>>>>> scheduleOnWorkerThread: %s (%p)", __typename(obj), obj);
+        	// LOG_INFO(">>>>>>>>>>>>>>>>>>>>> scheduleOnWorkerThread: %s (%p)", __typename(obj), obj);
 
             static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value, "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
             auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
@@ -593,7 +596,7 @@ namespace ARIASDK_NS_BEGIN {
         // Pseudo-random number generator (not for cryptographic usage).
         // The instances are not thread-safe, serialize access externally if needed.
         class PseudoRandomGenerator {
-#if 0
+#ifdef _WIN32
         public:
             double getRandomDouble()
             {
@@ -603,7 +606,7 @@ namespace ARIASDK_NS_BEGIN {
         protected:
             std::default_random_engine m_engine{ std::random_device()() };
             std::uniform_real_distribution<double> m_distribution{ 0.0, 1.0 };
-#else
+#else   /* Unfortunately the functionality above fails memory checker on Linux with gcc-5 */
         public:
             double getRandomDouble()
             {
@@ -639,5 +642,5 @@ namespace ARIASDK_NS_BEGIN {
         // Return SDK version in Aria schema "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
         std::string getSdkVersion();
 
-    } // namespace PAL
-}ARIASDK_NS_END
+} PAL_NS_END
+

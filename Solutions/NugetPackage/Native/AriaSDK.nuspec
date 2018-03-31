@@ -4,13 +4,13 @@
         <id>AriaSDKV2</id>
         <version>5.0.0</version>
         <title>Microsoft.Applications.Telemetry.Windows</title>
-        <authors>Aria Engineering - Client SDK (ariaecsdk@microsoft.com)</authors>
-        <owners>Aria Engineering - Client SDK (ariaecsdk@microsoft.com)</owners>
+        <authors>Aria Engineering - SDKs (ariaesdks@microsoft.com)</authors>
+        <owners>Aria Engineering - SDKs (ariaesdks@microsoft.com)</owners>
         <projectUrl>https://aria.microsoft.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A component to send telemetry data to ARIA from Windows applications</description>
         <copyright>Microsoft</copyright>
-        <tags>"MS Internal Only" ARIA Windows Desltop Mobile Telemetry SDK</tags>
+        <tags>MS_Internal_Only ARIA Windows Desktop Mobile Telemetry SDK</tags>
     </metadata>
     <files>
         <file src="include\*.*" target="include" />

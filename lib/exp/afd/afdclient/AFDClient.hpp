@@ -36,7 +36,8 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual bool RemoveListener(IAFDClientCallback* listener);
 
         // Register a logger to auto-tag events sent by the logger with AFD configuration infos like ETag
-        virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName);
+
+        virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName);
              
         virtual bool SetRequestParameters(const std::map<std::string, std::string>& requestParams);
         
@@ -91,7 +92,8 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         void _ValidateAFDClientConfiguration(const AFDClientConfiguration& config);
         void _LogEXPConfigUpdateEvent( EXPConfigUpdateResult result, EXPConfigUpdateSource source);
         void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-        void _UpdateLoggerWithEXPConfig(Microsoft::Applications::Events::ILogger* pLogger, std::string agentName);
+        void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, std::string agentName);
+
         void _UpdateLoggersWithEXPConfig();
         std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
         void LoadActiveConfigs();

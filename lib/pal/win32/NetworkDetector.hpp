@@ -53,145 +53,136 @@ using namespace ABI::Windows::Networking::Connectivity;
 
 using namespace std;
 
-#if 0
-#define TRACE     std::printf
-#endif
+namespace ARIASDK_NS_BEGIN
+{
+    namespace Windows {
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events {
+        /// <summary>
+        /// Host name information structure
+        /// </summary>
+        struct HostNameInfo {
+            GUID            adapterId;
+            unsigned char   prefixLength;
+            std::string     address;
+        };
 
-            namespace Windows {
+        /// <summary>
+        /// Convert HString to std::string
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        std::string to_string(const HString *name);
 
-                /// <summary>
-                /// Host name information structure
-                /// </summary>
-                struct HostNameInfo {
-                    GUID            adapterId;
-                    unsigned char   prefixLength;
-                    std::string     address;
-                };
+        /// <summary>
+        /// Convert GUID to std::string
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        std::string to_string(GUID guid);
 
-                /// <summary>
-                /// Convert HString to std::string
-                /// </summary>
-                /// <param name="name"></param>
-                /// <returns></returns>
-                std::string to_string(const HString *name);
+        class NetworkDetector : public INetworkEvents, INetworkConnectionEvents, INetworkListManagerEvents {
 
-                /// <summary>
-                /// Convert GUID to std::string
-                /// </summary>
-                /// <param name="guid"></param>
-                /// <returns></returns>
-                std::string to_string(GUID guid);
+        private:
+            /// <summary>
+            /// Obtain network cost RO. This function does not handle potential exceptions and must only be called from GetNetworkCost()
+            /// </summary>
+            /// <returns></returns>
+            NetworkCost _GetCurrentNetworkCost();
 
-                class NetworkDetector: public INetworkEvents, INetworkConnectionEvents, INetworkListManagerEvents {
+            /// <summary>
+            /// runs the main message loop
+            /// </summary>
+            void run();
 
-                private:
-                    /// <summary>
-                    /// Obtain network cost RO. This function does not handle potential exceptions and must only be called from GetNetworkCost()
-                    /// </summary>
-                    /// <returns></returns>
-                    NetworkCost _GetCurrentNetworkCost();
+            /// <summary>
+            /// Register and listen to network state notifications
+            /// </summary>
+            /// <returns></returns>
+            bool RegisterAndListen();
 
-                    /// <summary>
-                    /// runs the main message loop
-                    /// </summary>
-                    void run();
+            bool IsWindows8orLater();
 
-                    /// <summary>
-                    /// Register and listen to network state notifications
-                    /// </summary>
-                    /// <returns></returns>
-                    bool RegisterAndListen();
-
-                    bool IsWindows8orLater();
-
-                    std::vector<std::string>            m_networks;
-                    std::map<std::string, NLM_CONNECTIVITY> m_networks_connectivity;
-                    std::map<std::string, NLM_CONNECTIVITY> m_connections_connectivity;
-                    std::vector<HostNameInfo>           m_hostnames;
-                    int                                 m_currentNetworkCost;
-                    ULONG                               m_lRef;
-                    DWORD                               m_listener_tid;
-                    NLM_CONNECTIVITY                    m_connectivity;                   
-                    /// COM INetworkListManager
-                    INetworkListManager*                pNlm;
-                    std::mutex                          m_lock;
-                    std::condition_variable             cv;
-                    bool                                isRunning;
-                    std::thread                         netDetectThread;
-                    ComPtr<IUnknown>                    pSink;
-                    HANDLE                              m_syncEvent;
+            std::vector<std::string>            m_networks;
+            std::map<std::string, NLM_CONNECTIVITY> m_networks_connectivity;
+            std::map<std::string, NLM_CONNECTIVITY> m_connections_connectivity;
+            std::vector<HostNameInfo>           m_hostnames;
+            int                                 m_currentNetworkCost;
+            ULONG                               m_lRef;
+            DWORD                               m_listener_tid;
+            NLM_CONNECTIVITY                    m_connectivity;
+            /// COM INetworkListManager
+            INetworkListManager*                pNlm;
+            std::mutex                          m_lock;
+            std::condition_variable             cv;
+            bool                                isRunning;
+            std::thread                         netDetectThread;
+            ComPtr<IUnknown>                    pSink;
+            HANDLE                              m_syncEvent;
 
 
-                public:
+        public:
 
-                    /// <summary>
-                    /// 
-                    /// </summary>
-                    bool isUp() const { return isRunning; };
+            /// <summary>
+            /// 
+            /// </summary>
+            bool isUp() const { return isRunning; };
 
-                    /// <summary>
-                    /// Createa network status listener
-                    /// </summary>
-                    NetworkDetector():
-                        pNlm(NULL),
-                        isRunning(false),                     
-                        m_currentNetworkCost(0),
-                        m_lRef(0),
-                        m_syncEvent(::CreateEvent(NULL, FALSE, TRUE, NULL))
-                        {}
+            /// <summary>
+            /// Createa network status listener
+            /// </summary>
+            NetworkDetector() :
+                pNlm(NULL),
+                isRunning(false),
+                m_currentNetworkCost(0),
+                m_lRef(0),
+                m_syncEvent(::CreateEvent(NULL, FALSE, TRUE, NULL))
+            {}
 
-                    virtual ~NetworkDetector();
-                    bool Start();
-                    void Stop();
+            virtual ~NetworkDetector();
+            bool Start();
+            void Stop();
 
-                    /// <summary>
-                    /// Get current network cost
-                    /// </summary>
-                    /// <returns></returns>
-                    int NetworkDetector::GetCurrentNetworkCost();
+            /// <summary>
+            /// Get current network cost
+            /// </summary>
+            /// <returns></returns>
+            int NetworkDetector::GetCurrentNetworkCost();
 
-                    /// <summary>
-                    /// Get last cached network cost
-                    /// </summary>
-                    /// <returns></returns>
-                    NetworkCost const& NetworkDetector::GetNetworkCost() const;
+            /// <summary>
+            /// Get last cached network cost
+            /// </summary>
+            /// <returns></returns>
+            NetworkCost const& NetworkDetector::GetNetworkCost() const;
 
 
-                    int NetworkDetector::GetConnectivity() const;
+            int NetworkDetector::GetConnectivity() const;
 
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity() const;
-                    const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity() const;
+            const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity() const;
+            const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity() const;
 
-                public:
+        public:
 
-                    // Inherited via INetworkListManagerEvents
-                    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) override;
-                    virtual ULONG   STDMETHODCALLTYPE AddRef(void) override;
-                    virtual ULONG   STDMETHODCALLTYPE Release(void) override;
-                    virtual HRESULT STDMETHODCALLTYPE ConnectivityChanged(NLM_CONNECTIVITY newConnectivity) override;
+            // Inherited via INetworkListManagerEvents
+            virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) override;
+            virtual ULONG   STDMETHODCALLTYPE AddRef(void) override;
+            virtual ULONG   STDMETHODCALLTYPE Release(void) override;
+            virtual HRESULT STDMETHODCALLTYPE ConnectivityChanged(NLM_CONNECTIVITY newConnectivity) override;
 
-                    // Inherited via INetworkEvents
-                    virtual HRESULT STDMETHODCALLTYPE NetworkAdded(GUID networkId) override;
-                    virtual HRESULT STDMETHODCALLTYPE NetworkDeleted(GUID networkId) override;
-                    virtual HRESULT STDMETHODCALLTYPE NetworkConnectivityChanged(GUID networkId, NLM_CONNECTIVITY newConnectivity) override;
-                    virtual HRESULT STDMETHODCALLTYPE NetworkPropertyChanged(GUID networkId, NLM_NETWORK_PROPERTY_CHANGE flags) override;
+            // Inherited via INetworkEvents
+            virtual HRESULT STDMETHODCALLTYPE NetworkAdded(GUID networkId) override;
+            virtual HRESULT STDMETHODCALLTYPE NetworkDeleted(GUID networkId) override;
+            virtual HRESULT STDMETHODCALLTYPE NetworkConnectivityChanged(GUID networkId, NLM_CONNECTIVITY newConnectivity) override;
+            virtual HRESULT STDMETHODCALLTYPE NetworkPropertyChanged(GUID networkId, NLM_NETWORK_PROPERTY_CHANGE flags) override;
 
-                    // Inherited via INetworkConnectionEvents
-                    virtual HRESULT STDMETHODCALLTYPE NetworkConnectionConnectivityChanged(GUID connectionId, NLM_CONNECTIVITY newConnectivity) override;
-                    virtual HRESULT STDMETHODCALLTYPE NetworkConnectionPropertyChanged(GUID connectionId, NLM_CONNECTION_PROPERTY_CHANGE flags) override;
-                };
+            // Inherited via INetworkConnectionEvents
+            virtual HRESULT STDMETHODCALLTYPE NetworkConnectionConnectivityChanged(GUID connectionId, NLM_CONNECTIVITY newConnectivity) override;
+            virtual HRESULT STDMETHODCALLTYPE NetworkConnectionPropertyChanged(GUID connectionId, NLM_CONNECTION_PROPERTY_CHANGE flags) override;
+        };
 
-            }
-        }
     }
-}
+} ARIASDK_NS_END
 
-namespace MAT  = Microsoft::Applications::Events;
-namespace MATW = Microsoft::Applications::Events::Windows;
+namespace MATW = MAT::Windows;
 
 #endif
 

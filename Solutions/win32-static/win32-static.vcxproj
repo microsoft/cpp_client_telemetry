@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(SolutionDir)\VersionInfo.rc" />
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)\PAL\win32\WindowsEnvironmentInfo.h" />
@@ -89,30 +89,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(SolutionDir)\out\$(Configuration)\$(Platform);$(SolutionDir)\out\$(Configuration)\$(Platform)\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
     <LibraryWPath />
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
@@ -120,7 +116,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
@@ -139,8 +135,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>msxml6.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <ForceFileOutput>
@@ -171,18 +167,18 @@
       <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"></AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MachineX86</TargetMachine>
     </Lib>
     <Bscmake>
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
     </Bscmake>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
@@ -197,7 +193,7 @@
       <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -214,8 +210,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>z.lib;auf.lib;aux_skype.lib;spl.lib;msxml6.lib;openssl.lib;httpstack.lib;wininet.lib;json.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>msxml6.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <ForceFileOutput>
@@ -245,18 +241,18 @@
       <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"></AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TargetMachine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MachineX86</TargetMachine>
     </Lib>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">z.lib;auf.lib;aux_skype.lib;spl.lib;openssl.lib;json.lib;httpstack.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\sysroot\$(QBConfigId)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
-  <Import Project="$(SolutionDir)\build.props" />
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

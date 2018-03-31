@@ -459,7 +459,7 @@ class Reactor : protected Thread
         } else {
             auto it = std::find(m_sockets.begin(), m_sockets.end(), socket);
             if (it == m_sockets.end()) {
-                ARIASDK_LOG_DETAIL("Reactor: Adding socket %d with flags %d", static_cast<int>(socket), flags);
+                LOG_TRACE("Reactor: Adding socket %d with flags %d", static_cast<int>(socket), flags);
 #ifdef _WIN32
                 m_events.push_back(::WSACreateEvent());
 #else
@@ -473,7 +473,7 @@ class Reactor : protected Thread
                 m_sockets.back().flags = 0;
                 it = m_sockets.end() - 1;
             } else {
-                ARIASDK_LOG_DETAIL("Reactor: Updating socket %d with flags %d", static_cast<int>(socket), flags);
+                LOG_TRACE("Reactor: Updating socket %d with flags %d", static_cast<int>(socket), flags);
             }
 
             if (it->flags != flags) {
@@ -517,7 +517,7 @@ class Reactor : protected Thread
 
     void removeSocket(Socket socket)
     {
-        ARIASDK_LOG_DETAIL("Reactor: Removing socket %d", static_cast<int>(socket));
+        LOG_TRACE("Reactor: Removing socket %d", static_cast<int>(socket));
         auto it = std::find(m_sockets.begin(), m_sockets.end(), socket);
         if (it != m_sockets.end()) {
 #ifdef _WIN32
@@ -534,13 +534,13 @@ class Reactor : protected Thread
 
     void start()
     {
-        ARIASDK_LOG_INFO("Reactor: Starting...");
+        LOG_INFO("Reactor: Starting...");
         startThread();
     }
 
     void stop()
     {
-        ARIASDK_LOG_INFO("Reactor: Stopping...");
+        LOG_INFO("Reactor: Stopping...");
         joinThread();
 
 #ifdef _WIN32
@@ -559,7 +559,7 @@ class Reactor : protected Thread
   protected:
     virtual void onThread() override
     {
-        ARIASDK_LOG_INFO("Reactor: Thread started");
+        LOG_INFO("Reactor: Thread started");
         while (!shouldTerminate()) {
 #ifdef _WIN32
             DWORD dwResult = ::WSAWaitForMultipleEvents(static_cast<DWORD>(m_events.size()), m_events.data(), FALSE, 500, FALSE);
@@ -574,7 +574,7 @@ class Reactor : protected Thread
 
             WSANETWORKEVENTS ne;
             ::WSAEnumNetworkEvents(socket, m_events[index], &ne);
-            ARIASDK_LOG_DETAIL("Reactor: Handling socket %d (index %d) with active flags %d (armed %d)", static_cast<int>(socket), index, ne.lNetworkEvents, flags);
+            LOG_TRACE("Reactor: Handling socket %d (index %d) with active flags %d (armed %d)", static_cast<int>(socket), index, ne.lNetworkEvents, flags);
 
             if ((flags & Readable) && (ne.lNetworkEvents & FD_READ)) {
                 m_callback.onSocketReadable(socket);
@@ -602,7 +602,7 @@ class Reactor : protected Thread
                 Socket socket = it->socket;
                 int flags = it->flags;
 
-                ARIASDK_LOG_DETAIL("Reactor: Handling socket %d active flags %d (armed %d)", static_cast<int>(socket), events[i].events, flags);
+                LOG_TRACE("Reactor: Handling socket %d active flags %d (armed %d)", static_cast<int>(socket), events[i].events, flags);
 
                 if ((flags & Readable) && (events[i].events & EPOLLIN)) {
                     m_callback.onSocketReadable(socket);
@@ -619,7 +619,7 @@ class Reactor : protected Thread
             }
 #endif
         }
-        ARIASDK_LOG_INFO("Reactor: Thread done");
+        LOG_INFO("Reactor: Thread done");
     }
 };
 

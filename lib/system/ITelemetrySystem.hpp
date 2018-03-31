@@ -1,36 +1,58 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef ITELEMETRYSYSTEM_HPP
+#define ITELEMETRYSYSTEM_HPP
 
-#pragma once
-#include <Version.hpp>
+#include <pal/PAL.hpp>
+
 #include "bond/BondSerializer.hpp"
+
+#include "ILogManager.hpp"
+
+#include "api/IRuntimeConfig.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
+    class DebugEventDispatcher;
+    
+    /// <summary>
+    /// Common interface of a telemetry system
+    /// </summary>
+    /// <seealso cref="DebugEventDispatcher" />
+    class ITelemetrySystem : public DebugEventDispatcher
+    {
+    public:
+        virtual ~ITelemetrySystem() {};
 
-class ITelemetrySystem 
-{
-  public:
-    virtual ~ITelemetrySystem() {};
+        // Transmission control
+        virtual void start() = 0;
+        virtual void stop() = 0;
+        virtual void pause() = 0;
+        virtual void resume() = 0;
+        virtual void upload() = 0;
 
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void pauseTransmission() = 0;
-    virtual void resumeTransmission() = 0;
-    virtual void UploadNow() = 0;
+        // Access to common core components
+        virtual ILogManager& getLogManager() = 0;
+        virtual IRuntimeConfig& getConfig() = 0;
+        virtual ISemanticContext& getContext() = 0;
 
-    virtual void addIncomingEventSystem(IncomingEventContextPtr const& event) = 0;
+        // Debug functionality
+        virtual bool DispatchEvent(DebugEvent evt) = 0;
 
-  protected:
-    virtual void startAsync() = 0;
-    virtual void stopAsync() = 0;
-    virtual void handleFlushWorkerThread() = 0;
-    virtual void signalDoneEvent() = 0;
-    virtual void pauseTransmissionAsync() = 0;
-    virtual void resumeTransmissionAsync() = 0;
-    virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) = 0;
-    virtual void preparedIncomingEventAsync(IncomingEventContextPtr const& event) = 0;
-  
-};
+        // Core sendEvent
+        virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
 
+    protected:
+        virtual void startAsync() = 0;
+        virtual void stopAsync() = 0;
+        virtual void handleFlushWorkerThread() = 0;
+        virtual void signalDone() = 0;
+        virtual void pauseAsync() = 0;
+        virtual void resumeAsync() = 0;
+        virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) = 0;
+        virtual void preparedIncomingEventAsync(IncomingEventContextPtr const& event) = 0;
 
+    };
+    
 } ARIASDK_NS_END
+
+#endif

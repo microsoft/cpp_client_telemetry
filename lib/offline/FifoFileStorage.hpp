@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Version.hpp>
+#include <pal/PAL.hpp>
+
 #include "IStorage.hpp"
 #include <queue>
 #include <vector>
@@ -9,6 +10,10 @@
 #include <stddef.h>
 #include <list>
 #include <map>
+
+#ifndef _MSC_VER
+#include "linux/sal.h"
+#endif
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -115,7 +120,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-
+    // [MG] FIXME: below structure is different between 32-bit and 64-bit!
     /** \brief A structure to define the file header.
     */
     struct  FileHeader
@@ -126,7 +131,7 @@ namespace ARIASDK_NS_BEGIN {
 
         /** \brief file size
         */
-		fpos_t  fileSize;
+        size_t  fileSize;
 
         /** \brief block numbers.
         */
@@ -222,7 +227,7 @@ namespace ARIASDK_NS_BEGIN {
 
         /** \brief Free *buffer and set it to NULL.
         */
-        virtual void Free(void **buffer);
+        virtual void Free(char** buffer);
 
         /** \brief Delete file with give filePath.
 
@@ -303,7 +308,7 @@ namespace ARIASDK_NS_BEGIN {
 		int  ReadFileInfo();
         void CheckBlockInfo();
         void BuildIndexInfo();
-        static std::uint64_t CalculateFileSize(std::uint64_t fileSize, size_t alignSize);
+        static size_t CalculateFileSize(size_t fileSize, size_t alignSize);
 		int  GenerateFile();
 		int  UpdateBlockToDisk(LogicalBlockInfo& idx, const char *buffer, size_t buffSize);
 		size_t  FillFileHeader(size_t size, size_t block_size);
@@ -380,7 +385,7 @@ namespace ARIASDK_NS_BEGIN {
         */
 		int  PrepareFileForWrite();
 		int  AdjustFileSize(size_t newFileSize);
-        static std::uint64_t  AlignToPower(std::uint64_t size, std::uint64_t alignSize);
+        static size_t  AlignToPower(size_t size, size_t alignSize);
 
         // Replica created for find operation
         // std::list<LogicalBlockInfo> m_LogicalBlocksReplica;

@@ -2,7 +2,6 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include <api/ILogManagerInternal.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
@@ -20,7 +19,6 @@ class MultipleLogManagersTests : public ::testing::Test,
     std::list<HttpServer::Request> receivedRequests;
     std::string                    serverAddress;
     LogConfiguration               config1, config2;
-    MockIRuntimeConfig             runtimeConfig1, runtimeConfig2;
     HttpServer                     server;
 
   public:
@@ -34,8 +32,8 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         server.addHandler("/1/", *this);
         server.addHandler("/2/", *this);
-        expectRuntimeConfig(runtimeConfig1, serverAddress + "/1/");
-        expectRuntimeConfig(runtimeConfig2, serverAddress + "/2/");
+        // expectRuntimeConfig(runtimeConfig1, serverAddress + "/1/");
+        // expectRuntimeConfig(runtimeConfig2, serverAddress + "/2/");
 
         server.start();
 

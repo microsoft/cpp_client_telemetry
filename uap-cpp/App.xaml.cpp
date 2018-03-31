@@ -5,9 +5,9 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
-#include "public/LogManager.hpp"
+#include "LogManager.hpp"
 
-using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Telemetry;
 
 using namespace uap_cpp;
 
@@ -35,10 +35,27 @@ extern "C" void SendTelemetryEvents() {
 	logger->LogEvent("Event_Simple");
 	logger2->LogEvent("Event_Simple");
 
-	EventProperties properties("Test_EVENT_NAME");
+	EventProperties properties("YOUR_EVENT_NAME");
 	properties.SetPriority(EventPriority_High);
-    properties.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
 	properties.SetProperty("String_Property", "String Value");
+
+	AggregatedMetricData metricData("Aggregated Metric 1", 10, 100);
+	logger->LogAggregatedMetric(metricData, properties);
+	logger2->LogAggregatedMetric(metricData, properties);
+
+	PageActionData pageData("page_view_id", ActionType_Click);
+
+	logger->LogPageAction(pageData, properties);
+	logger2->LogPageAction(pageData, properties);
+
+	logger->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
+	logger2->LogAppLifecycle(AppLifecycleState_Launch, EventProperties(""));
+
+	logger->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
+	logger->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
+
+	logger2->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
+	logger2->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
 
 	try {
 		EventProperties properties2("Bad_Event");

@@ -9,7 +9,7 @@ namespace ARIASDK_NS_BEGIN {
 
 
 HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)
-  : m_runtimeConfig(runtimeConfig)
+  : m_config(runtimeConfig)
 {
 }
 
@@ -19,7 +19,7 @@ HttpDeflateCompression::~HttpDeflateCompression()
 
 bool HttpDeflateCompression::handleCompress(EventsUploadContextPtr const& ctx)
 {
-    if (!m_runtimeConfig.IsHttpRequestCompressionEnabled()) {
+    if (!m_config.IsHttpRequestCompressionEnabled()) {
         return true;
     }
 
@@ -34,7 +34,7 @@ bool HttpDeflateCompression::handleCompress(EventsUploadContextPtr const& ctx)
     // without zlib header, as required by IIS.
     int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
     if (result != Z_OK) {
-        ARIASDK_LOG_WARNING("HTTP request compressing failed, error=%u/%u (%s)", 1, result, stream.msg);
+        LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 1, result, stream.msg);
         compressionFailed(ctx);
         return false;
     }
@@ -70,7 +70,7 @@ bool HttpDeflateCompression::handleCompress(EventsUploadContextPtr const& ctx)
     deflateEnd(&stream);
 
     if (result != Z_STREAM_END) {
-        ARIASDK_LOG_WARNING("HTTP request compressing failed, error=%u/%u (%s)", 2, result, stream.msg);
+        LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 2, result, stream.msg);
         compressionFailed(ctx);
         return false;
     }

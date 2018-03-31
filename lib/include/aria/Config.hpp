@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Version.hpp"
+#include "pal/PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN 
 {
@@ -11,12 +11,12 @@ const char* const TC_DEFAULT_UI_VERSION = "1000/1.8.0.0";
 const char* const TC_DEFAULT_OFFLINE_STORAGE_PATH = "c:\\offlinestorage.db";
 
 /// Default collector url to send events to
-const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
-const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/OneCollector/1.0";
+const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0";
+//const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/Collector/3.0/";
 
 /// Default collector url to send BOLBs to
 /// Note: the actual value of the DEFAULT_BLOB_COLLECTOR_URL_PROD is TBD
-const char* const TC_DEFAULT_BLOB_COLLECTOR_URL_PROD = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
+//const char* const TC_DEFAULT_BLOB_COLLECTOR_URL_PROD = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
 
 // Default size limit for storing events in offline storage file
 // It should be enough to save all messages in cache queue.
@@ -254,7 +254,7 @@ const unsigned int STORAGE_NEAR_FULL_PCT = 75;
 const unsigned int UPLOAD_NOW_LIMITER = 30; // 30 seconds
 
 const char* const EVENTRECORD_TYPE_CUSTOM_EVENT     = "custom";
-const char* const EVENTRECORD_TYPE_ARIASDK_LOG_DETAIL  = "ARIASDK_LOG_DETAIL";
+const char* const EVENTRECORD_TYPE_LOG_TRACE  = "LOG_TRACE";
 
 const char* const COMMONFIELDS_APP_ID               = "AppInfo.Id";
 const char* const COMMONFIELDS_APP_VERSION          = "AppInfo.Version";
@@ -314,6 +314,124 @@ bool  const ENABLE_HMAC_SHA256                      = true;
 const char* const HMAC_ENCRYPTION_KEY               = "bdyt7XVQVWYzXCviDbKMDktZZBIbjA7g9pdjXEYtsSUNPQHpBPofMgx9SrFFNZI9";
 const char* const HMAC_CLIENT_ID                    = "CppNativeLibrary";
 const char* const TICKETS_PREPAND_STRING            = "1000";
+
+
+//---------------------------------------------------------------------------
+// Metastats field name (FN) aliases
+//---------------------------------------------------------------------------
+
+// main counts
+const char* const FN_RECEIVED_COUNT                 = "records_received_count";
+//const char* const FN_TRIED_SEND_COUNT             = "records_tried_to_send_count";
+const char* const FN_SENT_COUNT                     = "records_sent_count";
+const char* const FN_DROPPED_COUNT                  = "records_dropped_count";			    //no longer includes overflow
+const char* const FN_REJECTED_COUNT                 = "r_count";						    //was records_rejected_count
+const char* const FN_SENT_CURR_SESSION              = "records_sent_curr_session";          //should this be shorter?
+const char* const FN_SENT_PREV_SESSION              = "records_sent_prev_session";          //should this be shorter?
+
+// intermediate state
+const char* const FN_IN_FLIGHT                      = "infl";
+const char* const FN_IN_STORAGE                     = "inol";
+
+// offline storage counts
+const char* const FN_OFFLINE_READ                   = "ol_r";
+const char* const FN_OFFLINE_WRITE                  = "ol_w";
+const char* const FN_OFFLINE_FORMAT                 = "ol_f";                               //offline_storage_format_type
+const char* const FN_OFFLINE_LAST_FAIL              = "ol_last_fail";                       //offline_storage_last_failure
+const char* const FN_OFFLINE_CONFIG_BYTES           = "ol_bytes";                           //config_offline_storage_size_bytes
+
+
+// reject reasons
+const char* const FN_REJECT_SIZE_LIMIT              = "r_size";                             
+const char* const FN_REJECT_INVALID                 = "r_inv"; 								// invalid event or property name; invalid event tenant??
+//const char* const FN_REJECT_INVALID_PII           = "r_invpii";
+//const char* const FN_REJECT_UNKNOWN               = "r_unk";
+const char* const FN_REJECT_BANNED                  = "r_ban";							    //was records_banned_count
+const char* const FN_REJECT_SERVER_REJECTED         = "r_403";							    
+//const char* const FN_REJECT_KILLED                = "r_kl";
+//const char* const FN_REJECT_PAUSED                = "r_ps";
+//invalid_message_type??
+//required_argument_missing??
+//old_record_version??
+//event_expired??
+
+
+// drop reasons
+//const char* const FN_DROP_OFFLINE_DISABLED        = "d_disk_off";
+const char* const FN_DROP_SERVER_DECLINED           = "h";
+//const char* const FN_DROP_CODE_ERROR              = "d_assert";
+//const char* const FN_DROP_IMMEDIATE_CODE          = "d_im_h_%d";
+//const char* const FN_DROP_IMMEDIATE_NOT_200       = "d_im_h";
+//const char* const FN_DROP_BAD_TENANT              = "d_bad_tenant";
+const char* const FN_DROP_DISK_FULL                 = "d_disk_full"; 						//was records_dropped_offline_storage_overflow
+const char* const FN_DROP_IO_FAIL                   = "d_io_fail";							//was records_dropped_offline_storage_save_failed
+//const char* const FN_DROP_BOND_FAIL               = "d_bond_fail";                        //records_dropped_serialization_failed AND records_dropped_categorization_failed from V1?
+//const char* const FN_DROP_UNKNOWN                 = "d_unk";
+const char* const FN_DROP_RETRY_LIMIT               = "d_retry_lmt";						//was records_dropped_retry_exceeded
+
+// retry
+const char* const FN_RETRY                          = "retry";
+
+// retry reasons
+//const char* const FN_RETRY_HTTP                   = "rt_h_%d";
+//const char* const FN_RETRY_UNKNOWN                = "rt_unk";
+//const char* const FN_RETRY_CANCELLED              = "rt_cancel";
+//const char* const FN_RETRY_BAD_URL                = "rt_badurl";
+//const char* const FN_RETRY_TIMED_OUT              = "rt_timeout";
+//const char* const FN_RETRY_BAD_HOST               = "rt_badhost";
+//const char* const FN_RETRY_BAD_CONNECTION         = "rt_badconn";
+//const char* const FN_RETRY_LOST_CONNECTION        = "rt_lostconn";
+//const char* const FN_RETRY_DNS                    = "rt_dns";
+//const char* const FN_RETRY_TOO_MANY_REDIRECTS     = "rt_maxred";
+//const char* const FN_RETRY_RESOURCE_UNAVAILABLE   = "rt_nores";
+//const char* const FN_RETRY_NO_INTERNET            = "rt_nonet";
+
+// wake up tpm notification
+//const char* const FN_WAKE_UP_TPM                  = "tpm_wakeup";
+
+// Other
+//record_size_bytes_max
+//record_size_bytes_min
+//records_received_size_bytes
+//record_size_kb_distribution
+
+//requests_acked_succeeded
+//requests_acked_retried
+//requests_acked_dropped
+
+//exceptions_per_eventtype_count
+//records_per_eventtype_count
+
+// Package stats
+//requests_acked_dropped_on_HTTP
+//requests_acked_retried_on_HTTP
+
+
+// Priority-based reason codes
+// Low Priority
+//const char* const FN_LP_REJECT_BANNED             = "lp_r_ban";	                                //*_records_banned_count
+//const char* const FN_LP_RECEIVED_COUNT            = "lp_records_received_count";                 //*_records_received_count
+//const char* const FN_LP_SENT_COUNT                = "lp_records_sent_count";	                        //*_records_sent_count
+//const char* const FN_LP_SENT_CURR_SESSION         = "lp_records_sent_curr_session";           //*_records_sent_count_current_session
+//const char* const FN_LP_SENT_PREV_SESSION         = "lp_records_sent_prev_session";           //*_records_sent_count_previous_sessions
+//const char* const FN_LP_DROPPED_COUNT             = "lp_records_dropped_count";                   //*_records_dropped_count
+//const char* const FN_LP_REJECTED_COUNT            = "lp_r_count";                                //*_records_dropped_count                                                                                                
+//const char* const FN_LP_RECEIVED_BYTES            = "lp_records_received_size_bytes";            //*_records_received_size_bytes
+//const char* const FN_LP_LOG_SUCCESS_SEND_LATENCY_MILLISEC_MAX = "lp_log_to_successful_send_latency_millisec_max"; //*_log_to_successful_send_latency_millisec_max
+//const char* const FN_LP_LOG_SUCCESS_SEND_LATENCY_MILLISEC_MIN = "lp_log_to_successful_send_latency_millisec_min";//*_log_to_successful_send_latency_millisec_min
+
+
+// Normal Priority
+
+
+// High Priority
+
+
+// Immediate Priority
+
+
+// Background Priority
+
 
 
 } ARIASDK_NS_END

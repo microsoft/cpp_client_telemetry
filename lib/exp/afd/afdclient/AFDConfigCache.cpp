@@ -8,8 +8,8 @@
 #include "pal/UtcHelpers.hpp"
 #include "AFDClientUtils.hpp"
 
-using namespace Microsoft::Applications::Events;
-using namespace Microsoft::Applications::Events::PAL;
+using namespace MAT;
+using namespace PAL;
 using namespace std;
 
 namespace Microsoft {
@@ -21,7 +21,7 @@ namespace Microsoft {
                     : m_pOfflineStorage(NULL)
                 {
                     // save the offline storage path
-                    ARIASDK_LOG_DETAIL("[AFDClient]: initializing AFDConfigCache(%s)", storagePath.c_str());
+                    LOG_TRACE("[AFDClient]: initializing AFDConfigCache(%s)", storagePath.c_str());
 
                     //default storage path
                     if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
@@ -29,7 +29,7 @@ namespace Microsoft {
                         std::string tempDirectroryPath = GetAppLocalTempDirectory();
                         if (!tempDirectroryPath.empty())
                         {
-                            m_OfflineStoragePath = tempDirectroryPath + storagePath;
+                            m_OfflineStoragePath = tempDirectroryPath + PATH_SEPARATOR_CHAR + storagePath;
                         }
                     }
                     else
@@ -83,7 +83,7 @@ namespace Microsoft {
                         }
                         else
                         {
-                            ARIASDK_LOG_ERROR("[AFDClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
+                            LOG_ERROR("[AFDClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
                         }
                     }
                     return returnValue;
@@ -91,7 +91,7 @@ namespace Microsoft {
 
                 bool AFDConfigCache::_LoadConfig()
                 {                   
-                    ARIASDK_LOG_DETAIL("[AFDClient]: loading configs from local cache [%s]", m_OfflineStoragePath.c_str());
+                    LOG_TRACE("[AFDClient]: loading configs from local cache [%s]", m_OfflineStoragePath.c_str());
                     char* buff = NULL;
                     size_t size = 0;
 
@@ -102,13 +102,13 @@ namespace Microsoft {
                             int ret = m_pOfflineStorage->PopNextItem(&buff, size, NULL);
                             if (ret < 0)
                             {
-                                ARIASDK_LOG_ERROR("[AFDClient]: Failed to load config from local cache");
+                                LOG_ERROR("[AFDClient]: Failed to load config from local cache");
                                 return false;
                             }
 
                             if (!ret || !size)
                             {
-                                ARIASDK_LOG_DETAIL("[AFDClient]: No config found in local cache");
+                                LOG_TRACE("[AFDClient]: No config found in local cache");
                                 return true;
                             }
                         }
@@ -126,24 +126,24 @@ namespace Microsoft {
                     try
                     {
                         configSettings = json::parse(buff);
-                        free(buff);
+                        delete[] buff;
                         buff = NULL;
                     }
                     catch (...)
                     {
-                        free(buff);
+                        delete[] buff;
                         buff = NULL;
-                        ARIASDK_LOG_ERROR("[AFDClient]: Failed to parse config loaded from local cache");
+                        LOG_ERROR("[AFDClient]: Failed to parse config loaded from local cache");
                         return false;
                     }
 
 
-                    ARIASDK_LOG_DETAIL("[AFDClient]: Config loaded from local cache has successfully parsed");
+                    LOG_TRACE("[AFDClient]: Config loaded from local cache has successfully parsed");
 
                     // the parsed config should be json array
                     if (!configSettings.is_array())
                     {
-                        ARIASDK_LOG_ERROR("[AFDClient]: Parsed config is of wrong format");
+                        LOG_ERROR("[AFDClient]: Parsed config is of wrong format");
                         return false;
                     }
 
@@ -156,7 +156,7 @@ namespace Microsoft {
                         if (jconfig.end() == requestName)
                         {
                             // can't get the RequestName for this config, ignore it
-                            ARIASDK_LOG_WARNING("[AFDClient]: No RequestName found in this config, skip it.");
+                            LOG_WARN("[AFDClient]: No RequestName found in this config, skip it.");
                             continue;
                         }
 
@@ -231,7 +231,7 @@ namespace Microsoft {
                         m_configs[config.requestName] = config;
                     }
 
-                    ARIASDK_LOG_DETAIL("[AFDClient]: Done loading %u configs from offline storage [%s]", m_configs.size(), m_OfflineStoragePath.c_str());
+                    LOG_TRACE("[AFDClient]: Done loading %u configs from offline storage [%s]", m_configs.size(), m_OfflineStoragePath.c_str());
                    
                     return true;
                 }
@@ -239,7 +239,7 @@ namespace Microsoft {
                 // currently, we only save the defauflt config, and the activeConfig
                 bool AFDConfigCache::SaveConfig(const AFDConfig& config)
                 {
-                    ARIASDK_LOG_DETAIL("[AFDClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());
+                    LOG_TRACE("[AFDClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());
                     bool returnValue = false;
                     if (m_pOfflineStorage == NULL)
                     {
@@ -252,7 +252,7 @@ namespace Microsoft {
                         }
                         else
                         {
-                            ARIASDK_LOG_ERROR("[AFDClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
+                            LOG_ERROR("[AFDClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
                         }
                     }
                     return returnValue;
@@ -260,7 +260,7 @@ namespace Microsoft {
                 // currently, we only save the defauflt config, and the activeConfig
                 bool AFDConfigCache::_SaveConfig(const AFDConfig& config)
                 {
-                    ARIASDK_LOG_DETAIL("[AFDClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());
+                    LOG_TRACE("[AFDClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());
 
                     std::vector<AFDConfig> configsToSave;
 
@@ -384,7 +384,7 @@ namespace Microsoft {
 
                                 if (ret < 0)
                                 {
-                                    ARIASDK_LOG_ERROR("[AFDClient]: Failed to clean-up existing configs, abort saving configs.");
+                                    LOG_ERROR("[AFDClient]: Failed to clean-up existing configs, abort saving configs.");
                                     StopAndDestroyOfflineStorage();
                                     return false;
                                 }
@@ -399,25 +399,27 @@ namespace Microsoft {
                             int ret = m_pOfflineStorage->SaveItem(configsStr.c_str(), configsStr.size() + 1, NULL);
                             if (RES_SUCC != ret)
                             {
-                                ARIASDK_LOG_ERROR("[AFDClient]: Failed to save configs to offline storage, error=%d).", ret);
+                                LOG_ERROR("[AFDClient]: Failed to save configs to offline storage, error=%d).", ret);
                                 return false;
                             }
                         }
                     }
 
-                    ARIASDK_LOG_DETAIL("[AFDClient]: Done saving %u configs to offline storage", configsToSave.size());
+                    LOG_TRACE("[AFDClient]: Done saving %u configs to offline storage", configsToSave.size());
                     
                     return true;
                 }
 
-                Microsoft::Applications::Events::IStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
+
+                MAT::IStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
                 {
                     std::lock_guard<std::mutex> lock(m_lock);
                     // create offline storage
-                    Microsoft::Applications::Events::IStorage* pOfflineStorage = new FIFOFileStorage(); ;
+                    MAT::IStorage* pOfflineStorage = new FIFOFileStorage(); ;
+
                     if (!pOfflineStorage)
                     {
-                        ARIASDK_LOG_ERROR("[AFDClient]: Failed to create offline storage");
+                        LOG_ERROR("[AFDClient]: Failed to create offline storage");
                         return NULL;
                     }
 
@@ -425,7 +427,7 @@ namespace Microsoft {
                     int err = pOfflineStorage->Open(storagePath.c_str(), 0/*sizeLimitInBytes*/);
                     if (err)
                     {
-                        ARIASDK_LOG_ERROR("[AFD]: initialize offline storage failed, err: %d", err);
+                        LOG_ERROR("[AFD]: initialize offline storage failed, err: %d", err);
                         delete pOfflineStorage;
                         return NULL;
                     }

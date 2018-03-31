@@ -73,26 +73,26 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);F:\prj\win32\dpp\ecg;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);;F:\prj\$(Configuration)\$(Platform)\$(PlatformToolset)\</LibraryPath>
+    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);</LibraryPath>
     <ExcludePath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);F:\prj\win32\dpp\ecg;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);;F:\prj\$(Configuration)\$(Platform)\$(PlatformToolset)\</LibraryPath>
+    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);</LibraryPath>
     <ExcludePath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);F:\prj\win32\dpp\ecg;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\prj\win32\$(Configuration)\$(Platform)\$(PlatformToolset)\;$(VC_IncludePath);$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);;F:\prj\$(Configuration)\$(Platform)\$(PlatformToolset)\</LibraryPath>
+    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_IncludePath);$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);</LibraryPath>
     <ExcludePath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);F:\prj\win32\dpp\ecg;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\prj\win32\$(Configuration)\$(Platform)\$(PlatformToolset)\;$(VC_IncludePath);$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);;F:\prj\$(Configuration)\$(Platform)\$(PlatformToolset)\</LibraryPath>
+    <IncludePath>$(WindowsSDK_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_IncludePath);$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);</LibraryPath>
     <ExcludePath />
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -110,7 +110,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <Profile>true</Profile>
@@ -142,7 +142,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <Profile>true</Profile>
@@ -175,7 +175,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x86</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
     </Link>
@@ -207,7 +207,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ClientTelemetry.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(Configuration)\$(Platform)\win32-dll\bin;$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRTSdkDir)\lib\$(TargetUniversalCRTVersion)\um\x64</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
     </Link>
@@ -247,7 +247,7 @@
       <Project>{82c8ee9a-f706-4a97-9eea-1d7b5fc9e6db}</Project>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(SolutionDir)\build.props" />
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

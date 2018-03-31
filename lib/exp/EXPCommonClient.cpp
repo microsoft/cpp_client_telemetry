@@ -23,8 +23,8 @@
 #endif
 
 using namespace std;
-using namespace Microsoft::Applications::Events;
-using namespace Microsoft::Applications::Events::PAL;
+using namespace MAT;
+using namespace PAL;
 
 namespace Microsoft {
     namespace Applications {
@@ -74,22 +74,22 @@ namespace Microsoft {
                 m_retryTimeFactor(0),
                 m_messageProcessingTaskScheduled(false)
             {
-                ARIASDK_LOG_DETAIL("ExpCommonClient c'tor: this=0x%x", this);
+                LOG_TRACE("ExpCommonClient c'tor: this=0x%x", this);
 
-                ARIASDK_NS::PAL::initialize();
+                PAL::initialize();
 
 #if ARIASDK_PAL_SKYPE
-                ARIASDK_LOG_DETAIL("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
+                LOG_TRACE("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
                 m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
 #define HTTP_AVAIL
 #endif
 
 #if ARIASDK_PAL_WIN32 || defined(_MSC_VER)
 #ifdef _WINRT_DLL
-                ARIASDK_LOG_DETAIL("HttpClient: WinRt");
+                LOG_TRACE("HttpClient: WinRt");
                 m_httpClient = new HttpClient_WinRt();
 #else 
-                ARIASDK_LOG_DETAIL("HttpClient: WinInet");
+                LOG_TRACE("HttpClient: WinInet");
                 m_httpClient = new HttpClient_WinInet();
 #endif
 #define HTTP_AVAIL
@@ -111,7 +111,7 @@ namespace Microsoft {
             ******************************************************************************/
             ExpCommon::~ExpCommon()
             {
-                ARIASDK_LOG_DETAIL("ExpCommon d'tor: this=0x%x", this);
+                LOG_TRACE("ExpCommon d'tor: this=0x%x", this);
 
                 if (m_status == EXP_STARTED)
                 {
@@ -126,7 +126,7 @@ namespace Microsoft {
                 }
                 if (m_httpClient) delete m_httpClient;
 
-                ARIASDK_NS::PAL::shutdown();
+                PAL::shutdown();
 
                 std::lock_guard<std::mutex> lockguard(m_smalllock);
                 std::lock_guard<std::mutex> lock(m_lock);                
@@ -146,11 +146,11 @@ namespace Microsoft {
 
             bool ExpCommon::RegisterLogger(ILogger* pLogger, const string& agentName)
             {
-                ARIASDK_LOG_DETAIL("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
+                LOG_TRACE("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
 
                 if (pLogger == NULL || agentName.empty())
                 {
-                    ARIASDK_LOG_ERROR("RegisterLogger: Either the logger provided is null or the agentname is empty");
+                    LOG_ERROR("RegisterLogger: Either the logger provided is null or the agentname is empty");
                     return false;
                 }
 
@@ -159,7 +159,7 @@ namespace Microsoft {
 
                     if (m_registeredLoggers.find(pLogger) != m_registeredLoggers.end())
                     {
-                        ARIASDK_LOG_ERROR("RegisterLogger: Logger provided was registered already");
+                        LOG_ERROR("RegisterLogger: Logger provided was registered already");
                         return false;
                     }
 
@@ -182,7 +182,7 @@ namespace Microsoft {
                 if (m_status != EXP_INITIALIZED &&
                     m_status != EXP_STOPPED)
                 {
-                    ARIASDK_LOG_ERROR("Start: ExpCommon hasn't been initialzied or has already started");
+                    LOG_ERROR("Start: ExpCommon hasn't been initialzied or has already started");
                     return false;
                 }
 
@@ -190,7 +190,7 @@ namespace Microsoft {
                 m_retryBackoffTimes = retryTimes;
 
                 m_status = EXP_STARTED;
-                ARIASDK_LOG_DETAIL("Start: ExpCommon successfully started");
+                LOG_TRACE("Start: ExpCommon successfully started");
 
                 // dispatch message to asynchronously refetch the active config from EXP server if necessary
                 Message message(MT_RELOAD_CONFIG);
@@ -210,7 +210,7 @@ namespace Microsoft {
             bool ExpCommon::Resume()
             {
                 m_status = EXP_STARTED;
-                ARIASDK_LOG_DETAIL("Start: ExpCommon successfully started");
+                LOG_TRACE("Start: ExpCommon successfully started");
 
                 // dispatch message to asynchronously refetch the active config from EXP server if necessary
                 Message message(MT_RELOAD_CONFIG);
@@ -231,7 +231,7 @@ namespace Microsoft {
             {	
                 _StopInternal();
 
-                ARIASDK_LOG_DETAIL("Suspend: ExpCommon successfully suspended");
+                LOG_TRACE("Suspend: ExpCommon successfully suspended");
                 m_status = EXP_SUSPENDED;
 
                 return true;
@@ -249,7 +249,7 @@ namespace Microsoft {
 
                 _StopInternal();
 
-                ARIASDK_LOG_DETAIL("Stop: ExpCommon successfully stopped");				
+                LOG_TRACE("Stop: ExpCommon successfully stopped");				
 
                 return true;
             }
@@ -291,7 +291,7 @@ namespace Microsoft {
             ******************************************************************************/
             bool ExpCommon::SetRequestParameters(const std::map<std::string, std::string>& requestParams, bool setUserId)
             {
-                ARIASDK_LOG_DETAIL("SetRequestParameters[%d]: ExpCommon=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
+                LOG_TRACE("SetRequestParameters[%d]: ExpCommon=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
 
                 std::map<std::string, std::string> requestParamsLocal;
 
@@ -329,7 +329,7 @@ namespace Microsoft {
             {
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
+                    LOG_TRACE("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
                     return;
                 }
                 std::lock_guard<std::mutex> lockguard(m_smalllock);
@@ -353,11 +353,11 @@ namespace Microsoft {
             ******************************************************************************/
             void ExpCommon::handleMessageTask()
             {
-                ARIASDK_LOG_DETAIL("handleMessageTask: ");
+                LOG_TRACE("handleMessageTask: ");
 
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("handleMessageTask: [Status=%d]", m_status);
+                    LOG_TRACE("handleMessageTask: [Status=%d]", m_status);
                     return;
                 }
                                 
@@ -386,7 +386,7 @@ namespace Microsoft {
 
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("handleMessageTask: [Status=%d]", m_status);
+                    LOG_TRACE("handleMessageTask: [Status=%d]", m_status);
                     return;
                 }
 
@@ -395,7 +395,7 @@ namespace Microsoft {
                     m_clientPtr->HandleConfigSave(isActiveConfigSwitchedSaveNeeded, isActiveConfigUpdatedOnEXPSaveNeeded);
                 }
 
-                ARIASDK_LOG_DETAIL("OnTimerElapsed: messages handled, lock released.");
+                LOG_TRACE("OnTimerElapsed: messages handled, lock released.");
             }
 
             /******************************************************************************
@@ -413,7 +413,7 @@ namespace Microsoft {
             {
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("_HandleMessages: Timer wake-up ignored[Status=%d]", m_status);
+                    LOG_TRACE("_HandleMessages: Timer wake-up ignored[Status=%d]", m_status);
                     return;
                 }
                 isActiveConfigSwitched = false;
@@ -428,7 +428,7 @@ namespace Microsoft {
                 {
                     Message& msg = msgs.front();
 
-                    ARIASDK_LOG_DETAIL("_HandleMessages: Processing message [type=%u]", msg.type);
+                    LOG_TRACE("_HandleMessages: Processing message [type=%u]", msg.type);
                     switch (msg.type)
                     {
                     case MT_HTTP_CALLBACK:
@@ -441,7 +441,7 @@ namespace Microsoft {
                         break;
 
                     default:
-                        ARIASDK_LOG_ERROR("_HandleMessages: Unexpected message [type=%u]", msg.type);
+                        LOG_ERROR("_HandleMessages: Unexpected message [type=%u]", msg.type);
                         assert(false);
                         break;
                     }
@@ -492,11 +492,11 @@ namespace Microsoft {
             {
                 UNREFERENCED_PARAMETER(isActiveConfigSwitched);
                 UNREFERENCED_PARAMETER(isActiveConfigSwitchedSaveNeeded);
-                ARIASDK_LOG_DETAIL("_HandleConfigRefetch: Reload/Re-fetch config for RequestName=%s", msg.requestName.c_str());
+                LOG_TRACE("_HandleConfigRefetch: Reload/Re-fetch config for RequestName=%s", msg.requestName.c_str());
 
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("_HandleConfigRefetch: Timer wake-up ignored[Status=%d]", m_status);
+                    LOG_TRACE("_HandleConfigRefetch: Timer wake-up ignored[Status=%d]", m_status);
                     return;
                 }
 
@@ -516,7 +516,7 @@ namespace Microsoft {
             {
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
+                    LOG_TRACE("OnTimerElapsed: Timer wake-up ignored[Status=%d]", m_status);
                     return;
                 }
                 unsigned int expiryTimeInSec = 0;
@@ -535,7 +535,7 @@ namespace Microsoft {
                     }
                 }
 
-                ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Config still valid [Expires in %d sec]", expiryTimeInSec);
+                LOG_TRACE("_HandleConfigReloadAndRefetch: Config still valid [Expires in %d sec]", expiryTimeInSec);
 
                 if (m_messageProcessingTaskScheduled)
                 {
@@ -556,7 +556,7 @@ namespace Microsoft {
 
             void ExpCommon::_FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromEXP)
             {
-                ARIASDK_LOG_DETAIL("_FireExpCommonEvent[%d]:  EventType=%d, ConfigUpdateFromEXP=%d", evtType, fConfigUpdateFromEXP);
+                LOG_TRACE("_FireExpCommonEvent[%d]:  EventType=%d, ConfigUpdateFromEXP=%d", evtType, fConfigUpdateFromEXP);
                 if (m_clientPtr)
                 {
                     m_clientPtr->FireClientEvent(evtType, fConfigUpdateFromEXP);
@@ -575,7 +575,7 @@ namespace Microsoft {
                     string eTag = etag;
                     pLoggerCtx->SetAppExperimentETag(eTag);
 
-                    ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, eTag.c_str());
+                    LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, eTag.c_str());
 
                     // For version 1 the ConfigIDs are not under the EventToConfigIds mapping.
                     // Read V1 value and set it first.
@@ -583,7 +583,7 @@ namespace Microsoft {
                     // the V2 value will override the V1 value.
                     if (!configIds.empty())
                     {
-                        ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) SetAppExperimentIds configIds=%s", pLogger, configIds.c_str());
+                        LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) SetAppExperimentIds configIds=%s", pLogger, configIds.c_str());
                         pLoggerCtx->SetAppExperimentIds(configIds);
                     }
                 }
@@ -600,12 +600,12 @@ namespace Microsoft {
                     string eTag = etag;
                     pLoggerCtx->SetAppExperimentETag(eTag);
 
-                    ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, eTag.c_str());
+                    LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, eTag.c_str());
 
                     // For version 2, the ConfigIDs are under the EventToConfigIds
                     for (std::map<std::string, std::string>::const_iterator iter  = eventconfigIds.begin(); iter != eventconfigIds.end(); iter++)
                     {						
-                        ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) SetEventExperimentIds eventName=%s, eventConfigIds=%s", pLogger, iter->first.c_str(), iter->second.c_str());
+                        LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) SetEventExperimentIds eventName=%s, eventConfigIds=%s", pLogger, iter->first.c_str(), iter->second.c_str());
                         pLoggerCtx->SetEventExperimentIds(iter->first, iter->second);
                     }
 
@@ -616,7 +616,7 @@ namespace Microsoft {
 
             void ExpCommon::_LogEXPConfigEvent(EventProperties& evtProperties)
             {
-                ARIASDK_LOG_DETAIL("_LogEXPConfigEvent[%d]: ExpCommon=0x%x, logger count=%u", __LINE__, this, m_registeredLoggers.size());
+                LOG_TRACE("_LogEXPConfigEvent[%d]: ExpCommon=0x%x, logger count=%u", __LINE__, this, m_registeredLoggers.size());
 
                 for (std::map<ILogger *, string>::iterator it = m_registeredLoggers.begin(); it != m_registeredLoggers.end(); it++)
                 {
@@ -704,10 +704,10 @@ namespace Microsoft {
 
                 Message message(MT_HTTP_CALLBACK);
                 message.statusCode = response->GetStatusCode();
-                ARIASDK_LOG_DETAIL("OnHttpCallback: respondse headers received");
+                LOG_TRACE("OnHttpCallback: respondse headers received");
                 message.headers = response->GetHeaders();
 
-                ARIASDK_LOG_DETAIL("OnHttpCallback: respondse body received");
+                LOG_TRACE("OnHttpCallback: respondse body received");
                 std::vector<uint8_t> body = response->GetBody();
                 if (body.size() > 0)
                 {
@@ -725,7 +725,7 @@ namespace Microsoft {
                 // it will ignored
                 if (m_status != EXP_STARTED)
                 {
-                    ARIASDK_LOG_DETAIL("OnHttpCallback: callback ignored[Status=%d]", m_status);
+                    LOG_TRACE("OnHttpCallback: callback ignored[Status=%d]", m_status);
                     return;
                 }
 

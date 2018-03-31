@@ -12,131 +12,153 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class EventPropertiesDecorator : public DecoratorBase {
-  public:
-    EventPropertiesDecorator()
-    {
-    }
+    class EventPropertiesDecorator : public DecoratorBase {
 
-    bool decorate(::AriaProtocol::CsEvent& record, EventLatency& latency, EventProperties const& eventProperties)
-    {
-        if (eventProperties.GetName().empty()) {
-            // OK, using some default set by earlier decorator.
-        } 
-        else 
+    public:
+        EventPropertiesDecorator(ILogManager& owner) :
+            DecoratorBase(owner) {};
+
+        bool decorate(::AriaProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {
-            EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
-            if (isValidEventName != REJECTED_REASON_OK) {
-                ARIASDK_LOG_ERROR("Invalid event properties!");
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_REJECTED;
-                evt.param1 = isValidEventName;
-                CommonLogManagerInternal::DispatchEvent(evt);
-                return false;
+            if (eventProperties.GetName().empty()) {
+                // OK, using some default set by earlier decorator.
             }
-        }
-
-        if (record.data.size() == 0)
-        {
-            ::AriaProtocol::Data data;
-            record.data.push_back(data);
-        }
-
-        record.popSample = eventProperties.GetPopSample();
-
-        int64_t flags = 0;
-        if (EventPersistence_Critical == eventProperties.GetPersistence())
-        {
-            flags = flags | 0x02;
-        }
-        else
-        {
-            flags = flags | 0x01;
-        }
-
-
-        if (eventProperties.GetLatency() >= EventLatency_RealTime)
-        {
-            flags = flags | 0x0200;
-        }
-        else if(EventLatency_CostDeferred == eventProperties.GetLatency())
-        {
-            flags = flags | 0x0300;
-        }
-        else
-        {
-            flags = flags | 0x0100;
-        }
-        record.flags = flags;
-                
-        std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
-        std::map<std::string, ::AriaProtocol::Value> extPartB;
-
-		for (auto &kv : eventProperties.GetProperties()) {
-
-            EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
-            if (isValidPropertyName != REJECTED_REASON_OK)
+            else
             {
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_REJECTED;
-                evt.param1 = isValidPropertyName;
-                CommonLogManagerInternal::DispatchEvent(evt);
-				return false;
-			}
-			auto k = kv.first;
-			auto v = kv.second;
-			if (v.piiKind != PiiKind_None)
+                EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
+                if (isValidEventName != REJECTED_REASON_OK) {
+                    LOG_ERROR("Invalid event properties!");
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_REJECTED;
+                    evt.param1 = isValidEventName;
+                    m_owner.DispatchEvent(evt);
+                    return false;
+                }
+            }
+
+            if (record.data.size() == 0)
             {
-                if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
-                {  //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                    AriaProtocol::CustomerContent cc;
-                    cc.Kind = AriaProtocol::CustomerContentKind::GenericContent;
-                    AriaProtocol::Value temp;
+                ::AriaProtocol::Data data;
+                record.data.push_back(data);
+            }
 
-                    AriaProtocol::Attributes attrib;
-                    attrib.customerContent.push_back(cc);
+            record.popSample = eventProperties.GetPopSample();
 
-                    temp.attributes.push_back(attrib);
-                    temp.stringValue = v.to_string();
-                    if (v.dataCategory == DataCategory_PartB)
-                    {
-                        extPartB[k] = temp;
-                    }
-                    else
-                    {
-                        ext[k] = temp;
-                    }
-                 
-                }
-                else
-                { //ARIASDK_LOG_DETAIL("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                    AriaProtocol::PII pii;
-                    pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
-                    AriaProtocol::Value temp;
-
-                    AriaProtocol::Attributes attrib;
-                    attrib.pii.push_back(pii);
+            int64_t flags = 0;
+            if (EventPersistence_Critical == eventProperties.GetPersistence())
+            {
+                flags = flags | 0x02;
+            }
+            else
+            {
+                flags = flags | 0x01;
+            }
 
 
-                    temp.attributes.push_back(attrib);
-                    temp.stringValue = v.to_string();
-                    if (v.dataCategory == DataCategory_PartB)
-                    {
-                        extPartB[k] = temp;
-                    }
-                    else
-                    {
-                        ext[k] = temp;
-                    }
-                }
-			}
-			else {
-				std::vector<uint8_t> guid;
-				uint8_t guid_bytes[16] = { 0 };
+            if (eventProperties.GetLatency() >= EventLatency_RealTime)
+            {
+                flags = flags | 0x0200;
+            }
+            else if (EventLatency_CostDeferred == eventProperties.GetLatency())
+            {
+                flags = flags | 0x0300;
+            }
+            else
+            {
+                flags = flags | 0x0100;
+            }
+            record.flags = flags;
 
-				switch (v.type)
+            std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
+            std::map<std::string, ::AriaProtocol::Value> extPartB;
+
+            for (auto &kv : eventProperties.GetProperties()) {
+
+                EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
+                if (isValidPropertyName != REJECTED_REASON_OK)
                 {
-				    case EventProperty::TYPE_STRING:
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_REJECTED;
+                    evt.param1 = isValidPropertyName;
+                    m_owner.DispatchEvent(evt);
+                    return false;
+                }
+                auto k = kv.first;
+                auto v = kv.second;
+                if (v.piiKind != PiiKind_None)
+                {
+                    if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
+                    {  //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                        AriaProtocol::CustomerContent cc;
+                        cc.Kind = AriaProtocol::CustomerContentKind::GenericContent;
+                        AriaProtocol::Value temp;
+
+                        AriaProtocol::Attributes attrib;
+                        attrib.customerContent.push_back(cc);
+
+                        temp.attributes.push_back(attrib);
+                        temp.stringValue = v.to_string();
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+
+                    }
+                    else
+                    { //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                        AriaProtocol::PII pii;
+                        pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
+                        AriaProtocol::Value temp;
+
+                        AriaProtocol::Attributes attrib;
+                        attrib.pii.push_back(pii);
+
+
+                        temp.attributes.push_back(attrib);
+                        temp.stringValue = v.to_string();
+                        if (v.dataCategory == DataCategory_PartB)
+                        {
+                            extPartB[k] = temp;
+                        }
+                        else
+                        {
+                            ext[k] = temp;
+                        }
+#if 0 /* v2 code */
+                        if (v.piiKind != PiiKind_None)
+                        {
+                            //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                            AriaProtocol::PII pii;
+                            pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
+                            pii.RawContent = v.to_string();
+                            // ScrubType = 1 is the O365 scrubber which is the default behavior.
+                            // pii.ScrubType = static_cast<PIIScrubber>(O365);
+                            pii.ScrubType = AriaProtocol::O365;
+                            PIIExtensions[k] = pii;
+                            // 4. Send event's Pii context fields as record.PIIExtensions
+                        }
+                        else
+                        {
+                            //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                            AriaProtocol::CustomerContent cc;
+                            cc.Kind = static_cast<AriaProtocol::CustomerContentKind>(v.ccKind);
+                            cc.RawContent = v.to_string();
+                            ccExtensions[k] = cc;
+                            // 4. Send event's Pii context fields as record.PIIExtensions
+#endif
+                    }
+                }
+                else {
+                    std::vector<uint8_t> guid;
+                    uint8_t guid_bytes[16] = { 0 };
+
+                    switch (v.type)
+                    {
+                    case EventProperty::TYPE_STRING:
                     {
                         AriaProtocol::Value temp;
                         temp.stringValue = v.to_string();
@@ -150,7 +172,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    case EventProperty::TYPE_INT64:
+                    case EventProperty::TYPE_INT64:
                     {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueInt64;
@@ -165,7 +187,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    case EventProperty::TYPE_DOUBLE:
+                    case EventProperty::TYPE_DOUBLE:
                     {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueDouble;
@@ -180,7 +202,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    case EventProperty::TYPE_TIME:
+                    case EventProperty::TYPE_TIME:
                     {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
@@ -195,7 +217,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    case EventProperty::TYPE_BOOLEAN:
+                    case EventProperty::TYPE_BOOLEAN:
                     {
                         AriaProtocol::Value temp;
                         temp.type = ::AriaProtocol::ValueKind::ValueBool;
@@ -210,7 +232,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    case EventProperty::TYPE_GUID:
+                    case EventProperty::TYPE_GUID:
                     {
                         GUID_t temp = v.as_guid;
                         temp.to_bytes(guid_bytes);
@@ -218,7 +240,7 @@ class EventPropertiesDecorator : public DecoratorBase {
 
                         AriaProtocol::Value tempValue;
                         tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
-                        tempValue.guidValue.push_back( guid);
+                        tempValue.guidValue.push_back(guid);
                         if (v.dataCategory == DataCategory_PartB)
                         {
                             extPartB[k] = tempValue;
@@ -284,7 +306,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         {
                             tempValue.to_bytes(guid_bytes);
                             guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-                            values.push_back(guid);                            
+                            values.push_back(guid);
                         }
                         temp.guidArray.push_back(values);
                         if (v.dataCategory == DataCategory_PartB)
@@ -297,7 +319,7 @@ class EventPropertiesDecorator : public DecoratorBase {
                         }
                         break;
                     }
-				    default:
+                    default:
                     {
                         // Convert all unknown types to string
                         AriaProtocol::Value temp;
@@ -311,40 +333,40 @@ class EventPropertiesDecorator : public DecoratorBase {
                             ext[k] = temp;
                         }
                     }
-				}
-			}
-		}
-
-        if (eventProperties.GetLatency() != EventLatency_Unspecified) {
-            latency = eventProperties.GetLatency();
-        }
-
-        if (extPartB.size() > 0)
-        {
-            ::AriaProtocol::Data partBdata;
-            partBdata.properties = extPartB;
-            record.baseData.push_back(partBdata);
-        }
-        // special case of CorrelationVector value
-        if (ext.count(CorrelationVector::PropertyName) > 0)
-        {
-            AriaProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
-
-            if (cvValue.type == ::AriaProtocol::ValueKind::ValueString)
-            {
-                record.cV = cvValue.stringValue;
-            }
-            else
-            {
-                ARIASDK_LOG_DETAIL("CorrelationVector value type is invalid %u", cvValue.type);
+                    }
+                }
             }
 
-            ext.erase(CorrelationVector::PropertyName);
+                if (eventProperties.GetLatency() != EventLatency_Unspecified) {
+                    latency = eventProperties.GetLatency();
+                }
+
+                if (extPartB.size() > 0)
+                {
+                    ::AriaProtocol::Data partBdata;
+                    partBdata.properties = extPartB;
+                    record.baseData.push_back(partBdata);
+                }
+                // special case of CorrelationVector value
+                if (ext.count(CorrelationVector::PropertyName) > 0)
+                {
+                    AriaProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
+
+                    if (cvValue.type == ::AriaProtocol::ValueKind::ValueString)
+                    {
+                        record.cV = cvValue.stringValue;
+                    }
+                    else
+                    {
+                        LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
+                    }
+
+                    ext.erase(CorrelationVector::PropertyName);
+                }
+
+                return true;
         }
 
-        return true;
-    }  
-  
-};
+    };
 
 } ARIASDK_NS_END

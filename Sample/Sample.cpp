@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 //#include <aria/DebugEvents.hpp>
-#include "LogManagerSimple.hpp"
+#include <LogManager.hpp>
 #include "Enums.hpp"
 #include <iostream>
 

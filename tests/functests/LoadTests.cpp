@@ -2,7 +2,6 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include <api/ILogManagerInternal.hpp>
 #include <bond_lite/All.hpp>
@@ -65,7 +64,6 @@ class LoadTests : public Test,
   protected:
     std::string                  serverAddress;
     LogConfiguration             configuration;
-    MockIRuntimeConfig           runtimeConfig;
     HttpServer                   server;
     std::unique_ptr<ILogManagerInternal> logManager;
     unsigned                     recordsReceived;
@@ -84,24 +82,10 @@ class LoadTests : public Test,
         server.setServerName(os.str());
         server.addHandler("/", *this);
 
-        //configuration.runtimeConfig = &runtimeConfig;
         configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
         ::remove(TEST_STORAGE_FILENAME);
 
-        EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
-        EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
-        EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(runtimeConfig, GetUploadRetryBackoffConfig()).WillRepeatedly(Return("E,3000,3000,2,0"));
-        EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
-        EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillRepeatedly(Return());
-
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration));
 
         PdhOpenQuery(NULL, NULL, &cpuQuery);
         PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
@@ -137,9 +121,9 @@ class LoadTests : public Test,
         return 200;
     }
 
-    std::vector<AriaProtocol::CsEvent> decodeRequest(HttpServer::Request const& request, bool decompress)
+    std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
-        std::vector<AriaProtocol::CsEvent> vector;
+        std::vector<AriaProtocol::Record> vector;
 
         if (decompress) {
             // TODO
@@ -149,7 +133,7 @@ class LoadTests : public Test,
         size_t length = 0;
         while (data < request.content.size())
         {
-            AriaProtocol::CsEvent result;
+            AriaProtocol::Record result;
             length = request.content.size() - data;
             std::vector<uint8_t> test(request.content.data() + data, request.content.data() + data + length);
             size_t index = 3;
@@ -237,7 +221,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     for (unsigned i = 0; i < RESTART_COUNT; i++)
     {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration));
     }
 
     time = PAL::getMonotonicTimeMs() - time;
@@ -288,7 +272,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     for (unsigned i = 0; i < RESTART_COUNT; i++) {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration));
     }
 
     // All events should eventually come.
@@ -300,7 +284,6 @@ TEST_F(LoadTests, ManyEventsFromManyThreadsAreHandledSafely)
     unsigned const THREAD_COUNT     = 8;
     unsigned const TEST_DURATION_MS = 30000;
 
-    EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(3));
     ContextFieldsProvider temp;
     ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token", &temp);
     ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token", &temp);

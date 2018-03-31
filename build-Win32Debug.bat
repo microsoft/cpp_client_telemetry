@@ -1,4 +1,5 @@
 @echo off
+call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
@@ -20,15 +21,7 @@ echo ***************************************************************************
 echo ** Creating Win32 Debug ...                                                                      **
 echo ***************************************************************************************************
 echo ***************************************************************************************************
-msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild Solutions\tests\functests\FuncTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-msbuild Solutions\tests\unittests\UnitTests.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=debug /p:Platform=Win32
-
-
-Solutions\out\debug\Win32\UnitTests.exe
-Solutions\out\debug\Win32\FuncTests.exe
+msbuild Solutions\AriaSDK.sln /target:build\build-sdk /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=Debug /p:Platform=Win32
+Solutions\out\Debug\Win32\UnitTests\UnitTests.exe
+Solutions\out\Debug\Win32\FuncTests\FuncTests.exe
 

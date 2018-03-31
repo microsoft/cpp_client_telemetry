@@ -4,6 +4,17 @@
 #include "utils/Utils.hpp"
 #include <assert.h>
 
+#include <algorithm>
+
+#ifdef linux
+#include <unistd.h>
+#ifdef _POSIX_PRIORITY_SCHEDULING
+#include <sched.h>
+#else
+#define sched_yield()
+#endif
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
 
@@ -24,8 +35,14 @@ class HttpClientManager::HttpCallback : public IHttpResponseCallback {
         // We need to decide on pros and cons of synchronous vs. asynchronous callback
         m_hcm.onHttpResponse(this);
 #else
+        // Handle HTTP response asynchronously
         m_hcm.scheduleOnHttpResponse(this);
 #endif
+    }
+
+    virtual ~HttpCallback()
+    {
+        LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx);
     }
 
   public:
@@ -43,7 +60,18 @@ HttpClientManager::HttpClientManager(IHttpClient& httpClient)
 
 HttpClientManager::~HttpClientManager()
 {
-    assert(m_httpCallbacks.empty());
+    if (!m_httpCallbacks.empty())
+    {
+        LOG_WARN("HTTP callback list is not empty:");
+        size_t i = 0;
+        for(const HttpCallback* cb : m_httpCallbacks)
+        {
+            LOG_WARN("HTTP callback[%u]=%p", i, cb);
+            i++;
+        }
+        // actually cancel all again
+        handleCancelAllRequestsAsync();
+    }
 }
 
 void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
@@ -51,7 +79,7 @@ void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     HttpCallback *callback = new HttpCallback(*this, ctx);
     m_httpCallbacks.push_back(callback);
 
-    ARIASDK_LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
+    LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
         static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
         ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
 
@@ -70,21 +98,22 @@ void HttpClientManager::onHttpResponse(HttpCallback* callback)
     assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
 
     IHttpResponse const& response = (*ctx->httpResponse);
-    ARIASDK_LOG_DETAIL("HTTP response %s: result=%u, status=%u, body=%u bytes",
+    LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
         response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
 
     requestDone(ctx);
     // request done should be handled by now
 
-    ARIASDK_LOG_DETAIL("HTTP remove callback=%p", callback);
+    LOG_TRACE("HTTP remove callback=%p", callback);
     m_httpCallbacks.remove(callback);
+    // TODO: [MG] - confirm that there's no leak of callback object here
     delete callback;
 }
 
 bool HttpClientManager::handleCancelAllRequestsAsync()
 {
     if (!m_httpCallbacks.empty()) {
-        ARIASDK_LOG_DETAIL("Cancelling %u outstanding HTTP requests...",
+        LOG_TRACE("Cancelling %u outstanding HTTP requests...",
             static_cast<unsigned>(m_httpCallbacks.size()));
 
         for (const HttpCallback* callback : m_httpCallbacks) {

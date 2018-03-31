@@ -32,7 +32,7 @@ namespace Microsoft {
 
                     void LogManager::checkup() {
                         if (!LogManager::isInited) {
-                            //ARIASDK_LOG_DETAIL("LogManager is not initialized!");
+                            //LOG_TRACE("LogManager is not initialized!");
                         }
                     }
 
@@ -75,14 +75,14 @@ namespace Microsoft {
 
                     ILogger^ LogManager::Initialize(String^ tenantToken, LogConfiguration^ configuration)
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::Initialize token=%s, configuration=[...]",FromPlatformString(tenantToken).c_str() );
+                        //LOG_TRACE("LogManager::Initialize token=%s, configuration=[...]",FromPlatformString(tenantToken).c_str() );
                         m_testCallback = new LogManagerTestCallback();
 
                         configuration->TenantToken = tenantToken;
                         auto token = FromPlatformString(tenantToken);
 
 #ifdef _WINRT_DLL
-                        //ARIASDK_LOG_DETAIL("running as _WINRT_DLL");	
+                        //LOG_TRACE("running as _WINRT_DLL");	
                         using namespace ::Windows::Storage;
                         m_eventReceiver = new LogManagerEventReceiver(configuration);
                         m_platformEventHandler = ref new PlatformEventHandler();
@@ -98,8 +98,8 @@ namespace Microsoft {
                             Platform::String^ offlinePath = localFolder->Path->ToString() + "\\" + offlineFile;
                             // Print dir and file path
                             std::string path = FromPlatformString(offlinePath).c_str();
-                            //ARIASDK_LOG_DETAIL("dir  = %s", FromPlatformString(localFolder->Path).c_str());
-                            //ARIASDK_LOG_DETAIL("path = %s", FromPlatformString(offlinePath).c_str());
+                            //LOG_TRACE("dir  = %s", FromPlatformString(localFolder->Path).c_str());
+                            //LOG_TRACE("path = %s", FromPlatformString(offlinePath).c_str());
                             // Set configuration parameter
                             configuration->OfflineStorage = offlinePath;
                         }
@@ -113,7 +113,7 @@ namespace Microsoft {
                     ILogger^ LogManager::GetLogger()
                     {
                         checkup();
-                        //ARIASDK_LOG_DETAIL("LogManager::GetLogger()");
+                        //LOG_TRACE("LogManager::GetLogger()");
                         return platform_new Logger(MAT::LogManager::GetLogger());
 
                     }
@@ -121,26 +121,26 @@ namespace Microsoft {
                     ILogger^ LogManager::GetLogger(String^ tenantToken, String^ source)
                     {
                         checkup();
-                        //ARIASDK_LOG_DETAIL("LogManager::GetLogger[2]");
+                        //LOG_TRACE("LogManager::GetLogger[2]");
                         return platform_new Logger(MAT::LogManager::GetLogger(FromPlatformString(tenantToken), FromPlatformString(source)));
                     }
 
                     ILogger^ LogManager::GetLogger(String^ source)
                     {
                         checkup();
-                        //ARIASDK_LOG_DETAIL("LogManager::GetLogger[1]");
+                        //LOG_TRACE("LogManager::GetLogger[1]");
                         return platform_new Logger(MAT::LogManager::GetLogger(FromPlatformString(source)));
                     }
 
                     void LogManager::PauseTransmission()
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::PauseTransmission()");
+                        //LOG_TRACE("LogManager::PauseTransmission()");
                         MAT::LogManager::PauseTransmission();
                     }
 
                     void LogManager::Flush()
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::Flush()");
+                        //LOG_TRACE("LogManager::Flush()");
                         MAT::LogManager::Flush();
                     }
 
@@ -157,19 +157,19 @@ namespace Microsoft {
 
                     void LogManager::ResumeTransmission()
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::ResumeTransmission()");
+                        //LOG_TRACE("LogManager::ResumeTransmission()");
                         MAT::LogManager::ResumeTransmission();
                     }
 
                     void LogManager::SetTransmitProfile(TransmitProfile profile)
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::SetTransmitProfile()");
+                        //LOG_TRACE("LogManager::SetTransmitProfile()");
                         MAT::LogManager::SetTransmitProfile((Events ::TransmitProfile)profile);
                     }
 
                     void LogManager::SetTransmitProfile(String^ profileName)
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::SetTransmitProfile()");
+                        //LOG_TRACE("LogManager::SetTransmitProfile()");
                         const std::string name = FromPlatformString(profileName);
                         MAT::LogManager::SetTransmitProfile(name);
                     }
@@ -177,19 +177,19 @@ namespace Microsoft {
 
                     void LogManager::SetContext(String^ name, String^ value)
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::SetContext[2]");
+                        //LOG_TRACE("LogManager::SetContext[2]");
                         MAT::LogManager::SetContext(FromPlatformString(name), FromPlatformString(value));
                     }
 
                     void LogManager::SetContext(String ^ name, String ^ value, PiiKind piiKind)
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::SetContext[3]");
+                        //LOG_TRACE("LogManager::SetContext[3]");
                         MAT::LogManager::SetContext(FromPlatformString(name), FromPlatformString(value), (Events ::PiiKind)piiKind);
                     }
 
                     ISemanticContext^ LogManager::SemanticContext::get()
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::SemanticContext::get()");
+                        //LOG_TRACE("LogManager::SemanticContext::get()");
                         return platform_new SemanticContextImpl(MAT::LogManager::GetSemanticContext());
                     }
 
@@ -209,12 +209,12 @@ namespace Microsoft {
                     LogManager::LogManager()
                     {
                         isInited = false;
-                        //ARIASDK_LOG_DETAIL("LogManager::LogManager()");
+                        //LOG_TRACE("LogManager::LogManager()");
                     }
 
                     LogManager::~LogManager()
                     {
-                        //ARIASDK_LOG_DETAIL("LogManager::~LogManager()");
+                        //LOG_TRACE("LogManager::~LogManager()");
                         isInited = false;
                     }
                 }

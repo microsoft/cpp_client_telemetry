@@ -16,10 +16,10 @@ TEST_F(PalTests, Logging)
     int i = 123;
     char const* s = "abc";
 
-    ARIASDK_LOG_DETAIL("Detail: %d != %s", i, s);
-    ARIASDK_LOG_INFO("Info: %d != %s", i, s);
-    ARIASDK_LOG_WARNING("Warning: %d != %s", i, s);
-    ARIASDK_LOG_ERROR("Error: %d != %s", i, s);
+    LOG_TRACE("Detail: %d != %s", i, s);
+    LOG_INFO("Info: %d != %s", i, s);
+    LOG_WARN("Warning: %d != %s", i, s);
+    LOG_ERROR("Error: %d != %s", i, s);
 }
 
 //---

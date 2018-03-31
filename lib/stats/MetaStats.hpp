@@ -1,92 +1,82 @@
-// Copyright (c) Microsoft. All rights reserved.
+#ifndef METASTATS_HPP
+#define METASTATS_HPP
 
-#pragma once
+#include "pal/PAL.hpp"
+
 #include "decorators/BaseDecorator.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
+
+#include "api/IRuntimeConfig.hpp"
+
 #include <Enums.hpp>
-#include <IRuntimeConfig.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include <memory>
 
 namespace ARIASDK_NS_BEGIN {
 
+    struct StatsConfig;
+    struct TelemetryStats;
 
-struct StatsConfig;
-struct TelemetryStats;
+    class MetaStats
+    {
+    public:
+        MetaStats(IRuntimeConfig& config);
+        ~MetaStats();
 
-enum ActRollUpKind {
-    ACT_STATS_ROLLUP_KIND_START,
-    ACT_STATS_ROLLUP_KIND_STOP,
-    ACT_STATS_ROLLUP_KIND_ONGOING
-};
+        std::vector< ::AriaProtocol::Record> generateStatsEvent(RollUpKind rollupKind);
 
-// Event dropped due to system limitation or failure
-enum EventDroppedReason
-{
-    DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED,
-    DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW,
-    DROPPED_REASON_RETRY_EXCEEDED,
-    DROPPED_REASON_COUNT
-};
-static unsigned const gc_NumDroppedReasons = DROPPED_REASON_COUNT;
+        void updateOnEventIncoming(std::string const& tenanttoken, unsigned size, EventLatency latency, bool metastats);
+        void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
+        void updateOnPackageSentSucceeded(std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
+        void updateOnPackageFailed(int statusCode);
+        void updateOnPackageRetry(int statusCode, unsigned retryFailedTimes);
+        void updateOnRecordsDropped(EventDroppedReason reason, std::map<std::string, size_t> const& droppedCount);
+        void updateOnRecordsOverFlown(std::map<std::string, size_t> const& overflownCount);
+        void updateOnRecordsRejected(EventRejectedReason reason, std::map<std::string, size_t> const& rejectedCount);
+        void updateOnStorageOpened(std::string const& type);
+        void updateOnStorageFailed(std::string const& reason);
 
+    protected:
+        // ARIASDK_LOG_DECL_COMPONENT_CLASS();
 
-class MetaStats
-{
-  public:
-    MetaStats(IRuntimeConfig const& runtimeConfig, ContextFieldsProvider const& parentContext);
-    ~MetaStats();
+        /// <summary>
+        /// Clear all frequency distributions. Copied as is from old SCT, not sure it's needed.
+        /// </summary>
+        void clearStats();
 
-    std::vector< ::AriaProtocol::CsEvent> generateStatsEvent(ActRollUpKind rollupKind);
+        /// <summary>
+        /// Check if there's any stats data available to be sent.
+        /// </summary>
+        bool hasStatsDataAvailable() const;
 
-    void updateOnEventIncoming(std::string const& tenanttoken, unsigned size, EventLatency latency, bool metastats);
-    void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
-    void updateOnPackageSentSucceeded( std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly);
-    void updateOnPackageFailed(int statusCode);
-    void updateOnPackageRetry(int statusCode, unsigned retryFailedTimes);
-    void updateOnRecordsDropped(EventDroppedReason reason, std::map<std::string, size_t> const& droppedCount);
-    void updateOnRecordsOverFlown(std::map<std::string, size_t> const& overflownCount);
-    void updateOnRecordsRejected(EventRejectedReason reason, std::map<std::string, size_t> const& rejectedCount);
-    void updateOnStorageOpened(std::string const& type);
-    void updateOnStorageFailed(std::string const& reason);
+        /// <summary>
+        /// Reset TelemetryStats
+        /// If this function is called during starting SCT, keys of each map for frequency distribution are set;
+        /// Otherwise, when this function is called after a stats event is sent, values of each map are cleared.
+        /// </summary>
+        /// <param name="start">bool, indicate if it is called during starting sct</param>
+        void resetStats(bool start = true);
 
-  protected:
-    ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        /// <summary>
+        /// stats records created
+        /// </summary>
+        void snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind);
 
-    /// <summary>
-    /// Clear all frequency distributions. Copied as is from old SCT, not sure it's needed.
-    /// </summary>
-    void clearStats();
+    protected:
+        IRuntimeConfig&                 m_config;
+        std::unique_ptr<StatsConfig>    m_statsConfig;
+        std::unique_ptr<TelemetryStats> m_telemetryStats;
+        std::map<std::string, TelemetryStats*>  m_telemetryTenantStats;
 
-    /// <summary>
-    /// Check if there's any stats data available to be sent.
-    /// </summary>
-    bool hasStatsDataAvailable() const;
+        // FIXME
+        // BaseDecorator                   m_baseDecorator;
 
-    /// <summary>
-    /// Reset TelemetryStats
-    /// If this function is called during starting SCT, keys of each map for frequency distribution are set;
-    /// Otherwise, when this function is called after a stats event is sent, values of each map are cleared.
-    /// </summary>
-    /// <param name="start">bool, indicate if it is called during starting sct</param>
-    void resetStats(bool start = true);
-
-    /// <summary>
-    /// stats records created
-    /// </summary>
-    void snapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& records, ActRollUpKind rollupKind);
-
-  protected:
-    IRuntimeConfig const&           m_runtimeConfig;
-    std::unique_ptr<StatsConfig>    m_statsConfig;
-    std::unique_ptr<TelemetryStats> m_telemetryStats;
-    std::map<std::string,TelemetryStats*>  m_telemetryTenantStats;
-    BaseDecorator                   m_baseDecorator;
-    SemanticContextDecorator        m_semanticContextDecorator;
-private:
-    void privateSnapStatsToRecord(std::vector< ::AriaProtocol::CsEvent>& records, ActRollUpKind rollupKind, TelemetryStats* telemetryStats);
-    void privateClearStats(TelemetryStats* telemetryStats);
-};
+    private:
+        void privateSnapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats* telemetryStats);
+        void privateClearStats(TelemetryStats* telemetryStats);
+    };
 
 
 } ARIASDK_NS_END
+
+#endif

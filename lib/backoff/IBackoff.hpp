@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <Version.hpp>
+#include <pal/PAL.hpp>
 #include <memory>
 #include <string>
 

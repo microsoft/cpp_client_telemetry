@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
   public:
-    ::AriaProtocol::CsEvent* source;
+    ::AriaProtocol::Record* source;
     StorageRecord            record;
     std::uint64_t            policyBitFlags;
 
@@ -26,7 +26,7 @@ class IncomingEventContext : public PAL::RefCountedImpl<IncomingEventContext> {
     {
     }
 
-    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::AriaProtocol::CsEvent* source)
+    IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::AriaProtocol::Record* source)
       : source(source),
         record{id, tenantToken, latency, persistence}
     {
@@ -44,6 +44,7 @@ using IncomingEventContextPtr = PAL::RefCountedPtr<IncomingEventContext>;
 class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
 
     private:
+
 #ifdef CRT_DEBUG_LEAKS
         // Track # of outstanding EventUploadContext objects remaining
         long objCount(long delta)
@@ -53,6 +54,9 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
             return seq;
         }
 #endif
+
+  public:
+
     /**
     * Release unmanaged pointers associated with EventsUploadContext
     */
@@ -73,7 +77,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
 
 #endif
     }
-  public:
+
     // Retrieving
     EventLatency                         requestedMinLatency = EventLatency_Unspecified;
     unsigned                             requestedMaxCount = 0;
@@ -97,6 +101,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
 
     // Receiving
     IHttpResponse*                       httpResponse;
+
     int                                  durationMs = -1;
     bool                                 fromMemory;
 
@@ -105,7 +110,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
         httpResponse(nullptr)
     {
 #ifdef CRT_DEBUG_LEAKS
-        printf("[new]EventsUploadContext=%p [%ld]\n", this, objCount(1));
+        objCount(1);
 #endif
 
     }
@@ -113,7 +118,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     virtual ~EventsUploadContext()
     {
 #ifdef CRT_DEBUG_LEAKS
-        printf("[del]EventsUploadContext=%p [%ld]\n", this, objCount(-1));
+        objCount(-1);
 #endif
         clear();
     }

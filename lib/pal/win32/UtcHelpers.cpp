@@ -20,8 +20,7 @@ using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN {
-	namespace PAL {
+namespace PAL_NS_BEGIN {
 
 bool IsUtcRegistrationEnabledinWindows()
 {
@@ -115,5 +114,4 @@ std::string GetAppLocalTempDirectory()
 	return path;
 }
 
-	} // namespace PAL
-} ARIASDK_NS_END
+} PAL_NS_END

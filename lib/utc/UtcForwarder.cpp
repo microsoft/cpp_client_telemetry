@@ -60,20 +60,20 @@ UtcForwarder::UtcForwarder()
 
     HRESULT hr = Windows::Foundation::Initialize(RO_INIT_MULTITHREADED);
     if (FAILED(hr)) {
-        ARIASDK_LOG_INFO("WinRT not available (0x%08X), UTC forwarding will be disabled for all tenants",
+        LOG_INFO("WinRT not available (0x%08X), UTC forwarding will be disabled for all tenants",
             hr);
         return;
     }
 
     hr = Windows::Foundation::GetActivationFactory(HStringReference(RuntimeClass_Windows_System_Diagnostics_Telemetry_PlatformTelemetryClient).Get(), &m_platformTelemetryClient);
     if (FAILED(hr)) {
-        ARIASDK_LOG_INFO("PlatformTelemetryClient not available (0x%08X), UTC forwarding will be disabled for all tenants",
+        LOG_INFO("PlatformTelemetryClient not available (0x%08X), UTC forwarding will be disabled for all tenants",
             hr);
         Windows::Foundation::Uninitialize();
         return;
     }
 
-    ARIASDK_LOG_INFO("WinRT and PlatformTelemetryClient are available, UTC forwarding is possible");
+    LOG_INFO("WinRT and PlatformTelemetryClient are available, UTC forwarding is possible");
 }
 
 UtcForwarder::~UtcForwarder()
@@ -91,7 +91,7 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
 
     RoInitializeWrapper apartment(RO_INIT_MULTITHREADED);
     if (FAILED(apartment)) {
-        ARIASDK_LOG_ERROR("Could not enter WinRT apartment (0x%08X)",
+        LOG_ERROR("Could not enter WinRT apartment (0x%08X)",
             static_cast<HRESULT>(apartment));
         return false;
     }
@@ -99,7 +99,7 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
     HString hstrIkey;
     HRESULT hr = createHStringFromUtf8(iKey, hstrIkey);
     if (FAILED(hr)) {
-        ARIASDK_LOG_ERROR("Could not create iKey HSTRING (0x%08X)",
+        LOG_ERROR("Could not create iKey HSTRING (0x%08X)",
             hr);
         return false;
     }
@@ -107,7 +107,7 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
     ComPtr<AWSDT::IPlatformTelemetryRegistrationSettings> settings;
     hr = Windows::Foundation::ActivateInstance(HStringReference(RuntimeClass_Windows_System_Diagnostics_Telemetry_PlatformTelemetryRegistrationSettings).Get(), &settings);
     if (FAILED(hr)) {
-        ARIASDK_LOG_ERROR("Could not create PlatformTelemetryRegistrationSettings instance (0x%08X)",
+        LOG_ERROR("Could not create PlatformTelemetryRegistrationSettings instance (0x%08X)",
             hr);
         return false;
     }
@@ -117,7 +117,7 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
     ComPtr<AWSDT::IPlatformTelemetryRegistrationResult> result;
     hr = m_platformTelemetryClient->RegisterWithSettings(hstrIkey.Get(), settings.Get(), &result);
     if (FAILED(hr)) {
-        ARIASDK_LOG_ERROR("Could not register iKey (0x%08X)",
+        LOG_ERROR("Could not register iKey (0x%08X)",
             hr);
         return false;
     }
@@ -125,7 +125,7 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
     AWSDT::PlatformTelemetryRegistrationStatus status = AWSDT::PlatformTelemetryRegistrationStatus_UnknownFailure;
     hr = result->get_Status(&status);
     if (FAILED(hr) || status != AWSDT::PlatformTelemetryRegistrationStatus_Success) {
-        ARIASDK_LOG_ERROR("iKey registration result is not Success (0x%08X, %u)",
+        LOG_ERROR("iKey registration result is not Success (0x%08X, %u)",
             hr, status);
         return false;
     }
@@ -143,7 +143,7 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
     std::string tenantId = tenantTokenToId(ctx->record.tenantToken);
     GUID tenantIdAsGuid;
     if (!tenantIdToGuid(tenantId, tenantIdAsGuid)) {
-        ARIASDK_LOG_WARNING("Could not parse tenant %s as GUID, the event cannot be forwarded to UTC",
+        LOG_WARN("Could not parse tenant %s as GUID, the event cannot be forwarded to UTC",
             tenantId.c_str());
         return false;
     }
@@ -160,7 +160,7 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
             ti.seen = true;
             ti.registered = registerTenantWithUtc(iKey, 8 * 1048576, 0);
             if (!ti.registered) {
-                ARIASDK_LOG_INFO("Could not register tenant %s with PlatformTelemetryClient, UTC forwarding will be disabled for this tenant",
+                LOG_INFO("Could not register tenant %s with PlatformTelemetryClient, UTC forwarding will be disabled for this tenant",
                     tenantId.c_str());
             } else {
                 {
@@ -172,10 +172,10 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
                 }
                 HRESULT hr = tld::RegisterProvider(&ti.hProvider, const_cast<GUID*>(&tenantIdAsGuid), ti.providerMetadata.data());
                 if (FAILED(hr)) {
-                    ARIASDK_LOG_WARNING("Could not register ETW provider for tenant %s (0x%08X), but PlatformTelemetryClient registration had succeeded, events for this tenant will be dropped",
+                    LOG_WARN("Could not register ETW provider for tenant %s (0x%08X), but PlatformTelemetryClient registration had succeeded, events for this tenant will be dropped",
                         tenantId.c_str(), hr);
                 } else {
-                    ARIASDK_LOG_INFO("Tenant %s was successfully registered with PlatformTelemetryClient and ETW, events for this tenant will be forwarded to UTC",
+                    LOG_INFO("Tenant %s was successfully registered with PlatformTelemetryClient and ETW, events for this tenant will be forwarded to UTC",
                         tenantId.c_str());
                 }
             }
@@ -187,7 +187,7 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
     }
     if (hProvider == NULL) {
         if (registered) {
-            ARIASDK_LOG_ERROR("Event %s/%s should be forwarded to UTC, but provider registration for that tenant had failed, so the event will be dropped",
+            LOG_ERROR("Event %s/%s should be forwarded to UTC, but provider registration for that tenant had failed, so the event will be dropped",
                 tenantId.c_str(), ctx->source->EventType.c_str());
             return true;
         } else {
@@ -206,7 +206,7 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
     std::vector<UINT8> eventMetadata;
     std::vector<UINT8> eventData;
     if (!convertProperties(*ctx->source, iKey, eventTags, eventMetadata, eventData)) {
-        ARIASDK_LOG_ERROR("Could not convert event %s/%s to UTC format, the even will be dropped",
+        LOG_ERROR("Could not convert event %s/%s to UTC format, the even will be dropped",
             tenantId.c_str(), ctx->source->EventType.c_str());
         return true;
     }
@@ -218,12 +218,12 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
     EventDataDescCreate(&dataDescriptors[2], eventData.data(), static_cast<ULONG>(eventData.size()));
     HRESULT hr = tld::WriteEvent(hProvider, eventDescriptor, providerMetadata, eventMetadata.data(), 3, dataDescriptors);
     if (FAILED(hr)) {
-        ARIASDK_LOG_ERROR("Event %s/%s could not be forwarded to UTC (0x%08x), the event will be dropped",
+        LOG_ERROR("Event %s/%s could not be forwarded to UTC (0x%08x), the event will be dropped",
             tenantId.c_str(), ctx->source->EventType.c_str(), hr);
         return true;
     }
 
-    ARIASDK_LOG_INFO("Event %s/%s forwarded to UTC, keyword 0x%016llX, tags 0x%08X, serialized size %u bytes",
+    LOG_INFO("Event %s/%s forwarded to UTC, keyword 0x%016llX, tags 0x%08X, serialized size %u bytes",
         tenantId.c_str(), ctx->source->EventType.c_str(), eventDescriptor.Keyword, eventTags,
         static_cast<unsigned>(eventMetadata.size() + eventData.size()));
 

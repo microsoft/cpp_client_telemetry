@@ -1,1 +1,1 @@
-\\codeflow\public\cfLauncher.cmd 
+\\codeflow\public\cf2Launcher.cmd 

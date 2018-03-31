@@ -2,7 +2,6 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include <api/ILogManagerInternal.hpp>
 #include <bond_lite/All.hpp>
@@ -22,7 +21,6 @@ class BasicFuncTests : public ::testing::Test,
   protected:
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
-    MockIRuntimeConfig runtimeConfig;
     HttpServer server;
     std::unique_ptr<ILogManagerInternal> logManager;
     ILogger* logger;
@@ -47,19 +45,7 @@ class BasicFuncTests : public ::testing::Test,
         EVTStatus error;
         ::remove(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 
-        EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
-        EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
-        EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(runtimeConfig, GetUploadRetryBackoffConfig()).WillRepeatedly(Return("E,3000,3000,2,0"));
-        EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
-
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration));
        
         logger = logManager->GetLogger("functests-Tenant-Token", &context,"source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", &context, "Source");
@@ -151,9 +137,9 @@ class BasicFuncTests : public ::testing::Test,
         }
     }  
 
-    std::vector<AriaProtocol::CsEvent> decodeRequest(HttpServer::Request const& request, bool decompress)
+    std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
-        std::vector<AriaProtocol::CsEvent> vector;
+        std::vector<AriaProtocol::Record> vector;
 
         if (decompress) {
             // TODO
@@ -163,7 +149,7 @@ class BasicFuncTests : public ::testing::Test,
         size_t length= 0 ;
         while (data < request.content.size())
         {
-            AriaProtocol::CsEvent result;
+            AriaProtocol::Record result;
             length = request.content.size() - data;
             std::vector<uint8_t> test(request.content.data() + data, request.content.data() + data + length);
             size_t index = 3;
@@ -201,7 +187,7 @@ class BasicFuncTests : public ::testing::Test,
         return vector;
     }
 
-    void verifyEvent(EventProperties const& expected, ::AriaProtocol::CsEvent const& actual)
+    void verifyEvent(EventProperties const& expected, ::AriaProtocol::Record const& actual)
     {
         EXPECT_THAT(actual.name, Not(IsEmpty()));
         int64_t now = PAL::getUtcSystemTimeinTicks();
@@ -576,7 +562,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
 
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
     // 1st request is from MetaStats
     waitForEvents(50, 4);
@@ -603,7 +589,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
 
     ContextFieldsProvider temp;
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
     logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
 
@@ -620,7 +606,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
     logManager->FlushAndTeardown(); logManager.reset(); 
 
 	PAL::sleep(100);    
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
     // 1st request is from MetaStats
     waitForEvents(100, 5);
@@ -647,7 +633,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
 
     ContextFieldsProvider temp;
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
     logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
     logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
 
@@ -663,7 +649,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
 
     logManager->FlushAndTeardown(); logManager.reset(); 
 
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
    // PAL::sleep(1000); // Some time to let events be saved to DB
     // 1st request is from MetaStats
@@ -680,7 +666,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 0);
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME); 
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
     ContextFieldsProvider temp;
 	logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
 
@@ -689,14 +675,8 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     static int64_t const MAX_FILE_SIZE    =   8 * 1024 * 1024;
     static int64_t const ALLOWED_OVERFLOW =  10 * MAX_FILE_SIZE / 100;
 
-    std::string slowServiceUrl = runtimeConfig.GetCollectorUrl();
+    std::string slowServiceUrl;
     slowServiceUrl.insert(slowServiceUrl.find('/', sizeof("http://")) + 1, "slow/");
-    EXPECT_CALL(runtimeConfig, GetCollectorUrl())
-        .WillRepeatedly(Return(slowServiceUrl));
-    EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes())
-        .WillRepeatedly(Return(static_cast<unsigned>(MAX_FILE_SIZE)));
-    EXPECT_CALL(runtimeConfig, GetOfflineStorageResizeThresholdPct())
-        .WillRepeatedly(Return(25));
 
     for (int i = 0; i < 50; i++) {
         EventProperties event("event" + toString(i));
@@ -719,7 +699,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     receivedRequests.clear();
         
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
     waitForEvents(50, 8);
     auto payload = decodeRequest(receivedRequests[0], false);
@@ -758,7 +738,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
     
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
     waitForEvents(50, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
@@ -779,18 +759,8 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
     // Wait a bit so that the initial check for unsent events does not send our event too early.
     PAL::sleep(200);
 
-    std::string badPortUrl = runtimeConfig.GetCollectorUrl();
+    std::string badPortUrl;
     badPortUrl.replace(0, badPortUrl.find('/', sizeof("http://")), "http://127.0.0.1:65535");
-
-    // Drop events without retrying, not even once.
-    EXPECT_CALL(runtimeConfig, GetMaximumRetryCount())
-        .WillRepeatedly(Return(0));
-
-    // Use the bad URL twice, then retire and start using the good one again (defined in SetUp() earlier).
-    EXPECT_CALL(runtimeConfig, GetCollectorUrl())
-        .Times(2)
-        .WillRepeatedly(Return(badPortUrl))
-        .RetiresOnSaturation();
 
     EventProperties event("event");
     event.SetProperty("property", "value");
@@ -814,18 +784,8 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     // Wait a bit so that the initial check for unsent events does not send our event too early.
     PAL::sleep(200);
 
-    std::string badServiceUrl = runtimeConfig.GetCollectorUrl();
+    std::string badServiceUrl;
     badServiceUrl.insert(badServiceUrl.find('/', sizeof("http://")) + 1, "503/");
-
-    // Drop events after just 1 retry to avoid long test run time.
-    EXPECT_CALL(runtimeConfig, GetMaximumRetryCount())
-        .WillRepeatedly(Return(1));
-
-    // Use the bad URL twice, then retire and start using the good one again (defined in SetUp() earlier).
-    EXPECT_CALL(runtimeConfig, GetCollectorUrl())
-        .Times(2)
-        .WillRepeatedly(Return(badServiceUrl))
-        .RetiresOnSaturation();
 
     EventProperties event("event");
     event.SetProperty("property", "value");
@@ -843,7 +803,7 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
     configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
     
-    logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+    logManager.reset(ILogManagerInternal::Create(configuration));
 
     waitForEvents(100, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
@@ -858,9 +818,6 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 
 TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
 {
-    EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec())
-        .WillRepeatedly(Return(3));
-
     // Wait to see what is coming after start. There should be no uploads since nothing has happened yet.
     PAL::sleep(3500);
     ASSERT_THAT(receivedRequests, SizeIs(1));

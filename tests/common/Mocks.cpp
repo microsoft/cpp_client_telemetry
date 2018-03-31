@@ -4,7 +4,6 @@
 #include "MockILogManagerInternal.hpp"
 #include "MockIOfflineStorage.hpp"
 #include "MockIOfflineStorageObserver.hpp"
-#include "MockIRuntimeConfig.hpp"
 #include "MockISemanticContext.hpp"
 #include "MockISqlite3Proxy.hpp"
 
@@ -31,9 +30,6 @@ MockIOfflineStorageObserver::~MockIOfflineStorageObserver() {}
 
 MockIOfflineStorage::MockIOfflineStorage() {}
 MockIOfflineStorage::~MockIOfflineStorage() {}
-
-MockIRuntimeConfig::MockIRuntimeConfig() {}
-MockIRuntimeConfig::~MockIRuntimeConfig() {}
 
 MockISemanticContext::MockISemanticContext() {}
 MockISemanticContext::~MockISemanticContext() {}

@@ -259,6 +259,9 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Device& value, bool isBase)
                 if (!reader.ReadString(value.localId)) {
                     return false;
                 }
+#if 0 /* XXX */
+                value.RecordType = static_cast< ::AriaProtocol::AriaRecordType>(item4);
+#endif
                 break;
             }
 
@@ -1872,7 +1875,7 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Data& value, bool isBase)
 }
 
 template<typename TReader>
-bool Deserialize(TReader& reader, ::AriaProtocol::CsEvent& value, bool isBase)
+bool Deserialize(TReader& reader, ::AriaProtocol::Record& value, bool isBase)
 {
     if (!reader.ReadStructBegin(isBase)) {
         return false;

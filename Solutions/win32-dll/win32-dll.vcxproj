@@ -28,16 +28,18 @@
     <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\VersionInfo.rc" />
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{216A8E97-21F7-4BEF-9E52-7F772C177C32}</ProjectGuid>
     <Keyword>Win32DllProj</Keyword>
     <RootNamespace>ClientTelemetry</RootNamespace>
-    <!-- check if this is correct -->
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>win32-dll</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
@@ -48,8 +50,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-    <QBConfigId>win-x86_vs2015-crtdynamic-debug</QBConfigId>
+    <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -58,14 +59,12 @@
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x86_vs2015-crtdynamic-release</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <QBConfigId>win-x64_vs2015-crtdynamic-debug</QBConfigId>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -88,9 +87,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
     <AdditionalIncludeDirectories Condition="'$(RunOACR)'=='Yes'">$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\sysroot\include;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)\..\sqlite;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\$(OacrPath)\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
@@ -98,28 +95,28 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform);$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite;$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -130,8 +127,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="OneSDK";ARIASDK_PLATFORM_WINDOWS;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -145,8 +142,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;ole32.lib;oleaut32.lib;uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;Crypt32.lib;wininet.lib;iphlpapi.lib;rpcrt4.lib;version.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqlite.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>uuid.lib;runtimeobject.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
       <LinkStatus>false</LinkStatus>
       <GenerateMapFile>true</GenerateMapFile>
@@ -166,8 +163,8 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <Bscmake>
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
@@ -185,8 +182,8 @@
       <Optimization Condition="'$(Platform)'=='x64'">MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="OneSDK";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;BOOST_VC14_WORKAROUD;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_VERSION_PREFIX="Aria";ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB=1;_ARIA_UTC_SDK;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AssemblerOutput>All</AssemblerOutput>
@@ -204,8 +201,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>uuid.lib;runtimeobject.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;msxml6.lib;wininet.lib;Crypt32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\out\$(OacrPath)\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>uuid.lib;runtimeobject.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
@@ -228,10 +225,11 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <Lib>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

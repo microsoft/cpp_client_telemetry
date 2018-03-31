@@ -2,7 +2,10 @@
 
 #pragma once
 #include <IOfflineStorage.hpp>
-#include <api/LogConfiguration.hpp>
+#include <LogConfiguration.hpp>
+
+#include "api/IRuntimeConfig.hpp"
+
 #include "DataPackage.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
@@ -11,7 +14,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class Packager {
   public:
-    Packager(LogConfiguration& configuration, IRuntimeConfig const& runtimeConfig);
+    Packager(IRuntimeConfig& runtimeConfig);
     ~Packager();
 
   protected:
@@ -19,7 +22,7 @@ class Packager {
     void handleFinalizePackage(EventsUploadContextPtr const& ctx);
 
   protected:
-    IRuntimeConfig const& m_runtimeConfig;
+    IRuntimeConfig&       m_config;
     std::string           m_forcedTenantToken;
 
   public:

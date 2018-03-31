@@ -1,21 +1,22 @@
-#pragma once
+#ifndef IPROPERTYCHANGEDCALLBACK_HPP
+#define IPROPERTYCHANGEDCALLBACK_HPP
 
+#include <pal/PAL.hpp>
 #include <string>
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+namespace PAL_NS_BEGIN {
 
-class IPropertyChangedCallback
-{
-public:
-    /// <summary>
-    /// Called when a property value changes.
-    /// </summary>
-    /// <param name="propertyName">The name of the property</param>
-    /// <param name="propertyValue">The current value of the property</param>
-    virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) = 0;
-};
+    class IPropertyChangedCallback
+    {
+    public:
+        /// <summary>
+        /// Called when a property value changes.
+        /// </summary>
+        /// <param name="propertyName">The name of the property</param>
+        /// <param name="propertyValue">The current value of the property</param>
+        virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) = 0;
+    };
 
-} // PAL
+} PAL_NS_END
 
-}}}
+#endif

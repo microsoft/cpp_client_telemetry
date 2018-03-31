@@ -1,4 +1,4 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/msevents ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils /usr/local/include )
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   set(PAL_SRCS
@@ -18,20 +18,29 @@ endif()
 
 set(SRCS
 
+  api/AuthTokensController.cpp
+  api/CommonLogManagerInternal.cpp
   api/ContextFieldsProvider.cpp
-  api/ContextFieldsProvider.hpp
-  api/Logger.cpp
-  api/Logger.hpp
+  api/CorrelationVector.cpp
+  api/HostGuestLogManager.cpp
   api/LogConfiguration.cpp
-  api/LogConfiguration.hpp
+  api/LogController.cpp
   api/LogManager.cpp
   api/LogManagerImpl.cpp
+  api/LogManagerProvider.cpp
   api/LogSessionData.cpp
+  api/Logger.cpp
 
+  backoff/IBackoff.cpp
+  bond/BondSerializer.cpp
   callbacks/DebugSource.cpp
+
+  compression/HttpDeflateCompression.cpp
+  config/RuntimeConfig_Default.cpp
   
   include/public/LogManager.hpp
   utils/Utils.cpp
+  utils/StringUtils.cpp
 
   backoff/Backoff_ExponentialWithJitter.hpp
   backoff/IBackoff.cpp
@@ -57,9 +66,6 @@ set(SRCS
   decorators/SemanticApiDecorators.hpp
   decorators/SemanticContextDecorator.hpp
 
-  filter/EventFilter.cpp
-  filter/EventFilterRegulator.cpp
-
   http/HttpClientManager.cpp
   http/HttpClientManager.hpp
   http/HttpRequestEncoder.cpp
@@ -67,7 +73,6 @@ set(SRCS
   http/HttpResponseDecoder.cpp
   http/HttpResponseDecoder.hpp
 
-  include/public/AggregatedMetric.hpp
   include/public/ctmacros.hpp
   include/public/Enums.hpp
   include/public/EventProperties.hpp
@@ -76,8 +81,8 @@ set(SRCS
   include/public/ILogger.hpp
   include/public/ILogManager.hpp
 
-  include/aria/IOfflineStorage.hpp
-  include/aria/ISystemInformation.hpp
+  include/msevents/IOfflineStorage.hpp
+  include/msevents/ISystemInformation.hpp
 
   include/public/IRuntimeConfig.hpp
   include/public/ISemanticContext.hpp
@@ -85,15 +90,14 @@ set(SRCS
   utils/Utils.hpp
   include/public/Version.hpp
 
-#  include/public/Version.hpp.template
-
   ${JNI_SRCS}
 
-# offline/ClockSkewManager.cpp
+  # TODO: [MG] - check if ClockSkewManager.cpp is needed
+  # offline/ClockSkewManager.cpp
   offline/FifoFileStorage.cpp
   offline/OfflineStorage.cpp
-  offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
+  offline/OfflineStorage_SQLite.cpp
 
   packager/BondSplicer.cpp
   packager/BondSplicer.hpp
@@ -122,9 +126,6 @@ set(SRCS
   tpm/TransmissionPolicyManager.cpp
   tpm/TransmissionPolicyManager.hpp
   tpm/TransmitProfiles.cpp
-
-  # utils/Common.cpp
-  # utils/Common.hpp
 )
 
 if(ARIASDK_UTC_ENABLED)
@@ -142,33 +143,33 @@ create_source_files_groups_per_folder(${SRCS})
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   find_package(Threads REQUIRED)
   if(THREADS_HAVE_PTHREAD_ARG)
-   target_compile_options(aria PUBLIC "-pthread")
+   target_compile_options(msevents PUBLIC "-pthread")
   endif()
 endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared library")
-  add_library(aria SHARED ${SRCS})
+  add_library(msevents SHARED ${SRCS})
   add_library(sqlite3 SHARED IMPORTED GLOBAL)
   add_library(z SHARED IMPORTED GLOBAL)
-  #target_link_libraries(aria PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
-  target_link_libraries(aria PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
-  # target_link_libraries(aria PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  install(TARGETS aria EXPORT aria LIBRARY DESTINATION ${INSTALL_LIB_DIR})
+  #target_link_libraries(msevents PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
+  target_link_libraries(msevents PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
+  # target_link_libraries(msevents PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  install(TARGETS msevents EXPORT msevents LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
   message("-- Building static library")
-  add_library(aria STATIC ${SRCS})
+  add_library(msevents STATIC ${SRCS})
   add_library(sqlite3 STATIC IMPORTED GLOBAL)
   add_library(z STATIC IMPORTED GLOBAL)
-  #target_link_libraries(aria PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
-  target_link_libraries(aria PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  install(TARGETS aria EXPORT aria ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
+  #target_link_libraries(msevents PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
+  target_link_libraries(msevents PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  install(TARGETS msevents EXPORT msevents ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
 message("-- Library will be installed to ${INSTALL_LIB_DIR}")
 
 #if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-#  #target_link_libraries(aria PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#  #target_link_libraries(aria PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+#  #target_link_libraries(msevents PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+#  #target_link_libraries(msevents PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #endif()
 

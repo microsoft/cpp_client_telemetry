@@ -1,77 +1,69 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "ITelemetrySystem.hpp"
-#include <Version.hpp>
+
+#include <pal/PAL.hpp>
+
+#include "system/TelemetrySystemBase.hpp"
+
 #include "bond/BondSerializer.hpp"
 #include "compression/HttpDeflateCompression.hpp"
+
 #include "http/HttpClientManager.hpp"
 #include "http/HttpRequestEncoder.hpp"
 #include "http/HttpResponseDecoder.hpp"
-#include "offline/OfflineStorage.hpp"
+
+#include "offline/StorageObserver.hpp"
+#include "IOfflineStorage.hpp"
+
 #include "packager/Packager.hpp"
-#include "stats/Statistics.hpp"
+
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "ClockSkewDelta.h"
 
 namespace ARIASDK_NS_BEGIN {
 
+    class TelemetrySystem :
+        public TelemetrySystemBase,
+        public PAL::RefCountedImpl<TelemetrySystem>
+    {
 
-class TelemetrySystem : public PAL::RefCountedImpl<TelemetrySystem>,
-                        public ITelemetrySystem
-{
-  public:
-    TelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, IOfflineStorage& offlineStorage,
-        IHttpClient& httpClient, ContextFieldsProvider const& globalContext, IBandwidthController* bandwidthController);
-    ~TelemetrySystem();
+    public:
 
-  public:
-    void start();
-    void stop();
-    void pauseTransmission();
-    void resumeTransmission();
-    void UploadNow();
-    void addIncomingEventSystem(IncomingEventContextPtr const& event);
+        TelemetrySystem(
+            ILogManager& logManager,
+            IRuntimeConfig& runtimeConfig,
+            IOfflineStorage& offlineStorage,
+            IHttpClient& httpClient,
+            IBandwidthController* bandwidthController
+        );
 
-  protected:
-    void startAsync();
-    void stopAsync();
-    void handleFlushWorkerThread();
-    void signalDoneEvent();
-    void pauseTransmissionAsync();
-    void resumeTransmissionAsync();
-    void handleIncomingEventPrepared(IncomingEventContextPtr const& event);
-    void preparedIncomingEventAsync(IncomingEventContextPtr const& event);
+        ~TelemetrySystem();
 
-  protected:
-    bool                      m_isPaused;
-    PAL::Event                m_doneEvent;
+        virtual void start()  override;
+        virtual void stop()   override;
+        virtual void upload() override;
+        virtual void pause()  override;
+        virtual void resume() override;
 
-    BondSerializer            bondSerializer;
-    HttpDeflateCompression    compression;
-    HttpClientManager         hcm;
-    HttpRequestEncoder        httpEncoder;
-    HttpResponseDecoder       httpDecoder;
-    OfflineStorage            storage;
-    Packager                  packager;
-    Statistics                stats;
-    TransmissionPolicyManager tpm;
-    ClockSkewDelta            clockSkewDelta;
-    LogConfiguration          configuration;
+        virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override;
 
-  public:
-    RouteSource<>                                              started;
-    RouteSource<>                                              stopped;
-    RouteSource<>                                              paused;
-    RouteSource<>                                              resumed;
+    protected:
 
-    RouteSource<IncomingEventContextPtr const&>                addIncomingEvent;
-    RouteSink<TelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{this, &TelemetrySystem::handleIncomingEventPrepared};
+        virtual void handleFlushWorkerThread() override;
 
-    RouteSource<IncomingEventContextPtr const&>                preparedIncomingEvent;
+        HttpDeflateCompression    compression;
+        HttpClientManager         hcm;
+        HttpRequestEncoder        httpEncoder;
+        HttpResponseDecoder       httpDecoder;
+        StorageObserver           storage;
+        Packager                  packager;
+        TransmissionPolicyManager tpm;
+        ClockSkewDelta            clockSkewDelta;
 
-    RouteSink<TelemetrySystem>                                 flushWorkerThread{this, &TelemetrySystem::handleFlushWorkerThread};
-};
-
+    public:
+        RouteSink<TelemetrySystem>                                 flushWorkerThread{ this, &TelemetrySystem::handleFlushWorkerThread };
+        RouteSink<TelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &TelemetrySystem::handleIncomingEventPrepared };
+    };
 
 } ARIASDK_NS_END

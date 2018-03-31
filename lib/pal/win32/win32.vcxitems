@@ -8,10 +8,6 @@
     <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
   </PropertyGroup>
   <ItemDefinitionGroup>
-    <ClCompile>
-      <!-- TODO: check if this is actually correct ... -->
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\..\sysroot\winrt81-x86_vs2013-debug\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectCapability Include="SourceItemsFromImports" />
@@ -22,14 +18,14 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp">
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp">
       <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopDeviceInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopNetworkInformationImpl.cpp">
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\internal;..\..\common;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopSystemInformationImpl.cpp" />
   </ItemGroup>

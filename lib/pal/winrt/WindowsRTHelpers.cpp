@@ -1,10 +1,13 @@
+#ifdef WIN10_CS
+/* Helpers for Win 10 C# Universal API */
 #include "pch.h"
+#include <LogManager.hpp>
 #include "PlatformHelpers.h"
 //#include "TimedEvent.hpp"
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Telemetry { // FIXME
             namespace Windows
             {
                 DateTime SetPlatformDateTime(int64_t universalTime)
@@ -184,3 +187,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

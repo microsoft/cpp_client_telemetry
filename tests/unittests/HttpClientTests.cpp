@@ -290,7 +290,7 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
 
         int lag = i - _receivedRequestsCount;
         if (lag > 100) {
-            ARIASDK_LOG_ERROR("Failed to receive requests in time");
+            LOG_ERROR("Failed to receive requests in time");
             break;
         }
         PAL::sleep(std::max(lag, 0) * 10);
@@ -305,7 +305,7 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
     EXPECT_THAT(_countedRequestsMap,     Not(Contains(Ne(Done))));
     for (int i = 0; i < Count; i++) {
         if (_countedRequestsMap[i] != Done) {
-            ARIASDK_LOG_ERROR("Request #%u: %u", static_cast<unsigned>(i), _countedRequestsMap[i]);
+            LOG_ERROR("Request #%u: %u", static_cast<unsigned>(i), _countedRequestsMap[i]);
         }
     }
 }

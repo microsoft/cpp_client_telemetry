@@ -1,207 +1,96 @@
 #include "LogConfiguration.hpp"
-#include "IHttpClient.hpp"
-#include "IRuntimeConfig.hpp"
-#include "IBandwidthController.hpp"
-#include "Config.hpp"
-#include "Logger.hpp"
-#include "pal/PAL.hpp"
 
+#include <json.hpp>
+
+using json = nlohmann::json;
 
 namespace ARIASDK_NS_BEGIN {
 
-    EVTStatus LogConfiguration::SetMinimumTraceLevel(ACTTraceLevel minimumTraceLevel)
+    static ILogConfiguration currentConfig {
+        { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
+        { CFG_INT_SDK_MODE,                 SdkModeTypes::SdkModeTypes_Aria },
+        { CFG_BOOL_ENABLE_ANALYTICS,        false },
+        { CFG_INT_CACHE_FILE_SIZE,          3145728 },
+        { CFG_INT_RAM_QUEUE_SIZE,           524288 },
+        { CFG_BOOL_ENABLE_MULTITENANT,      true },
+        { CFG_INT_MAX_TEARDOWN_TIME,        0 },
+        { CFG_INT_MAX_PENDING_REQ,          4 },
+        { CFG_INT_RAM_QUEUE_BUFFERS,        3 },
+        { CFG_INT_TRACE_LEVEL_MASK,         0 },
+        { CFG_STR_COLLECTOR_URL,            COLLECTOR_URL_PROD },
+        { CFG_INT_STORAGE_FULL_PCT,         75 },
+        { CFG_INT_RAMCACHE_FULL_PCT,        75 }
+    };
+
+    const ILogConfiguration& GetDefaultConfiguration()
     {
-        m_minimumTraceLevel = minimumTraceLevel;
-        return  EVTStatus::EVTStatus_OK;
+        return currentConfig;
     }
 
-    ACTTraceLevel LogConfiguration::GetMinimumTraceLevel() const
+    ILogConfiguration FromLogConfiguration(MAT_v1::LogConfiguration &src)
     {
-        return m_minimumTraceLevel;
-    }
-    EVTStatus LogConfiguration::SetSdkModeType(SdkModeTypes sdkmode)
-    {
-        m_sdkmode = sdkmode;
-        return  EVTStatus::EVTStatus_OK;
-    }
-    SdkModeTypes LogConfiguration::GetSdkModeType() const
-    {
-        return m_sdkmode;
+        ILogConfiguration result {
+            { CFG_INT_TRACE_LEVEL_MIN,      src.minimumTraceLevel },
+            { CFG_INT_SDK_MODE,             src.sdkmode },
+            { CFG_BOOL_ENABLE_ANALYTICS,    src.enableLifecycleSession },
+            { CFG_INT_CACHE_FILE_SIZE,      src.cacheFileSizeLimitInBytes },
+            { CFG_INT_RAM_QUEUE_SIZE,       src.cacheMemorySizeLimitInBytes },
+            { CFG_BOOL_ENABLE_MULTITENANT,  src.multiTenantEnabled },
+            { CFG_INT_MAX_TEARDOWN_TIME,    src.maxTeardownUploadTimeInSec },
+            { CFG_INT_MAX_PENDING_REQ,      src.maxPendingHTTPRequests },
+            { CFG_INT_RAM_QUEUE_BUFFERS,    src.maxDBFlushQueues },
+            { CFG_INT_TRACE_LEVEL_MASK,     src.traceLevelMask },
+            { CFG_STR_COLLECTOR_URL,        src.eventCollectorUri.c_str() },
+            { CFG_INT_STORAGE_FULL_PCT,     75 },
+            { CFG_INT_RAMCACHE_FULL_PCT,    75 }
+        };
+        return result;
     }
 
-    EVTStatus LogConfiguration::SetProperty(char const* key, char const* value)
+    ILogConfiguration FromJSON(const char* configuration)
     {
-        if (nullptr != key && nullptr != value)
-        {
-            std::string keyString(key);
-            if (!keyString.empty())
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                strProps[keyString] = value;
-                return  EVTStatus::EVTStatus_OK;
+        ILogConfiguration result;
+        auto src = json::parse(configuration);
+        std::function<void(json &src, VariantMap &dst)> parse;
+        parse = [&parse](json &src, VariantMap &dst)->void {
+            for (json::iterator it = src.begin(); it != src.end(); ++it) {
+                auto t = it.value().type();
+                switch (t)
+                {
+                case json::value_t::array:
+                    // TODO
+                    break;
+                case json::value_t::boolean:
+                    dst[it.key()] = (bool)(it.value());
+                    break;
+                case json::value_t::discarded:
+                    // TODO
+                    break;
+                case json::value_t::null:
+                    dst[it.key()] = Variant();
+                    break;
+                case json::value_t::number_float:
+                    dst[it.key()] = (double)(it.value());
+                    break;
+                case json::value_t::number_integer:
+                    dst[it.key()] = (int64_t)(it.value());
+                    break;
+                case json::value_t::number_unsigned:
+                    dst[it.key()] = (uint64_t)(it.value());
+                    break;
+                case json::value_t::object:
+                    parse(it.value(), dst[it.key()]);
+                    break;
+                case json::value_t::string:
+                    std::string val = it.value();
+                    dst[it.key()] = std::move(val);
+                    break;
+                }
             }
-        }
-        return  EVTStatus::EVTStatus_Fail;
-    }
-    EVTStatus LogConfiguration::SetIntProperty(char const* key, unsigned int value)
-    {
-        if (nullptr != key)
-        {
-            std::string keyString(key);
-            if (!keyString.empty())
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                intProps[keyString] = value;
-                return  EVTStatus::EVTStatus_OK;
-            }
-        }
-        return  EVTStatus::EVTStatus_Fail;
-    }
-    EVTStatus LogConfiguration::SetBoolProperty(char const* key, bool value)
-    {
-        if (nullptr != key)
-        {
-            std::string keyString(key);
-            if (!keyString.empty())
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                boolProps[keyString] = value;
-                return  EVTStatus::EVTStatus_OK;
-            }
-        }
-        return  EVTStatus::EVTStatus_Fail;
-    }
-    EVTStatus LogConfiguration::SetPointerProperty(char const* key, void* value)
-    {
-        UNREFERENCED_PARAMETER(key);
-        UNREFERENCED_PARAMETER(value);
-        return  EVTStatus::EVTStatus_OK;
-    }
-   
-    char const* LogConfiguration::GetProperty(char const* key, EVTStatus& error) const
-    {
-        if (nullptr != key)
-        {
-            std::string keyString(key);
-            if (!keyString.empty() && strProps.find(keyString) != strProps.end())
-            {
-                error = EVTStatus::EVTStatus_OK;
-                return strProps.at(keyString).c_str();
-            }
-        }
-        error =  EVTStatus::EVTStatus_Fail;
-        return "";
+        };
+        parse(src, result);
+        return result;
     }
 
-    uint32_t LogConfiguration::GetIntProperty(char const* key, EVTStatus& error) const
-    {
-        if (nullptr != key)
-        {
-            std::string keyString(key);
-            if (!keyString.empty() && intProps.find(keyString) != intProps.end())
-            {
-                error = EVTStatus::EVTStatus_OK;
-                return intProps.at(keyString);
-            }
-        }
-        error = EVTStatus::EVTStatus_Fail;
-        return 0;
-    }
-    bool LogConfiguration::GetBoolProperty(char const* key, EVTStatus& error) const
-    {
-        if (nullptr != key)
-        {
-            std::string keyString(key);
-            if (!keyString.empty() && boolProps.find(keyString) != boolProps.end())
-            {
-                error = EVTStatus::EVTStatus_OK;
-                return boolProps.at(keyString);
-            }
-        }
-        error = EVTStatus::EVTStatus_Fail;
-        return false;
-    }
-
-    void* LogConfiguration::GetPointerProperty(char const* key, EVTStatus& error) const
-    {
-        UNREFERENCED_PARAMETER(key);
-        error = EVTStatus::EVTStatus_Fail;
-        return nullptr;
-    }
-
-    ///<summary>LogConfiguration constructor</summary>
-    LogConfiguration::LogConfiguration()      
-    {
-        ARIASDK_LOG_DETAIL("new instance: this=%p", this);
-
-        SetMinimumTraceLevel(ACTTraceLevel::ACTTraceLevel_Error);
-        SetSdkModeType(SdkModeTypes::SdkModeTypes_Aria);
-        SetBoolProperty(CFG_BOOL_ENABLE_ANALYTICS, false);
-        SetIntProperty(CFG_INT_CACHE_FILE_SIZE, 3145728);        // 3 MB
-        SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 524288);      // 512 K
-        SetPointerProperty("httpClient", nullptr);
-        SetPointerProperty("runtimeConfig", nullptr);
-        SetBoolProperty(CFG_BOOL_ENABLE_MULTITENANT, true);
-        SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 0);
-        SetIntProperty(CFG_INT_MAX_PENDING_REQ, 4);
-        SetIntProperty(CFG_INT_RAM_QUEUE_BUFFERS, 3);
-        SetIntProperty(CFG_INT_TRACE_LEVEL_MASK, 0);
-        SetProperty(CFG_STR_COLLECTOR_URL,TC_DEFAULT_EVENT_COLLECTOR_URL_PROD);
-        SetIntProperty(CFG_INT_CACHE_FILE_FULL_NOTIFICATION_PERCENTAGE,75);
-        SetIntProperty(CFG_INT_CACHE_MEMORY_FULL_NOTIFICATION_PERCENTAGE, 75);
-    }
-
-    LogConfiguration::LogConfiguration(const LogConfiguration &src)        
-    {
-        ARIASDK_LOG_DETAIL("copy constructor: this=%p", this);
-        m_minimumTraceLevel = src.m_minimumTraceLevel;
-        m_sdkmode = src.m_sdkmode;
-
-        strProps.insert(src.strProps.begin(), src.strProps.end());
-        intProps.insert(src.intProps.begin(), src.intProps.end());
-        boolProps.insert(src.boolProps.begin(), src.boolProps.end());
-        EVTStatus error;
-        std::string url = src.GetProperty(CFG_STR_COLLECTOR_URL, error);
-        if (url.empty() || error == EVTStatus::EVTStatus_Fail)
-        {
-            SetProperty(CFG_STR_COLLECTOR_URL, TC_DEFAULT_EVENT_COLLECTOR_URL_PROD);
-        }
-    }
-
-    LogConfiguration::LogConfiguration(LogConfiguration&& src) noexcept
-        : LogConfiguration((const LogConfiguration &)src)
-    {
-        ARIASDK_LOG_DETAIL("move constructor: this=%p", this);
-        std::move(src);
-    }
-
-    LogConfiguration::~LogConfiguration()
-    {
-    }
-
-    LogConfiguration& LogConfiguration::operator=(const LogConfiguration &src)
-    {
-        strProps.clear();
-        intProps.clear();
-        boolProps.clear();
-        m_minimumTraceLevel = src.m_minimumTraceLevel;
-        m_sdkmode = src.m_sdkmode;
-
-        strProps.insert(src.strProps.begin(), src.strProps.end());
-        intProps.insert(src.intProps.begin(), src.intProps.end());
-        boolProps.insert(src.boolProps.begin(), src.boolProps.end());
-        EVTStatus error;
-        std::string url = src.GetProperty(CFG_STR_COLLECTOR_URL, error);
-        if (url.empty() || error == EVTStatus::EVTStatus_Fail)
-        {
-            SetProperty(CFG_STR_COLLECTOR_URL, TC_DEFAULT_EVENT_COLLECTOR_URL_PROD);
-        }
-        return (*this);
-    }
-
-    ConfigKey ILogConfiguration::operator[](const char *key)
-    {
-        return ConfigKey(this, key);
-    }
 
 } ARIASDK_NS_END

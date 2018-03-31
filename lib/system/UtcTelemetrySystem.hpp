@@ -1,12 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifdef _WIN32
+#ifndef UTCTELEMETRYSYSTEM_HPP
+#define UTCTELEMETRYSYSTEM_HPP
 
-#pragma once
-#include "ITelemetrySystem.hpp"
-#include <Version.hpp>
+#include <pal/PAL.hpp>
+
+#include "system/TelemetrySystemBase.hpp"
+#include <LogConfiguration.hpp>
 #include "bond/BondSerializer.hpp"
-#include <api/LogConfiguration.hpp>
 #include "system/Contexts.hpp"
-#include "stats/Statistics.hpp"
+
+#include <map>
+
 #include "traceloggingdynamic.h"
 
 namespace ARIASDK_NS_BEGIN {
@@ -52,70 +57,51 @@ namespace ARIASDK_NS_BEGIN {
         AriaTypeGuid = 5   // 128 bit
     };
 
-
     typedef struct providerdata
     {
         ULONGLONG providerHandle;
         std::vector<BYTE> providerMetaVector;
-    }ProviderData;
+    } ProviderData;
 
-class UtcTelemetrySystem : public PAL::RefCountedImpl<UtcTelemetrySystem>,
-                           public ITelemetrySystem
-{
-  public:
-    UtcTelemetrySystem(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext);
-    ~UtcTelemetrySystem();
+    class UtcTelemetrySystem :
+        public PAL::RefCountedImpl<UtcTelemetrySystem>,
+        public TelemetrySystemBase
+    {
+    public:
 
-  public:
-    void start();
-    void stop();
-    void pauseTransmission();
-    void resumeTransmission();
-    void UploadNow();
-    void addIncomingEventSystem(IncomingEventContextPtr const& event);
+        UtcTelemetrySystem(
+            ILogManager& logManager,
+            IRuntimeConfig& runtimeConfig
+            // No Offline storage DB
+            // No HTTP client
+            // No bandwidth controller
+        );
 
-  protected:
-    void startAsync();
-    void stopAsync();
-    void handleFlushWorkerThread();
-    void signalDoneEvent();
-    void pauseTransmissionAsync();
-    void resumeTransmissionAsync();
-    void handleIncomingEventPrepared(IncomingEventContextPtr const& event);
-    void preparedIncomingEventAsync(IncomingEventContextPtr const& event);
-    int sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx);
-    ProviderData getProviderFortoken(const std::string& tenantToken);
-    void UtcTelemetrySystem::PutData(std::vector< ::AriaProtocol::Data>& ext,
-        std::vector<std::string>& MD,
-        tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
-        tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
+        ~UtcTelemetrySystem();
 
-  protected:
-    bool                      m_isPaused;
-    PAL::Event                m_doneEvent;
+    protected:
 
-    BondSerializer            bondSerializer;
-    Statistics                stats;
-    LogConfiguration const&   m_configuration;
-    std::mutex                m_lock;
-    std::map<std::string, ProviderData> tokenToProviderDataMap;
-    std::map<std::string, bool> tokenToIkeyaMap;
-    bool                        m_isInitialized;
+        void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override;
 
-    
+        int sendAriaEventToUTC(IncomingEventContextPtr const& eventCtx);
 
+        ProviderData getProviderFortoken(const std::string& tenantToken);
 
-public:
-    RouteSource<>                                              started;
-    RouteSource<>                                              stopped;
-    RouteSource<>                                              paused;
-    RouteSource<>                                              resumed;
+        void UtcTelemetrySystem::PutData(std::vector< ::AriaProtocol::Data>& ext,
+            std::vector<std::string>& MD,
+            tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
+            tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
 
-    RouteSource<IncomingEventContextPtr const&>                addIncomingEvent;
-    RouteSink<UtcTelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{this, &UtcTelemetrySystem::handleIncomingEventPrepared};
+    protected:
+        std::map<std::string, ProviderData> tokenToProviderDataMap;
+        std::map<std::string, bool> tokenToIkeyaMap;
 
-    RouteSource<IncomingEventContextPtr const&>                preparedIncomingEvent;
-};
+    public:
+        RouteSink<UtcTelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &UtcTelemetrySystem::handleIncomingEventPrepared };
 
+    };
 
 } ARIASDK_NS_END
+
+#endif
+#endif

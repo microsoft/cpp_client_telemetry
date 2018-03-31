@@ -17,8 +17,9 @@
 
 using namespace std;
 using namespace nlohmann;
-using namespace Microsoft::Applications::Events;
-using namespace Microsoft::Applications::Events::PAL;
+
+using namespace MAT;
+using namespace PAL;
 
 namespace Microsoft {
     namespace Applications {
@@ -52,7 +53,7 @@ namespace Microsoft {
                     m_EXPCommon(this, Retry_Queue_Name),
                     m_minExpireTimeInSecs(DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN)
                 {
-                    ARIASDK_LOG_DETAIL("AFDClient c'tor: this=0x%x", this);
+                    LOG_TRACE("AFDClient c'tor: this=0x%x", this);
                 }
 
                 /******************************************************************************
@@ -63,7 +64,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 AFDClient::~AFDClient()
                 {
-                    ARIASDK_LOG_DETAIL("AFDClient d'tor: this=0x%x", this);
+                    LOG_TRACE("AFDClient d'tor: this=0x%x", this);
 
                     Stop();
 
@@ -86,7 +87,7 @@ namespace Microsoft {
                         config.clientVersion.empty() ||
                         config.cacheFilePathName.empty())
                     {
-                        ARIASDK_LOG_ERROR("_ValidateAFDClientConfiguration: Invalid AFDClientConfiguration specified");
+                        LOG_ERROR("_ValidateAFDClientConfiguration: Invalid AFDClientConfiguration specified");
                     }
                 }
 
@@ -107,11 +108,11 @@ namespace Microsoft {
                     {
                         // Use DEFAULT_INT_AFD_SERVER_URL_1 or DEFAULT_INT_AFD_SERVER_URL_2 for test purpose
                         std::string serverUrl1 = DEFAULT_PROD_AFD_SERVER_URL_1;
-                        ARIASDK_LOG_DETAIL("Initialize: Added default AFD ServerUrl=%s", serverUrl1.c_str());
+                        LOG_TRACE("Initialize: Added default AFD ServerUrl=%s", serverUrl1.c_str());
                         m_EXPCommon.m_serverUrls.push_back(serverUrl1);
 
                         std::string serverUrl2 = DEFAULT_PROD_AFD_SERVER_URL_2;
-                        ARIASDK_LOG_DETAIL("Initialize: Added default AFD ServerUrl=%s", serverUrl2.c_str());
+                        LOG_TRACE("Initialize: Added default AFD ServerUrl=%s", serverUrl2.c_str());
                         m_EXPCommon.m_serverUrls.push_back(serverUrl2);
                     }
                     else
@@ -119,7 +120,7 @@ namespace Microsoft {
                         for (size_t i = 0; i < config.serverUrls.size(); ++i)
                         {
                             std::string serverUrl = config.serverUrls[i];
-                            ARIASDK_LOG_DETAIL("Initialize: Added AFD ServerUrl=%s", serverUrl.c_str());
+                            LOG_TRACE("Initialize: Added AFD ServerUrl=%s", serverUrl.c_str());
 
                             m_EXPCommon.m_serverUrls.push_back(serverUrl);
                         }
@@ -162,13 +163,13 @@ namespace Microsoft {
                     m_configCache = new AFDConfigCache(config.cacheFilePathName);
                     if (!m_configCache)
                     {
-                        ARIASDK_LOG_ERROR("Initialize: Failed to create local config cache");
+                        LOG_ERROR("Initialize: Failed to create local config cache");
                     }
 
                     m_AFDClientConfiguration = config;
 
                     m_EXPCommon.m_status = EXP_INITIALIZED;
-                    ARIASDK_LOG_DETAIL("Initialize: AFDClient successfully initialized");
+                    LOG_TRACE("Initialize: AFDClient successfully initialized");
                 }
 
                 /******************************************************************************
@@ -179,7 +180,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool AFDClient::AddListener(IAFDClientCallback *listener)
                 {
-                    ARIASDK_LOG_DETAIL("AddListener[%d]: AFDClient=0x%x, listener=0x%x", __LINE__, this, listener);
+                    LOG_TRACE("AddListener[%d]: AFDClient=0x%x, listener=0x%x", __LINE__, this, listener);
 
                     std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
@@ -200,7 +201,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool AFDClient::RemoveListener(IAFDClientCallback *listener)
                 {
-                    ARIASDK_LOG_DETAIL("RemoveListener[%d]: AFDClient=0x%x, listener=0x%x", __LINE__, this, listener);
+                    LOG_TRACE("RemoveListener[%d]: AFDClient=0x%x, listener=0x%x", __LINE__, this, listener);
 
                     std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_smalllock);
 
@@ -221,7 +222,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool AFDClient::RegisterLogger(ILogger* pLogger, const string& agentName)
                 {
-                    ARIASDK_LOG_DETAIL("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
+                    LOG_TRACE("RegisterLogger[%d]: this=0x%x, ILogger=0x%x, agent=%s", __LINE__, this, pLogger, agentName.c_str());
                     m_EXPCommon.RegisterLogger(pLogger, agentName);
                     // Update the logger with the EXP configuration info like Etag if this function is called after ExpCommon is started
                     std::lock_guard<std::mutex> lockguard(m_EXPCommon.m_lock);
@@ -253,7 +254,7 @@ namespace Microsoft {
 
                             pLoggerCtx->SetAppExperimentETag(m_configActive->etag);
 
-                            ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, m_configActive->etag.c_str());
+                            LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, m_configActive->etag.c_str());
                             if (!m_AFDClientConfiguration.impressionGuid.empty())
                             {
                                 pLoggerCtx->SetAppExperimentImpressionId(m_AFDClientConfiguration.impressionGuid);
@@ -281,7 +282,7 @@ namespace Microsoft {
                                     }
                                     if (allFights.size() > 0)
                                     {
-                                        ARIASDK_LOG_DETAIL("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, m_configActive->etag.c_str());
+                                        LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, m_configActive->etag.c_str());
                                         pLoggerCtx->SetAppExperimentIds(allFights);
                                     }
                                 }
@@ -317,14 +318,14 @@ namespace Microsoft {
                     if (m_EXPCommon.m_status != EXP_INITIALIZED &&
                         m_EXPCommon.m_status != EXP_STOPPED)
                     {
-                        ARIASDK_LOG_ERROR("Start: AFDClient hasn't been initialzied or has already started");
+                        LOG_ERROR("Start: AFDClient hasn't been initialzied or has already started");
                         return false;
                     }
 
                     // load cached configuration from local cache
                     if (!m_configCache->LoadConfig())
                     {
-                        ARIASDK_LOG_WARNING("Start: Failed to load configurations from local cache");
+                        LOG_WARN("Start: Failed to load configurations from local cache");
                     }
                     else
                     {
@@ -471,7 +472,7 @@ namespace Microsoft {
                     // check status first, simply return if it hasn't been initialzied or has already started
                     if (m_EXPCommon.m_status != EXP_SUSPENDED)
                     {
-                        ARIASDK_LOG_ERROR("Resume: ExpCommon wasn't suspended");
+                        LOG_ERROR("Resume: ExpCommon wasn't suspended");
                         return false;
                     }
                     m_EXPCommon.m_forceRefech = fetchConfig;
@@ -493,7 +494,7 @@ namespace Microsoft {
                     // check status first, simply return if it hasn't been initialzied or has already started
                     if (m_EXPCommon.m_status != EXP_STARTED)
                     {
-                        ARIASDK_LOG_ERROR("Suspend: ExpCommon isn't started");
+                        LOG_ERROR("Suspend: ExpCommon isn't started");
                         return false;
                     }
                     m_EXPCommon.Suspend();
@@ -515,7 +516,7 @@ namespace Microsoft {
                     // check status first, simply return if not started
                     if (m_EXPCommon.m_status != EXP_STARTED && m_EXPCommon.m_status != EXP_SUSPENDED)
                     {
-                        ARIASDK_LOG_ERROR("Stop: ExpCommon isn't started");
+                        LOG_ERROR("Stop: ExpCommon isn't started");
                         return false;
                     }
                     // stop and destroy the offline storage used for local cache of configs
@@ -535,7 +536,7 @@ namespace Microsoft {
                 ******************************************************************************/
                 bool AFDClient::SetRequestParameters(const std::map<std::string, std::string>& requestParams)
                 {
-                    ARIASDK_LOG_DETAIL("SetRequestParameters[%d]: AFDClient=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
+                    LOG_TRACE("SetRequestParameters[%d]: AFDClient=0x%x, request parameters count=%u", __LINE__, this, requestParams.size());
 
                     m_EXPCommon.SetRequestParameters(requestParams, false);
 
@@ -570,9 +571,9 @@ namespace Microsoft {
 
                 void AFDClient::FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromServer)
                 {
-                    ARIASDK_LOG_DETAIL("FireClientEvent[%d]:  ECSClient=0x%x, listener count=%u", __LINE__, this, m_listeners.size());
+                    LOG_TRACE("FireClientEvent[%d]:  AFDClient=0x%x, listener count=%u", __LINE__, this, m_listeners.size());
 
-                    ARIASDK_LOG_DETAIL("FireClientEvent[%d]:  EventType=%d, ConfigUpdateFromECS=%d", evtType, fConfigUpdateFromServer);
+                    LOG_TRACE("FireClientEvent[%d]:  EventType=%d, ConfigUpdateFromAFD=%d", evtType, fConfigUpdateFromServer);
 
                     // notify listners if the active config is either updated on ECS server or changed to a different one
                     IAFDClientCallback::AFDClientEventContext evtContext = {};
@@ -603,7 +604,7 @@ namespace Microsoft {
                     {
                         IAFDClientCallback* afdclientCallback = *it;
 
-                        ARIASDK_LOG_DETAIL("_FireECSClientEvent[%d]:: EcsClient=0x%x, listener=0x%x", __LINE__, this, afdclientCallback);
+                        LOG_TRACE("_FireAFDClientEvent[%d]:: AFDClient=0x%x, listener=0x%x", __LINE__, this, afdclientCallback);
                         afdclientCallback->OnAFDClientEvent(eventTypeLocal, evtContext);
                     }
                 }
@@ -619,7 +620,7 @@ namespace Microsoft {
                     bool& isActiveConfigUpdatedOnAFD,
                     bool& isActiveConfigUpdatedOnAFDSaveNeeded)
                 {
-                    ARIASDK_LOG_DETAIL("_HandleHttpCallback: HTTPstack error=%u, HTTP status code=%u",
+                    LOG_TRACE("_HandleHttpCallback: HTTPstack error=%u, HTTP status code=%u",
                         msg.httpstackError, msg.statusCode);
 
                     isActiveConfigUpdatedOnAFD = true;
@@ -632,7 +633,7 @@ namespace Microsoft {
                         std::string ref = msg.headers.get("X-MSEdge-Ref");
 
                         // Config retrieved successfully from AFD, update the local cache
-                        ARIASDK_LOG_DETAIL("_HandleHttpCallback: config retrieved from AFD, ETag=%s", msg.headers.get("ETag").c_str());
+                        LOG_TRACE("_HandleHttpCallback: config retrieved from AFD, ETag=%s", msg.headers.get("ETag").c_str());
                         m_configActive->expiryUtcTimestamp = PAL::getUtcSystemTime() + _GetExpiryTimeInSecFromHeader(msg);
 
                         std::string temp = msg.headers.get("X-MSEdge-Features");
@@ -670,7 +671,7 @@ namespace Microsoft {
                         }
                         catch (...)
                         {
-                            ARIASDK_LOG_DETAIL("Json pasring failed");
+                            LOG_TRACE("Json pasring failed");
                         }
 
                         if (0 == m_configActive->features.size())
@@ -834,7 +835,7 @@ namespace Microsoft {
                     //make sure the relative expire time is no less than m_minExpireTimeInSecs
                     if (timeoutinSec < m_minExpireTimeInSecs)
                     {
-                        ARIASDK_LOG_WARNING("_GetExpiryTimeInSecFromHeader: Expires time(%ld) from response header is less than min limit(%ld sec), use min.",
+                        LOG_WARN("_GetExpiryTimeInSecFromHeader: Expires time(%ld) from response header is less than min limit(%ld sec), use min.",
                             timeoutinSec, m_minExpireTimeInSecs);
                         timeoutinSec = m_minExpireTimeInSecs;
                     }
@@ -854,11 +855,11 @@ namespace Microsoft {
                     bool& isActiveConfigSwitched,
                     bool& isActiveConfigSwitchedSaveNeeded)
                 {
-                    ARIASDK_LOG_DETAIL("_HandleConfigReload: HandleConfigReload for RequestName=%s", msg.requestName.c_str());
+                    LOG_TRACE("_HandleConfigReload: HandleConfigReload for RequestName=%s", msg.requestName.c_str());
 
                     if (m_EXPCommon.m_status != EXP_STARTED)
                     {
-                        ARIASDK_LOG_DETAIL("HandleConfigReload: ignored[Status=%d]", m_EXPCommon.m_status);
+                        LOG_TRACE("HandleConfigReload: ignored[Status=%d]", m_EXPCommon.m_status);
                         return;
                     }
 
@@ -880,7 +881,7 @@ namespace Microsoft {
                             }
 
                             AFDConfig config;
-                            config.expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + timeoutinSec;
+                            config.expiryUtcTimestamp = PAL::getUtcSystemTime() + timeoutinSec;
                             config.requestName = msg.requestName;
                             pConfig = m_configCache->AddConfig(config);
                         }
@@ -991,7 +992,7 @@ namespace Microsoft {
                         std::string url = m_EXPCommon.m_serverUrls.at(m_EXPCommon.m_serverUrlIdx);
 
                         m_EXPCommon.SendRequestAsync(url);
-                        ARIASDK_LOG_DETAIL("_HandleConfigReloadAndRefetch: Config refetch request successfully sent to EXP.");
+                        LOG_TRACE("_HandleConfigReloadAndRefetch: Config refetch request successfully sent to EXP.");
 
                         return true;
                     }

@@ -97,7 +97,7 @@ class HttpServer : private Reactor::Callback
         socket.listen(10);
         m_listeningSockets.push_back(socket);
         m_reactor.addSocket(socket, Reactor::Acceptable);
-        ARIASDK_LOG_INFO("HttpServer: Listening on %s", addr.toString().c_str());
+        LOG_INFO("HttpServer: Listening on %s", addr.toString().c_str());
 
         return addr.port();
     }
@@ -105,7 +105,7 @@ class HttpServer : private Reactor::Callback
     void addHandler(std::string const& root, Callback& handler)
     {
         m_handlers.push_back(std::make_pair(root, &handler));
-        ARIASDK_LOG_INFO("HttpServer: Added handler for %s", root.c_str());
+        LOG_INFO("HttpServer: Added handler for %s", root.c_str());
     }
 
     void start()
@@ -132,7 +132,7 @@ class HttpServer : private Reactor::Callback
             conn.state = Connection::Idle;
             conn.request.client = caddr.toString();
             m_reactor.addSocket(csocket, Reactor::Readable | Reactor::Closed);
-            ARIASDK_LOG_DETAIL("HttpServer: [%s] accepted", conn.request.client.c_str());
+            LOG_TRACE("HttpServer: [%s] accepted", conn.request.client.c_str());
         }
     }
 
@@ -148,7 +148,7 @@ class HttpServer : private Reactor::Callback
 
         char buffer[2048];
         int received = socket.recv(buffer, sizeof(buffer));
-        ARIASDK_LOG_DETAIL("HttpServer: [%s] received %d", conn.request.client.c_str(), received);
+        LOG_TRACE("HttpServer: [%s] received %d", conn.request.client.c_str(), received);
         if (received <= 0) {
             handleConnectionClosed(conn);
             return;
@@ -193,7 +193,7 @@ class HttpServer : private Reactor::Callback
         }
 
         int sent = conn.socket.send(conn.sendBuffer.data(), static_cast<int>(conn.sendBuffer.size()));
-        ARIASDK_LOG_DETAIL("HttpServer: [%s] sent %d", conn.request.client.c_str(), sent);
+        LOG_TRACE("HttpServer: [%s] sent %d", conn.request.client.c_str(), sent);
         if (sent < 0 && conn.socket.error() != Socket::ErrorWouldBlock) {
             return true;
         }
@@ -210,9 +210,9 @@ class HttpServer : private Reactor::Callback
   protected:
     void handleConnectionClosed(Connection& conn)
     {
-        ARIASDK_LOG_DETAIL("HttpServer: [%s] closed", conn.request.client.c_str());
+        LOG_TRACE("HttpServer: [%s] closed", conn.request.client.c_str());
         if (conn.state != Connection::Idle && conn.state != Connection::Closing) {
-            ARIASDK_LOG_WARNING("HttpServer: [%s] connection closed unexpectedly", conn.request.client.c_str());
+            LOG_WARN("HttpServer: [%s] connection closed unexpectedly", conn.request.client.c_str());
         }
         m_reactor.removeSocket(conn.socket);
         auto connIt = m_connections.find(conn.socket);
@@ -226,7 +226,7 @@ class HttpServer : private Reactor::Callback
             if (conn.state == Connection::Idle) {
                 conn.response.code = 0;
                 conn.state = Connection::ReceivingHeaders;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] receiving headers", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] receiving headers", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::ReceivingHeaders) {
@@ -238,7 +238,7 @@ class HttpServer : private Reactor::Callback
                 }
                 size_t headersLen = (ofs != std::string::npos) ? ofs : conn.receiveBuffer.length();
                 if (headersLen > m_maxRequestHeadersSize) {
-                    ARIASDK_LOG_WARNING("HttpServer: [%s] headers too long - %u", conn.request.client.c_str(), static_cast<unsigned>(headersLen));
+                    LOG_WARN("HttpServer: [%s] headers too long - %u", conn.request.client.c_str(), static_cast<unsigned>(headersLen));
                     conn.response.code = 431; // Request Header Fields Too Large
                     conn.keepalive = false;
                     conn.state = Connection::Processing;
@@ -249,13 +249,13 @@ class HttpServer : private Reactor::Callback
                 }
 
                 if (!parseHeaders(conn)) {
-                    ARIASDK_LOG_WARNING("HttpServer: [%s] invalid headers", conn.request.client.c_str());
+                    LOG_WARN("HttpServer: [%s] invalid headers", conn.request.client.c_str());
                     conn.response.code = 400; // Bad Request
                     conn.keepalive = false;
                     conn.state = Connection::Processing;
                     continue;
                 }
-                ARIASDK_LOG_INFO("HttpServer: [%s] %s %s %s", conn.request.client.c_str(), conn.request.method.c_str(), conn.request.uri.c_str(), conn.request.protocol.c_str());
+                LOG_INFO("HttpServer: [%s] %s %s %s", conn.request.client.c_str(), conn.request.method.c_str(), conn.request.uri.c_str(), conn.request.protocol.c_str());
                 conn.receiveBuffer.erase(0, ofs + (lfOnly ? 2 : 4));
 
                 conn.keepalive = (conn.request.protocol == "HTTP/1.1");
@@ -275,7 +275,7 @@ class HttpServer : private Reactor::Callback
                     conn.contentLength = 0;
                 }
                 if (conn.contentLength > m_maxRequestContentSize) {
-                    ARIASDK_LOG_WARNING("HttpServer: [%s] content too long - %u", conn.request.client.c_str(), static_cast<unsigned>(conn.contentLength));
+                    LOG_WARN("HttpServer: [%s] content too long - %u", conn.request.client.c_str(), static_cast<unsigned>(conn.contentLength));
                     conn.response.code = 413; // Payload Too Large
                     conn.keepalive = false;
                     conn.state = Connection::Processing;
@@ -285,7 +285,7 @@ class HttpServer : private Reactor::Callback
                 auto const expect = conn.request.headers.find("Expect");
                 if (expect != conn.request.headers.end() && conn.request.protocol == "HTTP/1.1") {
                     if (!equalsLowercased(expect->second, "100-continue")) {
-                        ARIASDK_LOG_WARNING("HttpServer: [%s] unknown expectation - %s", conn.request.client.c_str(), expect->second.c_str());
+                        LOG_WARN("HttpServer: [%s] unknown expectation - %s", conn.request.client.c_str(), expect->second.c_str());
                         conn.response.code = 417; // Expectation Failed
                         conn.keepalive = false;
                         conn.state = Connection::Processing;
@@ -293,12 +293,12 @@ class HttpServer : private Reactor::Callback
                     }
                     conn.sendBuffer = "HTTP/1.1 100 Continue\r\n\r\n";
                     conn.state = Connection::Sending100Continue;
-                    ARIASDK_LOG_DETAIL("HttpServer: [%s] sending \"100 Continue\"", conn.request.client.c_str());
+                    LOG_TRACE("HttpServer: [%s] sending \"100 Continue\"", conn.request.client.c_str());
                     continue;
                 }
 
                 conn.state = Connection::ReceivingBody;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] receiving body", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] receiving body", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::Sending100Continue) {
@@ -307,7 +307,7 @@ class HttpServer : private Reactor::Callback
                 }
 
                 conn.state = Connection::ReceivingBody;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] receiving body", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] receiving body", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::ReceivingBody) {
@@ -324,7 +324,7 @@ class HttpServer : private Reactor::Callback
                 }
 
                 conn.state = Connection::Processing;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] processing request", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] processing request", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::Processing) {
@@ -339,7 +339,7 @@ class HttpServer : private Reactor::Callback
 
                 conn.sendBuffer = os.str();
                 conn.state = Connection::SendingHeaders;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] sending headers", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] sending headers", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::SendingHeaders) {
@@ -349,7 +349,7 @@ class HttpServer : private Reactor::Callback
 
                 conn.sendBuffer = std::move(conn.response.content);
                 conn.state = Connection::SendingBody;
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] sending body", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] sending body", conn.request.client.c_str());
             }
 
             if (conn.state == Connection::SendingBody) {
@@ -360,7 +360,7 @@ class HttpServer : private Reactor::Callback
                 if (conn.keepalive) {
                     m_reactor.addSocket(conn.socket, Reactor::Readable | Reactor::Closed);
                     conn.state = Connection::Idle;
-                    ARIASDK_LOG_DETAIL("HttpServer: [%s] idle (keep-alive)", conn.request.client.c_str());
+                    LOG_TRACE("HttpServer: [%s] idle (keep-alive)", conn.request.client.c_str());
                     if (conn.receiveBuffer.empty()) {
                         return;
                     }
@@ -368,7 +368,7 @@ class HttpServer : private Reactor::Callback
                     conn.socket.shutdown(Socket::ShutdownSend);
                     m_reactor.addSocket(conn.socket, Reactor::Closed);
                     conn.state = Connection::Closing;
-                    ARIASDK_LOG_DETAIL("HttpServer: [%s] closing", conn.request.client.c_str());
+                    LOG_TRACE("HttpServer: [%s] closing", conn.request.client.c_str());
                 }
             }
 
@@ -506,7 +506,7 @@ class HttpServer : private Reactor::Callback
                 if (conn.request.uri.length() >= handler.first.length() &&
                     strncmp(conn.request.uri.c_str(), handler.first.c_str(), handler.first.length()) == 0)
                 {
-                    ARIASDK_LOG_DETAIL("HttpServer: [%s] using handler for %s", conn.request.client.c_str(), handler.first.c_str());
+                    LOG_TRACE("HttpServer: [%s] using handler for %s", conn.request.client.c_str(), handler.first.c_str());
                     int result = handler.second->onHttpRequest(conn.request, conn.response);
                     if (result != 0) {
                         conn.response.code = result;
@@ -516,7 +516,7 @@ class HttpServer : private Reactor::Callback
             }
 
             if (conn.response.code == -1) {
-                ARIASDK_LOG_DETAIL("HttpServer: [%s] closing by request", conn.request.client.c_str());
+                LOG_TRACE("HttpServer: [%s] closing by request", conn.request.client.c_str());
                 handleConnectionClosed(conn);
             }
         }

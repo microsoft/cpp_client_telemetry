@@ -3,7 +3,7 @@
 #include "pal/UtcHelpers.hpp"
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
+
 #include "utils/Utils.hpp"
 #include <api/ILogManagerInternal.hpp>
 #include <IAFDClient.hpp>
@@ -70,7 +70,6 @@ class BasicAfdFuncTests : public ::testing::Test,
   protected:
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
-    MockIRuntimeConfig runtimeConfig;
     HttpServer server;
     std::unique_ptr<ILogManagerInternal> logManager;
     ILogger* logger;
@@ -100,23 +99,9 @@ class BasicAfdFuncTests : public ::testing::Test,
         EVTStatus error;
         ::remove(configuration.GetProperty("cacheFilePath", error));
 
-
-        EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
-        EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
-        EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(runtimeConfig, GetUploadRetryBackoffConfig()).WillRepeatedly(Return("E,3000,3000,2,0"));
-        EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
-
-        
         m_pAFDClient = IAFDClient::CreateInstance();
 
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        logManager.reset(ILogManagerInternal::Create(configuration));
         ContextFieldsProvider temp;
         logger = logManager->GetLogger("functests-Tenant-Token",&temp, "source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");

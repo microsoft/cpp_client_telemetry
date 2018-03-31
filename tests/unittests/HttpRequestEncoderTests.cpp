@@ -2,7 +2,6 @@
 
 #include "common/Common.hpp"
 #include "common/MockIHttpClient.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "http/HttpRequestEncoder.hpp"
 
 using namespace testing;
@@ -12,17 +11,14 @@ using namespace ARIASDK_NS;
 class HttpRequestEncoderTests : public Test {
   protected:
     MockIHttpClient    mockHttpClient;
-    MockIRuntimeConfig mockRuntimeConfig;
     HttpRequestEncoder encoder;
 
   protected:
     HttpRequestEncoderTests()
-      : encoder(mockHttpClient, mockRuntimeConfig)
+      : encoder(mockHttpClient)
     {
         EXPECT_CALL(mockHttpClient, CreateRequest())
             .WillRepeatedly(Invoke(&HttpRequestEncoderTests::createHttpRequest));
-        EXPECT_CALL(mockRuntimeConfig, GetCollectorUrl())
-            .WillRepeatedly(Return("http://collector/"));
     }
 
     static IHttpRequest* createHttpRequest()

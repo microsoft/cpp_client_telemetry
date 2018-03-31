@@ -4,18 +4,20 @@
 #pragma comment(lib, "windowsapp")
 #pragma comment(lib, "runtimeobject")
 
+#include <Windows.h>
+
 #include <IHttpClient.hpp>
 #include "pal/PAL.hpp"
 #include <ppltasks.h>
 
-namespace ARIASDK_NS_BEGIN {
+using namespace ::Windows::Foundation;
+using namespace ::Windows::Foundation::Collections;
+using namespace ::Windows::Web;
+using namespace ::Windows::Web::Http;
+using namespace ::Windows::Web::Http::Filters;
+using namespace ::Windows::Web::Http::Headers;
 
-using namespace Windows::Foundation;
-using namespace Windows::Foundation::Collections;
-using namespace Windows::Web;
-using namespace Windows::Web::Http;
-using namespace Windows::Web::Http::Filters;
-using namespace Windows::Web::Http::Headers;
+namespace ARIASDK_NS_BEGIN {
 
 class WinRtRequestWrapper;
 

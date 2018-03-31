@@ -12,12 +12,12 @@ using namespace System::Security::Permissions;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly:AssemblyTitleAttribute(L"Microsoft.Applications.Events .Windows")];
+[assembly:AssemblyTitleAttribute(L"Microsoft.Applications.Telemetry.Windows")];
 [assembly:AssemblyDescriptionAttribute(L"Microsoft data file")];
 [assembly:AssemblyConfigurationAttribute(L"Retail")];
 [assembly:AssemblyCompanyAttribute(L"Microsoft")];
 [assembly:AssemblyProductAttribute(L"ARIA SDK for Windows")];
-[assembly:AssemblyCopyrightAttribute(L"Copyright (c)  2016")];
+[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2017")];
 [assembly:AssemblyTrademarkAttribute(L"ARIA SDK for Windows")];
 [assembly:AssemblyCultureAttribute(L"")];
 [assembly:AssemblyKeyFile("Test.snk")];

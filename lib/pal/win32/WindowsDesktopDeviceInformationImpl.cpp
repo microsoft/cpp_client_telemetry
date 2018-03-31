@@ -26,11 +26,8 @@ ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 #define MODEL           "SystemProductName"
 #define HARDWARE_ID     "ComputerHardwareId"
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
-            namespace PAL
-            {
+namespace PAL_NS_BEGIN {
+
                 /* Value returned on computers with no network adapter available */
                 static char *netIfGuid = "{deadbeef-fade-dead-c0de-cafebabefeed}";
                 static const char *manufacturer = "Unknown Manufacturer";
@@ -121,7 +118,7 @@ namespace Microsoft {
                         const std::string tmp(buff);
                         m_manufacturer = tmp;
                     }
-					ARIASDK_LOG_DETAIL("Device Manufacturer=%s", m_manufacturer.c_str());
+                    LOG_TRACE("Device Manufacturer=%s", m_manufacturer.c_str());
 
                     // Detect model
                     size = sizeof(buff);
@@ -130,7 +127,7 @@ namespace Microsoft {
                         std::string tmp(buff);
                         m_model = tmp;
                     }
-					ARIASDK_LOG_DETAIL("Device Model=%s", m_model.c_str());
+                    LOG_TRACE("Device Model=%s", m_model.c_str());
 
                     m_powerSource = GetCurrentPowerSource();
 
@@ -139,11 +136,10 @@ namespace Microsoft {
                 {
                 }
 
-				IDeviceInformation* DeviceInformationImpl::Create()
+                IDeviceInformation* DeviceInformationImpl::Create()
                 {
-					return  new DeviceInformationImpl();
+                    return  new DeviceInformationImpl();
                 }
-            }
-        }
-    }
-}
+
+} PAL_NS_END
+

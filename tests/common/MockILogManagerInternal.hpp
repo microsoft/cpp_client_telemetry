@@ -43,7 +43,7 @@ class MockILogManagerInternal : public ARIASDK_NS::ILogManagerInternal
 	MOCK_METHOD3(SetContext, void(const std::string&, ARIASDK_NS::time_ticks_t, ARIASDK_NS::PiiKind));
 	MOCK_METHOD3(SetContext, void(const std::string&, ARIASDK_NS::GUID_t, ARIASDK_NS::PiiKind));
     MOCK_METHOD4(GetLogger, ARIASDK_NS::ILogger * (std::string const &, ARIASDK_NS::ContextFieldsProvider*, std::string const &, std::string const &));
-    MOCK_METHOD1(addIncomingEvent, void(ARIASDK_NS::IncomingEventContextPtr const &));
+    MOCK_METHOD1(sendEvent, void(ARIASDK_NS::IncomingEventContextPtr const &));
 };
 
 

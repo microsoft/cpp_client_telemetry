@@ -7,7 +7,7 @@
 #include "pal/UtcHelpers.hpp"
 #include "ECSClientUtils.hpp"
 
-using namespace Microsoft::Applications::Events::PAL;
+using namespace PAL;
 using namespace std;
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
@@ -17,7 +17,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         : m_pOfflineStorage(NULL)
     {
         // save the offline storage path
-        ARIASDK_LOG_DETAIL("[ECSClient]: initializing ECSConfigCache(%s)", storagePath.c_str() );
+        LOG_TRACE("[ECSClient]: initializing ECSConfigCache(%s)", storagePath.c_str() );
 
         //default storage path
         if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
@@ -79,14 +79,14 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             }
             else
             {
-                ARIASDK_LOG_ERROR("[ECSClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
+                LOG_ERROR("[ECSClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
             }
         }
         return retrunValue;
     }
     bool ECSConfigCache::_LoadConfig()
     {        
-        ARIASDK_LOG_DETAIL("[ECSClient]: loading configs from local cache [%s]", m_OfflineStoragePath.c_str());
+        LOG_TRACE("[ECSClient]: loading configs from local cache [%s]", m_OfflineStoragePath.c_str());
         char* buff = NULL;
         size_t size = 0;
 
@@ -97,13 +97,13 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
                 int ret = m_pOfflineStorage->PopNextItem(&buff, size, NULL);
                 if (ret < 0)
                 {
-                    ARIASDK_LOG_ERROR("[ECSClient]: Failed to load config from local cache");
+                    LOG_ERROR("[ECSClient]: Failed to load config from local cache");
                     return false;
                 }
 
                 if (!ret || !size)
                 {
-                    ARIASDK_LOG_DETAIL("[ECSClient]: No config found in local cache");
+                    LOG_TRACE("[ECSClient]: No config found in local cache");
                     return true;
                 }
             }
@@ -117,24 +117,24 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         try
         {
             configSettings = json::parse(buff);
-            free(buff);
+            delete [] buff;
             buff = NULL;
         }
         catch (...)
         {
-            free(buff);
+            delete[] buff;
             buff = NULL;
-            ARIASDK_LOG_ERROR("[ECSClient]: Failed to parse config loaded from local cache");
+            LOG_ERROR("[ECSClient]: Failed to parse config loaded from local cache");
             return false;
         }
 
 
-        ARIASDK_LOG_DETAIL("[ECSClient]: Config loaded from local cache has successfully parsed");
+        LOG_TRACE("[ECSClient]: Config loaded from local cache has successfully parsed");
 
         // the parsed config should be json array
         if (!configSettings.is_array())
         {
-            ARIASDK_LOG_ERROR("[ECSClient]: Parsed config is of wrong format");
+            LOG_ERROR("[ECSClient]: Parsed config is of wrong format");
             return false;
         }
 
@@ -147,7 +147,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             if (jconfig.end() == requestName)
             {
                 // can't get the RequestName for this config, ignore it
-                ARIASDK_LOG_WARNING("[ECSClient]: No RequestName found in this config, skip it.");
+                LOG_WARN("[ECSClient]: No RequestName found in this config, skip it.");
                 continue;
             }
 
@@ -173,7 +173,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             }
 
             // handle the case where local clock is reset
-            std::int64_t value = Microsoft::Applications::Events::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX;
+            std::int64_t value = PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MAX;
             if (config.expiryUtcTimestamp > value)
             {
                 config.expiryUtcTimestamp = value;
@@ -195,7 +195,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             m_configs[config.requestName] = config;
         }
 
-        ARIASDK_LOG_DETAIL("[ECSClient]: Done loading %u configs from offline storage [%s]", m_configs.size(), m_OfflineStoragePath.c_str());
+        LOG_TRACE("[ECSClient]: Done loading %u configs from offline storage [%s]", m_configs.size(), m_OfflineStoragePath.c_str());
         
         return true;
     }
@@ -215,7 +215,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
             }
             else
             {
-                ARIASDK_LOG_ERROR("[ECSClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
+                LOG_ERROR("[ECSClient]: Failed to create offline storage at [%s]", m_OfflineStoragePath.c_str());
                 return false;
             }
         }
@@ -224,7 +224,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
     // currently, we only save the defauflt config, and the activeConfig
     bool ECSConfigCache::_SaveConfig(const ECSConfig& config)
     {
-        ARIASDK_LOG_DETAIL("[ECSClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());        
+        LOG_TRACE("[ECSClient]: Saving configs to offline storage [%s]", m_OfflineStoragePath.c_str());        
         
         std::vector<ECSConfig> configsToSave;
 
@@ -296,7 +296,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 
                     if (ret < 0)
                     {
-                        ARIASDK_LOG_ERROR("[ECSClient]: Failed to clean-up existing configs, abort saving configs.");
+                        LOG_ERROR("[ECSClient]: Failed to clean-up existing configs, abort saving configs.");
                         break;
                     }
 
@@ -307,17 +307,17 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
                     }
                 }
 
-                if (Microsoft::Applications::Events::RES_SUCC == ret)
+                if (MAT::RES_SUCC == ret)
                 {
                     ret = m_pOfflineStorage->SaveItem(configsStr.c_str(), configsStr.size() + 1, NULL);
-                    if (Microsoft::Applications::Events::RES_SUCC != ret)
+                    if (MAT::RES_SUCC != ret)
                     {
-                        ARIASDK_LOG_ERROR("[ECSClient]: Failed to save configs to offline storage, error=%d).", ret);
+                        LOG_ERROR("[ECSClient]: Failed to save configs to offline storage, error=%d).", ret);
                     }
                 }
             }
         }
-        ARIASDK_LOG_DETAIL("[ECSClient]: Done saving %u configs to offline storage", configsToSave.size());
+        LOG_TRACE("[ECSClient]: Done saving %u configs to offline storage", configsToSave.size());
         
         return true;
     }
@@ -326,10 +326,10 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
     {
         std::lock_guard<std::mutex> lock(m_lock);
         // create offline storage
-        ARIASDK_NS::IStorage* pOfflineStorage = new Microsoft::Applications::Events::FIFOFileStorage();
+        ARIASDK_NS::IStorage* pOfflineStorage = new MAT::FIFOFileStorage();
         if (!pOfflineStorage)
         {
-            ARIASDK_LOG_ERROR("[ECSClient]: Failed to create offline storage");
+            LOG_ERROR("[ECSClient]: Failed to create offline storage");
             return NULL;
         }
 
@@ -337,7 +337,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         int err = pOfflineStorage->Open(storagePath.c_str(), 0/*sizeLimitInBytes*/);
         if (err)
         {
-            ARIASDK_LOG_ERROR("[ECS]: initialize offline storage failed, err: %d", err);
+            LOG_ERROR("[ECS]: initialize offline storage failed, err: %d", err);
             delete pOfflineStorage;
             return NULL;
         }

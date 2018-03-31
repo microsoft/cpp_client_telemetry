@@ -3,16 +3,13 @@
 #include <string>
 #include <stdint.h>
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
-            class WindowsEnvironmentInfo
-            {
-            public:
-                static OsArchitectureType GetProcessorArchitecture();
-                static std::string GetTimeZone();			
+namespace ARIASDK_NS_BEGIN {
 
-			};
-        }
-    }
-}
+    class WindowsEnvironmentInfo
+    {
+    public:
+        static OsArchitectureType GetProcessorArchitecture();
+        static std::string GetTimeZone();
+    };
+
+} ARIASDK_NS_END

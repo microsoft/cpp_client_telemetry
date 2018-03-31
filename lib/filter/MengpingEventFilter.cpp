@@ -1,0 +1,101 @@
+// MengpingEventFilter.cpp
+
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include "filter/MengpingEventFilter.hpp"
+
+namespace ARIASDK_NS_BEGIN
+{
+    MengpingEventFilter::MengpingEventFilter()
+    {
+        srand((uint32_t)time(NULL));
+    }
+
+    MengpingEventFilter::~MengpingEventFilter()
+    {
+        Reset();
+    }
+
+    void MengpingEventFilter::Reset()
+    {
+        _filterRules.clear();
+    }
+
+    /*
+        Random mode 1: random for each logging call
+    */
+    bool MengpingEventFilter::randomForEachCall(int filterRate)
+    {
+        bool result = (rand() % 100) < filterRate;
+        return result;
+    }
+
+    bool MengpingEventFilter::IsEventExcluded(const std::string& eventName)
+    {
+        std::map<std::string, int32_t>::iterator findResult = _filterRules.find(eventName);
+        if (findResult == _filterRules.end())
+        {
+            return false;
+        }
+
+        /*
+            TODO:
+            * Random mode 2: random per session
+            * Random mode 3: random based on Device ID
+        */
+        bool result = randomForEachCall(findResult->second);
+        return result;
+    }
+
+    EVTStatus MengpingEventFilter::SetExclusionFilter(const char** filterStrings, uint32_t filterCount)
+    {
+        if (filterCount > 0 && nullptr == filterStrings)
+        {
+            return EVTStatus_Fail; // SetExclusionFilterResult::ErrorBadInput;
+        }
+
+        std::vector<uint32_t> filterRates;
+        for (uint32_t i = 0; i < filterCount; i++)
+        {
+            const char* filterString = filterStrings[i];
+            if (nullptr == filterString)
+            {
+                // ignore invalid string
+                continue;
+            }
+            filterRates.push_back(100); // by default filter everything if rate not given
+        }
+        return SetExclusionFilter(filterStrings, filterRates.data(), filterCount);
+    }
+
+    EVTStatus MengpingEventFilter::SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+    {
+        /*
+            TODO:
+            Random mode 2: random per session
+                * when this method called, determine if each event should be excluded, then set the rule for the entire session
+                * keep following the same rule through the entire session or till this method is called again
+            Random mode 3: random based on Device ID GUID
+        */
+
+        if (filterCount > 0 && nullptr == filterStrings)
+        {
+            return EVTStatus_Fail; // SetExclusionFilterResult::ErrorBadInput;
+        }
+
+        Reset();
+        for (uint32_t i = 0; i < filterCount; i++)
+        {
+            const char* filterString = filterStrings[i];
+            uint32_t filterRate = filterRates[i];
+            if (nullptr != filterString)
+            {
+                _ASSERT(filterRates[i] >= 0 && filterRates[i] <= 100);
+                _filterRules[std::string(filterString)] = filterRate;
+            }
+        }
+
+        return EVTStatus_OK; // SetExclusionFilterResult::Success;
+    }
+
+} ARIASDK_NS_END

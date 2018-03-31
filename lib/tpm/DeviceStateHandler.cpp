@@ -1,8 +1,9 @@
-#include "Version.hpp"
+#include "pal/PAL.hpp"
+
 #include "TransmitProfiles.hpp"
 #include "DeviceStateHandler.hpp"
 #include "utils/Utils.hpp"
-#include "pal/PAL.hpp"
+
 #include <iterator>
 #include <stdio.h>
 #include <math.h>
@@ -10,7 +11,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 using namespace std;
-using namespace Microsoft::Applications::Events ::PAL;
+using namespace PAL;
 
 
 /******************************************************************************
@@ -21,7 +22,7 @@ using namespace Microsoft::Applications::Events ::PAL;
 ******************************************************************************/
 DeviceStateHandler::DeviceStateHandler()
 {
-	// ARIASDK_LOG_INFO("DeviceStateHandler ctor this=%p", this);
+	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
     m_networkCost = NetworkCost_Unmetered;
 	m_powerSource = PowerSource_Charging;
 }
@@ -34,7 +35,7 @@ DeviceStateHandler::DeviceStateHandler()
 ******************************************************************************/
 DeviceStateHandler::~DeviceStateHandler()
 {
-	// ARIASDK_LOG_INFO("DeviceStateHandler ctor this=%p", this);
+	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
 }
 
 /******************************************************************************
@@ -47,7 +48,7 @@ void DeviceStateHandler::Start()
 {	
 	// TRACE("_RetrieveAndRegisterForDeviceConditionChange");
 
-	m_networkInformation = ARIASDK_NS::PAL::GetNetworkInformation();
+	m_networkInformation = PAL::GetNetworkInformation();
 	if (m_networkInformation != NULL)
 	{
 		m_networkType = m_networkInformation->GetNetworkType();
@@ -59,7 +60,7 @@ void DeviceStateHandler::Start()
 		m_networkInformationToken = m_networkInformation->RegisterInformationChangedCallback(this);
 	}
 
-	m_deviceInformation = ARIASDK_NS::PAL::GetDeviceInformation();
+	m_deviceInformation = PAL::GetDeviceInformation();
 	if (m_deviceInformation != NULL)
 	{
 		m_powerSource = m_deviceInformation->GetPowerSource();
@@ -84,8 +85,8 @@ void DeviceStateHandler::Stop()
 {
 	// TRACE("Enter stop transmission policy manager");
 
-	m_networkInformation = ARIASDK_NS::PAL::GetNetworkInformation();
-	m_deviceInformation = ARIASDK_NS::PAL::GetDeviceInformation();
+	m_networkInformation = PAL::GetNetworkInformation();
+	m_deviceInformation = PAL::GetDeviceInformation();
 	// 4. Stop listening to platform network, power and device info changes
 	if (m_networkInformation != nullptr)
 	{

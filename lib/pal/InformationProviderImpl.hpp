@@ -1,13 +1,14 @@
-#pragma once
-#include "Version.hpp"
-#include "IInformationProvider.hpp"
-#include "IPropertyChangedCallback.hpp"
+#ifndef INFORMATIONPROVIDERIMPL_HPP
+#define INFORMATIONPROVIDERIMPL_HPP
+
+#include <pal/PAL.hpp>
+#include <IInformationProvider.hpp>
 
 #include <vector>
 #include <mutex>
+#include <string>
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+namespace PAL_NS_BEGIN {
 
     class InformatonProviderImpl : public IInformationProvider
     {
@@ -16,8 +17,8 @@ namespace PAL {
         ~InformatonProviderImpl();
 
         // IInformationProvider API
-        int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback);
-        void UnRegisterInformationChangedCallback(int callbackToken);
+        int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) override;
+        void UnRegisterInformationChangedCallback(int callbackToken) override;
 
         // Helper
         void OnChanged(std::string const& propertyName, std::string const& propertyValue);
@@ -28,5 +29,6 @@ namespace PAL {
         int m_registredCount;
     };
 
-} // PlatformAbstraction
-}}}
+} PAL_NS_END
+
+#endif

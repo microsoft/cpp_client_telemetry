@@ -49,7 +49,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.SetUserLanguage("language");
     ctx.SetUserTimeZone("timeZone");
 
-    ::AriaProtocol::CsEvent record;
+    ::AriaProtocol::Record record;
     loggerCtx.writeToRecord(record);
 
     EXPECT_THAT(record.data[0].properties.size(), 8);
@@ -73,7 +73,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
 	EventProperty prop12("specificpii", PiiKind_QueryString);
     loggerCtx.setCustomField("childpii", prop12 );
 
-    ::AriaProtocol::CsEvent record1;
+    ::AriaProtocol::Record record1;
     loggerCtx.writeToRecord(record1);
     EXPECT_THAT(record1.data[0].properties.size(), 10);
 
@@ -118,7 +118,7 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
 {
     ContextFieldsProvider ctx(nullptr);
 
-    ::AriaProtocol::CsEvent record;
+    ::AriaProtocol::Record record;
     ctx.writeToRecord(record);
 
     EXPECT_THAT(record.extDevice[0].localId,          Not(IsEmpty()));

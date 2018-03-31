@@ -278,7 +278,6 @@
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockILogManagerInternal.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIOfflineStorage.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIOfflineStorageObserver.hpp" />
-    <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockIRuntimeConfig.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISemanticContext.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\MockISqlite3Proxy.hpp" />
     <ClInclude Include="$(ProjectDir)..\..\..\tests\common\SocketTools.hpp" />

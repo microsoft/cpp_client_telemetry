@@ -4,16 +4,16 @@
         <id>Microsoft.Applications.Telemetry.Windows.WINRT</id>
         <version>0.0.0.0</version>
         <title>Microsoft.Applications.Telemetry.Windows.WINRT</title>
-        <authors>Aria Engineering - Client SDK (ariaecsdk@microsoft.com)</authors>
+        <authors>Aria Engineering - SDKs (ariaesdks@microsoft.com)</authors>
         <projectUrl>https://aria.microsoft.com</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A component to send telemetry data to ARIA from Windows 8.1+ applications</description>
         <copyright>Microsoft</copyright>
-        <tags>"MS Internal Only"</tags>
+        <tags>MS_Internal_Only</tags>
     </metadata>
     <files>
         <file src="build\*.*"         target="build\netcore451" />
-	<file src="build\*.*"         target="build\win81" />
+        <file src="build\*.*"         target="build\win81" />
         <file src="build\*.*"         target="build\wp81" />
         <file src="build\*.*"         target="build\wpa81" />
 

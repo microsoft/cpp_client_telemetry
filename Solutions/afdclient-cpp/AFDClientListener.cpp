@@ -7,7 +7,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace Microsoft::Applications::Events ;
+using namespace Microsoft::Applications::Telemetry;
 using namespace Microsoft::Applications::Experimentation::AFD;
 
 const std::string TEST_CLIENT_NAME = "word3";// "C2CPlugin";
@@ -38,7 +38,7 @@ void AFDClientListener::Init(ILogger* pLogger)
     afdclientConfig.clientVersion       = TEST_CLIENT_VERSION;
     afdclientConfig.cacheFilePathName   = TEST_CACHE_FILE_PATH_NAME;
     //afdclientConfig.corpnet             = 1;  //0 means look like it is from outside of corpnet
-    afdclientConfig.serverUrls.push_back("https://ocos-office365-s2s.msedge.net/ab"); //  "http://test-exp-s2s.msedge.net/ab/");
+    afdclientConfig.serverUrls.push_back("http://test-exp-s2s.msedge.net/ab");//"https://ocos-office365-s2s.msedge.net/ab"); //
 
     m_pAFDClient = IAFDClient::CreateInstance();
     assert(m_pAFDClient != NULL);
@@ -64,6 +64,10 @@ void AFDClientListener::Init(ILogger* pLogger)
     }
         
     fResult = m_pAFDClient->Start();
+
+    m_pAFDClient->Suspend();
+    m_pAFDClient->Resume(false);
+
     assert(fResult);
 }
 
@@ -119,5 +123,21 @@ void AFDClientListener::OnAFDClientEvent(AFDClientEventType evtType, AFDClientEv
 			}
 		}
 		TraceMsg("\n\n");
+
+        std::string gg = m_pAFDClient->GetAFDConfiguration();
+
+        int setting1 = m_pAFDClient->GetSetting("FlightingVersion", "", 0);
+        setting1 = setting1;
+        string setting2 = m_pAFDClient->GetSetting("ImpressionId", "", std::string());
+
+        //int setting10 = m_pAFDClient->GetSetting("AddIn_Weather", "weatherDayCount", 3);
+     
+        //string setting3 = m_pAFDClient->GetSetting("AsyncMediaClient", "media_params/Audio.1/title", std::string());
+        std::vector<std::string> settings4 = m_pAFDClient->GetSettings("Features", "");
+        
+
+        std::string setting3 = m_pAFDClient->GetSetting("Configs", "Id", std::string(""));
+        
+
     }
 }
