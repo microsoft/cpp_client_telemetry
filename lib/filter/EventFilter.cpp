@@ -1,22 +1,22 @@
-// MengpingEventFilter.cpp
+// EventFilter.cpp
 
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
-#include "filter/MengpingEventFilter.hpp"
+#include "filter/EventFilter.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
-    MengpingEventFilter::MengpingEventFilter()
+    EventFilter::EventFilter()
     {
         srand((uint32_t)time(NULL));
     }
 
-    MengpingEventFilter::~MengpingEventFilter()
+    EventFilter::~EventFilter()
     {
         Reset();
     }
 
-    void MengpingEventFilter::Reset()
+    void EventFilter::Reset()
     {
         _filterRules.clear();
     }
@@ -24,13 +24,13 @@ namespace ARIASDK_NS_BEGIN
     /*
         Random mode 1: random for each logging call
     */
-    bool MengpingEventFilter::randomForEachCall(int filterRate)
+    bool EventFilter::randomForEachCall(int filterRate)
     {
         bool result = (rand() % 100) < filterRate;
         return result;
     }
 
-    bool MengpingEventFilter::IsEventExcluded(const std::string& eventName)
+    bool EventFilter::IsEventExcluded(const std::string& eventName)
     {
         std::map<std::string, int32_t>::iterator findResult = _filterRules.find(eventName);
         if (findResult == _filterRules.end())
@@ -47,7 +47,7 @@ namespace ARIASDK_NS_BEGIN
         return result;
     }
 
-    EVTStatus MengpingEventFilter::SetExclusionFilter(const char** filterStrings, uint32_t filterCount)
+    EVTStatus EventFilter::SetExclusionFilter(const char** filterStrings, uint32_t filterCount)
     {
         if (filterCount > 0 && nullptr == filterStrings)
         {
@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN
         return SetExclusionFilter(filterStrings, filterRates.data(), filterCount);
     }
 
-    EVTStatus MengpingEventFilter::SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+    EVTStatus EventFilter::SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
     {
         /*
             TODO:

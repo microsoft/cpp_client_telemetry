@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "filter/MengpingEventFilter.hpp"
+#include "filter/EventFilter.hpp"
 #include <vector>
 
 using namespace testing;
@@ -11,18 +11,18 @@ static const char* event1 = "MyNamespace.MyEvent1";
 static const char* event2 = "MyNamespace.MyEvent2";
 static const char* event3 = "MyOtherNamespace.MyEvent1";
 
-TEST(MengpingEventFilterTests, DefaultBlocksNoEvents)
+TEST(EventFilterTests, DefaultBlocksNoEvents)
 {
-	MengpingEventFilter filter;
+	EventFilter filter;
 
 	EXPECT_FALSE(filter.IsEventExcluded(event1));
 	EXPECT_FALSE(filter.IsEventExcluded(event2));
 	EXPECT_FALSE(filter.IsEventExcluded(event3));
 }
 
-TEST(MengpingEventFilterTests, SetExclusionFilterChangesFilters)
+TEST(EventFilterTests, SetExclusionFilterChangesFilters)
 {
-	MengpingEventFilter filter;
+	EventFilter filter;
 	std::vector<const char*> exclusionList;
 
 	// Default status -- nothing filtered
@@ -77,9 +77,9 @@ TEST(MengpingEventFilterTests, SetExclusionFilterChangesFilters)
 	EXPECT_TRUE(filter.IsEventExcluded(event3));
 }
 
-TEST(MengpingEventFilterTests, ExactMatchBlocksEvent1)
+TEST(EventFilterTests, ExactMatchBlocksEvent1)
 {
-	MengpingEventFilter filter;
+	EventFilter filter;
 
 	std::vector<const char*> exclusionList;
 	exclusionList.push_back(event1);
@@ -92,9 +92,9 @@ TEST(MengpingEventFilterTests, ExactMatchBlocksEvent1)
 }
 
 /* TODO: wildcard matching
-TEST(MengpingEventFilterTests, WildcardMatchBlocksEvents1And2)
+TEST(EventFilterTests, WildcardMatchBlocksEvents1And2)
 {
-	MengpingEventFilter filter;
+	EventFilter filter;
 
 	std::string filterString(event1);
 	*rbegin(filterString) = '*';
@@ -109,9 +109,9 @@ TEST(MengpingEventFilterTests, WildcardMatchBlocksEvents1And2)
 	EXPECT_FALSE(filter.IsEventExcluded(event3));
 }
 
-TEST(MengpingEventFilterTests, BadMatchBlocksNoEvents)
+TEST(EventFilterTests, BadMatchBlocksNoEvents)
 {
-	MengpingEventFilter filter;
+	EventFilter filter;
 
 	std::vector<const char*> exclusionList;
 	exclusionList.push_back("MyEvent*");

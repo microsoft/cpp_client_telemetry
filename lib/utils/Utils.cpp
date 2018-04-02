@@ -117,7 +117,7 @@ namespace ARIASDK_NS_BEGIN {
             return REJECTED_REASON_VALIDATION_FAILED;
         }
 
-        auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_'); };
+        auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.'); };
         if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
             LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;

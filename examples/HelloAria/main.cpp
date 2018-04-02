@@ -74,6 +74,10 @@ void samplingTest()
         logger->LogEvent("MyEvent2");
         logger->LogEvent("MyEvent3");
         logger->LogEvent("MyEvent4");
+        logger->LogEvent("NS1.MyEvent1.Foo");
+        logger->LogEvent("NS2.MyEvent2.Bar");
+        logger->LogEvent("NS3.MyEvent3.Toor");
+        logger->LogEvent("NS4.MyEvent4.Root");
     }
 
 }

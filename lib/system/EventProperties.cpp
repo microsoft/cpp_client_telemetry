@@ -296,10 +296,10 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     bool EventProperties::SetName(const string& name)
     {
-        std::string m_eventName;
-        // Normalize the name of EventProperties
-        m_eventName = toLower(name);
+        std::string m_eventName = name;
+        // Sanitize the name of EventProperties
         m_eventName = sanitizeIdentifier(m_eventName);
+
         EventRejectedReason isValidEventName = validateEventName(m_eventName);
         if (isValidEventName != REJECTED_REASON_OK) {
             LOG_ERROR("Invalid event properties!");

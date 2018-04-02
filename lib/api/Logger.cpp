@@ -15,13 +15,15 @@ namespace ARIASDK_NS_BEGIN {
     void SendAsJSON(const EventProperties& props, const std::string& token);
 
     Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-        ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig)
+        ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
+        IEventFilter& eventFilter)
         :
         m_tenantToken(tenantToken),
         m_source(source),
         m_logManager(logManager),
         m_context(parentContext),
         m_config(runtimeConfig),
+        m_eventFilter(eventFilter),
 
         m_baseDecorator(logManager),
         m_runtimeConfigDecorator(logManager, m_config, tenantTokenToId(tenantToken), experimentationProject),
@@ -308,6 +310,15 @@ namespace ARIASDK_NS_BEGIN {
             DispatchEvent(DebugEventType::EVT_DROPPED);
             LOG_INFO("Event %s/%s dropped because of calculated latency 0 (Off)",
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
+            return;
+        }
+
+        if (m_eventFilter.IsEventExcluded(record.name))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            LOG_INFO("Event %s/%s removed due to event filter",
+                tenantTokenToId(m_tenantToken).c_str(),
+                record.name.c_str());
             return;
         }
 

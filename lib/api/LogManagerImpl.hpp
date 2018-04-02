@@ -13,7 +13,7 @@
 
 #include "api/Logger.hpp"
 
-#include <filter/MengpingEventFilterRegulator.hpp>
+#include <filter/EventFilterRegulator.hpp>
 
 #include <DebugEvents.hpp>
 #include <memory>
@@ -176,7 +176,7 @@ namespace ARIASDK_NS_BEGIN {
         std::unique_ptr<LogSessionData>        m_logSessionData;
         std::unique_ptr<ITelemetrySystem>      m_system;
 
-        MengpingEventFilterRegulator           m_eventFilterRegulator;
+        EventFilterRegulator                   m_eventFilterRegulator;
 
         bool                                   m_alive;
 

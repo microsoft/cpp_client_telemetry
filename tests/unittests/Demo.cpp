@@ -1,17 +1,17 @@
 #include "common/Common.hpp"
-#include "filter/MengpingEventFilter.hpp"
-#include "filter/MengpingEventFilterRegulator.hpp"
+#include "filter/EventFilter.hpp"
+#include "filter/EventFilterRegulator.hpp"
 #include <vector>
 using namespace testing;
 using namespace ARIASDK_NS;
 
-PIEventFilter newMengpingEventFilter()
+PIEventFilter newEventFilter()
 {
-	return (PIEventFilter) new MengpingEventFilter();
+	return (PIEventFilter) new EventFilter();
 }
 
 
-TEST(MengpingDemo, Demo)
+TEST(Demo, Demo)
 {
 	std::vector<const char*> filterStrings;
 	std::vector<uint32_t> filterRates;
@@ -24,7 +24,7 @@ TEST(MengpingDemo, Demo)
 	const char** s = filterStrings.data();
 	const uint32_t* r = filterRates.data();
 
-	MengpingEventFilterRegulator regulator(newMengpingEventFilter);
+	EventFilterRegulator regulator(newEventFilter);
 	regulator.SetExclusionFilter("token", s, r, 3);
 	IEventFilter &filter = regulator.GetTenantFilter("token");
 

@@ -36,8 +36,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilter.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilterRegulator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
@@ -95,8 +95,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\IEventFilter.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilter.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilterRegulator.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.hpp" />

@@ -1,8 +1,8 @@
-// MengpingEventFilter.hpp
+// EventFilter.hpp
 // Definition of the EventFilter class
 
-#ifndef ARIA_MENGPINGEVENTFILTER_HPP
-#define ARIA_MENGPINGEVENTFILTER_HPP
+#ifndef ARIA_EVENTFILTER_HPP
+#define ARIA_EVENTFILTER_HPP
 
 #include "filter/IEventFilter.hpp"
 /*
@@ -15,7 +15,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    class MengpingEventFilter : public IEventFilter
+    class EventFilter : public IEventFilter
     {
     private:
         /*
@@ -33,8 +33,8 @@ namespace ARIASDK_NS_BEGIN
         void Reset();
 
     public:
-        MengpingEventFilter();
-        ~MengpingEventFilter();
+        EventFilter();
+        ~EventFilter();
         virtual bool IsEventExcluded(const std::string& eventName) override;
         virtual EVTStatus SetExclusionFilter(const char** filterStrings, uint32_t filterCount) override;
         virtual EVTStatus SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
@@ -42,4 +42,4 @@ namespace ARIASDK_NS_BEGIN
     };
 } ARIASDK_NS_END
 
-#endif // !ARIA_MENGPINGEVENTFILTER_HPP
+#endif // !ARIA_EVENTFILTER_HPP

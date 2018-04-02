@@ -10,6 +10,8 @@
 
 #include "ContextFieldsProvider.hpp"
 
+#include "filter/IEventFilter.hpp"
+
 // Decorators
 #include "decorators/BaseDecorator.hpp"
 #include "decorators/EventPropertiesDecorator.hpp"
@@ -30,7 +32,8 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-            ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig);
+            ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
+            IEventFilter& eventFilter);
 
         ~Logger();
 
@@ -183,6 +186,7 @@ namespace ARIASDK_NS_BEGIN {
         ILogManager&              m_logManager;
         ContextFieldsProvider     m_context;
         IRuntimeConfig&           m_config;
+        IEventFilter&             m_eventFilter;
 
         BaseDecorator             m_baseDecorator;
         EventPropertiesDecorator  m_eventPropertiesDecorator;

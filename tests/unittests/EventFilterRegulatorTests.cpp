@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "filter/MengpingEventFilterRegulator.hpp"
+#include "filter/EventFilterRegulator.hpp"
 #include "common/MockIEventFilter.hpp"
 #include <vector>
 #include <mutex>
@@ -81,18 +81,18 @@ static PIEventFilter InertEventFilterFactory()
 	return (PIEventFilter)nullptr;
 }
 
-TEST(MengpingEventFilterRegulatorTests, ConstructAndDestructWithNoFilterDoesNothing)
+TEST(EventFilterRegulatorTests, ConstructAndDestructWithNoFilterDoesNothing)
 {
-	MengpingEventFilterRegulator regulator(InertEventFilterFactory);
+	EventFilterRegulator regulator(InertEventFilterFactory);
 }
 
-TEST(MengpingEventFilterRegulatorTests, ConstructResetAndDestructWithNoFilterDoesNothing)
+TEST(EventFilterRegulatorTests, ConstructResetAndDestructWithNoFilterDoesNothing)
 {
-	MengpingEventFilterRegulator regulator(InertEventFilterFactory);
+	EventFilterRegulator regulator(InertEventFilterFactory);
 	regulator.Reset();
 }
 
-TEST(MengpingEventFilterRegulatorTests, GetTenantFilterIdenticalCaseConstructsAndReturnsOneFilter)
+TEST(EventFilterRegulatorTests, GetTenantFilterIdenticalCaseConstructsAndReturnsOneFilter)
 {
 	StrictMock<MockIEventFilter> filter;
 	PIEventFilter pFilter = new ProxyMockEventFilter(&filter);
@@ -100,7 +100,7 @@ TEST(MengpingEventFilterRegulatorTests, GetTenantFilterIdenticalCaseConstructsAn
 	std::vector<PIEventFilter> filters;
 	filters.push_back(pFilter);
 	MockableFactory::SetFilters(filters);
-	MengpingEventFilterRegulator* regulator = new MengpingEventFilterRegulator(MockableFactory::NextFilter);
+	EventFilterRegulator* regulator = new EventFilterRegulator(MockableFactory::NextFilter);
 	ASSERT_EQ(&regulator->GetTenantFilter("token"), pFilter);
 	ASSERT_EQ(&regulator->GetTenantFilter("token"), pFilter);
 	ASSERT_EQ(&regulator->GetTenantFilter("token"), pFilter);
@@ -110,7 +110,7 @@ TEST(MengpingEventFilterRegulatorTests, GetTenantFilterIdenticalCaseConstructsAn
 	ASSERT_EQ(1, filter.GetSimulatedDeleteCount());
 }
 
-TEST(MengpingEventFilterRegulatorTests, GetTenantFilterDifferentCaseConstructsAndReturnsDifferentOneFilterPerCase)
+TEST(EventFilterRegulatorTests, GetTenantFilterDifferentCaseConstructsAndReturnsDifferentOneFilterPerCase)
 {
 	StrictMock<MockIEventFilter> filter;
 	PIEventFilter pFilter1 = new ProxyMockEventFilter(&filter);
@@ -120,7 +120,7 @@ TEST(MengpingEventFilterRegulatorTests, GetTenantFilterDifferentCaseConstructsAn
 	filters.push_back(pFilter1);
 	filters.push_back(pFilter2);
 	MockableFactory::SetFilters(filters);
-	MengpingEventFilterRegulator* regulator = new MengpingEventFilterRegulator(MockableFactory::NextFilter);
+	EventFilterRegulator* regulator = new EventFilterRegulator(MockableFactory::NextFilter);
 	ASSERT_EQ(&regulator->GetTenantFilter("TOKEN"), pFilter1);
 	ASSERT_EQ(&regulator->GetTenantFilter("ToKeN"), pFilter2);
 	ASSERT_EQ(&regulator->GetTenantFilter("ToKeN"), pFilter2);
@@ -130,13 +130,13 @@ TEST(MengpingEventFilterRegulatorTests, GetTenantFilterDifferentCaseConstructsAn
 	ASSERT_EQ(2, filter.GetSimulatedDeleteCount());
 }
 
-TEST(MengpingEventFilterRegulatorTests, ConstructSetInvalidFilterAndDestructDoesNothing)
+TEST(EventFilterRegulatorTests, ConstructSetInvalidFilterAndDestructDoesNothing)
 {
-	MengpingEventFilterRegulator regulator(InertEventFilterFactory);
+	EventFilterRegulator regulator(InertEventFilterFactory);
 	ASSERT_EQ(regulator.SetExclusionFilter(nullptr, nullptr, 0), SetExclusionFilterResult::ErrorBadInput);
 }
 
-TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterOnceCreatesOneFilterAndUsesItOnce)
+TEST(EventFilterRegulatorTests, CallingSetExclusionFilterOnceCreatesOneFilterAndUsesItOnce)
 {
 	std::vector<const char*> strings;
 	strings.push_back("a string");
@@ -152,7 +152,7 @@ TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterOnceCreatesOneF
 	std::vector<PIEventFilter> filters;
 	filters.push_back(pFilter);
 	MockableFactory::SetFilters(filters);
-	MengpingEventFilterRegulator* regulator = new MengpingEventFilterRegulator(MockableFactory::NextFilter);
+	EventFilterRegulator* regulator = new EventFilterRegulator(MockableFactory::NextFilter);
 	ASSERT_EQ(regulator->SetExclusionFilter("token", filterStrings, filterCount), SetExclusionFilterResult::Success);
 	MockableFactory::Clear();
 
@@ -161,7 +161,7 @@ TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterOnceCreatesOneF
 	ASSERT_EQ(1, filter.GetSimulatedDeleteCount());
 }
 
-TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesOneFilterAndUsesItTwice)
+TEST(EventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesOneFilterAndUsesItTwice)
 {
 	std::vector<const char*> strings;
 	strings.push_back("a string");
@@ -178,7 +178,7 @@ TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesOne
 	std::vector<PIEventFilter> filters;
 	filters.push_back(pFilter);
 	MockableFactory::SetFilters(filters);
-	MengpingEventFilterRegulator* regulator = new MengpingEventFilterRegulator(MockableFactory::NextFilter);
+	EventFilterRegulator* regulator = new EventFilterRegulator(MockableFactory::NextFilter);
 	ASSERT_EQ(regulator->SetExclusionFilter("token", filterStrings, filterCount), SetExclusionFilterResult::Success);
 	ASSERT_EQ(regulator->SetExclusionFilter("token", filterStrings, filterCount), SetExclusionFilterResult::Success);
 	ASSERT_EQ(0, filter.GetSimulatedDeleteCount());
@@ -186,7 +186,7 @@ TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesOne
 	ASSERT_EQ(1, filter.GetSimulatedDeleteCount());
 }
 
-TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesTwoFilterAndUsesEachOneTwice)
+TEST(EventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesTwoFilterAndUsesEachOneTwice)
 {
 	std::vector<const char*> strings;
 	strings.push_back("a string");
@@ -210,7 +210,7 @@ TEST(MengpingEventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesTwo
 	filters.push_back(pFilter1);
 	filters.push_back(pFilter2);
 	MockableFactory::SetFilters(filters);
-	MengpingEventFilterRegulator* regulator = new MengpingEventFilterRegulator(MockableFactory::NextFilter);
+	EventFilterRegulator* regulator = new EventFilterRegulator(MockableFactory::NextFilter);
 	ASSERT_EQ(regulator->SetExclusionFilter("token1", filterStrings, filterCount), SetExclusionFilterResult::Success);
 	ASSERT_EQ(regulator->SetExclusionFilter("token2", filterStrings, filterCount), SetExclusionFilterResult::Success);
 	ASSERT_EQ(regulator->SetExclusionFilter("token1", filterStrings, filterCount), SetExclusionFilterResult::Success);

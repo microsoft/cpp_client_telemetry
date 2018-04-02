@@ -447,7 +447,8 @@ namespace ARIASDK_NS_BEGIN {
             {
                 m_loggers[hash] = new Logger(
                     normalizedTenantToken, normalizedSource, experimentationProject,
-                    *this, m_context, *m_config);
+                    *this, m_context, *m_config,
+                    m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
             }
             return m_loggers[hash];
         }

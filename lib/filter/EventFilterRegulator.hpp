@@ -1,10 +1,10 @@
-// MengpingEventFilterRegulator.hpp
+// EventFilterRegulator.hpp
 //
 
-#ifndef ARIA_MENGPINGEVENTFILTERREGULATOR_HPP
-#define ARIA_MENGPINGEVENTFILTERREGULATOR_HPP
+#ifndef ARIA_EVENTFILTERREGULATOR_HPP
+#define ARIA_EVENTFILTERREGULATOR_HPP
 
-#include "filter/MengpingEventFilter.hpp"
+#include "filter/EventFilter.hpp"
 #include <mutex>
 #include <map>
 
@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// Class to implement IEventFilterRegulator
     /// </summary>
-    class MengpingEventFilterRegulator : public IEventFilterRegulator
+    class EventFilterRegulator : public IEventFilterRegulator
     {
     private:
         const EventFilterFactory                    _eventFilterFactory;
@@ -24,8 +24,8 @@ namespace ARIASDK_NS_BEGIN
         std::mutex                                  _mutex;
 
     public:
-        MengpingEventFilterRegulator(EventFilterFactory eventFilterFactory = nullptr);
-        virtual ~MengpingEventFilterRegulator();
+        EventFilterRegulator(EventFilterFactory eventFilterFactory = nullptr);
+        virtual ~EventFilterRegulator();
 
         virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
         virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
@@ -35,4 +35,4 @@ namespace ARIASDK_NS_BEGIN
 
 } ARIASDK_NS_END
 
-#endif  // !ARIA_MENGPINGEVENTFILTERREGULATOR_HPP
+#endif  // !ARIA_EVENTFILTERREGULATOR_HPP

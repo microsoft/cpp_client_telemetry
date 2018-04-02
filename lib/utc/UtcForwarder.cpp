@@ -328,6 +328,7 @@ bool UtcForwarder::convertProperties(::AriaProtocol::Record& record, std::string
     // Extension
     for (auto const& item : record.Extension) {
         std::string name = item.first;
+        // FIXME: [MG] - verify that this is correct, cause we'd like the events to flow to ASIMOV in their original namespace
         std::replace(name.begin(), name.end(), '.', '_');
         mbuilder.AddField(name.c_str(), tld::TypeMbcsString);
         dbuilder.AddString(item.second.c_str());
@@ -336,6 +337,7 @@ bool UtcForwarder::convertProperties(::AriaProtocol::Record& record, std::string
     // PIIExtensions
     for (auto const& item : record.PIIExtensions) {
         std::string name = item.first;
+        // FIXME: [MG] - verify that this is correct, cause we'd like the events to flow to ASIMOV in their original namespace
         std::replace(name.begin(), name.end(), '.', '_');
         mbuilder.AddField(name.c_str(), tld::TypeMbcsString);
         dbuilder.AddString(item.second.RawContent.c_str());

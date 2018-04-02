@@ -216,10 +216,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonTransport.cpp">
       <Filter>system</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilter.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp">
       <Filter>filter</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilterRegulator.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.cpp">
       <Filter>filter</Filter>
     </ClCompile>
   </ItemGroup>
@@ -521,10 +521,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\IEventFilter.hpp">
       <Filter>filter</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilter.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.hpp">
       <Filter>filter</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\MengpingEventFilterRegulator.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.hpp">
       <Filter>filter</Filter>
     </ClInclude>
   </ItemGroup>
