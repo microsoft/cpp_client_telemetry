@@ -2,7 +2,7 @@
 #define ARIA_LOGMANAGER_HPP
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "ILogManager.hpp"
+#include "LogManagerProvider.hpp"
 
 #define LM_SAFE_CALL(method , ... )                 \
     {                                               \
@@ -60,6 +60,28 @@ namespace ARIASDK_NS_BEGIN
     protected:
 
         /// <summary>
+        /// LogManagerBase constructor
+        /// </summary>
+        LogManagerBase() {};
+
+        /// <summary>
+        /// LogManager copy constructor
+        /// </summary>
+        LogManagerBase(const LogManagerBase&) {};
+
+        /// <summary>
+        /// [not implemented] LogManager assignment operator
+        /// </summary>
+        LogManagerBase& operator=(const LogManagerBase&) {};
+
+        /// <summary>
+        /// LogManager destructor
+        /// </summary>
+        virtual ~LogManagerBase() {};
+
+    protected:
+
+        /// <summary>
         /// Lock used for executing singleton state-management methods in a thread-safe manner
         /// </summary>
         static std::mutex           stateLock;
@@ -83,26 +105,6 @@ namespace ARIASDK_NS_BEGIN
         /// Debug event source associated with this singleton
         /// </summary>
         static DebugEventSource     debugEventSource;
-
-        /// <summary>
-        /// LogManagerBase constructor
-        /// </summary>
-        LogManagerBase() {};
-
-        /// <summary>
-        /// LogManager copy constructor
-        /// </summary>
-        LogManagerBase(const LogManagerBase&) {};
-
-        /// <summary>
-        /// [not implemented] LogManager assignment operator
-        /// </summary>
-        LogManagerBase& operator=(const LogManagerBase&) {};
-
-        /// <summary>
-        /// LogManager destructor
-        /// </summary>
-        virtual ~LogManagerBase() {};
 
     public:
 
@@ -128,7 +130,9 @@ namespace ARIASDK_NS_BEGIN
                 {
                     currentConfig.insert(configuration.begin(), configuration.end());
                 }
-                instance = ILogManager::Create(currentConfig);
+
+                EVTStatus status = EVTStatus_OK;
+                instance = LogManagerProvider::GetLogManager(currentConfig, status);
                 if (tenantToken.empty())
                 {
                     primaryToken = (const char *)configuration[CFG_STR_PRIMARY_TOKEN];
@@ -140,7 +144,11 @@ namespace ARIASDK_NS_BEGIN
             else {
                 // TODO: [MG] - decide what to do if someone's doing re-Initialize.
                 // For now Re-initialize works as GetLogger with an alternate token.
-                // We may decide to assert(tenantToken==primaryToken)
+                // We may decide to assert(tenantToken==primaryToken) ...
+                //
+                // If assertion fails, it means someone tries to re-Initialize with
+                // different settings and it creates ambiguity for the GetLogger()
+                // API call.
             }
             return instance->GetLogger(tenantToken);
         }
@@ -149,7 +157,23 @@ namespace ARIASDK_NS_BEGIN
         /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
         /// </summary>
         static EVTStatus FlushAndTeardown()
-            LM_SAFE_CALL(FlushAndTeardown);
+        {
+#if 0       // Safe approach
+            LM_SAFE_CALL(Flush);
+            LM_SAFE_CALL(UploadNow);
+            return EVTStatus_OK;
+#else       // Less safe approach, but this is in alignment with original v1 behavior
+            // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
+            auto callFTD = []() LM_SAFE_CALL(FlushAndTeardown);
+            auto result = callFTD();
+            if (instance)
+            {
+                result = LogManagerProvider::Release(currentConfig);
+                instance = nullptr;
+            }
+            return result;
+#endif
+        }
 
         /// <summary>
         /// Try to send any pending telemetry events in memory or on disk.

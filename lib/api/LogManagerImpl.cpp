@@ -36,54 +36,12 @@ namespace ARIASDK_NS_BEGIN {
     extern ILogManager* g_jniLogManager;
 #endif
 
-    // TODO: [MG] - since we have the set of managers here, we can destroy /
-    // FlushAndTeardown all managers managed within our code
-
-    std::mutex               ILogManagerInternal::managers_lock;
-    std::set<ILogManager*>   ILogManagerInternal::managers;
-    
-    /// <summary>
-    /// Creates an instance of ILogManager using specified configuration.
-    /// </summary>
-    /// <param name="configuration">The configuration.</param>
-    /// <returns>ILogManager instance</returns>
-    ILogManager* ILogManager::Create(ILogConfiguration& configuration)
-    {
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto logManager = new LogManagerImpl(configuration);
-        ILogManagerInternal::managers.emplace(logManager);
-        return logManager;
-    }
-    
-    /// <summary>
-    /// Destroys the specified ILogManager instance if it's valid.
-    /// </summary>
-    /// <param name="instance">The instance.</param>
-    /// <returns></returns>
-    EVTStatus ILogManager::Destroy(ILogManager *instance)
-    {
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto it = ILogManagerInternal::managers.find(instance);
-        if (it != std::end(ILogManagerInternal::managers))
-        {
-            ILogManagerInternal::managers.erase(it);
-            delete instance;
-            return EVTStatus_OK;
-        }
-        return EVTStatus_Fail;
-    }
-    
-    /// <summary>
-    /// Dispatches event broadcast to all active ILogManager instances.
-    /// </summary>
-    /// <param name="evt">DebugEvent</param>
-    /// <returns></returns>
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
-        for (auto &logManager : ILogManagerInternal::managers)
+        for (auto instance : ILogManagerInternal::managers)
         {
-            logManager->DispatchEvent(evt);
+            instance->DispatchEvent(evt);
         }
         return true;
     }

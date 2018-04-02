@@ -337,7 +337,7 @@ namespace ARIASDK_NS_BEGIN {
             DebugEvent evt;
             evt.type = DebugEventType::EVT_REJECTED;
             evt.param1 = isValidEventName;
-	    ILogManager::DispatchEventBroadcast(evt);
+            ILogManager::DispatchEventBroadcast(evt);
             return false;
         }
         this->m_eventTypeP->assign(m_eventType);

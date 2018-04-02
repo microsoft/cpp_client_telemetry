@@ -21,7 +21,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
@@ -70,7 +72,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\IRuntimeConfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\NullObjects.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\Backoff_ExponentialWithJitter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.hpp" />
@@ -129,6 +133,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ISemanticContext.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogSessionData.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Variant.hpp" />

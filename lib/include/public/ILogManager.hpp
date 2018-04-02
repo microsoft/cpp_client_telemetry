@@ -55,8 +55,19 @@ namespace ARIASDK_NS_BEGIN
 
         ///
         static EVTStatus Destroy(ILogManager*);
+        
+        /// <summary>
+        /// Dispatches event to this ILogManager instance.
+        /// </summary>
+        /// <param name="evt">DebugEvent</param>
+        /// <returns></returns>
+        virtual bool DispatchEvent(DebugEvent evt) = 0;
 
-        ///
+        /// <summary>
+        /// Dispatches broadcast event to all active ILogManager instances.
+        /// </summary>
+        /// <param name="evt">DebugEvent</param>
+        /// <returns></returns>
         static bool DispatchEventBroadcast(DebugEvent evt);
 
         /// <summary>

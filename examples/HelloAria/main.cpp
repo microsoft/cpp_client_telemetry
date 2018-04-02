@@ -12,7 +12,7 @@
 
 #include "DebugCallback.hpp"
 
-#define TOKEN       "4bd39c465b534cad9c1da2ae998b549a-6e15bcfd-4743-4ee8-a3f2-d9708afb783e-7102"
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 
 /**
 * All v1.x legacy API compile-time checks in alphabetic order
@@ -54,19 +54,15 @@ void Api_v1_CompatChecks()
 
 void samplingTest()
 {
-    const char *filteredList[] = {
-        "MyEvent1",
-        "MyEvent2"
-    };
-    LogManager::SetExclusionFilter(TOKEN, filteredList, 2);
-    
     const char *sampledList[] = {
+        "MyEvent1",
+        "MyEvent2",
         "MyEvent3",
         "MyEvent4"
     };
-    uint32_t samplingRates[] = { 100, 50 };
-    LogManager::SetExclusionFilter(TOKEN, sampledList, samplingRates, 2);
-
+    uint32_t samplingRates[] = { 100, 75, 50, 0 };
+    LogManager::SetExclusionFilter(TOKEN, sampledList, samplingRates, 4);
+    
     ILogger *logger = LogManager::GetLogger();
     for (size_t i = 0; i < 100; i++)
     {
