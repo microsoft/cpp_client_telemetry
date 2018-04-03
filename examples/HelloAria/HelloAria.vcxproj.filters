@@ -18,7 +18,13 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LogManager-v1.hpp">
+    <ClInclude Include="LogManagerA.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogManagerB.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogManagerV1.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -195,6 +195,7 @@ namespace ARIASDK_NS_BEGIN {
 
         StorageRecord record;
         int latency;
+        // FIXME: [MG] - memory corruption here...
         while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
         {
             if (latency < EventLatency_Off || latency > EventLatency_Max) {

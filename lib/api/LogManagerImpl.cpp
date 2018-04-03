@@ -101,7 +101,13 @@ namespace ARIASDK_NS_BEGIN {
 
         m_config = new RuntimeConfig_Default(m_logConfiguration);
 
-        const char* cacheFilePath = m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
+        // FIXME: [MG] - auto-populate cache file path properly
+        if ((const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
+        {
+            m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = "";
+        }
+        const char *cacheFilePath = m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
+
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
         m_context.setCommonField("act_session_id", PAL::generateUuidString()); // GetLogSessionData()->getSessionSDKUid()
 

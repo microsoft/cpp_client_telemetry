@@ -183,7 +183,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="LogManager-v1.hpp" />
+    <ClInclude Include="LogManagerA.hpp" />
+    <ClInclude Include="LogManagerB.hpp" />
+    <ClInclude Include="LogManagerV1.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>

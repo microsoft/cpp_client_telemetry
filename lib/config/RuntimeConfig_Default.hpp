@@ -71,6 +71,13 @@ namespace ARIASDK_NS_BEGIN {
             RuntimeConfig_Default()
         {
             config.insert(customConfig.begin(), customConfig.end());
+
+            // FIXME: [MG] - autogenerate path
+            const char *cacheFilePath = config[CFG_STR_CACHE_FILE_PATH];
+            if (cacheFilePath == nullptr)
+            {
+                config[CFG_STR_CACHE_FILE_PATH] = "";
+            }
         };
 
         RuntimeConfig_Default()

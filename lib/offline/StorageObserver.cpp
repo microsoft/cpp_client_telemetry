@@ -49,6 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             return wantMore;
         };
 
+        // FIXME: [MG] - memory corruption here...
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();

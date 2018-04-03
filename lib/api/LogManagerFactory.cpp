@@ -74,7 +74,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (c.find("name") != std::end(c))
         {
-            name = std::string(c["name"]);
+            name = std::string((const char*)c["name"]);
         }
 
         auto it = c.find("config");

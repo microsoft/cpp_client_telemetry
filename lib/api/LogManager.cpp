@@ -6,14 +6,14 @@ using namespace std;
 
 namespace ARIASDK_NS_BEGIN {
 
-    class MyLogConfiguration : ILogConfiguration
+    class ModuleConfig : ILogConfiguration
     {
     public:
-        MyLogConfiguration() : ILogConfiguration() {};
+        ModuleConfig() : ILogConfiguration() {};
     };
 
-    class LogManager : public LogManagerBase<MyLogConfiguration> {};
+    class LogManager : public LogManagerBase<ModuleConfig> {};
     
-DEFINE_LOGMANAGER(LogManager, MyLogConfiguration);
+DEFINE_LOGMANAGER(LogManager, ModuleConfig);
 
 } ARIASDK_NS_END

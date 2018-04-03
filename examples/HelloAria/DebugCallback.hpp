@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LogManager-v1.hpp"
+#include "LogManagerV1.hpp"
 
 #include <mutex>
 #include <atomic>

@@ -6,6 +6,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "LogManagerA.hpp"
+#include "LogManagerB.hpp"
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -99,6 +102,31 @@ using namespace Microsoft::Applications::Telemetry;
 
 MyDebugEventListener listener;
 
+void guestTest()
+{
+
+    {
+        auto& config = LogManagerA::GetLogConfiguration();
+        config["name"] = "ModuleA";
+        config["version"] = "1.2.5";
+        config["config"]["host"] = "*"; // Any host
+    }
+
+    {
+        auto& config = LogManagerB::GetLogConfiguration();
+        config["name"] = "ModuleB";
+        config["version"] = "1.2.5";
+        config["config"]["host"] = "*"; // Any host
+    }
+
+    auto loggerA = LogManagerA::Initialize(TOKEN);
+    auto loggerB = LogManagerB::Initialize(TOKEN);
+
+    loggerA->LogEvent("HelloFromModuleA");
+    loggerB->LogEvent("HelloFromModuleB");
+
+}
+
 int main()
 {
 #if 0
@@ -109,18 +137,26 @@ int main()
     printf("%s\n", s2.c_str());
 #endif
 
+    // Guest SDKs start first
+    guestTest();
+
+    // Host SDK starts
     printf("Setting up configuration...\n");
-    auto& configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
-    configuration[CFG_INT_TRACE_LEVEL_MASK]  = 0xFFFFFFFF ^ 128;
-    configuration[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Debug;
-    configuration[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
+    auto& config = LogManager::GetLogConfiguration();
+    config["name"] = "HelloAria";
+    config["version"] = "1.2.5";
+    config["config"]["host"] = "HelloAria"; // host
+
+    config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
+    config[CFG_INT_TRACE_LEVEL_MASK]  = 0xFFFFFFFF ^ 128;
+    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Debug;
+    config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
-    configuration[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
+    config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
 #endif
-    configuration[CFG_INT_RAM_QUEUE_SIZE]    = 32 * 1024 * 1024;  // 32 MB heap limit for sqlite3
-    configuration[CFG_INT_CACHE_FILE_SIZE]   = 16 * 1024 * 1024; // 16 MB storage file limit
+    config[CFG_INT_RAM_QUEUE_SIZE]    = 32 * 1024 * 1024;  // 32 MB heap limit for sqlite3
+    config[CFG_INT_CACHE_FILE_SIZE]   = 16 * 1024 * 1024; // 16 MB storage file limit
 
     // printf("LogConfiguration: %s\n", configuration.data());
 
