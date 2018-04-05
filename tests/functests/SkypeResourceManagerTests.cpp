@@ -143,7 +143,7 @@ class SkypeResourceManagerTests : public ::testing::Test,
 
         rm = resource_manager2::Factory::createInstance(1, false);
 
-        LogConfiguration configuration;
+        ILogConfiguration configuration;
         configuration.runtimeConfig = &runtimeConfig;
         configuration.skypeResourceManager = rm;
         configuration.cacheFilePath = "SkypeResourceManagerTests.db";

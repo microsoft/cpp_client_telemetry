@@ -3,7 +3,7 @@
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "utils/Utils.hpp"
-#include <api/ILogManagerInternal.hpp>
+#include <api/LogManagerImpl.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -63,7 +63,7 @@ class LoadTests : public Test,
 {
   protected:
     std::string                  serverAddress;
-    LogConfiguration             configuration;
+    ILogConfiguration            configuration;
     HttpServer                   server;
     std::unique_ptr<ILogManagerInternal> logManager;
     unsigned                     recordsReceived;
@@ -71,6 +71,11 @@ class LoadTests : public Test,
     PDH_HQUERY                   diskQuery;
     PDH_HCOUNTER                 cpuTotal;
     PDH_HCOUNTER                 diskTotal;
+
+    inline void CreateLogManager()
+    {
+        logManager.reset( (LogManagerImpl*)ILogManagerInternal::Create(configuration));
+    }
 
   public:
     virtual void SetUp() override
@@ -82,17 +87,17 @@ class LoadTests : public Test,
         server.setServerName(os.str());
         server.addHandler("/", *this);
 
-        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
+        configuration["cacheFilePath"] = TEST_STORAGE_FILENAME;
         ::remove(TEST_STORAGE_FILENAME);
 
-        logManager.reset(ILogManagerInternal::Create(configuration));
+        CreateLogManager();
 
         PdhOpenQuery(NULL, NULL, &cpuQuery);
-        PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
+        PdhAddEnglishCounterA(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
         PdhCollectQueryData(cpuQuery);
 
         PdhOpenQuery(NULL, NULL, &diskQuery);
-        PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
+        PdhAddEnglishCounterA(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
         PdhCollectQueryData(diskQuery);
 
         recordsReceived = 0;
@@ -221,7 +226,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     for (unsigned i = 0; i < RESTART_COUNT; i++)
     {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration));
+        CreateLogManager();
     }
 
     time = PAL::getMonotonicTimeMs() - time;
@@ -263,7 +268,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     // Store some events so that system has to do something each time after startup.
     ContextFieldsProvider temp;
-    ILogger* logger = logManager->GetLogger("loadtests-tenant-token", &temp);
+    ILogger* logger = logManager->GetLogger("loadtests-tenant-token");
     for (unsigned i = 0; i < EVENTS_COUNT; i++) {
         EventProperties event("event" + toString(i));
         event.SetProperty("data", std::string(1234, '\42'));
@@ -272,7 +277,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     for (unsigned i = 0; i < RESTART_COUNT; i++) {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration));
+        CreateLogManager();
     }
 
     // All events should eventually come.
@@ -284,9 +289,8 @@ TEST_F(LoadTests, ManyEventsFromManyThreadsAreHandledSafely)
     unsigned const THREAD_COUNT     = 8;
     unsigned const TEST_DURATION_MS = 30000;
 
-    ContextFieldsProvider temp;
-    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token", &temp);
-    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token", &temp);
+    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token");
+    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token");
     ILogger* logger = logger1;
 
     std::vector<std::unique_ptr<EventSender>> senders;

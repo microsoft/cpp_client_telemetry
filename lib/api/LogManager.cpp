@@ -1,3 +1,7 @@
+#if ENABLE_LOGMANAGER_V1
+
+// Enable v1-style LogManager singleton in the build
+
 #define LOG_MODULE DBG_API
 
 #include "LogManager.hpp"
@@ -17,3 +21,5 @@ namespace ARIASDK_NS_BEGIN {
 DEFINE_LOGMANAGER(LogManager, ModuleConfig);
 
 } ARIASDK_NS_END
+
+#endif

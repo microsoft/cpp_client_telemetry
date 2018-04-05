@@ -12,7 +12,7 @@
 #include <algorithm>    // std::find
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 using namespace EXP;
 
 const std::string TEST_CLIENT_NAME = "Skype";

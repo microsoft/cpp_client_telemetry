@@ -58,7 +58,6 @@ namespace Microsoft {
                     LogManager();
                     ~LogManager();
 
-                    static void checkup();
                     static bool isInited;
 
                     static SendEventTestCallback^ m_eventCallaback;

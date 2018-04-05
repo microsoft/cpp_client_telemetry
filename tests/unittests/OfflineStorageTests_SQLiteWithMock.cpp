@@ -49,7 +49,7 @@ class TestRecordConsumer {
 
 class OfflineStorage_SQLite4Test : public OfflineStorage_SQLite {
   public:
-    OfflineStorage_SQLite4Test(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
+    OfflineStorage_SQLite4Test(ILogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
       : OfflineStorage_SQLite(configuration, runtimeConfig)
     {
     }
@@ -80,7 +80,7 @@ struct OfflineStorageTests_SQLiteWithMock : public Test
         bool reset;
     };
 
-    LogConfiguration                               configuration;
+    ILogConfiguration                               configuration;
     StrictMock<MockIRuntimeConfig>                 runtimeConfigMock;
     StrictMock<MockISqlite3Proxy>                  sqliteMock;
     ISqlite3Proxy*                                 savedSqliteProxy;

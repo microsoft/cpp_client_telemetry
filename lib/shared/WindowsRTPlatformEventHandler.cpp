@@ -1,3 +1,5 @@
+#ifdef WIN10_CS
+// TODO: [MG] - move this file to pal/winrt project
 #include "pch.h"
 #include "PlatformHelpers.h"
 #include "IPlatformEventReceiver.h"
@@ -5,7 +7,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 using namespace ::Windows::UI::Xaml;
@@ -107,3 +109,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

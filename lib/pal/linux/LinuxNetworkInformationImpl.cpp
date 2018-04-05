@@ -7,7 +7,7 @@ namespace Microsoft {
 
             namespace PAL 
             {
-                namespace MATP = ::Microsoft::Applications::Telemetry::PAL;
+                namespace MATP = ::MAT::PAL;
 
                 NetworkInformationImpl::NetworkInformationImpl(): m_info_helper() { };
 

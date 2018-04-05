@@ -98,7 +98,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorage_SQLite::Shutdown()
     {
-        LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName);
+        LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
         if (m_db) {
             LOCKGUARD(m_lock);
             m_db->shutdown();

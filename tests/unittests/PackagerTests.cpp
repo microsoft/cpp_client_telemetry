@@ -14,7 +14,7 @@ using namespace ARIASDK_NS;
 
 class PackagerTests : public StrictMock<Test> {
   protected:
-    LogConfiguration               logConfiguration;
+    ILogConfiguration               logConfiguration;
     StrictMock<MockIRuntimeConfig> runtimeConfigMock;
     Packager                       packager;
 
@@ -205,7 +205,7 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 
 TEST_F(PackagerTests, ForcedTenantIsForced)
 {
-    LogConfiguration logConfigurationF;
+    ILogConfiguration logConfigurationF;
     logConfigurationF.SetProperty("forcedTenantToken", "forced-Tenant-Token");
     Packager packagerF(logConfigurationF, runtimeConfigMock);
     packagerF.packagedEvents >> packagedEvents;

@@ -29,7 +29,7 @@
 
 #include <Main.hpp>
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 using namespace std;
 
 // Specify this API token in the SDK initialization call to send data for this application.

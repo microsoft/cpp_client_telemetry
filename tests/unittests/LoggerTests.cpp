@@ -2,7 +2,7 @@
 
 #include "common/Common.hpp"
 #include "api/Logger.hpp"
-#include "common/MockILogManagerInternal.hpp"
+#include "common/Mockapi/MockILogManagerInternal.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;

@@ -7,7 +7,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 void EventProperties::PopulateEventProperties(MAT::EventProperties& propertiesCore)
@@ -27,12 +27,12 @@ namespace Microsoft {
                         propertiesCore.SetTimestamp(GetPlatformDateTime(this->Timestamp) / WINDOWS_TICK_MILLISEC - MILLISEC_TO_UNIVERSAL_EPOCH);
                     }
 
-                    propertiesCore.SetPriority((Microsoft::Applications::Events ::EventPriority)this->Priority);
+                    propertiesCore.SetPriority((MAT::EventPriority)this->Priority);
                     propertiesCore.SetPolicyBitFlags(this->PolicyBitFlags);
 
                     map<string, double> measurements;
                     map<string, string> properties;
-                    map<string, Microsoft::Applications::Events ::PiiKind> piiTags;
+                    map<string, MAT::PiiKind> piiTags;
 
                     FromPlatformMap(this->Properties, properties);
                     FromPlatformMap(this->Measurements, measurements);
@@ -50,7 +50,7 @@ namespace Microsoft {
 
                     for (auto it = properties.begin(); it != properties.end(); ++it)
                     {
-                        auto piiType = Microsoft::Applications::Events ::PiiKind_None;
+                        auto piiType = MAT::PiiKind_None;
                         auto tag = piiTags.find(it->first);
 
                         if (tag != piiTags.end())
@@ -137,14 +137,14 @@ namespace Microsoft {
 
                 bool EventProperties::SetProperty(String^ key, String^ value)
                 {
-                    return SetProperty(key, value, MAT::Windows::PiiKind::None);
+                    return SetProperty(key, value, MATW::PiiKind::None);
                 }
 
                 bool EventProperties::SetProperty(String^ key, String^ value, PiiKind piiKind)
                 {
 #ifdef __cplusplus_cli
                     this->Properties[key] = value;
-                    if (piiKind != MAT::Windows::PiiKind::None)
+                    if (piiKind != MATW::PiiKind::None)
                     {
                         this->PIITags[key] = piiKind;
                     }
@@ -153,7 +153,7 @@ namespace Microsoft {
                         Properties->Remove(key);
                     Properties->Insert(key, value);
 
-                    if (piiKind != MAT::Windows::PiiKind::None)
+                    if (piiKind != MATW::PiiKind::None)
                     {
                         if (PIITags->HasKey(key))
                             PIITags->Remove(key);

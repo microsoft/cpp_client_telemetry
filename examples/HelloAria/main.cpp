@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "LogManager.hpp"
 #include "LogManagerA.hpp"
 #include "LogManagerB.hpp"
 
@@ -14,6 +15,8 @@
 #endif
 
 #include "DebugCallback.hpp"
+
+LOGMANAGER_INSTANCE
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 

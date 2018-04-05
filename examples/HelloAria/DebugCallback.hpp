@@ -1,13 +1,13 @@
 #pragma once
 
-#include "LogManagerV1.hpp"
+#include "LogManager.hpp"
 
 #include <mutex>
 #include <atomic>
 #include <cstdint>
 #include <thread>
 
-using namespace MAT; // Microsoft::Applications::Telemetry;
+using namespace MAT;
 
 static const constexpr size_t MAX_LATENCY_SAMPLES = 10;
 

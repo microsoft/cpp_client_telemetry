@@ -17,17 +17,18 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)AggregatedMetricData.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ECSClientCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)EventPropertiesCX.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IPlatformEventReceiver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ITestCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogConfigurationCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LoggerCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerCX.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerEventReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerV1.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PageActionData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PlatformHelpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SchemaStub.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SemanticContextCX.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LogConfigurationCX.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)EventPropertiesCX.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LoggerCX.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerCX.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TimedEvent.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)WindowsRTPlatformEventHandler.h" />
   </ItemGroup>
@@ -35,7 +36,6 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ECSClientCX.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)EventPropertiesCX.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)LogConfigurationCX.cpp" />

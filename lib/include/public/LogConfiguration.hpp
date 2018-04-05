@@ -93,8 +93,6 @@ namespace Microsoft {
     }
 }
 
-namespace MAT_v1 = ::Microsoft::Applications::Telemetry;
-
 namespace ARIASDK_NS_BEGIN {
 
     ARIASDK_LIBABI const ILogConfiguration& GetDefaultConfiguration();

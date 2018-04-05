@@ -1,0 +1,495 @@
+#ifndef ARIA_LOGMANAGER_HPP
+#define ARIA_LOGMANAGER_HPP
+// Copyright (c) Microsoft. All rights reserved.
+#pragma warning(push)
+#pragma warning(disable:4459 4100 4121 4244)
+
+#ifdef _MANAGED
+#include <msclr/lock.h>
+public ref class LogManagerLock {
+public:
+    static Object ^ lock = gcnew Object();
+};
+#else
+#include <mutex>
+#endif
+
+#include "LogManagerProvider.hpp"
+
+#define LM_SAFE_CALL(method , ... )                 \
+    {                                               \
+        LM_LOCKGUARD(stateLock);                    \
+        if (nullptr != instance)                    \
+        {                                           \
+            instance-> method(##__VA_ARGS__);       \
+            return EVTStatus_OK;                    \
+        }                                           \
+        return EVTStatus_Fail;                      \
+    }
+
+#define LM_SAFE_CALL_PTR(method , ... )             \
+    {                                               \
+        LM_LOCKGUARD(stateLock);                    \
+        if (nullptr != instance)                    \
+        {                                           \
+            return instance-> method(##__VA_ARGS__);\
+        }                                           \
+        return nullptr;                             \
+    }
+
+#define LM_SAFE_CALL_PTRREF(method , ... )          \
+    {                                               \
+        LM_LOCKGUARD(stateLock);                    \
+        if (nullptr != instance)                    \
+        {                                           \
+            return &(instance-> method(##__VA_ARGS__));\
+        }                                           \
+        return nullptr;                             \
+    }
+
+#define LM_SAFE_CALL_VOID(method , ... )            \
+    {                                               \
+        LM_LOCKGUARD(stateLock);                    \
+        if (nullptr != instance)                    \
+        {                                           \
+            instance-> method(##__VA_ARGS__));      \
+            return;                                 \
+        }                                           \
+    }
+
+#ifdef _MANAGED
+#define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
+#else
+#define LM_LOCKGUARD(macro_mutex)                   \
+    std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+#endif
+
+namespace ARIASDK_NS_BEGIN
+{
+    /// <summary>
+    /// This class is used to manage the Events  logging system
+    /// </summary>
+    template <class ModuleConfiguration> class LogManagerBase
+    {
+        static_assert(std::is_base_of<ILogConfiguration, ModuleConfiguration>::value, "ModuleConfiguration must derive from LogConfiguration");
+
+    protected:
+
+        /// <summary>
+        /// LogManagerBase constructor
+        /// </summary>
+        LogManagerBase() {};
+
+        /// <summary>
+        /// LogManager copy constructor
+        /// </summary>
+        LogManagerBase(const LogManagerBase&) {};
+
+        /// <summary>
+        /// [not implemented] LogManager assignment operator
+        /// </summary>
+        LogManagerBase& operator=(const LogManagerBase&) {};
+
+        /// <summary>
+        /// LogManager destructor
+        /// </summary>
+        virtual ~LogManagerBase() {};
+
+    protected:
+
+        /// <summary>
+        /// Lock used for executing singleton state-management methods in a thread-safe manner
+        /// </summary>
+#ifndef _MANAGED
+        static std::mutex           stateLock;
+#endif
+
+        /// <summary>
+        /// Primary token of this LogManager singleton
+        /// </summary>
+        static std::string          primaryToken;
+
+        /// <summary>
+        /// Default configuration settings for this singleton
+        /// </summary>
+        static ModuleConfiguration  currentConfig;
+
+        /// <summary>
+        /// Concrete instance for servicing all singleton calls
+        /// </summary>
+        static ILogManager*         instance;
+
+        /// <summary>
+        /// Debug event source associated with this singleton
+        /// </summary>
+        static DebugEventSource     debugEventSource;
+
+    public:
+
+        static ILogConfiguration& GetLogConfiguration()
+        {
+            return currentConfig;
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with default configuration.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <returns>A logger instance instantiated with the tenantToken</returns>
+        static ILogger* Initialize(
+            const std::string& tenantToken = primaryToken,
+            ILogConfiguration& configuration = currentConfig
+        )
+        {
+            LM_LOCKGUARD(stateLock);
+            if (nullptr == instance)
+            {
+                if (&configuration != &currentConfig)
+                {
+                    currentConfig.insert(configuration.begin(), configuration.end());
+                }
+
+                EVTStatus status = EVTStatus_OK;
+                instance = LogManagerProvider::GetLogManager(currentConfig, status);
+                if (tenantToken.empty())
+                {
+                    primaryToken = (const char *)configuration[CFG_STR_PRIMARY_TOKEN];
+                }
+                else {
+                    primaryToken = tenantToken;
+                }
+            }
+            else {
+                // TODO: [MG] - decide what to do if someone's doing re-Initialize.
+                // For now Re-initialize works as GetLogger with an alternate token.
+                // We may decide to assert(tenantToken==primaryToken) ...
+                //
+                // If assertion fails, it means someone tries to re-Initialize with
+                // different settings and it creates ambiguity for the GetLogger()
+                // API call.
+            }
+            return instance->GetLogger(tenantToken);
+        }
+
+        /// <summary>
+        /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
+        /// </summary>
+        static EVTStatus FlushAndTeardown()
+        {
+#if 0       // Safe approach
+            LM_SAFE_CALL(Flush);
+            LM_SAFE_CALL(UploadNow);
+            return EVTStatus_OK;
+#else       // Less safe approach, but this is in alignment with original v1 behavior
+            // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
+            auto callFTD = []() LM_SAFE_CALL(FlushAndTeardown);
+            auto result = callFTD();
+            if (instance)
+            {
+                result = LogManagerProvider::Release(currentConfig);
+                instance = nullptr;
+            }
+            return result;
+#endif
+        }
+
+        /// <summary>
+        /// Try to send any pending telemetry events in memory or on disk.
+        /// </summary>
+        static EVTStatus UploadNow()
+            LM_SAFE_CALL(UploadNow);
+
+        /// <summary>
+        /// Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
+        /// This function can be very expensive so should be used sparingly. OS will block the calling thread 
+        /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
+        /// time consuming.
+        /// </summary>
+        static EVTStatus Flush()
+            LM_SAFE_CALL(Flush);
+
+        /// <summary>
+        /// Pauses the transmission of events to data collector.
+        /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
+        /// </summary>
+        static EVTStatus PauseTransmission()
+            LM_SAFE_CALL(PauseTransmission);
+
+        /// <summary>
+        /// Resumes the transmission of events to data collector.
+        /// </summary>
+        static EVTStatus ResumeTransmission()
+            LM_SAFE_CALL(ResumeTransmission);
+
+        /// <summary>
+        /// Sets transmit profile for event transmission to one of the built-in profiles.
+        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
+        /// based on which to determine how events are to be transmitted. 
+        /// </summary>
+        /// <param name="profile">Transmit profile</param>
+        /// <returns>This function doesn't return any value because it always succeeds.</returns>
+        static EVTStatus SetTransmitProfile(TransmitProfile profile)
+            LM_SAFE_CALL(SetTransmitProfile, profile);
+
+        /// <summary>
+        /// Sets transmit profile for event transmission.
+        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
+        /// based on which to determine how events are to be transmitted. 
+        /// </summary>
+        /// <param name="profile">Transmit profile</param>
+        /// <returns>true if profile is successfully applied, false otherwise</returns>
+        static EVTStatus SetTransmitProfile(const std::string& profile)
+            LM_SAFE_CALL(SetTransmitProfile, profile);
+
+        /// <summary>
+        /// Load transmit profiles from JSON config
+        /// </summary>
+        /// <param name="profiles_json">JSON config (see example above)</param>
+        /// <returns>true on successful profiles load, false if config is invalid</returns>
+        static EVTStatus LoadTransmitProfiles(const std::string& profiles_json)
+            LM_SAFE_CALL(LoadTransmitProfiles, profiles_json);
+
+        /// <summary>
+        /// Reset transmission profiles to default settings
+        /// </summary>
+        static EVTStatus ResetTransmitProfiles()
+            LM_SAFE_CALL(ResetTransmitProfiles);
+
+        /// <summary>Get profile name based on built-in profile enum<summary>
+        /// <param name="profile">Transmit profile</param>
+        static const std::string& GetTransmitProfileName()
+            LM_SAFE_CALL_PTR(GetTransmitProfileName);
+
+        /// <summary>
+        /// Retrieve an ISemanticContext interface through which to specify context information 
+        /// such as device, system, hardware and user information.
+        /// Context information set via this API will apply to all logger instance unless they 
+        /// are overwritten by individual logger instance.
+        /// </summary>
+        /// <returns>ISemanticContext interface pointer</returns>
+        static ISemanticContext* GetSemanticContext()
+            LM_SAFE_CALL_PTRREF(GetSemanticContext);
+
+        /// <summary>
+        /// Adds or overrides a property of the custom context for the telemetry logging system.
+        /// Context information set here applies to events generated by all ILogger instances 
+        /// unless it is overwritten on a particular ILogger instance.
+        /// </summary>
+        /// <param name="name">Name of the context property</param>
+        /// <param name="value">Value of the context property</param>
+        /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
+        static EVTStatus SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the custom context for the telemetry logging system.
+        /// Context information set here applies to events generated by all ILogger instances 
+        /// unless it is overwritten on a particular ILogger instance.
+        /// </summary>
+        /// <param name="name">Name of the context property</param>
+        /// <param name="value">Value of the context property</param>
+        /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
+        static EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, std::string(value), piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">Double value of the property</param>
+        static EVTStatus SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">64-bit Integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">8-bit Integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">16-bit Integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">32-bit Integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">8-bit unsigned integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">16-bit unsigned integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">32-bit unsigned integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.<br>
+        /// All integer types other than int64_t are currently being converted to int64_t
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">64-bit unsigned integer value of the property</param>
+        static EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">Boolean value of the property</param>
+        static EVTStatus SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">.NET time ticks</param>
+        static EVTStatus SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Adds or overrides a property of the global context.
+        /// </summary>
+        /// <param name="name">Name of the property</param>
+        /// <param name="value">GUID</param>
+        static EVTStatus SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None)
+            LM_SAFE_CALL(SetContext, name, value, piiKind);
+
+        /// <summary>
+        /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
+        /// </summary>
+        /// <returns>Pointer to the Ilogger interface of an logger instance</returns>
+        static ILogger* GetLogger()
+            LM_SAFE_CALL_PTR(GetLogger, primaryToken);
+
+        /// <summary>
+        /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
+        /// </summary>
+        /// <param name="source">Source name of events sent by this logger instance</param>
+        /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
+        static ILogger* GetLogger(const std::string& source)
+            LM_SAFE_CALL_PTR(GetLogger, primaryToken, source);
+
+        /// <summary>
+        /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <param name="source">Source name of events sent by this logger instance</param>
+        /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
+        static ILogger* GetLogger(const std::string& tenantToken, const std::string& source)
+            LM_SAFE_CALL_PTR(GetLogger, tenantToken, source);
+
+        /// <summary>
+        /// Get Auth token controller
+        /// </summary>
+        static IAuthTokensController* GetAuthTokensController()
+            LM_SAFE_CALL_PTR(GetAuthTokensController);
+
+        /// <summary>
+        /// Add Debug callback
+        /// </summary>
+        static void AddEventListener(DebugEventType type, DebugEventListener &listener)
+        {
+            debugEventSource.AddEventListener(type, listener);
+        }
+
+        /// <summary>
+        /// Remove Debug callback
+        /// </summary>
+        static void RemoveEventListener(DebugEventType type, DebugEventListener &listener)
+        {
+            debugEventSource.RemoveEventListener(type, listener);
+        }
+
+        /// <summary>
+        /// Dispatches a debug event of the specified type.
+        /// </summary>
+        /// <param name="type">One of the DebugEventType enumeration types.</param>
+        static bool DispatchEvent(DebugEventType type)
+        {
+            return debugEventSource.DispatchEvent(type);
+        }
+
+        /// <summary>
+        /// Dispatches the specified event to a client callback.
+        /// </summary>
+        /// <param name="evt">A reference to a DebugEvent object.</param>
+        static bool DispatchEvent(DebugEvent evt)
+        {
+            return debugEventSource.DispatchEvent(std::move(evt));
+        }
+
+        /// <summary>
+        /// Gets the log session data.
+        /// </summary>
+        /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
+        static LogSessionData* GetLogSessionData()
+            LM_SAFE_CALL_PTR(GetLogSessionData);
+
+        static EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
+            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterCount);
+
+        static EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
+
+    };
+
+// Implements LogManager<T> singleton template static  members
+#ifdef _MANAGED
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)           \
+    ILogManager*            LogManagerClass::instance;                      \
+    std::string             LogManagerClass::primaryToken;                  \
+    LogConfigurationClass   LogManagerClass::currentConfig;                 \
+    DebugEventSource        LogManagerClass::debugEventSource;
+#else
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)     \
+    ILogManager*            LogManagerClass::instance;                \
+    std::mutex              LogManagerClass::stateLock;               \
+    std::string             LogManagerClass::primaryToken;            \
+    LogConfigurationClass   LogManagerClass::currentConfig;           \
+    DebugEventSource        LogManagerClass::debugEventSource;
+#endif
+
+} ARIASDK_NS_END
+#pragma warning(pop)
+#endif

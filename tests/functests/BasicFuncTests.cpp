@@ -3,7 +3,7 @@
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "utils/Utils.hpp"
-#include <api/ILogManagerInternal.hpp>
+#include <api/LogManagerImpl.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
@@ -16,19 +16,24 @@ char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
 
 class BasicFuncTests : public ::testing::Test,
-                       public HttpServer::Callback
+    public HttpServer::Callback
 {
-  protected:
+protected:
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
     HttpServer server;
     std::unique_ptr<ILogManagerInternal> logManager;
     ILogger* logger;
     ILogger* logger2;
-    LogConfiguration configuration;
-    ContextFieldsProvider context;
+    ILogConfiguration configuration;
+    // ContextFieldsProvider context;
 
-  public:
+    inline void CreateLogManager()
+    {
+        logManager.reset((LogManagerImpl*)ILogManagerInternal::Create(configuration));
+    }
+
+public:
     virtual void SetUp() override
     {
         int port = server.addListeningPort(0);
@@ -39,16 +44,15 @@ class BasicFuncTests : public ::testing::Test,
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
         server.addHandler("/503/", *this);
-                
-        configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
-        configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-        EVTStatus error;
-        ::remove(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error));
 
-        logManager.reset(ILogManagerInternal::Create(configuration));
-       
-        logger = logManager->GetLogger("functests-Tenant-Token", &context,"source");
-        logger2 = logManager->GetLogger("FuncTests2-tenant-token", &context, "Source");
+        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        ::remove(configuration[CFG_STR_CACHE_FILE_PATH]);
+
+        CreateLogManager();
+
+        logger = logManager->GetLogger("functests-Tenant-Token", "source");
+        logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
         server.start();
     }
@@ -135,7 +139,7 @@ class BasicFuncTests : public ::testing::Test,
                 GTEST_FATAL_FAILURE_("Didn't receive request within given timeout");
             }
         }
-    }  
+    }
 
     std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
@@ -144,9 +148,9 @@ class BasicFuncTests : public ::testing::Test,
         if (decompress) {
             // TODO
         }
-                        
+
         size_t data = 0;
-        size_t length= 0 ;
+        size_t length = 0;
         while (data < request.content.size())
         {
             AriaProtocol::Record result;
@@ -169,7 +173,7 @@ class BasicFuncTests : public ::testing::Test,
                         break;
                     }
                     index++;
-                }                
+                }
             }
             if (!found)
             {
@@ -194,7 +198,7 @@ class BasicFuncTests : public ::testing::Test,
         EXPECT_THAT(actual.time, Gt(now - 60000000000));
         EXPECT_THAT(actual.time, Le(now));
         EXPECT_THAT(actual.name, expected.GetName());
-        for (std::pair<std::string, EventProperty>  prop : expected.GetProperties())
+        for (std::pair<std::string, EventProperty> prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None)
             {
@@ -218,24 +222,24 @@ class BasicFuncTests : public ::testing::Test,
                     {
                         EXPECT_THAT(temp.doubleValue, prop.second.as_double);
                         break;
-                    } 
+                    }
                     case ::AriaProtocol::ValueString:
                     {
                         EXPECT_THAT(temp.stringValue, prop.second.as_string);
                         break;
-                    }                    
+                    }
                     case ::AriaProtocol::ValueGuid:
                     {
                         uint8_t guid_bytes[16] = { 0 };
                         prop.second.as_guid.to_bytes(guid_bytes);
                         std::vector<uint8_t> guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-                        
+
                         EXPECT_THAT(temp.guidValue[0].size(), guid.size());
                         for (size_t index = 0; index < guid.size(); index++)
                         {
                             UINT8 val1 = temp.guidValue.at(0).at(index);
                             UINT8 val2 = guid[index];
-                            EXPECT_THAT(val1, val2 );
+                            EXPECT_THAT(val1, val2);
                         }
                         break;
                     }
@@ -245,18 +249,18 @@ class BasicFuncTests : public ::testing::Test,
                     case ::AriaProtocol::ValueArrayUInt32:
                     case ::AriaProtocol::ValueArrayBool:
                     case ::AriaProtocol::ValueArrayDateTime:
-                    {                        
+                    {
                         std::vector<int64_t>& vectror = temp.longArray.at(0);
                         EXPECT_THAT(vectror.size(), prop.second.as_longArray->size());
                         for (size_t index = 0; index < prop.second.as_longArray->size(); index++)
                         {
-                           uint64_t val1 = vectror.at(index);
-                           uint64_t val2 = prop.second.as_longArray->at(index);
-                           EXPECT_THAT(val1, val2);
+                            uint64_t val1 = vectror.at(index);
+                            uint64_t val2 = prop.second.as_longArray->at(index);
+                            EXPECT_THAT(val1, val2);
                         }
 
                         break;
-                    }                   
+                    }
                     case ::AriaProtocol::ValueArrayDouble:
                     {
                         std::vector<double>& vectror = temp.doubleArray.at(0);
@@ -284,7 +288,7 @@ class BasicFuncTests : public ::testing::Test,
                     }
                     case ::AriaProtocol::ValueArrayGuid:
                     {
-                       // EXPECT_THAT(temp.guidArray, prop.second.as_guidArray);
+                        // EXPECT_THAT(temp.guidArray, prop.second.as_guidArray);
                         std::vector<std::vector<uint8_t>>& vectror = temp.guidArray.at(0);
                         EXPECT_THAT(vectror.size(), prop.second.as_guidArray->size());
                         for (size_t index = 0; index < prop.second.as_guidArray->size(); index++)
@@ -308,24 +312,24 @@ class BasicFuncTests : public ::testing::Test,
                     {
                         break;
                     }
-                    }                
+                    }
                 }
             }
         }
         for (auto const& property : expected.GetPiiProperties())
         {
             ::AriaProtocol::PII pii;
-            pii.Kind       = static_cast< ::AriaProtocol::PIIKind>(property.second.second);
-           // EXPECT_THAT(actual.PIIExtensions, Contains(Pair(property.first, pii)));
+            pii.Kind = static_cast<::AriaProtocol::PIIKind>(property.second.second);
+            // EXPECT_THAT(actual.PIIExtensions, Contains(Pair(property.first, pii)));
         }
 
- /*       for (auto const& property : expected.GetCustomerContentProperties())
-        {
-            ::AriaProtocol::CustomerContent cc;
-            cc.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(property.second.second);
-            //EXPECT_THAT(actual.CustomerContentExtensions, Contains(Pair(property.first, cc)));
-        }
-*/
+        /*       for (auto const& property : expected.GetCustomerContentProperties())
+               {
+                   ::AriaProtocol::CustomerContent cc;
+                   cc.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(property.second.second);
+                   //EXPECT_THAT(actual.CustomerContentExtensions, Contains(Pair(property.first, cc)));
+               }
+       */
     }
 
     int64_t getFileSize(std::string const& filename)
@@ -346,7 +350,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     EventProperties event("first_event");
     event.SetProperty("property", "value");
 
-    
+
     logger->LogEvent(event);
 }
 
@@ -355,14 +359,14 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     EventProperties event("first_event");
     event.SetProperty("property", "value");
 
-    
+
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
 
-    
+
     logger->LogEvent(event2);
 
     waitForEvents(50, 3);
@@ -370,7 +374,7 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 
     ASSERT_THAT(payload, SizeIs(3));
     verifyEvent(event, payload[1]);
-    verifyEvent(event2,payload[2]);
+    verifyEvent(event2, payload[2]);
 }
 
 TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
@@ -398,7 +402,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
 
-    
+
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -408,12 +412,12 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
-    
+
     logger->LogEvent(event2);
 
     waitForEvents(50, 3);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
- 
+
     ASSERT_THAT(payload, SizeIs(3));
     verifyEvent(event, payload[1]);
     verifyEvent(event2, payload[2]);
@@ -444,7 +448,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
 
-    
+
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -454,7 +458,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
-    
+
     logger->LogEvent(event2);
 
     PAL::sleep(100); // Some time to let events be saved to DB
@@ -463,7 +467,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 
     ASSERT_THAT(payload, SizeIs(3));
     verifyEvent(event2, payload[1]);
-	verifyEvent(event, payload[2]);
+    verifyEvent(event, payload[2]);
 }
 
 TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
@@ -505,8 +509,8 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     verifyEvent(event1, payload[1]);
     verifyEvent(event2, payload[2]);
 
- //   ASSERT_THAT(dp2.Records, SizeIs(1));
-//    verifyEvent(event2, dp2.Records[0]);
+    //   ASSERT_THAT(dp2.Records, SizeIs(1));
+   //    verifyEvent(event2, dp2.Records[0]);
 }
 
 TEST_F(BasicFuncTests, configDecorations)
@@ -542,7 +546,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
-    
+
     event1.SetProperty("property1", "value1");
     event2.SetProperty("property2", "value2");
     event1.SetLatency(Microsoft::Applications::Events::EventLatency::EventLatency_RealTime);
@@ -555,43 +559,43 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 
     PAL::sleep(100); // Some time to let events be saved to DB
 
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown();
+    logManager.reset();
 
     PAL::sleep(2100); // Some time to let events be saved to DB
-        
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
 
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManagerInternal::Create(configuration));
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    CreateLogManager();
 
     // 1st request is from MetaStats
     waitForEvents(50, 4);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-/*    
-	ASSERT_THAT(receivedRequests, SizeIs(1));
-    auto payload = decodeRequest(receivedRequests[0], false);
-    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(2));
-    verifyEvent(event1, payload[0]);
-    verifyEvent(event2, payload[1]);
-    */
+    /*
+        ASSERT_THAT(receivedRequests, SizeIs(1));
+        auto payload = decodeRequest(receivedRequests[0], false);
+        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
+        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
+        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
+        ASSERT_THAT(payload, SizeIs(2));
+        verifyEvent(event1, payload[0]);
+        verifyEvent(event2, payload[1]);
+        */
 }
 
 TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
 {
-	logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown();
+    logManager.reset();
     // Wait a bit so that the initial check for unsent events does not send our events too early.
     PAL::sleep(200);
- 
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE,4096 * 20);
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
 
-    ContextFieldsProvider temp;
-    logManager.reset(ILogManagerInternal::Create(configuration));
-    logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
-    logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+
+    CreateLogManager();
+    logger = logManager->GetLogger("functests-Tenant-Token", "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
@@ -603,39 +607,38 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
 
     PAL::sleep(100); // Some time to let events be saved to DB
 
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown(); logManager.reset();
 
-	PAL::sleep(100);    
-    logManager.reset(ILogManagerInternal::Create(configuration));
+    PAL::sleep(100);
+    CreateLogManager();
 
     // 1st request is from MetaStats
     waitForEvents(100, 5);
 
-/*    auto payload = decodeRequest(receivedRequests[1], false);
-    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(2));
-    verifyEvent(event1, payload[0]);
-    verifyEvent(event2, payload[1]);
-    */
+    /*    auto payload = decodeRequest(receivedRequests[1], false);
+        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
+        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
+        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
+        ASSERT_THAT(payload, SizeIs(2));
+        verifyEvent(event1, payload[0]);
+        verifyEvent(event2, payload[1]);
+        */
 }
 
 TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
 {
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown(); logManager.reset();
     // Wait a bit so that the initial check for unsent events does not send our events too early.
     PAL::sleep(200);
 
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
-    configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 5);
-   
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
-    ContextFieldsProvider temp;
-    logManager.reset(ILogManagerInternal::Create(configuration));
-    logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
-    logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+
+    CreateLogManager();
+    logger = logManager->GetLogger("functests-Tenant-Token", "source");
+    logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
     EventProperties event1("first_event");
     EventProperties event2("second_event");
@@ -647,33 +650,34 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
 
     //PAL::sleep(100); // Some time to let events be saved to DB
 
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown();
+    logManager.reset();
 
-    logManager.reset(ILogManagerInternal::Create(configuration));
+    CreateLogManager();
 
-   // PAL::sleep(1000); // Some time to let events be saved to DB
-    // 1st request is from MetaStats
+    // PAL::sleep(1000); // Some time to let events be saved to DB
+     // 1st request is from MetaStats
     waitForEvents(50, 4);
 }
 
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
-	logManager->FlushAndTeardown(); logManager.reset(); 
-	
-	// Wait a bit so that the initial check for unsent events does not send our events too early.
-	PAL::sleep(200);
+    logManager->FlushAndTeardown();
+    logManager.reset();
 
-    configuration.SetIntProperty(CFG_INT_MAX_TEARDOWN_TIME, 0);
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 0);
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME); 
-    logManager.reset(ILogManagerInternal::Create(configuration));
-    ContextFieldsProvider temp;
-	logger = logManager->GetLogger("functests-Tenant-Token", &temp, "source");
+    // Wait a bit so that the initial check for unsent events does not send our events too early.
+    PAL::sleep(200);
 
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    CreateLogManager();
 
-    static int64_t const ONE_EVENT_SIZE   = 500 * 1024;
-    static int64_t const MAX_FILE_SIZE    =   8 * 1024 * 1024;
-    static int64_t const ALLOWED_OVERFLOW =  10 * MAX_FILE_SIZE / 100;
+    logger = logManager->GetLogger("functests-Tenant-Token", "source");
+
+    static int64_t const ONE_EVENT_SIZE = 500 * 1024;
+    static int64_t const MAX_FILE_SIZE = 8 * 1024 * 1024;
+    static int64_t const ALLOWED_OVERFLOW = 10 * MAX_FILE_SIZE / 100;
 
     std::string slowServiceUrl;
     slowServiceUrl.insert(slowServiceUrl.find('/', sizeof("http://")) + 1, "slow/");
@@ -694,26 +698,28 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 
     // Check meta stats after restart. Because of their high priority, they will
     // be sent alone in the very first request regardless of other events.
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown();
+    logManager.reset();
+
     PAL::sleep(2000);
     receivedRequests.clear();
-        
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    logManager.reset(ILogManagerInternal::Create(configuration));
+
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    CreateLogManager();
 
     waitForEvents(50, 8);
     auto payload = decodeRequest(receivedRequests[0], false);
-/*    auto payload = decodeRequest(receivedRequests[0], false);
-    ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(2));
-    EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-    EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-    // The expected number of dropped events is hard to estimate because of database overhead,
-    // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
-    */
+    /*    auto payload = decodeRequest(receivedRequests[0], false);
+        ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
+        auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+        ASSERT_THAT(payload, SizeIs(2));
+        EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+        EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+        // The expected number of dropped events is hard to estimate because of database overhead,
+        // varying timing, some events have been sent etc. Just check that it's at least a quarter.
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
+        */
 }
 
 TEST_F(BasicFuncTests, sendMetaStatsOnStart)
@@ -733,25 +739,25 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 
     PAL::sleep(100); // Some time to let events be saved to DB
 
-    logManager->FlushAndTeardown(); logManager.reset(); 
+    logManager->FlushAndTeardown();
+    logManager.reset();
 
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    
-    logManager.reset(ILogManagerInternal::Create(configuration));
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    CreateLogManager();
 
     waitForEvents(50, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
- /*   auto payload = decodeRequest(receivedRequests[1], false);
-    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-    ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(2));
-    EXPECT_THAT(payload[1].Id, Not(IsEmpty()));
-    EXPECT_THAT(payload[1].Type, Eq("client_telemetry"));
-    EXPECT_THAT(payload[1].Extension, Contains(Pair("records_received_count", "3")));
-    EXPECT_THAT(payload[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
-    */
+    /*   auto payload = decodeRequest(receivedRequests[1], false);
+       ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
+       ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
+       auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+       ASSERT_THAT(payload, SizeIs(2));
+       EXPECT_THAT(payload[1].Id, Not(IsEmpty()));
+       EXPECT_THAT(payload[1].Type, Eq("client_telemetry"));
+       EXPECT_THAT(payload[1].Extension, Contains(Pair("records_received_count", "3")));
+       EXPECT_THAT(payload[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
+       */
 }
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
@@ -776,7 +782,7 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
     waitForEvents(50, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-//    EXPECT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
+    //    EXPECT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
 }
 
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
@@ -789,31 +795,31 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 
     EventProperties event("event");
     event.SetProperty("property", "value");
-    
+
     logger->LogEvent(event);
 
     // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry and stop.
     // 2nd retry after another 3 seconds (using the good URL again) should not come - wait 1 more second to be sure.
     PAL::sleep(2000 + 2 * 3000 + 1000);
-   // EXPECT_THAT(receivedRequests, SizeIs(0));
+    // EXPECT_THAT(receivedRequests, SizeIs(0));
 
-    // Check meta stats on restart (will be first request)
-    logManager->FlushAndTeardown(); logManager.reset(); 
+     // Check meta stats on restart (will be first request)
+    logManager->FlushAndTeardown();
+    logManager.reset();
 
-    configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, TEST_STORAGE_FILENAME);
-    
-    logManager.reset(ILogManagerInternal::Create(configuration));
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    CreateLogManager();
 
     waitForEvents(100, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-/*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(1));
-    EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-    EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
-    */
+    /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+        ASSERT_THAT(payload, SizeIs(1));
+        EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+        EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
+        */
 }
 
 TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
@@ -822,7 +828,7 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
     PAL::sleep(3500);
     ASSERT_THAT(receivedRequests, SizeIs(1));
 
-	receivedRequests.clear();
+    receivedRequests.clear();
     EventProperties event("some_event");
     event.SetPriority(EventPriority_Immediate);
     logger->LogEvent(event);
@@ -833,16 +839,16 @@ TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
     waitForEvents(3500, 2);
     auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-/*    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("metastats-tenant-token")));
-    ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-    ASSERT_THAT(payload, SizeIs(1));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("records_received_count", "2")));
-    EXPECT_THAT(payload[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
+    /*    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("metastats-tenant-token")));
+        ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
+        auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+        ASSERT_THAT(payload, SizeIs(1));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("records_received_count", "2")));
+        EXPECT_THAT(payload[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
 
-    // Wait a few more seconds to see that no more events are being sent.
-    PAL::sleep(3500);
-    EXPECT_THAT(receivedRequests.size(), 2);
-    */
+        // Wait a few more seconds to see that no more events are being sent.
+        PAL::sleep(3500);
+        EXPECT_THAT(receivedRequests.size(), 2);
+        */
 }

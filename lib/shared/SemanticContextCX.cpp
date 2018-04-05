@@ -1,11 +1,9 @@
 #include "pch.h"
 #include "SemanticContextCX.hpp"
 
-namespace MAT = Microsoft::Applications::Events ;
-
 namespace Microsoft {
     namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 void SemanticContextImpl::SetUserId(String ^ userId, PiiKind piiKind)
@@ -42,6 +40,40 @@ namespace Microsoft {
                     m_semanticContextCore->SetEventExperimentIds(FromPlatformString(eventName), FromPlatformString(experimentIds));
                 }
 
+                void SemanticContextImpl::DeviceId::set(String^ deviceId)
+                {
+                    m_semanticContextCore->SetDeviceId(FromPlatformString(deviceId));
+                }
+
+                void SemanticContextImpl::DeviceMake::set(String^ deviceMake)
+                {
+                    m_semanticContextCore->SetDeviceMake(FromPlatformString(deviceMake));
+                }
+
+                void SemanticContextImpl::DeviceModel::set(String^ deviceModel)
+                {
+                    m_semanticContextCore->SetDeviceModel(FromPlatformString(deviceModel));
+                }
+
+                void SemanticContextImpl::NetworkProvider::set(String^ networkProvider)
+                {
+                    m_semanticContextCore->SetNetworkProvider(FromPlatformString(networkProvider));
+                }
+
+                void SemanticContextImpl::OsName::set(String^ osName)
+                {
+                    m_semanticContextCore->SetOsName(FromPlatformString(osName));
+                }
+
+                void SemanticContextImpl::OsVersion::set(String^ osVersion)
+                {
+                    m_semanticContextCore->SetOsVersion(FromPlatformString(osVersion));
+                }
+
+                void SemanticContextImpl::OsBuild::set(String^ osBuild)
+                {
+                    m_semanticContextCore->SetOsBuild(FromPlatformString(osBuild));
+                }
                 void SemanticContextImpl::UserId::set(String^ userId)
                 {
                     m_semanticContextCore->SetUserId(FromPlatformString(userId));

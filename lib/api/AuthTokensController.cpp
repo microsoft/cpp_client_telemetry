@@ -3,6 +3,7 @@
 #include "AuthTokensController.hpp"
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
+#include "Config.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -31,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                m_tickets.push_back(TICKETS_PREPAND_STRING + std::to_string(type));
+                m_tickets.push_back(TICKETS_PREPEND_STRING + std::to_string(type));
                 m_userTokens[type] = std::string(tokenValue);
             }
             return EVTStatus::EVTStatus_OK;
@@ -72,4 +73,5 @@ namespace ARIASDK_NS_BEGIN {
     {
         return m_userTokens;
     }
-}}} // namespace Microsoft::Applications::Events 
+
+} ARIASDK_NS_END

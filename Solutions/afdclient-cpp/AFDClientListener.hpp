@@ -15,7 +15,7 @@ public:
     AFDClientListener();
     ~AFDClientListener();
 
-    void Init(Microsoft::Applications::Telemetry::ILogger* pLogger);
+    void Init(MAT::ILogger* pLogger);
     void Term();
 
     // IAFDClientCallback

@@ -7,7 +7,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 using namespace Microsoft::Applications::Experimentation::AFD;
 
 const std::string TEST_CLIENT_NAME = "word3";// "C2CPlugin";
@@ -34,9 +34,9 @@ void AFDClientListener::Init(ILogger* pLogger)
 
     AFDClientConfiguration afdclientConfig;
 
-    afdclientConfig.clientId            = TEST_CLIENT_NAME;
-    afdclientConfig.clientVersion       = TEST_CLIENT_VERSION;
-    afdclientConfig.cacheFilePathName   = TEST_CACHE_FILE_PATH_NAME;
+    afdclientConfig.clientId = TEST_CLIENT_NAME;
+    afdclientConfig.clientVersion = TEST_CLIENT_VERSION;
+    afdclientConfig.cacheFilePathName = TEST_CACHE_FILE_PATH_NAME;
     //afdclientConfig.corpnet             = 1;  //0 means look like it is from outside of corpnet
     afdclientConfig.serverUrls.push_back("http://test-exp-s2s.msedge.net/ab");//"https://ocos-office365-s2s.msedge.net/ab"); //
 
@@ -50,8 +50,8 @@ void AFDClientListener::Init(ILogger* pLogger)
     catch (std::exception& e)
     {
         EventProperties prop("test");
-        pLogger->LogFailure("Exception",e.what(), prop);
-       
+        pLogger->LogFailure("Exception", e.what(), prop);
+
         return;
     }
 
@@ -62,7 +62,7 @@ void AFDClientListener::Init(ILogger* pLogger)
     {
         m_pAFDClient->RegisterLogger(pLogger, TEST_AGENT_NAME);
     }
-        
+
     fResult = m_pAFDClient->Start();
 
     m_pAFDClient->Suspend();
@@ -95,34 +95,34 @@ void AFDClientListener::OnAFDClientEvent(AFDClientEventType evtType, AFDClientEv
     msg += "\n";
     TraceMsg(msg.c_str());
 
-	if (evtType == IAFDClientCallback::ET_CONFIG_UPDATE_SUCCEEDED)
-	{
-		TraceMsg("ET_CONFIG_UPDATE_SUCCEEDED\n");
-		TraceMsg("\nRunning Flights\n");
-		if (evtContext.flights.size() > 0)
-		{
-			std::vector<std::string>::iterator iter;
-			for (iter = evtContext.flights.begin(); iter < evtContext.flights.end(); iter++)
-			{
-				std::string temp = *iter;
-				TraceMsg("\n");
-				TraceMsg(temp.c_str());
-			}
-		}
-		TraceMsg("\n");
+    if (evtType == IAFDClientCallback::ET_CONFIG_UPDATE_SUCCEEDED)
+    {
+        TraceMsg("ET_CONFIG_UPDATE_SUCCEEDED\n");
+        TraceMsg("\nRunning Flights\n");
+        if (evtContext.flights.size() > 0)
+        {
+            std::vector<std::string>::iterator iter;
+            for (iter = evtContext.flights.begin(); iter < evtContext.flights.end(); iter++)
+            {
+                std::string temp = *iter;
+                TraceMsg("\n");
+                TraceMsg(temp.c_str());
+            }
+        }
+        TraceMsg("\n");
 
-		TraceMsg("\nRunning Features\n");
-		if (evtContext.features.size() > 0)
-		{
-			std::vector<std::string>::iterator iter;
-			for (iter = evtContext.features.begin(); iter < evtContext.features.end(); iter++)
-			{
-				std::string temp = *iter;
-				TraceMsg("\n");
-				TraceMsg(temp.c_str());
-			}
-		}
-		TraceMsg("\n\n");
+        TraceMsg("\nRunning Features\n");
+        if (evtContext.features.size() > 0)
+        {
+            std::vector<std::string>::iterator iter;
+            for (iter = evtContext.features.begin(); iter < evtContext.features.end(); iter++)
+            {
+                std::string temp = *iter;
+                TraceMsg("\n");
+                TraceMsg(temp.c_str());
+            }
+        }
+        TraceMsg("\n\n");
 
         std::string gg = m_pAFDClient->GetAFDConfiguration();
 
@@ -131,13 +131,13 @@ void AFDClientListener::OnAFDClientEvent(AFDClientEventType evtType, AFDClientEv
         string setting2 = m_pAFDClient->GetSetting("ImpressionId", "", std::string());
 
         //int setting10 = m_pAFDClient->GetSetting("AddIn_Weather", "weatherDayCount", 3);
-     
+
         //string setting3 = m_pAFDClient->GetSetting("AsyncMediaClient", "media_params/Audio.1/title", std::string());
         std::vector<std::string> settings4 = m_pAFDClient->GetSettings("Features", "");
-        
+
 
         std::string setting3 = m_pAFDClient->GetSetting("Configs", "Id", std::string(""));
-        
+
 
     }
 }

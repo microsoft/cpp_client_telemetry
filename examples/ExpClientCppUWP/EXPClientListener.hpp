@@ -51,7 +51,7 @@ public:
         DetachAll();
     }
 
-    IEXPClient* Attach(Microsoft::Applications::Telemetry::ILogger* pLogger = nullptr);
+    IEXPClient* Attach(MAT::ILogger* pLogger = nullptr);
 
     void Detach(IEXPClient* client);
 

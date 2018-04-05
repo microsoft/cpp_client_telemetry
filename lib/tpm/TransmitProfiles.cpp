@@ -1,7 +1,9 @@
 #define LOG_MODULE DBG_CONFIG
 
-#include <Version.hpp>
-#include "json.hpp"    // KEEP THIS FIRST! (ILogger.hpp is defining max() and min() macros somewhere, which breaks json.hpp)
+#include "json.hpp"
+
+#include <pal/PAL.hpp>
+
 #include "TransmitProfiles.hpp"
 #include <set>
 #include "utils/Utils.hpp"

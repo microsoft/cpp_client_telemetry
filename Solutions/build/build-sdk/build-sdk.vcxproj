@@ -53,12 +53,6 @@
     <ProjectReference Include="..\..\win32-dll\win32-dll.vcxproj">
       <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\tests\functests\FuncTests.vcxproj">
-      <Project>{fe79fb3a-b3ef-38df-b7a4-11277db72b39}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tests\unittests\UnitTests.vcxproj">
-      <Project>{434c594f-cde0-3690-ac0a-9ed854b74092}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\sqliteUWP\sqlite-uwp.vcxproj">

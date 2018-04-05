@@ -9,14 +9,45 @@
 #include <string>
 #include <thread>
 
+// Windows SDK Test - Prod: Default Ingestion Token.
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+
+// Windows SDK Test 2 - Int: Default Ingestion Token.
+#define TOKEN2  "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
+
 using namespace std;
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 using namespace EXP;
 
-const std::string tenantToken = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
-                              //"d34863e7429e4e569bb90ff06d00e019-404caa7c-ba18-4dae-ac9e-7e08bade9c60-7278";
+namespace ARIASDK_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } ARIASDK_NS_END;
+
+const std::string tenantToken = TOKEN;
 
 static ILogConfiguration& configuration = LogManager::GetLogConfiguration();
+
+void AriaInitialize()
+{
+    configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db";
+    configuration[CFG_INT_CACHE_FILE_SIZE] = 50000000;
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 2000000;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 20;
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFFF;
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_Aria; /* or UTC mode: SdkModeTypes_UTCAriaBackCompat; */
+
+    ILogger *logger = LogManager::Initialize(TOKEN);
+    LogManager::GetSemanticContext()->SetAppId("UAPCPP");
+    logger->LogSession(Session_Started, EventProperties("AppSession"));
+    logger->LogEvent("Event_Simple");
+}
+
+void AriaTeardown()
+{
+    ILogger *logger = LogManager::GetLogger("shutdown");
+    // ISemanticContext *context = LogManager::GetSemanticContext();
+    logger->LogSession(Session_Ended, EventProperties("AppSession"));
+    LogManager::FlushAndTeardown();
+}
 
 /**
  * Start on process start
@@ -48,7 +79,7 @@ struct AriaInstance {
     void ExpClientStart()
     {
         client = listener.Attach(LogManager::GetLogger());
-        std::thread refresher([this]() { configRefresher(); } );
+        std::thread refresher([this]() { configRefresher(); });
         refresher.detach();
     }
 
@@ -63,14 +94,14 @@ struct AriaInstance {
 
     AriaInstance()
     {
-        LogManager::Initialize(tenantToken);
-        ExpClientStart();
+        AriaInitialize();
+        // ExpClientStart();
     }
 
     ~AriaInstance()
     {
         stopped = false;
-        LogManager::FlushAndTeardown();
+        AriaTeardown();
     };
 
 };

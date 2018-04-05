@@ -13,8 +13,6 @@ extern void PerformanceTest();
 // Debug logger that would convert varargs to PrintLine(buffer)
 extern void DebugPrintf(const char *fmt, ...);
 
-// Shows how to use LogManager::Initialize
 extern void AriaInitialize();
 
-// shows how to use LogManager::FlushAndTeardown
 extern void AriaTeardown();

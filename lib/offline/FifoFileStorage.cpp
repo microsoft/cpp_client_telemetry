@@ -1,6 +1,6 @@
+#include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
 #include "FifoFileStorage.hpp"
-
 
 #define AssertAbort(a) assert(a)
 namespace ARIASDK_NS_BEGIN {

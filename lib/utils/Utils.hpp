@@ -2,9 +2,12 @@
 #ifndef LIB_UTILS_HPP
 #define LIB_UTILS_HPP
 
+// This file is being used during both C++ native and C++/CX managed compilation with /cli flag
+// Certain features, e.g. <mutex> or <thread> - cannot be used while building with /cli
+// For this reason this header cannot include any other headers that rely on <mutex> or <thread>
+
+#include "Version.hpp"
 #include "Enums.hpp"
-#include <Config.hpp>
-#include "pal/PAL.hpp"
 
 #include <chrono>
 #include <algorithm>
@@ -21,19 +24,22 @@
 #include <stdlib.h>
 #endif
 
+#if defined(WINDOWS_UWP) || defined(__cplusplus_winrt)
+#include <Windows.h>
+#define _WINRT
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
-    ARIASDK_LOG_DECL_COMPONENT_NS();
+    // FIXME: [MG] - refactor this
+    extern const char* getAriaSdkLogComponent();
 
     typedef std::chrono::milliseconds ms;
 
     /* Obtain a backtrace and print it to stdout. */
     void print_backtrace(void);
 
-    inline void sleep(unsigned delayMs)
-    {
-        std::this_thread::sleep_for(ms(delayMs));
-    }
+    void sleep(unsigned delayMs);
 
     long		GetCurrentProcessId();
 
@@ -146,6 +152,14 @@ namespace ARIASDK_NS_BEGIN {
         str.replace(start_pos, from.length(), to);
         return true;
     }
+
+#ifdef _WINRT
+
+    Platform::String ^to_platform_string(const std::string& s);
+
+    std::string from_platform_string(Platform::String ^ ps);
+
+#endif
 
 } ARIASDK_NS_END
 

@@ -132,8 +132,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ISemanticContext.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogSessionData.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Variant.hpp" />

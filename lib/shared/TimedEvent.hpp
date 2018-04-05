@@ -8,7 +8,7 @@
 
 namespace Microsoft {
 	namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 public ref class TimedEvent sealed

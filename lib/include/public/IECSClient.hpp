@@ -354,4 +354,7 @@ namespace Microsoft {
     }
 } // namespaces
 
+// TODO: [MG] - consider refactoring this to EXP
+namespace MAEE = Microsoft::Applications::Experimentation::ECS;
+
 #endif

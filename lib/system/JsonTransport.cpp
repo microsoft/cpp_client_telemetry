@@ -1,3 +1,4 @@
+#if 0
 // Copyright (c) Microsoft. All rights reserved.
 
 /**
@@ -266,3 +267,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 } ARIASDK_NS_END
+#endif

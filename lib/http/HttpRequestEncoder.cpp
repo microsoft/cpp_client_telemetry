@@ -11,6 +11,8 @@
 #include "bond/generated/AriaProtocol_writers.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
 
+#include "Config.hpp"
+
 namespace ARIASDK_NS_BEGIN {
 
 
@@ -78,7 +80,7 @@ namespace ARIASDK_NS_BEGIN {
             if (map.end() != map.find(TicketType::TicketType_MSA_User))
             {
                 ticketHeader.append("\"");
-                ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_MSA_User));
+                ticketHeader.append(TICKETS_PREPEND_STRING + std::to_string(TicketType::TicketType_MSA_User));
                 ticketHeader.append("\"=\"");
                 ticketHeader.append("p:");
                 ticketHeader.append(map[TicketType::TicketType_MSA_User]);
@@ -91,7 +93,7 @@ namespace ARIASDK_NS_BEGIN {
                     ticketHeader.append(";");
                 }
                 ticketHeader.append("\"");
-                ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_XAuth_User));
+                ticketHeader.append(TICKETS_PREPEND_STRING + std::to_string(TicketType::TicketType_XAuth_User));
                 ticketHeader.append("\"=\"");
                 ticketHeader.append("x:XBL3.0 x=");
                 ticketHeader.append(map[TicketType::TicketType_XAuth_User]);
@@ -104,7 +106,7 @@ namespace ARIASDK_NS_BEGIN {
                     ticketHeader.append(";");
                 }
                 ticketHeader.append("\"");
-                ticketHeader.append(TICKETS_PREPAND_STRING + std::to_string(TicketType::TicketType_AAD_User));
+                ticketHeader.append(TICKETS_PREPEND_STRING + std::to_string(TicketType::TicketType_AAD_User));
                 ticketHeader.append("\"=\"");
                 ticketHeader.append("at:");
                 ticketHeader.append(map[TicketType::TicketType_AAD_User]);

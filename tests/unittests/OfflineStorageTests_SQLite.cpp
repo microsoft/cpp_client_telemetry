@@ -17,7 +17,7 @@ char const* const TEST_STORAGE_FILENAME = "OfflineStorageTests_SQLite.db";
 class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
 {
   public:
-    OfflineStorage_SQLiteNoAutoCommit(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
+    OfflineStorage_SQLiteNoAutoCommit(ILogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
       : OfflineStorage_SQLite(configuration, runtimeConfig)
     {
     }
@@ -32,7 +32,7 @@ struct OfflineStorageTests_SQLite : public Test
 {
     StrictMock<MockIRuntimeConfig>                     configMock;
     StrictMock<MockIOfflineStorageObserver>            observerMock;
-    LogConfiguration                                   configuration;
+    ILogConfiguration                                   configuration;
     std::unique_ptr<OfflineStorage_SQLiteNoAutoCommit> offlineStorage;
 
     virtual void SetUp() override

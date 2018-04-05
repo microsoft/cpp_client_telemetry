@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "pal/PAL.hpp"
 
 #pragma once
 #include "utils/Utils.hpp"

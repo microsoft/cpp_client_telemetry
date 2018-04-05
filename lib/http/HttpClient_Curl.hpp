@@ -128,7 +128,7 @@ public:
         // Specify target URL
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
 
-        // TODO: expose SSL cert verification opts via LogConfiguration
+        // TODO: expose SSL cert verification opts via ILogConfiguration
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);      // 1L
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
 

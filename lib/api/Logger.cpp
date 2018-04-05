@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Logger.hpp"
-#include "LogManager.hpp"
 #include "LogSessionData.hpp"
 #include "LogManagerImpl.hpp"
 #include "utils/Utils.hpp"
@@ -105,15 +104,16 @@ namespace ARIASDK_NS_BEGIN {
         EventLatency latency = EventLatency_Normal;
         ::AriaProtocol::Record record;
 
-#if 0 // FIXME: [MG] - ONESDK
-        if ((m_semanticApiDecorators && !m_semanticApiDecorators->decorateAppLifecycleMessage(record, state)) ||
-            !applyCommonDecorators(record, properties, latency))
+        // FIXME: [MG] - empty record!!!
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        decorated &= m_semanticApiDecorators.decorateAppLifecycleMessage(record, state);
+
+        if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
                 "AppLifecycle", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
-#endif
 
         submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
         DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);

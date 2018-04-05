@@ -20,7 +20,7 @@ using namespace Windows::UI::Xaml::Navigation;
 
 // Use Aria SDK header and namespace
 #include <LogManager.hpp>
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 
 #include <algorithm>
 #include <functional>

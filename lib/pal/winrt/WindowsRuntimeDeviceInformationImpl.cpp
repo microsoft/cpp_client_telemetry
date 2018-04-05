@@ -106,6 +106,11 @@ namespace PAL_NS_BEGIN {
 #endif
                 }
 
+                std::string DeviceInformationImpl::GetDeviceTicket()
+                {
+                    return m_deviceTicket;
+                }
+
                 DeviceInformationImpl::~DeviceInformationImpl()
                 {
                      ::Windows::System::Power::PowerManager::BatteryStatusChanged -= token1;

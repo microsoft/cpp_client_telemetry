@@ -3,6 +3,7 @@
 #include "LogManager.hpp"
 #include "PlatformHelpers.h"
 #include "SchemaStub.hpp"
+#include <LogManager.hpp>
 
 namespace Microsoft {
     namespace Applications {

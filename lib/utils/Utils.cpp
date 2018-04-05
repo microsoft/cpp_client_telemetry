@@ -3,6 +3,7 @@
 
 #include "Utils.hpp"
 
+#include <Config.hpp>
 
 #include <algorithm>
 #include <string>
@@ -19,14 +20,18 @@
 #include <fstream>
 #include <streambuf>
 
+#include <thread>
+
 namespace ARIASDK_NS_BEGIN {
-
     ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK", "Aria telemetry client");
-
 } ARIASDK_NS_END
 
-
 namespace ARIASDK_NS_BEGIN {
+
+    void sleep(unsigned delayMs)
+    {
+        std::this_thread::sleep_for(ms(delayMs));
+    }
 
     void print_backtrace(void)
     {
@@ -261,5 +266,19 @@ namespace ARIASDK_NS_BEGIN {
         std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
         return str;
     }
+
+#ifdef _WINRT
+    Platform::String ^to_platform_string(const std::string& s)
+    {
+        std::wstring wcontent(s.begin(), s.end());
+        return ref new Platform::String(wcontent.data());
+    }
+
+    std::string from_platform_string(Platform::String ^ ps)
+    {
+        std::wstring wcontent(ps->Data());
+        return std::string(wcontent.begin(), wcontent.end());
+    }
+#endif
 
 } ARIASDK_NS_END

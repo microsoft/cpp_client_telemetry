@@ -1,3 +1,4 @@
+#include "pal/PAL.hpp"
 
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "EventProperty.hpp"

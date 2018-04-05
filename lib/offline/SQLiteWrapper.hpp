@@ -476,7 +476,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class SqliteStatement {
     public:
-        SqliteStatement(SqliteDB& db, int stmtId)
+        SqliteStatement(SqliteDB& db, size_t stmtId)
             : m_db(db),
             m_stmtId(stmtId),
             m_stmt((stmtId >= 0) ? db.statement(stmtId) : nullptr),
@@ -743,7 +743,7 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         SqliteDB      & m_db;
-        int           m_stmtId;
+        size_t        m_stmtId;
         sqlite3_stmt* m_stmt;
         unsigned      m_changes;
         unsigned      m_duration;

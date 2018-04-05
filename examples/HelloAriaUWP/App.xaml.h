@@ -18,7 +18,6 @@ namespace UAPCPP
 		virtual void OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEventArgs^ e) override;
 
 	internal:
-        // void InitAria();
         void SendTelemetry();
         App();
 

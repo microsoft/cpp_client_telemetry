@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "pal/PAL.hpp"
 
 #include "ContextFieldsProvider.hpp"
 #include "LogSessionData.hpp"

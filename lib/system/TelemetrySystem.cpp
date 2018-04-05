@@ -49,6 +49,7 @@ namespace ARIASDK_NS_BEGIN {
         // On the inner worker thread
         this->preparedIncomingEvent >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
 
+        // FIXME: [MG] - reenable stats!!!
 #if 0
         stats.eventGenerated >> bondSerializer.serialize >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
 #endif
