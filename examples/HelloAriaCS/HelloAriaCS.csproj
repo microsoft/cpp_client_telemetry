@@ -45,7 +45,7 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <OutputPath>.\</OutputPath>
+    <OutputPath>..\..\Solutions\out\Debug\x86\HelloAriaCS\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <DefineConstants>TRACE</DefineConstants>

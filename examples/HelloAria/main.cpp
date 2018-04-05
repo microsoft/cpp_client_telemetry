@@ -26,36 +26,64 @@ LOGMANAGER_INSTANCE
 void Api_v1_CompatChecks()
 {
     ILogger *logger = LogManager::GetLogger();
-    EventProperties props("name");
-    logger->GetSemanticContext();
+    auto context = logger->GetSemanticContext();
+    context->SetAppVersion("1.2.3");
+    logger->SetContext("CommonContextVar", 12345);
 
-    AggregatedMetricData amd("name", 0, 0);
-    logger->LogAggregatedMetric(amd, props);
+    {
+        EventProperties props("AggregatedMetric1");
+        AggregatedMetricData amd("AggregatedMetric", 0, 0);
+        logger->LogAggregatedMetric(amd, props);
+    }
 
-    AppLifecycleState state = AppLifecycleState_Unknown;
-    logger->LogAppLifecycle(state, props);
+    {
+        EventProperties props("AppLifecycle1");
+        AppLifecycleState state = AppLifecycleState_Unknown;
+        logger->LogAppLifecycle(state, props);
+    }
 
-    logger->LogEvent(props);
-    logger->LogEvent("name");
+    {
+        EventProperties props("LogEvent1");
+        logger->LogEvent(props);
+    }
 
-    logger->LogFailure("signature", "detail", props);
+    {
+        EventProperties props("LogFailure1");
+        logger->LogFailure("signature", "detail", props);
+    }
 
-    PageActionData pad("name", ActionType_Unknown);
-    logger->LogPageAction(pad, props);
+    {
+        EventProperties props("PageAction1");
+        PageActionData pad("PageAction", ActionType_Unknown);
+        logger->LogPageAction(pad, props);
+    }
 
-    logger->LogPageView("id", "pageName", props);
+    {
+        EventProperties props("PageView1");
+        logger->LogPageView("id", "pageName", props);
+    }
 
-    logger->LogSampledMetric("name", 0.1, "units", props);
+    {
+        EventProperties props("SampledMetric1");
+        logger->LogSampledMetric("name", 0.1, "units", props);
+    }
 
-    SessionState sess(Session_Started);
-    logger->LogSession(sess, props);
+    {
+        EventProperties props("LogSession1");
+        SessionState sess(Session_Started);
+        logger->LogSession(sess, props);
+    }
 
-    logger->LogTrace(TraceLevel_Error, "message", props);
+    {
+        EventProperties props("LogTrace1");
+        logger->LogTrace(TraceLevel_Error, "message", props);
+    }
 
-    logger->LogUserState(UserState_Unknown, 1L, props);
+    {
+        EventProperties props("LogUserState1");
+        logger->LogUserState(UserState_Unknown, 1L, props);
+    }
 
-    // TODO: add more checks for various context types
-    logger->SetContext("var", 12345);
 }
 
 void samplingTest()
@@ -180,6 +208,7 @@ int main()
 
     printf("LogManager::Initialize\n");
     ILogger *logger = LogManager::Initialize(TOKEN);
+    Api_v1_CompatChecks();
 
     printf("LogManager::GetSemanticContext\n");
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
