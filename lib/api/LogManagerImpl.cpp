@@ -192,6 +192,8 @@ namespace ARIASDK_NS_BEGIN {
     LogManagerImpl::~LogManagerImpl()
     {
         FlushAndTeardown();
+        LOCKGUARD(ILogManagerInternal::managers_lock);
+        ILogManagerInternal::managers.erase(this);
     }
 
     void LogManagerImpl::FlushAndTeardown()
@@ -453,30 +455,16 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (m_system)
         {
-/*
-            event->source->ver = "3.0";
-
-            AriaProtocol::Os os;
-            os.name = "Windows";
-            os.ver = "Version 10";
-            event->source->extOs.clear();
-            event->source->extOs.push_back(os);
-
-            AriaProtocol::Device device;
-            device.localId = "i:209241DA-3961-4776-B410-FB7B2E8CFD00";
-            event->source->extDevice.clear();
-            event->source->extDevice.push_back(device);
- */
-            event->source->ver = "3.0";
-            event->source->extProtocol[0].devMake = "Hewlett-Packard";
-            event->source->extProtocol[0].devModel = "HP Z230 Tower Workstation";
-            event->source->extDevice[0].localId = "m:{c976a4cf-be88-493b-a834-00d0e49689d6}";
-            event->source->extOs[0].name = "Windows Desktop";
-            event->source->extOs[0].ver = "10.0.16299.15.x86fre.rs3_release.170928-1534";
-            event->source->extApp[0].id = "HelloAria";
-            event->source->extNet[0].cost = "Unmetered";
-            event->source->extNet[0].type = "Unknown";
-            event->source->extSdk[0].installId = "A30E6B04-7073-4FE1-AEE1-716E48494D17";
+            // event->source->ver = "3.0";
+            // event->source->extProtocol[0].devMake = "Hewlett-Packard";
+            // event->source->extProtocol[0].devModel = "HP Z230 Tower Workstation";
+            // event->source->extDevice[0].localId = "m:{c976a4cf-be88-493b-a834-00d0e49689d6}";
+            // event->source->extOs[0].name = "Windows Desktop";
+            // event->source->extOs[0].ver = "10.0.16299.15.x86fre.rs3_release.170928-1534";
+            // event->source->extApp[0].id = "HelloAria";
+            // event->source->extNet[0].cost = "Unmetered";
+            // event->source->extNet[0].type = "Unknown";
+            // event->source->extSdk[0].installId = "A30E6B04-7073-4FE1-AEE1-716E48494D17";
 
             m_system->sendEvent(event);
         }

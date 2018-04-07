@@ -5,6 +5,9 @@
 #include <assert.h>
 #include <vector>
 
+//
+// XXX: [MG] - This is pneumonoultramicroscopicsilicovolcanoconiosis..
+//
 namespace ARIASDK_NS_BEGIN {
 
     //! Interface for generic route sink (incoming data handler)

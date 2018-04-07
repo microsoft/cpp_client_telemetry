@@ -121,16 +121,17 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         LOCKGUARD(m_lock);
-        DbTransaction transaction(m_db.get());
-        if (!transaction.locked)
         {
-            LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-            // FIXME: [MG] - add callback to notify that store failed
-            return false;
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                // FIXME: [MG] - add callback to notify that store failed
+                return false;
+            }
+            LOG_TRACE("Storing event %s:%s to offline storage", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
         }
-
-        LOG_TRACE("Storing event %s:%s to offline storage", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-        SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
 
         return true;
 
@@ -158,111 +159,112 @@ namespace ARIASDK_NS_BEGIN {
 
         /* ============================================================================================================= */
         LOCKGUARD(m_lock);
-        DbTransaction transaction(m_db.get());
-        if (!transaction.locked)
         {
-            LOG_ERROR("Failed to lock");
-            return false;
-        }
-
-        SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
-
-        // FIXME: [MG] - add error checking here
-        if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
-            LOG_ERROR("Failed to release expired reserved events: Database error occurred");
-        else {
-            if (releaseStmt.changes() > 0) {
-                LOG_TRACE("Released %u expired reserved events", static_cast<unsigned>(releaseStmt.changes()));
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to lock");
+                return false;
             }
-        }
 
-        if (m_config.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
-        {
-            LOG_INFO("Not sending - waiting for clock-skew...");
-            return false;
-        }
+            SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
 
-        SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
-        if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
-            LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
-            recreate(204);
-            return false;
-        }
-
-        std::vector<StorageRecordId> consumedIds;
-        std::vector<StorageRecordId> killedConsumedIds;
-        std::map<std::string, size_t> deletedData;
-
-        StorageRecord record;
-        int latency;
-        // FIXME: [MG] - memory corruption here...
-        while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
-        {
-            if (latency < EventLatency_Off || latency > EventLatency_Max) {
-                record.latency = EventLatency_Normal;
-            }
+            // FIXME: [MG] - add error checking here
+            if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
+                LOG_ERROR("Failed to release expired reserved events: Database error occurred");
             else {
-                record.latency = static_cast<EventLatency>(latency);
-            }
-            // The record ID needs to be saved before std::move() below.
-            if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
-            {
-                consumedIds.push_back(record.id);
-                if (!consumer(std::move(record)))
-                {
-                    consumedIds.pop_back();
-                    break;
+                if (releaseStmt.changes() > 0) {
+                    LOG_TRACE("Released %u expired reserved events", static_cast<unsigned>(releaseStmt.changes()));
                 }
             }
-            else
+
+            if (m_config.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
             {
-                if (!m_killSwitchManager.isRetryAfterActive())
+                LOG_INFO("Not sending - waiting for clock-skew...");
+                return false;
+            }
+
+            SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
+            if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
+                LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
+                recreate(204);
+                return false;
+            }
+
+            std::vector<StorageRecordId> consumedIds;
+            std::vector<StorageRecordId> killedConsumedIds;
+            std::map<std::string, size_t> deletedData;
+
+            StorageRecord record;
+            int latency;
+            // FIXME: [MG] - memory corruption here...
+            while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
+            {
+                if (latency < EventLatency_Off || latency > EventLatency_Max) {
+                    record.latency = EventLatency_Normal;
+                }
+                else {
+                    record.latency = static_cast<EventLatency>(latency);
+                }
+                // The record ID needs to be saved before std::move() below.
+                if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
                 {
-                    killedConsumedIds.push_back(record.id);
-                    deletedData[record.tenantToken]++;
+                    consumedIds.push_back(record.id);
+                    if (!consumer(std::move(record)))
+                    {
+                        consumedIds.pop_back();
+                        break;
+                    }
+                }
+                else
+                {
+                    if (!m_killSwitchManager.isRetryAfterActive())
+                    {
+                        killedConsumedIds.push_back(record.id);
+                        deletedData[record.tenantToken]++;
+                    }
                 }
             }
+
+            selectStmt.reset();
+
+            if (selectStmt.error()) {
+                LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
+                recreate(205);
+                return false;
+            }
+
+            if (consumedIds.empty()) {
+                return false;
+            }
+
+            LOG_TRACE("Reserving %u event(s) {%s%s} for %u milliseconds",
+                static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
+
+            std::vector<uint8_t> idList = packageIdList(consumedIds);
+            if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
+                LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
+                recreate(207);
+                return false;
+            }
+
+            if (m_config.IsClockSkewEnabled() &&
+                !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
+                !consumedIds.empty())
+            {
+                m_clockSkewManager.GetDelta();
+            }
+
+            m_lastReadCount = static_cast<unsigned>(consumedIds.size());
+
+            if (killedConsumedIds.size() > 0)
+            {
+                HttpHeaders temp;
+                bool fromMemory = false;
+                DeleteRecords(killedConsumedIds, temp, fromMemory);
+                m_observer->OnStorageRecordsRejected(deletedData);
+            }
         }
-
-        selectStmt.reset();
-
-        if (selectStmt.error()) {
-            LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
-            recreate(205);
-            return false;
-        }
-
-        if (consumedIds.empty()) {
-            return false;
-        }
-
-        LOG_TRACE("Reserving %u event(s) {%s%s} for %u milliseconds",
-            static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
-
-        std::vector<uint8_t> idList = packageIdList(consumedIds);
-        if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
-            LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
-            recreate(207);
-            return false;
-        }
-
-        if (m_config.IsClockSkewEnabled() &&
-            !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
-            !consumedIds.empty())
-        {
-            m_clockSkewManager.GetDelta();
-        }
-
-        m_lastReadCount = static_cast<unsigned>(consumedIds.size());
-
-        if (killedConsumedIds.size() > 0)
-        {
-            HttpHeaders temp;
-            bool fromMemory = false;
-            DeleteRecords(killedConsumedIds, temp, fromMemory);
-            m_observer->OnStorageRecordsRejected(deletedData);
-        }
-
         return true;
     }
 
@@ -333,23 +335,24 @@ namespace ARIASDK_NS_BEGIN {
 
         /* ============================================================================================================= */
         LOCKGUARD(m_lock);
-        DbTransaction transaction(m_db.get());
-        if (!transaction.locked)
         {
-            LOG_ERROR("Failed to DeleteRecords");
-            return;
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to DeleteRecords");
+                return;
+            }
+
+            LOG_TRACE("Deleting %u sent event(s) {%s%s}...", static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
+
+            std::vector<uint8_t> idList = packageIdList(ids);
+            if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
+                LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
+                    static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
+                recreate(302);
+                return;
+            }
         }
-
-        LOG_TRACE("Deleting %u sent event(s) {%s%s}...", static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
-
-        std::vector<uint8_t> idList = packageIdList(ids);
-        if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
-            LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
-                static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
-            recreate(302);
-            return;
-        }
-
     }
 
     void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
@@ -777,8 +780,10 @@ namespace ARIASDK_NS_BEGIN {
     }
 #endif
 
+    // TODO: [MG] - for on-disk database this has to be replaced by filesize check
     unsigned OfflineStorage_SQLite::GetSize()
     {
+        LOCKGUARD(m_lock);
         unsigned pageCount;
         SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
         while (!pageCountStmt.select())
@@ -786,12 +791,6 @@ namespace ARIASDK_NS_BEGIN {
             PAL::sleep(100);
     }
         pageCountStmt.getRow(pageCount);
-#if 0
-        if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
-            LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-            return 0;
-        }
-#endif
         pageCountStmt.reset();
         return pageCount * m_pageSize;
 }
@@ -805,99 +804,100 @@ namespace ARIASDK_NS_BEGIN {
         m_currentlyAddedBytes = 0;
 
         LOCKGUARD(m_lock);
-        DbTransaction transaction(m_db.get());
-        if (!transaction.locked)
         {
-            LOG_WARN("Failed to trim database");
-            return false;
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_WARN("Failed to trim database");
+                return false;
+            }
+
+            unsigned pageCount;
+            SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
+            if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
+                LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
+                return false;
+            }
+            pageCountStmt.reset();
+
+            unsigned previousDbSize = pageCount * m_pageSize;
+
+            //check if Application needs to be notified
+            if (previousDbSize > m_DbSizeNotificationLimit && !m_isStorageFullNotificationSend)
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_STORAGE_FULL;
+                evt.param1 = 2;
+                m_logManager.DispatchEvent(evt);
+                m_isStorageFullNotificationSend = true;
+            }
+
+            unsigned maxSize = m_config.GetOfflineStorageMaximumSizeBytes();
+            if (previousDbSize <= maxSize) {
+                LOG_TRACE("Database size (%u bytes) is below the maximum allowed size (%u bytes), no trimming necessary",
+                    previousDbSize, maxSize);
+                return true;
+            }
+
+            m_isStorageFullNotificationSend = false; // to be notified again
+            unsigned pct = m_config.GetOfflineStorageResizeThresholdPct();
+            LOG_ERROR("Database size (%u bytes) exceeds the maximum allowed size (%u bytes), trimming %u%% off...",
+                previousDbSize, maxSize, pct);
+
+            SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtPerTenantTrimCount);
+            if (!getRowstobedeleteStmt.select(pct)) {
+                LOG_ERROR("Failed to get infor on events to be deleted to reduce size: Database error has occurred, recreating database");
+                return false;
+            }
+
+            std::map<std::string, size_t> deletedData;
+            std::string tenantToken;
+            while (getRowstobedeleteStmt.getRow(tenantToken))
+            {
+                deletedData[tenantToken]++;
+            }
+
+            getRowstobedeleteStmt.reset();
+
+            SqliteStatement deleteStmt(*m_db, m_stmtTrimEvents_percent);
+            if (!deleteStmt.execute(pct)) {
+                LOG_ERROR("Failed to delete events to reduce size: Database error has occurred, recreating database");
+                return false;
+            }
+
+            unsigned droppedCount = deleteStmt.changes();
+            LOG_ERROR("Deleted %u event(s) in %u ms",
+                droppedCount, deleteStmt.duration());
+            m_observer->OnStorageTrimmed(deletedData);
+
+            SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
+            if (!trimStmt.select()) {
+                LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
+                return false;
+            }
+            while (trimStmt.getRow()) {
+            }
+            if (trimStmt.error()) {
+                LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
+                return false;
+            }
+
+            unsigned pageCount2;
+            if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount2)) {
+                LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
+                return false;
+            }
+
+            unsigned newDbSize = pageCount2 * m_pageSize;
+            LOG_TRACE("Trimmed %d bytes in %u ms",
+                previousDbSize - newDbSize, trimStmt.duration());
+
+            if (newDbSize > maxSize) {
+                LOG_ERROR("Failed to trim database: previous size %u, after trimming %u, still more than limit %u bytes, recreating database",
+                    previousDbSize, newDbSize, maxSize);
+                return false;
+            }
         }
-
-        unsigned pageCount;
-        SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
-        if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
-            LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-            return false;
-        }
-        pageCountStmt.reset();
-
-        unsigned previousDbSize = pageCount * m_pageSize;
-
-        //check if Application needs to be notified
-        if (previousDbSize > m_DbSizeNotificationLimit && !m_isStorageFullNotificationSend)
-        {
-            DebugEvent evt;
-            evt.type = DebugEventType::EVT_STORAGE_FULL;
-            evt.param1 = 2;
-            m_logManager.DispatchEvent(evt);
-            m_isStorageFullNotificationSend = true;
-        }
-
-        unsigned maxSize = m_config.GetOfflineStorageMaximumSizeBytes();
-        if (previousDbSize <= maxSize) {
-            LOG_TRACE("Database size (%u bytes) is below the maximum allowed size (%u bytes), no trimming necessary",
-                previousDbSize, maxSize);
-            return true;
-        }
-
-        m_isStorageFullNotificationSend = false; // to be notified again
-        unsigned pct = m_config.GetOfflineStorageResizeThresholdPct();
-        LOG_ERROR("Database size (%u bytes) exceeds the maximum allowed size (%u bytes), trimming %u%% off...",
-            previousDbSize, maxSize, pct);
-
-        SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtPerTenantTrimCount);
-        if (!getRowstobedeleteStmt.select(pct)) {
-            LOG_ERROR("Failed to get infor on events to be deleted to reduce size: Database error has occurred, recreating database");
-            return false;
-        }
-
-        std::map<std::string, size_t> deletedData;
-        std::string tenantToken;
-        while (getRowstobedeleteStmt.getRow(tenantToken))
-        {
-            deletedData[tenantToken]++;
-        }
-
-        getRowstobedeleteStmt.reset();
-
-        SqliteStatement deleteStmt(*m_db, m_stmtTrimEvents_percent);
-        if (!deleteStmt.execute(pct)) {
-            LOG_ERROR("Failed to delete events to reduce size: Database error has occurred, recreating database");
-            return false;
-        }
-
-        unsigned droppedCount = deleteStmt.changes();
-        LOG_ERROR("Deleted %u event(s) in %u ms",
-            droppedCount, deleteStmt.duration());
-        m_observer->OnStorageTrimmed(deletedData);
-
-        SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
-        if (!trimStmt.select()) {
-            LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-            return false;
-        }
-        while (trimStmt.getRow()) {
-        }
-        if (trimStmt.error()) {
-            LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-            return false;
-        }
-
-        unsigned pageCount2;
-        if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount2)) {
-            LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-            return false;
-        }
-
-        unsigned newDbSize = pageCount2 * m_pageSize;
-        LOG_TRACE("Trimmed %d bytes in %u ms",
-            previousDbSize - newDbSize, trimStmt.duration());
-
-        if (newDbSize > maxSize) {
-            LOG_ERROR("Failed to trim database: previous size %u, after trimming %u, still more than limit %u bytes, recreating database",
-                previousDbSize, newDbSize, maxSize);
-            return false;
-        }
-
         return true;
     }
 

@@ -10,6 +10,14 @@ namespace ARIASDK_NS_BEGIN {
 #define BASE        PAL::RefCountedImpl<TelemetrySystemBase>::self()
 #define SELF        PAL::RefCountedImpl<TelemetrySystem>::self()
 
+/// <summary>
+/// Initializes a new instance of the <see cref="TelemetrySystem"/> class.
+/// </summary>
+/// <param name="logManager">The log manager.</param>
+/// <param name="runtimeConfig">The runtime configuration.</param>
+/// <param name="offlineStorage">The offline storage.</param>
+/// <param name="httpClient">The HTTP client.</param>
+/// <param name="bandwidthController">The bandwidth controller.</param>
     TelemetrySystem::TelemetrySystem(
         ILogManager& logManager,
         IRuntimeConfig& runtimeConfig,
@@ -26,22 +34,66 @@ namespace ARIASDK_NS_BEGIN {
         packager(runtimeConfig),
         tpm(*this, bandwidthController)
     {
-        //
-        // Management
-        //
-        this->started >> storage.start >> tpm.start >> stats.onStart;
+        
+        // Handler for start
+        onStart = [this](void)
+        {
+            bool result = true;
+            result&=storage.start();
+            result&=tpm.start();
+            result&=stats.onStart();
+            return result;
+        };
 
-        this->stopped >> tpm.stop >> hcm.cancelAllRequestsAsync >> tpm.finishAllUploads;
+        // Handler for stop
+        onStop = [this](void)
+        {
+            uint32_t timeoutInSec = m_config.GetTeardownTime();
+            if (timeoutInSec > 0)
+            {
+                LOG_TRACE("Shutdown timer started...");
+                std::uint64_t startTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+                upload();
+                while (tpm.isUploadInProgress())
+                {
+                    std::uint64_t nowTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
+                    if ((nowTime - startTime) > timeoutInSec)
+                    {
+                        // Hard-stop if it takes longer than planned
+                        LOG_TRACE("Shutdown timer expired, exiting...");
+                        break;
+                    }
+                    MAT::sleep(100);
+                }
+            }
+            bool result = true;
+            result &= tpm.stop();
+            result &= hcm.cancelAllRequestsAsync();
+            tpm.finishAllUploads(); // FIXME
+
+            LOG_TRACE("Waiting for all queued callbacks...");
+            m_done.wait();
+            LOG_TRACE("Stopped.");
+
+            return result;
+        };
+
+        // Handler for pause
+        onPause = [this](void)
+        {
+            bool result = true;
+            result &= tpm.pause();
+            result &= hcm.cancelAllRequestsAsync();
+            return result;
+        };
+
+        // Handler for resume
+        onResume = [this](void)
+        {
+            return tpm.start();
+        };
+
         tpm.allUploadsFinished >> stats.onStop >> storage.stop >> this->flushWorkerThread;
-
-        this->paused >> tpm.pause >> hcm.cancelAllRequestsAsync;
-
-        this->resumed >> tpm.start;
-
-
-        //
-        // Incoming events
-        //
 
         // On an arbitrary user thread
         this->sending >> bondSerializer.serialize >> this->incomingEventPrepared;
@@ -55,11 +107,6 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
         storage.storeRecordFailed >> stats.onIncomingEventFailed;
-
-
-        //
-        // Uploading
-        //
 
         tpm.initiateUpload >> storage.retrieveEvents;
 
@@ -98,64 +145,9 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
-    /// <summary>
-    /// Starts this instance.
-    /// </summary>
-    void TelemetrySystem::start()
-    {
-        startAsync();
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::startAsync);
-    }
-
-    void TelemetrySystem::stop()
-    {
-        uint32_t timeoutInSec = m_config.GetTeardownTime();
-        if (timeoutInSec > 0)
-        {
-            std::uint64_t shutdownStartSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
-            std::uint64_t nowSec = 0;
-            upload();
-            MAT::sleep(1000);
-            timeoutInSec = timeoutInSec - 1;
-            bool isuploadinProgress = true;
-            LOG_TRACE("Shutdown timer started.");
-            // Repeat this loop while we still have events to send OR while there are requests still pending
-            while (isuploadinProgress)
-            {
-                //isuploadinProgress = tpm.isUploadInProgress();
-                nowSec = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
-                if ((nowSec - shutdownStartSec) >= timeoutInSec)
-                { // Hard-stop if it takes longer than planned
-                    LOG_TRACE("Shutdown timer expired, exiting...");
-                    break;
-                }
-                //upload();
-                MAT::sleep(25);  // Sleep in 25 ms increments
-                isuploadinProgress = tpm.isUploadInProgress();
-            }
-        }
-
-        stopAsync();
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::stopAsync);
-        LOG_TRACE("Waiting for all queued callbacks...");
-        m_done.wait();
-    }
-
     void TelemetrySystem::upload()
     {
         tpm.scheduleUpload(0, EventLatency_Normal, true);
-    }
-
-    void TelemetrySystem::pause()
-    {
-        pauseAsync();
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::pauseTransmissionAsync);
-    }
-
-    void TelemetrySystem::resume()
-    {
-        resumeAsync();
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::resumeTransmissionAsync);
     }
 
     void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)

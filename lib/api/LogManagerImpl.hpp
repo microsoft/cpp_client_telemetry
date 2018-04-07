@@ -33,9 +33,12 @@ namespace ARIASDK_NS_BEGIN {
     class ILogManagerInternal : public ILogManager {
 
     public:
-        static std::mutex               managers_lock;
+
+        static std::recursive_mutex     managers_lock;
         static std::set<ILogManager*>   managers;
+
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
+
     };
 
     class LogManagerImpl : public ILogManagerInternal {

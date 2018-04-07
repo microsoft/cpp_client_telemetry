@@ -4,8 +4,13 @@
 
 #include "system/ITelemetrySystem.hpp"
 #include "stats/Statistics.hpp"
+#include <functional>
 
 namespace ARIASDK_NS_BEGIN {
+
+    // typedef std::function<bool(void)>                       StateHandler;
+
+    typedef std::function<IncomingEventContextPtr const&>   EventHandler;
 
     /// <summary>
     /// Partial class that implements a foundation of TelemetrySystem
@@ -15,56 +20,93 @@ namespace ARIASDK_NS_BEGIN {
     {
 
     public:
-
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TelemetrySystemBase"/> class.
+        /// </summary>
+        /// <param name="logManager">The log manager.</param>
+        /// <param name="runtimeConfig">The runtime configuration.</param>
         TelemetrySystemBase(ILogManager & logManager, IRuntimeConfig& runtimeConfig) :
             m_logManager(logManager),
             m_config(runtimeConfig),
+            m_isStarted(false),
+            m_isPaused(false),
             stats(*this)
-        {};
-
-        virtual void start()  override {};
-
-        virtual void stop()   override {};
-
-        virtual void upload() override {};
-
-        virtual void pause()  override {};
-
-        virtual void resume() override {};
-
-        virtual void startAsync() override
         {
-            m_isPaused = false;
-            started();
-        }
-
-        virtual void stopAsync() override
+            onStart  = []() { return true; };
+            onStop   = []() { return true; };
+            onPause  = []() { return true; };
+            onResume = []() { return true; };
+        };
+        
+        /// <summary>
+        /// Starts this instance.
+        /// </summary>
+        virtual void start() override
         {
-            m_isPaused = true;
-            stopped();
-        }
-
-        void pauseAsync()
-        {
-            if (m_isPaused) {
-                return;
+            if (!m_isStarted.exchange(true))
+            {
+                onStart();
+                m_isPaused = false;
             }
-            m_isPaused = true;
-            paused();
-        }
-
-        void resumeAsync()
+        };
+        
+        /// <summary>
+        /// Stops this instance.
+        /// </summary>
+        virtual void stop() override
         {
-            if (!m_isPaused) {
-                return;
+            if (m_isStarted.exchange(false))
+            {
+                onStop();
             }
-            m_isPaused = false;
-            resumed();
-        }
+        
+        };
+        
+        /// <summary>
+        /// Uploads pending events.
+        /// </summary>
+        virtual void upload() override
+        {
+            // Subclass must implement
+        };
+        
+        /// <summary>
+        /// Pauses event upload.
+        /// </summary>
+        virtual void pause()  override
+        {
+            if (m_isStarted)
+            {
+                if (!m_isPaused.exchange(true))
+                {
+                    onPause();
+                }
+            }
+        };
+        
+        /// <summary>
+        /// Resumes event upload.
+        /// </summary>
+        virtual void resume() override
+        {
+            if (m_isStarted)
+            {
+                if (m_isPaused.exchange(false))
+                {
+                    onResume();
+                }
+            }
+        };
 
-        virtual void handleFlushWorkerThread() override {};
+        // TODO: [MG] - consider for removal
+        virtual void handleFlushWorkerThread() override
+        {
 
-        virtual void signalDone() override {
+        };
+
+        virtual void signalDone() override
+        {
             m_done.post();
         };
 
@@ -115,19 +157,22 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex              m_lock;
         IRuntimeConfig &        m_config;
         ILogManager &           m_logManager;
-        bool                    m_isInitialized;
-        bool                    m_isPaused;
+        std::atomic<bool>       m_isStarted;
+        std::atomic<bool>       m_isPaused;
         PAL::Event              m_done;
         BondSerializer          bondSerializer;
         Statistics              stats;
 
+        std::function<bool(void)>                                  onStart;
+        std::function<bool(void)>                                  onStop;
+        std::function<bool(void)>                                  onPause;
+        std::function<bool(void)>                                  onResume;
+
+    // TODO: [MG] - clean this up - get rid of RouteSource
     public:
-        RouteSource<>                                              started;
-        RouteSource<>                                              stopped;
-        RouteSource<>                                              paused;
-        RouteSource<>                                              resumed;
         RouteSource<IncomingEventContextPtr const&>                sending;
         RouteSource<IncomingEventContextPtr const&>                preparedIncomingEvent;
+
     };
 
 } ARIASDK_NS_END

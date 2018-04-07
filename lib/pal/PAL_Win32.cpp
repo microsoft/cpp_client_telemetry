@@ -244,7 +244,10 @@ namespace PAL_NS_BEGIN {
 
     protected:
         std::thread                            m_hThread;
-        std::mutex                             m_lock;
+
+        // TODO: [MG] - investigate all the cases why we need recursive here
+        std::recursive_mutex                   m_lock;
+
         std::list<detail::WorkerThreadItemPtr> m_queue;
         std::list<detail::WorkerThreadItemPtr> m_timerQueue;
         Event                                  m_event;
@@ -277,13 +280,14 @@ namespace PAL_NS_BEGIN {
             }
             catch (...) {};
             assert(m_queue.empty());
+            // FIXME: [MG] - sometimes we shutdown on non-empty queue?
             assert(m_timerQueue.empty());
         }
 
         void queue(detail::WorkerThreadItemPtr const& item)
         {
             LOG_INFO("queue item=%p, type=%u", item.get(), item.get()->type);
-            std::lock_guard<std::mutex> guard(m_lock);
+            LOCKGUARD(m_lock);
             if (item->type == detail::WorkerThreadItem::TimedCall) {
                 auto it = m_timerQueue.begin();
                 while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
@@ -315,8 +319,7 @@ namespace PAL_NS_BEGIN {
                 return;
             }
             {
-                std::lock_guard<std::mutex> guard(m_lock);
-
+                LOCKGUARD(m_lock);
                 if (item->type == detail::WorkerThreadItem::Done) {
                     // Already done
                     return;
@@ -334,7 +337,7 @@ namespace PAL_NS_BEGIN {
 
             for (;;) {
                 {
-                    std::lock_guard<std::mutex> guard(m_lock);
+                    LOCKGUARD(m_lock);
                     if (item->type == detail::WorkerThreadItem::Done) {
                         return;
                     }
@@ -353,7 +356,7 @@ namespace PAL_NS_BEGIN {
             for (;;) {
                 unsigned nextTimerInMs = UINT_MAX;
                 {
-                    std::lock_guard<std::mutex> guard(self->m_lock);
+                    LOCKGUARD(self->m_lock);
                     if (item) {
                         item->type = detail::WorkerThreadItem::Done;
                         item.reset();
@@ -549,9 +552,7 @@ namespace PAL_NS_BEGIN {
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
             g_NetworkInformation = NetworkInformationImpl::Create();
-
             LOG_INFO("Initialized");
-
         }
         else {
             LOG_ERROR("Already initialized: %d", g_palStarted.load());
@@ -563,9 +564,16 @@ namespace PAL_NS_BEGIN {
 
     void shutdown()
     {
+        if (g_palStarted == 0)
+        {
+            LOG_ERROR("PAL is already shutdown!");
+            return;
+        }
+
         if (g_palStarted.fetch_sub(1) == 1) {
             LOG_TRACE("Shutting down...");
             delete g_workerThread;
+            g_workerThread = nullptr;
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
             if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }

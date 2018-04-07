@@ -183,13 +183,15 @@ namespace ARIASDK_NS_BEGIN {
         // Management
         //
 
+        onStart = stats.onStart;
+        onStop  = stats.onStop;
+
+#if 0 /* XXX: [MG] - don't use RouteSink for that. It's an overkill */
         this->started >> stats.onStart;
-
         this->stopped >> stats.onStop;
-
         this->paused;
-
         this->resumed;
+#endif
 
         // Incoming events
 

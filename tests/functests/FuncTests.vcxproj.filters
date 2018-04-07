@@ -53,6 +53,9 @@
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\MockITelemetrySystem.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include=" ">

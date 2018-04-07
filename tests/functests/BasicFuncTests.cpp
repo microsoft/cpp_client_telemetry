@@ -44,6 +44,7 @@ public:
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
         server.addHandler("/503/", *this);
+        server.start();
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
@@ -54,11 +55,12 @@ public:
         logger = logManager->GetLogger("functests-Tenant-Token", "source");
         logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
-        server.start();
     }
 
     virtual void TearDown() override
     {
+        // FIXME: [MG]
+        PAL::sleep(1000);
         logManager->FlushAndTeardown();
         ::remove(TEST_STORAGE_FILENAME);
         server.stop();
@@ -358,23 +360,23 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     EventProperties event("first_event");
     event.SetProperty("property", "value");
-
-
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
-
-
     logger->LogEvent(event2);
 
-    waitForEvents(50, 3);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+    waitForEvents(5, 3); // 5 seconds
+    EXPECT_EQ(receivedRequests.size(), 3);
 
-    ASSERT_THAT(payload, SizeIs(3));
-    verifyEvent(event, payload[1]);
-    verifyEvent(event2, payload[2]);
+    if (receivedRequests.size() == 3)
+    {
+        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+        ASSERT_THAT(payload, SizeIs(3));
+        verifyEvent(event, payload[1]);
+        verifyEvent(event2, payload[2]);
+    }
 }
 
 TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)

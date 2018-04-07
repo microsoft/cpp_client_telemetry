@@ -179,8 +179,8 @@ int main()
     config["config"]["host"] = "HelloAria"; // host
 
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
-    config[CFG_INT_TRACE_LEVEL_MASK]  = 0xFFFFFFFF ^ 128;
-    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  0xFFFFFFFF ^ 128;
+    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */

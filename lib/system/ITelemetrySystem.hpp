@@ -42,12 +42,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
 
     protected:
-        virtual void startAsync() = 0;
-        virtual void stopAsync() = 0;
         virtual void handleFlushWorkerThread() = 0;
         virtual void signalDone() = 0;
-        virtual void pauseAsync() = 0;
-        virtual void resumeAsync() = 0;
         virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) = 0;
         virtual void preparedIncomingEventAsync(IncomingEventContextPtr const& event) = 0;
 

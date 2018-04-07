@@ -15,7 +15,10 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    std::mutex               ILogManagerInternal::managers_lock;
+    // This mutex has to be recursive because we allow both
+    // Destroy and destrutor to lock it. destructor could be
+    // called directly, and Destroy calls destructor.
+    std::recursive_mutex     ILogManagerInternal::managers_lock;
     std::set<ILogManager*>   ILogManagerInternal::managers;
 
     /// <summary>
