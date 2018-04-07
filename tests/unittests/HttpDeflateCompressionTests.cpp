@@ -2,20 +2,62 @@
 
 #include "common/Common.hpp"
 #include "compression/HttpDeflateCompression.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+
+#include "zlib.h"
+#undef compress
 
 using namespace testing;
 using namespace ARIASDK_NS;
 
+namespace testing {
+
+    void ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+    {
+        size_t destLen = out.size();
+        std::cout << "size=" << destLen << std::endl;
+        char *buffer = nullptr;
+        EXPECT_THAT(Expand((const char*)(in.data()), in.size(), &buffer, destLen, false), true);
+        out = std::vector<uint8_t>(buffer, buffer + destLen);
+        if (buffer)
+            delete[] buffer;
+
+    }
+
+    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+    {
+        z_stream zs;
+        memset(&zs, 0, sizeof(zs));
+        // [MG]: must call inflateInit2 with -9 because otherwise
+        // it'd be searching for non-existing gzip header...
+        EXPECT_EQ(inflateInit2(&zs, -9), Z_OK);
+        zs.next_in = (Bytef *)in.data();
+        zs.avail_in = (uInt)in.size();
+        int ret;
+        char outbuffer[32768] = { 0 };
+        do {
+            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
+            zs.avail_out = sizeof(outbuffer);
+            ret = inflate(&zs, Z_NO_FLUSH);
+            out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
+        } while (ret == Z_OK);
+        EXPECT_EQ(ret, Z_STREAM_END);
+        inflateEnd(&zs);
+    }
+
+}
 
 class HttpDeflateCompressionTests : public StrictMock<Test> {
   protected:
+    RuntimeConfig_Default                                                 config;
     HttpDeflateCompression                                                compression;
     RouteSource<EventsUploadContextPtr const&>                            input;
     RouteSink<HttpDeflateCompressionTests, EventsUploadContextPtr const&> succeeded{this, &HttpDeflateCompressionTests::resultSucceeded};
     RouteSink<HttpDeflateCompressionTests, EventsUploadContextPtr const&> failed{this, &HttpDeflateCompressionTests::resultFailed};
 
   protected:
-    HttpDeflateCompressionTests()
+    HttpDeflateCompressionTests() :
+        compression(config)
     {
         input                            >> compression.compress >> succeeded;
         compression.compressionFailed    >> failed;
@@ -25,37 +67,42 @@ class HttpDeflateCompressionTests : public StrictMock<Test> {
     MOCK_METHOD1(resultFailed,    void(EventsUploadContextPtr const &));
 };
 
+static std::vector<uint8_t> testPayload = { 1, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
 
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
+    config["http"]["compress"] = false;
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
-    event->body = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+    event->body = testPayload;
 
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);
     input(event);
 
-    EXPECT_THAT(event->body, Eq(std::vector<uint8_t>{1, 2, 3, 3, 3, 3, 3, 3, 3, 3}));
+    EXPECT_THAT(event->body, Eq(testPayload));
     EXPECT_THAT(event->compressed, false);
 }
 
 TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 {
+    config["http"]["compress"] = true;
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
-    event->body = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+    event->body = testPayload;
 
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);
     input(event);
 
-    // Note: This is generally wrong, different compression libraries can
-    // return different output. The following works for zlib 1.2.8.
-    EXPECT_THAT(event->body, Eq(std::vector<uint8_t>{0x63, 0x64, 0x62, 0x86, 0x02, 0x00}));
+    std::vector<uint8_t> inflated;
+    testing::InflateVector(event->body, inflated);
+
+    EXPECT_THAT(inflated, Eq(testPayload));
     EXPECT_THAT(event->compressed, true);
 }
 
 TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 {
+    config["http"]["compress"] = true;
     EventsUploadContextPtr event = EventsUploadContext::create();
     EXPECT_THAT(event->compressed, false);
     event->body = {};
@@ -67,20 +114,29 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     {
         EventsUploadContextPtr event2 = EventsUploadContext::create();
         EXPECT_THAT(event2->compressed, false);
-        event2->body = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
+        event2->body = testPayload;
         EXPECT_CALL(*this, resultSucceeded(event2)).Times(1);
         input(event2);
-        EXPECT_THAT(event2->body, Eq(std::vector<uint8_t>{0x63, 0x64, 0x62, 0x86, 0x02, 0x00}));
+
+        std::vector<uint8_t> inflated;
+        testing::InflateVector(event2->body, inflated);
+        EXPECT_THAT(inflated, Eq(testPayload));
         EXPECT_THAT(event2->compressed, true);
     }
 
-    EventsUploadContextPtr event3 = EventsUploadContext::create();
-    EXPECT_THAT(event3->compressed, false);
-    event3->body = {};
-    EXPECT_CALL(*this, resultSucceeded(event3)).Times(1);
-    input(event3);
-    EXPECT_THAT(event3->body, Eq(std::vector<uint8_t>{0x03, 0x00}));
-    EXPECT_THAT(event3->compressed, true);
+    {
+        std::vector<uint8_t> testPayload2 = {};
+        EventsUploadContextPtr event3 = EventsUploadContext::create();
+        EXPECT_THAT(event3->compressed, false);
+        event3->body = testPayload2;
+        EXPECT_CALL(*this, resultSucceeded(event3)).Times(1);
+        input(event3);
+
+        std::vector<uint8_t> inflated;
+        testing::InflateVector(event3->body, inflated);
+        EXPECT_THAT(inflated, Eq(testPayload2));
+        EXPECT_THAT(event3->compressed, true);
+    }
 }
 
 #pragma warning(push)

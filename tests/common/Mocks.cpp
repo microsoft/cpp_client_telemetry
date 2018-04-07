@@ -4,49 +4,58 @@
 #include "MockILogManagerInternal.hpp"
 #include "MockIOfflineStorage.hpp"
 #include "MockIOfflineStorageObserver.hpp"
+#include "MockIRuntimeConfig.hpp"
 #include "MockISemanticContext.hpp"
 #include "MockISqlite3Proxy.hpp"
+#include "MockITelemetrySystem.hpp"
 
 #ifdef ARIASDK_PAL_SKYPE
-    #include "MockIEcsClient.hpp"
+#include "MockIEcsClient.hpp"
 #endif
 
 namespace testing {
 
 
-// Constructors and destructors of mock classes are compiled separately
-// to speed up compilation. See GMock documentation for the rationale:
-// https://github.com/google/googlemock/blob/master/googlemock/docs/CookBook.md#making-the-compilation-faster
+    // Constructors and destructors of mock classes are compiled separately
+    // to speed up compilation. See GMock documentation for the rationale:
+    // https://github.com/google/googlemock/blob/master/googlemock/docs/CookBook.md#making-the-compilation-faster
 
 
-MockIHttpClient::MockIHttpClient() {}
-MockIHttpClient::~MockIHttpClient() {}
+    MockIHttpClient::MockIHttpClient() {}
+    MockIHttpClient::~MockIHttpClient() {}
 
-MockILogManagerInternal::MockILogManagerInternal() {}
-MockILogManagerInternal::~MockILogManagerInternal() {}
+    MockILogManagerInternal::MockILogManagerInternal() {}
+    MockILogManagerInternal::~MockILogManagerInternal() {}
 
-MockIOfflineStorageObserver::MockIOfflineStorageObserver() {}
-MockIOfflineStorageObserver::~MockIOfflineStorageObserver() {}
+    MockIOfflineStorageObserver::MockIOfflineStorageObserver() {}
+    MockIOfflineStorageObserver::~MockIOfflineStorageObserver() {}
 
-MockIOfflineStorage::MockIOfflineStorage() {}
-MockIOfflineStorage::~MockIOfflineStorage() {}
+    MockIOfflineStorage::MockIOfflineStorage() {}
+    MockIOfflineStorage::~MockIOfflineStorage() {}
 
-MockISemanticContext::MockISemanticContext() {}
-MockISemanticContext::~MockISemanticContext() {}
+    MockIRuntimeConfig::MockIRuntimeConfig() {}
+    MockIRuntimeConfig::~MockIRuntimeConfig() {}
 
-MockISqlite3Proxy::MockISqlite3Proxy() {}
-MockISqlite3Proxy::~MockISqlite3Proxy() {}
+    MockISemanticContext::MockISemanticContext() {}
+    MockISemanticContext::~MockISemanticContext() {}
 
+    MockISqlite3Proxy::MockISqlite3Proxy() {}
+    MockISqlite3Proxy::~MockISqlite3Proxy() {}
 
 #ifdef ARIASDK_PAL_SKYPE
 
-MockIEcsConfig::MockIEcsConfig() {}
-MockIEcsConfig::~MockIEcsConfig() {}
+    MockIEcsConfig::MockIEcsConfig() {}
+    MockIEcsConfig::~MockIEcsConfig() {}
 
-MockIEcsClient::MockIEcsClient() {}
-MockIEcsClient::~MockIEcsClient() {}
+    MockIEcsClient::MockIEcsClient() {}
+    MockIEcsClient::~MockIEcsClient() {}
 
 #endif
 
+    ITelemetrySystem& getSystem()
+    {
+        static testing::MockITelemetrySystem system;
+        return system;
+    }
 
 } // namespace testing

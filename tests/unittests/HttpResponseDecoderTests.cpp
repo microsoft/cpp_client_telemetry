@@ -3,13 +3,14 @@
 #include "common/Common.hpp"
 #include "common/MockIHttpClient.hpp"
 #include "http/HttpResponseDecoder.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;
 
-
 class HttpResponseDecoderTests : public StrictMock<Test> {
   protected:
+    RuntimeConfig_Default                                              config;
     HttpResponseDecoder                                                decoder;
     RouteSink<HttpResponseDecoderTests, EventsUploadContextPtr const&> eventsAccepted{this, &HttpResponseDecoderTests::resultEventsAccepted};
     RouteSink<HttpResponseDecoderTests, EventsUploadContextPtr const&> eventsRejected{this, &HttpResponseDecoderTests::resultEventsRejected};
@@ -18,7 +19,8 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
     RouteSink<HttpResponseDecoderTests, EventsUploadContextPtr const&> requestAborted{this, &HttpResponseDecoderTests::resultRequestAborted};
 
   protected:
-    HttpResponseDecoderTests()
+    HttpResponseDecoderTests() :
+        decoder(testing::getSystem())
     {
         decoder.eventsAccepted          >> eventsAccepted;
         decoder.eventsRejected          >> eventsRejected;

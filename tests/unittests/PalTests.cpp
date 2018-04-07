@@ -4,8 +4,6 @@
 #include "common/MockISemanticContext.hpp"
 
 using namespace testing;
-namespace PAL = ARIASDK_NS::PAL;
-
 
 class PalTests : public Test {};
 

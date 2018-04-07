@@ -5,7 +5,6 @@
 
 namespace testing {
 
-
 // Simple HTTP server
 // Goals:
 //   - Support enough of HTTP to be used as a mock

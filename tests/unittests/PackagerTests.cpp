@@ -14,7 +14,6 @@ using namespace ARIASDK_NS;
 
 class PackagerTests : public StrictMock<Test> {
   protected:
-    ILogConfiguration               logConfiguration;
     StrictMock<MockIRuntimeConfig> runtimeConfigMock;
     Packager                       packager;
 
@@ -23,7 +22,7 @@ class PackagerTests : public StrictMock<Test> {
 
   protected:
     PackagerTests()
-      : packager(logConfiguration, runtimeConfigMock)
+      : packager(runtimeConfigMock)
     {
         packager.emptyPackage   >> emptyPackage;
         packager.packagedEvents >> packagedEvents;
@@ -205,9 +204,8 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 
 TEST_F(PackagerTests, ForcedTenantIsForced)
 {
-    ILogConfiguration logConfigurationF;
-    logConfigurationF.SetProperty("forcedTenantToken", "forced-Tenant-Token");
-    Packager packagerF(logConfigurationF, runtimeConfigMock);
+    runtimeConfigMock["forcedTenantToken"] = "forced-Tenant-Token";
+    Packager packagerF(runtimeConfigMock);
     packagerF.packagedEvents >> packagedEvents;
 
     auto ctx = EventsUploadContext::create();

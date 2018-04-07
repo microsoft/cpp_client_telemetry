@@ -11,8 +11,8 @@ using namespace ARIASDK_NS;
 
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
   public:
-    TransmissionPolicyManager4Test(IRuntimeConfig& runtimeConfig, IBandwidthController* bandwidthController)
-      : TransmissionPolicyManager(runtimeConfig, bandwidthController)
+    TransmissionPolicyManager4Test(ITelemetrySystem& system, IBandwidthController* bandwidthController)
+      : TransmissionPolicyManager(system, bandwidthController)
     {
     }
 
@@ -40,7 +40,7 @@ class TransmissionPolicyManagerTests : public StrictMock<Test> {
 
   protected:
     TransmissionPolicyManagerTests()
-      : tpm(runtimeConfigMock, &bandwidthControllerMock)
+      : tpm(testing::getSystem(), &bandwidthControllerMock)
     {
         tpm.initiateUpload     >> initiateUpload;
         tpm.allUploadsFinished >> allUploadsFinished;

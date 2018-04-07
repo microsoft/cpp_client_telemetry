@@ -117,7 +117,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
       <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsWinRT>
@@ -194,7 +194,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>_ARIA_UTC_SDK;NO_ROAM_SUP;USE_TIMERSHIM2;USE_SQLITE;_WIN32_WINNT=0x0601;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\..\sysroot\$(QBConfigId)\include;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..;..\..\include;..\..\src;..\..\internal;..\..\common;..\..\src\SemanticApi\src\datamodel;..\..\src\SemanticApi\physical\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <AssemblerOutput>NoListing</AssemblerOutput>

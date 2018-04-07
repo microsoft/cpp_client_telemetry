@@ -14,20 +14,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
-    <ClInclude Include="..\common\MockIBandwidthController.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\MockIEcsClient.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\MockILocalStorageReader.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
@@ -47,6 +33,24 @@
       <Filter>mocks</Filter>
     </ClInclude>
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIBandwidthController.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIEcsClient.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockILocalStorageReader.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

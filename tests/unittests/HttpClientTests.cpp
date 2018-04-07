@@ -11,6 +11,7 @@
 using namespace testing;
 using namespace ARIASDK_NS;
 
+#define getAriaSdkLogComponent  ::testing::getAriaSdkLogComponent
 
 class HttpClientTests : public PAL::RefCountedImpl<HttpClientTests>,
                         public ::testing::Test,

@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN {
         },
         { "http",
             {
-                { "compress",            false}
+                { "compress",            true} // false}
             }
         },
         { "tpm",

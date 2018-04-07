@@ -38,11 +38,10 @@ int main(int argc, char** argv)
         auf::AF_KeepOverStop);
 #endif
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
-    ARIASDK_NS::PAL::initialize();
 
+    PAL::initialize();
     int result = RUN_ALL_TESTS();
-
-    ARIASDK_NS::PAL::shutdown();
+    PAL::shutdown();
 
 #if defined(_DEBUG) && defined(_WIN32)
     if (IsDebuggerPresent()) {
