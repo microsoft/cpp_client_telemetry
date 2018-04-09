@@ -32,7 +32,7 @@
 #define ARIASDK_LIBABI
 #endif
 
-// FIXME: ideally we'd like to use __attribute__((unused))
+// TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
 #define UNREFERENCED_PARAMETER(...)
 #define OACR_USE_PTR(...)
 #define _Out_writes_bytes_(...)

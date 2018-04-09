@@ -45,7 +45,6 @@ namespace ARIASDK_NS_BEGIN {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
         uint32_t fileSize = (inMemory) ? m_config[CFG_INT_RAM_QUEUE_SIZE] : m_config[CFG_INT_CACHE_FILE_SIZE];
 
-        // FIXME: [MG] - verify what happens if several log managers use in-ram queue concurrently
         m_offlineStorageFileName = (inMemory) ? ":memory:" : m_config[CFG_STR_CACHE_FILE_PATH];
 
         if (percentage > 0 && percentage <= 100)
@@ -58,13 +57,12 @@ namespace ARIASDK_NS_BEGIN {
         }
 
 #if 0
-        // FIXME: [MG] - optional for linux
-        // Impose optional RAM size on sqlite3 heap
+        // TODO: [MG] - impose optional RAM size constraint on sqlite3 heap
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
 #endif
 
-        // FIXME: [MG] - this needs to be moved into constant
+        // TODO: [MG] - this needs to be moved into constant
         const char* skipSqliteInit = m_config["skipSqliteInitAndShutdown"];
         if (skipSqliteInit != nullptr)
         {
@@ -197,7 +195,7 @@ namespace ARIASDK_NS_BEGIN {
 
             StorageRecord record;
             int latency;
-            // FIXME: [MG] - memory corruption here...
+
             while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
             {
                 if (latency < EventLatency_Off || latency > EventLatency_Max) {
@@ -585,7 +583,7 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        // FIXME: [MG] - migration code is missing for this scenario!!!
+        // FIXME: [MG] - migration code is missing for this scenario since we renamed property to latency!!!
         if (!SqliteStatement(*m_db,
             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
             "record_id"      " TEXT,"

@@ -7,9 +7,6 @@ namespace ARIASDK_NS_BEGIN
     //TODO: Per application config
     const char* const TC_DEFAULT_UI_VERSION = "1000/1.8.0.0";
 
-    //FIXME: [MG] - Move to app data folder instead of the root
-    const char* const TC_DEFAULT_OFFLINE_STORAGE_PATH = "c:\\offlinestorage.db";
-
     /// Default collector url to send events to
     const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0";
     //const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/Collector/3.0/";
@@ -314,9 +311,7 @@ namespace ARIASDK_NS_BEGIN
     const char* const HMAC_ENCRYPTION_KEY = "bdyt7XVQVWYzXCviDbKMDktZZBIbjA7g9pdjXEYtsSUNPQHpBPofMgx9SrFFNZI9";
     const char* const HMAC_CLIENT_ID = "CppNativeLibrary";
 
-    // FIXME: [MG] - it is PREPEND, not PREPAND...
     const char* const TICKETS_PREPEND_STRING = "1000";
-
 
     //---------------------------------------------------------------------------
     // Metastats field name (FN) aliases

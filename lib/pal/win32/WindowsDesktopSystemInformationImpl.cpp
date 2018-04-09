@@ -193,7 +193,7 @@ namespace PAL_NS_BEGIN {
                 std::wstring temp;
                 temp.assign(platformString.get());
                 std::string str(temp.begin(), temp.end());
-                m_device_family = str;
+                m_device_class = str;
             }
         }
 #else   // FIXME: [MG] - figure out which implementation is better

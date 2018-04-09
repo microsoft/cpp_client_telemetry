@@ -62,7 +62,7 @@ class EventsUploadContext : public PAL::RefCountedImpl<EventsUploadContext> {
     */
     void clear()
     {
-#ifndef _WIN32  /* FIXME: [MG] - debug this memory leak on Windows!!! */
+#ifndef _WIN32  // FIXME: [MG] - confirm that this behaviour is correct
         if (httpRequest != nullptr) {
             delete httpRequest;
             httpRequest = nullptr;

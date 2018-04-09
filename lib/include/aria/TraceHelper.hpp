@@ -72,24 +72,4 @@ extern const char * PAL::dbg_module_names[DBG_MAX];
 #ifdef _WIN32
 #pragma warning( disable : 4101)
 #endif
-
-// FIXME: this macro is no longer used anywhere in code. And probably needs to be
-// removed...
-#define xxx_CATCH_EXCEPTION_TRACE_OR_RETHROW                                        \
-    catch (const std::bad_alloc& e)                                             \
-    {                                                                           \
-        ACT_RETHROW_EXCEPTION("bad alloc", e.what());                           \
-    }                                                                           \
-    catch (const std::logic_error& e)                                           \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("logic error", e.what());                          \
-    }                                                                           \
-    catch (const std::runtime_error& e)                                         \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("runtime error", e.what());                        \
-    }                                                                           \
-    catch (...)                                                                 \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("unknown exception", "");                          \
-    }
 #endif

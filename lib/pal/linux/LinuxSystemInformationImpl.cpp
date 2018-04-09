@@ -16,7 +16,7 @@ namespace Microsoft {
                 SystemInformationImpl::SystemInformationImpl()
                     : m_info_helper()
                 {
-                    // FIXME
+                    // TODO: [MG] - implement timezone detection for Linux
                     m_user_timezone = "UTC";
 
                     m_app_id = aria_hwinfo.get("appId");

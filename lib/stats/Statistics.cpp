@@ -91,11 +91,8 @@ namespace ARIASDK_NS_BEGIN {
 
     void Statistics::OnDebugEvent(DebugEvent &evt)
     {
-        UNREFERENCED_PARAMETER(evt);
-        if (evt.type == EVT_REJECTED) {
-            // FIXME
-            // handleOnIncomingEventRejected(evt);
-        }
+        // TODO: refactor the rest of code here to go thru this method
+        m_logManager.DispatchEvent(evt);
     }
 
     bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx)

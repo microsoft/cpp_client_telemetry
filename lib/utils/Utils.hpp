@@ -31,7 +31,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    // FIXME: [MG] - refactor this
+    // TODO: [MG] - refactor this
     extern const char* getAriaSdkLogComponent();
 
     typedef std::chrono::milliseconds ms;
@@ -78,7 +78,7 @@ namespace ARIASDK_NS_BEGIN {
     inline std::string sanitizeIdentifier(std::string &str)
     {
 #if 0
-        // FIXME: [MG] - we have to add some sanitizing logic, but NOT replacing dots by underscores
+        // TODO: [MG] - we have to add some sanitizing logic, but definitely NOT replacing dots by underscores
         std::replace(str.begin(), str.end(), '.', '_');
 #endif
         return str;

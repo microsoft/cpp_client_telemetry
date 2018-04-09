@@ -98,10 +98,10 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("New LogManager instance");
 
         PAL::initialize();
-
+        PAL::registerSemanticContext(&m_context);
         m_config = new RuntimeConfig_Default(m_logConfiguration);
 
-        // FIXME: [MG] - auto-populate cache file path properly
+        // FIXME: [MG] - auto-populate cache file path properly depending on platform temp dir
         if ((const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
         {
             m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = "";
@@ -239,7 +239,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerImpl::Flush()
     {
-        // FIXME: [MG] - ONESDK
+        // FIXME: [MG] - this wasn't implemented for OneSDK!!
         LOG_ERROR("Flush() is not implemented");
     }
 

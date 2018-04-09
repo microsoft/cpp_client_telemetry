@@ -164,7 +164,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         bool returnValue = false;
         m_lastReadCount = 0;
-        // FIXME: [MG] - memory corruption here...
+
         if (nullptr != m_offlineStorageMemory && m_offlineStorageMemory->GetAndReserveRecords(consumer, leaseTimeMs, minLatency, maxCount))
         {
             m_readFromMemory = true;

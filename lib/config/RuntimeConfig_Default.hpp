@@ -70,9 +70,12 @@ namespace ARIASDK_NS_BEGIN {
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
             RuntimeConfig_Default()
         {
-            config.insert(customConfig.begin(), customConfig.end());
+            for (const auto &kv : customConfig)
+            {
+                config[kv.first] = kv.second;
+            }
 
-            // FIXME: [MG] - autogenerate path
+            // FIXME: [MG] - autopopulate path here
             const char *cacheFilePath = config[CFG_STR_CACHE_FILE_PATH];
             if (cacheFilePath == nullptr)
             {
@@ -123,7 +126,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {
-            // FIXME
+            // FIXME: [MG] - add parameter for that
             return 99;
         }
 
@@ -134,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual std::string GetUploadRetryBackoffConfig() override
         {
-            // FIXME
+            // FIXME: [MG] - add parameter for that
             return "";
         }
 
@@ -145,7 +148,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual unsigned GetMinimumUploadBandwidthBps() override
         {
-            // FIXME
+            // FIXME: [MG] - add parameter for that
             return 0;
         }
 
@@ -156,7 +159,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override
         {
-            // FIXME
+            // TODO: [MG] - currently we don't allow to override the event latency via ECS or runtime config tree
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             UNREFERENCED_PARAMETER(latency);

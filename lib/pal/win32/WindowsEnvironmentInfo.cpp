@@ -48,7 +48,7 @@ namespace ARIASDK_NS_BEGIN
         }
         else
         {
-            // FIXME: [MG]
+            // TODO: [MG] - fix this benign compiler warning
             // Warning	C6102	Using 'timeZone' from failed function call at line '46'
             return TimeZoneBiasToISO8601(timeZone.Bias + timeZone.StandardBias);
         }

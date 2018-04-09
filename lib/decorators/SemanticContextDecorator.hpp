@@ -14,12 +14,6 @@ namespace ARIASDK_NS_BEGIN {
         {
         }
 
-#if 0
-        SemanticContextDecorator(SemanticContextDecorator const& copy)
-            : m_provider(copy.m_provider)
-        {
-        }
-#endif
         bool decorate(::AriaProtocol::Record& record)
         {
             ContextFieldsProvider& provider = dynamic_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext());

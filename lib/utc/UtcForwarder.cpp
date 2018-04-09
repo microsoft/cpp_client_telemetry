@@ -284,14 +284,16 @@ bool UtcForwarder::convertProperties(::AriaProtocol::Record& record, std::string
         dbuilder.AddValue(record.Timestamp);
     }
     record.Extension.erase("AppInfo.ETag");
-    // FIXME: Needed? This SDK is not setting any of these "Session.X" properties.
+
+#if 0
+    // TODO: [MG] - let's discuss what we do with these. I'd rather keep these USER DEFINED fields.
     record.Extension.erase("Session.Id");
     record.Extension.erase("Session.State");
     record.Extension.erase("Session.Duration");
     record.Extension.erase("Session.DurationBucket");
     record.Extension.erase("Session.FirstLaunchTime");
     record.Extension.erase("DeviceInfo.SDKUid");
-
+#endif
 
     // Part A extension - general
     mbuilder.AddField("PartA_iKey", tld::TypeMbcsString);

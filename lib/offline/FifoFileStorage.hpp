@@ -1,3 +1,6 @@
+//
+// TODO: [MG] - as discussed, FIFO is going to be killed and replaced by SQLite database-stored properties
+//
 #pragma once
 
 #include <pal/PAL.hpp>

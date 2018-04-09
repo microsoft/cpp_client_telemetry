@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN
 
     class IHttpClient;
 
-    /// FIXME: [MG] - review collectors here
+    /// FIXME: [MG] - review collector URLs
 
     /// Default collector url to send events to
     static constexpr const char* COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0/";

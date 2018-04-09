@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN {
             bool result = true;
             result &= tpm.stop();
             result &= hcm.cancelAllRequestsAsync();
-            tpm.finishAllUploads(); // FIXME
+            tpm.finishAllUploads();
 
             LOG_TRACE("Waiting for all queued callbacks...");
             m_done.wait();

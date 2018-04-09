@@ -139,10 +139,12 @@ namespace ARIASDK_NS_BEGIN {
         }
 
 
-        // FIXME: [MG] - remove this. Debug only
+#if 0
+        // XXX: [MG] - debug only
         AriaProtocol::Record result;
         bond_lite::CompactBinaryProtocolReader reader(ctx->body);
         bond_lite::Deserialize(reader, result);
+#endif
 
         ctx->httpRequest->SetBody(ctx->body);
         // IHttpRequest::SetBody() is free to swap the real body out, but better clear it anyway.

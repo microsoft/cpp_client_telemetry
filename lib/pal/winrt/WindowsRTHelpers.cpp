@@ -7,7 +7,8 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry { // FIXME
+        // TODO: [MG] - consider refactoring this to use a macro namespace
+        namespace Telemetry {
             namespace Windows
             {
                 DateTime SetPlatformDateTime(int64_t universalTime)

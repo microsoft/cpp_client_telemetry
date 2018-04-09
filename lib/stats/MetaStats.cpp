@@ -950,7 +950,7 @@ namespace ARIASDK_NS_BEGIN {
             addAggregatedMapToRecordFields(record, "lm_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyImmediate.latencyDistribution);
         }
 
-        // FIXME!!! ONESDK
+        // FIXME: [MG] - pass base decorator to stats
         // m_semanticContextDecorator.decorate(record);
         // m_baseDecorator.decorate(record);
 

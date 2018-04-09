@@ -164,7 +164,7 @@ namespace Microsoft {
                 }
 
                 bool EventProperties::SetType(String^ type) {
-                    // FIXME: add type regexp validation code here
+                    // TODO: [MG] - add validation / consistency check for string
                     this->Type = type;
                     return true;
                 }

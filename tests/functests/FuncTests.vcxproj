@@ -278,6 +278,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(ProjectDir)\BasicAfdFuncTests.cpp" />
+    <ClCompile Include="APITest.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />

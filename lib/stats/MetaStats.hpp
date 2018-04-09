@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN {
         std::unique_ptr<TelemetryStats> m_telemetryStats;
         std::map<std::string, TelemetryStats*>  m_telemetryTenantStats;
 
-        // FIXME
+        // TODO: [MG] - pass base decorator to stats
         // BaseDecorator                   m_baseDecorator;
 
     private:

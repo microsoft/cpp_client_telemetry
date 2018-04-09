@@ -35,13 +35,12 @@ namespace PAL_NS_BEGIN {
         virtual std::string const& GetUserTimeZone() const { return m_user_timezone; };
         virtual std::string const& GetUserAdvertisingId() const { return m_user_advertising_id; };
 
-        virtual std::string const& GetDeviceClass() const { return m_device_class; }; // FIXME!
+        virtual std::string const& GetDeviceClass() const { return m_device_class; };
 
     private:
         std::string m_app_id;
         std::string m_app_version;
         std::string m_app_language;
-        std::string m_device_family; // FIXME: same as device class??
 
         std::string m_os_major_version;
         std::string m_os_full_version;
@@ -51,7 +50,7 @@ namespace PAL_NS_BEGIN {
         std::string m_user_timezone;
         std::string m_user_advertising_id;
 
-        std::string m_device_class; // FIXME
+        std::string m_device_class;
 
         InformatonProviderImpl m_info_helper;
 

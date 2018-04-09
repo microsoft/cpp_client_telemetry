@@ -255,7 +255,7 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 
-#ifdef linux    // FIXME: [MG] - this feature should be supported on both Windows and Linux
+#ifdef linux    // TODO: [MG] - this feature should be supported on both Windows and Linux
             if (maxHeapLimit) {
                 g_sqlite3Proxy->sqlite3_soft_heap_limit64(maxHeapLimit);
             }
@@ -368,7 +368,7 @@ namespace ARIASDK_NS_BEGIN {
             if (rc != SQLITE_OK) {
                 LOG_DEBUG("rc=%u: %s", rc, (zErrMsg != nullptr) ? zErrMsg : sqlite3_errmsg(m_db));
                 if (zErrMsg) {
-                    // FIXME: [MG] - expose sqlite3_free via g_sqlite3Proxy
+                    // TODO: [MG] - expose sqlite3_free via g_sqlite3Proxy
                     ::sqlite3_free(zErrMsg);
                 }
             }
@@ -380,7 +380,7 @@ namespace ARIASDK_NS_BEGIN {
             char *errmsg;
             int result = 0;
             LOG_DEBUG("%s", sql);
-            // FIXME: [MG] - expose sqlite3_exec via g_sqlite3Proxy
+            // TODO: [MG] - expose sqlite3_exec via g_sqlite3Proxy
             result = ::sqlite3_exec(m_db, sql, callback, arg, &errmsg);
             if (!isOK(result))
             {

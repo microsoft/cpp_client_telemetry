@@ -211,7 +211,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     auf::init();
 #endif
     
-    unsigned const RESTART_COUNT           = 100;
+    unsigned const RESTART_COUNT           = 10;
     unsigned int MAX_TIME_PER_RESTART_MS = 1000;
 
     unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
@@ -264,7 +264,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
 TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 {
     unsigned const EVENTS_COUNT  = 100;
-    unsigned const RESTART_COUNT = 100;
+    unsigned const RESTART_COUNT = 10;
 
     // Store some events so that system has to do something each time after startup.
     ContextFieldsProvider temp;

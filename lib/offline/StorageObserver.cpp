@@ -49,7 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             return wantMore;
         };
 
-        // FIXME: [MG] - memory corruption here...
+	// TODO: [MG] - expose 120000 as a constant5
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
@@ -80,6 +80,9 @@ namespace ARIASDK_NS_BEGIN {
 
     bool StorageObserver::handleReleaseRecords(EventsUploadContextPtr const& ctx)
     {
+        if (!ctx)
+            return false;
+
         HttpHeaders headers;
         if (ctx->httpResponse)
         {

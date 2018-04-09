@@ -12,6 +12,7 @@
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="APITest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

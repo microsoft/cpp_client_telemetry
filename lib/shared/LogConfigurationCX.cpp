@@ -13,7 +13,7 @@ namespace MATW_NS_BEGIN {
     {
         MAT::ILogConfiguration& configurationCore = MAT::LogManager::GetLogConfiguration();
         configurationCore[MAT::CFG_INT_SDK_MODE] = (int)this->SdkMode;
-        // FIXME: [MG] - this assignment operator has to copy the string
+        // FIXME: [MG] - this assignment operator has to copy the source string rather than const char * ptr
         configurationCore[MAT::CFG_STR_CACHE_FILE_PATH]   = FromPlatformString(this->OfflineStorage).c_str();
         configurationCore[MAT::CFG_STR_COLLECTOR_URL]     = FromPlatformString(this->CollectorURL).c_str();
         configurationCore[MAT::CFG_INT_TRACE_LEVEL_MASK]  = this->TraceLevelMask;

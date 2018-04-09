@@ -10,8 +10,10 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    // FIXME: [MG] - remove this. This is for internal debugging only.
+#if 0
+    // TODO: [MG] - expose it as internal JSON shadow post
     void SendAsJSON(const EventProperties& props, const std::string& token);
+#endif
 
     Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
         ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
@@ -297,7 +299,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         record.iKey = "O:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
 
-        // FIXME: [MG] - optimize this code
+        // TODO: [MG] - optimize this code
         bool result = true;
         result &= m_baseDecorator.decorate(record);
         result &= m_semanticContextDecorator.decorate(record);
@@ -332,7 +334,8 @@ namespace ARIASDK_NS_BEGIN {
         IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
         event->policyBitFlags = policyBitFlags;
 
-        // FIXME
+        // TODO: [MG] - ideally we can avoid dynamic cast here if we expose sendEvent in ILogManager
+        // as protected and keep ILogger a friend class to ILogManager
         ILogManagerInternal *lm = dynamic_cast<ILogManagerInternal *>(&m_logManager);
         if (lm)
         {

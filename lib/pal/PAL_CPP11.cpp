@@ -267,15 +267,6 @@ namespace PAL_NS_BEGIN {
                 m_queue.push_back(item);
             }
             count++;
-            if (count == (count / 100) * 100)
-            {
-                DebugEvent evt;
-                evt.type = EVT_UNKNOWN;
-                evt.param1 = m_timerQueue.size();
-                evt.param2 = m_queue.size();
-                // FIXME
-                // LogManager::DispatchEvent(evt);
-            }
             m_event.post();
         }
 
@@ -394,7 +385,7 @@ namespace PAL_NS_BEGIN {
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
             uuid.Data4[i] = (uint8_t)(std::rand());
 
-        // FIXME
+        // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
         sprintf(buf,
             "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
@@ -503,7 +494,7 @@ namespace PAL_NS_BEGIN {
 
     std::string getSdkVersion()
     {
-        // FIXME
+        // TODO: [MG] - move this code to common PAL code
         return std::string(ARIASDK_VERSION_PREFIX "-Linux-C++-No-") + BUILD_VERSION_STR;
     }
 

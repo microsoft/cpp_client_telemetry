@@ -280,7 +280,7 @@ namespace PAL_NS_BEGIN {
             }
             catch (...) {};
             assert(m_queue.empty());
-            // FIXME: [MG] - sometimes we shutdown on non-empty queue?
+            // FIXME: [MG] - investigate why sometimes we shutdown on non-empty queue?!
             assert(m_timerQueue.empty());
         }
 
@@ -299,15 +299,6 @@ namespace PAL_NS_BEGIN {
                 m_queue.push_back(item);
             }
             count++;
-            if (count == (count / 100) * 100)
-            {
-                DebugEvent evt;
-                evt.type = EVT_UNKNOWN;
-                evt.param1 = m_timerQueue.size();
-                evt.param2 = m_queue.size();
-                // FIXME
-                // LogManager::DispatchEvent(evt);
-            }
             m_event.post();
         }
 
@@ -423,7 +414,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            // FIXME: apparently this code is identical to the branch above..
+            // XXX: [MG] - apparently this code is identical to the branch above???
             return MAT::to_string(uuid);
         }
     }
@@ -441,7 +432,7 @@ namespace PAL_NS_BEGIN {
         return getUtcSystemTimeMs() / 1000;
     }
 
-    // FIXME: we can use time_ticks_t for that
+    // TODO: [MG] - use time_ticks_t for that
     int64_t getUtcSystemTimeinTicks()
     {
         FILETIME tocks;
@@ -536,7 +527,7 @@ namespace PAL_NS_BEGIN {
 
     std::string getSdkVersion()
     {
-        // FIXME
+        // TODO: [MG] - refactor this code and move to common PAL
         return std::string(ARIASDK_VERSION_PREFIX "-Windows-C++-No-") + BUILD_VERSION_STR;
     }
 
