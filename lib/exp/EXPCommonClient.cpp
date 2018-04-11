@@ -341,7 +341,7 @@ namespace Microsoft {
                     m_messageProcessingTaskScheduled = false;
                 }
                 
-                m_messageProcessingTask = PAL::scheduleOnWorkerThread(0,self(), &ExpCommon::handleMessageTask );
+                m_messageProcessingTask = PAL::scheduleOnWorkerThread(0, this, &ExpCommon::handleMessageTask );
                 m_messageProcessingTaskScheduled = true;
             }
 
@@ -550,7 +550,7 @@ namespace Microsoft {
                     m_messages.push(message);
                 }
 
-                m_messageProcessingTask = PAL::scheduleOnWorkerThread(expiryTimeInSec * 1000, self(), &ExpCommon::handleMessageTask);
+                m_messageProcessingTask = PAL::scheduleOnWorkerThread(expiryTimeInSec * 1000, this, &ExpCommon::handleMessageTask);
                 m_messageProcessingTaskScheduled = true;
             }
 

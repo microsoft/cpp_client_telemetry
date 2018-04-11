@@ -59,13 +59,10 @@ namespace ARIASDK_NS_BEGIN {
                 m_scheduledUpload.cancel();
                 m_isUploadScheduled = false;
             }
-            else
-            {
-                return;
-            }
+            return;
         }
 
-        m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, self(), &TransmissionPolicyManager::uploadAsync, latency);
+        m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
         m_isUploadScheduled = true;
         m_uploadInProgress = true;
     }
@@ -101,20 +98,20 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        EventsUploadContextPtr ctx = EventsUploadContext::create();
+        EventsUploadContextPtr ctx = new EventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;// EventLatency_Low;
         m_activeUploads.insert(ctx);
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
     {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx);
         if (m_activeUploads.find(ctx) != m_activeUploads.cend())
         {
             LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx);
             m_activeUploads.erase(ctx);
-            ((EventsUploadContextPtr*)(&ctx))->reset();
+            delete ctx;
         }
         else
         {
@@ -180,7 +177,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         bool forceTimerRestart = false;
         if (event->record.latency > EventLatency_RealTime) {
-            EventsUploadContextPtr ctx = EventsUploadContext::create();
+            EventsUploadContextPtr ctx = new EventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             m_activeUploads.insert(ctx);
             initiateUpload(ctx);

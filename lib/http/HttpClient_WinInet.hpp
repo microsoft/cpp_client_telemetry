@@ -27,7 +27,7 @@ class HttpClient_WinInet : public IHttpClient {
   protected:
     HINTERNET                                                        m_hInternet;
     std::mutex                                                       m_requestsMutex;
-    std::map<std::string, PAL::RefCountedPtr<WinInetRequestWrapper>> m_requests;
+    std::map<std::string, WinInetRequestWrapper*>                    m_requests;
     static unsigned                                                  s_nextRequestId;
 
     friend class WinInetRequestWrapper;

@@ -71,264 +71,6 @@ namespace PAL_NS_BEGIN {
         INetworkInformation* GetNetworkInformation();
         IDeviceInformation* GetDeviceInformation();
 
-//
-// Reference-counted objects
-//
-
-// Smart pointer for reference-counted objects
-        template<typename T>
-        class RefCountedPtr
-        {
-        protected:
-            T* m_ptr;
-
-        public:
-            RefCountedPtr()
-                : m_ptr(nullptr)
-            {
-            }
-
-            explicit RefCountedPtr(T* ptr, bool addRef)
-                : m_ptr(ptr)
-            {
-                if (m_ptr && addRef) {
-                    m_ptr->addRef();
-                }
-            }
-
-            RefCountedPtr(RefCountedPtr<T> const& other)
-                : m_ptr(other.get())
-            {
-                if (m_ptr) {
-                    m_ptr->addRef();
-                }
-            }
-
-            template<typename TOther>
-            RefCountedPtr(RefCountedPtr<TOther> const& other)
-                : m_ptr(other.get())
-            {
-                if (m_ptr) {
-                    m_ptr->addRef();
-                }
-            }
-
-            RefCountedPtr<T>& operator=(RefCountedPtr<T> const& other)
-            {
-                if (m_ptr != other.get()) {
-                    reset(other.get(), true);
-                }
-                return *this;
-            }
-
-            template<typename TOther>
-            RefCountedPtr<T>& operator=(RefCountedPtr<TOther> const& other)
-            {
-                if (m_ptr != other.get()) {
-                    reset(other.get(), true);
-                }
-                return *this;
-            }
-
-            void delete_check()
-            {
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(m_ptr)];
-                auto &delCount = std::get<3>(trk);
-                if (m_ptr->use_count() == 1)
-                    delCount++;
-#endif
-            }
-
-            ~RefCountedPtr()
-            {
-                if (m_ptr) {
-                    delete_check();
-                    m_ptr->release();
-                }
-            }
-
-            void reset()
-            {
-                if (m_ptr) {
-#if 0
-                    delete_check();
-                    if (m_ptr->use_count() != 1) {
-                        Microsoft::Applications::Telemetry::print_backtrace();
-                    }
-#endif
-                    m_ptr->release();
-                    m_ptr = nullptr;
-                }
-            }
-
-            void reset(T* ptr, bool addRef)
-            {
-                assert(ptr == nullptr || ptr != m_ptr);
-                if (m_ptr) {
-#if 0
-                    delete_check();
-                    if (m_ptr->use_count() != 1) {
-                        Microsoft::Applications::Telemetry::print_backtrace();
-                    }
-#endif
-                    m_ptr->release();
-                }
-                m_ptr = ptr;
-                if (m_ptr && addRef) {
-                    m_ptr->addRef();
-                }
-            }
-
-            T* get() const
-            {
-                return m_ptr;
-            }
-
-            T* operator->() const
-            {
-                return m_ptr;
-            }
-
-            T& operator*() const
-            {
-                return *m_ptr;
-            }
-
-            explicit operator bool() const
-            {
-                return (m_ptr != nullptr);
-            }
-
-            template<typename TOther>
-            bool operator==(RefCountedPtr<TOther> const& other) const
-            {
-                return (m_ptr == other.get());
-            }
-
-            template<typename TOther>
-            bool operator!=(RefCountedPtr<TOther> const& other) const
-            {
-                return (m_ptr != other.get());
-            }
-
-            template<typename TOther>
-            bool operator<(RefCountedPtr<TOther> const& other) const
-            {
-                return (m_ptr < other.get());
-            }
-        };
-
-        // Internal base interface for reference-counted objects
-        // Separated from IRefCounted so that the virtual inheritance can be hidden inside PAL.
-        namespace detail {
-            class IRefCountedBase
-            {
-            public:
-                IRefCountedBase() {}
-                virtual ~IRefCountedBase() {}
-                IRefCountedBase(IRefCountedBase const&) = delete;
-                IRefCountedBase& operator=(IRefCountedBase const&) = delete;
-
-                virtual void addRef() = 0;
-                virtual void release() = 0;
-                virtual long use_count() const noexcept = 0;
-
-                template<typename TAny>
-                friend class RefCountedPtr;
-            };
-        } // namespace detail
-
-        // Interface for reference-counted objects
-        class IRefCounted : public virtual detail::IRefCountedBase {};
-
-        // Base class implementing a reference-counted object
-        template<typename T, typename TInterface1 = IRefCounted , typename... TOtherInterfaces>
-        class RefCountedImpl : public TInterface1, public TOtherInterfaces...
-        {
-
-        protected:
-        
-            mutable volatile std::atomic<long> m_refCount;
-
-        public:
-
-            long use_count() const noexcept override
-            {
-                return m_refCount;
-            }
-
-            // *INDENT-OFF* parameter pack expansions etc.
-            template<typename... TArgs> static RefCountedPtr<T> create(TArgs&&... args)
-            {
-                auto ptr = new T(std::forward<TArgs>(args)...);
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(ptr)];
-                auto &newCount = std::get<0>(trk);
-                newCount++;
-#endif
-                return RefCountedPtr<T>(ptr, false);
-            }
-            // *INDENT-ON*
-
-            virtual ~RefCountedImpl()
-            {
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(this)];
-                auto &delCount = std::get<3>(trk);
-                delCount++;
-#endif
-            }
-
-        protected:
-
-            RefCountedImpl()
-                : m_refCount(1)
-            {
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(this)];
-                auto &newCount = std::get<0>(trk);
-                newCount++;
-
-                //
-                auto &incCount = std::get<1>(trk);
-                incCount++;
-#endif
-            }
-
-            RefCountedPtr<T> self()
-            {
-                return RefCountedPtr<T>(static_cast<T*>(this), true);
-            }
-
-            virtual void addRef() override
-            {
-                m_refCount++;
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(this)];
-                auto &incCount = std::get<1>(trk);
-                incCount++;
-#endif
-            }
-
-            virtual void release() override
-            {
-                long count = (--m_refCount);
-                assert(count >= 0);
-
-#ifdef USE_REFCOUNTER
-                auto &trk = refCountedTracker[__typename(this)];
-                auto &decCount = std::get<2>(trk);
-                decCount++;
-#endif
-				if (count == 0) {
-					delete this;
-				}
-            }
-
-            friend class RefCountedPtr<T>;
-        };
-
         //
         // Threading
         //
@@ -444,7 +186,7 @@ namespace PAL_NS_BEGIN {
 
         namespace detail {
 
-            class WorkerThreadItem: public RefCountedImpl<WorkerThreadItem>
+            class WorkerThreadItem
             {
             public:
                 volatile enum { Shutdown, Call, TimedCall, Done }type;
@@ -453,10 +195,10 @@ namespace PAL_NS_BEGIN {
                 virtual void operator()() {}
             };
 
-            using WorkerThreadItemPtr = RefCountedPtr<WorkerThreadItem>;
+            typedef WorkerThreadItemPtr WorkerThreadItem*;
 
             template<typename TCall>
-			class WorkerThreadCall : public RefCountedImpl< WorkerThreadCall<TCall> , WorkerThreadItem > /* , public WorkerThreadItem */
+	    class WorkerThreadCall
             {
             public:
 
@@ -497,8 +239,8 @@ namespace PAL_NS_BEGIN {
 
         namespace detail {
 
-            extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr const& item);
-            extern void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item);
+            extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr item);
+            extern void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item);
 
         } // namespace detail
 
@@ -547,18 +289,9 @@ namespace PAL_NS_BEGIN {
         template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
         void executeOnWorkerThread(TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
         {
-        	// LOG_INFO(">>>>>>>>>>>>>>>>>>>>> executeOnWorkerThread: %s (%p)", __typename(obj), obj);
-            static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value, "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
-
             auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
             auto item = detail::WorkerThreadCall<decltype(bound)>::create(obj, bound);
             detail::queueWorkerThreadItem(item);
-        }
-
-        template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-        void executeOnWorkerThread(PAL::RefCountedPtr<TObject> const& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
-        {
-            executeOnWorkerThread(obj.get(), func, std::forward<TPassedArgs>(args)...);
         }
 
         // Return the monotonic system clock time in milliseconds (since unspecified point).
@@ -567,9 +300,6 @@ namespace PAL_NS_BEGIN {
         template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
         DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
         {
-        	// LOG_INFO(">>>>>>>>>>>>>>>>>>>>> scheduleOnWorkerThread: %s (%p)", __typename(obj), obj);
-
-            static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value, "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
             auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
             auto item = detail::WorkerThreadCall<decltype(bound)>::create(obj, getMonotonicTimeMs() + delayMs, bound);
             detail::queueWorkerThreadItem(item);

@@ -10,10 +10,10 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class HttpClientManager : public PAL::RefCountedImpl<HttpClientManager> {
+class HttpClientManager {
   public:
     HttpClientManager(IHttpClient& httpClient);
-    virtual ~HttpClientManager() override;
+    virtual ~HttpClientManager();
 
   protected:
     class HttpCallback;

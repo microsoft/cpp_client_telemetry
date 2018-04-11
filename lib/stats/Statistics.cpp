@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         if (!m_isScheduled && intervalMs != 0)
         {
             m_isScheduled = true;
-            m_scheduledSend = PAL::scheduleOnWorkerThread(intervalMs, self(), &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
+            m_scheduledSend = PAL::scheduleOnWorkerThread(intervalMs, this, &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
             LOG_TRACE("Ongoing stats event generation scheduled in %u msec", intervalMs);
         }
 #else
@@ -58,7 +58,7 @@ namespace ARIASDK_NS_BEGIN {
 
         for (auto& record : records)
         {
-            IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
+            IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
             eventGenerated(event);
 #if 0 /* FIXME: [MG] - fix this for UTC */
             //Utc Stats go back to Utc

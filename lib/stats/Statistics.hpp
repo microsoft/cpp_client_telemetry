@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
     class ITelemetrySystem;
     class DebugEventListener;
 
-    class Statistics : public PAL::RefCountedImpl<Statistics>, public DebugEventListener {
+    class Statistics : public DebugEventListener {
 
     public:
         Statistics::Statistics(ITelemetrySystem& telemetrySystem);

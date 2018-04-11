@@ -331,7 +331,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        IncomingEventContextPtr event = IncomingEventContext::create(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
+        IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
         event->policyBitFlags = policyBitFlags;
 
         // TODO: [MG] - ideally we can avoid dynamic cast here if we expose sendEvent in ILogManager
@@ -341,6 +341,15 @@ namespace ARIASDK_NS_BEGIN {
         {
             lm->sendEvent(event);
         }
+
+#if 1   /* FIXME: [MG] - example for Shawn */
+        PAL::scheduleOnWorkerThread(0, this, &Logger::onSubmitted);
+#endif
+    }
+
+    void Logger::onSubmitted()
+    {
+        LOG_INFO("This method is executed from worker thread");
     }
 
     void Logger::LogSampledMetric(

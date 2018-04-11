@@ -1522,6 +1522,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
     }
 
     writer.WriteStructEnd(isBase);
+    // TODO: [MG] - investigate
+    // Run-Time Check Failure #2 - Stack around the variable '<begin>$L6' was corrupted.
 }
 
 } // namespace bond_lite

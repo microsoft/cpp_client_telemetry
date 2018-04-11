@@ -16,7 +16,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyManager>
+class TransmissionPolicyManager
 {
   public:
     TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
@@ -29,7 +29,7 @@ class TransmissionPolicyManager : public PAL::RefCountedImpl<TransmissionPolicyM
     void checkBackoffConfigUpdate();
     
     void uploadAsync(EventLatency priority);
-    void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
+    void finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs);
 
     bool handleStart();
     bool handleStopOrPause();

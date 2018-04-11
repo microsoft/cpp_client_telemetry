@@ -19,8 +19,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class SqliteDB;
 
-    class OfflineStorage_SQLite : public IOfflineStorage,
-        public PAL::RefCountedImpl<OfflineStorage_SQLite>
+    class OfflineStorage_SQLite : public IOfflineStorage
     {
     public:
         OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false);

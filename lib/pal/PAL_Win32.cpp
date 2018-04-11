@@ -230,12 +230,12 @@ namespace PAL_NS_BEGIN {
     //---
 
 
-    class WorkerThreadShutdownItem : public RefCountedImpl<WorkerThreadShutdownItem, detail::WorkerThreadItem>
+    class WorkerThreadShutdownItem : public detail::WorkerThreadItem
     {
     public:
         WorkerThreadShutdownItem()
         {
-            type = Shutdown;
+            type = detail::WorkerThreadItem::Shutdown;
         }
     };
 
@@ -264,12 +264,12 @@ namespace PAL_NS_BEGIN {
 
         ~WorkerThread()
         {
-                join();
+            join();
         }
 
         void join()
         {
-            auto item = WorkerThreadShutdownItem::create();
+            auto item = new WorkerThreadShutdownItem();
             queue(item);
             std::thread::id this_id = std::this_thread::get_id();
             try {
@@ -284,9 +284,10 @@ namespace PAL_NS_BEGIN {
             assert(m_timerQueue.empty());
         }
 
-        void queue(detail::WorkerThreadItemPtr const& item)
+        void queue(detail::WorkerThreadItemPtr item)
         {
-            LOG_INFO("queue item=%p, type=%u", item.get(), item.get()->type);
+            // TODO: [MG] - show item type
+            LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
             if (item->type == detail::WorkerThreadItem::TimedCall) {
                 auto it = m_timerQueue.begin();
@@ -302,30 +303,24 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        void cancel(detail::WorkerThreadItemPtr const& item)
+        void cancel(detail::WorkerThreadItemPtr item)
         {
-            if (m_itemInProgress == item)
+            if ((m_itemInProgress == item)||(item==nullptr))
             {
-                // can't cancel an item, while it is being processed
                 return;
             }
+
             {
                 LOCKGUARD(m_lock);
-                if (item->type == detail::WorkerThreadItem::Done) {
-                    // Already done
-                    return;
-                }
-                assert(item->type == detail::WorkerThreadItem::TimedCall);
-
                 auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
                 if (it != m_timerQueue.end()) {
                     // Still in the queue
                     m_timerQueue.erase(it);
-                    item->type = detail::WorkerThreadItem::Done;
+                    delete item;
                     return;
                 }
             }
-
+#if 0
             for (;;) {
                 {
                     LOCKGUARD(m_lock);
@@ -335,6 +330,7 @@ namespace PAL_NS_BEGIN {
                 }
                 Sleep(10);
             }
+#endif
         }
 
     protected:
@@ -343,15 +339,11 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            detail::WorkerThreadItemPtr item;
+            detail::WorkerThreadItemPtr item = nullptr;
             for (;;) {
                 unsigned nextTimerInMs = UINT_MAX;
                 {
                     LOCKGUARD(self->m_lock);
-                    if (item) {
-                        item->type = detail::WorkerThreadItem::Done;
-                        item.reset();
-                    }
 
                     int64_t now = getMonotonicTimeMs();
                     if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
@@ -377,10 +369,17 @@ namespace PAL_NS_BEGIN {
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
                     break;
                 }
-                LOG_TRACE("Execute item=%p type=%s\n", item, __typename(item));
+                
+                LOG_TRACE("Execute item=%p type=%s\n", item, item->typeName.c_str() );
                 self->m_itemInProgress = item;
                 (*item)();
-                self->m_itemInProgress.reset();
+                self->m_itemInProgress = nullptr;
+
+                if (item) {
+                    item->type = detail::WorkerThreadItem::Done;
+                    delete item;
+                    item = nullptr;
+                }
             }
         }
     };
@@ -389,12 +388,12 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
-        void queueWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
+        void queueWorkerThreadItem(detail::WorkerThreadItemPtr item)
         {
             g_workerThread->queue(item);
         }
 
-        void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
+        void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
         {
             g_workerThread->cancel(item);
         }

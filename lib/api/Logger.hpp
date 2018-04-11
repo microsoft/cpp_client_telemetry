@@ -166,6 +166,8 @@ namespace ARIASDK_NS_BEGIN {
             return m_logManager.DispatchEvent(std::move(evt));
         };
 
+        virtual void onSubmitted();
+
     protected:
 
         bool applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, MAT::EventLatency& latency);

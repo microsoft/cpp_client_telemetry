@@ -54,7 +54,6 @@ static bool tenantIdToGuid(std::string const& tenantId, GUID& guid)
 //---
 
 UtcForwarder::UtcForwarder()
-  : m_lock("AriaSdk/UtcForwarder")
 {
     using namespace Microsoft::WRL::Wrappers;
 
@@ -152,7 +151,7 @@ bool UtcForwarder::handleForwardIfAvailable(IncomingEventContextPtr const& ctx)
     REGHANDLE    hProvider;
     UINT8 const* providerMetadata;
     {
-        PAL::ScopedMutexLock guard(m_lock);
+        LOCKGUARD(m_lock);
 
         TenantInfo& ti = m_tenantInfo[tenantId];
 

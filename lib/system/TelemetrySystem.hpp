@@ -23,9 +23,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    class TelemetrySystem :
-        public TelemetrySystemBase,
-        public PAL::RefCountedImpl<TelemetrySystem>
+    class TelemetrySystem : public TelemetrySystemBase
     {
 
     public:

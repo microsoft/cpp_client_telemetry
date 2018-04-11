@@ -11,7 +11,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
+class WinInetRequestWrapper
 {
   protected:
     HttpClient_WinInet&    m_parent;
@@ -64,7 +64,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 
         {
             std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
-            m_parent.m_requests[m_id] = self();
+            m_parent.m_requests[m_id] = this;
         }
 
         URL_COMPONENTSA urlc;
@@ -344,16 +344,16 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
     SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
-    PAL::RefCountedPtr<WinInetRequestWrapper> wrapper(new WinInetRequestWrapper(*this, req->m_id), false);
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, req->m_id);
     wrapper->send(req, callback);
     delete req;
 }
 
 void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
 {
-    PAL::RefCountedPtr<WinInetRequestWrapper> request;
+    WinInetRequestWrapper* request = nullptr;
     {
-		std::lock_guard<std::mutex> lock(m_requestsMutex);
+        std::lock_guard<std::mutex> lock(m_requestsMutex);
         auto it = m_requests.find(id);
         if (it != m_requests.end()) {
             request = it->second;

@@ -88,7 +88,7 @@ void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
 
 void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
 {
-    PAL::scheduleOnWorkerThread(0,self(), &HttpClientManager::onHttpResponse, callback);
+    PAL::scheduleOnWorkerThread(0, this, &HttpClientManager::onHttpResponse, callback);
 }
 
 void HttpClientManager::onHttpResponse(HttpCallback* callback)

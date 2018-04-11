@@ -63,9 +63,7 @@ namespace ARIASDK_NS_BEGIN {
         std::vector<BYTE> providerMetaVector;
     } ProviderData;
 
-    class UtcTelemetrySystem :
-        public PAL::RefCountedImpl<UtcTelemetrySystem>,
-        public TelemetrySystemBase
+    class UtcTelemetrySystem : public TelemetrySystemBase
     {
     public:
 

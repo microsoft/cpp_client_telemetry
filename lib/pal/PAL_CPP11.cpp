@@ -202,7 +202,7 @@ namespace PAL_NS_BEGIN {
     //---
 
 
-    class WorkerThreadShutdownItem : public RefCountedImpl<WorkerThreadShutdownItem, detail::WorkerThreadItem>
+    class WorkerThreadShutdownItem : public detail::WorkerThreadItem
     {
     public:
         WorkerThreadShutdownItem()

@@ -13,8 +13,7 @@ using namespace ARIASDK_NS;
 
 #define getAriaSdkLogComponent  ::testing::getAriaSdkLogComponent
 
-class HttpClientTests : public PAL::RefCountedImpl<HttpClientTests>,
-                        public ::testing::Test,
+class HttpClientTests : public ::testing::Test,
                         public HttpServer::Callback,
                         public IHttpResponseCallback
 {

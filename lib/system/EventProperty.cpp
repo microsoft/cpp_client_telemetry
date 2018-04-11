@@ -569,7 +569,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (as_string != NULL)
             {
-                delete as_string;
+                delete[] as_string;
                 as_string = NULL;
             }
             break;

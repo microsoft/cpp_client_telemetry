@@ -148,7 +148,7 @@ namespace Microsoft {
             };
 
 
-            class ExpRequestContext : public PAL::RefCountedImpl<ExpRequestContext>
+            class ExpRequestContext
             {
             public:
                 // Sending
@@ -159,11 +159,9 @@ namespace Microsoft {
                 std::unique_ptr<MAT::IHttpResponse const> httpResponse;
             };
 
-            using ExpRequestContextPtr = PAL::RefCountedPtr<ExpRequestContext>;
+            typedef ExpRequestContext* ExpRequestContextPtr;
 
-
-            class ExpCommon : public PAL::RefCountedImpl<ExpCommon>,
-                public MAT::IHttpResponseCallback
+            class ExpCommon : public MAT::IHttpResponseCallback
             {
             public:
                 ExpCommon(IExpCommonClient* client, std::string retry_Queue_Name);
