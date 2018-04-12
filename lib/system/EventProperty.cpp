@@ -22,6 +22,9 @@ using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN {
 
+    // TODO: [MG] - time_ticks_t would benefit from an extra method:
+    // time_ticks_t::time_ticks_t(const std::time_t time)
+
     /// <summary>
     /// Default constructor for an empty object
     /// </summary>

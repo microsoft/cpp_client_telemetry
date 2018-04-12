@@ -149,6 +149,11 @@ namespace PAL_NS_BEGIN {
 #define     gettid()       std::this_thread::get_id()
 #endif
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#pragma warning(push)
+#pragma warning(disable:4996)
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
             if (!isLoggingInited)
@@ -157,6 +162,26 @@ namespace PAL_NS_BEGIN {
             static char const levels[] = "?EWID";
             char buffer[2048] = { 0 };
 
+#if 0       /* Old implementation */
+            SYSTEMTIME st;
+            ::GetSystemTime(&st);
+
+            // *INDENT-OFF* ::ApiFuncName() misunderstood as object access continuation twice,
+            //              std::min<size_t> misunderstood as comparison operators
+
+            int len = ::sprintf_s(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u T#%u <%c> [%s] ",
+                st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+                ::GetCurrentThreadId(), levels[level], component);
+
+            va_list args;
+            va_start(args, fmt);
+            len += ::vsprintf_s(buffer + len, sizeof(buffer) - len, fmt, args);
+            va_end(args);
+
+            buffer[std::min<size_t>(len + 0, sizeof(buffer) - 2)] = '\n';
+            buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
+            ::OutputDebugStringA(buffer);
+#else
             auto now = std::chrono::system_clock::now();
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
             auto in_time_t = std::chrono::system_clock::to_time_t(now);
@@ -194,7 +219,9 @@ namespace PAL_NS_BEGIN {
                 debugLogMutex.unlock();
             }
             va_end(ap);
+#endif
         }
+#pragma warning(pop)
 
     } // namespace detail
 
@@ -207,7 +234,7 @@ namespace PAL_NS_BEGIN {
     public:
         WorkerThreadShutdownItem()
         {
-            type = Shutdown;
+            type = detail::WorkerThreadItem::Shutdown;
         }
     };
 
@@ -216,7 +243,10 @@ namespace PAL_NS_BEGIN {
 
     protected:
         std::thread                            m_hThread;
-        std::mutex                             m_lock;
+
+        // TODO: [MG] - investigate all the cases why we need recursive here
+        std::recursive_mutex                   m_lock;
+
         std::list<detail::WorkerThreadItemPtr> m_queue;
         std::list<detail::WorkerThreadItemPtr> m_timerQueue;
         Event                                  m_event;
@@ -238,7 +268,7 @@ namespace PAL_NS_BEGIN {
 
         void join()
         {
-            auto item = WorkerThreadShutdownItem::create();
+            auto item = new WorkerThreadShutdownItem();
             queue(item);
             std::thread::id this_id = std::this_thread::get_id();
             try {
@@ -249,13 +279,15 @@ namespace PAL_NS_BEGIN {
             }
             catch (...) {};
             assert(m_queue.empty());
+            // FIXME: [MG] - investigate why sometimes we shutdown on non-empty queue?!
             assert(m_timerQueue.empty());
         }
 
-        void queue(detail::WorkerThreadItemPtr const& item)
+        void queue(detail::WorkerThreadItemPtr item)
         {
-            LOG_INFO("queue item=%p, type=%u", item.get(), item.get()->type);
-            std::lock_guard<std::mutex> guard(m_lock);
+            // TODO: [MG] - show item type
+            LOG_INFO("queue item=%p", &item);
+            LOCKGUARD(m_lock);
             if (item->type == detail::WorkerThreadItem::TimedCall) {
                 auto it = m_timerQueue.begin();
                 while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
@@ -270,40 +302,34 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        void cancel(detail::WorkerThreadItemPtr const& item)
+        void cancel(detail::WorkerThreadItemPtr item)
         {
-            if (m_itemInProgress == item)
+            if ((m_itemInProgress == item)||(item==nullptr))
             {
-                // can't cancel an item, while it is being processed
                 return;
             }
+
             {
-                std::lock_guard<std::mutex> guard(m_lock);
-
-                if (item->type == detail::WorkerThreadItem::Done) {
-                    // Already done
-                    return;
-                }
-                assert(item->type == detail::WorkerThreadItem::TimedCall);
-
+                LOCKGUARD(m_lock);
                 auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
                 if (it != m_timerQueue.end()) {
                     // Still in the queue
                     m_timerQueue.erase(it);
-                    item->type = detail::WorkerThreadItem::Done;
+                    delete item;
                     return;
                 }
             }
-
+#if 0
             for (;;) {
                 {
-                    std::lock_guard<std::mutex> guard(m_lock);
+                    LOCKGUARD(m_lock);
                     if (item->type == detail::WorkerThreadItem::Done) {
                         return;
                     }
                 }
                 Sleep(10);
             }
+#endif
         }
 
     protected:
@@ -312,15 +338,11 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            detail::WorkerThreadItemPtr item;
+            detail::WorkerThreadItemPtr item = nullptr;
             for (;;) {
                 unsigned nextTimerInMs = UINT_MAX;
                 {
-                    std::lock_guard<std::mutex> guard(self->m_lock);
-                    if (item) {
-                        item->type = detail::WorkerThreadItem::Done;
-                        item.reset();
-                    }
+                    LOCKGUARD(self->m_lock);
 
                     int64_t now = getMonotonicTimeMs();
                     if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
@@ -346,10 +368,17 @@ namespace PAL_NS_BEGIN {
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
                     break;
                 }
-                LOG_TRACE("Execute item=%p type=%s\n", item, __typename(item));
+                
+                LOG_TRACE("Execute item=%p type=%s\n", item, item->typeName.c_str() );
                 self->m_itemInProgress = item;
                 (*item)();
-                self->m_itemInProgress.reset();
+                self->m_itemInProgress = nullptr;
+
+                if (item) {
+                    item->type = detail::WorkerThreadItem::Done;
+                    delete item;
+                    item = nullptr;
+                }
             }
         }
     };
@@ -358,12 +387,12 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
-        void queueWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
+        void queueWorkerThreadItem(detail::WorkerThreadItemPtr item)
         {
             g_workerThread->queue(item);
         }
 
-        void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item)
+        void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
         {
             g_workerThread->cancel(item);
         }
@@ -406,8 +435,38 @@ namespace PAL_NS_BEGIN {
         return getUtcSystemTimeMs() / 1000;
     }
 
+    int64_t getUtcSystemTimeinTicks()
+    {
+#if 0
+        FILETIME tocks;
+        ::GetSystemTimeAsFileTime(&tocks);
+        ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;
+        // number of days from beginning to 1601 multiplied by ticks per day
+        return ticks + 0x701ce1722770000ULL;
+#else
+        // FIXME: [MG] - add millis remainder to ticks
+        std::time_t now = time(0);
+        MAT::time_ticks_t ticks(&now);
+        return ticks.ticks;
+#endif
+    }
+
     std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
     {
+#if 0
+        __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
+        int milliseconds = static_cast<int>(timestampMs % 1000);
+
+        tm tm;
+        if (::_gmtime64_s(&tm, &seconds) != 0) {
+            memset(&tm, 0, sizeof(tm));
+        }
+
+        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
+        ::_snprintf_s(buf, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+            1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
+            tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
+#else
         time_t seconds = static_cast<time_t>(timestampMs / 1000);
         int milliseconds = static_cast<int>(timestampMs % 1000);
 
@@ -426,8 +485,10 @@ namespace PAL_NS_BEGIN {
             1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
             tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
         (rc);
+#endif
         return buf;
     }
+
 
     int64_t getMonotonicTimeMs()
     {
@@ -464,6 +525,7 @@ namespace PAL_NS_BEGIN {
             context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
             context->SetOsName(g_SystemInformation->GetOsName());
             context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
+            context->SetDeviceClass(g_SystemInformation->GetDeviceClass());
 
             // AppInfo fields
             context->SetAppId(g_SystemInformation->GetAppId());
@@ -473,7 +535,7 @@ namespace PAL_NS_BEGIN {
             // UserInfo fields.
             context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
             context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
-            context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
+            //context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
         }
         if (g_NetworkInformation != nullptr)
         {
@@ -491,7 +553,7 @@ namespace PAL_NS_BEGIN {
     }
 
     //---
-
+    // TODO: [MG] - make it portable...
     std::string getSdkVersion()
     {
         // TODO: [MG] - move this code to common PAL code
@@ -522,9 +584,16 @@ namespace PAL_NS_BEGIN {
 
     void shutdown()
     {
+        if (g_palStarted == 0)
+        {
+            LOG_ERROR("PAL is already shutdown!");
+            return;
+        }
+
         if (g_palStarted.fetch_sub(1) == 1) {
             LOG_TRACE("Shutting down...");
             delete g_workerThread;
+            g_workerThread = nullptr;
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
             if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }

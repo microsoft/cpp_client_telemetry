@@ -404,6 +404,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(disable:6031)
     std::string generateUuidString()
     {
+        // TODO: [MG] - port Linux implementation in here
         GUID uuid;
         if (S_OK == CoCreateGuid(&uuid))
         {
@@ -421,6 +422,7 @@ namespace PAL_NS_BEGIN {
 
     int64_t getUtcSystemTimeMs()
     {
+        // TODO: [MG] - port Linux implementation in here
         ULARGE_INTEGER now;
         ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
         return (now.QuadPart - 116444736000000000ull) / 10000;
@@ -443,6 +445,7 @@ namespace PAL_NS_BEGIN {
 
     std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
     {
+#if 1
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
         int milliseconds = static_cast<int>(timestampMs % 1000);
 
@@ -455,10 +458,30 @@ namespace PAL_NS_BEGIN {
         ::_snprintf_s(buf, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
             1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
             tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
+#else
+        time_t seconds = static_cast<time_t>(timestampMs / 1000);
+        int milliseconds = static_cast<int>(timestampMs % 1000);
 
+        tm tm;
+#ifdef _MSC_VER
+        bool valid = (gmtime_s(&tm, &seconds) == 0);
+#else
+        bool valid = (gmtime_r(&seconds, &tm) != NULL);
+#endif
+        if (!valid) {
+            memset(&tm, 0, sizeof(tm));
+        }
+
+        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
+        int rc = snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+            1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
+            tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
+        (rc);
+#endif
         return buf;
     }
 
+    // TODO: [MG] - add Linux implementation
     int64_t getMonotonicTimeMs()
     {
         static bool frequencyQueried;
@@ -523,7 +546,7 @@ namespace PAL_NS_BEGIN {
     }
 
     //---
-
+    // TODO: [MG] - make it portable...
     std::string getSdkVersion()
     {
         // TODO: [MG] - refactor this code and move to common PAL

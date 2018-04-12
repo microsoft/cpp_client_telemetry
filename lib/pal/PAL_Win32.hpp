@@ -286,6 +286,7 @@ namespace PAL_NS_BEGIN {
     template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
     std::string to_string(char const* format, T value)
     {
+        // TODO: [MG] - sync with Linux implementation
         char buf[40];
         ::sprintf_s(buf, format, value);
         return buf;

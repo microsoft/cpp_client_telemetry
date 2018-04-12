@@ -2,7 +2,7 @@
 
 //#pragma unmanaged
 
-#include "ExpCommonClient.hpp"
+#include "EXPCommonClient.hpp"
 #include "pal/PAL.hpp"
 
 #include <iostream>
@@ -13,13 +13,15 @@
 
 // TODO: this section of code would benefit from common PAL HTTP header that includes
 // either of the impl headers.
-
 #if defined(ARIASDK_PAL_WIN32) || defined(_MSC_VER)
 #ifdef _WINRT_DLL
 #include "http/HttpClient_WinRt.hpp"
 #else 
 #include "http/HttpClient_WinInet.hpp"
 #endif
+#endif
+#if ARIASDK_PAL_CPP11
+#include "http/HttpClient.hpp"
 #endif
 
 using namespace std;
@@ -92,6 +94,12 @@ namespace Microsoft {
                 LOG_TRACE("HttpClient: WinInet");
                 m_httpClient = new HttpClient_WinInet();
 #endif
+#define HTTP_AVAIL
+#endif
+
+#if ARIASDK_PAL_CPP11
+                LOG_TRACE("HttpClient: generic HTTP client");
+                m_httpClient = new HttpClient();
 #define HTTP_AVAIL
 #endif
 

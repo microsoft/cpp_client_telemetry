@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
         uint32_t fileSize = (inMemory) ? m_config[CFG_INT_RAM_QUEUE_SIZE] : m_config[CFG_INT_CACHE_FILE_SIZE];
 
-        m_offlineStorageFileName = (inMemory) ? ":memory:" : m_config[CFG_STR_CACHE_FILE_PATH];
+        m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
 
         if (percentage > 0 && percentage <= 100)
         {

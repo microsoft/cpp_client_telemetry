@@ -6,7 +6,7 @@
 
 using namespace std;
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace Microsoft::Applications::Events;
 
 static ILogger *logger;
 

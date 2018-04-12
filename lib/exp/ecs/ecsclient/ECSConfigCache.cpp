@@ -3,10 +3,13 @@
 #include "../../EXPCommonClient.hpp"
 #include "../../JsonHelper.hpp"
 #include "ECSConfigCache.hpp"
-#include "offline/FifoFileSTorage.hpp"
+#include "offline/FifoFileStorage.hpp"
 #include "pal/UtcHelpers.hpp"
 #include "ECSClientUtils.hpp"
 
+#include "utils/Utils.hpp"
+
+using namespace MAT;
 using namespace PAL;
 using namespace std;
 
@@ -22,11 +25,15 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         //default storage path
         if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
         {
-            std::string tempDirectroryPath = GetAppLocalTempDirectory();
-            if (!tempDirectroryPath.empty())
-            {
-                m_OfflineStoragePath = tempDirectroryPath + storagePath;
-            }
+#ifdef _WIN32 /* FIXME: [MG] - use either TEMP for Win32 and Linux or UWP App Temp on Win 10 */
+                        std::string tempDirectroryPath = GetAppLocalTempDirectory();
+#else
+                        std::string tempDirectroryPath = GetTempDirectory();
+#endif
+                        if (!tempDirectroryPath.empty())
+                        {
+                            m_OfflineStoragePath = tempDirectroryPath + PATH_SEPARATOR_CHAR + storagePath;
+                        }
         } 
         else
         {

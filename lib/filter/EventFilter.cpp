@@ -3,6 +3,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "filter/EventFilter.hpp"
+#include <cassert>
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -90,7 +91,7 @@ namespace ARIASDK_NS_BEGIN
             uint32_t filterRate = filterRates[i];
             if (nullptr != filterString)
             {
-                _ASSERT(filterRates[i] >= 0 && filterRates[i] <= 100);
+                assert(filterRates[i] >= 0 && filterRates[i] <= 100);
                 _filterRules[std::string(filterString)] = filterRate;
             }
         }

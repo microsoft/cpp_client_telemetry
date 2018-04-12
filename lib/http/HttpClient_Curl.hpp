@@ -97,13 +97,8 @@ public:
             // Result
             res(CURLE_OK),
             sockfd(0),
-<<<<<<< HEAD
-            isAborted(false)
-=======
             isAborted(false),
-
             nread(0)
->>>>>>> origin/dev
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -381,11 +376,9 @@ protected:
 
     // Socket parameters
     curl_socket_t sockfd;
-<<<<<<< HEAD
-    long sockextr;
-=======
+
     long sockextr   = 0;
->>>>>>> origin/dev
+
     curl_off_t nread;
     size_t sendlen  = 0;        // # bytes sent by client
     size_t acklen   = 0;        // # bytes ack by server

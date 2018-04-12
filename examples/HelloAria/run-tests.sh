@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 #
 # Clean-up previous results
 #

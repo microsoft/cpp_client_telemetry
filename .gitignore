@@ -1,3 +1,12 @@
+# Build artifacts
+
+Debug/
+Release/
+*.VC.db
+
+# Test artifacts
+
+offlinestorage.db*
 bondlite/external/bond/
 bondlite/external/rapidjson/
 bondlite/generated/bond/
@@ -32,12 +41,8 @@ zlib/contrib/masmx64/*.lst
 /.metadata/
 
 # UWP generated files
-/Solutions/afdclient-cpp/Generated\ Files/*
-/Solutions/ecsclient-cpp/Generated\ Files/*
-/Solutions/afdclient-cpp/Generated Files/App.xaml
-/Solutions/afdclient-cpp/Generated Files/MainPage.xaml
-/Solutions/ecsclient-cpp/Generated Files/App.xaml
-/Solutions/ecsclient-cpp/Generated Files/MainPage.xaml
+Solutions/afdclient-cpp/Generated\ Files/*
+Solutions/ecsclient-cpp/Generated\ Files/*
 /Solutions/AriaSDK.VC.VC.opendb
 
 # Visual Studio user files

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 #include <Version.hpp>
-=======
-#include <pal/PAL.hpp>
->>>>>>> origin/dev
 
 // Assume that if we are compiling with MSVC, then we prefer to use Windows HTTP stack,
 // e.g. WinInet.dll or Win 10 HTTP client instead

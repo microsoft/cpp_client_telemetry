@@ -14,11 +14,12 @@
 #include <memory>
 #include <math.h>
 
+#include <utils/annex_k.hpp>
+
 using namespace std;
 using namespace nlohmann; 
 using namespace MAT;
 using namespace PAL;
-
 
 namespace Microsoft {
     namespace Applications {
@@ -32,8 +33,8 @@ namespace Microsoft {
 						return -1;
 					}
 
-					char itemLoweredCase[129];
-					strcpy_s(itemLoweredCase, pItemToFind);
+					char itemLoweredCase[129] = { 0 };
+					strncpy_s(itemLoweredCase, sizeof(itemLoweredCase), pItemToFind, strlen(pItemToFind));
 
 					// strlwr does not seem to be available for gcc
 					for (size_t i = 0; i < strlen(itemLoweredCase); i++)
@@ -89,7 +90,7 @@ namespace Microsoft {
 					return GetItemIndex(months, 12, 3, pItemToFind);
 				}
 
-
+				// TODO: [MG] - this routine has to be moved to utils/Utils.cpp
 				uint64_t GetTimeFromRFC1123Pattern(const std::string& gmt, struct tm* res)
 				{
 					struct tm tms = {};
@@ -110,7 +111,14 @@ namespace Microsoft {
 						}
 					}
 					*res = tms;
-					return _mkgmtime(res);
+
+					uint64_t result;
+#ifndef _WIN32
+					result = (uint64_t)mktime(res); // POSIX
+#else
+					result = _mkgmtime(res);        // Windows only
+#endif
+					return result;
 				}
 
 				uint64_t ParseTime(const std::string& time, uint32_t defaultValue/*=0*/)

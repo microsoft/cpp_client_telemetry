@@ -2,5 +2,5 @@ include_directories( . ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE
 add_executable(linktest linktest.cpp)
 source_group(" " REGULAR_EXPRESSION "")
 link_directories(/usr/lib /usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu /usr/local/lib)
-#target_link_libraries(linktest msevents tcmalloc)
-target_link_libraries(linktest msevents)
+#target_link_libraries(linktest aria tcmalloc)
+target_link_libraries(linktest aria)

@@ -22,7 +22,7 @@ include(tools/ParseOsRelease.cmake)
 set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -fmerge-all-constants -ffast-math")
 
 # Use libtcmalloc for Debug builds memory leaks detection
-set(DBG_FLAGS "-ggdb -O0 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
+set(DBG_FLAGS "-ggdb -gdwarf-2 -O0 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
   #TODO: -fno-rtti
@@ -70,7 +70,7 @@ set(SDK_VERSION_PREFIX "ACT")
 message(STATUS "SDK version prefix: ${SDK_VERSION_PREFIX}")
 add_definitions("-DARIASDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
 
-set(ARIASDK_API_VERSION "2.1")
+set(ARIASDK_API_VERSION "3.0")
 string(TIMESTAMP DAYNUMBER "%j")
 string(REGEX REPLACE "^00" "" DAYNUMBER ${DAYNUMBER})
 string(REGEX REPLACE "^0"  "" DAYNUMBER ${DAYNUMBER})

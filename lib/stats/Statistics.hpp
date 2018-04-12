@@ -19,7 +19,7 @@ namespace ARIASDK_NS_BEGIN {
     class Statistics : public DebugEventListener {
 
     public:
-        Statistics::Statistics(ITelemetrySystem& telemetrySystem);
+        Statistics(ITelemetrySystem& telemetrySystem);
         ~Statistics();
 
     protected:

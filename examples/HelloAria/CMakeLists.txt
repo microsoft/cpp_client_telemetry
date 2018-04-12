@@ -9,9 +9,8 @@ project(HelloAria)
 
 # Point example to SDK dirs for x86_64 Desktop
 set(ARIA_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
-
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -std=c11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -std=c++11")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
 
 find_package (Threads)
 
