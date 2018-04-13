@@ -43,7 +43,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
     SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
@@ -75,7 +75,7 @@ TEST_F(HttpClientManagerTests, CancelAbortsRequests)
 {
     SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";

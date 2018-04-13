@@ -150,7 +150,7 @@ namespace testing {
                     int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
                     if ((res != Z_OK) || (len != destLen))
                     {
-                        printf/*LOG_ERROR*/("Decompression failed, error=%d, len=%u, destLen=%u", res, len, destLen);
+                        printf/*LOG_ERROR*/("Decompression failed, error=%d, len=%u, destLen=%u", res, len, (unsigned int)destLen);
                         delete[] decompBody;
                         return false;
                     }

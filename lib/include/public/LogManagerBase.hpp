@@ -1,6 +1,11 @@
 #ifndef ARIA_LOGMANAGER_HPP
 #define ARIA_LOGMANAGER_HPP
 // Copyright (c) Microsoft. All rights reserved.
+
+// TODO: [MG] - temporary workaround for error: ISO C++ does not permit ‘XXX::foo’ to be defined as ‘YYY::foo’
+// This error is benign and this syntax is allowed by MSVC and clang. We utilize this down there below to
+// instantiate a private singleton using a macro and a template.
+
 #pragma warning(push)
 #pragma warning(disable:4459 4100 4121 4244)
 
@@ -21,7 +26,7 @@ public:
         LM_LOCKGUARD(stateLock);                    \
         if (nullptr != instance)                    \
         {                                           \
-            instance-> method(##__VA_ARGS__);       \
+            instance-> method ( __VA_ARGS__);       \
             return EVTStatus_OK;                    \
         }                                           \
         return EVTStatus_Fail;                      \
@@ -32,7 +37,7 @@ public:
         LM_LOCKGUARD(stateLock);                    \
         if (nullptr != instance)                    \
         {                                           \
-            return instance-> method(##__VA_ARGS__);\
+            return instance-> method ( __VA_ARGS__);\
         }                                           \
         return nullptr;                             \
     }
@@ -42,7 +47,7 @@ public:
         LM_LOCKGUARD(stateLock);                    \
         if (nullptr != instance)                    \
         {                                           \
-            return &(instance-> method(##__VA_ARGS__));\
+            return &(instance-> method ( __VA_ARGS__));\
         }                                           \
         return nullptr;                             \
     }
@@ -52,7 +57,7 @@ public:
         LM_LOCKGUARD(stateLock);                    \
         if (nullptr != instance)                    \
         {                                           \
-            instance-> method(##__VA_ARGS__));      \
+            instance-> method ( __VA_ARGS__);      \
             return;                                 \
         }                                           \
     }
@@ -72,6 +77,9 @@ namespace ARIASDK_NS_BEGIN
     template <class ModuleConfiguration> class LogManagerBase
     {
         static_assert(std::is_base_of<ILogConfiguration, ModuleConfiguration>::value, "ModuleConfiguration must derive from LogConfiguration");
+
+    public:
+        using basetype = LogManagerBase<ModuleConfiguration>;
 
     protected:
 
@@ -476,18 +484,20 @@ namespace ARIASDK_NS_BEGIN
 
 // Implements LogManager<T> singleton template static  members
 #ifdef _MANAGED
-#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)           \
-    ILogManager*            LogManagerClass::instance;                      \
-    std::string             LogManagerClass::primaryToken;                  \
-    LogConfigurationClass   LogManagerClass::currentConfig;                 \
+// XXX: [MG] - this declaration works fine with MSVC...
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                           \
+    ILogManager*            LogManagerClass::instance;                                      \
+    std::string             LogManagerClass::primaryToken;                                  \
+    LogConfigurationClass   LogManagerClass::currentConfig;                                 \
     DebugEventSource        LogManagerClass::debugEventSource;
 #else
-#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)     \
-    ILogManager*            LogManagerClass::instance;                \
-    std::mutex              LogManagerClass::stateLock;               \
-    std::string             LogManagerClass::primaryToken;            \
-    LogConfigurationClass   LogManagerClass::currentConfig;           \
-    DebugEventSource        LogManagerClass::debugEventSource;
+// XXX: [MG] - ... but gcc is more strict and requires this syntax that is ISO C++ -compliant
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
+    template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};              \
+    template<> std::mutex              LogManagerBase<LogConfigurationClass>::stateLock {};             \
+    template<> std::string             LogManagerBase<LogConfigurationClass>::primaryToken {};          \
+    template<> LogConfigurationClass   LogManagerBase<LogConfigurationClass>::currentConfig {};         \
+    template<> DebugEventSource        LogManagerBase<LogConfigurationClass>::debugEventSource {};
 #endif
 
 } ARIASDK_NS_END

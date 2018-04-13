@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class IncomingEventContext {
     public:
-        ::AriaProtocol::Record* source;
+        ::AriaProtocol::Record*  source;
         StorageRecord            record;
         std::uint64_t            policyBitFlags;
 

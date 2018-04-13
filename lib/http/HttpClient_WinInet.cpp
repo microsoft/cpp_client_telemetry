@@ -131,9 +131,7 @@ class WinInetRequestWrapper
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
-#ifndef _DEBUG
         UNREFERENCED_PARAMETER(dwStatusInformationLength);  // Only used inside an assertion
-#endif
         OACR_USE_PTR(hInternet);
 
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);

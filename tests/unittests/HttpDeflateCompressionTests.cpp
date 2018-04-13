@@ -72,7 +72,7 @@ static std::vector<uint8_t> testPayload = { 1, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
     config["http"]["compress"] = false;
-    EventsUploadContextPtr event = EventsUploadContext::create();
+    EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
 
@@ -86,7 +86,7 @@ TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 {
     config["http"]["compress"] = true;
-    EventsUploadContextPtr event = EventsUploadContext::create();
+    EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
 
@@ -103,7 +103,7 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 {
     config["http"]["compress"] = true;
-    EventsUploadContextPtr event = EventsUploadContext::create();
+    EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = {};
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);
@@ -112,7 +112,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     EXPECT_THAT(event->compressed, true);
 
     {
-        EventsUploadContextPtr event2 = EventsUploadContext::create();
+        EventsUploadContextPtr event2 = new EventsUploadContext();
         EXPECT_THAT(event2->compressed, false);
         event2->body = testPayload;
         EXPECT_CALL(*this, resultSucceeded(event2)).Times(1);
@@ -126,7 +126,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 
     {
         std::vector<uint8_t> testPayload2 = {};
-        EventsUploadContextPtr event3 = EventsUploadContext::create();
+        EventsUploadContextPtr event3 = new EventsUploadContext();
         EXPECT_THAT(event3->compressed, false);
         event3->body = testPayload2;
         EXPECT_CALL(*this, resultSucceeded(event3)).Times(1);
@@ -162,7 +162,7 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 #pragma warning( pop ) 
     size_t const size = sizeof(bond) - 1;
 
-    EventsUploadContextPtr event = EventsUploadContext::create();
+    EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body.assign(reinterpret_cast<uint8_t const*>(bond), reinterpret_cast<uint8_t const*>(bond) + size);
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);

@@ -65,7 +65,7 @@ TEST_F(OfflineStorageTests, StopShutsDown)
 
 TEST_F(OfflineStorageTests, StoreRecordIsForwarded)
 {
-    auto ctx = IncomingEventContext::create();
+    auto ctx = new IncomingEventContext();
 
     EXPECT_CALL(offlineStorageMock, StoreRecord(Ref(ctx->record)))
         .WillOnce(Return(true));
@@ -81,7 +81,7 @@ TEST_F(OfflineStorageTests, StoreRecordIsForwarded)
 
 TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     ctx->requestedMinLatency = EventLatency_Normal;
     ctx->requestedMaxCount = 6;
 
@@ -115,7 +115,7 @@ TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)
 
 TEST_F(OfflineStorageTests, RetrieveEventsFailureAborts)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     ctx->requestedMinLatency = EventLatency_Normal;
     ctx->requestedMaxCount = 6;
 
@@ -130,7 +130,7 @@ TEST_F(OfflineStorageTests, RetrieveEventsFailureAborts)
 
 TEST_F(OfflineStorageTests, DeleteRecordsIsForwarded)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     HttpHeaders test;
     bool fromMemory = false;
     std::vector<std::string> recordIds;
@@ -145,7 +145,7 @@ TEST_F(OfflineStorageTests, DeleteRecordsIsForwarded)
 
 TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     HttpHeaders test;
     bool fromMemory = false;
     std::vector<std::string> recordIds;

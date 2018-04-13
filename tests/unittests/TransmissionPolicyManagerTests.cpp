@@ -23,7 +23,7 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     void uploadScheduled(bool state) { m_isUploadScheduled = state; }
 
     std::set<EventsUploadContextPtr> const& activeUploads() const { return m_activeUploads; }
-	EventsUploadContextPtr fakeActiveUpload() { auto ctx = EventsUploadContext::create(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
+	EventsUploadContextPtr fakeActiveUpload() { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
@@ -81,7 +81,7 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventDoesNothingWhenPaused)
 {
     tpm.paused(true);
 
-    auto event = IncomingEventContext::create();
+    auto event = new IncomingEventContext();
     tpm.eventArrived(event);
 }
 
@@ -89,7 +89,7 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
 {
     tpm.paused(false);
 
-    auto event = IncomingEventContext::create();
+    auto event = new IncomingEventContext();
     event->record.latency = EventLatency_Normal;
     EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal))
         .WillOnce(Return());
@@ -100,14 +100,14 @@ TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmedia
 {
     tpm.paused(false);
 
-    auto event = IncomingEventContext::create();
+    auto event = new IncomingEventContext();
     event->record.latency = EventLatency_Max;
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
     tpm.eventArrived(event);
 
-    ASSERT_THAT(upload.get(), NotNull());
+    ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(upload->requestedMinLatency, EventLatency_Max);
 }
 
@@ -157,7 +157,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     tpm.uploadAsync(EventLatency_Normal);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
-    EXPECT_THAT(upload.get(), NotNull());
+    EXPECT_THAT(upload, NotNull());
     EXPECT_THAT(tpm.activeUploads(), Contains(upload));
 }
 
