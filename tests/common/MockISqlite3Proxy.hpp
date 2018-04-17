@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
+
+#include "sqlite3.h"
 #include "offline/ISqlite3Proxy.hpp"
 #include "pal\PAL_Win32.hpp"
 

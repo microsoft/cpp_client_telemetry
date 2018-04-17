@@ -221,7 +221,7 @@ int main()
         event.SetProperty("result", "Success");
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
-        event.SetProperty("seq", i);
+        event.SetProperty("seq", (uint64_t)i);
 
         samplingTest();
 

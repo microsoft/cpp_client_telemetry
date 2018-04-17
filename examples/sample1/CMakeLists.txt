@@ -5,20 +5,20 @@ project(sample1)
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 
 # For ARM / Raspberry Pi 3 cross-compile
-# set(MSEVENTS_SDK_LIB       /usr/local/lib/armv7l-linux-gnu)
+# set(ARIA_SDK_LIB       /usr/local/lib/armv7l-linux-gnu)
 
 # Point example to SDK dirs for x86_64 Desktop
-set(MSEVENTS_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+set(ARIA_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -std=c11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -std=c++11")
 
 find_package (Threads)
 
-set(MSEVENTS_SDK_INCLUDE	/usr/local/include/msevents)
+set(ARIA_SDK_INCLUDE	/usr/local/include/aria)
 
 # Add SDK to include dirs
-include_directories( . ${MSEVENTS_SDK_INCLUDE} )
+include_directories( . ${ARIA_SDK_INCLUDE} )
 
 # Link main.cpp to executable
 add_executable(sample1 main.cpp DebugCallback.cpp)
@@ -32,5 +32,5 @@ set (SQLITE3_LIB "sqlite3")
 endif()
 
 #tcmalloc turned off
-#target_link_libraries(sample1 ${MSEVENTS_SDK_LIB}/libmsevents.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
-target_link_libraries(sample1 ${MSEVENTS_SDK_LIB}/libmsevents.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl)
+#target_link_libraries(sample1 ${ARIA_SDK_LIB}/libaria.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
+target_link_libraries(sample1 ${ARIA_SDK_LIB}/libaria.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl)

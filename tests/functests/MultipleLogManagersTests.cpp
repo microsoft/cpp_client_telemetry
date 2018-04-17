@@ -6,7 +6,7 @@
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
-#include "../../sqlite/sqlite3.h"
+#include "sqlite3.h"
 
 using namespace testing;
 using namespace ARIASDK_NS;

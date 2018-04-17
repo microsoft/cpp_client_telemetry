@@ -364,7 +364,7 @@ namespace ARIASDK_NS_BEGIN {
                     }
                 }
             }
-            LOG_TRACE("Record=%p decorated with SemanticContext=%p", record, this);
+            LOG_TRACE("Record=%p decorated with SemanticContext=%p", &record, this);
         }
     }
 
