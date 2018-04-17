@@ -152,6 +152,7 @@ namespace PAL_NS_BEGIN {
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+
 #pragma warning(push)
 #pragma warning(disable:4996)
         void log(LogLevel level, char const* component, char const* fmt, ...)
@@ -162,7 +163,7 @@ namespace PAL_NS_BEGIN {
             static char const levels[] = "?EWID";
             char buffer[2048] = { 0 };
 
-#if 0       /* Old implementation */
+#ifdef _WIN32
             SYSTEMTIME st;
             ::GetSystemTime(&st);
 
@@ -437,7 +438,7 @@ namespace PAL_NS_BEGIN {
 
     int64_t getUtcSystemTimeinTicks()
     {
-#if 0
+#ifdef _WIN32
         FILETIME tocks;
         ::GetSystemTimeAsFileTime(&tocks);
         ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;

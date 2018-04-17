@@ -163,7 +163,7 @@ namespace PAL_NS_BEGIN {
             static char const levels[] = "?EWID";
             char buffer[2048] = { 0 };
 
-#if 1       /* Old implementation */
+#ifdef _WIN32
             SYSTEMTIME st;
             ::GetSystemTime(&st);
 
