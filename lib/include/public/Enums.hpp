@@ -11,20 +11,27 @@
 namespace ARIASDK_NS_BEGIN {
 
     /// <summary> 
-    /// The EVTStatus enumeration contains a set of status code. 
+    /// The status_t enumeration contains a set of status code. 
     /// </summary> 
-    enum EVTStatus
+    enum status_t
     {
-        /// <summary>Not supported.</summary> 
-        EVTStatus_NotSupported = -2,
         /// <summary>General failure</summary> 
-        EVTStatus_Fail = -1,
-        /// <summary>Success.</summary> 
-        EVTStatus_OK = 0,
-        /// <summary>Already Initialized</summary> 
-        EVTStatus_AlreadyInitialized = 1,
-        /// <summary>No action done</summary> 
-        EVTStatus_NoOp = 2,
+        STATUS_EFAIL    = -1,
+
+        /// <summary>Success.</summary>
+        STATUS_SUCCESS  = 0,
+
+        /// <summary>Permission denied</summary> 
+        STATUS_EPERM    = EPERM,
+
+        /// <summary>Already done / already in progress</summary> 
+        STATUS_EALREADY = EALREADY,
+
+        /// <summary>Not implemented or no-op</summary> 
+        STATUS_ENOSYS   = ENOSYS,
+
+        /// <summary>Not supported.</summary> 
+        STATUS_ENOTSUP  = ENOTSUP
     };
 
     enum DataCategory

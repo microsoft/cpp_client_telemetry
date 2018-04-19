@@ -37,11 +37,84 @@ namespace ARIASDK_NS_BEGIN
     };
 
     /// <summary>
-    /// This class is used to manage the Events  logging system
+    /// This class controls transmission and storage subsystems
     /// </summary>
-    class ARIASDK_LIBABI ILogManager:
+    class ARIASDK_LIBABI ILogController {
+
+    public:
+
+        /// <summary>
+        /// Flushes any pending telemetry events in memory to disk, and tears-down the telemetry logging system.
+        /// </summary>
+        virtual void FlushAndTeardown() = 0;
+
+        /// <summary>
+        /// Flushes any pending telemetry events in memory to disk, to reduce possible data loss.
+        /// This method can be expensive, so you should use it sparingly. The operating system blocks the calling thread
+        /// and might flush the global file buffers (all buffered file system data) to disk, which can be
+        /// time consuming.
+        /// </summary>
+        virtual status_t Flush() = 0;
+
+        /// <summary>
+        /// Pauses the transmission of events to the data collector.
+        /// While paused, events continue to be queued on the client, cached either in memory or on disk.
+        /// </summary>
+        virtual status_t PauseTransmission() = 0;
+
+        /// <summary>
+        /// Resumes the transmission of events to the data collector.
+        /// </summary>
+        virtual status_t ResumeTransmission() = 0;
+
+        /// <summary>
+        /// Attempts to send any pending telemetry events that are currently cached either in memory, or on disk.
+        /// </summary>
+        virtual status_t UploadNow() = 0;
+
+        /// <summary>
+        /// Sets the transmit profile for event transmission - to one of the built-in profiles.
+        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
+        /// based on which to determine how events are to be transmitted. 
+        /// </summary>
+        /// <param name="profile">Transmit profile, as one of the ::TransmitProfile enumeration values.</param>
+        /// <returns>This method doesn't return a value - because it always succeeds.</returns>
+        virtual status_t  SetTransmitProfile(TransmitProfile profile) = 0;
+
+        /// <summary>
+        /// Sets the transmit profile for event transmission.
+        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state, etc.).
+        /// </summary>
+        /// <param name="profile">A string that contains the transmit profile.</param>
+        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
+        virtual status_t  SetTransmitProfile(const std::string& profile) = 0;
+
+        /// <summary>
+        /// Loads transmit profiles formatted in JSON.
+        /// </summary>
+        /// <param name="profiles_json">A string that contains the transmit profiles in JSON.</param>
+        /// <returns>A boolean value that indicates success (true) or failure (false) if the configuration is invalid.</returns>
+        virtual status_t  LoadTransmitProfiles(const std::string& profiles_json) = 0;
+
+        /// <summary>
+        /// Resets transmission profiles to default settings.
+        /// </summary>
+        virtual status_t  ResetTransmitProfiles() = 0;
+
+        /// <summary>
+        /// Gets the name of the current transmit profile.
+        /// </summary>
+        virtual const std::string& GetTransmitProfileName() = 0;
+
+    };
+
+    /// <summary>
+    /// This class is used to manage the Events logging system
+    /// </summary>
+    class ARIASDK_LIBABI ILogManager :
         public IContextProvider,
-        public DebugEventDispatcher
+        public DebugEventDispatcher,
+        public ILogController
     {
     public:
 
@@ -53,8 +126,8 @@ namespace ARIASDK_NS_BEGIN
         static ILogManager* Create(ILogConfiguration& configuration);
 
         ///
-        static EVTStatus Destroy(ILogManager*);
-        
+        static status_t Destroy(ILogManager*);
+
         /// <summary>
         /// Dispatches event to this ILogManager instance.
         /// </summary>
@@ -77,69 +150,6 @@ namespace ARIASDK_NS_BEGIN
         ///
         virtual void Configure() = 0;
 
-        /// <summary>
-        /// Flushes any pending telemetry events in memory to disk, and tears-down the telemetry logging system.
-        /// </summary>
-        virtual void FlushAndTeardown() = 0;
-
-        /// <summary>
-        /// Flushes any pending telemetry events in memory to disk, to reduce possible data loss.
-        /// This method can be expensive, so you should use it sparingly. The operating system blocks the calling thread
-        /// and might flush the global file buffers (all buffered file system data) to disk, which can be
-        /// time consuming.
-        /// </summary>
-        virtual void Flush() = 0;
-
-        /// <summary>
-        /// Attempts to send any pending telemetry events that are currently cached either in memory, or on disk.
-        /// </summary>
-        virtual void UploadNow() = 0;
-
-        /// <summary>
-        /// Pauses the transmission of events to the data collector.
-        /// While paused, events continue to be queued on the client, cached either in memory or on disk.
-        /// </summary>
-        virtual void PauseTransmission() = 0;
-
-        /// <summary>
-        /// Resumes the transmission of events to the data collector.
-        /// </summary>
-        virtual void ResumeTransmission() = 0;
-
-        /// <summary>
-        /// Sets the transmit profile for event transmission - to one of the built-in profiles.
-        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
-        /// based on which to determine how events are to be transmitted. 
-        /// </summary>
-        /// <param name="profile">Transmit profile, as one of the ::TransmitProfile enumeration values.</param>
-        /// <returns>This method doesn't return a value - because it always succeeds.</returns>
-        virtual void  SetTransmitProfile(TransmitProfile profile) = 0;
-
-        /// <summary>
-        /// Sets the transmit profile for event transmission.
-        /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state, etc.).
-        /// </summary>
-        /// <param name="profile">A string that contains the transmit profile.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        virtual bool  SetTransmitProfile(const std::string& profile) = 0;
-
-        /// <summary>
-        /// Loads transmit profiles formatted in JSON.
-        /// </summary>
-        /// <param name="profiles_json">A string that contains the transmit profiles in JSON.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false) if the configuration is invalid.</returns>
-        virtual bool  LoadTransmitProfiles(const std::string& profiles_json) = 0;
-
-        /// <summary>
-        /// Resets transmission profiles to default settings.
-        /// </summary>
-        virtual void  ResetTransmitProfiles() = 0;
-
-        /// <summary>
-        /// Gets the name of the current transmit profile.
-        /// </summary>
-        virtual const std::string& GetTransmitProfileName() = 0;
-
         /// Retrieve an ISemanticContext interface through which to specify context information
         /// such as device, system, hardware and user information.
         /// Context information set via this API will apply to all logger instance unless they
@@ -156,7 +166,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="name">Name of the context property</param>
         /// <param name="value">String value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-        virtual EVTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the custom context for the telemetry logging system.
@@ -166,21 +176,21 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="name">Name of the context property</param>
         /// <param name="value">Value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-        virtual EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">Double value of the property</param>
-        virtual EVTStatus  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t  SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit Integer value of the property</param>
-        virtual EVTStatus  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t  SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -188,7 +198,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit Integer value of the property</param>
-        virtual EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -196,7 +206,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit Integer value of the property</param>
-        virtual EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -204,7 +214,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit Integer value of the property</param>
-        virtual  EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual  status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -212,7 +222,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit unsigned integer value of the property</param>
-        virtual  EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual  status_t SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -220,7 +230,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit unsigned integer value of the property</param>
-        virtual  EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual  status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -228,7 +238,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit unsigned integer value of the property</param>
-        virtual  EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual  status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.<br>
@@ -236,28 +246,28 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit unsigned integer value of the property</param>
-        virtual  EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual  status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">Boolean value of the property</param>
-        virtual EVTStatus  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t  SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or  = 0s a property of the global context.
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">.NET time ticks</param>
-        virtual EVTStatus  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t  SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Adds or overrides a property of the global context.
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">GUID</param>
-        virtual EVTStatus  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) = 0;
+        virtual status_t  SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which you can log telemetry events.
@@ -269,14 +279,14 @@ namespace ARIASDK_NS_BEGIN
         /// whose configuration IDs are associated with events sent by this ILogger.</param>
         /// <returns>A pointer to the ILogger instance.</returns>
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) = 0;
-        
+
         /// <summary>
         /// Adds the event listener.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="listener">The listener.</param>
         virtual void AddEventListener(DebugEventType type, DebugEventListener &listener) = 0;
-        
+
         /// <summary>
         /// Removes the event listener.
         /// </summary>
@@ -302,7 +312,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterCount">The number of strings in filterStrings</param>
         /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
         /// </summary>
-        virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
 
         /// <summary>
         /// Set tenant-specific event exclusion filter
@@ -312,7 +322,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterCount">The number of strings, integers in filterStrings, filterRates</param>
         /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
         /// </summary>
-        virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
 
     };
 

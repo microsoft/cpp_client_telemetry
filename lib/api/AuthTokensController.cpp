@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
         LOG_INFO("destructor");
     }
 
-    EVTStatus  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
+    status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
     {
         if (nullptr != tokenValue)
         {
@@ -35,23 +35,23 @@ namespace ARIASDK_NS_BEGIN {
                 m_tickets.push_back(TICKETS_PREPEND_STRING + std::to_string(type));
                 m_userTokens[type] = std::string(tokenValue);
             }
-            return EVTStatus::EVTStatus_OK;
+            return STATUS_SUCCESS;
         }
-        return EVTStatus::EVTStatus_Fail;
+        return STATUS_EFAIL;
     }
 
-    EVTStatus  AuthTokensController::Clear()
+    status_t  AuthTokensController::Clear()
     {
         m_deviceTokens.clear();
         m_userTokens.clear();
         m_tickets.clear();
-        return EVTStatus::EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
-    EVTStatus  AuthTokensController::SetStrictMode(bool value)
+    status_t  AuthTokensController::SetStrictMode(bool value)
     {
         m_IsStrictModeEnabled = value;
-        return EVTStatus::EVTStatus_OK;
+        return STATUS_EFAIL;
     }
 
     bool  AuthTokensController::GetStrictMode()

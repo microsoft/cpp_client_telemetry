@@ -6,7 +6,7 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogManager * LogManagerProvider::GetLogManager(
         ILogConfiguration & config,
-        EVTStatus &status
+        status_t &status
 #ifdef ANDROID
         , JNIEnv * env
         , jclass contextClass
@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
     // TODO: consider utilizing a default reference
     ILogManager* LogManagerProvider::GetLogManager(
         const char * moduleName,
-        EVTStatus& status
+        status_t& status
 #ifdef ANDROID
         JNIEnv *env,
         jclass contextClass,
@@ -35,7 +35,7 @@ namespace ARIASDK_NS_BEGIN {
     /// Releases the LogManager identified by moduleName
     /// <param name="moduleName">Module name</param> 
     /// </summary> 
-    EVTStatus LogManagerProvider::Release(const char * moduleName)
+    status_t LogManagerProvider::Release(const char * moduleName)
     {
         return LogManagerFactory::Release(moduleName);
     }
@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="logConfiguration">The log configuration.</param>
     /// <returns></returns>
-    EVTStatus LogManagerProvider::Release(ILogConfiguration & config)
+    status_t LogManagerProvider::Release(ILogConfiguration & config)
     {
         return LogManagerFactory::Release(config);
     }

@@ -237,53 +237,62 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     }
 
-    void LogManagerImpl::Flush()
+    status_t LogManagerImpl::Flush()
     {
         // FIXME: [MG] - this wasn't implemented for OneSDK!!
         LOG_ERROR("Flush() is not implemented");
+        return STATUS_ENOSYS;
     }
 
-    void LogManagerImpl::UploadNow()
+    status_t LogManagerImpl::UploadNow()
     {
         if (m_system)
         {
             m_system->upload();
         }
+        // FIXME: [MG] - make sure m_system->upload returns a status
+        return STATUS_SUCCESS;
     }
 
-    void LogManagerImpl::PauseTransmission()
+    status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
         if (m_system)
         {
             m_system->pause();
         }
+        // FIXME: [MG] - make sure m_system->pause returns a status
+        return STATUS_SUCCESS;
     }
 
-    void LogManagerImpl::ResumeTransmission()
+    status_t LogManagerImpl::ResumeTransmission()
     {
         LOG_INFO("Resuming transmission...");
         if (m_system)
         {
             m_system->resume();
         }
+        // FIXME: [MG] - make sure m_system->resume returns a status
+        return STATUS_SUCCESS;
     }
 
     /// <summary>Sets the transmit profile by enum</summary>
     /// <param name="profile">Profile enum</param>
-    void LogManagerImpl::SetTransmitProfile(TransmitProfile profile)
+    status_t LogManagerImpl::SetTransmitProfile(TransmitProfile profile)
     {
-        TransmitProfiles::setDefaultProfile(profile);
+        bool result = TransmitProfiles::setDefaultProfile(profile);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
     /// <summary>
     /// Select one of several predefined transmission profiles.
     /// </summary>
     /// <param name="profile"></param>
-    bool LogManagerImpl::SetTransmitProfile(const std::string& profile)
+    status_t LogManagerImpl::SetTransmitProfile(const std::string& profile)
     {
         LOG_INFO("SetTransmitProfile: profile=%s", profile.c_str());
-        return TransmitProfiles::setProfile(profile);
+        bool result = TransmitProfiles::setProfile(profile);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
     /// <summary>
@@ -291,19 +300,21 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="profiles_json">JSON config (see example above)</param>
     /// <returns>true on successful profiles load, false if config is invalid</returns>
-    bool LogManagerImpl::LoadTransmitProfiles(const std::string& profiles_json)
+    status_t LogManagerImpl::LoadTransmitProfiles(const std::string& profiles_json)
     {
         LOG_INFO("LoadTransmitProfiles");
-        return TransmitProfiles::load(profiles_json);
+        bool result = TransmitProfiles::load(profiles_json);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
     /// <summary>
     /// Reset transmission profiles to default settings
     /// </summary>
-    void LogManagerImpl::ResetTransmitProfiles()
+    status_t LogManagerImpl::ResetTransmitProfiles()
     {
         LOG_INFO("ResetTransmitProfiles");
         TransmitProfiles::reset();
+        return STATUS_SUCCESS;
     }
 
     const std::string& LogManagerImpl::GetTransmitProfileName()
@@ -322,12 +333,12 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(std::string const& name, std::string const& value, PiiKind piiKind)
+    status_t LogManagerImpl::SetContext(std::string const& name, std::string const& value, PiiKind piiKind)
     {
         LOG_TRACE("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     /// <summary>
@@ -336,12 +347,12 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(const std::string& name, double value, PiiKind piiKind)
+    status_t LogManagerImpl::SetContext(const std::string& name, double value, PiiKind piiKind)
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     /// <summary>
@@ -350,11 +361,11 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(const std::string& name, int64_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, int64_t value, PiiKind piiKind) {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     /// <summary>
@@ -363,11 +374,11 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(const std::string& name, bool value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, bool value, PiiKind piiKind) {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     /// <summary>
@@ -376,11 +387,11 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind) {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     /// <summary>
@@ -389,11 +400,11 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    EVTStatus LogManagerImpl::SetContext(const std::string& name, GUID_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, GUID_t value, PiiKind piiKind) {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
-        return EVTStatus_OK;
+        return STATUS_SUCCESS;
     }
 
     ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject)
@@ -455,17 +466,6 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (m_system)
         {
-            // event->source->ver = "3.0";
-            // event->source->extProtocol[0].devMake = "Hewlett-Packard";
-            // event->source->extProtocol[0].devModel = "HP Z230 Tower Workstation";
-            // event->source->extDevice[0].localId = "m:{c976a4cf-be88-493b-a834-00d0e49689d6}";
-            // event->source->extOs[0].name = "Windows Desktop";
-            // event->source->extOs[0].ver = "10.0.16299.15.x86fre.rs3_release.170928-1534";
-            // event->source->extApp[0].id = "HelloAria";
-            // event->source->extNet[0].cost = "Unmetered";
-            // event->source->extNet[0].type = "Unknown";
-            // event->source->extSdk[0].installId = "A30E6B04-7073-4FE1-AEE1-716E48494D17";
-
             m_system->sendEvent(event);
         }
     }
@@ -481,12 +481,12 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-    EVTStatus LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
+    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
     {
         return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterCount);
     }
 
-    EVTStatus LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
     {
         return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterRates, filterCount);
     }

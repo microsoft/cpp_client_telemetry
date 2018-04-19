@@ -48,11 +48,11 @@ namespace ARIASDK_NS_BEGIN
         return result;
     }
 
-    EVTStatus EventFilter::SetExclusionFilter(const char** filterStrings, uint32_t filterCount)
+    status_t EventFilter::SetExclusionFilter(const char** filterStrings, uint32_t filterCount)
     {
         if (filterCount > 0 && nullptr == filterStrings)
         {
-            return EVTStatus_Fail; // SetExclusionFilterResult::ErrorBadInput;
+            return STATUS_EFAIL; // SetExclusionFilterResult::ErrorBadInput;
         }
 
         std::vector<uint32_t> filterRates;
@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN
         return SetExclusionFilter(filterStrings, filterRates.data(), filterCount);
     }
 
-    EVTStatus EventFilter::SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+    status_t EventFilter::SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
     {
         /*
             TODO:
@@ -81,7 +81,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (filterCount > 0 && nullptr == filterStrings)
         {
-            return EVTStatus_Fail; // SetExclusionFilterResult::ErrorBadInput;
+            return STATUS_EFAIL; // SetExclusionFilterResult::ErrorBadInput;
         }
 
         Reset();
@@ -96,7 +96,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        return EVTStatus_OK; // SetExclusionFilterResult::Success;
+        return STATUS_SUCCESS; // SetExclusionFilterResult::Success;
     }
 
 } ARIASDK_NS_END

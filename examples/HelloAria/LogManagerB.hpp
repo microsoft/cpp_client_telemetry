@@ -1,8 +1,5 @@
 #pragma once
-
 #include "LogManager.hpp"
-using namespace std;
-
 namespace ARIASDK_NS_BEGIN {
     class ModuleB : public ILogConfiguration {};
     class LogManagerB : public LogManagerBase<ModuleB> {};

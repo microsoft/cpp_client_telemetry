@@ -7,8 +7,6 @@
 #include <cstdlib>
 
 #include "LogManager.hpp"
-#include "LogManagerA.hpp"
-#include "LogManagerB.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -19,6 +17,8 @@
 LOGMANAGER_INSTANCE
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+
+extern "C" void guestTest();    // see guest.cpp
 
 /**
 * All v1.x legacy API compile-time checks in alphabetic order
@@ -129,34 +129,9 @@ inline void sleep(unsigned delayMs)
 
 #include "LogManager.hpp"
 
-using namespace Microsoft::Applications::Telemetry;
+using namespace MAT;
 
 MyDebugEventListener listener;
-
-void guestTest()
-{
-
-    {
-        auto& config = LogManagerA::GetLogConfiguration();
-        config["name"] = "ModuleA";
-        config["version"] = "1.2.5";
-        config["config"]["host"] = "*"; // Any host
-    }
-
-    {
-        auto& config = LogManagerB::GetLogConfiguration();
-        config["name"] = "ModuleB";
-        config["version"] = "1.2.5";
-        config["config"]["host"] = "*"; // Any host
-    }
-
-    auto loggerA = LogManagerA::Initialize(TOKEN);
-    auto loggerB = LogManagerB::Initialize(TOKEN);
-
-    loggerA->LogEvent("HelloFromModuleA");
-    loggerB->LogEvent("HelloFromModuleB");
-
-}
 
 int main()
 {

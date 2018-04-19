@@ -25,17 +25,17 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual EVTStatus  SetTicketToken(TicketType type, char const* tokenValue) = 0;
+        virtual status_t  SetTicketToken(TicketType type, char const* tokenValue) = 0;
 
         /// <summary>
         /// Clears all tokens.
         /// </summary>
-        virtual EVTStatus  Clear() = 0;
+        virtual status_t  Clear() = 0;
 
         /// <summary>
         /// sets strict mode for application( all tokens in that app).
         /// </summary>
-        virtual EVTStatus  SetStrictMode(bool value) = 0;
+        virtual status_t  SetStrictMode(bool value) = 0;
 
         /// <summary>
         /// gets strict mode for application.

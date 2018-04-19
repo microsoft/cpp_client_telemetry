@@ -39,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="instance">The instance.</param>
     /// <returns></returns>
-    EVTStatus ILogManager::Destroy(ILogManager *instance)
+    status_t ILogManager::Destroy(ILogManager *instance)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
         auto it = ILogManagerInternal::managers.find(instance);
@@ -47,9 +47,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             ILogManagerInternal::managers.erase(it);
             delete instance;
-            return EVTStatus_OK;
+            return STATUS_SUCCESS;
         }
-        return EVTStatus_Fail;
+        return STATUS_EFAIL;
     }
 
     // Move guests from ROOT to the new host home
@@ -103,6 +103,7 @@ namespace ARIASDK_NS_BEGIN {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
                 exclusive[name] = { { name }, ILogManager::Create(c) };
+            c["hostMode"] = true;
             return exclusive[name].second;
         }
 
@@ -112,6 +113,7 @@ namespace ARIASDK_NS_BEGIN {
             // There are some items already. This guest doesn't care
             // where to go, so it goes to the first host's pool.
             shared[shared.begin()->first].first.insert(name);
+            c["hostMode"] = false;
             return shared[shared.begin()->first].second;
         }
 
@@ -135,6 +137,10 @@ namespace ARIASDK_NS_BEGIN {
                 // Host already exists, so simply add the new item to it
                 shared[host].first.insert(name);
             }
+
+        // TODO: [MG] - if there was no module configuration supplied
+        // explicitly, then do we treat the client as host or guest?
+        c["hostMode"] = (name==host);
         return shared[host].second;
     }
 

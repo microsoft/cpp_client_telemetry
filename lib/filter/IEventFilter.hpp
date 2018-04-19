@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterCount">The number of strings in filterStrings</param>
         /// <return>A positive value on success, a negative value on failure. Never returns 0</return>
         /// </summary>
-        virtual EVTStatus SetExclusionFilter(const char** filterStrings, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char** filterStrings, uint32_t filterCount) = 0;
         
         /// <summary>
         /// Sets the exclusion filter.
@@ -54,7 +54,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterRates">The filter rates.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        virtual EVTStatus SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
     };
 
     /// <summary>
@@ -72,7 +72,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterCount">The number of strings in filterStrings</param>
         /// <return>A positive value on success, a negative value on failure. Never returns 0</return>
         /// </summary>
-        virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
         
         /// <summary>
         /// Sets the exclusion filter.
@@ -82,7 +82,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterRates">The filter rates.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        virtual EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
+        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
 
         /// <summary>
         /// Get (create if needed) the IEventFilter associated with the specified tenant

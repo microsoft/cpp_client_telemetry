@@ -4,6 +4,7 @@
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
+#include "NullObjects.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -19,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
 
         static ILogManager * GetLogManager(
             ILogConfiguration & logConfiguration,
-            EVTStatus &status
+            status_t &status
 #ifdef ANDROID
             , JNIEnv * env
             , jclass contextClass
@@ -29,7 +30,7 @@ namespace ARIASDK_NS_BEGIN {
 
         static ILogManager* GetLogManager(
             const char * moduleName,
-            EVTStatus& status
+            status_t& status
 #ifdef ANDROID
             JNIEnv *env,
             jclass contextClass,
@@ -41,9 +42,9 @@ namespace ARIASDK_NS_BEGIN {
         /// Removes LogManager created with moduleName
         /// <param name="moduleName">Module name</param> 
         /// </summary> 
-        static EVTStatus Release(const char * moduleName);
+        static status_t Release(const char * moduleName);
         
-        static EVTStatus Release(ILogConfiguration & logConfiguration);
+        static status_t Release(ILogConfiguration & logConfiguration);
     };
 
 } ARIASDK_NS_END

@@ -27,9 +27,9 @@ public:
         if (nullptr != instance)                    \
         {                                           \
             instance-> method ( __VA_ARGS__);       \
-            return EVTStatus_OK;                    \
+            return STATUS_SUCCESS;                  \
         }                                           \
-        return EVTStatus_Fail;                      \
+        return STATUS_EFAIL;                        \
     }
 
 #define LM_SAFE_CALL_PTR(method , ... )             \
@@ -72,6 +72,13 @@ public:
 namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
+    /// This configuration flag is populated by SDK to indicate if this singleton instance
+    /// is running in "host" mode and all LogController methods should be accessible to the
+    /// caller.
+    /// </summary>
+    static constexpr const char * HOST_MODE = "hostMode";
+
+    /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
     template <class ModuleConfiguration> class LogManagerBase
@@ -105,10 +112,11 @@ namespace ARIASDK_NS_BEGIN
 
     protected:
 
-        /// <summary>
-        /// Lock used for executing singleton state-management methods in a thread-safe manner
-        /// </summary>
 #ifndef _MANAGED
+        /// <summary>
+        /// Native code lock used for executing singleton state-management methods in a thread-safe manner.
+        /// Managed code uses a different LogManagerLock.
+        /// </summary>
         static std::mutex           stateLock;
 #endif
 
@@ -122,6 +130,11 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static ModuleConfiguration  currentConfig;
 
+        static inline bool isHost()
+        {
+            return currentConfig[HOST_MODE];
+        }
+
         /// <summary>
         /// Concrete instance for servicing all singleton calls
         /// </summary>
@@ -134,6 +147,9 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
+        /// <summary>
+        /// Returns this module LogConfiguration
+        /// </summary>
         static ILogConfiguration& GetLogConfiguration()
         {
             return currentConfig;
@@ -157,7 +173,7 @@ namespace ARIASDK_NS_BEGIN
                     currentConfig.insert(configuration.begin(), configuration.end());
                 }
 
-                EVTStatus status = EVTStatus_OK;
+                status_t status = STATUS_SUCCESS;
                 instance = LogManagerProvider::GetLogManager(currentConfig, status);
                 if (tenantToken.empty())
                 {
@@ -182,12 +198,12 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
         /// </summary>
-        static EVTStatus FlushAndTeardown()
+        static status_t FlushAndTeardown()
         {
-#if 0       // Safe approach
+#ifdef NO_TEARDOWN // Avoid destroying our ILogManager instance on teardown
             LM_SAFE_CALL(Flush);
             LM_SAFE_CALL(UploadNow);
-            return EVTStatus_OK;
+            return STATUS_SUCCESS;
 #else       // Less safe approach, but this is in alignment with original v1 behavior
             // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
             auto callFTD = []() LM_SAFE_CALL(FlushAndTeardown);
@@ -201,11 +217,24 @@ namespace ARIASDK_NS_BEGIN
 #endif
         }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// SDK_GUEST_MODE is a special flag that enforces all the restrictions of a Guest API set.   //
+// Library module that has no control of event flow functionality should define this at      //
+// compile time. If there is a piece of code logic that requires the LogController API set,  //
+// then the module should call GetController() method, which will return an instance that    //
+// allows to control all the aspects of the log flow.                                        //
+///////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef SDK_GUEST_MODE
+
         /// <summary>
         /// Try to send any pending telemetry events in memory or on disk.
         /// </summary>
-        static EVTStatus UploadNow()
-            LM_SAFE_CALL(UploadNow);
+        static status_t UploadNow()
+        {
+            if (isHost())
+                LM_SAFE_CALL(UploadNow);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
@@ -213,21 +242,33 @@ namespace ARIASDK_NS_BEGIN
         /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
         /// time consuming.
         /// </summary>
-        static EVTStatus Flush()
-            LM_SAFE_CALL(Flush);
+        static status_t Flush()
+        {
+            if (isHost())
+                LM_SAFE_CALL(Flush);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Pauses the transmission of events to data collector.
         /// While pasued events will continue to be queued up on client side in cache (either in memory or on disk file).
         /// </summary>
-        static EVTStatus PauseTransmission()
-            LM_SAFE_CALL(PauseTransmission);
+        static status_t PauseTransmission()
+        {
+            if (isHost())
+                LM_SAFE_CALL(PauseTransmission);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Resumes the transmission of events to data collector.
         /// </summary>
-        static EVTStatus ResumeTransmission()
-            LM_SAFE_CALL(ResumeTransmission);
+        static status_t ResumeTransmission()
+        {
+            if (isHost())
+                LM_SAFE_CALL(ResumeTransmission);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Sets transmit profile for event transmission to one of the built-in profiles.
@@ -236,8 +277,12 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="profile">Transmit profile</param>
         /// <returns>This function doesn't return any value because it always succeeds.</returns>
-        static EVTStatus SetTransmitProfile(TransmitProfile profile)
-            LM_SAFE_CALL(SetTransmitProfile, profile);
+        static status_t SetTransmitProfile(TransmitProfile profile)
+        {
+            if (isHost())
+                LM_SAFE_CALL(SetTransmitProfile, profile);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Sets transmit profile for event transmission.
@@ -246,22 +291,36 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="profile">Transmit profile</param>
         /// <returns>true if profile is successfully applied, false otherwise</returns>
-        static EVTStatus SetTransmitProfile(const std::string& profile)
-            LM_SAFE_CALL(SetTransmitProfile, profile);
+        static status_t SetTransmitProfile(const std::string& profile)
+        {
+            if (isHost())
+                LM_SAFE_CALL(SetTransmitProfile, profile);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Load transmit profiles from JSON config
         /// </summary>
         /// <param name="profiles_json">JSON config (see example above)</param>
         /// <returns>true on successful profiles load, false if config is invalid</returns>
-        static EVTStatus LoadTransmitProfiles(const std::string& profiles_json)
-            LM_SAFE_CALL(LoadTransmitProfiles, profiles_json);
+        static status_t LoadTransmitProfiles(const std::string& profiles_json)
+        {
+            if (isHost())
+                LM_SAFE_CALL(LoadTransmitProfiles, profiles_json);
+            return STATUS_EPERM; // Permission denied
+        }
 
         /// <summary>
         /// Reset transmission profiles to default settings
         /// </summary>
-        static EVTStatus ResetTransmitProfiles()
-            LM_SAFE_CALL(ResetTransmitProfiles);
+        static status_t ResetTransmitProfiles()
+        {
+            if (isHost())
+                LM_SAFE_CALL(ResetTransmitProfiles);
+            return STATUS_EPERM; // Permission denied
+        }
+
+#endif
 
         /// <summary>Get profile name based on built-in profile enum<summary>
         /// <param name="profile">Transmit profile</param>
@@ -286,7 +345,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="name">Name of the context property</param>
         /// <param name="value">Value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-        static EVTStatus SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -297,7 +356,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="name">Name of the context property</param>
         /// <param name="value">Value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
-        static EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, std::string(value), piiKind);
 
         /// <summary>
@@ -305,7 +364,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">Double value of the property</param>
-        static EVTStatus SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -313,7 +372,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit Integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -322,7 +381,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit Integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -331,7 +390,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit Integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -340,7 +399,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit Integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -349,7 +408,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit unsigned integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -358,7 +417,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit unsigned integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -367,7 +426,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit unsigned integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -376,7 +435,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit unsigned integer value of the property</param>
-        static EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
 
         /// <summary>
@@ -384,7 +443,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">Boolean value of the property</param>
-        static EVTStatus SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -392,7 +451,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">.NET time ticks</param>
-        static EVTStatus SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -400,7 +459,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name">Name of the property</param>
         /// <param name="value">GUID</param>
-        static EVTStatus SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None)
+        static status_t SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None)
             LM_SAFE_CALL(SetContext, name, value, piiKind);
 
         /// <summary>
@@ -474,24 +533,33 @@ namespace ARIASDK_NS_BEGIN
         static LogSessionData* GetLogSessionData()
             LM_SAFE_CALL_PTR(GetLogSessionData);
 
-        static EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
+        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
             LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterCount);
 
-        static EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
             LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
+
+        static ILogController* GetController()
+        {
+            // No-op LogManager is implemented as C++11 magic local static
+            static NullLogManager nullLogManager;
+            if (!isHost())
+                return &nullLogManager;
+            return instance;
+        }
 
     };
 
 // Implements LogManager<T> singleton template static  members
 #ifdef _MANAGED
-// XXX: [MG] - this declaration works fine with MSVC...
+// Declaration for managed MSVC compiler
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                           \
     ILogManager*            LogManagerClass::instance;                                      \
     std::string             LogManagerClass::primaryToken;                                  \
     LogConfigurationClass   LogManagerClass::currentConfig;                                 \
     DebugEventSource        LogManagerClass::debugEventSource;
 #else
-// XXX: [MG] - ... but gcc is more strict and requires this syntax that is ISO C++ -compliant
+// ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
     template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};              \
     template<> std::mutex              LogManagerBase<LogConfigurationClass>::stateLock {};             \

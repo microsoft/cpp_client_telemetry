@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN {
 
         static ILogManager * Get(
             ILogConfiguration & logConfiguration,
-            EVTStatus &status
+            status_t &status
 #ifdef ANDROID
             , JNIEnv * env
             , jclass contextClass
@@ -77,13 +77,15 @@ namespace ARIASDK_NS_BEGIN {
         )
         {
             ILogManager * result = instance().lease(logConfiguration);
-            status = (result != nullptr)?EVTStatus_OK:EVTStatus_Fail;
+            status = (result != nullptr)?
+                STATUS_SUCCESS :
+                STATUS_EFAIL;
             return result;
         }
 
         static ILogManager* Get(
             const char * module,
-            EVTStatus& status
+            status_t& status
 #ifdef ANDROID
             JNIEnv *env,
             jclass contextClass,
@@ -98,22 +100,24 @@ namespace ARIASDK_NS_BEGIN {
                 { "config", {  } }
             };
             ILogManager * result = instance().lease(config);
-            status = (result != nullptr) ? EVTStatus_OK : EVTStatus_Fail;
+            status = (result != nullptr) ?
+                STATUS_SUCCESS :
+                STATUS_EFAIL;
             return result;
         }
 
-        static EVTStatus Release(const char * module)
+        static status_t Release(const char * module)
         {
             return (instance().release(module)) ?
-                EVTStatus_OK :
-                EVTStatus_Fail;
+                STATUS_SUCCESS :
+                STATUS_EFAIL;
         }
 
-        static EVTStatus Release(ILogConfiguration & config)
+        static status_t Release(ILogConfiguration & config)
         {
             return (instance().release(config)) ?
-                EVTStatus_OK :
-                EVTStatus_Fail;
+                STATUS_SUCCESS :
+                STATUS_EFAIL;
         }
 
     };

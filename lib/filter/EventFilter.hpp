@@ -36,8 +36,8 @@ namespace ARIASDK_NS_BEGIN
         EventFilter();
         ~EventFilter();
         virtual bool IsEventExcluded(const std::string& eventName) override;
-        virtual EVTStatus SetExclusionFilter(const char** filterStrings, uint32_t filterCount) override;
-        virtual EVTStatus SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
+        virtual status_t SetExclusionFilter(const char** filterStrings, uint32_t filterCount) override;
+        virtual status_t SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
         
     };
 } ARIASDK_NS_END

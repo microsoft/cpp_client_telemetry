@@ -53,17 +53,17 @@ namespace ARIASDK_NS_BEGIN {
          * ILogController - state management methods
          */
         virtual void Configure() override;
+
         virtual void FlushAndTeardown() override;
-        virtual void Flush() override;
-        virtual void UploadNow() override;
 
-        virtual void PauseTransmission() override;
-        virtual void ResumeTransmission() override;
-
-        virtual void SetTransmitProfile(TransmitProfile profile) override;
-        virtual bool SetTransmitProfile(const std::string& profile) override;
-        virtual bool LoadTransmitProfiles(const std::string& profiles_json) override;
-        virtual void ResetTransmitProfiles();
+        virtual status_t Flush() override;
+        virtual status_t UploadNow() override;
+        virtual status_t PauseTransmission() override;
+        virtual status_t ResumeTransmission() override;
+        virtual status_t SetTransmitProfile(TransmitProfile profile) override;
+        virtual status_t SetTransmitProfile(const std::string& profile) override;
+        virtual status_t LoadTransmitProfiles(const std::string& profiles_json) override;
+        virtual status_t ResetTransmitProfiles();
         virtual const std::string& GetTransmitProfileName() override;
 
         /**
@@ -71,33 +71,33 @@ namespace ARIASDK_NS_BEGIN {
          */
         virtual ISemanticContext& GetSemanticContext() override;
 
-        virtual EVTStatus SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(std::string const& name, std::string const& value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual EVTStatus SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual EVTStatus SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual inline EVTStatus SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) override { const std::string val(value); return SetContext(name, val, piiKind); };
+        virtual inline status_t SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) override { const std::string val(value); return SetContext(name, val, piiKind); };
 
-        virtual inline EVTStatus SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual inline EVTStatus SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
 
-        virtual EVTStatus SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual EVTStatus SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual EVTStatus SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
+        virtual status_t SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
 
 
         /**
@@ -137,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="filterStrings">The filter strings.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount);
+        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount);
         
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="filterRates">The filter rates.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        EVTStatus SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount);
+        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount);
 
         /// <summary>
         /// Adds the incoming event.

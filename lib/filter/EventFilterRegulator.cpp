@@ -21,10 +21,10 @@ namespace ARIASDK_NS_BEGIN
         Reset();
     }
 
-    EVTStatus EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
+    status_t EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
     {
         if (tenantToken == nullptr)
-            return EVTStatus_Fail; //  SetExclusionFilterResult::ErrorBadInput;
+            return STATUS_EFAIL; //  SetExclusionFilterResult::ErrorBadInput;
 
         std::string normalizedTenantToken = toLower(tenantToken);
 
@@ -33,10 +33,10 @@ namespace ARIASDK_NS_BEGIN
         return filter.SetExclusionFilter(filterStrings, filterCount);
     }
 
-    EVTStatus EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
+    status_t EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
     {
         if (tenantToken == nullptr)
-            return EVTStatus_Fail; // SetExclusionFilterResult::ErrorBadInput;
+            return STATUS_EFAIL; // SetExclusionFilterResult::ErrorBadInput;
 
         std::string normalizedTenantToken = toLower(tenantToken);
 
