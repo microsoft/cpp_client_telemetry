@@ -18,14 +18,14 @@ namespace testing {
         ~MockILogManagerInternal();
 
         MOCK_METHOD0(FlushAndTeardown, void());
-        MOCK_METHOD0(Flush, void());
-        MOCK_METHOD0(UploadNow, void());
-        MOCK_METHOD0(PauseTransmission, void());
-        MOCK_METHOD0(ResumeTransmission, void());
-        MOCK_METHOD1(SetTransmitProfile, void(ARIASDK_NS::TransmitProfile profile));
-        MOCK_METHOD1(SetTransmitProfile, bool(const std::string& profile));
-        MOCK_METHOD1(LoadTransmitProfiles, bool(const std::string& profiles_json));
-        MOCK_METHOD0(ResetTransmitProfiles, void());
+        MOCK_METHOD0(Flush, MAT::status_t());
+        MOCK_METHOD0(UploadNow, MAT::status_t());
+        MOCK_METHOD0(PauseTransmission, MAT::status_t());
+        MOCK_METHOD0(ResumeTransmission, MAT::status_t());
+        MOCK_METHOD1(SetTransmitProfile, MAT::status_t(ARIASDK_NS::TransmitProfile profile));
+        MOCK_METHOD1(SetTransmitProfile, MAT::status_t(const std::string& profile));
+        MOCK_METHOD1(LoadTransmitProfiles, MAT::status_t(const std::string& profiles_json));
+        MOCK_METHOD0(ResetTransmitProfiles, MAT::status_t());
         MOCK_METHOD0(GetTransmitProfileName, std::string&());
         MOCK_METHOD0(GetSemanticContext, ARIASDK_NS::ISemanticContext & ());
         MOCK_METHOD3(SetContext, MAT::status_t(std::string const &, std::string const &, ARIASDK_NS::PiiKind));
