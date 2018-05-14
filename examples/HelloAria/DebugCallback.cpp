@@ -94,7 +94,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
         break;
     case EVT_SENT:
         numSent += evt.param1;
-        // printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_STORAGE_FULL:
         printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
