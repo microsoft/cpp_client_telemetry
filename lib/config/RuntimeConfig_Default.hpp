@@ -74,13 +74,6 @@ namespace ARIASDK_NS_BEGIN {
             {
                 config[kv.first] = kv.second;
             }
-
-            // FIXME: [MG] - autopopulate path here
-            const char *cacheFilePath = config[CFG_STR_CACHE_FILE_PATH];
-            if (cacheFilePath == nullptr)
-            {
-                config[CFG_STR_CACHE_FILE_PATH] = "";
-            }
         };
 
         RuntimeConfig_Default()
@@ -177,7 +170,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual Variant & operator[](const char* key)
         {
-            return config[key];
+            return config[key]; // FIXME: [MG] - Error #116: LEAK 32 bytes
         }
 
     };

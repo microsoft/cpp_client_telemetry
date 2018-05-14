@@ -8,10 +8,4 @@
   <ItemGroup>
     <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\lib\shared\WindowsRTPlatformEventHandler.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\lib\shared\WindowsRTPlatformEventHandler.h" />
-  </ItemGroup>
 </Project>

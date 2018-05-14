@@ -18,6 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     {
     public:
 
+        // CreateLogManager
         static ILogManager * GetLogManager(
             ILogConfiguration & logConfiguration,
             status_t &status

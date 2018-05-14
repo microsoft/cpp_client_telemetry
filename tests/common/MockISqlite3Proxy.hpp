@@ -21,6 +21,7 @@ class MockISqlite3Proxy : public ARIASDK_NS::ISqlite3Proxy {
     MOCK_METHOD1(sqlite3_changes, int(sqlite3 * db));
     MOCK_METHOD1(sqlite3_clear_bindings, int(sqlite3_stmt * stmt));
     MOCK_METHOD1(sqlite3_close, int(sqlite3 * db));
+    MOCK_METHOD1(sqlite3_close_v2, int(sqlite3 * db));
     MOCK_METHOD2(sqlite3_column_blob, void const*(sqlite3_stmt * stmt, int iCol));
     MOCK_METHOD2(sqlite3_column_bytes, int(sqlite3_stmt * stmt, int iCol));
     MOCK_METHOD2(sqlite3_column_int, int(sqlite3_stmt * stmt, int iCol));

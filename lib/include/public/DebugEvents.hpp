@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <functional>
@@ -173,9 +174,20 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Dispatches the specified event to a client callback.</summary>
         virtual bool DispatchEvent(DebugEvent evt) override;
 
-    private:
+        /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
+        virtual bool AttachEventSource(DebugEventSource & other);
+
+        /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
+        virtual bool DetachEventSource(DebugEventSource & other);
+
+    protected:
+
         /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
+
+        /// <summary>A collection of cascaded debug event sources.</summary>
+        std::set<DebugEventSource*> cascaded;
+
         uint64_t seq;
     };
 #  pragma warning( pop )

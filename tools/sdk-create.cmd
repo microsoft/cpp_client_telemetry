@@ -1,65 +1,44 @@
 @echo off
+REM ************************
+REM * SDK packaging script *
+REM ************************
 
-set /p PackageVersion=<version.txt
-set OUTDIR=%CD%\..\..\dist\aria-windows-sdk
-set NativeSDKFolder=%OUTDIR%\%PackageVersion%
+cd %~dp0
+set PATH=%CD%;%PATH%
+cd ..
+
+set ROOT=%CD%
+set /p PackageVersion=<%ROOT%\Solutions\version.txt
+set SRCDIR=%ROOT%\Solutions\out
+set OUTDIR=%ROOT%\dist\aria-windows-sdk\%PackageVersion%
 set ProjectName=Microsoft.Applications.Telemetry.Windows
 
-REM Clean-up
-set LASTDIR=%CD%
-mkdir %NativeSDKFolder%
-mkdir %NativeSDKFolder%\include
-cd %NativeSDKFolder%
-del /s *.dll
-del /s *.lib
-del /s *.pdb
-
-cd %LASTDIR%
+mkdir %OUTDIR%\include
+mkdir %OUTDIR%\lib
 
 echo Copy header files...
-xcopy ..\include\*.hpp "%NativeSDKFolder%\include" /Y /I
+robocopy %ROOT%\lib\include\public %OUTDIR%\include
 
 echo Copy all binaries...
 
-REM Windows 10 nuget packages
+echo Windows 10 native...
 call sku-create.cmd win10                win10-dll
+
+echo Windows 10 managed...
 call sku-create.cmd uap10                win10-cs
 
-REM Windows 8.1 .zip archive
-REM call sku-create.cmd win81                win81-cs
-REM call sku-create.cmd winphone81           win81-cs-phone
-
-REM Windows Desktop (win32) .NET 4.x archive
-REM call sku-create.cmd win32-net40-vs2013   net40            vs2013
+echo Windows Desktop (win32) .NET 4.x...
 call sku-create.cmd win32-net40-vs2015   net40
 
-REM Windows Desktop (win32) native archive
-REM Dynamic .dll
-REM call sku-create.cmd win32-dll-vs2013     win32-dll        vs2013
+echo Windows Desktop (win32) .dll...
 call sku-create.cmd win32-dll-vs2015     win32-dll
 
-REM Static vs2013 .lib
-REM call sku-create.cmd win32-lib-vs2013-md  sqlite           vs2013
-REM call sku-create.cmd win32-lib-vs2013-md  win32-static     vs2013
-
-REM Small Fifo-based no-SQLite SDK for vs2013.MT
-REM call sku-create.cmd win32-lib-vs2013-mt  win32-static     vs2013.MT
-
-REM Big SQLite-based SDK for vs2013.MT
-REM call sku-create.cmd win32-lib-vs2013-mt-sqlite  win32-static     vs2013.MT-sqlite
-REM call sku-create.cmd win32-lib-vs2013-mt-sqlite  sqlite           vs2013.MT
-
-call sku-create.cmd win32-lib-vs2015-mt-sqlite  win32-static     vs2015.MT-sqlite
+echo Windows Desktop (win32) static runtime .lib...
+call sku-create.cmd win32-lib-vs2015-mt-sqlite  win32-lib        vs2015.MT-sqlite
 call sku-create.cmd win32-lib-vs2015-mt-sqlite  sqlite           vs2015.MT-sqlite
 call sku-create.cmd win32-lib-vs2015-mt-sqlite  zlib             vs2015.MT-sqlite
 
-REM vs2013 dynamic SKU
+echo Windows Desktop (win32) dynamic runtime .lib...
+call sku-create.cmd win32-lib-vs2015-md  win32-lib
 call sku-create.cmd win32-lib-vs2015-md  sqlite
 call sku-create.cmd win32-lib-vs2015-md  zlib
-call sku-create.cmd win32-lib-vs2015-md  win32-static
-
-copy windows-sdk*.* %NativeSDKFolder%
-copy version.txt %NativeSDKFolder%
-
-cd %NativeSDKFolder%
-del /s *.bsc *.ilk

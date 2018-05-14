@@ -3,9 +3,6 @@
 
 #include "pal/PAL.hpp"
 
-#include "decorators/BaseDecorator.hpp"
-#include "decorators/SemanticContextDecorator.hpp"
-
 #include "api/IRuntimeConfig.hpp"
 
 #include <Enums.hpp>
@@ -67,9 +64,6 @@ namespace ARIASDK_NS_BEGIN {
         std::unique_ptr<StatsConfig>    m_statsConfig;
         std::unique_ptr<TelemetryStats> m_telemetryStats;
         std::map<std::string, TelemetryStats*>  m_telemetryTenantStats;
-
-        // TODO: [MG] - pass base decorator to stats
-        // BaseDecorator                   m_baseDecorator;
 
     private:
         void privateSnapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats* telemetryStats);

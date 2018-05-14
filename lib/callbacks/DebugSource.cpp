@@ -38,7 +38,31 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
+        if (cascaded.size())
+        {
+            // Cascade event to all other attached sources
+            for (auto item : cascaded)
+            {
+                if (item)
+                    item->DispatchEvent(evt);
+            }
+        }
+
         return dispatched;
     }
+
+    /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
+    bool DebugEventSource::AttachEventSource(DebugEventSource & other)
+    {
+        cascaded.insert(&other);
+        return true;
+    }
+
+    /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
+    bool DebugEventSource::DetachEventSource(DebugEventSource & other)
+    {
+        return (cascaded.erase(&other)!=0);
+    }
+
 
 } ARIASDK_NS_END

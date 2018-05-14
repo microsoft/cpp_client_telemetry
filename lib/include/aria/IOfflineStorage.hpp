@@ -90,6 +90,8 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// <param name="numRecords">Number of records dropped</param>
         virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) = 0;
+
+        virtual void OnStorageRecordsSaved(size_t numRecords) = 0;
     };
 
     class IOfflineStorage {
@@ -124,6 +126,11 @@ namespace ARIASDK_NS_BEGIN {
         /// internal worker thread.
         /// </remarks>
         virtual void Shutdown() = 0;
+
+        /// <summary>
+        /// Save pending records to persistent storage
+        /// </summary>
+        virtual void Flush() = 0;
 
         /// <summary>
         /// Store one telemetry event record

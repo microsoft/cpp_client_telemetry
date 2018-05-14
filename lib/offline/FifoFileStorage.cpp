@@ -1237,7 +1237,7 @@ LOAD_FAILED:
 		}
         PhysicalBlockInfo blockInfo = m_PhysicalBlocks[logicalBlockInfo.FirstPhysicalBlockIndex];
 
-        std::unique_ptr<char> pBuffer(new char[readSize]);
+        std::unique_ptr<char> pBuffer(new char[readSize]); // FIXME: [MG] - Error #13: LEAK 1024 bytes 
 		if (nullptr == pBuffer.get())
 		{
 			return DATARV_ERROR_OUTOFMEMORY;

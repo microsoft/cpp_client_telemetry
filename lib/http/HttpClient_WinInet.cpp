@@ -191,7 +191,7 @@ class WinInetRequestWrapper
             } while (m_bufferUsed == sizeof(m_buffer));
         }
 
-        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id)); // FIXME: [MG] - Error #129: POSSIBLE LEAK 152 direct bytes + 64 indirect bytes
 
         if (dwError == ERROR_SUCCESS) {
             response->m_result = HttpResult_OK;
@@ -342,7 +342,7 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
     SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
-    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, req->m_id);
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, req->m_id); // FIXME: [MG] - Error #159: POSSIBLE LEAK 1144 direct bytes + 32 indirect bytes
     wrapper->send(req, callback);
     delete req;
 }

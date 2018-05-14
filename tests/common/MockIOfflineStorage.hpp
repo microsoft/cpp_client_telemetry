@@ -14,6 +14,7 @@ class MockIOfflineStorage : public ARIASDK_NS::IOfflineStorage {
 
     MOCK_METHOD1(Initialize, void(ARIASDK_NS::IOfflineStorageObserver & observer));
     MOCK_METHOD0(Shutdown, void());
+    MOCK_METHOD0(Flush, void());
     MOCK_METHOD1(StoreRecord, bool(ARIASDK_NS::StorageRecord const &));
     MOCK_METHOD4(GetAndReserveRecords, bool(std::function<bool(ARIASDK_NS::StorageRecord&&)> const &, unsigned, ARIASDK_NS::EventLatency, unsigned));
     MOCK_METHOD0(IsLastReadFromMemory, bool());

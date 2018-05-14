@@ -252,7 +252,7 @@ namespace ARIASDK_NS_BEGIN {
         case TYPE_STRING:
         {
             size_t len = strlen(source->as_string);
-            as_string = new char[len + 1];
+            as_string = new char[len + 1];      // FIXME: [MG] - Error #14: LEAK 16 bytes 
             memcpy((void*)as_string, (void*)source->as_string, len);
             as_string[len] = 0;
             break;

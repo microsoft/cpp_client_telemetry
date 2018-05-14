@@ -146,7 +146,7 @@ class BasicAfdFuncTests : public ::testing::Test,
 
         if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
         {
-            std::string tempDirectroryPath = PAL::GetAppLocalTempDirectory();
+            std::string tempDirectroryPath = MAT::GetAppLocalTempDirectory();
             if (!tempDirectroryPath.empty())
             {
                 storagePath = tempDirectroryPath + storagePath;

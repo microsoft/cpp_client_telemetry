@@ -13,6 +13,7 @@
 
 #include "DeviceStateHandler.hpp"
 #include <set>
+#include <atomic>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -58,7 +59,7 @@ class TransmissionPolicyManager
     DeviceStateHandler               m_deviceStateHandler;
 
     bool                             m_isPaused;
-    bool                             m_isUploadScheduled;
+    std::atomic<bool>                m_isUploadScheduled;
     bool                             m_finishing;
     PAL::DeferredCallbackHandle      m_scheduledUpload;
 

@@ -52,19 +52,19 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_TRACE("Scheduling another upload in %d msec, latency=%d", delayInMs, latency);
 
-        if (m_isUploadScheduled)
+        if (force || delayInMs == 0)
         {
-            if (force || delayInMs == 0)
-            {
+            if (m_scheduledUpload.m_item)
                 m_scheduledUpload.cancel();
-                m_isUploadScheduled = false;
-            }
-            return;
+            m_isUploadScheduled = false;
         }
 
-        m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
-        m_isUploadScheduled = true;
-        m_uploadInProgress = true;
+        if (!m_isUploadScheduled.exchange(true))
+        {
+            m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
+            m_uploadInProgress = true;
+        }
+
     }
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
@@ -106,6 +106,8 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
     {
+        // TODO: [MG] - verify this codepath
+
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx);
         if (m_activeUploads.find(ctx) != m_activeUploads.cend())
         {

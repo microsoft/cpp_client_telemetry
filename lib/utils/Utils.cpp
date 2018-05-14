@@ -22,6 +22,10 @@
 
 #include <thread>
 
+#include <iostream>
+#include <locale>
+#include <codecvt>
+
 namespace ARIASDK_NS_BEGIN {
     ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK", "Aria telemetry client");
 } ARIASDK_NS_END
@@ -36,19 +40,19 @@ namespace ARIASDK_NS_BEGIN {
     void print_backtrace(void)
     {
 #ifdef USE_BACKTRACE
-// Debug builds only
+        // Debug builds only
 #ifdef __unix__
-        void *array[10]= { 0 };
+        void *array[10] = { 0 };
         size_t size = 0;
         char **strings;
         size_t i;
-        size = backtrace (array, sizeof(array) / sizeof(array[0]) );
+        size = backtrace(array, sizeof(array) / sizeof(array[0]));
         strings = backtrace_symbols(array, size);
-        printf ("XXXXXXXXXXXXXXXXXXXX Obtained %zd stack frames:\n", size);
+        printf("XXXXXXXXXXXXXXXXXXXX Obtained %zd stack frames:\n", size);
         for (i = 0; i < size; i++)
-            printf ("[%2lu] %s\n", i, demangle(strings[i]).c_str() );
-        printf ("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-        free (strings);
+            printf("[%2lu] %s\n", i, demangle(strings[i]).c_str());
+        printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+        free(strings);
 #endif
 #endif
     }
@@ -62,15 +66,31 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     }
 
+    /**
+    * Return temporary directory on Win32 Desktop classic SKU
+    * or AppData app-specific temporary directory
+    */
+    std::string GetAppLocalTempDirectory()
+    {
+#ifdef _WINRT_DLL // Win 10 UWP
+        RoInitialize(RO_INIT_MULTITHREADED);
+        ::Windows::Storage::StorageFolder^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
+        // TODO: [MG] - verify that the path ends with a slash
+        return MAT::Windows::FromPlatformString(temp->Path->ToString());
+#else
+        return GetTempDirectory();
+#endif
+    }
+
     std::string GetTempDirectory()
     {
 #ifdef _WIN32
+        /* UTF-8 temp directory for Win32 Desktop apps */
         std::string path = "";
         wchar_t lpTempPathBuffer[MAX_PATH + 1] = { 0 };
-        if (GetTempPathW(MAX_PATH, lpTempPathBuffer))
+        if (::GetTempPathW(MAX_PATH, lpTempPathBuffer))
         {
-            std::wstring tmp = lpTempPathBuffer;
-            return std::string(tmp.begin(), tmp.end());
+            path = to_utf8_string(lpTempPathBuffer);
         }
         return path;
 #else
@@ -129,7 +149,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
 #if 0
-        if ( name.front() == '_' || name.back() == '_') {
+        if (name.front() == '_' || name.back() == '_') {
             LOG_ERROR("Invalid event name - \"%s\": must not start or end with an underscore", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;
         }
@@ -246,6 +266,22 @@ namespace ARIASDK_NS_BEGIN {
         buf[35] = inttoHex[test];
         buf[36] = 0;
         return std::string(buf);
+    }
+
+    /** \brief Convert UTF-8 to UTF-16
+    */
+    std::wstring to_utf16_string(const std::string& in)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
+        return converter.from_bytes(in);
+    }
+
+    /** \brief Convert UTF-16 to UTF-8
+    */
+    std::string to_utf8_string(const std::wstring& in)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
+        return converter.to_bytes(in);
     }
 
     /**

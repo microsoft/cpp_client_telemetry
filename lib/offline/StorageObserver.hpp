@@ -39,6 +39,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;
+        virtual void OnStorageRecordsSaved(size_t numRecords) override;
 
     protected:
         ITelemetrySystem & m_system;

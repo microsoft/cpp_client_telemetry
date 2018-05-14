@@ -129,6 +129,12 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="evt">The evt.</param>
         /// <returns></returns>
         virtual bool DispatchEvent(DebugEvent evt) override;
+
+        ///
+        virtual bool AttachEventSource(DebugEventSource & other) override;
+
+        ///
+        virtual bool DetachEventSource(DebugEventSource & other) override;
         
         /// <summary>
         /// Sets the exclusion filter.

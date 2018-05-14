@@ -14,7 +14,9 @@ namespace ARIASDK_NS_BEGIN {
         m_logManager(telemetrySystem.getLogManager()),
         m_metaStats(telemetrySystem.getConfig()),
         m_config(telemetrySystem.getConfig()),
-        m_isStarted(false)
+        m_isStarted(false),
+        m_baseDecorator(m_logManager),
+        m_semanticContextDecorator(m_logManager)
     {
     }
 
@@ -51,6 +53,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void Statistics::send(RollUpKind rollupKind)
     {
+        // TODO: [MG] - verify this codepath
         m_isScheduled = false;
 
         std::vector< ::AriaProtocol::Record> records = m_metaStats.generateStatsEvent(rollupKind);
@@ -58,18 +61,26 @@ namespace ARIASDK_NS_BEGIN {
 
         for (auto& record : records)
         {
-            IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
-            eventGenerated(event);
-#if 0 /* FIXME: [MG] - fix this for UTC */
-            //Utc Stats go back to Utc
-            m_iTelemetrySystem.sendEvent(event);
-#endif
+            bool result = true;
+            result &= m_baseDecorator.decorate(record);
+            result &= m_semanticContextDecorator.decorate(record);
+            if (result)
+            {
+                IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
+                eventGenerated(event); // FIXME: [MG] - Error #26: POSSIBLE LEAK 168 direct bytes + 1653 indirect bytes
+                m_iTelemetrySystem.sendEvent(event); // TODO: delete event
+            }
+            else
+            {
+                LOG_WARN("Failed to decorate stats event rollupKind=%u", rollupKind);
+            }
         }
         m_statEventSentTime = PAL::getMonotonicTimeMs();
     }
 
     bool Statistics::handleOnStart()
     {
+        // TODO: [MG] - verify this codepath
         send(ACT_STATS_ROLLUP_KIND_START);
 
         m_isStarted = true;
@@ -85,6 +96,7 @@ namespace ARIASDK_NS_BEGIN {
             m_isScheduled = false;
         }
 
+        // TODO: [MG] - verify this codepath
         send(ACT_STATS_ROLLUP_KIND_STOP);
         return true;
     }
@@ -100,7 +112,12 @@ namespace ARIASDK_NS_BEGIN {
         bool metastats = (ctx->record.tenantToken == m_config.GetMetaStatsTenantToken());
         m_metaStats.updateOnEventIncoming(ctx->record.tenantToken, static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
         scheduleSend();
-        m_logManager.DispatchEvent(DebugEventType::EVT_ADDED);
+
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_ADDED;
+        evt.param1 = 1;
+        OnDebugEvent(evt);
+
         return true;
     }
 
@@ -111,7 +128,12 @@ namespace ARIASDK_NS_BEGIN {
         failedData[ctx->record.tenantToken] = 1;
         m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, failedData);
         scheduleSend();
-        m_logManager.DispatchEvent(DebugEventType::EVT_DROPPED);
+
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_DROPPED;
+        evt.param1 = 1;
+        OnDebugEvent(evt);
+
         return true;
     }
 
@@ -120,7 +142,12 @@ namespace ARIASDK_NS_BEGIN {
         bool metastatsOnly = (ctx->packageIds.count(m_config.GetMetaStatsTenantToken()) == ctx->packageIds.size());
         m_metaStats.updateOnPostData(static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()), metastatsOnly);
         scheduleSend();
-        m_logManager.DispatchEvent(DebugEventType::EVT_SENDING);
+
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_SENDING;
+        evt.param1 = ctx->recordIdsAndTenantIds.size();
+        OnDebugEvent(evt);
+
         return true;
     }
 
@@ -149,7 +176,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool Statistics::handleOnUploadRejected(EventsUploadContextPtr const& ctx)
     {
-        unsigned status = ctx->httpResponse->GetStatusCode();
+        unsigned status = (ctx->httpResponse)?ctx->httpResponse->GetStatusCode():0;
         m_metaStats.updateOnPackageFailed(status);
 
         std::map<std::string, size_t> countOnTenant;
@@ -166,7 +193,9 @@ namespace ARIASDK_NS_BEGIN {
 
     bool Statistics::handleOnUploadFailed(EventsUploadContextPtr const& ctx)
     {
-        m_metaStats.updateOnPackageRetry(ctx->httpResponse->GetStatusCode(), ctx->maxRetryCountSeen);
+        // TODO: [MG] - identify a special status code other than 0 for "request aborted" condition
+        unsigned status = (ctx->httpResponse)?ctx->httpResponse->GetStatusCode():0;
+        m_metaStats.updateOnPackageRetry(status, ctx->maxRetryCountSeen);
         scheduleSend();
         return true;
     }

@@ -87,7 +87,7 @@ namespace PAL_NS_BEGIN {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
 #ifndef NO_ROAM_SUP
-        networkDetector = new MATW::NetworkDetector();
+        networkDetector = new MATW::NetworkDetector(); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
         networkDetector->AddRef();
         networkDetector->Start();
 #endif

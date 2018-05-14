@@ -112,6 +112,8 @@ void HttpClientManager::onHttpResponse(HttpCallback* callback)
 
 bool HttpClientManager::handleCancelAllRequestsAsync()
 {
+    // TODO: [MG] - verify that codepath
+
     if (!m_httpCallbacks.empty()) {
         LOG_TRACE("Cancelling %u outstanding HTTP requests...",
             static_cast<unsigned>(m_httpCallbacks.size()));

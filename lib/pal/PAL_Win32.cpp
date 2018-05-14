@@ -113,7 +113,7 @@ namespace PAL_NS_BEGIN {
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
 
-            std::fstream *debugFileStream = new std::fstream();
+            std::fstream *debugFileStream = new std::fstream(); // FIXME: [MG] - Error #90: POSSIBLE LEAK 280 direct bytes + 32 indirect bytes
             debugFileStream->open(debugLogPath, std::fstream::out);
             if (!debugFileStream->is_open())
             {
@@ -367,7 +367,7 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
-                    break;
+                    break; // TODO: [MG] - delete item
                 }
                 
                 LOG_TRACE("Execute item=%p type=%s\n", item, item->typeName.c_str() );

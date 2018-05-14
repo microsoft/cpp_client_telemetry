@@ -99,16 +99,41 @@ namespace ARIASDK_NS_BEGIN {
 
         PAL::initialize();
         PAL::registerSemanticContext(&m_context);
+
+        std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
+        if ( !m_logConfiguration.count(CFG_STR_CACHE_FILE_PATH) ||
+            (const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
+        {
+            if (m_logConfiguration.count(CFG_STR_PRIMARY_TOKEN))
+            {
+                std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
+                tenantId = MAT::tenantTokenToId(tenantId);
+
+                cacheFilePath += tenantId;
+                cacheFilePath += ".db";
+            }
+            else
+            {
+                cacheFilePath = ":memory:";
+            }
+            m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
+        }
+        else
+        {
+            std::string filename = (const char *)m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
+            if (filename.find(PATH_SEPARATOR_CHAR) == std::string::npos)
+            {
+                cacheFilePath += filename;
+                m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
+            }
+            // TODO: [MG] - verify that cache file is writeable
+        }
+
         m_config = new RuntimeConfig_Default(m_logConfiguration);
 
-        // FIXME: [MG] - auto-populate cache file path properly depending on platform temp dir
-        if ((const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
-        {
-            m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = "";
-        }
-        const char *cacheFilePath = m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
-
+        // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
+
         m_context.setCommonField("act_session_id", PAL::generateUuidString()); // GetLogSessionData()->getSessionSDKUid()
 
 #ifdef _WIN32
@@ -126,6 +151,10 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
 
+// ****************************************************************************************** //
+// BEGIN TODO: [MG] - simimlar HTTP client initialization code is being used in several spots.
+// We should refactor this to abstract away the client implementation type and obtain
+// the IHttpClient ptr from one convenient wrapper, maybe naming it "HTTP Client Factory"
         if (m_httpClient == nullptr) {
 #if ARIASDK_PAL_SKYPE
             LOG_TRACE("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
@@ -148,6 +177,8 @@ namespace ARIASDK_NS_BEGIN {
         else {
             LOG_TRACE("HttpClient: External %p", m_httpClient);
         }
+// END TODO: [MG]
+// ****************************************************************************************** //
 
         if (m_bandwidthController == nullptr) {
 #if ARIASDK_PAL_SKYPE
@@ -239,9 +270,10 @@ namespace ARIASDK_NS_BEGIN {
 
     status_t LogManagerImpl::Flush()
     {
-        // FIXME: [MG] - this wasn't implemented for OneSDK!!
-        LOG_ERROR("Flush() is not implemented");
-        return STATUS_ENOSYS;
+        LOG_INFO("Flush()");
+        if (m_offlineStorage)
+            m_offlineStorage->Flush();
+        return STATUS_SUCCESS;
     }
 
     status_t LogManagerImpl::UploadNow()
@@ -461,6 +493,18 @@ namespace ARIASDK_NS_BEGIN {
     {
         return m_debugEventSource.DispatchEvent(std::move(evt));
     };
+
+    /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
+    bool LogManagerImpl::AttachEventSource(DebugEventSource & other)
+    {
+        return m_debugEventSource.AttachEventSource(other);
+    }
+
+    /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
+    bool LogManagerImpl::DetachEventSource(DebugEventSource & other)
+    {
+        return m_debugEventSource.DetachEventSource(other);
+    }
 
     void LogManagerImpl::sendEvent(IncomingEventContextPtr const& event)
     {

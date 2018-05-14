@@ -6,7 +6,7 @@
 #include "utils/Utils.hpp"
 #include "json.hpp"
 #include <algorithm>
-
+#include <cassert>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -32,10 +32,18 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
     {
+#ifndef NDEBUG
+        // XXX: [MG] - debug accessing object that's been already freed
+        uint64_t ptr = (uint64_t)(ctx->httpResponse);
+        assert(ptr != 0x00000000dddddddd);
+        assert(ptr != 0xdddddddddddddddd);
+#endif
+
         IHttpResponse const& response = *(ctx->httpResponse);
 
         enum { Accepted, Rejected, RetryServer, RetryNetwork, Abort } outcome = Abort;
-        switch (response.GetResult()) {
+        auto result = response.GetResult();
+        switch (result) {
         case HttpResult_OK:
             if (response.GetStatusCode() == 200) {
                 outcome = Accepted;
@@ -49,11 +57,13 @@ namespace ARIASDK_NS_BEGIN {
             break;
 
         case HttpResult_Aborted:
+            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
+            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
         }
@@ -155,10 +165,11 @@ namespace ARIASDK_NS_BEGIN {
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
-                evt.param1 = response.GetStatusCode();
+                evt.param1 = 0; // response.GetStatusCode();
                 DispatchEvent(evt);
             }
-            eventsRejected(ctx);
+            ctx->httpResponse = nullptr;
+            // eventsRejected(ctx); // FIXME: [MG] - investigate why ctx gets corrupt after eventsRejected
             requestAborted(ctx);
             break;
         }

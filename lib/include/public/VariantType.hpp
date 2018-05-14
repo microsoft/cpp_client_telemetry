@@ -1,13 +1,17 @@
 #ifndef VARIANTTYPE_HPP
 #define VARIANTTYPE_HPP
 
-//class VariantMap;
-//class VariantArray;
+// Default implementation doesn't provide locking
+#ifndef VARIANT_LOCKGUARD
+#define VARIANT_LOCKGUARD(x)
+#define VARIANT_LOCK(x)
+#endif
 
 // Constructor and getter for Variant type
 #define VARIANT_PROP(basetype, field, typeenum)						\
 		Variant(basetype v) : field(v), type(typeenum) {} ;			\
-		operator basetype() { return (basetype)field; };
+		operator basetype() { return (basetype)field; };            \
+		Variant& operator=(basetype v) { field = v; type = typeenum; return *this; };
 
 /**
  * Variant type for containers
@@ -19,13 +23,19 @@ class Variant {
         double		 dV;
         const char*  sV;
         bool		 bV;
-        std::string* SV;
     };
 
+    // Unfortunately keeping object pointers inside the union above causes issues
+    // with C++11 static initializer feature. The pointers get corrupted and calling
+    // destructor via delete causes a crash with MSVC compiler (both 2015 and 2017).
+    std::string     SV;
     VariantMap      mV;	// map
     VariantArray    aV;	// vector
 
 public:
+
+    // Thread-safe variants
+    VARIANT_LOCK(lock_object);
 
     enum Type {
         TYPE_NULL,
@@ -40,7 +50,7 @@ public:
 
     Type type;
 
-    Variant& Null() {
+    Variant& ConstNull() {
         static Variant nullVariant;
         return nullVariant;
     }
@@ -61,24 +71,114 @@ public:
     VARIANT_PROP(float, dV, TYPE_DOUBLE);
     VARIANT_PROP(double, dV, TYPE_DOUBLE);
 
-    // const char * as a string type
-    // TODO: should non-existing key return "" or nullptr?
-    // TODO: helper for the case to get const char* from TYPE_STRING2
-    VARIANT_PROP(const char*, sV, TYPE_STRING);
+    Variant(const char* v) : sV(v), type(TYPE_STRING) {};
+
+    operator const char*() {
+        if (type == TYPE_STRING)
+            return sV;
+        if (type == TYPE_STRING2)
+            return SV.c_str();
+        if (type == TYPE_NULL)
+            return "";
+        return nullptr;
+    };
+
+    Variant& operator=(std::string value)
+    {
+        VARIANT_LOCKGUARD(lock_object);
+
+        // Cannot assign to const Null (non-existing) element
+        assert(&ConstNull() != this);
+
+        type = TYPE_STRING2;
+        SV = value;
+        return *this;
+    }
+
+    Variant& operator=(const char* value)
+    {
+        VARIANT_LOCKGUARD(lock_object);
+
+        // Cannot assign to const Null (non-existing) element
+        assert(&ConstNull() != this);
+
+        type = TYPE_STRING2;
+        SV = (value) ? value : "";
+        return *this;
+    }
+
+    Variant& assign(const Variant& other)
+    {
+        VARIANT_LOCKGUARD(lock_object);
+
+        // Cannot assign to const Null (non-existing) element
+        assert(&ConstNull() != this);
+
+        type = other.type;
+        switch (other.type)
+        {
+            case TYPE_NULL:
+                iV = 0;
+                break;
+            case TYPE_INT:
+                iV = other.iV;
+                break;
+            case TYPE_DOUBLE:
+                dV = other.dV;
+                break;
+
+            case TYPE_STRING:
+                type = TYPE_STRING2;
+                SV = (other.sV) ? other.sV : "";
+                break;
+
+            case TYPE_STRING2:
+                SV = other.SV;
+                break;
+
+            case TYPE_BOOL:
+                bV = other.bV;
+                break;
+
+            case TYPE_OBJ:
+                for (const auto& kv : other.mV)
+                {
+                    mV[kv.first] = kv.second;
+                }
+                break;
+
+            case TYPE_ARR:
+                // std::swap(aV, other.aV);
+                break;
+        }
+
+        return *this;
+    }
+
+    Variant & operator=(Variant other)
+    {
+        return assign(other);
+    }
 
     // Bolean
     VARIANT_PROP(bool, bV, TYPE_BOOL);
 
     // Object (or map)
     Variant(VariantMap& m) :
-        mV(m),
-        type(TYPE_OBJ) {};
+        type(TYPE_OBJ)
+    {
+        for (auto kv : m)
+        {
+            mV[kv.first] = kv.second;
+        }
+    };
 
     // C++11 initializer list support for maps
-    Variant(std::initializer_list<std::pair<std::string, Variant> > l) :
+    Variant(const std::initializer_list<std::pair<std::string, Variant> >& l) :
         type(TYPE_OBJ) {
-        for (auto kv : l) {
-            mV.insert(kv);
+        for (const auto& kv : l) {
+            mV[kv.first] = kv.second;
+            // mV.insert(kv);
         }
     }
 
@@ -96,25 +196,27 @@ public:
         if (type == TYPE_ARR) {
             aV.clear();
         }
-        else
-        if (type == TYPE_STRING2) {
-            delete SV;
-        }
     }
 
     operator std::string&()
     {
-        return (*SV);
+        VARIANT_LOCKGUARD(lock_object);
+        assert(type == TYPE_STRING2);
+        return SV;
     }
 
     Variant(std::string v) :
-        SV(new std::string(v)),
-        type(TYPE_STRING2) {};
+        SV(v),
+        type(TYPE_STRING2)
+    {
+
+    };
 
     /**
      *
      */
     operator VariantMap&() {
+        VARIANT_LOCKGUARD(lock_object);
         return mV;
     };
 
@@ -122,6 +224,7 @@ public:
      *
      */
     operator VariantArray&() {
+        VARIANT_LOCKGUARD(lock_object);
         return aV;
     };
 
@@ -129,18 +232,36 @@ public:
      *
      */
     Variant& operator [](const char* k) {
+        VARIANT_LOCKGUARD(lock_object);
         if (type == TYPE_OBJ)
             return mV[k];
-        return Null();
+
+        // If we're trying to obtain a property on non-existing
+        // element, then first we change the type of it to obj
+        // and populate the property with an empty NULL property.
+        // Thus essentially creating an object and returning
+        // modifyable null variant for the object property.
+        if (type == TYPE_NULL)
+        {
+            type = TYPE_OBJ;
+            mV[k] = Variant();
+            return mV[k];
+        }
+
+        // Otherwise it's an invalid op - return const NULL
+        return ConstNull();
     };
 
     /**
      *
      */
     Variant& operator ()(size_t idx) {
+        VARIANT_LOCKGUARD(lock_object);
         if (type == TYPE_ARR)
             return aV[idx];
-        return Null();
+        // Accessing index of something that is not an array returns a null const variant.
+        // We may consider adding an assert here for debug builds.
+        return ConstNull();      // return const NULL Variant
     };
 
     /**
@@ -256,7 +377,9 @@ public:
      * C++11 initializer list support for vectors
      */
     static Variant from_array(std::initializer_list<Variant> l) {
-        VariantArray arr(l);
+        VariantArray arr;
+        for (auto v : l)
+            arr.push_back(v);
         return Variant(arr);
     }
 

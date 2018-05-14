@@ -97,8 +97,8 @@ namespace ARIASDK_NS_BEGIN {
     void OfflineStorage_SQLite::Shutdown()
     {
         LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
+        LOCKGUARD(m_lock);
         if (m_db) {
-            LOCKGUARD(m_lock);
             m_db->shutdown();
             m_db.reset();
         }
@@ -106,6 +106,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
     {
+        // TODO: [MG] - verify this codepath
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());

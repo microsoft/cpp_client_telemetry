@@ -58,6 +58,11 @@ namespace ARIASDK_NS_BEGIN {
             return ::sqlite3_close(db);
         }
 
+        int sqlite3_close_v2(sqlite3* db) override
+        {
+            return ::sqlite3_close_v2(db);
+        }
+
         void const* sqlite3_column_blob(sqlite3_stmt* stmt, int iCol) override
         {
             return ::sqlite3_column_blob(stmt, iCol);
@@ -117,6 +122,8 @@ namespace ARIASDK_NS_BEGIN {
 
         int sqlite3_open_v2(char const* file, sqlite3** pdb, int flags, char const* zvfs) override
         {
+            assert(file != nullptr);    // Don't allow nullptr filename
+            assert(file[0] != 0);       // Don't allow empty   filename
             return ::sqlite3_open_v2(file, pdb, flags, zvfs);
         }
 
@@ -235,11 +242,11 @@ namespace ARIASDK_NS_BEGIN {
             LOG_INFO("Opening database \"%s\"...", basename.c_str());
 
             result = g_sqlite3Proxy->sqlite3_open_v2(filename.c_str(), &m_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL);
-            if (result != SQLITE_OK) {
+           if (result != SQLITE_OK) {
                 LOG_ERROR("Failed to open database file: (%d) %s",
                     result, m_db ? g_sqlite3Proxy->sqlite3_errmsg(m_db) : "-");
                 if (m_db) {
-                    g_sqlite3Proxy->sqlite3_close(m_db);
+                    g_sqlite3Proxy->sqlite3_close_v2(m_db);
                     m_db = nullptr;
                 }
                 if (!m_skipInitAndShutdown) {
@@ -282,7 +289,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             m_statements.clear();
 
-            g_sqlite3Proxy->sqlite3_close(m_db);
+            g_sqlite3Proxy->sqlite3_close_v2(m_db);
             m_db = nullptr;
 
             if (!m_skipInitAndShutdown) {
@@ -390,7 +397,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         bool trylock() {
-            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;"));
+            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;")); // XXX: [MG] - ptr corruption in sqlite3DbMallocRawNN
         }
 
         /**

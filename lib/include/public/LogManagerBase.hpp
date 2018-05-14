@@ -173,15 +173,22 @@ namespace ARIASDK_NS_BEGIN
                     currentConfig.insert(configuration.begin(), configuration.end());
                 }
 
+                if (!tenantToken.empty())
+                {
+                    primaryToken = tenantToken;
+                    currentConfig[CFG_STR_PRIMARY_TOKEN] = primaryToken;
+                }
+
                 status_t status = STATUS_SUCCESS;
                 instance = LogManagerProvider::GetLogManager(currentConfig, status);
                 if (tenantToken.empty())
                 {
+                    // If there was no token supplied, get one from current instance
+                    // configuration
                     primaryToken = (const char *)configuration[CFG_STR_PRIMARY_TOKEN];
                 }
-                else {
-                    primaryToken = tenantToken;
-                }
+
+                instance->AttachEventSource(debugEventSource);
             }
             else {
                 // TODO: [MG] - decide what to do if someone's doing re-Initialize.

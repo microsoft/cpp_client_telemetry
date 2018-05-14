@@ -230,6 +230,17 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void RemoveEventListener(DebugEventType type, DebugEventListener & listener) override {};
 
+        virtual bool AttachEventSource(DebugEventSource & other) override
+        {
+            return false;
+        }
+
+        ///
+        virtual bool DetachEventSource(DebugEventSource & other) override
+        {
+            return false;
+        }
+
         virtual LogSessionData * GetLogSessionData() override
         {
             return nullptr;

@@ -6,10 +6,6 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-// XXX: [MG] - This isn't perfect
-#define BASE        PAL::RefCountedImpl<TelemetrySystemBase>::self()
-#define SELF        PAL::RefCountedImpl<TelemetrySystem>::self()
-
 /// <summary>
 /// Initializes a new instance of the <see cref="TelemetrySystem"/> class.
 /// </summary>
@@ -41,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
-            result&=stats.onStart();
+            result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
         };
 
@@ -75,6 +71,8 @@ namespace ARIASDK_NS_BEGIN {
             m_done.wait();
             LOG_TRACE("Stopped.");
 
+            storage.stop();
+
             return result;
         };
 
@@ -93,7 +91,7 @@ namespace ARIASDK_NS_BEGIN {
             return tpm.start();
         };
 
-        tpm.allUploadsFinished >> stats.onStop >> storage.stop >> this->flushWorkerThread;
+        tpm.allUploadsFinished >> stats.onStop >> this->flushWorkerThread;
 
         // On an arbitrary user thread
         this->sending >> bondSerializer.serialize >> this->incomingEventPrepared;
@@ -101,10 +99,7 @@ namespace ARIASDK_NS_BEGIN {
         // On the inner worker thread
         this->preparedIncomingEvent >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
 
-        // FIXME: [MG] - reenable stats!!!
-#if 0
         stats.eventGenerated >> bondSerializer.serialize >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
-#endif
 
         storage.storeRecordFailed >> stats.onIncomingEventFailed;
 
@@ -166,13 +161,11 @@ namespace ARIASDK_NS_BEGIN {
 
         event->source = nullptr;
         preparedIncomingEventAsync(event);
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::preparedIncomingEventAsync, event);
     }
 
     void TelemetrySystem::handleFlushWorkerThread()
     {
         signalDone();
-        // PAL::executeOnWorkerThread(SELF, &TelemetrySystemBase::signalDoneEvent);
     }
 
 } ARIASDK_NS_END

@@ -295,6 +295,16 @@ namespace ARIASDK_NS_BEGIN
         virtual void RemoveEventListener(DebugEventType type, DebugEventListener &listener) = 0;
 
         /// <summary>
+        /// Attach cascaded DebugEventSource to forward all debug events to
+        /// </summary>
+        virtual bool AttachEventSource(DebugEventSource & other) = 0;
+
+        /// <summary>
+        /// Detach cascaded DebugEventSource to forward all debug events to
+        /// </summary>
+        virtual bool DetachEventSource(DebugEventSource & other) = 0;
+
+        /// <summary>
         /// Gets the log session data.
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>

@@ -4,6 +4,8 @@
 #include <utils/Utils.hpp>
 #include <algorithm>
 
+#include <Config.hpp>
+
 namespace ARIASDK_NS_BEGIN {
 
     /// <summary>
@@ -645,7 +647,6 @@ namespace ARIASDK_NS_BEGIN {
         m_config(config),
         m_statsConfig(new StatsConfig),
         m_telemetryStats(new TelemetryStats)
-        // m_baseDecorator("")
     {
         m_telemetryStats->statsStartTimestamp = PAL::getUtcSystemTimeMs();
         m_telemetryStats->session_startup_time_in_millisec = m_telemetryStats->statsStartTimestamp;
@@ -743,6 +744,7 @@ namespace ARIASDK_NS_BEGIN {
                 clearMapValues(recordStats.semanticToExceptionCountMap);
                 clearMapValues(recordStats.sizeInKBytesDistribution);
 
+                // FIXME: [MG] - crash here on map clear
                 recordStats.droppedCountPerHttpReturnCode.clear();
 
                 if (telemetryStats->offlineStorageEnabled) {
@@ -949,11 +951,6 @@ namespace ARIASDK_NS_BEGIN {
             insertNonZero(ext, "lm_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyImmediate.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "lm_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyImmediate.latencyDistribution);
         }
-
-        // FIXME: [MG] - pass base decorator to stats
-        // m_semanticContextDecorator.decorate(record);
-        // m_baseDecorator.decorate(record);
-
         records.push_back(record);
     }
 
@@ -1049,7 +1046,7 @@ namespace ARIASDK_NS_BEGIN {
 
         if (hasStatsDataAvailable() || rollupKind != RollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING) {
             snapStatsToRecord(records, rollupKind);
-
+            // FIXME: [MG] - crash here on map clear
             resetStats(false);
         }
 

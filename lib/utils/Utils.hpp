@@ -43,7 +43,8 @@ namespace ARIASDK_NS_BEGIN {
 
     long		GetCurrentProcessId();
 
-    std::string	GetTempDirectory();
+    std::string GetTempDirectory();
+    std::string GetAppLocalTempDirectory();
 
     std::string toString(char const*        value);
     std::string toString(bool               value);
@@ -152,6 +153,10 @@ namespace ARIASDK_NS_BEGIN {
         str.replace(start_pos, from.length(), to);
         return true;
     }
+
+    std::wstring to_utf16_string(const std::string& in);
+
+    std::string to_utf8_string(const std::wstring& in);
 
 #ifdef _WINRT
 

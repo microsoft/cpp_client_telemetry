@@ -49,7 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             return wantMore;
         };
 
-	// TODO: [MG] - expose 120000 as a constant5
+        // TODO: [MG] - expose 120000 as a constant
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
@@ -84,7 +84,7 @@ namespace ARIASDK_NS_BEGIN {
             return false;
 
         HttpHeaders headers;
-        if (ctx->httpResponse)
+        if (ctx->httpResponse)  // Error #2: UNADDRESSABLE ACCESS beyond heap bounds: reading 8 byte(s)
         {
             headers = ctx->httpResponse->GetHeaders();
         }
@@ -188,6 +188,15 @@ namespace ARIASDK_NS_BEGIN {
             evt.size = overallCount;
             DispatchEvent(evt);
         }
+    }
+
+    void StorageObserver::OnStorageRecordsSaved(size_t numRecords)
+    {
+        DebugEvent evt;
+        evt.type = EVT_CACHED;
+        evt.param1 = numRecords;
+        evt.size = 0; // We don't know the records size here
+        DispatchEvent(evt);
     }
 
 } ARIASDK_NS_END
