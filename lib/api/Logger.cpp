@@ -342,9 +342,6 @@ namespace ARIASDK_NS_BEGIN {
             lm->sendEvent(event);
         }
 
-#if 1   /* FIXME: [MG] - example for Shawn */
-        PAL::scheduleOnWorkerThread(0, this, &Logger::onSubmitted);
-#endif
     }
 
     void Logger::onSubmitted()

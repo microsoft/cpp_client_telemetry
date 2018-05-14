@@ -35,11 +35,11 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     {
-        m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
+        m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP); // TODO: [MG] - Error #37: LEAK 16 direct bytes + 24 indirect bytes
         m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
         m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
         m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
-        m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
+        m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP); // TODO: [MG] - Error #71: LEAK 16 direct bytes + 104 indirect bytes
     }
 
     ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
