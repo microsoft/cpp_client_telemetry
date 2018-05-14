@@ -3,7 +3,10 @@ main,LogManager,LogManagerBase,currentConfig,LogManagerProvider,LogManagerFactor
 main->LogManager->LogManagerBase:GetLogConfiguration;
 LogManagerBase->LogManager->main:&currentConfig;
 
-main->LogManager->currentConfig:set params...;
+main->LogManager->currentConfig:set moduleName;
+main->LogManager->currentConfig:set hostName;
+main->LogManager->currentConfig:set other params...;
+
 main->LogManager->LogManagerBase:AddEventListener;
 main->LogManager->LogManagerBase:Initialize(primaryToken,config);
 
@@ -21,4 +24,11 @@ main->LogManager->LogManagerBase->LogManagerImpl:GetSemanticContext;
 LogManagerImpl->LogManagerBase->LogManager->main:ISemanticContext*;
 main->LogManagerImpl:set context values...;
 
-main->Logger:LogEvent(...)
+main->Logger:LogEvent(...);
+main->Logger:LogEvent(...);
+main->Logger:LogEvent(...);
+
+main->LogManager->LogManagerBase:FlushAndTeardown;
+LogManagerBase->LogManagerProvider:Release(&currentConfig);
+LogManagerProvider->LogManagerFactory:Release(moduleName);
+LogManagerFactory->LogManagerImpl:release ILogManager* instance;
