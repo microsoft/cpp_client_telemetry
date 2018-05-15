@@ -113,7 +113,7 @@ public:
                 eps = (1000 * numLogged) / (ms - testStartMs);
                 if ((numLogged % 500) == 0)
                 {
-                    printf("EPS=%u\n", eps);
+                    printf("EPS=%u\n", eps.load() );
                 }
             }
             break;

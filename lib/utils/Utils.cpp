@@ -10,6 +10,12 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+
+#ifdef _WINRT_DLL
+// Win 10-specific APIs
+#include <Roapi.h>
+#endif
+
 #else
 #include <paths.h>
 #include <sys/types.h>
@@ -75,8 +81,10 @@ namespace ARIASDK_NS_BEGIN {
 #ifdef _WINRT_DLL // Win 10 UWP
         RoInitialize(RO_INIT_MULTITHREADED);
         ::Windows::Storage::StorageFolder^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
-        // TODO: [MG] - verify that the path ends with a slash
-        return MAT::Windows::FromPlatformString(temp->Path->ToString());
+        // TODO: [MG]
+        // - verify that the path ends with a slash
+        // -- add exception handler in case if AppData temp folder is not accessible
+        return from_platform_string(temp->Path->ToString());
 #else
         return GetTempDirectory();
 #endif

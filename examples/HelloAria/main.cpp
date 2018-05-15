@@ -1,10 +1,17 @@
+// #define _CRTDBG_MAP_ALLOC
 #define _CRT_SECURE_NO_WARNINGS
+//#include <stdlib.h>  
+//#include <crtdbg.h>
 
 #include <memory>
 #include <chrono>
 #include <thread>
 #include <cstdio>
 #include <cstdlib>
+
+#include <algorithm>
+#include <future>
+#include <cassert>
 
 #include "LogManager.hpp"
 
@@ -133,15 +140,25 @@ using namespace MAT;
 
 MyDebugEventListener listener;
 
+ILogConfiguration testConfiguration()
+{
+    std::string someString = "12345";
+
+    ILogConfiguration result = {
+        { "a", 0 },
+        { "b", 0.1 },
+        { "c",
+            {
+                { "demo",  "string"  },
+                { "demo2", someString },
+            }
+        }
+    };
+    return result;
+}
+
 int main()
 {
-#if 0
-    const char *s1 = "{ \"test\": 1, \"str\": \"string\" }";
-    auto jj = FromJSON(s1);
-    std::string s2;
-    Variant::serialize(jj, s2);
-    printf("%s\n", s2.c_str());
-#endif
 
     // Guest SDKs start first
     guestTest();
@@ -166,20 +183,25 @@ int main()
 
     // printf("LogConfiguration: %s\n", configuration.data());
 
-    printf("Adding debug event listener...\n");
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    printf("Adding debug event listeners...\n");
+    auto eventsList = {
+        DebugEventType::EVT_LOG_EVENT,
+        DebugEventType::EVT_LOG_SESSION,
+        DebugEventType::EVT_REJECTED,
+        DebugEventType::EVT_SEND_FAILED,
+        DebugEventType::EVT_SENT,
+        DebugEventType::EVT_DROPPED,
+        DebugEventType::EVT_HTTP_OK,
+        DebugEventType::EVT_HTTP_ERROR,
+        DebugEventType::EVT_SEND_RETRY,
+        DebugEventType::EVT_SEND_RETRY_DROPPED,
+        DebugEventType::EVT_CACHED,
+        DebugEventType::EVT_NET_CHANGED,
+        DebugEventType::EVT_STORAGE_FULL
+    };
+    // Add event listeners
+    for (auto evt : eventsList)
+        LogManager::AddEventListener(evt, listener);
 
     printf("LogManager::Initialize\n");
     ILogger *logger = LogManager::Initialize(TOKEN);
@@ -189,7 +211,7 @@ int main()
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
     printf("Starting stress-test...\n");
-    for(size_t i = 1; i <= 10; i++)
+    for(size_t i = 1; i <= 10000; i++)
     {
         std::string eventName("ariasdk_test_linktest");
         EventProperties event(eventName);
@@ -201,8 +223,11 @@ int main()
         samplingTest();
 
         logger->LogEvent(event);
-        if((i % 1000) == 0)
-            printf("processed %llu events...\n", i);
+        if ((i % 1000) == 0)
+        {
+            printf("processed %u events...\n", i);
+            LogManager::Flush();
+        }
     }
 
     // Default transmission timers:
@@ -218,6 +243,10 @@ int main()
 
     printf("LogManager::FlushAndTeardown\n");
     LogManager::FlushAndTeardown();
+
+    // Remove event listeners
+    for (auto evt : eventsList)
+        LogManager::RemoveEventListener(evt, listener);
 
     return 0;
 }

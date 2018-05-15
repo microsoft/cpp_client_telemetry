@@ -13,8 +13,7 @@
 #include <iomanip>
 #include <cassert>
 
-#if 0
-// TODO: this code would allow to provide per-property locking. Currently this code is not enabled.
+#ifdef VARIANT_CONCURRENCY
 #ifdef _MANAGED
 // Implementation of a LOCKGUARD for C++/CX .NET 4.x
 #include <msclr/lock.h>
@@ -22,6 +21,11 @@ public ref class VariantLockGuard { public: static Object ^ lock = gcnew Object(
 #define VARIANT_LOCKGUARD(lock_object)  msclr::lock l(VariantLockGuard::lock);
 #define VARIANT_LOCK(lock_object)
 #else
+#ifdef _WIN32
+#include <ppl.h>
+#include <concurrent_unordered_map.h>
+#include <concurrent_vector.h>
+#endif
 // Implementation of a LOCKGUARD for C++11
 #include <mutex>
 #define VARIANT_LOCKGUARD(lock_object)  std::lock_guard<decltype(lock_object)> TOKENPASTE2(__guard_, __LINE__) (lock_object)
@@ -29,23 +33,14 @@ public ref class VariantLockGuard { public: static Object ^ lock = gcnew Object(
 #endif
 #endif
 
-#ifdef _WIN32
-#include <ppl.h>
-#include <concurrent_unordered_map.h>
-#include <concurrent_vector.h>
-#endif
-
 namespace ARIASDK_NS_BEGIN
 {
     class Variant;
 
-#if 0
-    //
-    // TODO: Windows provides concurrent maps and vectors as part of PPL concurrency package.
-    // We are not currently using it, but we may consider to use it for safe concurrent access
-    // to config tree from different threads at the same time. This solution is not being used
-    // because it is not portable.
-    //
+#ifdef VARIANT_CONCURRENCY
+    // Windows provides concurrent maps and vectors as part of PPL concurrency package.
+    // We are not currently using it, but we may consider to use it for safe concurrent
+    // access to config tree from different threads at the same time.
     // Base type for Object (map)
     typedef concurrency::concurrent_unordered_map<std::string, Variant>     VariantMap;
     // Base type for Array (vector)
