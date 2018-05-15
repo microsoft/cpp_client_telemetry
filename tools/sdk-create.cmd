@@ -16,6 +16,9 @@ set ProjectName=Microsoft.Applications.Telemetry.Windows
 mkdir %OUTDIR%\include
 mkdir %OUTDIR%\lib
 
+echo Copy codesign configs...
+copy /Y %ROOT%\tools\*.xml %OUTDIR%\
+
 echo Copy header files...
 robocopy %ROOT%\lib\include\public %OUTDIR%\include
 

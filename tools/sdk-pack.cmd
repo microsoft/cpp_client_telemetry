@@ -17,6 +17,7 @@ set PATH=C:\MinGW\msys\1.0\bin;%PATH%
 
 cd %OUTDIR%
 copy /Y %ROOT%\Solutions\version.txt %OUTDIR%\version.txt
+
 zip -r -9 aria-windows-sdk-win32.zip version.txt windows-sdk.md include lib\win32-dll-vs2015 lib\win32-lib-vs2015-md lib\win32-lib-vs2015-mt-sqlite
 zip -r -9 aria-windows-sdk-net40.zip version.txt windows-sdk.md include lib\win32-net40-vs2015
 zip -r -9 aria-windows-sdk-win10cpp.zip version.txt windows-sdk.md include lib\win10

@@ -12,6 +12,8 @@ cd %ROOT%\tools\NuGet
 
 for %%x in (
   net40
+  native
+  uap
 ) do (
   cd %%x
   del *.nupkg
@@ -19,9 +21,6 @@ for %%x in (
   cd ..
 )
 
-exit
-  native
-  uap
-  net40
-  static-vc140-MD
-  static-vc140-MT
+REM TODO: add nuget generation for static flavors
+REM static-vc140-MD
+REM static-vc140-MT
