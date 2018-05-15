@@ -87,7 +87,11 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
+#ifdef NDEBUG
+        LogLevel g_logLevel = LogLevel::Error;
+#else
         LogLevel g_logLevel = LogLevel::Detail;
+#endif
 
 #define DBG_BUFFER_LEN		2048
 

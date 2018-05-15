@@ -48,17 +48,12 @@ namespace ARIASDK_NS_BEGIN {
 
     ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Events telemetry client - LogManager class");
 
-#if 0
-    // TODO: provide a better mapping between SDK minimumTraceLevel and g_logLevel.
-    // Ideally the debug log implementation has to be refactored to account for
-    // various customer's needs, such as log file destination, log size limit and
-    // log rotation.
-    //
+#if 1
+    // TODO: integrate Tracing API from v1
+    // Meanwhile we'd set the g_logLevel using ILogConfiguration settings
     static void setLogLevel(ILogConfiguration& configuration)
     {
-        uint32_t minTraceLevel = ACTTraceLevel_Fatal;
-        if (!configuration.GetProperty(CFG_INT_TRACE_LEVEL_MIN, minTraceLevel))
-            minTraceLevel = ACTTraceLevel_Fatal;
+        uint32_t minTraceLevel = configuration[CFG_INT_TRACE_LEVEL_MIN];
 
         switch (minTraceLevel)
         {
@@ -94,7 +89,7 @@ namespace ARIASDK_NS_BEGIN {
         m_system(nullptr),
         m_logConfiguration(configuration)
     {
-        // setLogLevel(configuration);
+        setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
         PAL::initialize();
