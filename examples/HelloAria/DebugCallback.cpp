@@ -28,7 +28,7 @@ const char* networkCostNames[] = {
 /// </summary>
 void MyDebugEventListener::reset()
 {
-    testStartMs = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    testStartMs = (unsigned long) (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     eps = 0;
     numLogged0 = 0;
     numLogged = 0;
@@ -68,7 +68,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
     case EVT_LOG_SESSION:
         // printf("OnEventLogged:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         numLogged++;
-        ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+        ms = (unsigned long) (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
         {
             eps = (1000 * numLogged) / (ms - testStartMs);
             if ((numLogged % 500) == 0)
