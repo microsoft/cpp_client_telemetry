@@ -14,6 +14,8 @@
 #include <fstream>
 #include <string>
 
+#include "api/LogManagerFactory.hpp"
+
 using namespace testing;
 using namespace ARIASDK_NS;
 using namespace Microsoft::Applications::Experimentation::AFD;
@@ -101,7 +103,7 @@ class BasicAfdFuncTests : public ::testing::Test,
 
         m_pAFDClient = IAFDClient::CreateInstance();
 
-        logManager.reset((LogManagerImpl*)LogManagerImpl::Create(configuration));
+        logManager.reset((LogManagerImpl*)LogManagerFactory::Create(configuration));
 
         // FIXME: [MG] - TOKEN must be a TOKEN, not a random string...
         // So ideally we should assert right here.

@@ -9,6 +9,8 @@
 #include "bond/generated/AriaProtocol_readers.hpp"
 #include <fstream>
 
+#include "api/LogManagerFactory.hpp"
+
 #ifndef ARIASDK_PAL_SKYPE
 #include "pdh.h"
 #endif
@@ -74,7 +76,7 @@ class LoadTests : public Test,
 
     inline void CreateLogManager()
     {
-        logManager.reset( (LogManagerImpl*)ILogManagerInternal::Create(configuration));
+        logManager.reset( (LogManagerImpl*)LogManagerFactory::Create(configuration));
     }
 
   public:
@@ -111,7 +113,7 @@ class LoadTests : public Test,
             PdhCloseQuery(cpuQuery);
         }
 
-        logManager->FlushAndTeardown();
+        logManager->GetLogController()->FlushAndTeardown();
         ::remove(TEST_STORAGE_FILENAME);
         server.stop();
     }

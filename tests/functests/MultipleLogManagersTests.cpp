@@ -8,6 +8,8 @@
 #include "bond/generated/AriaProtocol_readers.hpp"
 #include "sqlite3.h"
 
+#include <api/LogManagerFactory.hpp>
+
 using namespace testing;
 using namespace ARIASDK_NS;
 
@@ -89,8 +91,8 @@ class MultipleLogManagersTests : public ::testing::Test,
 
 TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
 {
-    std::unique_ptr<ILogManager> lm1(ILogManager::Create(config1));
-    std::unique_ptr<ILogManager> lm2(ILogManager::Create(config2));
+    std::unique_ptr<ILogManager> lm1(LogManagerFactory::Create(config1));
+    std::unique_ptr<ILogManager> lm2(LogManagerFactory::Create(config2));
 
     lm1->SetContext("test1", "abc");
 
