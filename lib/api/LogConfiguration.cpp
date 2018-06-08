@@ -27,6 +27,12 @@ namespace ARIASDK_NS_BEGIN {
         return currentConfig;
     }
 
+    // 
+    // v1 to v3 simple LogConfiguration migration helper. This migration helper
+    // does not support SetProperty nor key-value map parameters previously
+    // supported by v1. Most of these transient key-value parameters are also
+    // no longer applicable to v3. Customers who'd like to populate these extra
+    // props as a map should do this directly on ILogConfiguration object.
     ILogConfiguration FromLogConfiguration(MAT_v1::LogConfiguration &src)
     {
         ILogConfiguration result {
@@ -41,8 +47,12 @@ namespace ARIASDK_NS_BEGIN {
             { CFG_INT_RAM_QUEUE_BUFFERS,    src.maxDBFlushQueues },
             { CFG_INT_TRACE_LEVEL_MASK,     src.traceLevelMask },
             { CFG_STR_COLLECTOR_URL,        src.eventCollectorUri.c_str() },
-            { CFG_INT_STORAGE_FULL_PCT,     75 },
-            { CFG_INT_RAMCACHE_FULL_PCT,    75 }
+
+            { CFG_INT_STORAGE_FULL_PCT,     75 }, // v1 had these parameters inside STL map.
+            { CFG_INT_RAMCACHE_FULL_PCT,    75 }  // Customers transitioning from v1 configuration to v3
+                                                  // and using these two parameters (e.g. OTEL) should
+                                                  // ILogConfiguration class directly. It provides modern
+                                                  // C++11 initializer list-based config tree.
         };
         return result;
     }
