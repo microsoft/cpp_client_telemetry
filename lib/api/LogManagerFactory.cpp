@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="configuration">The configuration.</param>
     /// <returns>ILogManager instance</returns>
-    ILogManager* ILogManager::Create(ILogConfiguration& configuration)
+    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
         auto logManager = new LogManagerImpl(configuration);
@@ -39,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="instance">The instance.</param>
     /// <returns></returns>
-    status_t ILogManager::Destroy(ILogManager *instance)
+    status_t LogManagerFactory::Destroy(ILogManager *instance)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
         auto it = ILogManagerInternal::managers.find(instance);
@@ -102,7 +102,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
-                exclusive[name] = { { name }, ILogManager::Create(c) };
+                exclusive[name] = { { name }, Create(c) };
             c["hostMode"] = true;
             return exclusive[name].second;
         }
@@ -128,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                shared[host] = { { name }, ILogManager::Create(c) };
+                shared[host] = { { name }, Create(c) };
             }
         }
         else

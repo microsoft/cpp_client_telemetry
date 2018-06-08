@@ -52,15 +52,6 @@
     <Filter Include="pal">
       <UniqueIdentifier>{5f958c3d-fa9e-444e-b2bd-976a2420f957}</UniqueIdentifier>
     </Filter>
-    <Filter Include="experiment">
-      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="experiment\afd">
-      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="experiment\ecs">
-      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="callbacks">
       <UniqueIdentifier>{add8b6cf-18a5-43a4-b745-2c68460501ec}</UniqueIdentifier>
     </Filter>
@@ -72,6 +63,15 @@
     </Filter>
     <Filter Include="filter">
       <UniqueIdentifier>{3061113d-a28a-48eb-b0f7-6490f2885d4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp">
+      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp\afd">
+      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp\ecs">
+      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -157,25 +157,25 @@
       <Filter>offline</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp">
       <Filter>system</Filter>
@@ -196,7 +196,7 @@
       <Filter>offline</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp">
       <Filter>api</Filter>
@@ -227,6 +227,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.cpp">
       <Filter>api</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp">
+      <Filter>system</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -360,31 +363,31 @@
       <Filter>system</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientConfig.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientConfig.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp">
       <Filter>system</Filter>
@@ -441,7 +444,7 @@
       <Filter>offline</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp">
       <Filter>include\public</Filter>
@@ -537,6 +540,12 @@
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\NullObjects.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
   </ItemGroup>

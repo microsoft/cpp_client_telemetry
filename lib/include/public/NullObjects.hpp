@@ -246,6 +246,11 @@ namespace ARIASDK_NS_BEGIN {
             return nullptr;
         }
 
+        virtual ILogController* GetLogController()
+        {
+            return this;
+        }
+
         virtual IAuthTokensController * GetAuthTokensController() override
         {
             return nullptr;

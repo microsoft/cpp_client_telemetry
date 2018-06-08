@@ -4,7 +4,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    ILogManager * LogManagerProvider::GetLogManager(
+    ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
         status_t &status
 #ifdef ANDROID
@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     // TODO: consider utilizing a default reference
-    ILogManager* LogManagerProvider::GetLogManager(
+    ILogManager* LogManagerProvider::Get(
         const char * moduleName,
         status_t& status
 #ifdef ANDROID

@@ -107,6 +107,8 @@ namespace ARIASDK_NS_BEGIN {
 
         LogSessionData* GetLogSessionData() override;
 
+        ILogController *GetLogController(void);
+
         IAuthTokensController* GetAuthTokensController() override;
 
         /// <summary>

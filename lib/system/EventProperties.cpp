@@ -410,33 +410,150 @@ namespace ARIASDK_NS_BEGIN {
     const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties(DataCategory category) const
     {
         std::map<string, pair<string, PiiKind> > pIIExtensions;
-        if (category == DataCategory_PartC)
+        auto &props = (category == DataCategory_PartC) ? (*m_propertiesP) : (*m_propertiesBP);
+        for (const auto &kv : props)
         {
-            for (const auto &kv : (*m_propertiesP))
+            auto k = kv.first;
+            auto v = kv.second;
+            if (v.piiKind != PiiKind_None)
             {
-                auto k = kv.first;
-                auto v = kv.second;
-                if (v.piiKind != PiiKind_None)
-                {
-                    pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
-                }
+                pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
             }
         }
-        else
-        {
-            for (const auto &kv : (*m_propertiesBP))
-            {
-                auto k = kv.first;
-                auto v = kv.second;
-                if (v.piiKind != PiiKind_None)
-                {
-                    pIIExtensions[k] = std::pair<string, PiiKind>(v.to_string(), v.piiKind);
-                }
-            }
-        }
-
         return pIIExtensions;
     }
+
+#ifdef ARIA_C_API
+    static inline void cppprop_to_cprop(EventProperty &rhs, aria_prop &lhs)
+    {
+        switch (rhs.type)
+        {
+        case TYPE_STRING:
+            lhs.value.as_string = rhs.as_string;
+            break;
+        case TYPE_INT64:
+            lhs.value.as_int64  = rhs.as_int64;
+            break;
+        case TYPE_DOUBLE:
+            lhs.value.as_double = rhs.as_double;
+            break;
+        case TYPE_TIME:
+            lhs.value.as_time = rhs.as_time_ticks.ticks;
+            break;
+        case TYPE_BOOLEAN:
+            lhs.value.as_bool = rhs.as_bool;
+            break;
+        case TYPE_GUID:
+            lhs.value.as_guid = new aria_guid_t();
+            // TODO: copy from GUID_t to aria_guid_t
+            break;
+#if 0
+        case TYPE_STRING_ARRAY:
+            // TODO: Not implemented
+            break;
+        case TYPE_INT64_ARRAY:
+            // TODO: Not implemented
+            break;
+        case TYPE_DOUBLE_ARRAY:
+            // TODO: Not implemented
+            break;
+        case TYPE_GUID_ARRAY:
+            // TODO: Not implemented
+            break;
+#endif
+        default:
+            break;
+        }
+    }
+
+    aria_prop* EventProperties::pack()
+    {
+        size_t size = (*m_propertiesP).size() + (*m_propertiesBP).size() + 1;
+        aria_prop * result = (aria_prop *)calloc(sizeof(aria_prop), size);
+        size_t i = 0;
+        for(auto &props : { (*m_propertiesP), (*m_propertiesBP) })
+            for (auto &kv : props)
+            {
+                auto k = kv.first;
+                auto v = kv.second;
+                result[i].name = (char *)k.c_str();
+                result[i].type = (aria_prop_type)v.type;
+                result[i].piiKind = v.piiKind;
+                cppprop_to_cprop(v, result[i]);
+            };
+        result[size-1].type = TYPE_NULL;
+        return result;
+    }
+
+    bool EventProperties::unpack(aria_prop *packed)
+    {
+        // List of attributes going into envelope section
+        static const std::string keyName = "name";
+        static const std::string keyTime = "time";
+        static const std::string keyPopSample = "popSample";
+
+        aria_prop *curr = packed;
+        for (size_t i = 0; curr->type != TYPE_NULL; i++, curr++)
+        {
+            // Event name
+            if (keyName == curr->name)
+            {
+                SetName(curr->value.as_string);
+                continue;
+            }
+
+            // Event time
+            if (keyTime == curr->name)
+            {
+                // TODO: set custom event time
+                // NOT IMPLEMENTED!
+                continue;
+            }
+
+            // Pop sample
+            // TODO:
+            // * popSample
+            // * flags for UTC
+            // * cV
+
+            switch (curr->type)
+            {
+            case TYPE_STRING:
+                SetProperty(curr->name, curr->value.as_string, (PiiKind)curr->piiKind);
+                break;
+            case TYPE_INT64:
+                SetProperty(curr->name, curr->value.as_int64,  (PiiKind)curr->piiKind);
+                break;
+            case TYPE_DOUBLE:
+                SetProperty(curr->name, curr->value.as_double, (PiiKind)curr->piiKind);
+                break;
+            case TYPE_TIME:
+                SetProperty(curr->name, time_ticks_t(curr->value.as_time), (PiiKind)curr->piiKind);
+                break;
+            case TYPE_BOOLEAN:
+                SetProperty(curr->name, curr->value.as_bool, (PiiKind)curr->piiKind);
+                break;
+            case TYPE_GUID:
+                SetProperty(curr->name, curr->value.as_guid, (PiiKind)curr->piiKind);
+                break;
+
+            /* TODO: add support for arrays passing across C API
+                // Arrays of basic types
+                TYPE_STRING_ARRAY
+                TYPE_INT64_ARRAY
+                TYPE_DOUBLE_ARRAY
+                TYPE_TIME_ARRAY
+                TYPE_BOOL_ARRAY
+                TYPE_GUID_ARRAY
+            */
+            default:
+                break;
+            }
+        }
+        (packed);
+        return true;
+    }
+#endif /* end of ARIA_C_API */
 
 } ARIASDK_NS_END
 

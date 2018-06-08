@@ -34,6 +34,7 @@ namespace ARIASDK_NS_BEGIN
         /// Set the Auth ticket controller
         /// </summary>
         virtual IAuthTokensController*  GetAuthTokensController() = 0;
+
     };
 
     /// <summary>
@@ -112,21 +113,11 @@ namespace ARIASDK_NS_BEGIN
     /// This class is used to manage the Events logging system
     /// </summary>
     class ARIASDK_LIBABI ILogManager :
+        protected ILogController,
         public IContextProvider,
-        public DebugEventDispatcher,
-        public ILogController
+        public DebugEventDispatcher
     {
     public:
-
-        /// <summary>
-        /// Initializes the telemetry logging system.
-        /// </summary>
-        /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
-        /// <returns>An ILogManager telemetry logging system instance created with the specified configuration.</returns>
-        static ILogManager* Create(ILogConfiguration& configuration);
-
-        ///
-        static status_t Destroy(ILogManager*);
 
         /// <summary>
         /// Dispatches event to this ILogManager instance.
@@ -309,6 +300,12 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
         virtual LogSessionData* GetLogSessionData() override = 0;
+
+        /// <summary>
+        /// Retrieves the ILogController interface of LogManager to control transmission pipe.
+        /// </summary>
+        /// <returns>Pointer to the ILogController interface</returns>
+        virtual ILogController* GetLogController() = 0;
 
         /// <summary>
         /// Set the Auth ticket controller

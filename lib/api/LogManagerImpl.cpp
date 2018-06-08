@@ -509,6 +509,11 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+    ILogController* LogManagerImpl::GetLogController()
+    {
+        return this;
+    }
+
     IAuthTokensController* LogManagerImpl::GetAuthTokensController()
     {
         return &m_authTokensController;

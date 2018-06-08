@@ -66,6 +66,18 @@ namespace ARIASDK_NS_BEGIN {
 
         static const NullLogManager   NULL_LOGMANAGER;
 
+        /// <summary>
+        /// Creates a new ILogManager instance
+        /// </summary>
+        /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
+        /// <returns>An ILogManager telemetry logging system instance created with the specified configuration.</returns>
+        static ILogManager* Create(ILogConfiguration& configuration);
+
+        /// <summary>
+        /// Destroys a ILogManager instance
+        /// </summary>
+        static status_t Destroy(ILogManager*);
+
         static ILogManager * Get(
             ILogConfiguration & logConfiguration,
             status_t &status

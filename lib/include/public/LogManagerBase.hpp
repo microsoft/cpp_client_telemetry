@@ -110,7 +110,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual ~LogManagerBase() {};
 
-    protected:
+    public:
 
 #ifndef _MANAGED
         /// <summary>
@@ -180,7 +180,7 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::GetLogManager(currentConfig, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, status);
                 if (tenantToken.empty())
                 {
                     // If there was no token supplied, get one from current instance
@@ -213,7 +213,7 @@ namespace ARIASDK_NS_BEGIN
             return STATUS_SUCCESS;
 #else       // Less safe approach, but this is in alignment with original v1 behavior
             // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
-            auto callFTD = []() LM_SAFE_CALL(FlushAndTeardown);
+            auto callFTD = []() LM_SAFE_CALL(GetLogController()->FlushAndTeardown);
             auto result = callFTD();
             if (instance)
             {
@@ -239,7 +239,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t UploadNow()
         {
             if (isHost())
-                LM_SAFE_CALL(UploadNow);
+                LM_SAFE_CALL(GetLogController()->UploadNow);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -252,7 +252,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t Flush()
         {
             if (isHost())
-                LM_SAFE_CALL(Flush);
+                LM_SAFE_CALL(GetLogController()->Flush );
             return STATUS_EPERM; // Permission denied
         }
 
@@ -263,7 +263,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t PauseTransmission()
         {
             if (isHost())
-                LM_SAFE_CALL(PauseTransmission);
+                LM_SAFE_CALL(GetLogController()->PauseTransmission );
             return STATUS_EPERM; // Permission denied
         }
 
@@ -273,7 +273,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t ResumeTransmission()
         {
             if (isHost())
-                LM_SAFE_CALL(ResumeTransmission);
+                LM_SAFE_CALL( GetLogController()->ResumeTransmission );
             return STATUS_EPERM; // Permission denied
         }
 
