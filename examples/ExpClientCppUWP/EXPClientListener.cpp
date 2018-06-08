@@ -39,9 +39,9 @@ IEXPClient* EXPClientListener::Attach(ILogger* pLogger)
     config.clientVersion = TEST_CLIENT_VERSION;
     config.cacheFilePathName = TEST_CACHE_FILE_PATH_NAME;
     config.defaultExpiryTimeInMin = 0;
-    config.serverUrls.push_back("http://127.0.0.1:5002/");
-    // config.serverUrls.push_back("https://a.config.skype.net/config/v1/");
-    // config.serverUrls.push_back("https://ecsdemo.cloudapp.net/config/v1/");
+    // config.serverUrls.push_back("http://127.0.0.1:5002/");
+    config.serverUrls.push_back("https://a.config.skype.net/config/v1/");
+    config.serverUrls.push_back("https://ecsdemo.cloudapp.net/config/v1/");
     config.enableECSClientTelemetry = false;
 #endif
 
