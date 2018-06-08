@@ -551,8 +551,8 @@ namespace ARIASDK_NS_BEGIN
             // No-op LogManager is implemented as C++11 magic local static
             static NullLogManager nullLogManager;
             if (!isHost())
-                return &nullLogManager;
-            return instance;
+                return nullLogManager.GetLogController();
+            return instance->GetLogController();
         }
 
     };
