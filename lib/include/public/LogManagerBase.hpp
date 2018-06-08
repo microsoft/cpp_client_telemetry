@@ -287,7 +287,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t SetTransmitProfile(TransmitProfile profile)
         {
             if (isHost())
-                LM_SAFE_CALL(SetTransmitProfile, profile);
+                LM_SAFE_CALL(GetLogController()->SetTransmitProfile, profile);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -301,7 +301,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t SetTransmitProfile(const std::string& profile)
         {
             if (isHost())
-                LM_SAFE_CALL(SetTransmitProfile, profile);
+                LM_SAFE_CALL(GetLogController()->SetTransmitProfile, profile);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -313,7 +313,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t LoadTransmitProfiles(const std::string& profiles_json)
         {
             if (isHost())
-                LM_SAFE_CALL(LoadTransmitProfiles, profiles_json);
+                LM_SAFE_CALL(GetLogController()->LoadTransmitProfiles, profiles_json);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -323,7 +323,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t ResetTransmitProfiles()
         {
             if (isHost())
-                LM_SAFE_CALL(ResetTransmitProfiles);
+                LM_SAFE_CALL(GetLogController()->ResetTransmitProfiles);
             return STATUS_EPERM; // Permission denied
         }
 
