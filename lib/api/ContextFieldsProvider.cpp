@@ -190,8 +190,27 @@ namespace ARIASDK_NS_BEGIN {
             iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID);
             if (iter != m_commonContextFieldsP->end())
             {
-                std::string temp("m:");
-                temp.append(iter->second.as_string);
+                // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
+                // Use "c:" prefix instead of "m:" prefix because Aria Device.Id
+                // is a custom device ID, not MAC address. Unfortunately c: isn't
+                // handled by collector, so we'd use the iOS identifier prefix
+                // for now.
+                std::string temp("i:");
+                const char *deviceId = iter->second.as_string;
+                if (deviceId != nullptr)
+                {
+                    size_t len = strlen(deviceId);
+                    // Strip curly braces from GUID while populating localId.
+                    // Otherwise 1DS collector would not strip the prefix.
+                    if ((deviceId[0] == '{') && (deviceId[len - 1] == '}'))
+                    {
+                        temp.append(deviceId + 1, len - 2);
+                    }
+                    else
+                    {
+                        temp.append(deviceId);
+                    }
+                }
                 record.extDevice[0].localId = temp;
             }
 
