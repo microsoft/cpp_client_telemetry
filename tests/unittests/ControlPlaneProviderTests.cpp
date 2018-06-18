@@ -1,3 +1,4 @@
+#if 0
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
@@ -42,3 +43,4 @@ TEST(ControlPlaneProviderTests, GetControlPlane_ConfigHasV0Size_ConfigHasCachePa
 
     ASSERT_NE(nullptr, ControlPlaneProvider::GetControlPlane(config));
 }
+#endif

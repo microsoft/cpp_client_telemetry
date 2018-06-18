@@ -29,13 +29,14 @@ namespace Microsoft {
                     AFDConfig()
                     {
                         etag = DEFAULT_CONFIG_ETAG;
-                        expiryUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN;
+
+                        expiryUtcTimestamp = PAL::getUtcSystemTime() + DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN;
                         flightingVersion = 0;
                     }
 
                     std::int64_t GetExpiryTimeInSec() const
                     {
-                        std::int64_t currUtcTimestamp = Microsoft::Applications::Events::PAL::getUtcSystemTime();
+                        std::int64_t currUtcTimestamp = PAL::getUtcSystemTime();
                         return (expiryUtcTimestamp <= currUtcTimestamp) ? 0 : (expiryUtcTimestamp - currUtcTimestamp);
                     }
 
@@ -55,12 +56,15 @@ namespace Microsoft {
                     AFDConfig* GetConfigByRequestName(const std::string& requestName);
 
                 private:
-                    Microsoft::Applications::Events::IStorage* _CreateOfflineStorage(const std::string& storagePath);
+
+                    MAT::IStorage* _CreateOfflineStorage(const std::string& storagePath);
                     bool _LoadConfig();
                     bool _SaveConfig(const AFDConfig& config);
 
                     std::string m_OfflineStoragePath;
-                    Microsoft::Applications::Events::IStorage* m_pOfflineStorage;
+
+                    MAT::IStorage* m_pOfflineStorage;
+
 
                     std::map<std::string, AFDConfig> m_configs;
                     std::mutex                         m_lock;

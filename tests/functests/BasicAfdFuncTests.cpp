@@ -3,15 +3,18 @@
 #include "pal/UtcHelpers.hpp"
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
+
 #include "utils/Utils.hpp"
-#include <api/ILogManagerInternal.hpp>
+#include <api/LogManagerImpl.hpp>
+
 #include <IAFDClient.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
 #include <fstream>
 #include <string>
+
+#include "api/LogManagerFactory.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -70,15 +73,14 @@ class BasicAfdFuncTests : public ::testing::Test,
   protected:
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
-    MockIRuntimeConfig runtimeConfig;
     HttpServer server;
-    std::unique_ptr<ILogManagerInternal> logManager;
+    std::unique_ptr<LogManagerImpl> logManager;
     ILogger* logger;
     ILogger* logger2;
     IAFDClient* m_pAFDClient;
     AFDClientListener listner;
     std::ostringstream os;
-    LogConfiguration configuration;
+    ILogConfiguration configuration;
 
   public:
     virtual void SetUp() override
@@ -95,37 +97,23 @@ class BasicAfdFuncTests : public ::testing::Test,
         server.addHandler("/afd", *this);
         server.addHandler("/afd503", *this);
 
-        configuration.SetIntProperty(CFG_INT_RAM_QUEUE_SIZE, 4096 * 20);
-        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
-        EVTStatus error;
-        ::remove(configuration.GetProperty("cacheFilePath", error));
+        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        configuration["cacheFilePath"] = TEST_STORAGE_FILENAME;
+        ::remove(configuration["cacheFilePath"]);
 
-
-        EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
-        EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
-        EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(runtimeConfig, GetUploadRetryBackoffConfig()).WillRepeatedly(Return("E,3000,3000,2,0"));
-        EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
-
-        
         m_pAFDClient = IAFDClient::CreateInstance();
 
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
-        ContextFieldsProvider temp;
-        logger = logManager->GetLogger("functests-Tenant-Token",&temp, "source");
-        logger2 = logManager->GetLogger("FuncTests2-tenant-token", &temp, "Source");
+        logManager.reset((LogManagerImpl*)LogManagerFactory::Create(configuration));
+
+        // FIXME: [MG] - TOKEN must be a TOKEN, not a random string...
+        // So ideally we should assert right here.
+        logger = logManager->GetLogger("functests-Tenant-Token", "source");
+        logger2 = logManager->GetLogger("FuncTests2-tenant-token", "Source");
 
         m_pAFDClient->AddListener(&listner);
         m_pAFDClient->RegisterLogger(logger, TEST_CLIENT_NAME);
         
-        
-        server.start();		
+        server.start();
         listner.flights.clear();
         listner.features.clear();
     }
@@ -160,7 +148,7 @@ class BasicAfdFuncTests : public ::testing::Test,
 
         if (storagePath.find(PATH_SEPARATOR_CHAR) == std::string::npos)
         {
-            std::string tempDirectroryPath = Microsoft::Applications::Events::PAL::GetAppLocalTempDirectory();
+            std::string tempDirectroryPath = MAT::GetAppLocalTempDirectory();
             if (!tempDirectroryPath.empty())
             {
                 storagePath = tempDirectroryPath + storagePath;

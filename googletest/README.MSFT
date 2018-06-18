@@ -1,0 +1,3 @@
+This code was obtained from https://github.com/google/googletest/pull/1029/commits/ba638689e40fc60c2e5194fc777bf30541deeff8
+
+It has been approved by CELA for Skype internal use. These bits are not used in production, for internal testing only.

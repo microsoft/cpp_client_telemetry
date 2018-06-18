@@ -52,26 +52,26 @@
     <Filter Include="pal">
       <UniqueIdentifier>{5f958c3d-fa9e-444e-b2bd-976a2420f957}</UniqueIdentifier>
     </Filter>
-    <Filter Include="controlplane">
-      <UniqueIdentifier>{e58972e8-1026-45d4-85ff-e2017d74e69c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="experiment">
-      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="experiment\afd">
-      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="experiment\ecs">
-      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="callbacks">
       <UniqueIdentifier>{add8b6cf-18a5-43a4-b745-2c68460501ec}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\public">
       <UniqueIdentifier>{745547c2-8b4f-47bf-bb27-aa23eeb6303f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Modular">
-      <UniqueIdentifier>{0454a90a-9431-4e4b-8b06-f1d073a7081c}</UniqueIdentifier>
+    <Filter Include="include\aria">
+      <UniqueIdentifier>{80621d23-c9e9-41fe-9d54-e930b5f04a15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filter">
+      <UniqueIdentifier>{3061113d-a28a-48eb-b0f7-6490f2885d4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp">
+      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp\afd">
+      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="exp\ecs">
+      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -126,12 +126,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp">
       <Filter>compression</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.cpp">
-      <Filter>config</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage.cpp">
-      <Filter>offline</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp">
       <Filter>offline</Filter>
     </ClCompile>
@@ -162,29 +156,26 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
       <Filter>offline</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.cpp">
-      <Filter>controlplane</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp">
       <Filter>system</Filter>
@@ -205,16 +196,7 @@
       <Filter>offline</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp">
-      <Filter>experiment</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.cpp">
-      <Filter>controlplane</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.cpp">
-      <Filter>controlplane</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneProvider.cpp">
-      <Filter>controlplane</Filter>
+      <Filter>exp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp">
       <Filter>api</Filter>
@@ -222,29 +204,32 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp">
       <Filter>system</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerProvider.cpp">
-      <Filter>api</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CommonLogManagerInternal.cpp">
-      <Filter>api</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManage.cpp">
-      <Filter>api</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogController.cpp">
-      <Filter>api</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.cpp">
       <Filter>api</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerSimple.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.cpp">
+      <Filter>offline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp">
+      <Filter>decorators</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonTransport.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp">
+      <Filter>filter</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.cpp">
+      <Filter>filter</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerProvider.cpp">
       <Filter>api</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.cpp">
-      <Filter>Modular</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.cpp">
+      <Filter>api</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\modular\ThreadManagerShim.cpp">
-      <Filter>Modular</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp">
+      <Filter>system</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,9 +293,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.hpp">
       <Filter>compression</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp">
-      <Filter>config</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.hpp">
       <Filter>decorators</Filter>
     </ClInclude>
@@ -320,29 +302,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp">
       <Filter>decorators</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\RuntimeConfigDecorator.hpp">
-      <Filter>decorators</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp">
       <Filter>decorators</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticContextDecorator.hpp">
-      <Filter>decorators</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Config.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IPropertyChangedCallback.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IOfflineStorage.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Utils.hpp">
-      <Filter>include\aria</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ClockSkewManager.hpp">
       <Filter>offline</Filter>
@@ -351,9 +312,6 @@
       <Filter>offline</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp">
-      <Filter>offline</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage.hpp">
       <Filter>offline</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp">
@@ -373,12 +331,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.hpp">
       <Filter>pal</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\INetworkInformation.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp">
-      <Filter>include\aria</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp">
       <Filter>pal</Filter>
@@ -410,56 +362,32 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp">
       <Filter>system</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ConcurrentObservable.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ILocalStorage.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\SingleControlPlane.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\DiskLocalStorage.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\ControlPlaneConcurrentObservable.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\LocalStorageConcurrentObservable.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\controlplane\TenantDataSerializer.hpp">
-      <Filter>controlplane</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientConfig.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.hpp">
-      <Filter>experiment\afd</Filter>
+      <Filter>exp\afd</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientConfig.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp">
-      <Filter>experiment\ecs</Filter>
+      <Filter>exp\ecs</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp">
       <Filter>system</Filter>
@@ -500,9 +428,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogger.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IRuntimeConfig.hpp">
-      <Filter>include\public</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ISemanticContext.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
@@ -519,7 +444,7 @@
       <Filter>offline</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp">
-      <Filter>experiment</Filter>
+      <Filter>exp</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp">
       <Filter>include\public</Filter>
@@ -530,34 +455,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogConfiguration.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp">
       <Filter>packager</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp">
-      <Filter>include\public</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\CommonLogManagerInternal.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\HostGuestLogManager.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp">
-      <Filter>include\public</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogManagerInternal.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp">
-      <Filter>include\public</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogController.hpp">
-      <Filter>api</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogController.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp">
@@ -566,14 +467,86 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp">
       <Filter>api</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerSimple.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Config.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\INetworkInformation.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IOfflineStorage.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IPropertyChangedCallback.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\ISystemInformation.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\json.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\TraceHelper.hpp">
+      <Filter>include\aria</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\modular\DebugLogger.hpp">
-      <Filter>Modular</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp">
+      <Filter>config</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DefaultThreadManager.hpp">
-      <Filter>pal</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\IRuntimeConfig.hpp">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.hpp">
+      <Filter>offline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystemBase.hpp">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Variant.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\VariantType.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\IEventFilter.hpp">
+      <Filter>filter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.hpp">
+      <Filter>filter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.hpp">
+      <Filter>filter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.hpp">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerBase.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\NullObjects.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp">
+      <Filter>include\public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

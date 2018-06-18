@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <IRuntimeConfig.hpp>
+#include "api/IRuntimeConfig.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
@@ -17,7 +17,7 @@ class HttpDeflateCompression {
     bool handleCompress(EventsUploadContextPtr const& ctx);
 
   protected:
-    IRuntimeConfig& m_runtimeConfig;
+    IRuntimeConfig& m_config;
 
   public:
     RouteSource<EventsUploadContextPtr const&>                              compressionFailed;

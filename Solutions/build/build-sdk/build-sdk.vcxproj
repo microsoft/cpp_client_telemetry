@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7A9D3496-DA4E-4D1D-BC83-5527E865B8DF}</ProjectGuid>
+    <RootNamespace>buildsdk</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ItemGroup Condition="'$(Platform)'!='ARM'">
+    <ProjectReference Include="..\..\..\googletest\googlemock\msvc\2015\gmock.vcxproj">
+      <Project>{34681f0d-ce45-415d-b5f2-5c662dfe3bd5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\googletest\googletest\msvc\gtest.vcxproj">
+      <Project>{c8f6c172-56f2-4e76-b5fa-c3b423b31be7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sqlite\sqlite.vcxproj">
+      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\net40\net40.vcxproj">
+      <Project>{dc91621e-a203-42df-8e03-3a23dd0602b1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\win32-dll\win32-dll.vcxproj">
+      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\sqliteUWP\sqlite-uwp.vcxproj">
+      <Project>{6883A688-89F5-424A-9BFA-50D42F691B29}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\win10-cs\win10-cs.vcxproj">
+      <Project>{49077DBF-E363-4D2D-8334-636569A771B6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\win10-dll\win10-dll.vcxproj">
+      <Project>{57A81ED9-5603-471F-AFEE-9656DA74178D}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+  </ItemGroup>
+  <Target Name="Link">
+  </Target>
+  <Target Name="Build">
+    <MSBuild Projects="@(ProjectReference)" Targets="Build" ContinueOnError="true" />
+  </Target>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
+</Project>

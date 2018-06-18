@@ -1236,7 +1236,7 @@ void Serialize(TWriter& writer, ::AriaProtocol::Data const& value, bool isBase)
 }
 
 template<typename TWriter>
-void Serialize(TWriter& writer, ::AriaProtocol::CsEvent const& value, bool isBase)
+void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
 
@@ -1522,6 +1522,8 @@ void Serialize(TWriter& writer, ::AriaProtocol::CsEvent const& value, bool isBas
     }
 
     writer.WriteStructEnd(isBase);
+    // TODO: [MG] - investigate
+    // Run-Time Check Failure #2 - Stack around the variable '<begin>$L6' was corrupted.
 }
 
 } // namespace bond_lite

@@ -30,53 +30,53 @@
     <ProjectGuid>{49077DBF-E363-4D2D-8334-636569A771B6}</ProjectGuid>
     <Keyword>WindowsRuntimeComponent</Keyword>
     <ProjectName>win10-cs</ProjectName>
-    <RootNamespace>Microsoft.Applications.Events.Windows</RootNamespace>
+    <RootNamespace>Microsoft.Applications.Telemetry.Windows</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-x86_vs2015-debug</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-armv7_vs2015-debug</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-x64_vs2015-debug</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-x86_vs2015-release</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-armv7_vs2015-release</QBConfigId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <QBConfigId>uap-x64_vs2015-release</QBConfigId>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -85,6 +85,7 @@
   <ImportGroup Label="Shared">
     <Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\pal\winrt\winrt.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\shared\Shared.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -94,63 +95,51 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>true</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>true</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>true</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>true</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>true</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <TargetName>Microsoft.Applications.Events.Windows</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);</IncludePath>
-    <OutDir>$(ProjectDir)..\out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
-    <IntDir>$(ProjectDir)..\out\obj\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\out\$(Configuration)\$(Platform)\zlib\bin</LibraryPath>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-managed</TargetName>
+    <IncludePath>$(ProjectDir);$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_CRTDBG_MAP_ALLOC;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_CRTDBG_MAP_ALLOC;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <BrowseInformation>true</BrowseInformation>
@@ -158,18 +147,23 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AssemblyDebug>true</AssemblyDebug>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -179,8 +173,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -188,49 +182,60 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AssemblyDebug>false</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAsManaged>false</CompileAsManaged>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AssemblyDebug>true</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -238,50 +243,61 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AssemblyDebug>false</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAsManaged>false</CompileAsManaged>
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AssemblyDebug>true</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOOST_VC14_WORKAROUD;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\sysroot\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;ARIASDK_VERSION_PREFIX="Aria";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;BOND_COMPACT_BINARY_PROTOCOL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -289,56 +305,36 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
-      <AdditionalDependencies>WindowsApp.lib;$(ProjectDir)..\..\sysroot\lib\$(Configuration)\$(Platform)\z.lib;$(ProjectDir)..\out\$(OacrPath)\$(Configuration)\$(Platform)\sqliteUWP.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AssemblyDebug>false</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\lib\shared\dllmain.cpp" />
-    <ClCompile Include="..\..\lib\shared\ECSClientCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\EventPropertiesCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\LogConfigurationCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\LoggerCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\LogManagerCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\SemanticContextCX.cpp" />
-    <ClCompile Include="..\..\lib\shared\TimedEvent.cpp" />
-    <ClCompile Include="..\..\lib\shared\WindowsRTHelpers.cpp" />
-    <ClCompile Include="..\..\lib\shared\WindowsRTPlatformEventHandler.cpp" />
-  </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lib\shared\include\AggregatedMetricData.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\ECSClientCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\EventPropertiesCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\LogConfigurationCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\LoggerCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\LogManagerCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\SchemaStub.hpp" />
-    <ClInclude Include="..\..\lib\shared\include\SemanticContextCX.hpp" />
-    <ClInclude Include="..\..\lib\shared\IPlatformEventReceiver.h" />
-    <ClInclude Include="..\..\lib\shared\ITestCallback.h" />
-    <ClInclude Include="..\..\lib\shared\LogManagerEventReceiver.h" />
-    <ClInclude Include="..\..\lib\shared\PageActionData.h" />
-    <ClInclude Include="..\..\lib\shared\PlatformHelpers.h" />
-    <ClInclude Include="..\..\lib\shared\SchemaStub.h" />
-    <ClInclude Include="..\..\lib\shared\TimedEvent.hpp" />
-    <ClInclude Include="..\..\lib\shared\WindowsRTPlatformEventHandler.h" />
+    <ProjectReference Include="..\..\sqliteUWP\sqlite-uwp.vcxproj">
+      <Project>{6883a688-89f5-424a-9bfa-50d42f691b29}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</Project>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\lib\shared\Shared.vcxitems" />
-    <None Include="..\..\lib\shared\Shared.vcxitems.filters" />
-  </ItemGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

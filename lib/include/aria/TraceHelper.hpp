@@ -13,18 +13,18 @@
 #endif
 
 // This macro is kept here for backwards-compatiblity
-#define TRACEMSG(x, y, ...)     do { ::PAL::Trace(x, LOG_MODULE, y, __VA_ARGS__); }   while (0);
+#define TRACEMSG(x, y, ...)     do { PAL::Trace(x, LOG_MODULE, y, __VA_ARGS__); }   while (0);
 
-extern const char * ::PAL::dbg_module_names[DBG_MAX];
+extern const char * PAL::dbg_module_names[DBG_MAX];
 
 // Please use these LOG_* or TRACE macro
-#define LOG_TRACE(fmt, ...)     do { ::PAL::Trace(TL_TRACE, LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
-#define LOG_DEBUG(fmt, ...)     do { ::PAL::Trace(TL_DEBUG, LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
-#define LOG_INFO(fmt,  ...)     do { ::PAL::Trace(TL_INFO,  LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
+#define LOG_TRACE(fmt, ...)     do { PAL::Trace(TL_TRACE, LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
+#define LOG_DEBUG(fmt, ...)     do { PAL::Trace(TL_DEBUG, LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
+#define LOG_INFO(fmt,  ...)     do { PAL::Trace(TL_INFO,  LOG_MODULE, "[%s] %s(%d):\t" fmt, ::PAL::dbg_module_names[LOG_MODULE], __FILENAME__, __LINE__ , ##__VA_ARGS__); } while (0);
 
-#define LOG_WARN(fmt,  ...)     do { ::PAL::Trace(TL_WARN,  LOG_MODULE, "%s(%d): %s WARNING: " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
-#define LOG_ERROR(fmt, ...)     do { ::PAL::Trace(TL_ERROR, LOG_MODULE, "%s(%d): %s ERROR  : " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
-#define LOG_FATAL(fmt, ...)     do { ::PAL::Trace(TL_FATAL, LOG_MODULE, "%s(%d): %S FATAL  : " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
+#define LOG_WARN(fmt,  ...)     do { PAL::Trace(TL_WARN,  LOG_MODULE, "%s(%d): %s WARNING: " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
+#define LOG_ERROR(fmt, ...)     do { PAL::Trace(TL_ERROR, LOG_MODULE, "%s(%d): %s ERROR  : " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
+#define LOG_FATAL(fmt, ...)     do { PAL::Trace(TL_FATAL, LOG_MODULE, "%s(%d): %S FATAL  : " fmt, __FILE__, __LINE__, __FUNCSIG__ , ##__VA_ARGS__); } while (0);
 
 #ifndef TRACE
 // Visual Studio-style TRACE macro: https://msdn.microsoft.com/en-us/library/6w95a4ha.aspx
@@ -72,24 +72,4 @@ extern const char * ::PAL::dbg_module_names[DBG_MAX];
 #ifdef _WIN32
 #pragma warning( disable : 4101)
 #endif
-
-// FIXME: this macro is no longer used anywhere in code. And probably needs to be
-// removed...
-#define xxx_CATCH_EXCEPTION_TRACE_OR_RETHROW                                        \
-    catch (const std::bad_alloc& e)                                             \
-    {                                                                           \
-        ACT_RETHROW_EXCEPTION("bad alloc", e.what());                           \
-    }                                                                           \
-    catch (const std::logic_error& e)                                           \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("logic error", e.what());                          \
-    }                                                                           \
-    catch (const std::runtime_error& e)                                         \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("runtime error", e.what());                        \
-    }                                                                           \
-    catch (...)                                                                 \
-    {                                                                           \
-        ACT_HANDLE_EXCEPTION("unknown exception", "");                          \
-    }
 #endif

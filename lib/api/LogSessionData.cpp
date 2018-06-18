@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+#include <string.h>
+
 #include "LogSessionData.hpp"
 #include "pal/PAL.hpp"
 #include "Logger.hpp"
@@ -7,6 +9,7 @@
 #include "offline/FifoFileStorage.hpp"
 #include <memory>
 
+// TODO: [MG] - verify this functionality, esp. that the file is created where expected
 namespace ARIASDK_NS_BEGIN {
         
     LogSessionData::LogSessionData(std::string const& cacheFilePath)
@@ -21,8 +24,7 @@ namespace ARIASDK_NS_BEGIN {
                 sessionPath = sessionPath + "64";
             }
             UNREFERENCED_PARAMETER(xPtr);
-
-            //ARIASDK_LOG_DETAIL("%s: sessionPath=%s", __FUNCTION__, sessionPath.c_str());
+            //LOG_TRACE("%s: sessionPath=%s", __FUNCTION__, sessionPath.c_str());
             if (StartSessionStorage(sessionPath)) {
                 PopulateSession();
                 StopSessionStorage();
@@ -48,20 +50,20 @@ namespace ARIASDK_NS_BEGIN {
         m_sessionStorage = new FIFOFileStorage();
         if (m_sessionStorage == NULL)
         {
-            ARIASDK_LOG_ERROR("Start: Failed to create FifiFileStorage");
+            LOG_ERROR("Start: Failed to create FifiFileStorage");
             StopSessionStorage();
             return false;
         }
-        ARIASDK_LOG_DETAIL("%s: FifiFileStorage initialized with path %s", __FUNCTION__, sessionpath.c_str());
+        LOG_TRACE("%s: FifiFileStorage initialized with path %s", __FUNCTION__, sessionpath.c_str());
 
         // 2 blocks by 32768 should be enough for session storage
         if (m_sessionStorage->Open(sessionpath.c_str(), 32768 * 2) != 0) {
-            ARIASDK_LOG_ERROR("Start: Failed to open FifoStorage");
+            LOG_ERROR("Start: Failed to open FifoStorage");
             StopSessionStorage();
             return false;
         }
 
-        ARIASDK_LOG_DETAIL("%s: FifiFileStorage started.", __FUNCTION__);
+        LOG_TRACE("%s: FifiFileStorage started.", __FUNCTION__);
         return true;
     }
 
@@ -115,7 +117,7 @@ namespace ARIASDK_NS_BEGIN {
         errorCode = m_sessionStorage->FindFirstItem(&findItemInfo);
         while (!errorCode)
         {
-            ARIASDK_LOG_DETAIL("%s: key=%s", __FUNCTION__, (char *)(findItemInfo.Key.CustomProperty3));
+            LOG_TRACE("%s: key=%s", __FUNCTION__, (char *)(findItemInfo.Key.CustomProperty3));
 
             buffer = (char *)(&buf[0]);
 
@@ -124,7 +126,7 @@ namespace ARIASDK_NS_BEGIN {
 
             if (resultSize == 0)
             {
-                ARIASDK_LOG_ERROR("Corrupt value!");
+                LOG_ERROR("Corrupt value!");
                 errorCode = DATARV_ERROR::DATARV_ERROR_INIT_OFFLINESTORAGE_FAILED;
                 continue;
             }
@@ -134,7 +136,7 @@ namespace ARIASDK_NS_BEGIN {
             // ...and NUL-terminate it because it is not NUL-terminated in DB
             buf[resultSize] = 0;
             buffer = (char *)(&buf[0]);
-            ARIASDK_LOG_DETAIL("%s: value=%s", __FUNCTION__, buffer);
+            LOG_TRACE("%s: value=%s", __FUNCTION__, buffer);
 
             if (strcmp(findItemInfo.Key.CustomProperty3, SESSION_FIRST_TIME) == 0)
             {
@@ -153,16 +155,16 @@ namespace ARIASDK_NS_BEGIN {
             // Populate the first time launch
             StorageItemKey fileItemInfo = {};
             strncpy_s(fileItemInfo.CustomProperty3, sizeof(fileItemInfo.CustomProperty3), SESSION_FIRST_TIME, strlen(SESSION_FIRST_TIME));
-            ARIASDK_LOG_DETAIL("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
+            LOG_TRACE("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
             m_sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
             std::string timeNow = std::to_string(m_sessionFirstTimeLaunch);
             if (m_sessionStorage->SaveItem(timeNow.c_str(), timeNow.length(), &fileItemInfo))
             {
-                ARIASDK_LOG_ERROR("Unable to save SESSION_FIRST_TIME");
+                LOG_ERROR("Unable to save SESSION_FIRST_TIME");
                 m_sessionFirstTimeLaunch = 0;
                 return;
             }
-            ARIASDK_LOG_DETAIL("%s: item saved: timeNow=%s", __FUNCTION__, timeNow.c_str());
+            LOG_TRACE("%s: item saved: timeNow=%s", __FUNCTION__, timeNow.c_str());
         }
 
         if (!sdkuidFound)
@@ -170,15 +172,15 @@ namespace ARIASDK_NS_BEGIN {
             // Populate SDK UUID
             StorageItemKey fileItemInfo = {};
             strncpy_s(fileItemInfo.CustomProperty3, sizeof(fileItemInfo.CustomProperty3), SESSION_SDKU_ID, strlen(SESSION_SDKU_ID));
-            ARIASDK_LOG_DETAIL("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
+            LOG_TRACE("%s: CustomProperty3=%s", __FUNCTION__, (char *)(&fileItemInfo.CustomProperty3[0]));
             m_sessionSDKUid = PAL::generateUuidString();
             if (m_sessionStorage->SaveItem(m_sessionSDKUid.c_str(), m_sessionSDKUid.length(), &fileItemInfo))
             {
-                ARIASDK_LOG_ERROR("Unable to save SDK UUID");
+                LOG_ERROR("Unable to save SDK UUID");
                 m_sessionSDKUid = "";
                 return;
             }
-            ARIASDK_LOG_DETAIL("%s: item saved: m_sessionSDKUid=%s", __FUNCTION__, m_sessionSDKUid.c_str());
+            LOG_TRACE("%s: item saved: m_sessionSDKUid=%s", __FUNCTION__, m_sessionSDKUid.c_str());
         }
     }
 } ARIASDK_NS_END

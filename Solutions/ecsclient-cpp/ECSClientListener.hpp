@@ -15,7 +15,7 @@ public:
     ECSClientListener();
     ~ECSClientListener();
 
-    void Init(Microsoft::Applications::Telemetry::ILogger* pLogger);
+    void Init(MAT::ILogger* pLogger);
     void Term();
 
     // IECSClientCallback

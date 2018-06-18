@@ -4,7 +4,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 const std::string DurationPropertyName = "Duration";

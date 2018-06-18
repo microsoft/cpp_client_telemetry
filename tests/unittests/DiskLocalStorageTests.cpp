@@ -1,12 +1,16 @@
+#if 0
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "controlplane/DiskLocalStorage.hpp"
+
+//#include "controlplane/DiskLocalStorage.hpp"
+
 #include "common/MockITenantDataSerializer.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;
-using namespace ARIASDK_NS::ControlPlane;
+
+//using namespace ARIASDK_NS::ControlPlane;
 
 // Class to allow unit tests to test DiskLocalStorage without needing to use the file system
 class TestableDiskLocalStorage : public DiskLocalStorage
@@ -95,3 +99,4 @@ TEST(DiskLocalStorageTests, ReadTenantData_OpenStreamReturnsNonEmptyStream_Seria
     ASSERT_EQ(&tenantData, reader.ReadTenantData(ariaTenantId));
     ASSERT_EQ(expectedInput, actualInput);
 }
+#endif

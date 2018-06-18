@@ -1,8 +1,8 @@
 Collector
 =========
 
-"Collector" is term used for the ARIA web service which receives
-telemetry packages send by the ARIA client library.
+"Collector" is term used for the OneCollector web service which receives
+telemetry packages send by the 1DS OneSDK client library.
 
 URL
 ---

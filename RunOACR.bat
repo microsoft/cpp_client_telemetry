@@ -45,7 +45,7 @@ echo ** Running OACR on Win32 Release ...                                       
 echo ***************************************************************************************************
 echo ***************************************************************************************************
 msbuild sqlite\sqlite.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes
-msbuild sqliteUWP\sqliteUWP.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes
+msbuild sqliteUWP\sqlite-uwp.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes
 msbuild Solutions\lib\aria.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes
 msbuild Solutions\win32-dll\win32-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes
 msbuild Solutions\win10-dll\win10-dll.vcxproj /maxcpucount:1 /detailedsummary /p:Configuration=release /p:Platform=Win32 /p:RunOACR=Yes

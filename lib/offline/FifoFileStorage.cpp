@@ -1,6 +1,9 @@
+//
+// TODO: [MG] - as discussed, FIFO is going to be killed and replaced by SQLite database-stored properties
+//
+#include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
-#include "FIFOFileStorage.hpp"
-
+#include "FifoFileStorage.hpp"
 
 #define AssertAbort(a) assert(a)
 namespace ARIASDK_NS_BEGIN {
@@ -27,30 +30,30 @@ namespace ARIASDK_NS_BEGIN {
 		
         if (path == nullptr)
         {
-            ARIASDK_LOG_ERROR("open file failed, path passed is nullptr");
+            LOG_ERROR("open file failed, path passed is nullptr");
             return RES_ERROR;
         }
 
         if (m_FileStatus != FILE_CLOSE)
         {
-			ARIASDK_LOG_ERROR("file already has been opened");
+			LOG_ERROR("file already has been opened");
             return RES_ERROR;
         }
 
         if (size > MAX_FILE_SIZE)
         {
-            ARIASDK_LOG_ERROR("file size is too big, limit file size is = %u", size);
+            LOG_ERROR("file size is too big, limit file size is = %u", size);
             return RES_ERROR;
         }
 
-        ARIASDK_LOG_DETAIL("open file [%s], size = %d, block size = %u", path, size, m_blockSizeInBytes);
+        LOG_TRACE("open file [%s], size = %d, block size = %u", path, size, blockSizeInBytes);
 
 		m_FilePath = path;
 		m_blockSizeInBytes = blockSizeInBytes;
 
         if(size == 0)
         {
-            ARIASDK_LOG_DETAIL("open file with size 0, use default size instead");
+            LOG_TRACE("open file with size 0, use default size instead");
             size = DEFAULT_FILE_SIZE;
         }
         m_FileOpenSize = size; // for later file size adjustment
@@ -68,17 +71,17 @@ namespace ARIASDK_NS_BEGIN {
 
         if (ReadFileHeader() != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("offline data file exist, but load file header failed, truncating...");
+            LOG_ERROR("offline data file exist, but load file header failed, truncating...");
 		    return RecreateFile();
         }
 
         if (ReadFileInfo() != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("offline data file exist, but load file info failed, truncating...");
+            LOG_ERROR("offline data file exist, but load file info failed, truncating...");
 			return RecreateFile();
         }
 
-        ARIASDK_LOG_DETAIL("open file [%s] suc", path);
+        LOG_TRACE("open file [%s] suc", path);
         return RES_SUCC;
     }
 
@@ -99,20 +102,20 @@ namespace ARIASDK_NS_BEGIN {
 
 			if (m_blockSizeInBytes <= 0)
 			{
-				ARIASDK_LOG_ERROR("block size is incorrect, size=[%d]", m_blockSizeInBytes);
+				LOG_ERROR("block size is incorrect, size=[%d]", m_blockSizeInBytes);
 				return RES_ERROR;
 			}
 
 			if (FillFileHeader(0, m_blockSizeInBytes) != RES_SUCC)
 			{
-				ARIASDK_LOG_ERROR("cannot fill file header");
+				LOG_ERROR("cannot fill file header");
 				Close();
 				return RES_ERROR;
 			}
 
 			if (WriteFileHeader() != RES_SUCC)
 			{
-				ARIASDK_LOG_ERROR("cannot write file header");
+				LOG_ERROR("cannot write file header");
 				Close();
 				return RES_ERROR;
 			}
@@ -125,18 +128,18 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (m_FileStatus == FILE_CLOSE)
         {
-            ARIASDK_LOG_WARNING("close file: file already closed.");
+            LOG_WARN("close file: file already closed.");
             return;
         }
 
-        ARIASDK_LOG_DETAIL("fileClose begin");
+        LOG_TRACE("fileClose begin");
 		if (nullptr != m_FileHandle)   std::fclose(m_FileHandle);
 
-        ARIASDK_LOG_DETAIL("fileClose end");
+        LOG_TRACE("fileClose end");
         m_FileStatus = FILE_CLOSE;
 
         Reset();
-        ARIASDK_LOG_DETAIL("close file success");
+        LOG_TRACE("close file success");
     }
 
 	int FIFOFileStorage::Write(_In_reads_bytes_(size) const char* buffer, size_t size)
@@ -147,7 +150,7 @@ namespace ARIASDK_NS_BEGIN {
 		}
         if (buffer == nullptr)
         {
-            ARIASDK_LOG_ERROR("save file : passed parameter buffer is nullptr");
+            LOG_ERROR("save file : passed parameter buffer is nullptr");
             return RES_ERROR;
         }
 
@@ -159,15 +162,13 @@ namespace ARIASDK_NS_BEGIN {
 
         while (bytesToWrite > 0)
         {
-			size_t bytesWritten = std::fwrite(buffer + bufferPosition, 1, bytesToWrite, m_FileHandle);
-            // FIXME: if bytesWritten is 0, then we would never exit that loop because func
-            // returns size_t, which is always 0 or more
-            if (bytesWritten < 0)
+            size_t bytesWritten = std::fwrite(buffer + bufferPosition, 1, bytesToWrite, m_FileHandle);
+            // FIXME: review this code
+            if (bytesWritten == 0)
             {
-                ARIASDK_LOG_ERROR("save offline data failed");
+                LOG_ERROR("save offline data failed");
                 goto SAVE_FAILED;
             }
-
             bufferPosition += bytesWritten;
             bytesToWrite -= bytesWritten;
         }
@@ -189,7 +190,7 @@ SAVE_FAILED:
 		}
         if (buffer == nullptr)
         {
-            ARIASDK_LOG_ERROR("load file : passed parameter buffer is nullptr");
+            LOG_ERROR("load file : passed parameter buffer is nullptr");
             return RES_ERROR;
         }
 
@@ -204,14 +205,14 @@ SAVE_FAILED:
 			size_t readSize = std::fread(buffer + bufferPosition, 1, bytesToRead, m_FileHandle);
             if (readSize == 0)
             {
-                ARIASDK_LOG_ERROR("load offline data failed: empty file? %d bytes remaining", bytesToRead);
+                LOG_ERROR("load offline data failed: empty file? %d bytes remaining", bytesToRead);
                 // nullptr-terminate the buffer (empty buffer)
                 buffer[0]=0;
                 goto LOAD_OK;
             } else
             if (readSize < 0)
             {
-                ARIASDK_LOG_ERROR("load offline data failed: pos=%d, left=%d", bufferPosition, bytesToRead);
+                LOG_ERROR("load offline data failed: pos=%d, left=%d", bufferPosition, bytesToRead);
                 goto LOAD_FAILED;
             }
 
@@ -240,13 +241,13 @@ LOAD_FAILED:
 		size_t headerLength = sizeof(struct FileHeader);
         if (Read((char *)(&m_FileHeader), headerLength) != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("wrie file header failed, headerLength=%d", headerLength);
+            LOG_ERROR("wrie file header failed, headerLength=%d", headerLength);
             return RES_ERROR;
         }
 
         if (VerifyFileChecksum() != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("VerifyFileChecksum failed");
+            LOG_ERROR("VerifyFileChecksum failed");
             return RES_ERROR;
         }
 
@@ -259,7 +260,7 @@ LOAD_FAILED:
 		{
             return RES_FILE_NOT_OPEN;
 		}
-		fpos_t  fileOffset = 0;
+        size_t fileOffset = 0;
         //size_t  checkCount = 0;
         PhysicalBlockInfo block = {};
 
@@ -269,22 +270,22 @@ LOAD_FAILED:
 
         for (size_t num = 0; num < m_FileHeader.physicalBlockCount; num++)
         {
-			if (std::fsetpos(m_FileHandle, &fileOffset) != 0)
+            if (fseek(m_FileHandle, (long)fileOffset, SEEK_SET) != 0)
             {
-                ARIASDK_LOG_ERROR("fseek file failed, file offset = %d", fileOffset);
+                LOG_ERROR("fseek file failed, file offset = %d", fileOffset);
                 return RES_ERROR;
             }
 
             ///< read block info
             if (Read((char *)(&block), sizeof(PhysicalBlockInfo)) != RES_SUCC)
             {
-                ARIASDK_LOG_ERROR("read block info failed, offset = %d", fileOffset);
+                LOG_ERROR("read block info failed, offset = %d", fileOffset);
                 return RES_ERROR;
             }
 
          /*   if (block.CheckSum != CHECKSUM_NUM)
             {
-                ARIASDK_LOG_ERROR("verify block checksum number failed, expect=[%u], auctual=[%u]",
+                LOG_ERROR("verify block checksum number failed, expect=[%u], auctual=[%u]",
                     CHECKSUM_NUM, block.CheckSum);
                 return RES_ERROR;
             }*/
@@ -309,11 +310,11 @@ LOAD_FAILED:
         return RES_SUCC;
     }
 
-    void FIFOFileStorage::Free(void** buff)
+    void FIFOFileStorage::Free(char** buff)
     {
         if (*buff)
         {
-            ARIASDK_LOG_DETAIL(":[DE-ALLOCATE]:%d buffer=%p", __LINE__, *buff);
+            LOG_TRACE(":[DE-ALLOCATE]:%d buffer=%p", __LINE__, *buff);
             delete[] *buff;
             *buff = nullptr;
         }
@@ -329,10 +330,10 @@ LOAD_FAILED:
 		}
         if (PrepareFileForWrite() == RES_SUCC)
         {
-            ARIASDK_LOG_DETAIL("FIFOFileStorage::Flush() begin");
+            LOG_TRACE("FIFOFileStorage::Flush() begin");
             //sync data to disk
             std::fflush(m_FileHandle);
-            ARIASDK_LOG_DETAIL("FIFOFileStorage::Flush() end");
+            LOG_TRACE("FIFOFileStorage::Flush() end");
         }
     }
 
@@ -345,14 +346,14 @@ LOAD_FAILED:
 
         if (m_FileStatus != FILE_OPEN)
         {
-            ARIASDK_LOG_ERROR("file has not been opened");
+            LOG_ERROR("file has not been opened");
             return RES_FILE_NOT_OPEN;
         }
 
         if (AdjustFileSize(m_FileOpenSize) != RES_SUCC)
         {
             Close();
-            ARIASDK_LOG_ERROR("AdjustFileSize failed, file can not be ready for use");
+            LOG_ERROR("AdjustFileSize failed, file can not be ready for use");
             return RES_FILE_ADJUST_SIZE_FAIL;
         }
 
@@ -365,7 +366,7 @@ LOAD_FAILED:
         size_t bufferSize,
         const StorageItemKey* pStorageItemKey /* Optional */)
     {
-        ARIASDK_LOG_DETAIL("save buffer begin: size=%d", bufferSize);
+        LOG_TRACE("save buffer begin: size=%d", bufferSize);
 		if (nullptr == m_FileHandle)
 		{
             return RES_FILE_NOT_OPEN; 
@@ -374,25 +375,25 @@ LOAD_FAILED:
 		int ret = PrepareFileForWrite();
         if (ret != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("invoke save failed, file has not been opened or cannot resize");
+            LOG_ERROR("invoke save failed, file has not been opened or cannot resize");
             return ret;
         }
 
         if (bufferSize >= m_FileHeader.physicalBlockCount * m_FileHeader.blockSize)
         {
-            ARIASDK_LOG_ERROR("save buffer size is too big, size = [%d]", bufferSize);
+            LOG_ERROR("save buffer size is too big, size = [%d]", bufferSize);
             return RES_DATA_LARGE;
         }
 
         if (m_LogicalBlocks.size() == 0 && m_PhysicalBlocks.size() == 0)
         {
-            ARIASDK_LOG_ERROR("Fatal error, block queue is empty");
+            LOG_ERROR("Fatal error, block queue is empty");
             return RES_ERROR;
         }
 
         if (buffer == nullptr || bufferSize == 0)
         {
-            ARIASDK_LOG_WARNING("save buffer to file with empty data, buffer=%p, size=%u", buffer, bufferSize);
+            LOG_WARN("save buffer to file with empty data, buffer=%p, size=%u", buffer, bufferSize);
             return RES_SUCC;
         }
 
@@ -401,7 +402,7 @@ LOAD_FAILED:
         {
             requiredPhysicalBlocks++;
         }
-        ARIASDK_LOG_DETAIL("Current block size is %u, needs %u blocks for data of %d bytes.", m_FileHeader.blockSize, requiredPhysicalBlocks, bufferSize);
+        LOG_TRACE("Current block size is %u, needs %u blocks for data of %d bytes.", m_FileHeader.blockSize, requiredPhysicalBlocks, bufferSize);
 
         AssertAbort(requiredPhysicalBlocks < 0xFFFF);
 
@@ -441,7 +442,7 @@ LOAD_FAILED:
                 if (m_LogicalBlocks.size() > 0)
                 {
                     //if there is no block exist, release one oldest block
-                    ARIASDK_LOG_DETAIL("No free block, overwrite the oldest block.");
+                    LOG_TRACE("No free block, overwrite the oldest block.");
 
                     LogicalBlockInfo firstLogicalBlock = GetOldestLogicalBlock();
                     ReleaseBlocks(firstLogicalBlock);
@@ -511,7 +512,7 @@ LOAD_FAILED:
                 PhysicalBlockInfo* pBlockInfo = &(m_PhysicalBlocks[blockIdList[i]]);
                 pBlockInfo->SizeInBytes = 0;
             }
-            ARIASDK_LOG_ERROR("save buffer to file fail, offset=%llu, size=%d", physicalBlockInfo->FileOffset, bufferSize);
+            LOG_ERROR("save buffer to file fail, offset=%llu, size=%d", physicalBlockInfo->FileOffset, bufferSize);
             return RES_ERROR;
         }
 
@@ -521,19 +522,14 @@ LOAD_FAILED:
 
         m_LogicalBlocks.insert(std::make_pair(logicalBlockKey, logicalBlockInfo));
 
-        ARIASDK_LOG_DETAIL("save buffer to file suc, offset=%llu, size=%d", physicalBlockInfo->FileOffset, bufferSize);
+        LOG_TRACE("save buffer to file suc, offset=%llu, size=%d", physicalBlockInfo->FileOffset, bufferSize);
 
         return RES_SUCC;
     }
 
-    std::uint64_t FIFOFileStorage::CalculateFileSize(std::uint64_t fileSize, size_t alignSize)
+    size_t FIFOFileStorage::CalculateFileSize(size_t fileSize, size_t alignSize)
     {
-        std::uint64_t uSize = fileSize;
-        if (fileSize < 0)
-        {
-            ARIASDK_LOG_WARNING("invalid file size %d, use default size %d", fileSize, uSize);
-            uSize = DEFAULT_FILE_SIZE;
-        }
+        size_t uSize = fileSize;
 
         //return ALIGN_TO_POWER(uSize, alignSize);
         return FIFOFileStorage::AlignToPower(uSize, alignSize);
@@ -546,16 +542,16 @@ LOAD_FAILED:
             return RES_FILE_NOT_OPEN; 
 		}
         //generate file use fileSize
-		fpos_t pos = m_FileHeader.fileSize - 1;
-        if (std::fsetpos(m_FileHandle, &pos) != 0)
+        size_t pos = m_FileHeader.fileSize - 1;
+        if (fseek(m_FileHandle, (long)pos, SEEK_SET) != 0)
         {
-            ARIASDK_LOG_ERROR("file seek failed for generating file, offset=[%d]", m_FileHeader.fileSize);
+            LOG_ERROR("file seek failed for generating file, offset=[%d]", m_FileHeader.fileSize);
             return RES_ERROR;
         }
 
         if (Write(" ", 1) != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("generate file failed, please check if the disk space is enough");
+            LOG_ERROR("generate file failed, please check if the disk space is enough");
             return RES_ERROR;
         }
 
@@ -565,7 +561,7 @@ LOAD_FAILED:
 	size_t FIFOFileStorage::FillFileHeader(size_t givenFileSize, size_t blockSizeInBytes)
     {
         //revise the filesize according to the block size
-        std::uint64_t fileSize = CalculateFileSize(givenFileSize, blockSizeInBytes + sizeof(PhysicalBlockInfo));
+        size_t fileSize = CalculateFileSize(givenFileSize, blockSizeInBytes + sizeof(PhysicalBlockInfo));
 
         m_FileHeader.magicNumber = (MAGIC_NUM << 4) | (FORMAT_VERSION & 0x0F);
         m_FileHeader.blockSize = blockSizeInBytes;
@@ -589,20 +585,20 @@ LOAD_FAILED:
 
         if (magicNum != MAGIC_NUM)
         {
-            ARIASDK_LOG_ERROR("check magic num failed, expect=[%llu], actual=[%llu]",
+            LOG_ERROR("check magic num failed, expect=[%llu], actual=[%llu]",
                 MAGIC_NUM, magicNum);
             return RES_ERROR;
         }
 
         if (FORMAT_VERSION != version)
         {
-            ARIASDK_LOG_ERROR("check version failed, expect=[%llu], acutal=[%llu]",
+            LOG_ERROR("check version failed, expect=[%llu], acutal=[%llu]",
                 FORMAT_VERSION, version);
             return RES_ERROR;
         }
 
 		fseek(m_FileHandle, 0, SEEK_END);   // non-portable
-		int size = ftell(m_FileHandle);
+        size_t size = ftell(m_FileHandle);
 		fseek(m_FileHandle, 0, SEEK_SET);   // non-portable
 /*		fpos_t pos = EOF;
 		std::fsetpos(m_FileHandle, &pos);
@@ -612,7 +608,7 @@ LOAD_FAILED:
 */
         if (m_FileHeader.fileSize != size)
         {
-            ARIASDK_LOG_ERROR("file size is not correct, expect=[%llu], actual=[%llu]",
+            LOG_ERROR("file size is not correct, expect=[%llu], actual=[%llu]",
                 m_FileHeader.fileSize, size);
             return RES_ERROR;
         }
@@ -648,18 +644,13 @@ LOAD_FAILED:
         m_FileStatus = FILE_CLOSE;
         m_FileOpenSize = 0;
         m_PhysicalBlocks.clear();
-        m_LogicalBlocks.clear();        
-
-//		if(m_LogicalBlocks.size() == 0)
-//		{
-//    		fileDelete(m_FilePath);
-//		}
-       
+        m_LogicalBlocks.clear();
     }
 
-	size_t FIFOFileStorage::DeleteFileLocal(const char* filePath)
+    size_t FIFOFileStorage::DeleteFileLocal(const char* filePath)
     {
-		std::remove(filePath);
+        // FIXME: [MG] --- this will break on Windows 7 !!!
+        std::remove(filePath);
         return RES_SUCC;
     }
 
@@ -681,12 +672,12 @@ LOAD_FAILED:
         return m_LogicalBlocks.size() == 0;
     }
 
-    std::uint64_t FIFOFileStorage::AlignToPower(std::uint64_t size, std::uint64_t alignSize)
+    size_t FIFOFileStorage::AlignToPower(size_t size, size_t alignSize)
     {
-        std::uint64_t m = size % alignSize;
+        size_t m = size % alignSize;
         if (m > 0)
         {
-            std::uint64_t n = size / alignSize;
+            size_t n = size / alignSize;
             // use number larger than size for not attempting to adjust file size next time
             return n * alignSize + alignSize;
         }
@@ -826,7 +817,7 @@ LOAD_FAILED:
 
                     // Reclaim the entire logical block because the chain is broken
                     indexedBlocksCount -= logicalBlockInfo.PhysicalBlockCount;
-                    ARIASDK_LOG_WARNING("loop detected when building index info");
+                    LOG_WARN("loop detected when building index info");
 
                     pCurrentBlock = &m_PhysicalBlocks[logicalBlockInfo.FirstPhysicalBlockIndex];
                     while (pCurrentBlock->IsBlockInUse()) 
@@ -899,7 +890,7 @@ LOAD_FAILED:
 		
         if (Write((char *)&m_FileHeader, sizeof(FileHeader)) != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("save file header failed");
+            LOG_ERROR("save file header failed");
             return RES_ERROR;
         }
         return RES_SUCC;
@@ -913,16 +904,16 @@ LOAD_FAILED:
 		}
         for (size_t i = 0; i < m_PhysicalBlocks.size(); i++)
         {
-			fpos_t pos = m_PhysicalBlocks[i].FileOffset;
-            if (std::fsetpos(m_FileHandle, &pos) != 0)
+            size_t pos = (size_t)(m_PhysicalBlocks[i].FileOffset);
+            if (fseek(m_FileHandle, (long)pos, SEEK_SET) != 0)
             {
-                ARIASDK_LOG_ERROR("seek file failed, offset=%llu", m_PhysicalBlocks[i].FileOffset);
+                LOG_ERROR("seek file failed, offset=%llu", m_PhysicalBlocks[i].FileOffset);
                 return RES_ERROR;
             }
 
             if (Write((char *)&(m_PhysicalBlocks[i]), sizeof(PhysicalBlockInfo)) != RES_SUCC)
             {
-                ARIASDK_LOG_ERROR("save init file info (block) failed, offset=%llu", m_PhysicalBlocks[i].FileOffset);
+                LOG_ERROR("save init file info (block) failed, offset=%llu", m_PhysicalBlocks[i].FileOffset);
                 return RES_ERROR;
             }
         }
@@ -945,11 +936,11 @@ LOAD_FAILED:
         while (pPhysicalBlockInfo != nullptr)
         {
             checkCount++;
-			fpos_t pos = pPhysicalBlockInfo->FileOffset;
-		
-            if (std::fsetpos(m_FileHandle, &pos) != 0)
+            size_t pos = (size_t)(pPhysicalBlockInfo->FileOffset);
+
+            if (fseek(m_FileHandle, (long)pos, SEEK_SET) != 0)
             {
-                ARIASDK_LOG_ERROR("file seek failed, block offset in file is [%llu]", pPhysicalBlockInfo->FileOffset);
+                LOG_ERROR("file seek failed, block offset in file is [%llu]", pPhysicalBlockInfo->FileOffset);
                 return RES_ERROR;
             }
 
@@ -961,7 +952,7 @@ LOAD_FAILED:
             ///< write block header
             if (Write((char *)pPhysicalBlockInfo, sizeof(PhysicalBlockInfo)) != RES_SUCC)
             {
-                ARIASDK_LOG_ERROR("save block info failed, blockOffset=%llu, buffer size=%d",
+                LOG_ERROR("save block info failed, blockOffset=%llu, buffer size=%d",
                     pPhysicalBlockInfo->FileOffset, buffSize);
                 return RES_ERROR;
             }
@@ -970,7 +961,7 @@ LOAD_FAILED:
             {
                 if (Write(buffer + offset, pPhysicalBlockInfo->SizeInBytes) != RES_SUCC)
                 {
-                    ARIASDK_LOG_ERROR("save buffer to file failed, blockOffset=%llu, buffer size=%d",
+                    LOG_ERROR("save buffer to file failed, blockOffset=%llu, buffer size=%d",
                         pPhysicalBlockInfo->FileOffset, buffSize);
                     return RES_ERROR;
                 }
@@ -1001,14 +992,14 @@ LOAD_FAILED:
 		}
         if (m_FileHeader.fileSize - sizeof(m_FileHeader) >= newFileSize)
         {
-            ARIASDK_LOG_DETAIL("new file size is equal or smaller than old file, use the old file");
+            LOG_TRACE("new file size is equal or smaller than old file, use the old file");
             return RES_SUCC;
         }
 
-        ARIASDK_LOG_DETAIL("AdjustFileSize from %lld to %d begin", m_FileHeader.fileSize, newFileSize);
+        LOG_TRACE("AdjustFileSize from %lld to %d begin", m_FileHeader.fileSize, newFileSize);
 
         std::uint64_t offset = m_FileHeader.fileSize;
-		fpos_t incrFileSize = CalculateFileSize( newFileSize - m_FileHeader.fileSize + sizeof(m_FileHeader),
+        size_t incrFileSize = CalculateFileSize(newFileSize - m_FileHeader.fileSize + sizeof(m_FileHeader),
 			                                     m_FileHeader.blockSize + sizeof(PhysicalBlockInfo));
 
 		size_t incrBlockNum = static_cast<size_t>(incrFileSize / (m_FileHeader.blockSize + sizeof(PhysicalBlockInfo)));
@@ -1020,7 +1011,7 @@ LOAD_FAILED:
 
         if (GenerateFile() != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("extend file failed, new file size = %llu, old file size = %llu",
+            LOG_ERROR("extend file failed, new file size = %llu, old file size = %llu",
                 m_FileHeader.fileSize, m_FileHeader.fileSize - incrFileSize);
             m_FileHeader.fileSize -= incrFileSize;
             m_FileHeader.physicalBlockCount -= incrBlockNum;
@@ -1047,7 +1038,7 @@ LOAD_FAILED:
         //flush the file info to disk
         if (WriteFileInfo() == RES_SUCC && WriteFileHeader() == RES_SUCC)
         {
-            ARIASDK_LOG_DETAIL("AdjustFileSize success");
+            LOG_TRACE("AdjustFileSize success");
         }
         else
         {
@@ -1059,14 +1050,14 @@ LOAD_FAILED:
                 m_PhysicalBlocks.pop_back();
             }
             RecreateFile();
-            ARIASDK_LOG_ERROR("update file info to disk failed");
+            LOG_ERROR("update file info to disk failed");
             return RES_FILE_ADJUST_SIZE_FAIL;
         }
 
         //sync file structure to disk
-        ARIASDK_LOG_DETAIL("flush file structure to disk in AdjustFileSize");
+        LOG_TRACE("flush file structure to disk in AdjustFileSize");
         std::fflush(m_FileHandle);
-        ARIASDK_LOG_DETAIL("flush finished in AdjustFileSize");
+        LOG_TRACE("flush finished in AdjustFileSize");
         return RES_SUCC;
     }
 
@@ -1144,7 +1135,7 @@ LOAD_FAILED:
 
         LogicalBlockInfo logicalBlockInfo = m_findIter->second;
 
-        std::auto_ptr<char> autoBuffer;
+        std::unique_ptr<char> autoBuffer;
         size_t bytesRead = 0;
         char* pBuffer = nullptr;
 
@@ -1246,7 +1237,7 @@ LOAD_FAILED:
 		}
         PhysicalBlockInfo blockInfo = m_PhysicalBlocks[logicalBlockInfo.FirstPhysicalBlockIndex];
 
-        std::auto_ptr<char> pBuffer(new char[readSize]);
+        std::unique_ptr<char> pBuffer(new char[readSize]); // FIXME: [MG] - Error #13: LEAK 1024 bytes 
 		if (nullptr == pBuffer.get())
 		{
 			return DATARV_ERROR_OUTOFMEMORY;
@@ -1256,9 +1247,9 @@ LOAD_FAILED:
 		size_t bytesRead = 0;
         while (count++ <= m_FileHeader.physicalBlockCount)
         {
-			fpos_t pos = blockInfo.FileOffset + sizeof(PhysicalBlockInfo);
+            size_t pos = (size_t)(blockInfo.FileOffset + sizeof(PhysicalBlockInfo));
 		
-			size_t seekResult = std::fsetpos(m_FileHandle, &pos);
+            size_t seekResult = fseek(m_FileHandle, (long)pos, SEEK_SET);
 			
 			if (!(seekResult == RES_SUCC))
 			{
@@ -1303,13 +1294,13 @@ LOAD_FAILED:
     {
 		if (!(m_FileStatus == FILE_OPEN || m_FileStatus == FILE_READY))
 		{
-			ARIASDK_LOG_ERROR("invoke load failed, file has not been opened");
+			LOG_ERROR("invoke load failed, file has not been opened");
 			return RES_FILE_NOT_OPEN;
 		}
 
         if (m_LogicalBlocks.size() == 0)
         {
-            ARIASDK_LOG_DETAIL("there is no data in offline storage");
+            LOG_TRACE("there is no data in offline storage");
             return 0;
         }
 
@@ -1321,16 +1312,16 @@ LOAD_FAILED:
         DATARV_ERROR status = _ReadItem(logicalBlockInfo, logicalBlockInfo.SizeInBytes, pStorageItemKey, &pBuffer, &bytesRead);
         if (status != DATARV_ERROR_OK)
         {
-            ARIASDK_LOG_ERROR("ReadItem failed with error=%d", status);
+            LOG_ERROR("ReadItem failed with error=%d", status);
             return RES_ERROR;
         }
 
-        std::auto_ptr<char> autoBuffer(pBuffer);
+        std::unique_ptr<char> autoBuffer(pBuffer);
         pBuffer = nullptr;
 
         if (UpdateBlockToDisk(logicalBlockInfo, nullptr, 0) != RES_SUCC)
         {
-            ARIASDK_LOG_ERROR("update block to disk failed");
+            LOG_ERROR("update block to disk failed");
             return RES_ERROR;
         }
 

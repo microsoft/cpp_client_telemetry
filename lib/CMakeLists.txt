@@ -1,7 +1,56 @@
 include_directories( . ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils /usr/local/include )
 
+set(SRCS decorators/BaseDecorator.cpp
+  packager/BondSplicer.cpp
+  packager/Packager.cpp
+  callbacks/DebugSource.cpp
+  bond/BondSerializer.cpp
+  filter/EventFilterRegulator.cpp
+  filter/EventFilter.cpp
+  tpm/TransmitProfiles.cpp
+  tpm/TransmissionPolicyManager.cpp
+  tpm/DeviceStateHandler.cpp
+  system/EventProperty.cpp
+  system/TelemetrySystem.cpp
+  system/EventProperties.cpp
+  compression/HttpDeflateCompression.cpp
+  api/LogManager.cpp
+  api/ContextFieldsProvider.cpp
+  api/LogManagerImpl.cpp
+  api/LogSessionData.cpp
+  api/Logger.cpp
+  api/LogManagerProvider.cpp
+  api/CorrelationVector.cpp
+  api/LogConfiguration.cpp
+  api/AuthTokensController.cpp
+  api/LogManagerFactory.cpp
+  utils/Utils.cpp
+  utils/StringUtils.cpp
+  exp/afd/afdclient/AFDClientUtils.cpp
+  exp/afd/afdclient/AFDClient.cpp
+  exp/afd/afdclient/AFDConfigCache.cpp
+  exp/ecs/ecsclient/ECSClient.cpp
+  exp/ecs/ecsclient/ECSClientUtils.cpp
+  exp/ecs/ecsclient/ECSConfigCache.cpp
+  exp/JsonHelper.cpp
+  exp/EXPCommonClient.cpp
+  pal/NetworkInformationImpl.cpp
+  pal/DeviceInformationImpl.cpp
+  pal/InformationProviderImpl.cpp
+  http/HttpClientManager.cpp
+  http/HttpRequestEncoder.cpp
+  http/HttpResponseDecoder.cpp
+  stats/Statistics.cpp
+  stats/MetaStats.cpp
+  offline/StorageObserver.cpp
+  offline/OfflineStorage_SQLite.cpp
+  offline/FifoFileStorage.cpp
+  offline/OfflineStorageHandler.cpp
+  backoff/IBackoff.cpp
+)
+
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-  set(PAL_SRCS
+  list(APPEND SRCS
     http/HttpClient_Curl.cpp
     http/HttpClient_Curl.hpp
     http/HttpClient.hpp
@@ -15,117 +64,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()
-
-set(SRCS
-
-  api/ContextFieldsProvider.cpp
-  api/ContextFieldsProvider.hpp
-  api/Logger.cpp
-  api/Logger.hpp
-  api/LogConfiguration.cpp
-  api/LogConfiguration.hpp
-  api/LogManager.cpp
-  api/LogManagerImpl.cpp
-  api/LogSessionData.cpp
-
-  callbacks/DebugSource.cpp
-  
-  include/public/LogManager.hpp
-  utils/Utils.cpp
-
-  backoff/Backoff_ExponentialWithJitter.hpp
-  backoff/IBackoff.cpp
-  backoff/IBackoff.hpp
-
-  bond/generated/AriaProtocol_readers.hpp
-  bond/generated/AriaProtocol_types.hpp
-  bond/generated/AriaProtocol_writers.hpp
-  bond/generated/BondConstTypes.hpp
-  bond/BondSerializer.cpp
-  bond/BondSerializer.hpp
-
-  compression/HttpDeflateCompression.cpp
-  compression/HttpDeflateCompression.hpp
-
-  config/RuntimeConfig_Default.cpp
-  config/RuntimeConfig_Default.hpp
-
-  decorators/BaseDecorator.hpp
-  decorators/EventPropertiesDecorator.hpp
-  decorators/IDecorator.hpp
-  decorators/RuntimeConfigDecorator.hpp
-  decorators/SemanticApiDecorators.hpp
-  decorators/SemanticContextDecorator.hpp
-
-  filter/EventFilter.cpp
-  filter/EventFilterRegulator.cpp
-
-  http/HttpClientManager.cpp
-  http/HttpClientManager.hpp
-  http/HttpRequestEncoder.cpp
-  http/HttpRequestEncoder.hpp
-  http/HttpResponseDecoder.cpp
-  http/HttpResponseDecoder.hpp
-
-  include/public/AggregatedMetric.hpp
-  include/public/ctmacros.hpp
-  include/public/Enums.hpp
-  include/public/EventProperties.hpp
-  include/public/IBandwidthController.hpp
-  include/public/IHttpClient.hpp
-  include/public/ILogger.hpp
-  include/public/ILogManager.hpp
-
-  include/aria/IOfflineStorage.hpp
-  include/aria/ISystemInformation.hpp
-
-  include/public/IRuntimeConfig.hpp
-  include/public/ISemanticContext.hpp
-#  include/public/LogConfiguration.hpp
-  utils/Utils.hpp
-  include/public/Version.hpp
-
-#  include/public/Version.hpp.template
-
-  ${JNI_SRCS}
-
-# offline/ClockSkewManager.cpp
-  offline/FifoFileStorage.cpp
-  offline/OfflineStorage.cpp
-  offline/OfflineStorage_SQLite.cpp
-  offline/OfflineStorageHandler.cpp
-
-  packager/BondSplicer.cpp
-  packager/BondSplicer.hpp
-  packager/Packager.cpp
-  packager/Packager.hpp
-
-  pal/PAL.hpp
-  pal/InformationProviderImpl.cpp
-  pal/DeviceInformationImpl.cpp
-  pal/NetworkInformationImpl.cpp
-  ${PAL_SRCS}
-
-  stats/MetaStats.cpp
-  stats/MetaStats.hpp
-  stats/Statistics.cpp
-  stats/Statistics.hpp
-
-  system/Contexts.hpp
-  system/Route.hpp
-  system/TelemetrySystem.cpp
-  system/TelemetrySystem.hpp
-  system/EventProperties.cpp
-  system/EventProperty.cpp
-
-  tpm/DeviceStateHandler.cpp
-  tpm/TransmissionPolicyManager.cpp
-  tpm/TransmissionPolicyManager.hpp
-  tpm/TransmitProfiles.cpp
-
-  # utils/Common.cpp
-  # utils/Common.hpp
-)
 
 if(ARIASDK_UTC_ENABLED)
   list(APPEND SRCS

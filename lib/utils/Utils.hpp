@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
-
 #ifndef LIB_UTILS_HPP
 #define LIB_UTILS_HPP
 
+// This file is being used during both C++ native and C++/CX managed compilation with /cli flag
+// Certain features, e.g. <mutex> or <thread> - cannot be used while building with /cli
+// For this reason this header cannot include any other headers that rely on <mutex> or <thread>
+
+#include "Version.hpp"
 #include "Enums.hpp"
-#include <Config.hpp>
-#include "pal/PAL.hpp"
 
 #include <chrono>
 #include <algorithm>
@@ -22,53 +24,105 @@
 #include <stdlib.h>
 #endif
 
+#if defined(WINDOWS_UWP) || defined(__cplusplus_winrt)
+#include <Windows.h>
+#define _WINRT
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
-ARIASDK_LOG_DECL_COMPONENT_NS();
+    // TODO: [MG] - refactor this
+    extern const char* getAriaSdkLogComponent();
 
-typedef std::chrono::milliseconds ms;
+    typedef std::chrono::milliseconds ms;
 
-/* Obtain a backtrace and print it to stdout. */
-void print_backtrace(void);
+    /* Obtain a backtrace and print it to stdout. */
+    void print_backtrace(void);
 
-inline void sleep(unsigned delayMs)
-{
-    std::this_thread::sleep_for(ms(delayMs));
-}
+    void sleep(unsigned delayMs);
 
-long		GetCurrentProcessId();
-std::string	GetTempDirectory();
+    long		GetCurrentProcessId();
 
-std::string toString(char const*        value);
-std::string toString(bool               value);
-std::string toString(char               value);
-std::string toString(int                value);
-std::string toString(long               value);
-std::string toString(long long          value);
-std::string toString(unsigned char      value);
-std::string toString(unsigned int       value);
-std::string toString(unsigned long      value);
-std::string toString(unsigned long long value);
-std::string toString(float              value);
-std::string toString(double             value);
-std::string toString(long double        value);
+    std::string GetTempDirectory();
+    std::string GetAppLocalTempDirectory();
 
-std::string toString(GUID_t uuid);
+    std::string toString(char const*        value);
+    std::string toString(bool               value);
+    std::string toString(char               value);
+    std::string toString(int                value);
+    std::string toString(long               value);
+    std::string toString(long long          value);
+    std::string toString(unsigned char      value);
+    std::string toString(unsigned int       value);
+    std::string toString(unsigned long      value);
+    std::string toString(unsigned long long value);
+    std::string toString(float              value);
+    std::string toString(double             value);
+    std::string toString(long double        value);
 
-std::string toLower(std::string str);
-std::string toUpper(std::string str);
-std::string sanitizeIdentifier(std::string buff);
-EventRejectedReason validateEventName(std::string const& name);
-EventRejectedReason validatePropertyName(std::string const& name);
+    std::string to_string(GUID_t uuid);
 
-inline std::string tenantTokenToId(std::string const& tenantToken)
-{
-    return tenantToken.substr(0, tenantToken.find('-'));
-}
+    inline std::string toLower(const std::string& str)
+    {
+        std::string result = str;
+        std::transform(str.begin(), str.end(), result.begin(), ::tolower);
+        return result;
+    }
 
-inline const char* latencyToStr(EventLatency priority)
-{
-    switch (priority) {
+    inline std::string toUpper(const std::string& str)
+    {
+        std::string result = str;
+        std::transform(str.begin(), str.end(), result.begin(), ::toupper);
+        return result;
+    }
+
+    inline std::string sanitizeIdentifier(std::string &str)
+    {
+#if 0
+        // TODO: [MG] - we have to add some sanitizing logic, but definitely NOT replacing dots by underscores
+        std::replace(str.begin(), str.end(), '.', '_');
+#endif
+        return str;
+    }
+
+    EventRejectedReason validateEventName(std::string const& name);
+
+    EventRejectedReason validatePropertyName(std::string const& name);
+
+    inline std::string tenantTokenToId(std::string const& tenantToken)
+    {
+        return tenantToken.substr(0, tenantToken.find('-'));
+    }
+
+    inline const char* priorityToStr(EventPriority priority)
+    {
+        switch (priority) {
+        case EventPriority_Unspecified:
+            return "Unspecified";
+
+        case EventPriority_Off:
+            return "Off";
+
+        case EventPriority_Low:
+            return "Low";
+
+        case EventPriority_Normal:
+            return "Normal";
+
+        case EventPriority_High:
+            return "High";
+
+        case EventPriority_Immediate:
+            return "Immediate";
+
+        default:
+            return "???";
+        }
+    }
+
+    inline const char* latencyToStr(EventLatency latency)
+    {
+        switch (latency) {
         case EventLatency_Unspecified:
             return "Unspecified";
 
@@ -89,9 +143,29 @@ inline const char* latencyToStr(EventLatency priority)
 
         default:
             return "???";
+        }
     }
-}
 
+    inline bool replace(std::string& str, const std::string& from, const std::string& to) {
+        size_t start_pos = str.find(from);
+        if (start_pos == std::string::npos)
+            return false;
+        str.replace(start_pos, from.length(), to);
+        return true;
+    }
+
+    std::wstring to_utf16_string(const std::string& in);
+
+    std::string to_utf8_string(const std::wstring& in);
+
+#ifdef _WINRT
+
+    Platform::String ^to_platform_string(const std::string& s);
+
+    std::string from_platform_string(Platform::String ^ ps);
+
+#endif
 
 } ARIASDK_NS_END
+
 #endif

@@ -1,66 +1,76 @@
-#pragma once
+#ifndef AGGREGATEDMETRIC_HPP
+#define AGGREGATEDMETRIC_HPP
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Version.hpp"
+
 #include "ILogger.hpp"
 
-// *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace Models {
-// *INDENT-ON*
-
-class ARIASDK_LIBABI AggregatedMetric
+namespace ARIASDK_NS_BEGIN
 {
-  public:
-    /// <summary>
-    /// Constructor to create an aggregated metric instance for logging auto-aggregated metric
-    /// </summary>
-    /// <param name="name">Name of the auto-aggregated metric</param>
-    /// <param name="units">String representation of the units of the auto-aggregated metric</param>
-    /// <param name="intervalInSec">Cadence in seconds to aggregate the metric</param>
-    /// <param name="instanceName">Name of this metric instance like for performance counter</param>
-    /// <param name="eventProperties">Properties of the auto-aggregated metric event</param>
-    /// <param name="pLogger">ILogger interface pointer to use to log this aggregated metric</param>
-    AggregatedMetric(std::string const& name,
-        std::string const& units,
-        unsigned const intervalInSec,
-        EventProperties const& eventProperties,
-        ILogger* pLogger = NULL);
 
-    /// <summary>
-    /// Constructor to create an aggregated metric instance for logging auto-aggregated metric
-    /// </summary>
-    /// <param name="name">Name of the auto-aggregated metric</param>
-    /// <param name="units">String representation of the units of the auto-aggregated metric</param>
-    /// <param name="intervalInSec">Cadence in seconds to aggregate the metric</param>
-    /// <param name="instanceName">Name of this metric instance like for performance counter</param>
-    /// <param name="objectClass">Object class for which this metric is tracking</param>
-    /// <param name="objectId">Object ID for which this metric is tracking</param>
-    /// <param name="eventProperties">Properties of the auto-aggregated metric event</param>
-    /// <param name="pLogger">ILogger interface pointer to use to log this aggregated metric</param>
-    AggregatedMetric(std::string const& name,
-        std::string const& units,
-        unsigned const intervalInSec,
-        std::string const& instanceName,
-        std::string const& objectClass,
-        std::string const& objectId,
-        EventProperties const& eventProperties,
-        ILogger* pLogger = NULL);
+    namespace Models {
 
-    /// <summary>
-    /// Destructor of the aggregated metric
-    /// </summary>
-    ~AggregatedMetric();
+        /// <summary>
+        /// The AggregatedMetric class represents an aggregated metric event.
+        /// </summary>
+        class ARIASDK_LIBABI AggregatedMetric
+        {
+        public:
+            /// <summary>
+            /// An AggregatedMetric constructor. Creates an aggregated metric instance for logging auto-aggregated metrics.
+            /// </summary>
+            /// <param name="name">A string that contains the name of the auto-aggregated metric.</param>
+            /// <param name="units">A string that contains the units of the auto-aggregated metric.</param>
+            /// <param name="intervalInSec">The polling cadence (in seconds) used to aggregate the metric.</param>
+            /// <param name="eventProperties">The properties of the auto-aggregated metric event, as an EventProperties object.</param>
+            /// <param name="pLogger">An ILogger interface pointer used to log this aggregated metric.</param>
+            AggregatedMetric(std::string const& name,
+                std::string const& units,
+                unsigned const intervalInSec,
+                EventProperties const& eventProperties,
+                ILogger* pLogger = NULL);
 
-    /// <summary>
-    /// Pushes a single metric value for auto-aggregation
-    /// </summary>
-    /// <param name="value">metric value</param>
-    void PushMetric(double value);
+            /// <summary>
+            /// AggregatedMetric AggregatedMetric constructor that also takes an instance name, an object class, and an object ID. 
+            /// Creates an aggregated metric instance for logging auto-aggregated metrics.
+            /// </summary>
+            /// <param name="name">A string that contains the name of the auto-aggregated metric.</param>
+            /// <param name="units">A string that contains the units of the auto-aggregated metric.</param>
+            /// <param name="intervalInSec">The polling cadence (in seconds) used to aggregate the metric.</param>
+            /// <param name="instanceName">A string that contains the name of this metric instance - like for performance counter.</param>
+            /// <param name="objectClass">A string that contains the object class for which this metric is trackings.</param>
+            /// <param name="objectId">A string that contains the object ID for which this metric is trackings.</param>
+            /// <param name="eventProperties">The properties of the auto-aggregated metric event, as an EventProperties object.</param>
+            /// <param name="pLogger">An ILogger interface pointer used to log this aggregated metric.</param>
+            AggregatedMetric(std::string const& name,
+                std::string const& units,
+                unsigned const intervalInSec,
+                std::string const& instanceName,
+                std::string const& objectClass,
+                std::string const& objectId,
+                EventProperties const& eventProperties,
+                ILogger* pLogger = NULL);
 
-  private:
-    /// <summary>
-    /// Actual impl of AggregatedMetric
-    /// </summary>
-    void* m_pAggregatedMetricImpl;
-};
+            /// <summary>
+            /// The AggregatedMetric destructor.
+            /// </summary>
+            ~AggregatedMetric();
 
-} // Models
-}}}
+            /// <summary>
+            /// Pushes a single metric value for auto-aggregation.
+            /// </summary>
+            /// <param name="value">The metric value to push.</param>
+            void PushMetric(double value);
+
+        private:
+            /// <summary>
+            /// Actual implementation of AggregatedMetric.
+            /// </summary>
+            void* m_pAggregatedMetricImpl;
+        };
+
+    } // Models
+
+} ARIASDK_NS_END
+#endif

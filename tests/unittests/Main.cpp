@@ -16,13 +16,13 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
     virtual void OnTestStart(testing::TestInfo const& test) override
     {
         using namespace testing;
-        ARIASDK_LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
+        LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
     }
 
     virtual void OnTestEnd(testing::TestInfo const& test) override
     {
         using namespace testing;
-        ARIASDK_LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
+        LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
     }
 };
 
@@ -38,11 +38,10 @@ int main(int argc, char** argv)
         auf::AF_KeepOverStop);
 #endif
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
-    ARIASDK_NS::PAL::initialize();
 
+    PAL::initialize();
     int result = RUN_ALL_TESTS();
-
-    ARIASDK_NS::PAL::shutdown();
+    PAL::shutdown();
 
 #if defined(_DEBUG) && defined(_WIN32)
     if (IsDebuggerPresent()) {

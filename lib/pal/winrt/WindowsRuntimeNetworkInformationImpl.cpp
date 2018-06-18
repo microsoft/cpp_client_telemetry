@@ -2,12 +2,10 @@
 #include "pal/NetworkInformationImpl.hpp"
 #include <exception>  
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
-            namespace PAL 
-            {
-                using namespace ::Windows::Networking::Connectivity;
+using namespace ::Windows::Networking::Connectivity;
+
+namespace PAL_NS_BEGIN {
+
                 Windows::Foundation::EventRegistrationToken token;
 
                 // Helper method. Retrieves network type based on the specified connection profile.
@@ -120,18 +118,15 @@ namespace Microsoft {
                     });
 
                 }
-				               
-                NetworkInformationImpl::~NetworkInformationImpl()
-                {
-                    NetworkInformation::NetworkStatusChanged -= token;
-                };
 
+                NetworkInformationImpl::~NetworkInformationImpl() 
+                {
+                    NetworkInformation::NetworkStatusChanged -= token;                
+                };
+				               
 				INetworkInformation* NetworkInformationImpl::Create()
                 {
                     return new NetworkInformationImpl();
                 }
 
-            }
-        }
-    }
-}
+} PAL_NS_END

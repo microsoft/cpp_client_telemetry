@@ -1,10 +1,15 @@
-#pragma once
+#ifndef DEVICEINFORMATIONIMPL_HPP
+#define DEVICEINFORMATIONIMPL_HPP
+
+#include <pal/PAL.hpp>
 #include "Enums.hpp"
+
 #include "IDeviceInformation.hpp"
 #include "InformationProviderImpl.hpp"
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+#include <string>
+
+namespace PAL_NS_BEGIN {
 
     class DeviceInformationImpl : public IDeviceInformation
     {
@@ -12,8 +17,8 @@ namespace PAL {
         static IDeviceInformation* Create();
 
         // IInformationProvider API
-        virtual int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback);
-        virtual void UnRegisterInformationChangedCallback(int callbackToken);
+        virtual int RegisterInformationChangedCallback(PAL::IPropertyChangedCallback* pCallback) override;
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) override;
 
         // IDeviceInformation API
         virtual std::string const& GetDeviceId() const { return m_device_id; }
@@ -31,7 +36,7 @@ namespace PAL {
         OsArchitectureType m_os_architecture;
         PowerSource m_powerSource;
         InformatonProviderImpl m_info_helper;
-        int          m_registredCount;
+        int m_registredCount;
         // Disable copy constructor and assignment operator.
         DeviceInformationImpl(DeviceInformationImpl const& other);
         DeviceInformationImpl& operator=(DeviceInformationImpl const& other);
@@ -40,5 +45,6 @@ namespace PAL {
         virtual ~DeviceInformationImpl();
     };
 
-} // PAL
-}}}
+} PAL_NS_END
+
+#endif

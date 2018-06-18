@@ -12,7 +12,7 @@ TEST(OacrTests, BuildMachineOnly_VerifyOacrOutputFolderExists)
     if (0 == _dupenv_s(&buildNumber, nullptr, "BUILD_BUILDID") && (buildNumber != nullptr))
     {
         LPCSTR outputFolder = "F:\\OACR\\Output";        // Output folder that must exist
-        DWORD attributes = GetFileAttributes(outputFolder);
+        DWORD attributes = GetFileAttributesA(outputFolder);
         bool oacrOutputFolderExists = (attributes != INVALID_FILE_ATTRIBUTES) && ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
         ASSERT_TRUE(oacrOutputFolderExists);
         free(buildNumber);
@@ -28,7 +28,7 @@ TEST(OacrTests, BuildMachineOnly_VerifyThisBuildHasNoOacrErrors)
     {
         char pathToFile[MAX_PATH];
         snprintf(pathToFile, _countof(pathToFile), "F:\\OACR\\Output\\%s.OacrWarnings.xml", buildNumber);
-        DWORD attributes = GetFileAttributes(pathToFile);
+        DWORD attributes = GetFileAttributesA(pathToFile);
         bool oacrWarningsExist = (attributes != INVALID_FILE_ATTRIBUTES);
         ASSERT_FALSE(oacrWarningsExist);
         free(buildNumber);

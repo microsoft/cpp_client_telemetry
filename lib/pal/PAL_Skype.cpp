@@ -5,9 +5,7 @@
 #include <list>
 #include <memory>
 
-namespace ARIASDK_NS_BEGIN {
-namespace PAL {
-
+namespace PAL_NS_BEGIN {
 
 ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK.PAL", "Aria telemetry client - platform abstraction layer");
 
@@ -322,7 +320,7 @@ void unregisterSemanticContext(ISemanticContext* context)
 
 std::string getSdkVersion()
 {
-    return std::string(ARIASDK_VERSION_PREFIX "-") + getOsName() + "-C++-No-" + VersionString;
+    return std::string(ARIASDK_VERSION_PREFIX "-") + getOsName() + "-C++-No-" + BUILD_VERSION_STR;
 }
 
 //---
@@ -337,10 +335,10 @@ void initialize()
             spl::sleep(10 * 1000);
         }
         auf::init();
-        ARIASDK_LOG_DETAIL("Initializing...");
+        LOG_TRACE("Initializing...");
         g_strand = auf::createStrand(spl::ThreadPoolPriority::TPP_LOW);
         g_semanticContextUpdater.reset(new SemanticContextUpdater());
-        ARIASDK_LOG_INFO("Initialized");
+        LOG_INFO("Initialized");
         spl::atomicAddU(&g_palStarted, 0x80000000);
     } else {
         while ((g_palStarted & 0x80000000) == 0) {
@@ -352,15 +350,14 @@ void initialize()
 void shutdown()
 {
     if (spl::atomicAddU(&g_palStarted, -1) == 0x80000000) {
-        ARIASDK_LOG_DETAIL("Shutting down...");
+        LOG_TRACE("Shutting down...");
         g_semanticContextUpdater.reset();
         g_strand.reset();
-        ARIASDK_LOG_INFO("Shut down");
+        LOG_INFO("Shut down");
         auf::stop();
         spl::atomicAddU(&g_palStarted, 0x80000000);
     }
 }
 
 
-} // namespace PAL
-} ARIASDK_NS_END
+} PAL_NS_END

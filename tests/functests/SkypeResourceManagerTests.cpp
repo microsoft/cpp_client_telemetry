@@ -78,7 +78,7 @@ class VideoStreamSimulator
             uint32_t sent = listener.GetBW() / (1000000 / interval);
             uint32_t timestamp = static_cast<uint32_t>(PAL::getMonotonicTimeMs());
 
-            ARIASDK_LOG_INFO("VideoStreamSimulator \"sent\" %u bytes", sent);
+            LOG_INFO("VideoStreamSimulator \"sent\" %u bytes", sent);
 
             uint8_t bwe;
             conn->getBweByteForOutboundPacket(timestamp, bwe);
@@ -143,7 +143,7 @@ class SkypeResourceManagerTests : public ::testing::Test,
 
         rm = resource_manager2::Factory::createInstance(1, false);
 
-        LogConfiguration configuration;
+        ILogConfiguration configuration;
         configuration.runtimeConfig = &runtimeConfig;
         configuration.skypeResourceManager = rm;
         configuration.cacheFilePath = "SkypeResourceManagerTests.db";

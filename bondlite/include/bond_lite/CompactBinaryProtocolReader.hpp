@@ -5,6 +5,10 @@
 #include <string>
 #include <vector>
 
+#include <string.h>
+
+#include "utils/annex_k.hpp"
+
 namespace bond_lite {
 
 // Based on:

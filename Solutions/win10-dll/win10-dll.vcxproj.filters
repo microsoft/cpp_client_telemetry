@@ -9,12 +9,6 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="RCa31256" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\VersionInfo.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="resource.h" />
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
 </Project>

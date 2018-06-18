@@ -14,7 +14,6 @@ using namespace ARIASDK_NS;
 
 class PackagerTests : public StrictMock<Test> {
   protected:
-    LogConfiguration               logConfiguration;
     StrictMock<MockIRuntimeConfig> runtimeConfigMock;
     Packager                       packager;
 
@@ -23,7 +22,7 @@ class PackagerTests : public StrictMock<Test> {
 
   protected:
     PackagerTests()
-      : packager(logConfiguration, runtimeConfigMock)
+      : packager(runtimeConfigMock)
     {
         packager.emptyPackage   >> emptyPackage;
         packager.packagedEvents >> packagedEvents;
@@ -36,7 +35,7 @@ class PackagerTests : public StrictMock<Test> {
 
 TEST_F(PackagerTests, EmptyInputResultsInEmptyPackage)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(*this, resultEmptyPackage(ctx))
         .WillOnce(Return());
     packager.finalizePackage(ctx);
@@ -44,7 +43,7 @@ TEST_F(PackagerTests, EmptyInputResultsInEmptyPackage)
 
 TEST_F(PackagerTests, PackagesEventsByTenant)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -69,7 +68,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     EXPECT_THAT(ctx->packageIds, Contains(Key("tenant1-token")));
 
 
-    ctx = EventsUploadContext::create();
+    ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -100,7 +99,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
 
 TEST_F(PackagerTests, UsesPriorityOfTheFirstEvent)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -117,7 +116,7 @@ TEST_F(PackagerTests, HonorsMaximumPackageSize)
     unsigned const MaxSize  = 100000;
     unsigned const PartSize = (MaxSize - 200) / 3;
 
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(MaxSize))
         .RetiresOnSaturation();
@@ -144,7 +143,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
 {
     unsigned const MaxSize = 10000;
 
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(MaxSize))
         .RetiresOnSaturation();
@@ -163,7 +162,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
 
 TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 {
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -205,12 +204,11 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 
 TEST_F(PackagerTests, ForcedTenantIsForced)
 {
-    LogConfiguration logConfigurationF;
-    logConfigurationF.SetProperty("forcedTenantToken", "forced-Tenant-Token");
-    Packager packagerF(logConfigurationF, runtimeConfigMock);
+    runtimeConfigMock["forcedTenantToken"] = "forced-Tenant-Token";
+    Packager packagerF(runtimeConfigMock);
     packagerF.packagedEvents >> packagedEvents;
 
-    auto ctx = EventsUploadContext::create();
+    auto ctx = new EventsUploadContext();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();

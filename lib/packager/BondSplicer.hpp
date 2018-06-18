@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <Version.hpp>
+
+#include <pal/PAL.hpp>
 #include "DataPackage.hpp"
+//#include "bond/generated/AriaProtocol_types.hpp"
+
 #include <list>
 #include <vector>
 

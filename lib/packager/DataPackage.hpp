@@ -22,7 +22,7 @@ namespace ARIASDK_NS_BEGIN {
         // 7: optional int32 SchemaVersion
         int32_t SchemaVersion = 0;
         // 8: optional vector<Record> Records
-        std::vector< ::AriaProtocol::CsEvent> Records;
+        std::vector< ::AriaProtocol::Record> Records;
 
         bool operator==(DataPackage const& other) const
         {

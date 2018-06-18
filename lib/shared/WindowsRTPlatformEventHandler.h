@@ -4,7 +4,7 @@ namespace Microsoft {
     namespace Applications 
     {
         class IPlatformEventReceiver;
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 using namespace ::Windows::Foundation;

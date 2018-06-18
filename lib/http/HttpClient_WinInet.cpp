@@ -11,7 +11,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
+class WinInetRequestWrapper
 {
   protected:
     HttpClient_WinInet&    m_parent;
@@ -32,7 +32,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         m_hWinInetRequest(NULL),
         m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
     {
-        ARIASDK_LOG_DETAIL("%p WinInetRequestWrapper()", this);
+        LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
 
     WinInetRequestWrapper(WinInetRequestWrapper const&) = delete;
@@ -40,7 +40,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 
     ~WinInetRequestWrapper()
     {
-        ARIASDK_LOG_DETAIL("%p ~WinInetRequestWrapper()", this);
+        LOG_TRACE("%p ~WinInetRequestWrapper()", this);
         ::InternetCloseHandle(m_hWinInetRequest);
         ::InternetCloseHandle(m_hWinInetSession);
         ::CloseHandle(m_hDoneEvent);
@@ -64,7 +64,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 
         {
             std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
-            m_parent.m_requests[m_id] = self();
+            m_parent.m_requests[m_id] = this;
         }
 
         URL_COMPONENTSA urlc;
@@ -78,7 +78,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
         urlc.dwUrlPathLength = sizeof(path);
         if (!::InternetCrackUrlA(request->m_url.data(), (DWORD)request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
-            ARIASDK_LOG_WARNING("InternetCrackUrl() failed: %d", dwError);
+            LOG_WARN("InternetCrackUrl() failed: %d", dwError);
             onRequestComplete(dwError);
             return;
         }
@@ -87,7 +87,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetSession == NULL) {
             DWORD dwError = ::GetLastError();
-            ARIASDK_LOG_WARNING("InternetConnect() failed: %d", dwError);
+            LOG_WARN("InternetConnect() failed: %d", dwError);
             onRequestComplete(dwError);
             return;
         }
@@ -102,7 +102,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetRequest == NULL) {
             DWORD dwError = ::GetLastError();
-            ARIASDK_LOG_WARNING("HttpOpenRequest() failed: %d", dwError);
+            LOG_WARN("HttpOpenRequest() failed: %d", dwError);
             onRequestComplete(dwError);
             return;
         }
@@ -124,21 +124,19 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
 
         if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
             dwError = ::GetLastError();
-            ARIASDK_LOG_WARNING("HttpSendRequest() failed: %d", dwError);
+            LOG_WARN("HttpSendRequest() failed: %d", dwError);
             onRequestComplete(dwError);
         }
     }
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
-#ifndef _DEBUG
         UNREFERENCED_PARAMETER(dwStatusInformationLength);  // Only used inside an assertion
-#endif
         OACR_USE_PTR(hInternet);
 
         WinInetRequestWrapper* self = reinterpret_cast<WinInetRequestWrapper*>(dwContext);
 
-        ARIASDK_LOG_DETAIL("winInetCallback: hInternet %p, dwContext %p, dwInternetStatus %u", hInternet, dwContext, dwInternetStatus);
+        LOG_TRACE("winInetCallback: hInternet %p, dwContext %p, dwInternetStatus %u", hInternet, dwContext, dwInternetStatus);
         // Are you looking at logs and need to decode dwInternetStatus values?
         // Go To Definition (F12) on INTERNET_STATUS_REQUEST_COMPLETE below to get to the right place of WinInet.h.
 
@@ -185,7 +183,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
                         // (that's why those are member variables).
                         return;
                     }
-                    ARIASDK_LOG_WARNING("InternetReadFile() failed: %d", dwError);
+                    LOG_WARN("InternetReadFile() failed: %d", dwError);
                     break;
                 }
 
@@ -193,7 +191,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             } while (m_bufferUsed == sizeof(m_buffer));
         }
 
-        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id)); // FIXME: [MG] - Error #129: POSSIBLE LEAK 152 direct bytes + 64 indirect bytes
 
         if (dwError == ERROR_SUCCESS) {
             response->m_result = HttpResult_OK;
@@ -203,7 +201,7 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             DWORD dwSize = sizeof(value);
             BOOL bResult = ::HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &value, &dwSize, NULL);
             if (!bResult) {
-                ARIASDK_LOG_WARNING("HttpQueryInfo(STATUS_CODE) failed: %d", GetLastError());
+                LOG_WARN("HttpQueryInfo(STATUS_CODE) failed: %d", GetLastError());
             }
             response->m_statusCode = value;
 
@@ -212,13 +210,13 @@ class WinInetRequestWrapper : public PAL::RefCountedImpl<WinInetRequestWrapper>
             if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
                 dwError = GetLastError();
                 if (dwError != ERROR_INSUFFICIENT_BUFFER) {
-                    ARIASDK_LOG_WARNING("HttpQueryInfo(RAW_HEADERS) failed: %d", dwError);
+                    LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed: %d", dwError);
                     dwSize = 0;
                 } else {
                     m_bodyBuffer.resize(dwSize + 1);
                     pBuffer = reinterpret_cast<char*>(m_bodyBuffer.data());
                     if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
-                        ARIASDK_LOG_WARNING("HttpQueryInfo(RAW_HEADERS) failed twice: %d", dwError);
+                        LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed twice: %d", dwError);
                         dwSize = 0;
                     }
                 }
@@ -344,16 +342,16 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
     SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
-    PAL::RefCountedPtr<WinInetRequestWrapper> wrapper(new WinInetRequestWrapper(*this, req->m_id), false);
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, req->m_id); // FIXME: [MG] - Error #159: POSSIBLE LEAK 1144 direct bytes + 32 indirect bytes
     wrapper->send(req, callback);
     delete req;
 }
 
 void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
 {
-    PAL::RefCountedPtr<WinInetRequestWrapper> request;
+    WinInetRequestWrapper* request = nullptr;
     {
-		std::lock_guard<std::mutex> lock(m_requestsMutex);
+        std::lock_guard<std::mutex> lock(m_requestsMutex);
         auto it = m_requests.find(id);
         if (it != m_requests.end()) {
             request = it->second;

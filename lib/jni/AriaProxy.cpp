@@ -5,8 +5,7 @@
 #include <aria/ILogManager.hpp>
 
 
-using namespace Microsoft::Applications::Telemetry;
-
+using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN {
 

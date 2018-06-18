@@ -1,40 +1,48 @@
+#pragma once
+// WARNING: DO NOT MODIFY THIS FILE!
 // Copyright (c) Microsoft. All rights reserved.
 // This file has been automatically generated, manual changes will be lost.
+#define BUILD_VERSION_STR "@BUILD_VERSION_MAJOR@.@BUILD_VERSION_MINOR@.@BUILD_VERSION_PATCH@.@BUILD_NUMBER@"
+#define BUILD_VERSION @BUILD_VERSION_MAJOR@,@BUILD_VERSION_MINOR@,@BUILD_VERSION_PATCH@,@BUILD_NUMBER@
 
-#pragma once
+#ifndef RESOURCE_COMPILER_INVOKED
 #include <stdint.h>
 
-
-//#define Events  Telemetry_v@BUILD_VERSION_MAJOR@
-
-#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Events 
+#define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Events
 #define ARIASDK_NS_END   }}
-#define ARIASDK_NS       Microsoft::Applications::Events 
+#define ARIASDK_NS       Microsoft::Applications::Events
+#define MAT              ::ARIASDK_NS
 
+#define PAL_NS_BEGIN     Microsoft { namespace Applications { namespace Events { namespace PlatformAbstraction
+#define PAL_NS_END       }}}
+#define PAL              ::Microsoft::Applications::Events::PlatformAbstraction
 
-namespace Microsoft { namespace Applications { namespace Events  {
+#define MAT_v1           ::Microsoft::Applications::Telemetry
 
+namespace ARIASDK_NS_BEGIN {
 
 uint64_t const Version =
-    (@BUILD_VERSION_MAJOR@ull << 48) |
-    (@BUILD_VERSION_MINOR@ull << 32) |
-    (@BUILD_VERSION_PATCH@ull << 16) |
-     @BUILD_NUMBER@ull;
+	((uint64_t)@BUILD_VERSION_MAJOR@ << 48) |
+	((uint64_t)@BUILD_VERSION_MINOR@ << 32) |
+	((uint64_t)@BUILD_VERSION_PATCH@ << 16) |
+	((uint64_t)@BUILD_NUMBER@);
 
-char const VersionString[] =
-    "@BUILD_VERSION_MAJOR@.@BUILD_VERSION_MINOR@.@BUILD_VERSION_PATCH@.@BUILD_NUMBER@";
-
-
-namespace {
-#ifdef __GNUC__
-    #define ARIASDK_UNUSED __attribute__((unused))
+// TODO: [MG] - move declaration of ARIA_SDK_UNUSED to separate include file
+#ifdef ARIASDK_UNUSED
+#elif defined(__GNUC__) || defined(__clang__)
+# define ARIASDK_UNUSED(x) (x) /* __attribute__((unused)) */
+#elif defined(__LCLINT__)
+# define ARIASDK_UNUSED(x) /*@unused@*/ x
+#elif defined(__cplusplus)
+# define ARIASDK_UNUSED(x)
 #else
-    #define ARIASDK_UNUSED
+# define ARIASDK_UNUSED(x) x
 #endif
-}
 
+# define ARIASDK_PAL_@PAL_IMPLEMENTATION_UPPER@ 1
 
-#define ARIASDK_PAL_@PAL_IMPLEMENTATION_UPPER@ 1
+} ARIASDK_NS_END
 
+namespace PAL_NS_BEGIN { } PAL_NS_END
 
-}}} // namespace Microsoft::Applications::Events 
+#endif // RESOURCE_COMPILER_INVOKED

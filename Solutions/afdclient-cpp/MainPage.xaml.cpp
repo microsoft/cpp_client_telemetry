@@ -25,6 +25,6 @@ using namespace Windows::UI::Xaml::Navigation;
 
 MainPage::MainPage()
 {
-	InitializeComponent();
+    InitializeComponent();
     AFDClientSample();
 }

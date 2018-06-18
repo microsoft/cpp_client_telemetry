@@ -1,7 +1,6 @@
 #include "NetworkInformationImpl.hpp"
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+namespace PAL_NS_BEGIN {
 
 	
 bool NetworkInformationImpl::IsEthernetAvailable() 
@@ -19,5 +18,4 @@ bool NetworkInformationImpl::IsWwanAvailable()
     return false;
 }
 
-} // PlatformAbstraction
-}}}
+} PAL_NS_END

@@ -1,162 +1,207 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpResponseDecoder.hpp"
-#include "api/CommonLogManagerInternal.hpp"
+#include "ILogManager.hpp"
 #include <IHttpClient.hpp>
 #include "utils/Utils.hpp"
 #include "json.hpp"
 #include <algorithm>
-
+#include <cassert>
 
 namespace ARIASDK_NS_BEGIN {
 
+    HttpResponseDecoder::HttpResponseDecoder(ITelemetrySystem& system)
+        :
+        m_system(system)
+    {
+    }
 
-HttpResponseDecoder::HttpResponseDecoder()
-{
-}
+    HttpResponseDecoder::~HttpResponseDecoder()
+    {
+    }
+    
+    /// <summary>
+    /// Dispatches the specified event via parent LogManager to a client callback.
+    /// </summary>
+    /// <param name="evt"></param>
+    /// <returns></returns>
+    bool HttpResponseDecoder::DispatchEvent(DebugEvent evt)
+    {
+        return m_system.getLogManager().DispatchEvent(std::move(evt));
+    }
 
-HttpResponseDecoder::~HttpResponseDecoder()
-{
-}
+    void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
+    {
+#ifndef NDEBUG
+        // XXX: [MG] - debug accessing object that's been already freed
+        uint64_t ptr = (uint64_t)(ctx->httpResponse);
+        assert(ptr != 0x00000000dddddddd);
+        assert(ptr != 0xdddddddddddddddd);
+#endif
 
-void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
-{
-    IHttpResponse const& response = *ctx->httpResponse;
+        IHttpResponse const& response = *(ctx->httpResponse);
 
-    enum { Accepted, Rejected, RetryServer, RetryNetwork, Abort } outcome = Abort;
-    switch (response.GetResult()) {
+        enum { Accepted, Rejected, RetryServer, RetryNetwork, Abort } outcome = Abort;
+        auto result = response.GetResult();
+        switch (result) {
         case HttpResult_OK:
             if (response.GetStatusCode() == 200) {
                 outcome = Accepted;
-            } else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429) {
+            }
+            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429) {
                 outcome = RetryServer;
-            } else {
+            }
+            else {
                 outcome = Rejected;
             }
             break;
 
         case HttpResult_Aborted:
+            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
+            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
-    }
+        }
 
-    if (response.GetBody().size() > 0)
-    { // parse the response 
-        nlohmann::json responseBody;       
-        try
-        {
-            std::string body(response.GetBody().begin(), response.GetBody().end());
-            responseBody = nlohmann::json::parse(body.c_str());
-            int accepted = 0;
-            auto acc = responseBody.find("acc");
-            if (responseBody.end() != acc)
+        if (response.GetBody().size() > 0)
+        { // parse the response 
+            nlohmann::json responseBody;
+            try
             {
-                if (acc.value().is_number())
+                std::string body(response.GetBody().begin(), response.GetBody().end());
+                responseBody = nlohmann::json::parse(body.c_str());
+                int accepted = 0;
+                auto acc = responseBody.find("acc");
+                if (responseBody.end() != acc)
                 {
-                    accepted = acc.value().get<int>();
-                }
-            }
-
-            int rejected = 0;
-            auto rej = responseBody.find("rej");
-            if (responseBody.end() != rej)
-            {
-                if (rej.value().is_number())
-                {
-                    rejected = rej.value().get<int>();
-                }
-            }
-
-            auto efi = responseBody.find("efi");
-            if (responseBody.end() != efi)
-            {
-                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
-                {
-                    std::string efiKey(it.key());
-                    nlohmann::json val = it.value();
-                    if (val.is_array())
+                    if (acc.value().is_number())
                     {
-                        //std::vector<int> failureVector = val.get<std::vector<int>>();
-                        // eventsRejected(ctx);     with only the ids in the vector above
+                        accepted = acc.value().get<int>();
                     }
-                    if (val.is_string())
+                }
+
+                int rejected = 0;
+                auto rej = responseBody.find("rej");
+                if (responseBody.end() != rej)
+                {
+                    if (rej.value().is_number())
                     {
-                        if ("all" == val.get<std::string>())
+                        rejected = rej.value().get<int>();
+                    }
+                }
+
+                auto efi = responseBody.find("efi");
+                if (responseBody.end() != efi)
+                {
+                    for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+                    {
+                        std::string efiKey(it.key());
+                        nlohmann::json val = it.value();
+                        if (val.is_array())
                         {
-                            outcome = Rejected;
+                            //std::vector<int> failureVector = val.get<std::vector<int>>();
+                            // eventsRejected(ctx);     with only the ids in the vector above
+                        }
+                        if (val.is_string())
+                        {
+                            if ("all" == val.get<std::string>())
+                            {
+                                outcome = Rejected;
+                            }
                         }
                     }
                 }
-            }
 
-            auto ticket = responseBody.find("TokenCrackingFailure");
-            if (responseBody.end() != ticket)
+                auto ticket = responseBody.find("TokenCrackingFailure");
+                if (responseBody.end() != ticket)
+                {
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+                    DispatchEvent(evt);
+                }
+            }
+            catch (...)
+            {
+                LOG_ERROR("Http response jason parsing failed");
+            }
+        }
+
+        switch (outcome) {
+        case Accepted: {
+            LOG_INFO("HTTP request %s finished after %d ms, events were successfully uploaded to the server",
+                response.GetId().c_str(), ctx->durationMs);
             {
                 DebugEvent evt;
-                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
-                CommonLogManagerInternal::DispatchEvent(evt);
+                evt.type = DebugEventType::EVT_HTTP_OK;
+                DispatchEvent(evt);
             }
-        }
-        catch (...)
-        {
-            ARIASDK_LOG_ERROR("Http response jason parsing failed");
-        }
-    }
-
-    switch (outcome) {
-        case Accepted: {
-            ARIASDK_LOG_INFO("HTTP request %s finished after %d ms, events were successfully uploaded to the server",
-                response.GetId().c_str(), ctx->durationMs);
             eventsAccepted(ctx);
-            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_OK);
             break;
         }
 
         case Rejected: {
-            ARIASDK_LOG_ERROR("HTTP request %s failed after %d ms, events were rejected by the server (%u) and will be all dropped",
+            LOG_ERROR("HTTP request %s failed after %d ms, events were rejected by the server (%u) and will be all dropped",
                 response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
-            ARIASDK_LOG_DETAIL("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
-            eventsRejected(ctx);      
-			DebugEvent evt;
-			evt.type = DebugEventType::EVT_HTTP_ERROR;
-			evt.param1 = response.GetStatusCode();
-            CommonLogManagerInternal::DispatchEvent(evt);
+            LOG_TRACE("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_HTTP_ERROR;
+                evt.param1 = response.GetStatusCode();
+                DispatchEvent(evt);
+                eventsRejected(ctx);
+            }
             break;
         }
 
         case Abort: {
-            ARIASDK_LOG_WARNING("HTTP request %s failed after %d ms, upload was aborted and events will be sent at a different time",
+            LOG_WARN("HTTP request %s failed after %d ms, upload was aborted and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs);
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_HTTP_FAILURE;
+                evt.param1 = 0; // response.GetStatusCode();
+                DispatchEvent(evt);
+            }
+            ctx->httpResponse = nullptr;
+            // eventsRejected(ctx); // FIXME: [MG] - investigate why ctx gets corrupt after eventsRejected
             requestAborted(ctx);
-            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
 
         case RetryServer: {
-            ARIASDK_LOG_WARNING("HTTP request %s failed after %d ms, a temporary server error has occurred (%u) and events will be sent at a different time",
+            LOG_WARN("HTTP request %s failed after %d ms, a temporary server error has occurred (%u) and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
-            ARIASDK_LOG_DETAIL("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
+            LOG_TRACE("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_HTTP_FAILURE;
+                evt.param1 = response.GetStatusCode();
+                DispatchEvent(evt);
+            }
             temporaryServerFailure(ctx);
-            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
 
         case RetryNetwork: {
-            ARIASDK_LOG_WARNING("HTTP request %s failed after %d ms, a network error has occurred and events will be sent at a different time",
+            LOG_WARN("HTTP request %s failed after %d ms, a network error has occurred and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs);
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_HTTP_FAILURE;
+                evt.param1 = response.GetStatusCode();
+                DispatchEvent(evt);
+            }
             temporaryNetworkFailure(ctx);
-            CommonLogManagerInternal::DispatchEvent(DebugEventType::EVT_HTTP_FAILURE);
             break;
         }
+        }
     }
-}
-
 
 } ARIASDK_NS_END

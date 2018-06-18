@@ -14,9 +14,7 @@
 #include <sqlite/sqlite3.h>
 
 
-namespace ARIASDK_NS_BEGIN {
-namespace PAL {
-
+namespace PAL_NS_BEGIN {
 
 //
 // Startup/shutdown
@@ -54,10 +52,10 @@ ARIASDK_LOG_DECL_COMPONENT_NS();
 #define ARIASDK_LOG_ENABLED_ERROR()    AUF_LOG_ENABLED_WARN()
 
 // Log a message on a specific level, which is checked efficiently before evaluating arguments
-#define ARIASDK_LOG_DETAIL(fmt_, ...)  AUF_LOG_DEBUG4(fmt_, ##__VA_ARGS__)
-#define ARIASDK_LOG_INFO(fmt_, ...)    AUF_LOG_DEBUG3(fmt_, ##__VA_ARGS__)
-#define ARIASDK_LOG_WARNING(fmt_, ...) AUF_LOG_DEBUG2(fmt_, ##__VA_ARGS__)
-#define ARIASDK_LOG_ERROR(fmt_, ...)   AUF_LOG_WARN(fmt_, ##__VA_ARGS__)
+#define LOG_TRACE(fmt_, ...)  AUF_LOG_DEBUG4(fmt_, ##__VA_ARGS__)
+#define LOG_INFO(fmt_, ...)    AUF_LOG_DEBUG3(fmt_, ##__VA_ARGS__)
+#define LOG_WARN(fmt_, ...) AUF_LOG_DEBUG2(fmt_, ##__VA_ARGS__)
+#define LOG_ERROR(fmt_, ...)   AUF_LOG_WARN(fmt_, ##__VA_ARGS__)
 
 
 //
@@ -353,7 +351,7 @@ void unregisterSemanticContext(ISemanticContext* context);
 
 // Convert various numeric types and bool to string in an uniform manner.
 template<typename T, typename Check = typename std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
-std::string numericToString(char const* format, T value)
+std::string to_string(char const* format, T value)
 {
     char buf[40];
     spl::snprintf_s(buf, sizeof(buf), format, value);
@@ -364,5 +362,4 @@ std::string numericToString(char const* format, T value)
 std::string getSdkVersion();
 
 
-} // namespace PAL
-} ARIASDK_NS_END
+} PAL_NS_END

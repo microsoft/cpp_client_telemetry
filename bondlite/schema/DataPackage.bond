@@ -81,7 +81,7 @@ struct Conference
 };
 
 // An enum with all the supported types for a record.
-enum RecordType
+enum AriaRecordType
 {
   NotSet = 0,
   Event = 1,
@@ -175,7 +175,7 @@ struct Record
   // Use TargetUsersComposite instead
   22: optional vector<UserV1> DeprecatedTargetUsersComposite;
   23: optional map<string, Pstn> PstnNumbersComposite;
-  24: optional RecordType RecordType = NotSet;
+  24: optional AriaRecordType RecordType = NotSet;
   25: optional map<string, int64> ExtensionInt64;
   // Placeholder, don't use it for now.
   26: optional map<string, double> _reserved;

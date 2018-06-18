@@ -1,6 +1,8 @@
-
 #ifndef ARIA_EVENTPROPERTY_HPP
 #define ARIA_EVENTPROPERTY_HPP
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Version.hpp"
 
 #include "ctmacros.hpp"
 #include "Enums.hpp"
@@ -15,374 +17,500 @@
 #ifdef _WIN32
 /* Required for GUID type helper function on Windows */
 #include <ObjBase.h>
+#else
+#include <string.h>
+#define LONG_IS_INT64_T
 #endif
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
+namespace ARIASDK_NS_BEGIN
+{
+    /// <summary>
+    /// The number of ticks per second.
+    /// </summary>
+    const uint64_t ticksPerSecond = 10000000UL;
 
-            const uint64_t ticksPerSecond = 10000000UL;
-            // Thursday, January 01, 1970 12:00:00 AM
-            const uint64_t ticksUnixEpoch = 0x089f7ff5f7b58000;
+    /// <summary>
+    /// The UNIX epoch: Thursday, January, 01, 1970, 12:00:00 AM.
+    /// </summary>
+    const uint64_t ticksUnixEpoch = 0x089f7ff5f7b58000;
 
-            /// <summary>Time in .NET ticks</summary>
-            /// <remarks>
-            /// A single tick represents one hundred nanoseconds or one ten-millionth of a second.
-            /// There are 10,000 ticks in a millisecond, or 10 million ticks in a second.
-            /// The value of this property represents the number of 100 - nanosecond intervals that have
-            /// elapsed since 12:00 : 00 midnight, January 1, 0001 (0:00 : 00 UTC on January 1, 0001, in
-            /// the Gregorian calendar), which represents DateTime.MinValue.
-            /// It does not include the number  of ticks that are attributable to leap seconds.
-            /// </remarks>
-            struct ARIASDK_LIBABI time_ticks_t {
-                /// <summary>Raw 64-bit signed integer number representing number of .NET ticks</summary>
-                uint64_t ticks;
+    /// <summary>
+    /// The time_ticks_t structure encapsulates time in .NET ticks.
+    /// </summary>
+    /// <remarks>
+    /// A single tick represents one hundred nanoseconds, or one ten-millionth of a second.
+    /// There are 10,000 ticks in a millisecond, or 10 million ticks in a second.
+    /// The value of this property represents the number of 100 nanosecond intervals that have
+    /// elapsed since 12:00 AM, January, 1, 0001 (0:00 : 00 UTC on January 1, 0001, in
+    /// the Gregorian calendar), which represents DateTime.MinValue.
+    /// <b>Note:</b> This does not include the number  of ticks that are attributable to leap seconds.
+    /// </remarks>
+    struct ARIASDK_LIBABI time_ticks_t {
+        /// <summary>
+        /// A raw 64-bit unsigned integer that represents the number of .NET ticks.
+        /// </summary>
+        uint64_t ticks;
 
-                /// Default constructor for an empty object
-                /// </summary>
-                time_ticks_t();
+        /// <summary>
+        /// The default constructor for instantiating an empty time_ticks_t object.
+        /// </summary>
+        time_ticks_t();
 
-                /// <summary>
-                /// Convert number of .NET ticks to time_ticks_t structure
-                /// </summary>
-                time_ticks_t(uint64_t raw);
+        /// <summary>
+        /// Converts the number of .NET ticks into an instance of the time_ticks_t structure.
+        /// </summary>
+        time_ticks_t(uint64_t raw);
 
-                /// <summary>
-                /// time_t time must contain timestamp in UTC time
-                /// </summary>
-                time_ticks_t(const std::time_t* time);
+        /// <summary>
+        /// Constructs a time_ticks_t object from a pointer to a time_t object from the standard library.
+        /// <b>Note:</b> time_t time must contain a timestamp in UTC time.
+        /// </summary>
+        time_ticks_t(const std::time_t* time);
 
-                /// <summary>
-                /// time_ticks_t copy constructor
-                /// </summary>
-                time_ticks_t(const time_ticks_t& t);
-            };
+        /// <summary>
+        /// The time_ticks_t copy constructor.
+        /// </summary>
+        time_ticks_t(const time_ticks_t& t);
+    };
 
-            /// <summary>GUID type - ARIA portable cross-platform implementation of GUID.
-            /// GUIDs identify objects such as interfaces, manager entry-point vectors (EPVs), and class objects.
-            /// A GUID is a 128-bit value consisting of one group of 8 hexadecimal digits, followed
-            /// by three groups of 4 hexadecimal digits each, followed by one group of 12 hexadecimal digits.
-            /// 
-            /// Definition of this structure is a cross-platform equivalent of Windows RPC GUID definition.
-            /// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/aa373931%28v=vs.85%29.aspx
-            /// 
-            /// Customers need to provide their own converter from RPC GUID type to ARIA portable GUID type.
-            /// </remarks>
-            struct ARIASDK_LIBABI GUID_t {
-                /// <summary>Specifies the first 8 hexadecimal digits of the GUID.</summary>
-                uint32_t Data1;
+    /// <summary>
+    /// The GUID_t structure represents the ARIA portable cross-platform implementation of a GUID (Globally Unique ID).
+    /// </summary>
+    /// <remarks>
+    /// GUIDs identify objects such as interfaces, manager entry-point vectors (EPVs), and class objects.
+    /// A GUID is a 128-bit value consisting of one group of eight hexadecimal digits, followed
+    /// by three groups of four hexadecimal digits, each followed by one group of 12 hexadecimal digits.
+    /// 
+    /// The definition of this structure is the cross-platform equivalent to the 
+    /// [Windows RPC GUID definition](https://msdn.microsoft.com/en-us/library/windows/desktop/aa373931%28v=vs.85%29.aspx).
+    /// 
+    /// <b>Note:</b> You must provide your own converter to convert from a <b>Windows RPC GUID</b> to a GUID_t.
+    /// </remarks>
+    struct ARIASDK_LIBABI GUID_t {
+        /// <summary>
+        /// Specifies the first eight hexadecimal digits of the GUID.
+        /// </summary>
+        uint32_t Data1;
 
-                /// <summary>Specifies the first group of 4 hexadecimal digits.</summary>
-                uint16_t Data2;
+        /// <summary>
+        /// Specifies the first group of four hexadecimal digits.
+        ///</summary>
+        uint16_t Data2;
 
-                /// <summary>Specifies the second group of 4 hexadecimal digits.</summary>
-                uint16_t Data3;
+        /// <summary>
+        /// Specifies the second group of four hexadecimal digits.
+        /// </summary>
+        uint16_t Data3;
 
-                /// <summary>Array of 8 bytes. The first 2 bytes contain the third group of 4 hexadecimal digits.
-                /// The remaining 6 bytes contain the final 12 hexadecimal digits.</summary>
-                uint8_t  Data4[8];
+        /// <summary>
+        /// An array of eight bytes.
+        /// The first two bytes contain the third group of four hexadecimal digits.
+        /// The remaining six bytes contain the final 12 hexadecimal digits.
+        /// </summary>
+        uint8_t  Data4[8];
 
-                /// <summary>
-                /// Create an empty Nil instance of GUID_t object (initialized to all 0)
-                /// {00000000-0000-0000-0000-000000000000}
-                /// </summary>
-                GUID_t();
+        /// <summary>
+        /// The default GUID_t constructor.
+        /// Creates a null instance of the GUID_t object (initialized to all zeros).
+        /// {00000000-0000-0000-0000-000000000000}.
+        /// </summary>
+        GUID_t();
 
-                /// <summary>
-                /// Create GUID_t object from hyphenated string (curly braces optional)
-                /// </summary>
-                GUID_t(const char* guid_string);
+        /// <summary>
+        /// A constructor that creates a GUID_t object from a hyphenated string.
+        /// </summary>
+        /// <param name="guid_string">A hyphenated string that contains the GUID (curly braces optional).</param>
+        GUID_t(const char* guid_string);
 
-                /// <summary>
-                /// Create GUID_t object from byte array
-                /// </summary>
-                /// <param name="bigEndian">
-                /// false (default) - use the same order as .NET Guid constructor
-                /// true            - use 'more natural' human-readable order
-                /// </param>
-                GUID_t(const uint8_t guid_bytes[16], bool bigEndian = false);
+        /// <summary>
+        /// A constructor that creates a GUID_t object from a byte array.
+        /// </summary>
+        /// <param name="guid_bytes">A byte array.</param>
+        /// <param name="bigEndian">
+        /// A boolean value that specifies the byte order.<br>
+        /// A value of <i>true</i> specifies the more natural human-readable order.<br>
+        /// A value of <i>false</i> (the default) specifies the same order as the .NET GUID constructor.
+        /// </param>
+        GUID_t(const uint8_t guid_bytes[16], bool bigEndian = false);
 
-                GUID_t(int d1, int d2, int d3, const std::initializer_list<uint8_t> &v);
-                
-                /// <summary>
-                /// GUID_t copy constructor
-                /// </summary>
-                GUID_t(const GUID_t& guid);
+        /// <summary>
+        /// A constructor that creates a GUID_t object from three integers and a byte array.
+        /// </summary>
+        /// <param name="d1">An integer that specifies the first eight hexadecimal digits of the GUID.</param>
+        /// <param name="d2">An integer that specifies the first group of four hexadecimal digits.</param>
+        /// <param name="d3">An integer that specifies the second group of four hexadecimal digits.</param>
+        /// <param name="v">A reference to an array of eight bytes.
+        /// The first two bytes contain the third group of four hexadecimal digits.
+        /// The remaining six bytes contain the final 12 hexadecimal digits.
+        /// </param>
+        GUID_t(int d1, int d2, int d3, const std::initializer_list<uint8_t> &v);
+
+        /// <summary>
+        /// The GUID_t copy constructor.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t(const GUID_t& guid);
 
 #ifdef _WIN32
-                /// <summary>
-                /// Create GUID_t object from Windows GUID object
-                /// </summary>
-                GUID_t(GUID guid);
+        /// <summary>
+        /// A constructor that creates a GUID_t object from a Windows GUID object.
+        /// </summary>
+        /// <param name="guid">A Windows GUID object.</param>
+        GUID_t(GUID guid);
 
-                static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes);
-             
+        /// <summary>
+        /// Converts a standard vector of bytes into a Windows GUID object.
+        /// </summary>
+        /// <param name="bytes">A standard vector of bytes.</param>
+        /// <returns>A GUID.</returns>
+        static GUID convertUintVectorToGUID(std::vector<uint8_t> const& bytes);
+
 #endif
+        /// <summary>
+        /// Converts this GUID_t to an array of bytes.
+        /// </summary>
+        /// <param name="guid_bytes">A uint8_t array of 16 bytes.</param>
+        void to_bytes(uint8_t(&guid_bytes)[16]) const;
 
-                void to_bytes(uint8_t(&guid_bytes)[16]) const;
+        /// <summary>
+        /// Convert this GUID_t object to a string.
+        /// </summary>
+        /// <returns>This GUID_t object in a string.</returns>
+        std::string to_string() const;
 
-                std::string to_string() const;
+        /// <summary>
+        /// Calculates the size of this GUID_t object.
+        /// The output from this method is compatible with std::unordered_map.
+        /// </summary>
+        /// <returns>The size of the GUID_t object in bytes.</returns>
+        std::size_t Hash() const;
 
-                // The output from this method is compatible with std::unordered_map.
-                std::size_t Hash() const;
+        /// <summary>
+        /// Tests to determine whether two GUID_t objects are equivalent (needed for maps).
+        /// </summary>
+        /// <returns>A boolean value that indicates success or failure.</returns>
+        bool operator==(GUID_t const& other) const;
 
-                // Are 2 GUID_t objects equivalent? (needed for maps)
-                bool operator==(GUID_t const& other) const;
+        /// <summary>
+        /// Tests to determine how to sort 2 GUID_t objects
+        /// </summary>
+        /// <returns>A boolean value that indicates success or failure.</returns>
+        bool operator<(GUID_t const& other) const;
+    };
 
-                bool GUID_t::operator<(GUID_t const& other) const;
-            };
-
-            /// <summary>
-            /// Declare this struct as the hasher when using GUID_t as a key in an unordered_map
-            /// </summary>
-            struct GuidMapHasher
-            {
-                inline std::size_t operator()(GUID_t const& key) const
-                {
-                    return key.Hash();
-                }
-            };
-
-            /// <summary>
-            /// C++11 variant object that holds:
-            /// - type
-            /// - value
-            /// - <see cref="PiiKind">PiiKind</see>
-            /// </summary>
-            struct ARIASDK_LIBABI EventProperty
-            {
-                // <remarks>
-                // With the concept of EventProperty value object we allow users implementing their
-                // own type conversion system, which may subclass and provides an implementation of
-                // to_string method
-                // </remarks>
-            public:
-
-                /// <summary>
-                /// Types supported by Aria collector:
-                ///  - String
-                ///  - Int64
-                ///  - Double
-                ///  - DateTime (in .NET Ticks)
-                ///  - Boolean
-                ///  - GUID (16-byte representation of GUID)
-                /// </summary>
-                enum
-                {
-                    /// <summary>String</summary>
-                    TYPE_STRING,
-                    /// <summary>64-bit signed integer</summary>
-                    TYPE_INT64,
-                    /// <summary>double</summary>
-                    TYPE_DOUBLE,
-                    /// <summary>Date/time represented in .NET ticks</summary>
-                    TYPE_TIME,
-                    /// <summary>boolean</summary>
-                    TYPE_BOOLEAN,
-                    /// <summary>GUID</summary>
-                    TYPE_GUID,
-                    /// <summary>String</summary>
-                    TYPE_STRING_ARRAY,
-                    /// <summary>64-bit signed integer</summary>
-                    TYPE_INT64_ARRAY,
-                    /// <summary>double</summary>
-                    TYPE_DOUBLE_ARRAY,
-                    /// <summary>GUID</summary>
-                    TYPE_GUID_ARRAY,
-                } type;
-
-                /// <summary>Event field Pii kind</summary>
-                PiiKind piiKind;
-
-                /// <summary>Event field Data Category</summary>
-                DataCategory dataCategory = DataCategory_PartC;
-
-                /// <summary>
-                /// Variant object value
-                /// </summary>
-                union
-                {
-                    char*        as_string;
-                    int64_t      as_int64;
-                    double       as_double;
-                    bool         as_bool;
-                    GUID_t       as_guid;
-                    time_ticks_t as_time_ticks;
-                    std::vector<int64_t>*     as_longArray;
-                    std::vector<double>*      as_doubleArray;
-                    std::vector<GUID_t>*      as_guidArray;
-                    std::vector<std::string>* as_stringArray;
-                };
-                
-                /// <summary>Debug routine that returns string representation of type name</summary>
-                static const char *type_name(unsigned typeId);
-            
-                /// <summary>
-                /// EventProperty copy constructor
-                /// </summary>
-                /// <param name="source">Right-hand side value of object</param>
-                EventProperty(const EventProperty& source);
-
-                /// <summary>
-                /// EventProperty move constructor
-                /// </summary>
-                /// <param name="source">Right-hand side value of object</param>
-                EventProperty(EventProperty&& source);
-
-                /// <summary>
-                /// EventProperty equalto operator
-                /// </summary>
-                bool operator==(const EventProperty& source) const;
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(const EventProperty& source);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(const std::string& value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(const char *value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(int64_t value);
-
-                // All other integer types get converted to int64_t
-#ifdef _WIN32
-                EventProperty& operator=(long    value);
-#endif
-                EventProperty& operator=(int8_t  value); 
-                EventProperty& operator=(int16_t value); 
-                EventProperty& operator=(int32_t value); 
-                EventProperty& operator=(uint8_t  value); 
-                EventProperty& operator=(uint16_t value); 
-                EventProperty& operator=(uint32_t value); 
-                EventProperty& operator=(uint64_t value); 
-                EventProperty& operator=(std::vector<int64_t> value);
-                EventProperty& operator=(std::vector<double> value);
-                EventProperty& operator=(std::vector<GUID_t> value);
-                EventProperty& operator=(std::vector<std::string> value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(double value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(bool value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(time_ticks_t value);
-
-                /// <summary>
-                /// EventProperty assignment operator
-                /// </summary>
-                EventProperty& operator=(GUID_t value);
-
-                /// <summary>
-                /// Clears value object, deallocating memory if needed
-                /// </summary>
-                void clear();
-
-                /// EventProperty destructor
-                /// </summary>
-                virtual ~EventProperty();
-
-                /// <summary>
-                /// EventProperty default constructor for empty string value
-                /// </summary>
-                EventProperty();
-
-                /// <summary>
-                /// EventProperty constructor for string value
-                /// </summary>
-                /// <param name="value">string value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(const char* value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for string value
-                /// </summary>
-                /// <param name="value">string value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for int64 value
-                /// </summary>
-                /// <param name="value">int64_t value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for double value
-                /// </summary>
-                /// <param name="value">double value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(double        value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for time in .NET ticks
-                /// </summary>
-                /// <param name="value">time_ticks_t value - time in .NET ticks</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for boolean value
-                /// </summary>
-                /// <param name="value">boolean value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(bool          value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>
-                /// EventProperty constructor for GUID
-                /// </summary>
-                /// <param name="value">GUID_t value</param>
-                /// <param name="piiKind">Pii kind</param>
-                EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                // All other integer types get converted to int64_t
-#ifdef _WIN32
-                EventProperty(long     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-#endif
-                EventProperty(int8_t   value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-                EventProperty(int16_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-                EventProperty(int32_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-                EventProperty(uint8_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-                EventProperty(uint16_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-                EventProperty(uint32_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-                EventProperty(uint64_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC); 
-
-                EventProperty(std::vector<int64_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-                EventProperty(std::vector<double>& value,  PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-                EventProperty(std::vector<GUID_t>& value,  PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-                EventProperty(std::vector<std::string>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
-
-                /// <summary>Returns true whether the type is string AND the value is empty (i.e. whether its length is 0).</summary>
-                bool empty();
-
-                /// <summary>Return a string representation of this value object</summary>
-                virtual std::string to_string() const;
-
-            private:
-                void copydata(EventProperty const* source);
-
-            };
-
+    /// @cond INTERNAL_DOCS
+    /// Excluded from public docs
+    /// <summary>
+    /// Declare GuidComparer as the Comparer when using GUID_t as a key in a map or set
+    /// </summary>
+    struct GuidComparer : std::less<GUID_t>
+    {
+        inline std::size_t operator()(GUID_t const& key) const
+        {
+            return key.Hash();
         }
-    }
-}
 
-#endif //ARIA_EVENTPROPERTY_HPP
+        inline bool operator()(GUID_t const& lhs, GUID_t const& rhs) const
+        {
+            return lhs.Hash() < rhs.Hash();
+        }
+    };
+    /// @endcond
+
+    /// <summary>
+    /// The EventProperty structure represents a C++11 variant object that holds an event property type 
+    /// and an event property value.
+    /// </summary>
+    struct ARIASDK_LIBABI EventProperty
+    {
+        // <remarks>
+        // With the concept of EventProperty value object we allow users implementing their
+        // own type conversion system, which may subclass and provides an implementation of
+        // to_string method
+        // </remarks>
+    public:
+
+        /// <summary>
+        /// This anonymous enumeration contains a set of values that specify the types
+        /// that are supported by the Aria collector.
+        /// </summary>
+        enum
+        {
+            /// <summary>
+            /// A string.
+            /// </summary>
+            TYPE_STRING,
+            /// <summary>
+            /// A 64-bit signed integer.
+            /// </summary>
+            TYPE_INT64,
+            /// <summary>
+            /// A double.
+            /// </summary>
+            TYPE_DOUBLE,
+            /// <summary>
+            /// A date/time object represented in .NET ticks.
+            /// </summary>
+            TYPE_TIME,
+            /// <summary>
+            /// A boolean.
+            /// </summary>
+            TYPE_BOOLEAN,
+            /// <summary>
+            /// A GUID.
+            /// </summary>
+            TYPE_GUID,
+            /// <summary>String</summary>
+            TYPE_STRING_ARRAY,
+            /// <summary>64-bit signed integer</summary>
+            TYPE_INT64_ARRAY,
+            /// <summary>double</summary>
+            TYPE_DOUBLE_ARRAY,
+            /// <summary>GUID</summary>
+            TYPE_GUID_ARRAY,
+        } type;
+
+        /// <summary>
+        /// The kind of PII (Personal Identifiable Information) for an event.
+        /// </summary>
+        PiiKind piiKind;
+
+        /// <summary>
+        DataCategory dataCategory = DataCategory_PartC;
+
+        /// <summary>
+        /// Variant object value
+        /// </summary>
+        union
+        {
+            char*        as_string;
+            int64_t      as_int64;
+            double       as_double;
+            bool         as_bool;
+            GUID_t       as_guid;
+            time_ticks_t as_time_ticks;
+            std::vector<int64_t>*     as_longArray;
+            std::vector<double>*      as_doubleArray;
+            std::vector<GUID_t>*      as_guidArray;
+            std::vector<std::string>* as_stringArray;
+        };
+
+        /// <summary>Debug routine that returns string representation of type name</summary>
+        static const char *type_name(unsigned typeId);
+
+        /// <summary>
+        /// EventProperty copy constructor
+        /// </summary>
+        /// <param name="source">Right-hand side value of object</param>
+        EventProperty(const EventProperty& source);
+
+        /// <summary>
+        /// The EventProperty move constructor.
+        /// </summary>
+        /// <param name="source">The EventProperty object to move.</param>
+        EventProperty(EventProperty&& source);
+
+        /// <summary>
+        /// The EventProperty equalto operator.
+        /// </summary>
+        bool operator==(const EventProperty& source) const;
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes an EventProperty object.
+        /// </summary>
+        EventProperty& operator=(const EventProperty& source);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a string value.
+        /// </summary>
+        EventProperty& operator=(const std::string& value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a character pointer to a string.
+        /// </summary>
+        EventProperty& operator=(const char *value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes an int64_t value.
+        /// </summary>
+        EventProperty& operator=(int64_t value);
+
+        // All other integer types get converted to int64_t
+#ifndef LONG_IS_INT64_T
+        EventProperty& operator=(long    value);
+#endif
+        /// <summary>
+        /// An EventProperty assignment operator that takes an int8_t value.
+        /// </summary>
+        EventProperty& operator=(int8_t  value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes an int16_t value.
+        /// </summary>
+        EventProperty& operator=(int16_t value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes an int32_t value.
+        /// </summary>
+        EventProperty& operator=(int32_t value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a uint8_t value.
+        /// </summary>
+        EventProperty& operator=(uint8_t  value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a uint16_t value.
+        /// </summary>
+        EventProperty& operator=(uint16_t value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a uint32_t value.
+        /// </summary>
+        EventProperty& operator=(uint32_t value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a uint64_t value.
+        /// </summary>
+        EventProperty& operator=(uint64_t value);
+
+        EventProperty& operator=(std::vector<int64_t> value);
+
+        EventProperty& operator=(std::vector<double> value);
+
+        EventProperty& operator=(std::vector<GUID_t> value);
+
+        EventProperty& operator=(std::vector<std::string> value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a double.
+        /// </summary>
+        EventProperty& operator=(double value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a boolean value.
+        /// </summary>
+        EventProperty& operator=(bool value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a time_ticks_t value.
+        /// </summary>
+        EventProperty& operator=(time_ticks_t value);
+
+        /// <summary>
+        /// An EventProperty assignment operator that takes a GUID_t value.
+        /// </summary>
+        EventProperty& operator=(GUID_t value);
+
+        /// <summary>
+        /// Clears the object values, deallocating memory when needed.
+        /// </summary>
+        void clear();
+
+        /// <summary>
+        /// The EventProperty destructor.
+        /// </summary>
+        virtual ~EventProperty();
+
+        /// <summary>
+        /// The EventProperty default constructor.
+        /// </summary>
+        EventProperty();
+
+        /// <summary>
+        /// The EventProperty constructor, taking a character pointer to a string, and the kind of personal identifiable information.
+        /// </summary>
+        /// <param name="value">A constant character pointer to a string.</param>
+        /// <param name="piiKind">The kind of personal identifiable information.</param>
+                    /// EventProperty constructor for string value
+                    /// </summary>
+                    /// <param name="value">string value</param>
+                    /// <param name="piiKind">Pii kind</param>
+        EventProperty(const char* value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for string value
+        /// </summary>
+        /// <param name="value">string value</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(const std::string& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for int64 value
+        /// </summary>
+        /// <param name="value">int64_t value</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(int64_t       value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for double value
+        /// </summary>
+        /// <param name="value">double value</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(double        value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for time in .NET ticks
+        /// </summary>
+        /// <param name="value">time_ticks_t value - time in .NET ticks</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(time_ticks_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for boolean value
+        /// </summary>
+        /// <param name="value">boolean value</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(bool          value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        /// <summary>
+        /// EventProperty constructor for GUID
+        /// </summary>
+        /// <param name="value">GUID_t value</param>
+        /// <param name="piiKind">Pii kind</param>
+        EventProperty(GUID_t        value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        // All other integer types get converted to int64_t
+#ifndef LONG_IS_INT64_T
+        EventProperty(long     value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+#endif
+
+        EventProperty(int8_t   value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(int16_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(int32_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(uint8_t  value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(uint16_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(uint32_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(uint64_t value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(std::vector<int64_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(std::vector<double>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(std::vector<GUID_t>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+
+        EventProperty(std::vector<std::string>& value, PiiKind piiKind = PiiKind_None, DataCategory category = DataCategory_PartC);
+        /// <summary>
+        /// Returns <i>true</i> when the type is string AND the value is empty.
+        /// </summary>
+        bool empty();
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        virtual std::string to_string() const;
+
+    private:
+        void copydata(EventProperty const* source);
+
+    };
+
+} ARIASDK_NS_END
+
+#endif

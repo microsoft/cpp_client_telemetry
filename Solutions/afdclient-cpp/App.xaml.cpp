@@ -28,8 +28,8 @@ using namespace Windows::UI::Xaml::Navigation;
 /// </summary>
 App::App()
 {
-	InitializeComponent();
-	Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
+    InitializeComponent();
+    Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
 }
 
 /// <summary>
@@ -41,57 +41,57 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 {
 
 #if _DEBUG
-		// Show graphics profiling information while debugging.
-		if (IsDebuggerPresent())
-		{
-			// Display the current frame rate counters
-			 DebugSettings->EnableFrameRateCounter = true;
-		}
+    // Show graphics profiling information while debugging.
+    if (IsDebuggerPresent())
+    {
+        // Display the current frame rate counters
+        DebugSettings->EnableFrameRateCounter = true;
+    }
 #endif
 
-	auto rootFrame = dynamic_cast<Frame^>(Window::Current->Content);
+    auto rootFrame = dynamic_cast<Frame^>(Window::Current->Content);
 
-	// Do not repeat app initialization when the Window already has content,
-	// just ensure that the window is active
-	if (rootFrame == nullptr)
-	{
-		// Create a Frame to act as the navigation context and associate it with
-		// a SuspensionManager key
-		rootFrame = ref new Frame();
+    // Do not repeat app initialization when the Window already has content,
+    // just ensure that the window is active
+    if (rootFrame == nullptr)
+    {
+        // Create a Frame to act as the navigation context and associate it with
+        // a SuspensionManager key
+        rootFrame = ref new Frame();
 
-		rootFrame->NavigationFailed += ref new Windows::UI::Xaml::Navigation::NavigationFailedEventHandler(this, &App::OnNavigationFailed);
+        rootFrame->NavigationFailed += ref new Windows::UI::Xaml::Navigation::NavigationFailedEventHandler(this, &App::OnNavigationFailed);
 
-		if (e->PreviousExecutionState == ApplicationExecutionState::Terminated)
-		{
-			// TODO: Restore the saved session state only when appropriate, scheduling the
-			// final launch steps after the restore is complete
+        if (e->PreviousExecutionState == ApplicationExecutionState::Terminated)
+        {
+            // TODO: Restore the saved session state only when appropriate, scheduling the
+            // final launch steps after the restore is complete
 
-		}
+        }
 
-		if (rootFrame->Content == nullptr)
-		{
-			// When the navigation stack isn't restored navigate to the first page,
-			// configuring the new page by passing required information as a navigation
-			// parameter
-			rootFrame->Navigate(TypeName(MainPage::typeid), e->Arguments);
-		}
-		// Place the frame in the current Window
-		Window::Current->Content = rootFrame;
-		// Ensure the current window is active
-		Window::Current->Activate();
-	}
-	else
-	{
-		if (rootFrame->Content == nullptr)
-		{
-			// When the navigation stack isn't restored navigate to the first page,
-			// configuring the new page by passing required information as a navigation
-			// parameter
-			rootFrame->Navigate(TypeName(MainPage::typeid), e->Arguments);
-		}
-		// Ensure the current window is active
-		Window::Current->Activate();
-	}
+        if (rootFrame->Content == nullptr)
+        {
+            // When the navigation stack isn't restored navigate to the first page,
+            // configuring the new page by passing required information as a navigation
+            // parameter
+            rootFrame->Navigate(TypeName(MainPage::typeid), e->Arguments);
+        }
+        // Place the frame in the current Window
+        Window::Current->Content = rootFrame;
+        // Ensure the current window is active
+        Window::Current->Activate();
+    }
+    else
+    {
+        if (rootFrame->Content == nullptr)
+        {
+            // When the navigation stack isn't restored navigate to the first page,
+            // configuring the new page by passing required information as a navigation
+            // parameter
+            rootFrame->Navigate(TypeName(MainPage::typeid), e->Arguments);
+        }
+        // Ensure the current window is active
+        Window::Current->Activate();
+    }
 }
 
 /// <summary>
@@ -103,10 +103,10 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 /// <param name="e">Details about the suspend request.</param>
 void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
 {
-	(void) sender;	// Unused parameter
-	(void) e;	// Unused parameter
+    (void)sender;	// Unused parameter
+    (void)e;	// Unused parameter
 
-	//TODO: Save application state and stop any background activity
+    //TODO: Save application state and stop any background activity
 }
 
 /// <summary>
@@ -116,5 +116,5 @@ void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
 /// <param name="e">Details about the navigation failure</param>
 void App::OnNavigationFailed(Platform::Object ^sender, Windows::UI::Xaml::Navigation::NavigationFailedEventArgs ^e)
 {
-	throw ref new FailureException("Failed to load Page " + e->SourcePageType.Name);
+    throw ref new FailureException("Failed to load Page " + e->SourcePageType.Name);
 }

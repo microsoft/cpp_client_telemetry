@@ -11,8 +11,10 @@ namespace Microsoft {
 			class JsonHelper
 			{
 			public:
-				static std::string JsonHelper::Combine(const std::string& str1, const std::string& str2, char seperator);
-				static std::vector<std::string> JsonHelper::Split(const std::string& path, char seperator);
+				static std::string Combine(const std::string& str1, const std::string& str2, char seperator);
+
+				static std::vector<std::string> Split(const std::string& path, char seperator);
+
 				static bool GetJson(const json& var, const std::string& path, json& output);
 
 				static std::vector<std::string> GetKeys(const json& var, const std::string path);

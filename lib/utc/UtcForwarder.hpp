@@ -11,11 +11,12 @@
 namespace AWSDT = ABI::Windows::System::Diagnostics::Telemetry;
 #pragma pop_macro("Telemetry")
 
+#include <mutex>
+
 // From <evntprov.h>
 typedef unsigned __int64 REGHANDLE, * PREGHANDLE;
 
 namespace ARIASDK_NS_BEGIN {
-
 
 class UtcForwarder {
   public:
@@ -36,7 +37,7 @@ class UtcForwarder {
     };
 
   protected:
-    PAL::Mutex                                                     m_lock;
+    std::mutex                                                     m_lock;
     std::map<std::string, TenantInfo>                              m_tenantInfo;
     Microsoft::WRL::ComPtr<AWSDT::IPlatformTelemetryClientStatics> m_platformTelemetryClient;
 

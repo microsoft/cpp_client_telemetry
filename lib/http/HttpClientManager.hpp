@@ -6,14 +6,15 @@
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
 #include <list>
+#include <mutex>
 
 namespace ARIASDK_NS_BEGIN {
 
 
-class HttpClientManager : public PAL::RefCountedImpl<HttpClientManager> {
+class HttpClientManager {
   public:
     HttpClientManager(IHttpClient& httpClient);
-    virtual ~HttpClientManager() override;
+    virtual ~HttpClientManager();
 
   protected:
     class HttpCallback;
@@ -26,6 +27,8 @@ class HttpClientManager : public PAL::RefCountedImpl<HttpClientManager> {
 
   protected:
     IHttpClient&             m_httpClient;
+
+    std::mutex               m_httpCallbacksMtx;
     std::list<HttpCallback*> m_httpCallbacks;
 
   public:

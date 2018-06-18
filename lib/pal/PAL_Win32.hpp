@@ -4,16 +4,25 @@
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
-#include "api/ContextFieldsProvider.hpp"
+
+#include <ISemanticContext.hpp>
+#include <api/ContextFieldsProvider.hpp>
+
+#if defined(_WIN32) || defined(_WIN64)
 #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
+
 #include <Windows.h>
+#include <Rpc.h>
+#endif
+
 #undef max
 #undef min
-#include <Rpc.h>
+
 #include <assert.h>
 #include <stdint.h>
+
 #include <functional>
 #include <list>
 #include <map>
@@ -21,486 +30,270 @@
 #include <string>
 #include <type_traits>
 #include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <climits>
+#include <chrono>
+#include <thread>
 
-#ifndef CUSTOM_ARIA_THREADMANAGER
-// Include default thread manager unless the customer (e.g. OTEL) wants to build their own implementation of it
-#include "pal/DefaultThreadManager.hpp"
-#endif
+#include "typename.hpp"
 
 namespace ARIASDK_NS_BEGIN {
-namespace PAL {
+    extern void print_backtrace();
+} ARIASDK_NS_END
 
+#ifdef _WIN32
 #define PATH_SEPARATOR_CHAR '\\'
+#else
+#define PATH_SEPARATOR_CHAR '/'
+#endif
 
+namespace PAL_NS_BEGIN {
 
-//
-// Startup/shutdown
-//
+    extern const char * getAriaSdkLogComponent();
 
-void initialize();
-void shutdown();
-INetworkInformation* GetNetworkInformation();
-IDeviceInformation* GetDeviceInformation();
+    class INetworkInformation;
+    class IDeviceInformation;
 
-//
-// Reference-counted objects
-//
+    //
+    // Startup/shutdown
+    //
 
-// Smart pointer for reference-counted objects
-template<typename T>
-class RefCountedPtr
-{
-  private:
-    T* m_ptr;
+    void initialize();
+    void shutdown();
+    INetworkInformation* GetNetworkInformation();
+    IDeviceInformation* GetDeviceInformation();
 
-  public:
-    RefCountedPtr()
-      : m_ptr(nullptr)
+    // Event (binary semaphore)
+    class Event
     {
-    }
+    protected:
+        bool m_bFlag;
+        mutable std::mutex m_mutex;
+        mutable std::condition_variable m_condition;
 
-    explicit RefCountedPtr(T* ptr, bool addRef)
-      : m_ptr(ptr)
-    {
-        if (m_ptr && addRef) {
-            m_ptr->addRef();
+    public:
+
+        inline Event() : m_bFlag(false) {}
+
+        ~Event()
+        {
+            Reset();
         }
-    }
 
-    RefCountedPtr(RefCountedPtr<T> const& other)
-      : m_ptr(other.get())
-    {
-        if (m_ptr) {
-            m_ptr->addRef();
+        bool wait(unsigned millis = UINT_MAX) const
+        {
+            if (millis == UINT_MAX)
+            {
+                std::unique_lock< std::mutex > lock(m_mutex);
+                m_condition.wait(lock, [&]()->bool {return m_bFlag; });
+                return true;
+            }
+
+            auto crRelTime = std::chrono::milliseconds(millis);
+            std::unique_lock<std::mutex> ulock(m_mutex);
+            if (!m_condition.wait_for(ulock, crRelTime, [&]()->bool {return m_bFlag; }))
+                return false;
+            return true;
         }
-    }
 
-
-    template<typename TOther>
-    RefCountedPtr(RefCountedPtr<TOther> const& other)
-      : m_ptr(other.get())
-    {
-        if (m_ptr) {
-            m_ptr->addRef();
+        inline bool post()
+        {
+            bool bWasSignalled;
+            m_mutex.lock();
+            bWasSignalled = m_bFlag;
+            m_bFlag = true;
+            m_mutex.unlock();
+            m_condition.notify_all();
+            return bWasSignalled == false;
         }
-    }
 
-    RefCountedPtr<T>& operator=(RefCountedPtr<T> const& other)
-    {
-        if (m_ptr != other.get()) {
-            reset(other.get(), true);
+        inline bool Reset()
+        {
+            bool bWasSignalled;
+            m_mutex.lock();
+            bWasSignalled = m_bFlag;
+            m_bFlag = false;
+            m_mutex.unlock();
+            return bWasSignalled;
         }
-        return *this;
-    }
 
-    template<typename TOther>
-    RefCountedPtr<T>& operator=(RefCountedPtr<TOther> const& other)
+        inline bool IsSet() const { return m_bFlag; }
+
+    };
+
+    // Worker thread
+
+    class DeferredCallbackHandle;
+
+    namespace detail {
+
+        class WorkerThreadItem
+        {
+        public:
+            volatile enum { Shutdown, Call, TimedCall, Done } type;
+            int64_t targetTime;
+            virtual ~WorkerThreadItem() {}
+            virtual void operator()() {}
+            std::string typeName;
+        };
+
+        typedef WorkerThreadItem* WorkerThreadItemPtr;
+
+        // TODO: [MG] - allow lambdas, std::function, functors, etc.
+        template<typename TCall>
+        class WorkerThreadCall : public WorkerThreadItem
+        {
+        public:
+
+            WorkerThreadCall(TCall& call) :
+                WorkerThreadItem(),
+                m_call(call)
+            {
+                this->typeName = __typename(call);
+                this->type = WorkerThreadItem::Call;
+                this->targetTime = -1;
+            }
+
+            WorkerThreadCall(TCall& call, int64_t targetTime) :
+                WorkerThreadItem(),
+                m_call(call)
+            {
+                this->typeName = __typename(call);
+                this->type = WorkerThreadItem::TimedCall;
+                this->targetTime = targetTime;
+            }
+
+            virtual void operator()() override
+            {
+                m_call();
+            }
+
+            virtual ~WorkerThreadCall()
+            {
+            }
+
+            const TCall m_call;
+        };
+
+    } // namespace detail
+
+    namespace detail {
+        extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr item);
+        extern void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item);
+    } // namespace detail
+
+    class DeferredCallbackHandle
     {
-        if (m_ptr != other.get()) {
-            reset(other.get(), true);
+    public:
+        detail::WorkerThreadItemPtr m_item;
+
+        DeferredCallbackHandle(detail::WorkerThreadItemPtr item) : m_item(item) { };
+        DeferredCallbackHandle() : m_item(nullptr) {};
+        DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) { };
+        void cancel()
+        {
+            if (m_item)
+            {
+                detail::cancelWorkerThreadItem(m_item);
+                m_item = nullptr;
+            }
         }
-        return *this;
-    }
+    };
 
-    ~RefCountedPtr()
-    {
-        if (m_ptr) {
-            m_ptr->release();
-        }
-    }
-
-    void reset()
-    {
-        if (m_ptr) {
-            m_ptr->release();
-            m_ptr = nullptr;
-        }
-    }
-
-    void reset(T* ptr, bool addRef)
-    {
-        assert(ptr == nullptr || ptr != m_ptr);
-        if (m_ptr) {
-            m_ptr->release();
-        }
-        m_ptr = ptr;
-        if (m_ptr && addRef) {
-            m_ptr->addRef();
-        }
-    }
-
-    T* get() const
-    {
-        return m_ptr;
-    }
-
-    T* operator->() const
-    {
-        return m_ptr;
-    }
-
-    T& operator*() const
-    {
-        return *m_ptr;
-    }
-
-    explicit operator bool() const
-    {
-        return (m_ptr != nullptr);
-    }
-
-    template<typename TOther>
-    bool operator==(RefCountedPtr<TOther> const& other) const
-    {
-        return (m_ptr == other.get());
-    }
-
-    template<typename TOther>
-    bool operator!=(RefCountedPtr<TOther> const& other) const
-    {
-        return (m_ptr != other.get());
-    }
-
-    template<typename TOther>
-    bool operator<(RefCountedPtr<TOther> const& other) const
-    {
-        return (m_ptr < other.get());
-    }
-};
-
-
-// Internal base interface for reference-counted objects
-// Separated from IRefCounted so that the virtual inheritance can be hidden inside PAL.
-namespace detail {
-class IRefCountedBase
-{
-  public:
-    IRefCountedBase() {}
-    virtual ~IRefCountedBase() {}
-    IRefCountedBase(IRefCountedBase const&) = delete;
-    IRefCountedBase& operator=(IRefCountedBase const&) = delete;
-
-  private:
-    virtual void addRef() = 0;
-    virtual void release() = 0;
-    template<typename TAny>
-    friend class RefCountedPtr;
-};
-} // namespace detail
-
-// Interface for reference-counted objects
-class IRefCounted : public virtual detail::IRefCountedBase {};
-
-// Base class implementing a reference-counted object
-template<typename T, typename TInterface1 = IRefCounted, typename... TOtherInterfaces>
-class RefCountedImpl : public TInterface1,
-                       public TOtherInterfaces...
-{
-  private:
-    volatile LONG m_refCount;
-
-  public:
     // *INDENT-OFF* parameter pack expansions etc.
-    template<typename... TArgs> static RefCountedPtr<T> create(TArgs&&... args)
+
+    template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
+    void executeOnWorkerThread(TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
-        return RefCountedPtr<T>(new T(std::forward<TArgs>(args)...), false);
+        assert(obj != nullptr);
+        auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
+        detail::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
+        detail::queueWorkerThreadItem(item);
     }
+
+    template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
+    void executeOnWorkerThread(const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    {
+        executeOnWorkerThread((TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
+    }
+
+    // Return the monotonic system clock time in milliseconds (since unspecified point).
+    extern int64_t getMonotonicTimeMs();
+
+    template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
+    DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    {
+        auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
+        auto item = new detail::WorkerThreadCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs);
+        detail::queueWorkerThreadItem(item);
+        return DeferredCallbackHandle(item);
+    }
+
+    template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
+    DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    {
+        return scheduleOnWorkerThread(delayMs, (TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
+    }
+
     // *INDENT-ON*
 
-  protected:
-    RefCountedImpl()
-      : m_refCount(1)
-    {
-    }
+    //
+    // Miscellaneous
+    //
 
-    RefCountedPtr<T> self()
-    {
-        return RefCountedPtr<T>(static_cast<T*>(this), true);
-    }
+    // Return a new random UUID in a lowercase hexadecimal format with dashes and
+    // without curly braces (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).
+    extern std::string generateUuidString();
 
-  private:
-    virtual void addRef() override
-    {
-        InterlockedIncrement(&m_refCount);
-    }
-
-    virtual void release() override
-    {
-        long now = InterlockedDecrement(&m_refCount);
-        if (now == 0) {
-            delete this;
+    // Pseudo-random number generator (not for cryptographic usage).
+    // The instances are not thread-safe, serialize access externally if needed.
+    class PseudoRandomGenerator {
+#ifdef _WIN32
+    public:
+        double getRandomDouble()
+        {
+            return m_distribution(m_engine);
         }
-    }
 
-    template<typename TAny>
-    friend class RefCountedPtr;
-};
-
-
-//
-// Threading
-//
-
-// Basic non-recursive inter-process mutex
-// For use through ScopedMutexLock only.
-class Mutex 
-{
-  protected:
-    std::mutex m_cs;
-
-  public:
-    Mutex()
-    {
-    }
-
-    ~Mutex()
-    {
-    }
-
-  protected:
-    void lock()
-    {
-		m_cs.lock();
-    }
-
-    void unlock()
-    {
-		m_cs.unlock();
-    }
-
-    friend class ScopedMutexLock;
-};
-
-// RAII object for guarding a block of code
-class ScopedMutexLock
-{
-  protected:
-    Mutex& m_mutex;
-
-  public:
-    ScopedMutexLock(Mutex& mutex)
-      : m_mutex(mutex)
-    {
-        m_mutex.lock();
-    }
-
-    ~ScopedMutexLock()
-    {
-        m_mutex.unlock();
-    }
-};
-
-// Event (binary semaphore)
-class Event
-{
-  protected:
-    HANDLE m_hEvent;
-
-  public:
-    Event()
-      : m_hEvent(::CreateEvent(NULL, FALSE, FALSE, NULL))
-    {
-    }
-
-    ~Event()
-    {
-        ::CloseHandle(m_hEvent);
-    }
-
-    void post()
-    {
-        ::SetEvent(m_hEvent);
-    }
-
-    void wait(unsigned msec = INFINITE)
-    {
-        ::WaitForSingleObject(m_hEvent, msec);
-    }
-};
-
-// Worker thread
-
-namespace detail {
-
-class WorkerThreadItem : public IRefCounted
-{
-  public:
-    volatile enum { Shutdown, Call, TimedCall, Done } type;
-    int64_t targetTime;
-    virtual ~WorkerThreadItem() {}
-    virtual void operator()() {}
-};
-using WorkerThreadItemPtr = RefCountedPtr<WorkerThreadItem>;
-
-template<typename TCall>
-class WorkerThreadCall : public RefCountedImpl<WorkerThreadCall<TCall>, WorkerThreadItem>
-{
-  public:
-    WorkerThreadCall(IRefCountedBase* obj, TCall call)
-      : m_holder(obj, true),
-        m_call(std::forward<TCall>(call))
-    {
-        type = Call;
-    }
-
-    WorkerThreadCall(IRefCountedBase* obj, int64_t targetTime, TCall call)
-      : m_holder(obj, true),
-        m_call(std::forward<TCall>(call))
-    {
-        type = TimedCall;
-        this->targetTime = targetTime;
-    }
-
-    virtual void operator()() override
-    {
-        m_call();
-    }
-
-  protected:
-    RefCountedPtr<IRefCountedBase> m_holder;
-    TCall m_call;
-};
-
-} // namespace detail
-
-
-class DeferredCallbackHandle;
-
-namespace detail {
-
-extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr const& item);
-extern void cancelWorkerThreadItem(detail::WorkerThreadItemPtr const& item);
-
-} // namespace detail
-
-class DeferredCallbackHandle
-{
-  protected:
-    detail::WorkerThreadItemPtr m_item;
-
-  public:
-    DeferredCallbackHandle()
-    {
-    }
-
-    DeferredCallbackHandle(detail::WorkerThreadItemPtr const& item)
-      : m_item(item)
-    {
-    }
-
-    explicit operator bool() const
-    {
-        return m_item && (m_item->type != detail::WorkerThreadItem::Done);
-    }
-
-    void cancel()
-    {
-        if (m_item) {
-            detail::cancelWorkerThreadItem(m_item);
-            m_item.reset();
+    protected:
+        std::default_random_engine m_engine{ std::random_device()() };
+        std::uniform_real_distribution<double> m_distribution{ 0.0, 1.0 };
+#else   /* Unfortunately the functionality above fails memory checker on Linux with gcc-5 */
+    public:
+        double getRandomDouble()
+        {
+            return ((double)rand() / RAND_MAX);
         }
-    }
+#endif
+    };
 
-    void reset()
+    // Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
+    extern int64_t getUtcSystemTimeMs();
+
+    extern int64_t getUtcSystemTimeinTicks();
+
+    extern int64_t getUtcSystemTime();
+
+    // Convert given system timestamp in milliseconds to a string in ISO 8601 format
+    std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
+
+    // Populate per-platform fields in ISemanticContext and keep them updated during runtime.
+    void registerSemanticContext(ISemanticContext * context);
+    void unregisterSemanticContext(ISemanticContext * context);
+
+    // Convert various numeric types and bool to string in an uniform manner.
+    template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
+    std::string to_string(char const* format, T value)
     {
-        m_item.reset();
-    }
-};
-
-
-// *INDENT-OFF* parameter pack expansions etc.
-
-template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-void executeOnWorkerThread(TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
-{
-    static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value,
-        "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
-    auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
-    auto item = detail::WorkerThreadCall<decltype(bound)>::create(obj, bound);
-    detail::queueWorkerThreadItem(item);
-}
-
-template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-void executeOnWorkerThread(PAL::RefCountedPtr<TObject> const& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
-{
-    executeOnWorkerThread(obj.get(), func, std::forward<TPassedArgs>(args)...);
-}
-
-template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
-{
-    static_assert(std::is_convertible<TObject*, detail::IRefCountedBase*>::value,
-        "Callback object must inherit from PAL::IRefCounted or PAL::RefCountedImpl");
-    auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
-    auto item = detail::WorkerThreadCall<decltype(bound)>::create(obj, getMonotonicTimeMs() + delayMs, bound);
-    detail::queueWorkerThreadItem(item);
-    return item;
-}
-
-template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, PAL::RefCountedPtr<TObject> const& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
-{
-    return scheduleOnWorkerThread(delayMs, obj.get(), func, std::forward<TPassedArgs>(args)...);
-}
-
-// *INDENT-ON*
-
-
-//
-// Miscellaneous
-//
-
-// Return a new random UUID in a lowercase hexadecimal format with dashes and
-// without curly braces (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).
-extern std::string generateUuidString();
-
-// Pseudo-random number generator (not for cryptographic usage).
-// The instances are not thread-safe, serialize access externally if needed.
-class PseudoRandomGenerator {
-  public:
-    double getRandomDouble()
-    {
-        return m_distribution(m_engine);
+        // TODO: [MG] - sync with Linux implementation
+        char buf[40];
+        ::sprintf_s(buf, format, value);
+        return buf;
     }
 
-  protected:
-    std::default_random_engine             m_engine{std::random_device()()};
-    std::uniform_real_distribution<double> m_distribution{0.0, 1.0};
-};
+    // Return SDK version in Aria schema "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
+    std::string getSdkVersion();
 
-// Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
-extern int64_t getUtcSystemTimeinTicks();
-extern int64_t getUtcSystemTimeMs();
-extern int64_t getUtcSystemTime();
+} PAL_NS_END
 
-// Convert given system timestamp in milliseconds to a string in ISO 8601 format
-std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
-
-// Return the monotonic system clock time in milliseconds (since unspecified point).
-extern int64_t getMonotonicTimeMs();
-
-// Delay execution for specified number of milliseconds. Generally for testing code only.
-inline void sleep(unsigned delayMs)
-{
-    ::Sleep(delayMs);
-}
-
-// Populate per-platform fields in ContextFieldsProvider and keep them updated during runtime.
-void registerSemanticContext(ContextFieldsProvider * context);
-void unregisterSemanticContext(ContextFieldsProvider * context);
-
-// Convert various numeric types and bool to string in an uniform manner.
-template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
-std::string numericToString(char const* format, T value)
-{
-    char buf[40];
-    ::sprintf_s(buf, format, value);
-    return buf;
-}
-
-// Return SDK version in Aria schema "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
-std::string getSdkVersion();
-
-
-} // namespace PAL
-} ARIASDK_NS_END

@@ -23,13 +23,16 @@ TEST(EventPropertiesTests, Name)
     EXPECT_THAT(ep.GetName(), Eq("undefined"));
 
     ep.SetName("Abcde123");
-    EXPECT_THAT(ep.GetName(), Eq("abcde123"));
+    EXPECT_THAT(ep.GetName(), Eq("Abcde123"));
 
     ep.SetName("");
-    EXPECT_THAT(ep.GetName(), Eq("abcde123"));
+    EXPECT_THAT(ep.GetName(), Eq("Abcde123"));
 
     ep.SetName("Weird. Characters_are_weird");
-    EXPECT_THAT(ep.GetName(), Eq("abcde123"));
+    EXPECT_THAT(ep.GetName(), Eq("Abcde123"));
+
+    ep.SetName("My.Event.Name");
+    EXPECT_THAT(ep.GetName(), Eq("My.Event.Name"));
 }
 
 TEST(EventPropertiesTests, Timestamp)

@@ -1,18 +1,18 @@
-/*
- * DebugEventSource.hpp
- */
-#pragma once
-
 #ifndef DEBUGEVENTS_HPP
 #define DEBUGEVENTS_HPP
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Version.hpp"
+
+#include "ctmacros.hpp"
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <functional>
 #include <algorithm>
-
 #include <chrono>
 
 #ifndef __cplusplus_cli
@@ -21,143 +21,176 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include "Version.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
 
     /// <summary>
-    /// Debug events supported by C++ SDK
+    /// The DebugEventType enumeration contains a set of values that specify the types debug events supported by the Aria C++ SDK.
     /// </summary>
     typedef enum DebugEventType
     {
-        /// <summary>API call: logEvent </summary>
+        /// <summary>API call: logEvent.</summary>
         EVT_LOG_EVENT = 0x01000000,
-        /// <summary>API call: logAppLifecycle</summary>
+        /// <summary>API call: logAppLifecycle.</summary>
         EVT_LOG_LIFECYCLE = 0x01000001,
-        /// <summary>API call: logFailure</summary>
+        /// <summary>API call: logFailure.</summary>
         EVT_LOG_FAILURE = 0x01000002,
-        /// <summary>API call: logPageView</summary>
+        /// <summary>API call: logPageView.</summary>
         EVT_LOG_PAGEVIEW = 0x01000004,
-        /// <summary>API call: logPageAction</summary>
+        /// <summary>API call: logPageAction.</summary>
         EVT_LOG_PAGEACTION = 0x01000005,
-        /// <summary>API call: logSampledMetric</summary>
+        /// <summary>API call: logSampledMetric.</summary>
         EVT_LOG_SAMPLEMETR = 0x01000006,
-        /// <summary>API call: logAggregatedMetric</summary>
+        /// <summary>API call: logAggregatedMetric.</summary>
         EVT_LOG_AGGRMETR = 0x01000007,
-        /// <summary>API call: logTrace</summary>
+        /// <summary>API call: logTrace.</summary>
         EVT_LOG_TRACE = 0x01000008,
-        /// <summary>API call: logUserState</summary>
+        /// <summary>API call: logUserState.</summary>
         EVT_LOG_USERSTATE = 0x01000009,
-        /// <summary>API call: logSession</summary>
+        /// <summary>API call: logSession.</summary>
         EVT_LOG_SESSION = 0x0100000A,
-        /// <summary>Event(s) added to queue</summary>
+        /// <summary>Event(s) added to queue.</summary>
         EVT_ADDED = 0x01001000,
-        /// <summary>Event(s) cached in offline storage</summary>
+        /// <summary>Event(s) cached in offline storage.</summary>
         EVT_CACHED = 0x02000000,
-        /// <summary>Event(s) dropped</summary>
+        /// <summary>Event(s) dropped.</summary>
         EVT_DROPPED = 0x03000000,
+        /// <summary>Event(s) filtered.</summary>
+        EVT_FILTERED = 0x03000001,
 
-        /// <summary>Event(s) sent</summary>
-        EVT_SENT = 0x04000000,
-        /// <summary>Event(s) send failed</summary>
+        /// <summary>Event(s) sent.</summary>
+        EVT_SENT    = 0x04000000,
+
+        /// <summary>Event(s) being uploaded.</summary>
+        EVT_SENDING = 0x04000000,
+
+        /// <summary>Event(s) send failed.</summary>
         EVT_SEND_FAILED = 0x04000001,
-        /// <summary>Event(s) send retry</summary>
+        /// <summary>Event(s) send retry.</summary>
         EVT_SEND_RETRY = 0x04000002,
-        /// <summary>Event(s) retry drop</summary>
+        /// <summary>Event(s) retry drop.</summary>
         EVT_SEND_RETRY_DROPPED = 0x04000003,
 
-        /// <summary>Event(s) rejected, e.g. failed regexp check or missing event name</summary>
+        /// <summary>Event(s) rejected. E.g., Failed regexp check, or missing event name.</summary>
         EVT_REJECTED = 0x05000000,
-        /// <summary>HTTP stack connection failure</summary>
+        /// <summary>HTTP stack connection failure.</summary>
         EVT_CONN_FAILURE = 0x0A000000,
-        /// <summary>HTTP stack failure</summary>
+        /// <summary>HTTP stack failure.</summary>
         EVT_HTTP_FAILURE = 0x0A000001,
-        /// <summary>Compression failed</summary>
+        /// <summary>Compression failed.</summary>
         EVT_COMPRESS_FAILED = 0x0A000002,
-        /// <summary>HTTP stack unknown host</summary>
+        /// <summary>HTTP stack unknown host.</summary>
         EVT_UNKNOWN_HOST = 0x0A000003,
-        /// <summary>HTTP response error</summary>
+        /// <summary>HTTP response error.</summary>
         EVT_HTTP_ERROR = 0x0B000000,
-        /// <summary>HTTP response 200 OK</summary>
+        /// <summary>HTTP response 200 OK.</summary>
         EVT_HTTP_OK = 0x0C000000,
-        /// <summary>Network state change</summary>
+        /// <summary>Network state change.</summary>
         EVT_NET_CHANGED = 0x0D000000,
-        /// <summary>Storage full</summary>
+        /// <summary>Storage full.</summary>
         EVT_STORAGE_FULL = 0x0E000000,
         /// <summary>Ticket Expired</summary>
         EVT_TICKET_EXPIRED = 0x0F000000,
-        /// <summary>Unknown error</summary>
+        /// <summary>Unknown error.</summary>
         EVT_UNKNOWN = 0xDEADBEEF,
 
-        /// <summary>TODO: all allows to monitor for all events rather than specific event type.</summary>
-        //EVT_MASK_ALL        = 0xFFFFFFFF // We don't allow the 'all' handler for now.
+        /// <summary>TODO: Allow us to monitor all events types rather than just specific event types.</summary>
+        //EVT_MASK_ALL        = 0xFFFFFFFF // We don't allow the 'all' handler at this time.
     } DebugEventType;
 
-    /// <summary>DebugEvent value object</summary>
+    /// <summary>The DebugEvent class represents a debug event object.</summary>
     class DebugEvent
     {
 
     public:
-        /// <summary>debug event sequence number</summary>
+        /// <summary>The debug event sequence number.</summary>
         uint64_t seq;
-        /// <summary>debug event timestamp</summary>
+        /// <summary>The debug event timestamp.</summary>
         uint64_t ts;
-        /// <summary>debug event type</summary>
+        /// <summary>The debug event type.</summary>
         DebugEventType type;
-        /// <summary>[optional] parameter 1 (depends on debug event type)</summary>
+        /// <summary>[optional] Parameter 1 (depends on debug event type).</summary>
         size_t param1;
-        /// <summary>[optional] parameter 2 (depends on debug event type)</summary>
+        /// <summary>[optional] Parameter 2 (depends on debug event type).</summary>
         size_t param2;
-        /// <summary>[optional] debug event data (depends on debug event type)</summary>
+        /// <summary>[optional] The debug event data (depends on debug event type).</summary>
         void* data;
-        /// <summary>[optional] size of debug event data (depends on debug event type)</summary>
+        /// <summary>[optional] The size of the debug event data (depends on debug event type).</summary>
         size_t size;
-        /// <summary>DebugEvent constructor</summary>
-        DebugEvent() : seq(0), ts(0), type(EVT_UNKNOWN), param1(0), param2(0), data(NULL), size(0) {}
+
+        /// <summary>DebugEvent The default DebugEvent constructor.</summary>
+        DebugEvent() : seq(0), ts(0), type(EVT_UNKNOWN), param1(0), param2(0), data(NULL), size(0) {};
+
+        DebugEvent(DebugEventType type) : seq(0), ts(0), type(type), param1(0), param2(0), data(NULL), size(0) {};
     };
 
     /// <summary>
-    /// DebugEventListener allows applications to register ARIA SDK debug callbacks
-    /// for debugging and unit testing purposes (not recommended to be used in prod).
+    /// The DebugEventListener class allows applications to register ARIA SDK debug callbacks
+    /// for debugging and unit testing (not recommended for use in a production environment).
     /// 
-    /// Customers may implement this abstract class to track when certain events
-    /// happen in ARIA SDK under the hood. The callback gets synchronously executed
-    /// in context of ARIA worker thread.
+    /// Customers can implement this abstract class to track when certain events
+    /// happen under the hood in the ARIA SDK. The callback is synchronously executed
+    /// within the context of the ARIA worker thread.
     /// </summary>
-    class DebugEventListener
+    class ARIASDK_LIBABI DebugEventListener
     {
 
     public:
-        /// <summary>DebugEventListener constructor</summary>
+        /// <summary>The DebugEventListener constructor.</summary>
         virtual void OnDebugEvent(DebugEvent &evt) = 0;
-        /// <summary>DebugEventListener destructor</summary>
+
+        /// <summary>The DebugEventListener destructor.</summary>
         virtual ~DebugEventListener() {};
     };
 
-    class DebugEventSource
+    class ARIASDK_LIBABI DebugEventDispatcher
     {
     public:
-        DebugEventSource() { seq = 0; }
+
+        /// <summary>Dispatches the specified event to a client callback.</summary>
+        virtual bool DispatchEvent(DebugEvent evt) = 0;
+
+    };
+
+#  pragma warning( push )
+#  pragma warning( disable: 4251 )
+    /// <summary>The DebugEventSource class represents a debug event source.</summary>
+    class ARIASDK_LIBABI DebugEventSource: public DebugEventDispatcher
+    {
+    public:
+        /// <summary>The DebugEventSource constructor.</summary>
+        DebugEventSource() : seq(0) {}
+
+        /// <summary>The DebugEventSource destructor.</summary>        
         virtual ~DebugEventSource() {};
 
-        /// <summary>Add event listener for specific debug event type.</summary>
+        /// <summary>Adds an event listener for the specified debug event type.</summary>
         virtual void AddEventListener(DebugEventType type, DebugEventListener &listener);
 
-        /// <summary>Remove previously added debug event listener for specific type.</summary>
+        /// <summary>Removes previously added debug event listener for the specified type.</summary>
         virtual void RemoveEventListener(DebugEventType type, DebugEventListener &listener);
 
-        /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>
-        virtual bool DispatchEvent(DebugEventType type);
+        /// <summary>Dispatches the specified event to a client callback.</summary>
+        virtual bool DispatchEvent(DebugEvent evt) override;
 
-        /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>
-        virtual bool DispatchEvent(DebugEvent &evt);
+        /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
+        virtual bool AttachEventSource(DebugEventSource & other);
 
-    private:
-        /// <summary>Collection of debug event listeners.</summary>
+        /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
+        virtual bool DetachEventSource(DebugEventSource & other);
+
+    protected:
+
+        /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
-        int64_t seq;
+
+        /// <summary>A collection of cascaded debug event sources.</summary>
+        std::set<DebugEventSource*> cascaded;
+
+        uint64_t seq;
     };
+#  pragma warning( pop )
 
 } ARIASDK_NS_END
 

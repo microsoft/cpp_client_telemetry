@@ -1,12 +1,14 @@
 #pragma once
-#include "Version.hpp"
+#include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "INetworkInformation.hpp"
-#include "InformationProviderimpl.hpp"
+#include "InformationProviderImpl.hpp"
 
+#include <IPropertyChangedCallback.hpp>
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+#include <string>
+
+namespace PAL_NS_BEGIN {
 
     class NetworkInformationImpl : public INetworkInformation
     {
@@ -15,7 +17,7 @@ namespace PAL {
 
         // IInformationProvider API
         virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
-        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registredCount;  m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
 
         // INetworkInformation API
         virtual std::string const& GetNetworkProvider() { return m_provider; };
@@ -33,14 +35,13 @@ namespace PAL {
         std::string m_provider;
         NetworkType m_type;
         NetworkCost m_cost;
-        int         m_registredCount;
 
         InformatonProviderImpl m_info_helper;
+        int m_registredCount;
 
         // Disable copy constructor and assignment operator.
         NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
         NetworkInformationImpl& operator=(NetworkInformationImpl const& other) = delete;
     };
 
-} // PlatformAbstraction
-}}}
+} PAL_NS_END

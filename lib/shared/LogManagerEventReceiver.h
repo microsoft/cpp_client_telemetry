@@ -5,7 +5,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Events  {
+        namespace Telemetry  {
             namespace Windows
             {
                 class LogManagerEventReceiver : public IPlatformEventReceiver
@@ -17,8 +17,8 @@ namespace Microsoft {
                     {
                         if (m_configuration->AutoLogAppSuspend)
                         {
-//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Events ::AppLifecycleState)AppLifeCycleState::Suspend,
-//                                Events ::EventProperties(""));
+                            MAT::LogManager::GetLogger()->LogAppLifecycle((MAT::AppLifecycleState)AppLifeCycleState::Suspend,
+                                MAT::EventProperties(""));
                         }
 
                         // We may need tear-down to avoid AUF initialization issues.
@@ -34,8 +34,8 @@ namespace Microsoft {
 
                         if (m_configuration->AutoLogAppResume)
                         {
-//                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogAppLifecycle((Events ::AppLifecycleState)AppLifeCycleState::Resume,
-//                                Events ::EventProperties(""));
+                            MAT::LogManager::GetLogger()->LogAppLifecycle((MAT::AppLifecycleState)AppLifeCycleState::Resume,
+                                MAT::EventProperties(""));
                         }
                     }
 
@@ -44,8 +44,8 @@ namespace Microsoft {
                     {
                         if (m_configuration->AutoLogUnhandledException)
                         {
-                            MAT::LogManager::GetLogger(FromPlatformString(m_configuration->TenantToken))->LogEvent("Exception code: " + std::to_string((long long)code) + message +
-                                "UnhandledException");
+                            MAT::LogManager::GetLogger()->LogFailure("Exception code: " + std::to_string((long long)code), message,
+                                "UnhandledException", "", MAT::EventProperties(""));
                         }
 
                         // Attempting to save all unsent events into the offline storage.

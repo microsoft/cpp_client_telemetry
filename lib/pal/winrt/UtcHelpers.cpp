@@ -1,12 +1,13 @@
 #pragma once
+#include <Windows.h>
+
 #include "pal/UtcHelpers.hpp"
 #include <string>
 #include <PlatformHelpers.h>
 using namespace ::Windows::System::Diagnostics::Telemetry;
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN {
-	namespace PAL {
+namespace PAL_NS_BEGIN {
 
 		bool IsUtcRegistrationEnabledinWindows()
 		{
@@ -51,5 +52,4 @@ namespace ARIASDK_NS_BEGIN {
 			return std::string(wcontent.begin(), wcontent.end());
 		}
 
-	}// namespace PAL
-} ARIASDK_NS_END
+} PAL_NS_END

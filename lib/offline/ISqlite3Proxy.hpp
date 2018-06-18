@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <Version.hpp>
+#include <pal/PAL.hpp>
 
+#include <cinttypes>
 
 struct Mem;
 struct sqlite3;
 struct sqlite3_context;
 struct sqlite3_stmt;
 struct sqlite3_vfs;
-typedef struct sqlite3_value sqlite3_value;
 
 
 namespace ARIASDK_NS_BEGIN {
@@ -25,6 +25,7 @@ class ISqlite3Proxy {
     virtual int                  sqlite3_changes(sqlite3* db) = 0;
     virtual int                  sqlite3_clear_bindings(sqlite3_stmt* stmt) = 0;
     virtual int                  sqlite3_close(sqlite3* db) = 0;
+    virtual int                  sqlite3_close_v2(sqlite3* db) = 0;
     virtual const void*          sqlite3_column_blob(sqlite3_stmt* stmt, int iCol) = 0;
     virtual int                  sqlite3_column_bytes(sqlite3_stmt* stmt, int iCol) = 0;
     virtual int                  sqlite3_column_int(sqlite3_stmt* stmt, int iCol) = 0;

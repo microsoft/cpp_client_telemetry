@@ -2,27 +2,29 @@
 
 #include "common/Common.hpp"
 #include "common/MockIHttpClient.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "http/HttpRequestEncoder.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;
 
-
 class HttpRequestEncoderTests : public Test {
-  protected:
+
+public:
+
+protected:
+    ITelemetrySystem & system;
     MockIHttpClient    mockHttpClient;
-    MockIRuntimeConfig mockRuntimeConfig;
     HttpRequestEncoder encoder;
 
-  protected:
+protected:
+
     HttpRequestEncoderTests()
-      : encoder(mockHttpClient, mockRuntimeConfig)
+        : system(testing::getSystem()),
+        encoder(system, mockHttpClient)
     {
         EXPECT_CALL(mockHttpClient, CreateRequest())
             .WillRepeatedly(Invoke(&HttpRequestEncoderTests::createHttpRequest));
-        EXPECT_CALL(mockRuntimeConfig, GetCollectorUrl())
-            .WillRepeatedly(Return("http://collector/"));
     }
 
     static IHttpRequest* createHttpRequest()
@@ -34,11 +36,11 @@ class HttpRequestEncoderTests : public Test {
 
 TEST_F(HttpRequestEncoderTests, SetsAllParameters)
 {
-    EventsUploadContextPtr ctx = EventsUploadContext::create();
+    EventsUploadContextPtr ctx = new EventsUploadContext();
     ctx->compressed = false;
-    ctx->body       = {1, 127, 255};
+    ctx->body = { 1, 127, 255 };
     ctx->packageIds["tenant1-token"] = 0;
-    ctx->latency   = EventLatency_RealTime;
+    ctx->latency = EventLatency_RealTime;
 
     encoder.encode(ctx);
 
@@ -48,18 +50,18 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
     EXPECT_THAT(req->m_id, Eq("HttpRequestEncoderTests"));
     EXPECT_THAT(req->m_method, Eq("POST"));
     EXPECT_THAT(req->m_url, Eq("http://collector/"));
-    EXPECT_THAT(req->m_headers, Contains(Pair("Expect",       "100-continue")));
-    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Version",  PAL::getSdkVersion())));
-    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id",    "NO_AUTH")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("Expect", "100-continue")));
+    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Version", PAL::getSdkVersion())));
+    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id", "NO_AUTH")));
     EXPECT_THAT(req->m_headers, Contains(Pair("Content-Type", "application/bond-compact-binary")));
-    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey",     "tenant1-token")));
-    EXPECT_THAT(req->m_body,    Eq(std::vector<uint8_t>{1, 127, 255}));
+    EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token")));
+    EXPECT_THAT(req->m_body, Eq(std::vector<uint8_t>{1, 127, 255}));
     EXPECT_THAT(req->m_latency, Eq(EventLatency_RealTime));
 }
 
 TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
 {
-    EventsUploadContextPtr ctx = EventsUploadContext::create();
+    EventsUploadContextPtr ctx = new EventsUploadContext();
 
     ctx->compressed = false;
     encoder.encode(ctx);
@@ -76,7 +78,7 @@ TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
 
 TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
 {
-    EventsUploadContextPtr ctx = EventsUploadContext::create();
+    EventsUploadContextPtr ctx = new EventsUploadContext();
 
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));

@@ -1,75 +1,122 @@
-// Copyright (c) Microsoft. All rights reserved.
+#ifndef STATISTICS_HPP
+#define STATISTICS_HPP
 
-#pragma once
-#include <IRuntimeConfig.hpp>
+#include "pal/PAL.hpp"
+
 #include "system/ITelemetrySystem.hpp"
+
+#include "decorators/BaseDecorator.hpp"
+#include "decorators/SemanticContextDecorator.hpp"
+
 #include "MetaStats.hpp"
+#include "DebugEvents.hpp"
+
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
-#include "pal/PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
+    class ITelemetrySystem;
+    class DebugEventListener;
 
-class Statistics : public PAL::RefCountedImpl<Statistics> {
-  public:
-    Statistics(IRuntimeConfig& runtimeConfig, ContextFieldsProvider const& globalContext, ITelemetrySystem*   telemetrySystem);
-    ~Statistics();
+    class Statistics : public DebugEventListener {
 
-  protected:
-    virtual void scheduleSend();
-    void send(ActRollUpKind rollupKind);
+    public:
+        Statistics(ITelemetrySystem& telemetrySystem);
+        ~Statistics();
 
-    bool handleOnStart();
-    bool handleOnStop();
+    protected:
+        virtual void scheduleSend();
+        void send(RollUpKind rollupKind);
 
-    bool handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx);
-    bool handleOnIncomingEventFailed(IncomingEventContextPtr const& ctx);
+        bool handleOnStart();
+        bool handleOnStop();
 
-    bool handleOnUploadStarted(EventsUploadContextPtr const& ctx);
-    bool handleOnPackagingFailed(EventsUploadContextPtr const& ctx);
-    bool handleOnUploadSuccessful(EventsUploadContextPtr const& ctx);
-    bool handleOnUploadRejected(EventsUploadContextPtr const& ctx);
-    bool handleOnUploadFailed(EventsUploadContextPtr const& ctx);
+        bool handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx);
+        // bool handleOnIncomingEventRejected(DebugEvent &evt); 
+        bool handleOnIncomingEventFailed(IncomingEventContextPtr const& ctx);
 
-    bool handleOnStorageOpened(StorageNotificationContext const* ctx);
-    bool handleOnStorageFailed(StorageNotificationContext const* ctx);
-    bool handleOnStorageTrimmed(StorageNotificationContext const* ctx);
-    bool handleOnStorageRecordsDropped(StorageNotificationContext const* ctx);
-    bool handleOnStorageRecordsRejected(StorageNotificationContext const* ctx);
+        bool handleOnUploadStarted(EventsUploadContextPtr const& ctx);
+        bool handleOnPackagingFailed(EventsUploadContextPtr const& ctx);
+        bool handleOnUploadSuccessful(EventsUploadContextPtr const& ctx);
+        bool handleOnUploadRejected(EventsUploadContextPtr const& ctx);
+        bool handleOnUploadFailed(EventsUploadContextPtr const& ctx);
 
-  protected:
-    MetaStats                   m_metaStats;
-    IRuntimeConfig&             m_runtimeConfig;
-    PAL::DeferredCallbackHandle m_scheduledSend;
-    bool                        m_isScheduled;
-    bool                        m_isStarted;
-    ITelemetrySystem*           m_iTelemetrySystem;
-    std::int64_t                m_statEventSentTime;
+        bool handleOnStorageOpened(StorageNotificationContext const* ctx);
+        bool handleOnStorageFailed(StorageNotificationContext const* ctx);
+        bool handleOnStorageTrimmed(StorageNotificationContext const* ctx);
+        bool handleOnStorageRecordsDropped(StorageNotificationContext const* ctx);
+        bool handleOnStorageRecordsRejected(StorageNotificationContext const* ctx);
 
-  public:
-    RouteSource<IncomingEventContextPtr const&>                     eventGenerated;
+    protected:
+        MetaStats                   m_metaStats;
+        ITelemetrySystem&           m_iTelemetrySystem;
+        IRuntimeConfig&             m_config;
+        ILogManager&                m_logManager;
 
-    RouteSource<>                                                   onStartupDone;
-    RoutePassThrough<Statistics>                                    onStart{this, &Statistics::handleOnStart};
-    RouteSource<>                                                   onShutdownDone;
-    RoutePassThrough<Statistics>                                    onStop{this, &Statistics::handleOnStop};
+        // Both decorators are associated with m_logManager
+        BaseDecorator               m_baseDecorator;
+        SemanticContextDecorator    m_semanticContextDecorator;
 
-    RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventAccepted{this, &Statistics::handleOnIncomingEventAccepted};
-    RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventFailed{this, &Statistics::handleOnIncomingEventFailed};
+        PAL::DeferredCallbackHandle m_scheduledSend;
+        bool                        m_isScheduled;
+        bool                        m_isStarted;
 
-    RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadStarted{this, &Statistics::handleOnUploadStarted};
-    RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onPackagingFailed{this, &Statistics::handleOnPackagingFailed};
-    RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadSuccessful{this, &Statistics::handleOnUploadSuccessful};
-    RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadRejected{this, &Statistics::handleOnUploadRejected};
-    RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadFailed{this, &Statistics::handleOnUploadFailed};
+        std::int64_t                m_statEventSentTime;
 
-    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageOpened{this, &Statistics::handleOnStorageOpened};
-    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageFailed{this, &Statistics::handleOnStorageFailed};
-    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageTrimmed{this, &Statistics::handleOnStorageTrimmed};
-    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsDropped{this, &Statistics::handleOnStorageRecordsDropped};
-    RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsRejected{ this, &Statistics::handleOnStorageRecordsRejected };
-};
+    public:
+        RouteSource<IncomingEventContextPtr const&>                     eventGenerated;
+
+        RouteSource<>                                                   onStartupDone;
+        RoutePassThrough<Statistics>                                    onStart{ this, &Statistics::handleOnStart };
+        RouteSource<>                                                   onShutdownDone;
+        RoutePassThrough<Statistics>                                    onStop{ this, &Statistics::handleOnStop };
+
+#if 1   // TODO: [MG] - verify this codepath
+        RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventAccepted{ this, &Statistics::handleOnIncomingEventAccepted };
+        RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventFailed{ this, &Statistics::handleOnIncomingEventFailed };
+#else
+        bool dummy_IncomingEventContextPtr(IncomingEventContextPtr const& ctx)
+        {
+            UNREFERENCED_PARAMETER(ctx);
+            return true;
+        }
+
+        RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventAccepted{ this, &Statistics::dummy_IncomingEventContextPtr };
+        RoutePassThrough<Statistics, IncomingEventContextPtr const&>    onIncomingEventFailed{ this, &Statistics::dummy_IncomingEventContextPtr };
+#endif
+
+#if 1   // TODO: [MG] - verify this codepath
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadStarted{ this, &Statistics::handleOnUploadStarted };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onPackagingFailed{ this, &Statistics::handleOnPackagingFailed };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadSuccessful{ this, &Statistics::handleOnUploadSuccessful };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadRejected{ this, &Statistics::handleOnUploadRejected };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadFailed{ this, &Statistics::handleOnUploadFailed };
+#else
+        bool dummy_EventsUploadContextPtr(EventsUploadContextPtr const& ctx)
+        {
+            UNREFERENCED_PARAMETER(ctx);
+            return true;
+        }
+
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadStarted{ this, &Statistics::dummy_EventsUploadContextPtr };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onPackagingFailed{ this, &Statistics::dummy_EventsUploadContextPtr };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadSuccessful{ this, &Statistics::dummy_EventsUploadContextPtr };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadRejected{ this, &Statistics::dummy_EventsUploadContextPtr };
+        RoutePassThrough<Statistics, EventsUploadContextPtr const&>     onUploadFailed{ this, &Statistics::dummy_EventsUploadContextPtr };
+#endif
+
+        RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageOpened{ this, &Statistics::handleOnStorageOpened };
+        RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageFailed{ this, &Statistics::handleOnStorageFailed };
+        RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageTrimmed{ this, &Statistics::handleOnStorageTrimmed };
+        RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsDropped{ this, &Statistics::handleOnStorageRecordsDropped };
+        RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsRejected{ this, &Statistics::handleOnStorageRecordsRejected };
+
+        virtual void OnDebugEvent(DebugEvent &evt);
+
+    };
 
 
 } ARIASDK_NS_END
+
+#endif

@@ -1,9 +1,13 @@
+#ifdef WIN10_CS
+/* Helpers for Win 10 C# Universal API */
 #include "pch.h"
+#include <LogManager.hpp>
 #include "PlatformHelpers.h"
 //#include "TimedEvent.hpp"
 
 namespace Microsoft {
     namespace Applications {
+        // TODO: [MG] - consider refactoring this to use a macro namespace
         namespace Telemetry {
             namespace Windows
             {
@@ -184,3 +188,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

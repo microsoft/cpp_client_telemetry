@@ -675,7 +675,7 @@ struct Data {
     }
 };
 
-struct CsEvent {
+struct Record {
     // 1: required string ver
     std::string ver;
     // 2: required string name
@@ -729,7 +729,7 @@ struct CsEvent {
     // 70: optional vector<Data> data
     std::vector< ::AriaProtocol::Data> data;
 
-    bool operator==(CsEvent const& other) const
+    bool operator==(Record const& other) const
     {
         return (ver == other.ver)
             && (name == other.name)
@@ -759,7 +759,7 @@ struct CsEvent {
             && (data == other.data);
     }
 
-    bool operator!=(CsEvent const& other) const
+    bool operator!=(Record const& other) const
     {
         return !(*this == other);
     }

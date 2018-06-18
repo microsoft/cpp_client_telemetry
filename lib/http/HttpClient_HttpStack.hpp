@@ -5,6 +5,8 @@
 #include <httpstack/fwd.hpp>
 #include "pal/PAL.hpp"
 
+#include <mutex>
+
 namespace ARIASDK_NS_BEGIN {
 
 
@@ -19,7 +21,7 @@ class HttpClient_HttpStack : public IHttpClient {
   protected:
     http_stack::IHttpStackPtr                      m_httpStack;
     http_stack::IRequestPoolPtr                    m_httpStackPool;
-    PAL::Mutex                                     m_httpStackRequestsMutex;
+    std::mutex                                     m_httpStackRequestsMutex;
     std::map<std::string, http_stack::IRequestPtr> m_httpStackRequests;
     static unsigned                                s_nextRequestId;
 

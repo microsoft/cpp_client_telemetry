@@ -1,3 +1,4 @@
+#if 0
 // Copyright (c) Microsoft. All rights reserved.
 
 #include <exception>
@@ -737,3 +738,4 @@ TEST(SingleControlPlaneTests, MultipleListenersAreRegistered_EachIsNotified)
     ASSERT_EQ(controlPlane.get(), handler3.m_lastControlPlane);
     ASSERT_EQ(ariaTenantId2, handler3.m_lastAriaTenantId);
 }
+#endif

@@ -12,13 +12,12 @@ class MetaStatsTests : public ::testing::Test
 {
   protected:
     StrictMock<MockIRuntimeConfig> runtimeConfigMock;
-    ContextFieldsProvider          contextFieldsProvider;
+
     MetaStats                      stats;
 
   public:
-    MetaStatsTests()
-      : contextFieldsProvider(nullptr),
-        stats(runtimeConfigMock, contextFieldsProvider)
+    MetaStatsTests() :
+        stats(runtimeConfigMock)
     {
     }
 };

@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 //#include <aria/DebugEvents.hpp>
-#include "LogManagerSimple.hpp"
+#include <LogManager.hpp>
 #include "Enums.hpp"
 #include <iostream>
 
@@ -493,7 +493,7 @@ ILogger* init() {
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_DB_COMPRESS, true);
     configuration.SetBoolProperty(CFG_BOOL_ENABLE_WAL_JOURNAL, false);
     configuration.SetIntProperty(CFG_INT_MAX_PKG_DROP_ON_FULL, 20);
-    EVTStatus error;
+    status_t error;
     std::string temp = configuration.GetProperty("dsadasdsad", error);
 
     // Force UTC uploader on Windows 10 even if it's not RS2

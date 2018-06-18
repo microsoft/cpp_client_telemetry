@@ -2,12 +2,13 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
-#include <api/ILogManagerInternal.hpp>
+#include <api/LogManagerImpl.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
-#include "../../sqlite/sqlite3.h"
+#include "sqlite3.h"
+
+#include <api/LogManagerFactory.hpp>
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -19,8 +20,7 @@ class MultipleLogManagersTests : public ::testing::Test,
   protected:
     std::list<HttpServer::Request> receivedRequests;
     std::string                    serverAddress;
-    LogConfiguration               config1, config2;
-    MockIRuntimeConfig             runtimeConfig1, runtimeConfig2;
+    ILogConfiguration              config1, config2;
     HttpServer                     server;
 
   public:
@@ -34,47 +34,26 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         server.addHandler("/1/", *this);
         server.addHandler("/2/", *this);
-        expectRuntimeConfig(runtimeConfig1, serverAddress + "/1/");
-        expectRuntimeConfig(runtimeConfig2, serverAddress + "/2/");
 
         server.start();
 
         sqlite3_initialize();
-        config1.SetProperty("skipSqliteInitAndShutdown", "true");
-        config2.SetProperty("skipSqliteInitAndShutdown", "true"); 
+        config1["skipSqliteInitAndShutdown"] = "true";
+        config2["skipSqliteInitAndShutdown"] = "true";
 
-        config1.SetProperty("cacheFilePath","lm1.db");
-        //config1.runtimeConfig = &runtimeConfig1;
-        EVTStatus error;
-        ::remove(config1.GetProperty("cacheFilePath", error));
+        config1["cacheFilePath"] = "lm1.db";
+        ::remove(config1["cacheFilePath"]);
 
-        config2.SetProperty("cacheFilePath", "lm2.db");
-        //config2.runtimeConfig = &runtimeConfig2;
-
-        ::remove(config2.GetProperty("cacheFilePath", error));
+        config2["cacheFilePath"] = "lm2.db";
+        ::remove(config2["cacheFilePath"]);
     }
 
     virtual void TearDown() override
     {
         sqlite3_shutdown();
         server.stop();
-        EVTStatus error;
-        ::remove(config1.GetProperty("cacheFilePath", error));
-        ::remove(config2.GetProperty("cacheFilePath", error));
-    }
-
-    void expectRuntimeConfig(MockIRuntimeConfig& rc, std::string const& url)
-    {
-        EXPECT_CALL(rc, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(rc, GetCollectorUrl()).WillRepeatedly(Return(url));
-        EXPECT_CALL(rc, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(rc, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(rc, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(rc, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(rc, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-token"));
-        EXPECT_CALL(rc, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(rc, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(rc, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
+        ::remove(config1["cacheFilePath"]);
+        ::remove(config2["cacheFilePath"]);
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
@@ -112,17 +91,16 @@ class MultipleLogManagersTests : public ::testing::Test,
 
 TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
 {
-    std::unique_ptr<ILogManagerInternal> lm1(ILogManagerInternal::Create(config1, &runtimeConfig1));
-
-    std::unique_ptr<ILogManagerInternal> lm2(ILogManagerInternal::Create(config2, &runtimeConfig2));
+    std::unique_ptr<ILogManager> lm1(LogManagerFactory::Create(config1));
+    std::unique_ptr<ILogManager> lm2(LogManagerFactory::Create(config2));
 
     lm1->SetContext("test1", "abc");
 
     lm2->GetSemanticContext().SetAppId("123");
-    ContextFieldsProvider temp;
-    ILogger* l1a = lm1->GetLogger("aaa", &temp);
 
-    ILogger* l2a = lm2->GetLogger("aaa", &temp, "aaa-source");
+    ILogger* l1a = lm1->GetLogger("aaa");
+
+    ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("x", "y");
     l2a->LogEvent(l2a1p);
@@ -131,7 +109,7 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     l1a1p.SetProperty("X", "Y");
     l1a->LogEvent(l1a1p);
 
-    ILogger* l1b = lm1->GetLogger("bbb", &temp);
+    ILogger* l1b = lm1->GetLogger("bbb");
     EventProperties l1b1p("l1b1");
     l1b1p.SetProperty("asdf", 1234);
     l1b->LogEvent(l1b1p);

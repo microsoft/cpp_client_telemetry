@@ -33,8 +33,6 @@
 
 #include "EventProperty.hpp"
 
-namespace MAT = Microsoft::Applications::Telemetry;
-
 /**
  * Read file contents
  *

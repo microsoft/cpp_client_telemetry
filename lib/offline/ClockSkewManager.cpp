@@ -1,3 +1,4 @@
+#if 0
 #define LOG_MODULE DBG_TPM
 #include "common/TraceHelper.hpp"
 #include "ClockSkewManager.hpp"
@@ -77,3 +78,4 @@ namespace common
 		m_resumeTransmissionAfterClockSkew = value;
 	}
 }
+#endif

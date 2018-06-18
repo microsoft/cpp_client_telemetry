@@ -1,3 +1,4 @@
+#if 0
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
@@ -39,3 +40,4 @@ namespace testing
         }
     };
 } // namespace testing
+#endif

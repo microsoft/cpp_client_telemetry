@@ -9,7 +9,7 @@
 
 using namespace testing;
 using namespace ARIASDK_NS;
-using namespace ARIASDK_NS::PAL;
+using namespace PAL;
 
 char const* const TEST_STORAGE_FILENAME = "OfflineStorageTests_SQLite.db";
 
@@ -17,8 +17,8 @@ char const* const TEST_STORAGE_FILENAME = "OfflineStorageTests_SQLite.db";
 class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
 {
   public:
-    OfflineStorage_SQLiteNoAutoCommit(LogConfiguration& configuration, IRuntimeConfig& runtimeConfig)
-      : OfflineStorage_SQLite(configuration, runtimeConfig)
+    OfflineStorage_SQLiteNoAutoCommit(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false)
+      : OfflineStorage_SQLite(logManager, runtimeConfig, inMemory)
     {
     }
 
@@ -30,16 +30,21 @@ class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
 
 struct OfflineStorageTests_SQLite : public Test
 {
-    StrictMock<MockIRuntimeConfig>                     configMock;
-    StrictMock<MockIOfflineStorageObserver>            observerMock;
-    LogConfiguration                                   configuration;
-    std::unique_ptr<OfflineStorage_SQLiteNoAutoCommit> offlineStorage;
+    StrictMock<MockIRuntimeConfig>                      configMock;
+    StrictMock<MockIOfflineStorageObserver>             observerMock;
+    ILogManager *                                       logManager;
+    ILogConfiguration                                   configuration;
+    std::unique_ptr<OfflineStorage_SQLiteNoAutoCommit>  offlineStorage;
 
     virtual void SetUp() override
     {
-        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME);
+        configuration["cacheFilePath"] = TEST_STORAGE_FILENAME;
         EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(configuration, configMock));
+
+        // FIXME: [MG] - create LogManager instance
+        logManager = nullptr;
+        offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManager, configMock));
+
         EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Default"))
             .RetiresOnSaturation();
         offlineStorage->Initialize(observerMock);
@@ -395,18 +400,21 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
 TEST_F(OfflineStorageTests_SQLite, OnInvalidFilenameInitializeCreatesTemporaryDb)
 {
     offlineStorage->Shutdown();
-    EVTStatus error;
-    std::string origCacheFilePath = configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error);
+
+    std::string origCacheFilePath = (const char *)configuration[CFG_STR_CACHE_FILE_PATH];
     ::remove(origCacheFilePath.c_str());
 
-    configuration.SetProperty(CFG_STR_CACHE_FILE_PATH, "/\\/*/[]\\\\");
-    offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(configuration, configMock));
+    configuration[CFG_STR_CACHE_FILE_PATH] = "/\\/*/[]\\\\";
+
+    // FIXME: [MG]
+    ILogManager * logManagerInstance = nullptr;
+    offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManagerInstance, configMock));
     EXPECT_CALL(observerMock, OnStorageFailed("1"));
     EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Temp"));
     offlineStorage->Initialize(observerMock);
 
     EXPECT_THAT(fileExists(origCacheFilePath), false);
-    EXPECT_THAT(fileExists(configuration.GetProperty(CFG_STR_CACHE_FILE_PATH, error)), false);
+    EXPECT_THAT(fileExists(configuration[CFG_STR_CACHE_FILE_PATH]), false);
 
     // Recreate for destructor
     std::ofstream(origCacheFilePath, std::ios::out);

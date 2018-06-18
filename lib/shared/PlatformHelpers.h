@@ -1,6 +1,8 @@
 #ifndef PLATFORMHELPERS_HPP
 #define PLATFORMHELPERS_HPP
 
+#include <Version.hpp>
+
 #include <Windows.h>
 #include <string>
 #include <vector>
@@ -59,40 +61,35 @@ typedef IDictionary<String^, double> EditableMeasurementMap;
 #define WstringFromPlatformString(x) msclr::interop::marshal_as<std::wstring>(x)
 #endif
 
+#include "utils/Utils.hpp"
+
+using namespace std;
+
+namespace ARIASDK_NS_BEGIN {
+    class EventProperties;
+    class ILogger;
+    class LogManager;
+    class ISemanticContext;
+    class LogConfiguration;
+    struct EventProperty;
+} ARIASDK_NS_END;
+
 namespace Microsoft {
-	namespace Applications {
+    namespace Applications {
 
         class EventCore;
         class ITestCallback;
 
-        namespace Events  
+        namespace Telemetry
         {
-            using namespace std;
-
-            class EventProperties;
-            class ILogger;
-            class LogManager;
-            class ISemanticContext;
-            class LogConfiguration;
-            struct EventProperty;
-
             namespace Windows
             {
-
-                /**
-                 * Get tenant from token.
-                 */
-                inline std::string TokenToTenant(std::string input) {
-                    size_t pos = input.find('-', 0);
-                    std::string result = input.substr(0, pos);
-                    return result;
-                };
-
                 ref class TimedEvent;
                 ref class EventProperties;
                 ref struct LogConfiguration;
                 ref struct PageActionData;
                 ref struct AggregatedMetricData;
+
                 interface class ILogger;
                 interface class ISemanticContext;
 
@@ -117,7 +114,7 @@ namespace Microsoft {
                         {
                             map.insert(std::make_pair((K2)it->Current->Key, (V2)it->Current->Value));
                             it->MoveNext();
-                         }
+                        }
 #else
                         auto it = platformMap->GetEnumerator();
                         while (it->MoveNext())
@@ -225,13 +222,17 @@ namespace Microsoft {
                 }
 
                 PropertyMap^ ToPlatformPropertyMap(const std::map<std::string, std::string>& map);
+
                 MeasurementMap^ ToPlatformMeasurementMap(const std::map<std::string, double>& map);
 
                 EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, std::string>& map);
-                EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, Microsoft::Applications::Events ::EventProperty>& map);
+
+                EditablePropertyMap^ ToPlatformEditablePropertyMap(const std::map<std::string, MAT::EventProperty>& map);
 
                 EditableMeasurementMap^ ToPlatformEditableMeasurementMap(const std::map<std::string, double>& map);
+
                 EditablePropertyMap^ CreateEditablePropertyMap(PropertyMap^source = nullptr); // ref new Map<String^, String^>();
+
                 EditableMeasurementMap^ CreateEditableMeasurementMap(MeasurementMap^source = nullptr); // ref new Map<String^, double>();
 
                 inline IPlatformVector^ ToPlatformVector(const std::vector<std::string>& v) {
@@ -249,9 +250,11 @@ namespace Microsoft {
 
             }
         }
-	}
+    }
 }
 
-namespace MAT = Microsoft::Applications::Events ;
+namespace MATW = Microsoft::Applications::Telemetry::Windows;
+#define MATW_NS_BEGIN Microsoft { namespace Applications { namespace Telemetry { namespace Windows
+#define MATW_NS_END   }}}
 
 #endif

@@ -7,6 +7,7 @@ using namespace testing;
 using namespace ARIASDK_NS;
 
 
+// TODO: [MG] - this test would benefit from uncommenting a bunch of lines that have been commented by someone before..
 TEST(ContextFieldsProviderTests, SetProperties)
 {
     ContextFieldsProvider ctx(nullptr);
@@ -16,14 +17,14 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.setCustomField("parent", "willremain");
     ctx.setCustomField("empty", "");
     ctx.setCustomField("parentonly", "willberemoved");
-	EventProperty prop("willbeoverwrittenpii", PiiKind_DistinguishedName);
+    EventProperty prop("willbeoverwrittenpii", PiiKind_DistinguishedName);
     ctx.setCustomField("sharedpii", prop);
-	EventProperty prop1("willremainpii", PiiKind_GenericData);	
+    EventProperty prop1("willremainpii", PiiKind_GenericData);
     ctx.setCustomField("parentpii", prop1);
-	EventProperty prop2("", PiiKind_Identity);
+    EventProperty prop2("", PiiKind_Identity);
     ctx.setCustomField("emptypii", prop2);
-	EventProperty prop3("willberemoved", PiiKind_GenericData);
-    ctx.setCustomField("parentonlypii", prop3 );
+    EventProperty prop3("willberemoved", PiiKind_GenericData);
+    ctx.setCustomField("parentonlypii", prop3);
 
     ctx.SetAppId("appId");
     ctx.SetAppExperimentIds("appExperimentIds");
@@ -49,7 +50,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.SetUserLanguage("language");
     ctx.SetUserTimeZone("timeZone");
 
-    ::AriaProtocol::CsEvent record;
+    ::AriaProtocol::Record record;
     loggerCtx.writeToRecord(record);
 
     EXPECT_THAT(record.data[0].properties.size(), 8);
@@ -65,15 +66,15 @@ TEST(ContextFieldsProviderTests, SetProperties)
 
     loggerCtx.setCustomField("shared", "latest");
     loggerCtx.setCustomField("parentonly", "");
-	EventProperty prop10("latestpii", PiiKind_MailSubject);
-	loggerCtx.setCustomField("sharedpii", prop10);
-	EventProperty prop11("", PiiKind_IPv4Address);
-    loggerCtx.setCustomField("parentonlypii", prop11);	
+    EventProperty prop10("latestpii", PiiKind_MailSubject);
+    loggerCtx.setCustomField("sharedpii", prop10);
+    EventProperty prop11("", PiiKind_IPv4Address);
+    loggerCtx.setCustomField("parentonlypii", prop11);
     loggerCtx.setCustomField("child", "specific");
-	EventProperty prop12("specificpii", PiiKind_QueryString);
-    loggerCtx.setCustomField("childpii", prop12 );
+    EventProperty prop12("specificpii", PiiKind_QueryString);
+    loggerCtx.setCustomField("childpii", prop12);
 
-    ::AriaProtocol::CsEvent record1;
+    ::AriaProtocol::Record record1;
     loggerCtx.writeToRecord(record1);
     EXPECT_THAT(record1.data[0].properties.size(), 10);
 
@@ -95,7 +96,9 @@ TEST(ContextFieldsProviderTests, SetProperties)
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Version"].stringValue, Eq("appVersion"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
-    EXPECT_THAT(record1.extDevice[0].localId, Eq("deviceId"));
+    // XXX: [MG] - 1DS prepends m:
+    EXPECT_THAT(record1.extDevice[0].localId, Eq("m:deviceId"));
+
     //EXPECT_THAT(record1.extDevice[0]..properties["DeviceInfo.Make"].stringValue, Eq("deviceMake"));
     //EXPECT_THAT(record1.data[0].properties["DeviceInfo.Model"].stringValue, Eq("deviceModel"));
 
@@ -118,12 +121,12 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
 {
     ContextFieldsProvider ctx(nullptr);
 
-    ::AriaProtocol::CsEvent record;
+    ::AriaProtocol::Record record;
     ctx.writeToRecord(record);
 
-    EXPECT_THAT(record.extDevice[0].localId,          Not(IsEmpty()));
+    EXPECT_THAT(record.extDevice[0].localId, Not(IsEmpty()));
     //EXPECT_THAT(record.extDevice[0].authSecId,   Not(IsEmpty()));
     //EXPECT_THAT(record.data[0].properties["DeviceInfo.NetworkType"].stringValue, Not(IsEmpty()));
-    EXPECT_THAT(record.extOs[0].name,      Not(IsEmpty()));
-    EXPECT_THAT(record.extOs[0].ver,   Not(IsEmpty()));
+    EXPECT_THAT(record.extOs[0].name, Not(IsEmpty()));
+    EXPECT_THAT(record.extOs[0].ver, Not(IsEmpty()));
 }

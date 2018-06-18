@@ -2,13 +2,14 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
-#include <api/ILogManagerInternal.hpp>
+#include <api/LogManagerImpl.hpp>
 #include <bond_lite/All.hpp>
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
 #include <fstream>
+
+#include "api/LogManagerFactory.hpp"
 
 #ifndef ARIASDK_PAL_SKYPE
 #include "pdh.h"
@@ -64,8 +65,7 @@ class LoadTests : public Test,
 {
   protected:
     std::string                  serverAddress;
-    LogConfiguration             configuration;
-    MockIRuntimeConfig           runtimeConfig;
+    ILogConfiguration            configuration;
     HttpServer                   server;
     std::unique_ptr<ILogManagerInternal> logManager;
     unsigned                     recordsReceived;
@@ -73,6 +73,11 @@ class LoadTests : public Test,
     PDH_HQUERY                   diskQuery;
     PDH_HCOUNTER                 cpuTotal;
     PDH_HCOUNTER                 diskTotal;
+
+    inline void CreateLogManager()
+    {
+        logManager.reset( (LogManagerImpl*)LogManagerFactory::Create(configuration));
+    }
 
   public:
     virtual void SetUp() override
@@ -84,31 +89,17 @@ class LoadTests : public Test,
         server.setServerName(os.str());
         server.addHandler("/", *this);
 
-        //configuration.runtimeConfig = &runtimeConfig;
-        configuration.SetProperty("cacheFilePath", TEST_STORAGE_FILENAME); 
+        configuration["cacheFilePath"] = TEST_STORAGE_FILENAME;
         ::remove(TEST_STORAGE_FILENAME);
 
-        EXPECT_CALL(runtimeConfig, SetDefaultConfig(_)).WillRepeatedly(DoDefault());
-        EXPECT_CALL(runtimeConfig, GetCollectorUrl()).WillRepeatedly(Return(serverAddress));
-        EXPECT_CALL(runtimeConfig, IsHttpRequestCompressionEnabled()).WillRepeatedly(Return(false));
-        EXPECT_CALL(runtimeConfig, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-        EXPECT_CALL(runtimeConfig, GetEventLatency(_, _)).WillRepeatedly(Return(EventLatency_Unspecified));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
-        EXPECT_CALL(runtimeConfig, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
-        EXPECT_CALL(runtimeConfig, GetMaximumRetryCount()).WillRepeatedly(Return(1));
-        EXPECT_CALL(runtimeConfig, GetUploadRetryBackoffConfig()).WillRepeatedly(Return("E,3000,3000,2,0"));
-        EXPECT_CALL(runtimeConfig, GetMinimumUploadBandwidthBps()).WillRepeatedly(Return(512));
-        EXPECT_CALL(runtimeConfig, GetMaximumUploadSizeBytes()).WillRepeatedly(Return(1 * 1024 * 1024));
-        EXPECT_CALL(runtimeConfig, DecorateEvent(_, _, _)).WillRepeatedly(Return());
-
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        CreateLogManager();
 
         PdhOpenQuery(NULL, NULL, &cpuQuery);
-        PdhAddEnglishCounter(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
+        PdhAddEnglishCounterA(cpuQuery, "\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
         PdhCollectQueryData(cpuQuery);
 
         PdhOpenQuery(NULL, NULL, &diskQuery);
-        PdhAddEnglishCounter(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
+        PdhAddEnglishCounterA(cpuQuery, "\\PhysicalDisk(_Total)\\Disk Transfers/sec", NULL, &diskTotal);
         PdhCollectQueryData(diskQuery);
 
         recordsReceived = 0;
@@ -122,7 +113,7 @@ class LoadTests : public Test,
             PdhCloseQuery(cpuQuery);
         }
 
-        logManager->FlushAndTeardown();
+        logManager->GetLogController()->FlushAndTeardown();
         ::remove(TEST_STORAGE_FILENAME);
         server.stop();
     }
@@ -137,9 +128,9 @@ class LoadTests : public Test,
         return 200;
     }
 
-    std::vector<AriaProtocol::CsEvent> decodeRequest(HttpServer::Request const& request, bool decompress)
+    std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
-        std::vector<AriaProtocol::CsEvent> vector;
+        std::vector<AriaProtocol::Record> vector;
 
         if (decompress) {
             // TODO
@@ -149,7 +140,7 @@ class LoadTests : public Test,
         size_t length = 0;
         while (data < request.content.size())
         {
-            AriaProtocol::CsEvent result;
+            AriaProtocol::Record result;
             length = request.content.size() - data;
             std::vector<uint8_t> test(request.content.data() + data, request.content.data() + data + length);
             size_t index = 3;
@@ -222,7 +213,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     auf::init();
 #endif
     
-    unsigned const RESTART_COUNT           = 100;
+    unsigned const RESTART_COUNT           = 10;
     unsigned int MAX_TIME_PER_RESTART_MS = 1000;
 
     unsigned int maxtimeperrestart = MAX_TIME_PER_RESTART_MS;
@@ -237,7 +228,7 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
     for (unsigned i = 0; i < RESTART_COUNT; i++)
     {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        CreateLogManager();
     }
 
     time = PAL::getMonotonicTimeMs() - time;
@@ -275,11 +266,11 @@ TEST_F(LoadTests, StartupAndShutdownIsFast)
 TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 {
     unsigned const EVENTS_COUNT  = 100;
-    unsigned const RESTART_COUNT = 100;
+    unsigned const RESTART_COUNT = 10;
 
     // Store some events so that system has to do something each time after startup.
     ContextFieldsProvider temp;
-    ILogger* logger = logManager->GetLogger("loadtests-tenant-token", &temp);
+    ILogger* logger = logManager->GetLogger("loadtests-tenant-token");
     for (unsigned i = 0; i < EVENTS_COUNT; i++) {
         EventProperties event("event" + toString(i));
         event.SetProperty("data", std::string(1234, '\42'));
@@ -288,7 +279,7 @@ TEST_F(LoadTests, ManyStartupsAndShutdownsAreHandledSafely)
 
     for (unsigned i = 0; i < RESTART_COUNT; i++) {
         logManager.reset();
-        logManager.reset(ILogManagerInternal::Create(configuration, &runtimeConfig));
+        CreateLogManager();
     }
 
     // All events should eventually come.
@@ -300,10 +291,8 @@ TEST_F(LoadTests, ManyEventsFromManyThreadsAreHandledSafely)
     unsigned const THREAD_COUNT     = 8;
     unsigned const TEST_DURATION_MS = 30000;
 
-    EXPECT_CALL(runtimeConfig, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(3));
-    ContextFieldsProvider temp;
-    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token", &temp);
-    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token", &temp);
+    ILogger* const logger1 = logManager->GetLogger("loadtests1-tenant-token");
+    ILogger* const logger2 = logManager->GetLogger("loadtests2-tenant-token");
     ILogger* logger = logger1;
 
     std::vector<std::unique_ptr<EventSender>> senders;

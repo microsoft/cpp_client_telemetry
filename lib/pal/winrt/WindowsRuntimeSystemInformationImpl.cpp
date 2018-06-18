@@ -1,4 +1,5 @@
-#include "Version.hpp"
+#include "pal/PAL.hpp"
+
 #include <collection.h>
 
 #include "ISystemInformation.hpp"
@@ -6,18 +7,19 @@
 #include "pal/win32/WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
 
-namespace Microsoft {
-    namespace Applications {
-        namespace Events  {
-            namespace PAL
-            {
-				using namespace std;
-                using namespace ::Windows::ApplicationModel;
-                using namespace ::Windows::System::UserProfile;
-                using namespace ::Windows::System::Profile;
-                using namespace ::Windows::Globalization;
+#ifdef _WINRT_DLL
+#include <collection.h>
+#endif
 
-                using namespace Microsoft::Applications::Events ::Windows;
+using namespace std;
+using namespace ::Windows::ApplicationModel;
+using namespace ::Windows::System::UserProfile;
+using namespace ::Windows::System::Profile;
+using namespace ::Windows::Globalization;
+
+using namespace Microsoft::Applications::Telemetry::Windows;
+
+namespace PAL_NS_BEGIN {
 
                 const string WindowsOSName = "Windows";
                 const string WindowsPhoneOSName = "Windows for Phones";
@@ -28,50 +30,14 @@ namespace Microsoft {
                     return new SystemInformationImpl();
                 }
 
-                /**
-                * Get App Id
-                */
-                std::string getAppId()
-                {
-                    return FromPlatformString(Package::Current->Id->Name);;
-                }
-
-                /**
-                * Get app module version
-                */
-                std::string getAppVersion()
-                {
-                    auto version = Package::Current->Id->Version;
-                    std::string appversion = std::to_string(version.Major) + "." + std::to_string(version.Minor)
-                        + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
-                    return appversion;
-                }
-
-                /**
-                * Get OS major and full version strings
-                */
-                void getOsVersion(std::string& osMajorVersion, std::string& osFullVersion)
-                {
-                    // The DeviceFamilyVersion is a decimalized form of the ULONGLONG hex form. For example:
-                    // 2814750430068736 = 000A000027840000 = 10.0.10116.0
-                    auto versionDec = std::stoull(AnalyticsInfo::VersionInfo->DeviceFamilyVersion->Data());
-                    if (versionDec != 0ull)
-                    {
-                        osMajorVersion = std::to_string(versionDec >> 16 * 3) + "." + std::to_string(versionDec >> 16 * 2 & 0xFFFF);
-                        osFullVersion = osMajorVersion +
-                            "." + std::to_string(versionDec >> 16 & 0xFFFF) + "." + std::to_string(versionDec & 0xFFFF);
-                    }
-                    else
-                    {
-                        osMajorVersion = "10.0";
-                    }
-                }
-
                 SystemInformationImpl::SystemInformationImpl()
                     : m_info_helper()
                 {
-                    m_app_id = getAppId();
-                    m_app_version = getAppVersion();
+                    auto version = Package::Current->Id->Version;
+
+                    m_app_id = FromPlatformString(Package::Current->Id->Name);
+                    m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor)
+                        + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
 
                     m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
                     m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
@@ -84,6 +50,8 @@ namespace Microsoft {
                     {
                         // This throws FileNotFoundException on Windows 10 v10033/UAP v22623.
                     }
+
+
 #if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
                     // Only works for Windows Phone 8.1. A run-time check (below) is required in Threshold.
                     m_os_name = WindowsPhoneOSName;
@@ -93,8 +61,19 @@ namespace Microsoft {
 
 #ifdef _WIN32_WINNT_WIN10
 
-                    getOsVersion(m_os_major_version, m_os_full_version);      
-                    m_device_family = FromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily);
+                    // The DeviceFamilyVersion is a decimalized form of the ULONGLONG hex form. For example:
+                    // 2814750430068736 = 000A000027840000 = 10.0.10116.0
+                    auto versionDec = std::stoull(AnalyticsInfo::VersionInfo->DeviceFamilyVersion->Data());
+                    if (versionDec != 0ull)
+                    {
+                        m_os_major_version = std::to_string(versionDec >> 16 * 3) + "." + std::to_string(versionDec >> 16 * 2 & 0xFFFF);
+                        m_os_full_version = m_os_major_version +
+                            "." + std::to_string(versionDec >> 16 & 0xFFFF) + "." + std::to_string(versionDec & 0xFFFF);
+                    }
+                    else
+                    {
+                        m_os_major_version = "10.0";
+                    }
 
                     if (FromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily) == DeviceFamily_Mobile)
                     {
@@ -109,9 +88,6 @@ namespace Microsoft {
                     try {
                         if (ApplicationLanguages::Languages->Size) {
                             primaryLanguage = ApplicationLanguages::Languages->GetAt(0);
-                        }
-                        if (ApplicationLanguages::PrimaryLanguageOverride != nullptr) {
-                            primaryLanguage = ApplicationLanguages::PrimaryLanguageOverride;
                         }
                     }
                     catch (...) {
@@ -134,7 +110,5 @@ namespace Microsoft {
                 {
                     m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
                 }
-            }
-        }
-    }
-}
+
+} PAL_NS_END

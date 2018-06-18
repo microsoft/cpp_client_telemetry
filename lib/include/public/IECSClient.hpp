@@ -1,4 +1,9 @@
-#pragma once
+#ifndef IECSCLIENT_HPP
+#define IECSCLIENT_HPP
+// Copyright (c) Microsoft. All rights reserved.
+
+#include "Version.hpp"
+
 #include "ctmacros.hpp"
 #include "ILogger.hpp"
 
@@ -6,7 +11,10 @@
 #include <vector>
 #include <map>
 
-namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
+namespace Microsoft {
+    namespace Applications {
+        namespace Experimentation {
+            namespace ECS {
 
     /// <summary>
     /// The ECSClientConfiguration structure configures the ECSClient.
@@ -160,7 +168,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// <param name="pLoger">The logger to be registered with the ECS client</param>
         /// <param name="agentName">A string that contains the name of the agent.</param>
         /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        virtual bool RegisterLogger(Microsoft::Applications::Events::ILogger* pLoger, const std::string& agentName) = 0;
+                    virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName) = 0;
 
         /// <summary>
         /// Sets a user ID used as the request parameter for retrieving configurations from the ECS server.
@@ -208,7 +216,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         /// Resumes the ECSClient to retrieve configuration updates from the ECS server.
         /// </summary>
         /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        virtual bool Resume() = 0;
+                    virtual bool Resume(bool fetchConfig = false) = 0;
 
         /// <summary>
         /// Gets the ETag of the currently active ECS configuration.
@@ -341,5 +349,12 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         virtual void SetRetryTimeFactor(int time) = 0;
     };
 
-}}}} // namespaces
+            }
+        }
+    }
+} // namespaces
 
+// TODO: [MG] - consider refactoring this to EXP
+namespace MAEE = Microsoft::Applications::Experimentation::ECS;
+
+#endif

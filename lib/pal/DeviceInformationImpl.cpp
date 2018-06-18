@@ -1,21 +1,19 @@
 #include "DeviceInformationImpl.hpp"
 
-namespace Microsoft { namespace Applications { namespace Events  {
-namespace PAL {
+namespace PAL_NS_BEGIN {
 
-///// IDeviceInformation API
+    ///// IDeviceInformation API
 
-int DeviceInformationImpl::RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback)
-{
-    m_registredCount++;
-    return m_info_helper.RegisterInformationChangedCallback(pCallback);
-}
+    int DeviceInformationImpl::RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback)
+    {
+        m_registredCount++;
+        return m_info_helper.RegisterInformationChangedCallback(pCallback);
+    }
 
-void DeviceInformationImpl::UnRegisterInformationChangedCallback(int callbackToken)
-{
-    --m_registredCount;
-    m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
-}
+    void DeviceInformationImpl::UnRegisterInformationChangedCallback(int callbackToken)
+    {
+        --m_registredCount;
+        m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
+    }
 
-} // PAL
-}}}
+} PAL_NS_END
