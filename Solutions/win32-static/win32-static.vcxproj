@@ -88,26 +88,26 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\sqlite;$(VC_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\sqlite;$(VC_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\sqlite;$(VC_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)\..\sqlite;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\sqlite;$(VC_IncludePath);$(SolutionDir)\..;$(SolutionDir)\..\ctsdk;$(SolutionDir)\PAL.Shared</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
