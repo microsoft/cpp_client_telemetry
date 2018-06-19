@@ -76,32 +76,32 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\;$(VC_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);$(LibraryPath)</LibraryPath>
     <LibraryWPath />
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>

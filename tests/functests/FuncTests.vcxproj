@@ -96,7 +96,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(WindowsSdk_71A_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
     <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);$(VC_LibraryPath_x64);</ExcludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
