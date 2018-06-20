@@ -23,7 +23,7 @@ public:
 
 #define LM_SAFE_CALL(method , ... )                 \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             instance-> method ( __VA_ARGS__);       \
@@ -34,7 +34,7 @@ public:
 
 #define LM_SAFE_CALL_PTR(method , ... )             \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             return instance-> method ( __VA_ARGS__);\
@@ -44,7 +44,7 @@ public:
 
 #define LM_SAFE_CALL_PTRREF(method , ... )          \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             return &(instance-> method ( __VA_ARGS__));\
@@ -54,10 +54,10 @@ public:
 
 #define LM_SAFE_CALL_VOID(method , ... )            \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
-            instance-> method ( __VA_ARGS__);      \
+            instance-> method ( __VA_ARGS__);       \
             return;                                 \
         }                                           \
     }
@@ -66,7 +66,7 @@ public:
 #define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
 #else
 #define LM_LOCKGUARD(macro_mutex)                   \
-    std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+    std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
 namespace ARIASDK_NS_BEGIN
@@ -117,7 +117,12 @@ namespace ARIASDK_NS_BEGIN
         /// Native code lock used for executing singleton state-management methods in a thread-safe manner.
         /// Managed code uses a different LogManagerLock.
         /// </summary>
-        static std::mutex           stateLock;
+        static std::mutex& stateLock()
+        {
+            // Magic static is thread-safe in C++
+            static std::mutex lock;
+            return lock;
+        }
 #endif
 
         /// <summary>
@@ -165,7 +170,7 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& configuration = currentConfig
         )
         {
-            LM_LOCKGUARD(stateLock);
+            LM_LOCKGUARD(stateLock());
             if (nullptr == instance)
             {
                 if (&configuration != &currentConfig)
@@ -569,7 +574,6 @@ namespace ARIASDK_NS_BEGIN
 // ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
     template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};              \
-    template<> std::mutex              LogManagerBase<LogConfigurationClass>::stateLock {};             \
     template<> std::string             LogManagerBase<LogConfigurationClass>::primaryToken {};          \
     template<> LogConfigurationClass   LogManagerBase<LogConfigurationClass>::currentConfig {};         \
     template<> DebugEventSource        LogManagerBase<LogConfigurationClass>::debugEventSource {};
