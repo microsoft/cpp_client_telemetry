@@ -23,7 +23,7 @@ public:
 
 #define LM_SAFE_CALL(method , ... )                 \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             instance-> method ( __VA_ARGS__);       \
@@ -34,7 +34,7 @@ public:
 
 #define LM_SAFE_CALL_PTR(method , ... )             \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             return instance-> method ( __VA_ARGS__);\
@@ -44,7 +44,7 @@ public:
 
 #define LM_SAFE_CALL_PTRREF(method , ... )          \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
             return &(instance-> method ( __VA_ARGS__));\
@@ -54,10 +54,10 @@ public:
 
 #define LM_SAFE_CALL_VOID(method , ... )            \
     {                                               \
-        LM_LOCKGUARD(stateLock);                    \
+        LM_LOCKGUARD(stateLock());                  \
         if (nullptr != instance)                    \
         {                                           \
-            instance-> method ( __VA_ARGS__);      \
+            instance-> method ( __VA_ARGS__);       \
             return;                                 \
         }                                           \
     }
@@ -66,7 +66,7 @@ public:
 #define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
 #else
 #define LM_LOCKGUARD(macro_mutex)                   \
-    std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+    std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
 namespace ARIASDK_NS_BEGIN
@@ -110,29 +110,22 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual ~LogManagerBase() {};
 
-    public:
-
 #ifndef _MANAGED
         /// <summary>
         /// Native code lock used for executing singleton state-management methods in a thread-safe manner.
         /// Managed code uses a different LogManagerLock.
         /// </summary>
-        static std::mutex           stateLock;
+        static std::mutex& stateLock()
+        {
+            // Magic static is thread-safe in C++
+            static std::mutex lock;
+            return lock;
+        }
 #endif
-
-        /// <summary>
-        /// Primary token of this LogManager singleton
-        /// </summary>
-        static std::string          primaryToken;
-
-        /// <summary>
-        /// Default configuration settings for this singleton
-        /// </summary>
-        static ModuleConfiguration  currentConfig;
 
         static inline bool isHost()
         {
-            return currentConfig[HOST_MODE];
+            return GetLogConfiguration()[HOST_MODE];
         }
 
         /// <summary>
@@ -143,7 +136,17 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Debug event source associated with this singleton
         /// </summary>
-        static DebugEventSource     debugEventSource;
+        static DebugEventSource& GetDebugEventSource()
+        {
+            static DebugEventSource debugEventSource;
+            return debugEventSource;
+        }
+
+        static const char* GetPrimaryToken()
+        {
+            ILogConfiguration& config = GetLogConfiguration();
+            return (const char *)(config[CFG_STR_PRIMARY_TOKEN]);
+        }
 
     public:
 
@@ -152,6 +155,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static ILogConfiguration& GetLogConfiguration()
         {
+            static ModuleConfiguration currentConfig;
             return currentConfig;
         }
 
@@ -161,13 +165,16 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <returns>A logger instance instantiated with the tenantToken</returns>
         static ILogger* Initialize(
-            const std::string& tenantToken = primaryToken,
-            ILogConfiguration& configuration = currentConfig
+            std::string tenantToken = "",
+            ILogConfiguration& configuration = GetLogConfiguration()
         )
         {
-            LM_LOCKGUARD(stateLock);
+            LM_LOCKGUARD(stateLock());
+            ILogConfiguration& currentConfig = GetLogConfiguration();
+
             if (nullptr == instance)
             {
+                // Copy alternate configuration into currentConfig
                 if (&configuration != &currentConfig)
                 {
                     currentConfig.insert(configuration.begin(), configuration.end());
@@ -175,20 +182,16 @@ namespace ARIASDK_NS_BEGIN
 
                 if (!tenantToken.empty())
                 {
-                    primaryToken = tenantToken;
-                    currentConfig[CFG_STR_PRIMARY_TOKEN] = primaryToken;
+                    currentConfig[CFG_STR_PRIMARY_TOKEN] = tenantToken.c_str();
+                }
+                else {
+                    // Assume that if token isn't provided, then it's part of config
+                    tenantToken = (const char *)currentConfig[CFG_STR_PRIMARY_TOKEN];
                 }
 
                 status_t status = STATUS_SUCCESS;
                 instance = LogManagerProvider::CreateLogManager(currentConfig, status);
-                if (tenantToken.empty())
-                {
-                    // If there was no token supplied, get one from current instance
-                    // configuration
-                    primaryToken = (const char *)configuration[CFG_STR_PRIMARY_TOKEN];
-                }
-
-                instance->AttachEventSource(debugEventSource);
+                instance->AttachEventSource(GetDebugEventSource());
             }
             else {
                 // TODO: [MG] - decide what to do if someone's doing re-Initialize.
@@ -217,6 +220,7 @@ namespace ARIASDK_NS_BEGIN
             auto result = callFTD();
             if (instance)
             {
+                ILogConfiguration& currentConfig = GetLogConfiguration();
                 result = LogManagerProvider::Release(currentConfig);
                 instance = nullptr;
             }
@@ -474,7 +478,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns>Pointer to the Ilogger interface of an logger instance</returns>
         static ILogger* GetLogger()
-            LM_SAFE_CALL_PTR(GetLogger, primaryToken);
+            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken());
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -482,7 +486,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="source">Source name of events sent by this logger instance</param>
         /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
         static ILogger* GetLogger(const std::string& source)
-            LM_SAFE_CALL_PTR(GetLogger, primaryToken, source);
+            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken(), source);
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -504,7 +508,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static void AddEventListener(DebugEventType type, DebugEventListener &listener)
         {
-            debugEventSource.AddEventListener(type, listener);
+            GetDebugEventSource().AddEventListener(type, listener);
         }
 
         /// <summary>
@@ -512,7 +516,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static void RemoveEventListener(DebugEventType type, DebugEventListener &listener)
         {
-            debugEventSource.RemoveEventListener(type, listener);
+            GetDebugEventSource().RemoveEventListener(type, listener);
         }
 
         /// <summary>
@@ -521,7 +525,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="type">One of the DebugEventType enumeration types.</param>
         static bool DispatchEvent(DebugEventType type)
         {
-            return debugEventSource.DispatchEvent(type);
+            return GetDebugEventSource().DispatchEvent(type);
         }
 
         /// <summary>
@@ -530,7 +534,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="evt">A reference to a DebugEvent object.</param>
         static bool DispatchEvent(DebugEvent evt)
         {
-            return debugEventSource.DispatchEvent(std::move(evt));
+            return GetDebugEventSource().DispatchEvent(std::move(evt));
         }
 
         /// <summary>
@@ -558,21 +562,18 @@ namespace ARIASDK_NS_BEGIN
     };
 
 // Implements LogManager<T> singleton template static  members
-#ifdef _MANAGED
-// Declaration for managed MSVC compiler
+#if defined(_MANAGED) || defined(_MSC_VER)
+// Definition that is compatible with managed and native code compiled with MSVC.
+// Unfortuantey we can't use ISO C++11 template definitions because of compiler bug
+// that causes improper global static templated member initialization:
+// https://developercommunity.visualstudio.com/content/problem/134886/initialization-of-template-static-variable-wrong.html
+//
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                           \
-    ILogManager*            LogManagerClass::instance;                                      \
-    std::string             LogManagerClass::primaryToken;                                  \
-    LogConfigurationClass   LogManagerClass::currentConfig;                                 \
-    DebugEventSource        LogManagerClass::debugEventSource;
+    ILogManager*            LogManagerClass::instance      = nullptr;
 #else
 // ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
-    template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};              \
-    template<> std::mutex              LogManagerBase<LogConfigurationClass>::stateLock {};             \
-    template<> std::string             LogManagerBase<LogConfigurationClass>::primaryToken {};          \
-    template<> LogConfigurationClass   LogManagerBase<LogConfigurationClass>::currentConfig {};         \
-    template<> DebugEventSource        LogManagerBase<LogConfigurationClass>::debugEventSource {};
+    template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};
 #endif
 
 } ARIASDK_NS_END
