@@ -67,8 +67,9 @@ namespace ARIASDK_NS_BEGIN {
             if (result)
             {
                 IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
-                eventGenerated(event); // FIXME: [MG] - Error #26: POSSIBLE LEAK 168 direct bytes + 1653 indirect bytes
-                m_iTelemetrySystem.sendEvent(event); // TODO: delete event
+                eventGenerated(event);
+                m_iTelemetrySystem.sendEvent(event);
+                delete event;
             }
             else
             {
