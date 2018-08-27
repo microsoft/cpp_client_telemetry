@@ -1,414 +1,32 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "MetaStats.hpp"
-#include <utils/Utils.hpp>
-#include <algorithm>
 
-#include <Config.hpp>
+#include <utils/Utils.hpp>
 
 namespace ARIASDK_NS_BEGIN {
-
-    /// <summary>
-    ///  Maximum number of priorities supported.
-    ///  This needs to be kept in sync with EventLatency in API
-    /// </summary>
-    static int const g_EventLatency_Count = 5;
-
-    /// <summary>
-    /// Define a new name for a map whose key, value are both unsigned int.
-    /// </summary>
-    typedef std::map<unsigned int, unsigned int> uint_uint_dict_t;
-
-    /// <summary>
-    /// Define a new name for a map whose key is string and value is unsigned int.
-    /// </summary>
-    typedef std::map<std::string, unsigned int> string_uint_dict_t;
-
-    /// <summary>
-    /// Define a new name for a map to store information per source and event type.
-    /// </summary>
-    typedef std::map<std::string, std::map<std::string, unsigned int>> eventsMap;
 
     /// <summary>
     /// Lock metaStats counts when rejected events come in via a separate thread
     /// </summary>
     static std::mutex rejected_callback_mtx;
-
+    
     /// <summary>
-    /// A structure defining some configurations used in collecting stats,
-    /// including sending frequency and frequency distributions of multiple data sets.
+    /// Converts RollUpKind enum value to string name.
     /// </summary>
-    struct StatsConfig
-    {
-        /// The first positive spot for the frequency distribution of rtt.
-        /// <100ms, 100ms~200ms, 200ms~400ms, 400ms~800ms, 800ms~1600ms, 1600s~3200ms, >3200ms
-        unsigned int rtt_first_duration_in_millisecs;
-
-        /// The factor used to calculate next spot of frequency distribution of rtt.
-        unsigned int rtt_next_factor;
-
-        /// The total spots of frequency distribution of rtt.
-        unsigned int rtt_total_spots;
-
-        /// The first positive spot for the frequency distribution of latency.
-        /// <100ms, 100ms~200ms, 200ms~400ms, 400ms~800ms, 800ms~1600ms, 1600s~3200ms, >3200ms
-        unsigned int latency_first_duration_in_millisecs;
-
-        /// The factor used to calculate next spot of frequency distribution of latency.
-        unsigned int latency_next_factor;
-
-        /// The total spots of frequency distribution of latency.
-        unsigned int latency_total_spots;
-
-        /// The first positive spot for the frequency distribution of record size.
-        /// <1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB
-        unsigned int record_size_first_in_kb; // unit: kb
-
-        /// The factor used to calculate next spot of frequency distribution for record size.
-        unsigned int record_size_next_factor;
-
-        /// The total spots of frequency distribution of record size.
-        unsigned int record_size_total_spots;
-
-        /// The first positive spot for the frequency distribution for saved size,
-        /// overwritten size.
-        /// <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB
-        unsigned int storage_size_first_in_kb;
-
-        /// The factor used to calculate next spot of frequency distribution
-        /// for saved size, overwritten size.
-        unsigned int storage_size_next_factor;
-
-        /// The total spots of frequency distribution for saved size
-        unsigned int storage_size_total_spots;
-
-        /// A Constructor. \n
-        /// Set internal configurations of TelemetryStats, including sending frequency of the stats and
-        /// default group partitions of each frequency distribution
-        StatsConfig()
-        {
-            //define the group partitions for the frequency distribution of round trip time
-            rtt_first_duration_in_millisecs = STATS_RTT_FIRST_DURATION_IN_MILLISECS;  // in milliseconds
-            rtt_next_factor = STATS_RTT_NEXT_FACTOR;
-            rtt_total_spots = STATS_RTT_TOTAL_SPOTS;
-
-            //define the group partitions for the frequency distribution of latency
-            latency_first_duration_in_millisecs = STATS_LATENCY_FIRST_DURATION_IN_MILLISECS;  // in milliseconds
-            latency_next_factor = STATS_LATENCY_NEXT_FACTOR;
-            latency_total_spots = STATS_LATENCY_TOTAL_SPOTS;
-
-            //define the group partitions for the frequency distribution of single record size
-            record_size_first_in_kb = STATS_RECORD_SIZE_FIRST_IN_KB; //in kilobytes
-            record_size_next_factor = STATS_RECORD_SIZE_NEXT_FACTOR;
-            record_size_total_spots = STATS_RECORD_SIZE_TOTAL_SPOTS;
-
-            //define the group partitions for the frequency distribution of size saved and
-            //overwritten each time in the storage
-            storage_size_first_in_kb = STATS_STORAGE_SIZE_FIRST_IN_KB; //in kilobytes
-            storage_size_next_factor = STATS_STORAGE_SIZE_NEXT_FACTOR;
-            storage_size_total_spots = STATS_STORAGE_SIZE_TOTAL_SPOTS;
-        }
-    };
-
-    /// <summary>
-    /// A structure to define all the telemetry statistics.
-    /// </summary>
-    struct TelemetryStats
-    {
-        /// tenant Id
-        std::string tenantId;
-
-        /// ui version
-        std::string uiVersion;
-
-        /// clienttelemetry::VER
-        int configVersion;
-
-        /// ecsclient::VER
-        int ecsConfigVersion;
-
-        // The maximum in-memory cache size in bytes
-        unsigned int configInmemoryCacheSizeBytes;
-
-        /// true if offline storage is enabled.
-        bool offlineStorageEnabled;
-
-        /// true if resource manager is enabled.
-        bool resourceManagerEnabled;
-
-        /// true if ecs client is used
-        bool ecsClientEnabled;
-
-        /// a guid created when starting the SCT client.
-        std::string sessionId;
-
-        /// the utc timestamp of starting the SCT client.
-        int64_t sessionStartTimestamp;
-
-        /// the utc timestamp of starting the SCT client.
-        int64_t session_startup_time_in_millisec;
-
-        /// the utc timestamp of starting collecting new telemetry stats.
-        int64_t statsStartTimestamp;
-
-        /// the sequence number of the new telemetry stats within the session as indicated by the sessionId
-        int64_t statsSequenceNum;
-
-        /// a structure on package stats.
-        struct PackageStats
-        {
-            /// total number of package send AND expect to be acknowledged
-            unsigned int totalPkgsToBeAcked;
-
-            /// total number of package send AND expect to be acknowledged with metastats events only
-            unsigned int totalMetastatsOnlyPkgsToBeAcked;
-
-            /// total number of package send AND don't expect to be acknowledged (fire and forget)
-            unsigned int totalPkgsNotToBeAcked;
-
-            /// total number of package sends that are acknowledged
-            unsigned int totalPkgsAcked;
-
-            /// total number of package sends that are acknowledged with metastats events only
-            unsigned int totalMetastatsOnlyPkgsAcked;
-
-            /// number of successful package sends that are acknowledged
-            unsigned int successPkgsAcked;
-
-            /// number of failed package sends that are acknowledged and deemed to be retried
-            unsigned int retryPkgsAcked;
-
-            /// number of dropped package sends that are acknowledged and deemed to be dropped
-            unsigned int dropPkgsAcked;
-
-            /// key: error code
-            /// value: number of dropped packages per each HTTP return code
-            uint_uint_dict_t dropPkgsPerHttpReturnCode;
-
-            uint_uint_dict_t retryPkgsPerHttpReturnCode;
-
-            /// the total size of packages
-            unsigned int totalBandwidthConsumedInBytes;
-
-            /// reset all members
-            void Reset()
-            {
-                totalPkgsNotToBeAcked = 0;
-                totalPkgsToBeAcked = 0;
-                totalMetastatsOnlyPkgsToBeAcked = 0;
-                totalPkgsAcked = 0;
-                totalMetastatsOnlyPkgsAcked = 0;
-                successPkgsAcked = 0;
-                dropPkgsAcked = 0;
-                retryPkgsAcked = 0;
-                totalBandwidthConsumedInBytes = 0;
-            }
-        } packageStats;
-
-        /// a structure on httpstack retries
-        struct InternalHttpStackRetriesStats
-        {
-            ///key: internal httpstack retries count: 0, 1, 2, 3. 4 \n
-            ///value: the count of packages, whose retries number equals to given key
-            uint_uint_dict_t retriesCountDistribution;
-        } internalHttpStackRetriesStats;
-
-        /// a structure on latency stats
-        struct LatencyStats
-        {
-            /// max latency
-            unsigned int maxOfLatencyInMilliSecs;
-
-            /// min latency
-            unsigned int minOfLatencyInMilliSecs;
-
-            /// <100ms, 100ms~200ms, 200ms~400ms, 400ms~800ms, 800ms~1600ms, 1600s~3200ms, >3200ms \n
-            /// key: min value of each range \n
-            /// value: the number of success packages with latency in given range \n
-            uint_uint_dict_t latencyDistribution;
-
-            /// reset all members
-            void Reset()
-            {
-                maxOfLatencyInMilliSecs = static_cast<unsigned int>(0);
-                minOfLatencyInMilliSecs = static_cast<unsigned int>(~0);
-            }
-        } rttStats, logToSuccessfulSendLatencyPerLatency[g_EventLatency_Count];
-
-        /// a structure on record stats
-        struct RecordStats
-        {
-            /// total number of records received
-            unsigned int bannedCount;
-
-            /// total number of records received
-            unsigned int receivedCount;
-
-            /// total number of metastats records received
-            unsigned int receivedMetastatsCount;
-
-            /// the number of records rejected by SDK
-            unsigned int rejectedCount;
-
-            /// distribution of records count by reason due to which record was rejected
-            unsigned int rejectedCountReasonDistribution[gc_NumRejectedReasons];
-
-            /// the number of dropped records
-            unsigned int droppedCount;
-
-            /// the number of overflown records
-            unsigned int overflownCount;
-
-            /// distribution of records count by reason due to which record was dropped
-            unsigned int droppedCountReasonDistribution[gc_NumDroppedReasons];
-
-            /// key: http return code
-            /// value: the number of records declined by collector (either rejected or dropped due to server error) per each HTTP return code
-            uint_uint_dict_t droppedCountPerHttpReturnCode;
-
-            /// the number of sent records
-            unsigned int sentCount;
-
-            /// the number of sent records from the current session
-            unsigned int sentCountFromCurrentSession;
-
-            /// the number of sent records from previous sessions
-            unsigned int sentCountFromPreviousSession;
-
-            /// the delta of events added/removed from in flight
-            unsigned int inflightCount;
-
-            /// the total number of records per semantic
-            std::map<std::string, unsigned int> semanticToRecordCountMap;
-
-            /// TODO: do we need this anymore if we are going to count the reasons frop dropping events?
-            /// the total number of exceptions per semantic
-            std::map<std::string, unsigned int> semanticToExceptionCountMap;
-
-            /// min record size
-            unsigned int minOfRecordSizeInBytes;
-
-            /// max record size
-            unsigned int maxOfRecordSizeInBytes;
-
-            /// total records' size in bytes
-            unsigned int totalRecordsSizeInBytes;
-
-            ///<1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB \n
-            ///key: min value of each size range \n
-            ///value: the number of records with size in given range
-            uint_uint_dict_t sizeInKBytesDistribution;
-
-            /// min record size which is dropped in SendAsync
-            unsigned int minOfDroppedRecordSizeInBytes;
-
-            /// max record size which is dropped in SendAsync
-            unsigned int maxOfDroppedRecordSizeInBytes;
-
-            /// reset all members
-            void Reset()
-            {
-                bannedCount = 0;
-                receivedCount = 0;
-                receivedMetastatsCount = 0;
-                droppedCount = 0;
-                rejectedCount = 0;
-                sentCount = 0;
-                sentCountFromCurrentSession = 0;
-                sentCountFromPreviousSession = 0;
-                inflightCount = 0;
-                minOfRecordSizeInBytes = static_cast<unsigned int>(~0);
-                maxOfRecordSizeInBytes = 0;
-                totalRecordsSizeInBytes = 0;
-                minOfDroppedRecordSizeInBytes = static_cast<unsigned int>(~0);;
-                maxOfDroppedRecordSizeInBytes = 0;
-                std::fill_n(droppedCountReasonDistribution, gc_NumDroppedReasons, 0);
-                std::fill_n(rejectedCountReasonDistribution, gc_NumRejectedReasons, 0);
-            }
-        } recordStats, recordStatsPerLatency[g_EventLatency_Count];
-
-        /// a structure on offline storage stats
-        struct OfflineStorageStats
-        {
-            /// storage format
-            std::string storageFormat;
-
-            std::string lastFailureReason;
-
-            /// storage file size
-            size_t fileSizeInBytes;
-
-            /// the total number of load invoked
-            unsigned int loadCalled;
-
-            /// the total number of save invoked
-            unsigned int saveCalled;
-
-            /// the number of successful save invoked
-            unsigned int successSaveCalled;
-
-            /// the number of times save failed
-            unsigned int failedSaveCalled;
-
-            /// the total number of overwritten invoked among all save operations
-            unsigned int overwrittenInvoked;
-
-            /// The number of records saved
-            unsigned int recordSavedCount;
-
-            /// The number of records retrieved
-            unsigned int recordRetrievedCount;
-
-            /// Records currently in online storage;
-            // ++ with recordSavedCount, -- with recordRetrievedCount; can be negative
-            int inOnlineCount;
-
-            /// The number of records dropped while saving
-            unsigned int recordDroppedCount;
-
-            /// <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB \n
-            /// key: min value of each size range \n
-            /// value: the number of save operation for FiFoFile with saved size in given range
-            uint_uint_dict_t saveSizeInKBytesDistribution;
-
-            /// <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB \n
-            /// key: min value of each size range \n
-            /// value: the number of successful save operation for FiFoFile with saved size in given range
-            uint_uint_dict_t successSaveSizeInKBytesDistribution;
-
-            /// <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB \n
-            /// key: min value of each size range \n
-            // value: the number of overwritten operation for FiFoFile with overwritten size in given range
-            uint_uint_dict_t overwrittenSizeInKBytesDistribution;
-
-            /// reset all members
-            void Reset()
-            {
-                fileSizeInBytes = 0;
-                loadCalled = 0;
-                saveCalled = 0;
-                successSaveCalled = 0;
-                failedSaveCalled = 0;
-                overwrittenInvoked = 0;
-                recordSavedCount = 0;
-                recordDroppedCount = 0;
-                recordRetrievedCount = 0;
-                inOnlineCount = 0;
-            }
-        } offlineStorageStats;
-    };
-
-
+    /// <param name="rollupKind">Kind of the rollup.</param>
+    /// <returns></returns>
     static char const* RollUpKindToString(RollUpKind rollupKind)
     {
         switch (rollupKind) {
-        case ACT_STATS_ROLLUP_KIND_START:   return "start";
-
-        case ACT_STATS_ROLLUP_KIND_STOP:    return "stop";
-
-        case ACT_STATS_ROLLUP_KIND_ONGOING: return "ongoing";
-
-        default:                            return "unknown";
+        case ACT_STATS_ROLLUP_KIND_START:
+            return "start";
+        case ACT_STATS_ROLLUP_KIND_STOP:
+            return "stop";
+        case ACT_STATS_ROLLUP_KIND_ONGOING:
+            return "ongoing";
+        default:
+            return "unknown";
         }
     }
 
@@ -475,8 +93,8 @@ namespace ARIASDK_NS_BEGIN {
     /// Only Clear values of each frequency distribution while keys are maintained.
     /// </summary>
     /// <param name="distribution">map<T, unsigned int></param>
-    template<typename T>
-    void clearMapValues(std::map<T, unsigned int>& distribution)
+    template<typename T, typename V>
+    void clearMapValues(std::map<T, V>& distribution)
     {
         for (auto& item : distribution) {
             item.second = 0;
@@ -617,7 +235,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="record">BondTypes::Record</param>
     /// <param name="recordsRejectedCountReasonDistribution">count of rejected records by reason due to which records were rejected</param>
-    static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::Record& record, const unsigned int recordsRejectedCountByReasonDistribution[])
+    static void addRecordsPerRejectedReasonToRecordFields(::AriaProtocol::Record& record, uint_uint_dict_t& recordsRejectedCountByReasonDistribution)
     {
         if (record.data.size() == 0)
         {
@@ -627,143 +245,135 @@ namespace ARIASDK_NS_BEGIN {
 
         std::map<std::string, ::AriaProtocol::Value>& extension = record.data[0].properties;
 
-        insertNonZero(extension, "r_inv", recordsRejectedCountByReasonDistribution[REJECTED_REASON_INVALID_CLIENT_MESSAGE_TYPE]);
-        insertNonZero(extension, "r_inv", recordsRejectedCountByReasonDistribution[REJECTED_REASON_REQUIRED_ARGUMENT_MISSING]);
-        insertNonZero(extension, "r_inv", recordsRejectedCountByReasonDistribution[REJECTED_REASON_EVENT_NAME_MISSING]);
-        insertNonZero(extension, "r_inv", recordsRejectedCountByReasonDistribution[REJECTED_REASON_VALIDATION_FAILED]);
-        insertNonZero(extension, "r_inv", recordsRejectedCountByReasonDistribution[REJECTED_REASON_OLD_RECORD_VERSION]);
-        insertNonZero(extension, "r_exp", recordsRejectedCountByReasonDistribution[REJECTED_REASON_EVENT_EXPIRED]);
-        insertNonZero(extension, "r_403", recordsRejectedCountByReasonDistribution[REJECTED_REASON_SERVER_DECLINED]);
-        insertNonZero(extension, "r_kl", recordsRejectedCountByReasonDistribution[REJECTED_REASON_TENANT_KILLED]);
+        insertNonZero(extension, "r_inv",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_INVALID_CLIENT_MESSAGE_TYPE]);
+        insertNonZero(extension, "r_inv",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_REQUIRED_ARGUMENT_MISSING]);
+        insertNonZero(extension, "r_inv",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_EVENT_NAME_MISSING]);
+        insertNonZero(extension, "r_inv",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_VALIDATION_FAILED]);
+        insertNonZero(extension, "r_inv",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_OLD_RECORD_VERSION]);
+        insertNonZero(extension, "r_exp",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_EVENT_EXPIRED]);
+        insertNonZero(extension, "r_403",  recordsRejectedCountByReasonDistribution[REJECTED_REASON_SERVER_DECLINED]);
+        insertNonZero(extension, "r_kl",   recordsRejectedCountByReasonDistribution[REJECTED_REASON_TENANT_KILLED]);
         insertNonZero(extension, "r_size", recordsRejectedCountByReasonDistribution[REJECTED_REASON_EVENT_SIZE_LIMIT_EXCEEDED]);
     }
 
-    //---
-
-    // ARIASDK_LOG_INST_COMPONENT_CLASS(MetaStats, "EventsSDK.MetaStats", "Aria SDK statistics");
-
     MetaStats::MetaStats(IRuntimeConfig& config)
         :
-        m_config(config),
-        m_statsConfig(new StatsConfig),
-        m_telemetryStats(new TelemetryStats)
+        m_config(config)
     {
-        m_telemetryStats->statsStartTimestamp = PAL::getUtcSystemTimeMs();
-        m_telemetryStats->session_startup_time_in_millisec = m_telemetryStats->statsStartTimestamp;
+        m_telemetryStats.statsStartTimestamp = PAL::getUtcSystemTimeMs();
+        m_telemetryStats.session_startup_time_in_millisec = m_telemetryStats.statsStartTimestamp;
         resetStats(true);
         //TODO: extend IRuntimeConfig to include these vars
-        m_telemetryStats->offlineStorageEnabled = true;
-        m_telemetryStats->resourceManagerEnabled = false;
-        m_telemetryStats->ecsClientEnabled = false;
+        m_telemetryStats.offlineStorageEnabled = true;
+        m_telemetryStats.resourceManagerEnabled = false;
+        m_telemetryStats.ecsClientEnabled = false;
     }
 
     MetaStats::~MetaStats()
     {
-        for (auto tenantStat : m_telemetryTenantStats)
-        {
-            delete tenantStat.second;
-        }
-        m_telemetryTenantStats.clear();
     }
-
+    
+    /// <summary>
+    /// Resets the stats.
+    /// </summary>
+    /// <param name="start">if set to <c>true</c> [start].</param>
     void MetaStats::resetStats(bool start)
     {
-        LOG_TRACE("resetStats");
-
-        for (auto tenantStats : m_telemetryTenantStats)
+        LOG_TRACE("resetStats start=%u", (unsigned)start);
+        for (auto &tenantStats : m_telemetryTenantStats)
         {
-            TelemetryStats* telemetryStats = tenantStats.second;
+            TelemetryStats& telemetryStats = tenantStats.second;
+
             //clear packageStats
-            TelemetryStats::PackageStats& packageStats = telemetryStats->packageStats;
-            packageStats.Reset();
+            telemetryStats.packageStats.Reset();
 
             //clear rttStats
-            TelemetryStats::LatencyStats& rttStats = telemetryStats->rttStats;
+            auto& rttStats = telemetryStats.rttStats;
             rttStats.Reset();
 
-            // clear sdkToCollectorLatencyPerPriority stats
-            for (auto& item : telemetryStats->logToSuccessfulSendLatencyPerLatency) {
-                item.Reset();
-            }
+            //clear logToSuccessfulSendLatencyPerLatency stats
+            telemetryStats.logToSuccessfulSendLatencyPerLatency.clear();
 
             //clear recordStats
-            TelemetryStats::RecordStats& recordStats = telemetryStats->recordStats;
+            auto& recordStats = telemetryStats.recordStats;
             recordStats.Reset();
 
             //clear recordStatsPerPriority
-            for (auto& item : telemetryStats->recordStatsPerLatency) {
-                item.Reset();
+            for (auto& kv : telemetryStats.recordStatsPerLatency) {
+                kv.second.Reset();
             }
 
             //clear offlineStorageStats
-            TelemetryStats::OfflineStorageStats& storageStats = telemetryStats->offlineStorageStats;
+            OfflineStorageStats& storageStats = telemetryStats.offlineStorageStats;
             storageStats.Reset();
 
-            telemetryStats->statsStartTimestamp = PAL::getUtcSystemTimeMs();
+            telemetryStats.statsStartTimestamp = PAL::getUtcSystemTimeMs();
 
             if (start) {
-                telemetryStats->statsSequenceNum = 0;
-                telemetryStats->sessionStartTimestamp = telemetryStats->statsStartTimestamp;
-                telemetryStats->sessionId = PAL::generateUuidString();
-                LOG_TRACE("session start, session ID: %s", telemetryStats->sessionId.c_str());
+                telemetryStats.statsSequenceNum = 0;
+                telemetryStats.sessionStartTimestamp = telemetryStats.statsStartTimestamp;
+                telemetryStats.sessionId = PAL::generateUuidString();
+                LOG_TRACE("session start, session ID: %s", telemetryStats.sessionId.c_str());
 
-                initDistributionKeys(m_statsConfig->rtt_first_duration_in_millisecs, m_statsConfig->rtt_next_factor,
-                    m_statsConfig->rtt_total_spots, rttStats.latencyDistribution);
+                initDistributionKeys(m_statsConfig.rtt_first_duration_in_millisecs, m_statsConfig.rtt_next_factor,
+                    m_statsConfig.rtt_total_spots, rttStats.latencyDistribution);
 
-                for (auto& item : telemetryStats->logToSuccessfulSendLatencyPerLatency) {
-                    initDistributionKeys(m_statsConfig->latency_first_duration_in_millisecs, m_statsConfig->latency_next_factor,
-                        m_statsConfig->latency_total_spots, item.latencyDistribution);
+                for (auto& item : telemetryStats.logToSuccessfulSendLatencyPerLatency) {
+                    initDistributionKeys(m_statsConfig.latency_first_duration_in_millisecs, m_statsConfig.latency_next_factor,
+                        m_statsConfig.latency_total_spots, item.second.latencyDistribution);
                 }
 
-                initDistributionKeys(m_statsConfig->record_size_first_in_kb, m_statsConfig->record_size_next_factor,
-                    m_statsConfig->record_size_total_spots, recordStats.sizeInKBytesDistribution);
+                initDistributionKeys(m_statsConfig.record_size_first_in_kb, m_statsConfig.record_size_next_factor,
+                    m_statsConfig.record_size_total_spots, recordStats.sizeInKBytesDistribution);
 
-                if (telemetryStats->offlineStorageEnabled) {
-                    initDistributionKeys(m_statsConfig->storage_size_first_in_kb, m_statsConfig->storage_size_next_factor,
-                        m_statsConfig->storage_size_total_spots, storageStats.saveSizeInKBytesDistribution);
-                    initDistributionKeys(m_statsConfig->storage_size_first_in_kb, m_statsConfig->storage_size_next_factor,
-                        m_statsConfig->storage_size_total_spots, storageStats.overwrittenSizeInKBytesDistribution);
+                if (telemetryStats.offlineStorageEnabled) {
+                    initDistributionKeys(m_statsConfig.storage_size_first_in_kb, m_statsConfig.storage_size_next_factor,
+                        m_statsConfig.storage_size_total_spots, storageStats.saveSizeInKBytesDistribution);
+                    initDistributionKeys(m_statsConfig.storage_size_first_in_kb, m_statsConfig.storage_size_next_factor,
+                        m_statsConfig.storage_size_total_spots, storageStats.overwrittenSizeInKBytesDistribution);
                 }
             }
             else {
-                LOG_TRACE("ongoing stats, session ID: %s", telemetryStats->sessionId.c_str());
-                telemetryStats->statsSequenceNum += 1;
-                packageStats.dropPkgsPerHttpReturnCode.clear();
-                packageStats.retryPkgsPerHttpReturnCode.clear();
+                LOG_TRACE("ongoing stats, session ID: %s", telemetryStats.sessionId.c_str());
+                telemetryStats.statsSequenceNum += 1;
+                telemetryStats.packageStats.dropPkgsPerHttpReturnCode.clear();
+                telemetryStats.packageStats.retryPkgsPerHttpReturnCode.clear();
 
-                TelemetryStats::InternalHttpStackRetriesStats& httpstackStats = telemetryStats->internalHttpStackRetriesStats;
-                httpstackStats.retriesCountDistribution.clear();
+                telemetryStats.retriesCountDistribution.clear();
 
                 clearMapValues(rttStats.latencyDistribution);
 
-                for (auto& item : telemetryStats->logToSuccessfulSendLatencyPerLatency) {
-                    clearMapValues(item.latencyDistribution);
-                }
+                telemetryStats.logToSuccessfulSendLatencyPerLatency.clear();
 
                 clearMapValues(recordStats.semanticToRecordCountMap);
                 clearMapValues(recordStats.semanticToExceptionCountMap);
                 clearMapValues(recordStats.sizeInKBytesDistribution);
 
-                // FIXME: [MG] - crash here on map clear
                 recordStats.droppedCountPerHttpReturnCode.clear();
 
-                if (telemetryStats->offlineStorageEnabled) {
+                if (telemetryStats.offlineStorageEnabled) {
                     clearMapValues(storageStats.saveSizeInKBytesDistribution);
                     clearMapValues(storageStats.overwrittenSizeInKBytesDistribution);
                 }
             }
         }
     }
-
+    
+    /// <summary>
+    /// Saves private snap stats to record.
+    /// </summary>
+    /// <param name="records">The records.</param>
+    /// <param name="rollupKind">Kind of the rollup.</param>
+    /// <param name="telemetryStats">The telemetry stats.</param>
     void MetaStats::privateSnapStatsToRecord(std::vector< ::AriaProtocol::Record>& records,
         RollUpKind rollupKind,
-        TelemetryStats* telemetryStats)
+        TelemetryStats& telemetryStats)
     {
         ::AriaProtocol::Record record;
         record.baseType = "act_stats";
 
         ::AriaProtocol::Value temp;
-        temp.stringValue = telemetryStats->sessionId;
+        temp.stringValue = telemetryStats.sessionId;
 
         if (record.data.size() == 0)
         {
@@ -782,17 +392,17 @@ namespace ARIASDK_NS_BEGIN {
         record.name = "stats";
 
         // session fileds
-        insertNonZero(ext, "s_stime", telemetryStats->sessionStartTimestamp);
-        insertNonZero(ext, "stats_stime", telemetryStats->statsStartTimestamp);
-        insertNonZero(ext, "s_Firststime", telemetryStats->session_startup_time_in_millisec);
+        insertNonZero(ext, "s_stime", telemetryStats.sessionStartTimestamp);
+        insertNonZero(ext, "stats_stime", telemetryStats.statsStartTimestamp);
+        insertNonZero(ext, "s_Firststime", telemetryStats.session_startup_time_in_millisec);
         insertNonZero(ext, "stats_etime", PAL::getUtcSystemTimeMs());
         ::AriaProtocol::Value rollupKindValue;
         rollupKindValue.stringValue = RollUpKindToString(rollupKind);
         ext["stats_rollup_kind"] = rollupKindValue;
         insertNonZero(ext, "st_freq", m_config.GetMetaStatsSendIntervalSec());
 
-        if (telemetryStats->offlineStorageEnabled) {
-            const TelemetryStats::OfflineStorageStats& storageStats = telemetryStats->offlineStorageStats;
+        if (telemetryStats.offlineStorageEnabled) {
+            OfflineStorageStats& storageStats = telemetryStats.offlineStorageStats;
             ::AriaProtocol::Value storageFormatValue;
             storageFormatValue.stringValue = storageStats.storageFormat;
             ext["off_type"] = storageFormatValue;
@@ -806,7 +416,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         //package stats
-        const TelemetryStats::PackageStats& packageStats = telemetryStats->packageStats;
+        PackageStats& packageStats = telemetryStats.packageStats;
         insertNonZero(ext, "rqs_not_to_be_acked", packageStats.totalPkgsNotToBeAcked);
         insertNonZero(ext, "rqs_to_be_acked", packageStats.totalPkgsToBeAcked);
         insertNonZero(ext, "rqs_acked", packageStats.totalPkgsAcked);
@@ -822,20 +432,20 @@ namespace ARIASDK_NS_BEGIN {
         if (packageStats.totalPkgsAcked > 0) {
             LOG_TRACE("httpstack_retries stats is added to record extension field");
             addAggregatedMapToRecordFields(record, "rqs_fail_on_HTTP_retries_count_distribution",
-                telemetryStats->internalHttpStackRetriesStats.retriesCountDistribution, false);
+                telemetryStats.retriesCountDistribution, false);
         }
 
         //RTTStats
         if (packageStats.successPkgsAcked > 0) {
             LOG_TRACE("rttStats is added to record ext field");
-            const TelemetryStats::LatencyStats& rttStats = telemetryStats->rttStats;
+            LatencyStats& rttStats = telemetryStats.rttStats;
             insertNonZero(ext, "rtt_millisec_max", rttStats.maxOfLatencyInMilliSecs);
             insertNonZero(ext, "rtt_millisec_min", rttStats.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "rtt_millisec_distribution", rttStats.latencyDistribution);
         }
 
         //RecordStats
-        const TelemetryStats::RecordStats& recordStats = telemetryStats->recordStats;
+        RecordStats& recordStats = telemetryStats.recordStats;
 
         insertNonZero(ext, "r_ban", recordStats.bannedCount);//records_banned_count
 
@@ -867,7 +477,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         // Low priority RecordStats
-        const TelemetryStats::RecordStats& lowPriorityrecordStats = telemetryStats->recordStatsPerLatency[EventLatency_Normal];
+        const RecordStats& lowPriorityrecordStats = telemetryStats.recordStatsPerLatency[EventLatency_Normal];
         insertNonZero(ext, "ln_r_ban", lowPriorityrecordStats.bannedCount);
         insertNonZero(ext, "ln_rcv", lowPriorityrecordStats.receivedCount);
         insertNonZero(ext, "ln_snt", lowPriorityrecordStats.sentCount);
@@ -882,14 +492,14 @@ namespace ARIASDK_NS_BEGIN {
             insertNonZero(ext, "ln_rcds_received_size_bytes", lowPriorityrecordStats.totalRecordsSizeInBytes);
         }
         if (lowPriorityrecordStats.sentCount > 0) {
-            const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyLow = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_Normal];
+            LatencyStats& logToSuccessfulSendLatencyLow = telemetryStats.logToSuccessfulSendLatencyPerLatency[EventLatency_Normal];
             insertNonZero(ext, "ln_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyLow.maxOfLatencyInMilliSecs);
             insertNonZero(ext, "n_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyLow.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "ln_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyLow.latencyDistribution);
         }
 
         // Normal priority RecordStats
-        const TelemetryStats::RecordStats& normalPriorityrecordStats = telemetryStats->recordStatsPerLatency[EventLatency_CostDeferred];
+        const RecordStats& normalPriorityrecordStats = telemetryStats.recordStatsPerLatency[EventLatency_CostDeferred];
         insertNonZero(ext, "ld_r_ban", normalPriorityrecordStats.bannedCount);
         insertNonZero(ext, "ld_rcv", normalPriorityrecordStats.receivedCount);
         insertNonZero(ext, "ld_snt", normalPriorityrecordStats.sentCount);
@@ -904,14 +514,14 @@ namespace ARIASDK_NS_BEGIN {
             insertNonZero(ext, "ld_rcds_received_size_bytes", normalPriorityrecordStats.totalRecordsSizeInBytes);
         }
         if (normalPriorityrecordStats.sentCount > 0) {
-            const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyNormal = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_CostDeferred];
+            LatencyStats& logToSuccessfulSendLatencyNormal = telemetryStats.logToSuccessfulSendLatencyPerLatency[EventLatency_CostDeferred];
             insertNonZero(ext, "ld_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyNormal.maxOfLatencyInMilliSecs);
             insertNonZero(ext, "ld_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyNormal.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "ld_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyNormal.latencyDistribution);
         }
 
         // High priority RecordStats
-        const TelemetryStats::RecordStats& highPriorityrecordStats = telemetryStats->recordStatsPerLatency[EventLatency_RealTime];
+        const RecordStats& highPriorityrecordStats = telemetryStats.recordStatsPerLatency[EventLatency_RealTime];
         insertNonZero(ext, "lr_r_ban", highPriorityrecordStats.bannedCount);
         insertNonZero(ext, "lr_rcv", highPriorityrecordStats.receivedCount);
         insertNonZero(ext, "lr_snt", highPriorityrecordStats.sentCount);
@@ -926,14 +536,14 @@ namespace ARIASDK_NS_BEGIN {
             insertNonZero(ext, "lr_rcds_received_size_bytes", highPriorityrecordStats.totalRecordsSizeInBytes);
         }
         if (highPriorityrecordStats.sentCount > 0) {
-            const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyHigh = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_RealTime];
+            LatencyStats& logToSuccessfulSendLatencyHigh = telemetryStats.logToSuccessfulSendLatencyPerLatency[EventLatency_RealTime];
             insertNonZero(ext, "lr_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyHigh.maxOfLatencyInMilliSecs);
             insertNonZero(ext, "lr_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyHigh.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "lr_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyHigh.latencyDistribution);
         }
 
         // Immediate priority RecordStats
-        const TelemetryStats::RecordStats& immediatePriorityrecordStats = telemetryStats->recordStatsPerLatency[EventLatency_Max];
+        const RecordStats& immediatePriorityrecordStats = telemetryStats.recordStatsPerLatency[EventLatency_Max];
         insertNonZero(ext, "lm_r_ban", immediatePriorityrecordStats.bannedCount);
         insertNonZero(ext, "lm_rcv", immediatePriorityrecordStats.receivedCount);
         insertNonZero(ext, "lm_snt", immediatePriorityrecordStats.sentCount);
@@ -946,75 +556,84 @@ namespace ARIASDK_NS_BEGIN {
             insertNonZero(ext, "lm_rcds_received_size_bytes", immediatePriorityrecordStats.totalRecordsSizeInBytes);
         }
         if (immediatePriorityrecordStats.sentCount > 0) {
-            const TelemetryStats::LatencyStats& logToSuccessfulSendLatencyImmediate = telemetryStats->logToSuccessfulSendLatencyPerLatency[EventLatency_Max];
+            LatencyStats& logToSuccessfulSendLatencyImmediate = telemetryStats.logToSuccessfulSendLatencyPerLatency[EventLatency_Max];
             insertNonZero(ext, "lm_log_to_successful_send_latency_millisec_max", logToSuccessfulSendLatencyImmediate.maxOfLatencyInMilliSecs);
             insertNonZero(ext, "lm_log_to_successful_send_latency_millisec_min", logToSuccessfulSendLatencyImmediate.minOfLatencyInMilliSecs);
             addAggregatedMapToRecordFields(record, "lm_log_to_successful_send_latency_millisec_distribution", logToSuccessfulSendLatencyImmediate.latencyDistribution);
         }
         records.push_back(record);
     }
-
+    
+    /// <summary>
+    /// Saves tenant stats to record for given current RollUpKind
+    /// </summary>
+    /// <param name="records">The records.</param>
+    /// <param name="rollupKind">Kind of the rollup.</param>
     void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind)
     {
         LOG_TRACE("snapStatsToRecord");
 
-        for (auto tenantStats : m_telemetryTenantStats)
+        for (auto &tenantStats : m_telemetryTenantStats)
         {
-            TelemetryStats* telemetryStats = tenantStats.second;
+            TelemetryStats& telemetryStats = tenantStats.second;
             privateSnapStatsToRecord(records, rollupKind, telemetryStats);
         }
 
         if (RollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING != rollupKind)
         {
-            TelemetryStats* telemetryStats = m_telemetryStats.get();
             std::string statTenantToken = m_config.GetMetaStatsTenantToken();
-            telemetryStats->tenantId = statTenantToken.substr(0, statTenantToken.find('-'));
-            privateSnapStatsToRecord(records, rollupKind, telemetryStats);
+            m_telemetryStats.tenantId = statTenantToken.substr(0, statTenantToken.find('-'));
+            privateSnapStatsToRecord(records, rollupKind, m_telemetryStats);
         }
     }
-
-    void MetaStats::privateClearStats(TelemetryStats* telemetryStats)
+    
+    /// <summary>
+    /// Clears the stats.
+    /// </summary>
+    /// <param name="telemetryStats">The telemetry stats.</param>
+    void MetaStats::privateClearStats(TelemetryStats& telemetryStats)
     {
-        //clear distribution in packageStats
-        telemetryStats->packageStats.dropPkgsPerHttpReturnCode.clear();
-        telemetryStats->packageStats.retryPkgsPerHttpReturnCode.clear();
+        telemetryStats.packageStats.dropPkgsPerHttpReturnCode.clear();
+        telemetryStats.packageStats.retryPkgsPerHttpReturnCode.clear();
 
-        //clear distribution in internalHttpStackRetriesStats
-        telemetryStats->internalHttpStackRetriesStats.retriesCountDistribution.clear();
+        telemetryStats.retriesCountDistribution.clear();
 
-        //clear distribution in rttStats
-        telemetryStats->rttStats.latencyDistribution.clear();
+        telemetryStats.rttStats.latencyDistribution.clear();
 
-        for (auto& item : telemetryStats->logToSuccessfulSendLatencyPerLatency) {
-            item.latencyDistribution.clear();
-        }
+        telemetryStats.logToSuccessfulSendLatencyPerLatency.clear();
 
-        //clear disributions in recordStats
-        TelemetryStats::RecordStats& recordStats = telemetryStats->recordStats;
+        RecordStats& recordStats = telemetryStats.recordStats;
         recordStats.sizeInKBytesDistribution.clear();
         recordStats.semanticToRecordCountMap.clear();
         recordStats.semanticToExceptionCountMap.clear();
         recordStats.droppedCountPerHttpReturnCode.clear();
 
-        //clear disributions in offlineStorageStats
-        TelemetryStats::OfflineStorageStats& storageStats = telemetryStats->offlineStorageStats;
+        OfflineStorageStats& storageStats = telemetryStats.offlineStorageStats;
         storageStats.saveSizeInKBytesDistribution.clear();
         storageStats.overwrittenSizeInKBytesDistribution.clear();
     }
-
+    
+    /// <summary>
+    /// Clears the stats.
+    /// </summary>
     void MetaStats::clearStats()
     {
         LOG_TRACE("clearStats");
 
         for (auto tenantStats : m_telemetryTenantStats)
         {
-            TelemetryStats* telemetryStats = tenantStats.second;
+            TelemetryStats& telemetryStats = tenantStats.second;
             privateClearStats(telemetryStats);
         }
-        TelemetryStats* overallTelemetryStats = m_telemetryStats.get();
-        privateClearStats(overallTelemetryStats);
+        privateClearStats(m_telemetryStats);
     }
-
+    
+    /// <summary>
+    /// Determines whether stats data available.
+    /// </summary>
+    /// <returns>
+    ///   <c>true</c> if [has stats data available]; otherwise, <c>false</c>.
+    /// </returns>
     bool MetaStats::hasStatsDataAvailable() const
     {
         unsigned int rejectedCount = 0;
@@ -1024,20 +643,25 @@ namespace ARIASDK_NS_BEGIN {
 
         for (auto tenantStats : m_telemetryTenantStats)
         {
-            TelemetryStats* telemetryStats = tenantStats.second;
-            rejectedCount += telemetryStats->recordStats.rejectedCount;
-            bannedCount += telemetryStats->recordStats.bannedCount;
-            droppedCount += telemetryStats->recordStats.droppedCount;
-            receivedCountnotStats += telemetryStats->recordStats.receivedCount - telemetryStats->recordStats.receivedMetastatsCount;
+            TelemetryStats& telemetryStats = tenantStats.second;
+            rejectedCount += telemetryStats.recordStats.rejectedCount;
+            bannedCount += telemetryStats.recordStats.bannedCount;
+            droppedCount += telemetryStats.recordStats.droppedCount;
+            receivedCountnotStats += telemetryStats.recordStats.receivedCount - telemetryStats.recordStats.receivedMetastatsCount;
         }
         return (rejectedCount > 0 ||   // not used
             bannedCount > 0 ||      // not used
             droppedCount > 0 ||     // not used
             receivedCountnotStats > 0 ||
-            m_telemetryStats->packageStats.totalPkgsAcked > m_telemetryStats->packageStats.totalMetastatsOnlyPkgsAcked ||
-            m_telemetryStats->packageStats.totalPkgsToBeAcked > m_telemetryStats->packageStats.totalMetastatsOnlyPkgsToBeAcked);
+            m_telemetryStats.packageStats.totalPkgsAcked > m_telemetryStats.packageStats.totalMetastatsOnlyPkgsAcked ||
+            m_telemetryStats.packageStats.totalPkgsToBeAcked > m_telemetryStats.packageStats.totalMetastatsOnlyPkgsToBeAcked);
     }
-
+    
+    /// <summary>
+    /// Generates the stats event.
+    /// </summary>
+    /// <param name="rollupKind">Kind of the rollup.</param>
+    /// <returns></returns>
     std::vector< ::AriaProtocol::Record> MetaStats::generateStatsEvent(RollUpKind rollupKind)
     {
         LOG_TRACE("generateStatsEvent");
@@ -1046,7 +670,6 @@ namespace ARIASDK_NS_BEGIN {
 
         if (hasStatsDataAvailable() || rollupKind != RollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING) {
             snapStatsToRecord(records, rollupKind);
-            // FIXME: [MG] - crash here on map clear
             resetStats(false);
         }
 
@@ -1056,19 +679,24 @@ namespace ARIASDK_NS_BEGIN {
 
         return records;
     }
-
+    
+    /// <summary>
+    /// Updates stats on incoming event.
+    /// </summary>
+    /// <param name="tenanttoken">The tenanttoken.</param>
+    /// <param name="size">The size.</param>
+    /// <param name="latency">The latency.</param>
+    /// <param name="metastats">if set to <c>true</c> [metastats].</param>
     void MetaStats::updateOnEventIncoming(std::string const& tenanttoken, unsigned size, EventLatency latency, bool metastats)
     {
         if (!metastats)
         {
-            if (m_telemetryTenantStats.end() == m_telemetryTenantStats.find(tenanttoken))
+            if (m_telemetryTenantStats[tenanttoken].tenantId.empty())
             {
-                TelemetryStats* stats = new TelemetryStats();
-                stats->tenantId = tenanttoken.substr(0, tenanttoken.find('-'));
-                m_telemetryTenantStats[tenanttoken] = stats;
+                m_telemetryTenantStats[tenanttoken].tenantId = tenanttoken.substr(0, tenanttoken.find('-'));
             }
 
-            TelemetryStats::RecordStats& recordStats = m_telemetryTenantStats[tenanttoken]->recordStats;
+            RecordStats& recordStats = m_telemetryTenantStats[tenanttoken].recordStats;
             recordStats.receivedCount++;
 
             updateMap(recordStats.sizeInKBytesDistribution, size / 1024);
@@ -1078,14 +706,14 @@ namespace ARIASDK_NS_BEGIN {
             recordStats.totalRecordsSizeInBytes += size;
 
             if (latency >= 0) {
-                TelemetryStats::RecordStats& recordStatsPerPriority = m_telemetryTenantStats[tenanttoken]->recordStatsPerLatency[latency];
+                RecordStats& recordStatsPerPriority = m_telemetryTenantStats[tenanttoken].recordStatsPerLatency[latency];
                 recordStatsPerPriority.receivedCount++;
                 recordStatsPerPriority.totalRecordsSizeInBytes += size;
             }
         }
 
         //overall stats for all tennat tokens together
-        TelemetryStats::RecordStats&  recordStats = m_telemetryStats->recordStats;
+        RecordStats&  recordStats = m_telemetryStats.recordStats;
         recordStats.receivedCount++;
         if (metastats) {
             recordStats.receivedMetastatsCount++;
@@ -1098,35 +726,49 @@ namespace ARIASDK_NS_BEGIN {
         recordStats.totalRecordsSizeInBytes += size;
 
         if (latency >= 0) {
-            TelemetryStats::RecordStats& recordStatsPerPriority = m_telemetryStats->recordStatsPerLatency[latency];
+            RecordStats& recordStatsPerPriority = m_telemetryStats.recordStatsPerLatency[latency];
             recordStatsPerPriority.receivedCount++;
             recordStatsPerPriority.totalRecordsSizeInBytes += size;
         }
     }
-
+    
+    /// <summary>
+    /// Updates stats on post data success.
+    /// </summary>
+    /// <param name="postDataLength">Length of the post data.</param>
+    /// <param name="metastatsOnly">if set to <c>true</c> [metastats only].</param>
     void MetaStats::updateOnPostData(unsigned postDataLength, bool metastatsOnly)
     {
-        m_telemetryStats->packageStats.totalBandwidthConsumedInBytes += postDataLength;
-        m_telemetryStats->packageStats.totalPkgsToBeAcked++;
+        m_telemetryStats.packageStats.totalBandwidthConsumedInBytes += postDataLength;
+        m_telemetryStats.packageStats.totalPkgsToBeAcked++;
         if (metastatsOnly) {
-            m_telemetryStats->packageStats.totalMetastatsOnlyPkgsToBeAcked++;
+            m_telemetryStats.packageStats.totalMetastatsOnlyPkgsToBeAcked++;
         }
     }
-
+    
+    /// <summary>
+    /// Updates stats on successful package send.
+    /// </summary>
+    /// <param name="recordIdsAndTenantids">The record ids and tenantids.</param>
+    /// <param name="eventLatency">The event latency.</param>
+    /// <param name="retryFailedTimes">The retry failed times.</param>
+    /// <param name="durationMs">The duration ms.</param>
+    /// <param name="latencyToSendMs">The latency to send ms.</param>
+    /// <param name="metastatsOnly">if set to <c>true</c> [metastats only].</param>
     void MetaStats::updateOnPackageSentSucceeded(std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly)
     {
         unsigned const recordsSentCount = static_cast<unsigned>(latencyToSendMs.size());
 
-        TelemetryStats::PackageStats& packageStats = m_telemetryStats->packageStats;
+        PackageStats& packageStats = m_telemetryStats.packageStats;
         packageStats.totalPkgsAcked++;
         packageStats.successPkgsAcked++;
         if (metastatsOnly) {
             packageStats.totalMetastatsOnlyPkgsAcked++;
         }
-        m_telemetryStats->internalHttpStackRetriesStats.retriesCountDistribution[retryFailedTimes]++;
+        m_telemetryStats.retriesCountDistribution[retryFailedTimes]++;
 
         //duration: distribution, max, min
-        TelemetryStats::LatencyStats& rttStats = m_telemetryStats->rttStats;
+        LatencyStats& rttStats = m_telemetryStats.rttStats;
         updateMap(rttStats.latencyDistribution, durationMs);
         rttStats.maxOfLatencyInMilliSecs = std::max<unsigned>(rttStats.maxOfLatencyInMilliSecs, durationMs);
         rttStats.minOfLatencyInMilliSecs = std::min<unsigned>(rttStats.minOfLatencyInMilliSecs, durationMs);
@@ -1134,17 +776,17 @@ namespace ARIASDK_NS_BEGIN {
 
         //for overall stats
         {
-            TelemetryStats::LatencyStats& logToSuccessfulSendLatency = m_telemetryStats->logToSuccessfulSendLatencyPerLatency[eventLatency];
+            LatencyStats& logToSuccessfulSendLatency = m_telemetryStats.logToSuccessfulSendLatencyPerLatency[eventLatency];
             for (unsigned latencyMs : latencyToSendMs) {
                 updateMap(logToSuccessfulSendLatency.latencyDistribution, latencyMs);
                 logToSuccessfulSendLatency.maxOfLatencyInMilliSecs = std::max(logToSuccessfulSendLatency.maxOfLatencyInMilliSecs, latencyMs);
                 logToSuccessfulSendLatency.minOfLatencyInMilliSecs = std::min(logToSuccessfulSendLatency.minOfLatencyInMilliSecs, latencyMs);
             }
 
-            TelemetryStats::RecordStats& recordStats = m_telemetryStats->recordStats;
+            RecordStats& recordStats = m_telemetryStats.recordStats;
             recordStats.sentCount += recordsSentCount;
 
-            //TODO: fix it after ongoing stats implemented or discarded
+            // TODO: [MG] fix it after ongoing stats implemented or discarded
             if (1) {
                 recordStats.sentCountFromCurrentSession += recordsSentCount;
             }
@@ -1154,9 +796,9 @@ namespace ARIASDK_NS_BEGIN {
 
             //update per-priority record stats
             if (eventLatency >= 0) {
-                TelemetryStats::RecordStats& recordStatsPerPriority = m_telemetryStats->recordStatsPerLatency[eventLatency];
+                RecordStats& recordStatsPerPriority = m_telemetryStats.recordStatsPerLatency[eventLatency];
                 recordStatsPerPriority.sentCount += recordsSentCount;
-                //TODO: fix it after ongoing stats implemented or discarded
+                // TODO: [MG] fix it after ongoing stats implemented or discarded
                 if (1) {
                     recordStatsPerPriority.sentCountFromCurrentSession += recordsSentCount;
                 }
@@ -1165,7 +807,6 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
         }
-
 
         //per tenant stats
         std::string stattenantToken = m_config.GetMetaStatsTenantToken();
@@ -1177,15 +818,15 @@ namespace ARIASDK_NS_BEGIN {
             {
                 continue;
             }
-            TelemetryStats* telemetryStats = m_telemetryTenantStats[tenantToken];
-            TelemetryStats::LatencyStats& logToSuccessfulSendLatency = telemetryStats->logToSuccessfulSendLatencyPerLatency[eventLatency];
+            TelemetryStats& telemetryStats = m_telemetryTenantStats[tenantToken];
+            LatencyStats& logToSuccessfulSendLatency = telemetryStats.logToSuccessfulSendLatencyPerLatency[eventLatency];
             for (unsigned latencyMs : latencyToSendMs) {
                 updateMap(logToSuccessfulSendLatency.latencyDistribution, latencyMs);
                 logToSuccessfulSendLatency.maxOfLatencyInMilliSecs = std::max(logToSuccessfulSendLatency.maxOfLatencyInMilliSecs, latencyMs);
                 logToSuccessfulSendLatency.minOfLatencyInMilliSecs = std::min(logToSuccessfulSendLatency.minOfLatencyInMilliSecs, latencyMs);
             }
 
-            TelemetryStats::RecordStats& recordStats = telemetryStats->recordStats;
+            RecordStats& recordStats = telemetryStats.recordStats;
             recordStats.sentCount += 1;
 
             //TODO: fix it after ongoing stats implemented or discarded
@@ -1198,7 +839,7 @@ namespace ARIASDK_NS_BEGIN {
 
             //update per-priority record stats
             if (eventLatency >= 0) {
-                TelemetryStats::RecordStats& recordStatsPerPriority = telemetryStats->recordStatsPerLatency[eventLatency];
+                RecordStats& recordStatsPerPriority = telemetryStats.recordStatsPerLatency[eventLatency];
                 recordStatsPerPriority.sentCount += 1;
                 //TODO: fix it after ongoing stats implemented or discarded
                 if (1) {
@@ -1210,87 +851,105 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
     }
-
+    
+    /// <summary>
+    /// Update stats on package failure.
+    /// </summary>
+    /// <param name="statusCode">The status code.</param>
     void MetaStats::updateOnPackageFailed(int statusCode)
     {
-        TelemetryStats::PackageStats& packageStats = m_telemetryStats->packageStats;
+        PackageStats& packageStats = m_telemetryStats.packageStats;
         packageStats.totalPkgsAcked++;
         packageStats.dropPkgsAcked++;
         packageStats.dropPkgsPerHttpReturnCode[statusCode]++;
     }
-
+    
+    /// <summary>
+    /// Update stats on package retry.
+    /// </summary>
+    /// <param name="statusCode">The status code.</param>
+    /// <param name="retryFailedTimes">The retry failed times.</param>
     void MetaStats::updateOnPackageRetry(int statusCode, unsigned retryFailedTimes)
     {
-        TelemetryStats::PackageStats& packageStats = m_telemetryStats->packageStats;
+        PackageStats& packageStats = m_telemetryStats.packageStats;
         packageStats.totalPkgsAcked++;
         packageStats.retryPkgsAcked++;
         packageStats.retryPkgsPerHttpReturnCode[statusCode]++;
 
-        m_telemetryStats->internalHttpStackRetriesStats.retriesCountDistribution[retryFailedTimes]++;
+        m_telemetryStats.retriesCountDistribution[retryFailedTimes]++;
     }
-
+    
+    /// <summary>
+    /// Update stats on records dropped.
+    /// </summary>
+    /// <param name="reason">The reason.</param>
+    /// <param name="droppedCount">The dropped count.</param>
     void MetaStats::updateOnRecordsDropped(EventDroppedReason reason, std::map<std::string, size_t> const& droppedCount)
     {
         int overallCount = 0;
         for (auto dropcouttenant : droppedCount)
         {
-            if (m_telemetryTenantStats.end() == m_telemetryTenantStats.find(dropcouttenant.first))
-            {//add a new telemetry
-                m_telemetryTenantStats[dropcouttenant.first] = new TelemetryStats();
-            }
-
-            TelemetryStats* temp = m_telemetryTenantStats[dropcouttenant.first];
-            temp->recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(dropcouttenant.second);
-            temp->recordStats.droppedCount += static_cast<unsigned int>(dropcouttenant.second);
+            TelemetryStats& temp = m_telemetryTenantStats[dropcouttenant.first];
+            temp.recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(dropcouttenant.second);
+            temp.recordStats.droppedCount += static_cast<unsigned int>(dropcouttenant.second);
             overallCount += static_cast<unsigned int>(dropcouttenant.second);
         }
-        m_telemetryStats->recordStats.droppedCountReasonDistribution[reason] += overallCount;
-        m_telemetryStats->recordStats.droppedCount += overallCount;
+        m_telemetryStats.recordStats.droppedCountReasonDistribution[reason] += overallCount;
+        m_telemetryStats.recordStats.droppedCount += overallCount;
     }
-
+    
+    /// <summary>
+    /// Update stats on records storage overflow.
+    /// </summary>
+    /// <param name="overflownCount">The overflown count.</param>
     void MetaStats::updateOnRecordsOverFlown(std::map<std::string, size_t> const& overflownCount)
     {
         int overallCount = 0;
         for (auto overflowntenant : overflownCount)
         {
-            if (m_telemetryTenantStats.end() == m_telemetryTenantStats.find(overflowntenant.first))
-            {//add a new telemetry
-                m_telemetryTenantStats[overflowntenant.first] = new TelemetryStats();
-            }
-
-            TelemetryStats* temp = m_telemetryTenantStats[overflowntenant.first];
-            temp->recordStats.overflownCount += static_cast<unsigned int>(overflowntenant.second);
+            TelemetryStats& temp = m_telemetryTenantStats[overflowntenant.first];
+            temp.recordStats.overflownCount += static_cast<unsigned int>(overflowntenant.second);
             overallCount += static_cast<unsigned int>(overflowntenant.second);
         }
-        m_telemetryStats->recordStats.overflownCount += overallCount;
+        m_telemetryStats.recordStats.overflownCount += overallCount;
     }
-
+    
+    /// <summary>
+    /// Update stats on records rejected.
+    /// </summary>
+    /// <param name="reason">The reason.</param>
+    /// <param name="rejectedCount">The rejected count.</param>
     void MetaStats::updateOnRecordsRejected(EventRejectedReason reason, std::map<std::string, size_t> const& rejectedCount)
     {
         int overallCount = 0;
         for (auto rejecttenant : rejectedCount)
         {
-            if (m_telemetryTenantStats.end() == m_telemetryTenantStats.find(rejecttenant.first))
-            {//add a new telemetry
-                m_telemetryTenantStats[rejecttenant.first] = new TelemetryStats();
-            }
-
-            TelemetryStats* temp = m_telemetryTenantStats[rejecttenant.first];
-            temp->recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(rejecttenant.second);
-            temp->recordStats.rejectedCount += static_cast<unsigned int>(rejecttenant.second);
+            TelemetryStats& temp = m_telemetryTenantStats[rejecttenant.first];
+            temp.recordStats.rejectedCountReasonDistribution[reason] += static_cast<unsigned int>(rejecttenant.second);
+            temp.recordStats.rejectedCount += static_cast<unsigned int>(rejecttenant.second);
             overallCount += static_cast<unsigned int>(rejecttenant.second);
         }
-        m_telemetryStats->recordStats.droppedCountReasonDistribution[reason] += overallCount;
+        m_telemetryStats.recordStats.rejectedCountReasonDistribution[reason] += overallCount;
     }
-
+    
+    /// <summary>
+    /// Update on storage open.
+    /// </summary>
+    /// <param name="type">The type.</param>
     void MetaStats::updateOnStorageOpened(std::string const& type)
     {
-        m_telemetryStats->offlineStorageStats.storageFormat = type;
+        m_telemetryStats.offlineStorageStats.storageFormat = type;
     }
-
+    
+    /// <summary>
+    /// Update on storage open failed.
+    /// </summary>
+    /// <param name="reason">The reason.</param>
     void MetaStats::updateOnStorageFailed(std::string const& reason)
     {
-        m_telemetryStats->offlineStorageStats.lastFailureReason = reason;
+        m_telemetryStats.offlineStorageStats.lastFailureReason = reason;
     }
+
+    ARIASDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
 
 } ARIASDK_NS_END

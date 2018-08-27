@@ -22,15 +22,25 @@ namespace ARIASDK_NS_BEGIN {
 
     void MemoryStorage::Shutdown()
     {
-        // TODO: #1 [MG] - verify that all contents have been flushed.
-        // TODO: #2 [MG] - enable 'emergency' recovery 
+        for (unsigned latency = EventLatency_Off; (latency < EventLatency_Max); latency++)
+        {
+            size_t numRecords = m_records[latency].size();
+            if (numRecords)
+            {
+                // TODO: [MG] - rather than discarding verify that all contents have been flushed.
+                // This is not currently needed per se because we expect the OfflineStorageHandler -
+                // high-level wrapper to flush on graceful shutdown.
+                LOG_WARN("Discarding %u unflushed records of latency %u", numRecords, latency);
+            }
+        }
     }
 
     void MemoryStorage::Flush()
     {
         // TODO: [MG] - consider moving Flush() implementation from OfflineStorageHandler::Flush()
-        // to this class in order to provide tight coupling between this instance of MemoryStorage
-        // and a corresponding OfflineStorage_SQLite instance.
+        // here in order to provide tight coupling between this instance of MemoryStorage and
+        // a corresponding OfflineStorage_SQLite instance.
+        LOG_WARN("Not implemented!");
     }
 
     bool MemoryStorage::StoreRecord(StorageRecord const & record)
@@ -107,6 +117,8 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(ids);
         UNREFERENCED_PARAMETER(headers);
         UNREFERENCED_PARAMETER(fromMemory);
+
+        LOG_WARN("Not implemented!");
     }
 
     /// <summary>
@@ -122,6 +134,8 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(incrementRetryCount);
         UNREFERENCED_PARAMETER(headers);
         UNREFERENCED_PARAMETER(fromMemory);
+
+        LOG_WARN("Not implemented!");
     }
 
     /// <summary>
@@ -134,6 +148,8 @@ namespace ARIASDK_NS_BEGIN {
     {
         UNREFERENCED_PARAMETER(name);
         UNREFERENCED_PARAMETER(value);
+
+        LOG_WARN("Not implemented!");
         return false;
     }
 
@@ -145,6 +161,8 @@ namespace ARIASDK_NS_BEGIN {
     std::string MemoryStorage::GetSetting(std::string const & name)
     {
         UNREFERENCED_PARAMETER(name);
+
+        LOG_WARN("Not implemented!");
         return std::string();
     }
 
@@ -171,11 +189,17 @@ namespace ARIASDK_NS_BEGIN {
 
     bool MemoryStorage::ResizeDb()
     {
+        // TODO: [MG] - consider implementing reduction of in-ram queue at runtime.
+        // Scenario for this is if we already run with 16MB buffer, but would like
+        // to switch to 8MB on Control Plane config update - we'd have to flush
+        // the queue and never grow above the newly provisioned limit.
+        LOG_WARN("Not implemented!");
         return true;
     }
 
     MemoryStorage::~MemoryStorage()
     {
+        Shutdown();
     }
 
 } ARIASDK_NS_END
