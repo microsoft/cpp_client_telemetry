@@ -94,7 +94,7 @@ TEST(EventPropertiesTests, NumericProperties)
     EventProperties ep("test");
     EXPECT_THAT(ep.GetProperties(), IsEmpty());
 
-    ep.SetProperty("char",     static_cast<char>(-123));
+    ep.SetProperty("char",     static_cast<signed char>(-123));
     ep.SetProperty("int",      static_cast<int>(-123123));
     ep.SetProperty("long",     static_cast<long>(-123123123));
     ep.SetProperty("uint8",    static_cast<uint8_t>(255));
