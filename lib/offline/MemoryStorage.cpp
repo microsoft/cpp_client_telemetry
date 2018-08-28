@@ -178,10 +178,9 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(maxCount);
 
         std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
-        auto consumer = [records, this](StorageRecord&& record) -> bool {
+        auto consumer = [records](StorageRecord&& record) -> bool {
             records->push_back(std::move(record));
-            bool wantMore = true;
-            return wantMore;
+            return true; // want more
         };
         GetAndReserveRecords(consumer, 0, minLatency, maxCount);
         return records;

@@ -66,10 +66,9 @@ namespace ARIASDK_NS_BEGIN {
             result &= m_semanticContextDecorator.decorate(record);
             if (result)
             {
-                IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
-                eventGenerated(event);
-                m_iTelemetrySystem.sendEvent(event);
-                delete event;
+                IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
+                eventGenerated(&evt);
+                m_iTelemetrySystem.sendEvent(&evt);
             }
             else
             {

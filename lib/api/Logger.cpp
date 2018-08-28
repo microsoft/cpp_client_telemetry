@@ -333,10 +333,9 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
         // TODO: [MG] - check if optimization is possible in generateUuidString
-        IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
-        event->policyBitFlags = policyBitFlags;
-        m_logManager.sendEvent(event);
-        delete event;
+        IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
+        event.policyBitFlags = policyBitFlags;
+        m_logManager.sendEvent(&event);
     }
 
     void Logger::onSubmitted()
