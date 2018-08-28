@@ -27,7 +27,7 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
 };
 
 #pragma warning(suppress:4447) // 'main' signature found without threading model. Consider using 'int main(Platform::Array<Platform::String^>^ args)'.
-int main(int argc, char** argv)
+int _cdecl main(int argc, char** argv)
 {
     ::testing::InitGoogleMock(&argc, argv);
 
