@@ -383,7 +383,7 @@ namespace Microsoft {
                                 if (buffer != NULL)
                                 {
                                     // Free the memory allocated by PopNextItem to prevent memory leaks
-                                    free(buffer);
+                                    delete[] buffer;
                                     buffer = NULL;
                                     size = 0;
                                 }
