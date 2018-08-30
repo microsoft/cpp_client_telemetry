@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorageHandler.hpp"
+
 #include "offline/OfflineStorage_SQLite.hpp"
+#include "offline/MemoryStorage.hpp"
+
 #include "ILogManager.hpp"
 #include <algorithm>
 #include <numeric>
@@ -64,14 +67,17 @@ namespace ARIASDK_NS_BEGIN {
         m_observer = &observer;
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-        if (cacheMemorySizeLimitInBytes > 0)
-        {
-            m_offlineStorageMemory.reset(new OfflineStorage_SQLite(m_logManager, m_config, true));
-            m_offlineStorageMemory->Initialize(*this);
-        }
-
         m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
         m_offlineStorageDisk->Initialize(*this);
+
+        // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
+        // so that the Flush() op on memory storage leads to saving unflushed events to
+        // disk.
+        if (cacheMemorySizeLimitInBytes > 0)
+        {
+            m_offlineStorageMemory.reset(new MemoryStorage(m_logManager, m_config));
+            m_offlineStorageMemory->Initialize(*this);
+        }
 
         m_shutdownStarted = false;
         LOG_TRACE("Initializing offline storage handler");
@@ -169,6 +175,7 @@ namespace ARIASDK_NS_BEGIN {
                 // TODO: [MG] - investigate what happens if Flush from memory to disk
                 // is happening concurrently with adding a new in-memory record
                 m_offlineStorageMemory->StoreRecord(record);
+
             }
 
             // Perform periodic flush to disk

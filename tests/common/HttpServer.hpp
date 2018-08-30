@@ -527,7 +527,7 @@ class HttpServer : private Reactor::Callback
         conn.response.headers["Host"] = m_serverHost;
         conn.response.headers["Connection"] = (conn.keepalive ? "keep-alive" : "close");
         conn.response.headers["Date"] = formatTimestamp(time(nullptr));
-        conn.response.headers["Content-Length"] = static_cast<std::ostringstream&>(std::ostringstream() << conn.response.content.size()).str();
+        conn.response.headers["Content-Length"] = std::to_string(conn.response.content.size());
     }
 
     static std::string formatTimestamp(time_t time)

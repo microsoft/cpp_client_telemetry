@@ -157,11 +157,15 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
+#define MAX_EVENTS_TO_LOG       100000L
+
 int main()
 {
 
+#if 0
     // Guest SDKs start first
     guestTest();
+#endif
 
     // Host SDK starts
     printf("Setting up configuration...\n");
@@ -172,7 +176,7 @@ int main()
 
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  0xFFFFFFFF ^ 128;
-    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Info; // ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
@@ -211,7 +215,7 @@ int main()
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
     printf("Starting stress-test...\n");
-    for(size_t i = 1; i <= 10000; i++)
+    for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
         std::string eventName("ariasdk_test_linktest");
         EventProperties event(eventName);
@@ -223,10 +227,10 @@ int main()
         samplingTest();
 
         logger->LogEvent(event);
-        if ((i % 1000) == 0)
+        if ((i % 10000) == 0)
         {
             printf("processed %u events...\n", i);
-            LogManager::Flush();
+            // LogManager::Flush();
         }
     }
 

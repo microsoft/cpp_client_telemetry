@@ -41,6 +41,8 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
+    class Logger;
+
     class LogManagerImpl : public ILogManagerInternal {
 
     public:
