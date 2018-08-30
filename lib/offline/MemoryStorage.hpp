@@ -15,6 +15,8 @@
 #include <memory>
 #include <atomic>
 #include <mutex>
+#include <map>
+#include <unordered_set>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -49,20 +51,31 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual unsigned GetSize() override;
 
-        virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
+        virtual size_t GetRecordCount();
+
+        virtual size_t GetReservedCount();
+
+        virtual std::vector<StorageRecord>* GetRecords(bool shutdown = false, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
 
         virtual bool ResizeDb() override;
 
         virtual ~MemoryStorage() override;
 
     protected:
-        std::mutex                  m_lock;
-
+        
         IOfflineStorageObserver*    m_observer;
         IRuntimeConfig&             m_config;
         ILogManager&                m_logManager;
 
-        std::vector<StorageRecord>  m_records[EventLatency_Max];
+        std::mutex                  m_records_lock;
+        std::vector<StorageRecord>  m_records[EventLatency_Max+1];
+        
+        /// <summary>
+        /// Contains reserved (aka in-flight) records.
+        /// Current storage interface API requires deletion and release by StorageRecordId.
+        /// </summary>
+        std::mutex                  m_reserved_lock;
+        std::map<StorageRecordId, StorageRecord> m_reserved_records;
 
         std::atomic<size_t>         m_size;
 
