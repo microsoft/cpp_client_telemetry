@@ -406,7 +406,7 @@ namespace PAL_NS_BEGIN {
 
 #pragma warning(push)
 #pragma warning(disable:6031)
-    std::string generateUuidString()
+    std::string inline generateUuidString()
     {
         // TODO: [MG] - port Linux implementation in here
         GUID uuid;
