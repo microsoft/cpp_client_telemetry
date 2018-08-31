@@ -226,7 +226,7 @@ TEST_F(PackagerTests, ForcedTenantIsForced)
     packagerF.finalizePackage(ctx);
 
     EXPECT_THAT(ctx->packageIds, SizeIs(1));
-    EXPECT_THAT(ctx->packageIds, Contains(Key("forced-tenant-token")));
+    EXPECT_THAT(ctx->packageIds, Contains(Key("forced-Tenant-Token")));
 /*
     AriaProtocol::ClientToCollectorRequest r;
     bond_lite::CompactBinaryProtocolReader reader(ctx->body);
