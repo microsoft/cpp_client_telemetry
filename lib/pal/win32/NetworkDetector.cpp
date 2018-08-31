@@ -17,12 +17,15 @@
 // break Windows 7.1 compatibility. We cannot afford breaking Windows 7.1 compatibility at this time.
 DEFINE_GUID(IID_INetworkCostManager2, 0xdcb00008, 0x570f, 0x4a9b, 0x8d, 0x69, 0x19, 0x9f, 0xdb, 0xa5, 0x72, 0x3b);
 
+#define NETDETECTOR_START           WM_USER+1
+#define NETDETECTOR_STOP            WM_USER+2
+
+#define NETDETECTOR_COM_SETTLE_MS   1000
+
 namespace ARIASDK_NS_BEGIN
 {
-
     namespace Windows {
 
-        const UINT32 LparamMessageValue = 111111;
         // Malwarebytes have been detected
         static bool mbDetected = false;
 
@@ -31,7 +34,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        std::string to_string(const HString *name)
+        std::string to_string(HString *name)
         {
             UINT32 length;
             PCWSTR rawString = name->GetRawBuffer(&length);
@@ -45,14 +48,25 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="guid"></param>
         /// <returns></returns>
-        inline std::string to_string(GUID guid)
-        {
-            return MAT::to_string(guid);
+        std::string to_string(GUID guid) {
+            std::string result;
+            char buff[40] = { 0 }; // Maximum hyphenated GUID length with braces is 38 + null terminator
+            sprintf_s(buff, sizeof(buff),
+                "{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+                guid.Data1, guid.Data2, guid.Data3,
+                guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
+                guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+            result = buff;
+            return result;
         }
 
-        NetworkCost const& NetworkDetector::GetNetworkCost() const
-        {
+        NetworkCost const& NetworkDetector::GetNetworkCost() {
             return (NetworkCost const &)m_currentNetworkCost;
+        }
+
+        NetworkType NetworkDetector::GetNetworkType()
+        {
+            return m_currentNetworkType.load();
         }
 
         /// <summary>
@@ -61,19 +75,19 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns></returns>
 #pragma warning(push)
-#pragma warning(disable:6320)
+#pragma warning(disable: 6320)
         int NetworkDetector::GetCurrentNetworkCost()
         {
 #if 0
             // We don't know the cost of something that is not there
             if (m_connectivity == NLM_CONNECTIVITY_DISCONNECTED)
             {
-                LOG_TRACE("Disconnected!");
+                TRACE("Disconnected!");
                 m_currentNetworkCost = NetworkCost_Unknown;
             }
 #endif
             m_currentNetworkCost = NetworkCost_Unknown;
-            try {
+            __try {
                 m_currentNetworkCost = _GetCurrentNetworkCost();
             }
             //******************************************************************************************************************************
@@ -85,7 +99,7 @@ namespace ARIASDK_NS_BEGIN
             // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
             // If there is a handler for this exception, the program may be safely continued.
             //*******************************************************************************************************************************
-            catch (...)
+            __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 LOG_ERROR("Unable to obtain network state!");
                 m_currentNetworkCost = NetworkCost_Unknown;
@@ -106,7 +120,7 @@ namespace ARIASDK_NS_BEGIN
         /// Get current network connectivity state
         /// </summary>
         /// <returns>Value of enum NLM_CONNECTIVITY</returns>
-        int NetworkDetector::GetConnectivity() const
+        int NetworkDetector::GetConnectivity()
         {
             return m_connectivity;
         }
@@ -159,7 +173,152 @@ namespace ARIASDK_NS_BEGIN
                     break;
                 }
             }
+
+#if 0               /* This code below uses GetInternetConnectionProfile API. But it's broken by Malwarebytes 3.0 antivirus... (sigh)
+                     * App crashes on boot if MalwareBytes Anti-Exploit 3.0 is installed and Microsoft.Office.Telemetry.AriaEventSink
+                     * feature gate is enabled: https://office.visualstudio.com/DefaultCollection/OE/_workitems/edit/1384293
+                     */
+#ifdef WIN32        // Workaround for Malwarebytes crash that reports network cost 'Unknown' because calling into API would crash us.
+#ifdef _WIN64
+            LPWSTR mbae_dll = L"mbae64.dll";
+#else
+            LPWSTR mbae_dll = L"mbae.dll";
+#endif
+            if (GetModuleHandle(mbae_dll) != NULL)
+            {
+                mbDetected = true;
+                LOG_WARN("Malwarebytes have been detected!");
+                return result;
+            }
+#endif
+            // Function below may throw "The binding handle is invalid." on Debug builds with debugger attached,
+            // but it is benign. Possible explanation of this behavior is available here:
+            // *** Explaining ‘The Binding Handle Is Invalid’ ***
+            // https://blogs.msdn.microsoft.com/greggm/2006/01/04/explaining-the-binding-handle-is-invalid/
+            // This call is always surrounded by SEH handler implemented in GetCurrentNetworkCost .
+            // If you are running debug bits, exclude this exception in Debugger settings and hit [Continue]
+            HRESULT hr = networkInfoStats->GetInternetConnectionProfile(&m_connection_profile);
+            if (FAILED(hr) || (m_connection_profile == NULL) || (m_connection_profile.Get() == NULL))
+            {
+                LOG_ERROR("Unable to get GetInternetConnectionProfile");
+                return NetworkCost_Unknown;
+            }
+
+            // FIXME: it crashes here if network goes down!!!
+            ComPtr<IConnectionCost> cost;
+            hr = m_connection_profile->GetConnectionCost(&cost);
+            if (hr)
+            {
+                LOG_WARN("Cost unavailable!");
+            }
+
+            boolean isApproachingDataLimit;
+            hr = cost->get_ApproachingDataLimit(&isApproachingDataLimit);
+            if (!hr)
+            {
+                TRACE("isApproachingDataLimit      = %d", isApproachingDataLimit);
+            }
+
+            NetworkCostType type;
+            hr = cost->get_NetworkCostType(&type);
+            if (!hr)
+            {
+                TRACE("NetworkCostType             = %d [%s]", type, GetNetworkCostName(type));
+            }
+
+            boolean isOverDataLimit;
+            hr = cost->get_OverDataLimit(&isOverDataLimit);
+            if (!hr)
+            {
+                TRACE("isOverDataLimit             = %d", isOverDataLimit);
+            }
+
+            boolean isRoaming;
+            hr = cost->get_Roaming(&isRoaming);
+            if (!hr)
+            {
+                TRACE("isRoaming                   = %d", isRoaming);
+            }
+
+            // Decide what NetworkCost we are here
+            if (isOverDataLimit || isRoaming || isApproachingDataLimit)
+            {
+                result = NetworkCost_Roaming;
+            }
+            else
+                if (type == NetworkCostType_Unrestricted)
+                {
+                    result = NetworkCost_Unmetered;
+                }
+                else
+                    if (type == NetworkCostType_Fixed || type == NetworkCostType_Variable)
+                    {
+                        result = NetworkCost_Metered;
+                    }
+#endif
+            // Obtain network type to the best of our knowledge using WinInet.dll
+            // This logic may need further improvements to detect WiFi properly.
+#if 0				// This code is temporarily disabled because it does not bring enough
+                    // value to Office team.
+            DWORD flags = 0;
+            DWORD reserved = 0;
+            if (::InternetGetConnectedState(&flags, reserved)) {
+                switch (flags) {
+                case INTERNET_CONNECTION_MODEM:
+                case INTERNET_CONNECTION_LAN:
+                    m_currentNetworkType = NetworkType_Wired;
+                    break;
+                default:
+                    m_currentNetworkType = NetworkType_Unknown;
+                    break;
+                }
+            }
+#endif
+
             return result;
+        }
+
+        /// <summary>
+        /// Get adapter id for IConnectionProfile
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <returns></returns>
+        std::string NetworkDetector::GetAdapterId(IConnectionProfile *profile)
+        {
+            if (!profile)
+            {
+                LOG_ERROR("Invalid profile pointer!");
+                return "";  // Invalid interface ptr
+            }
+
+#if 0 /* FIXME: do we return none if connectivity level is none? */
+            NetworkConnectivityLevel connectivityLevel;
+            HRESULT hr = profile->GetNetworkConnectivityLevel(&connectivityLevel);
+            if (connectivityLevel != NetworkConnectivityLevel_None)
+            {
+
+            }
+#endif
+
+            ComPtr<INetworkAdapter> adapter;
+            HRESULT hr = profile->get_NetworkAdapter(&adapter);
+            if (hr == E_INVALIDARG)
+            {
+                LOG_ERROR("No network interfaces - device is in airplane mode");
+                return ""; // No interfaces - device is in airplane mode
+            }
+
+            UINT32 type;
+            hr = adapter->get_IanaInterfaceType(&type);
+            if (type == 23)
+            {
+                // FIXME
+            }
+
+            GUID id;
+            hr = adapter->get_NetworkAdapterId(&id);
+
+            return to_string(id);
         }
 
         /// <summary>
@@ -190,7 +349,9 @@ namespace ARIASDK_NS_BEGIN
             ULONG ulNewRef = (ULONG)InterlockedDecrement((LONG *)&m_lRef);
             if (ulNewRef == 0)
             {
-                delete this;
+                // NetworkDetector is destroyed from FlushAndTeardown.
+                // If customer forgets to call it, then it is destroyed from atexit(...)
+                LOG_TRACE("NetworkDetector last instance released (this=%p)", this);
             }
             return ulNewRef;
         }
@@ -246,188 +407,200 @@ namespace ARIASDK_NS_BEGIN
             return RPC_S_OK;
         }
 
+        /// <summary>
+        /// Get activation factory and look-up network info statistics
+        /// </summary>
+        /// <returns></returns>
+        bool NetworkDetector::GetNetworkInfoStats()
+        {
+            HRESULT hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Networking_Connectivity_NetworkInformation).Get(), &networkInfoStats);
+            if (hr != S_OK)
+            {
+                LOG_ERROR("Unable to get Windows::Networking::Connectivity::NetworkInformation");
+                return false;
+            }
+            return true;
+        }
+
         bool NetworkDetector::RegisterAndListen()
         {
-            bool retutnValue = true;
-            DWORD  dwCookie_INetworkEvents = 0;
-            DWORD  dwCookie_INetworkConnectionEvents = 0;
-            DWORD  dwCookie_INetworkListManagerEvents = 0;
-            ComPtr<IConnectionPoint> pc1, pc2, pc3;
-            ComPtr<IConnectionPointContainer>   pCpc;
-            HRESULT hr;
+            // ???
+            HRESULT hr = pNlm->QueryInterface(IID_IUnknown, (void**)&pSink);
+            if (FAILED(hr))
+            {
+                LOG_ERROR("cannot query IID_IUnknown!!!");
+                return false;
+            }
 
             pSink = (INetworkEvents*)this;
 
             hr = pNlm->QueryInterface(IID_IConnectionPointContainer, (void**)&pCpc);
-            if (SUCCEEDED(hr))
-            {
-                hr = pCpc->FindConnectionPoint(IID_INetworkConnectionEvents, &pc1);
-                if (SUCCEEDED(hr))
-                {
-                    hr = pc1->Advise(
-                        pSink.Get(),
-                        &dwCookie_INetworkConnectionEvents);
-                    LOG_INFO("listening to INetworkConnectionEvents... %s",
-                        (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                }
-
-                hr = pCpc->FindConnectionPoint(IID_INetworkEvents, &pc2);
-                if (SUCCEEDED(hr))
-                {
-                    hr = pc2->Advise(
-                        pSink.Get(),
-                        &dwCookie_INetworkEvents);
-                    LOG_INFO("listening to INetworkEvents... %s",
-                        (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                }
-
-                hr = pCpc->FindConnectionPoint(IID_INetworkListManagerEvents, &pc3);
-                if (SUCCEEDED(hr))
-                {
-                    hr = pc3->Advise(
-                        pSink.Get(),
-                        &dwCookie_INetworkListManagerEvents);
-                    LOG_INFO("listening to INetworkListManagerEvents... %s",
-                        (SUCCEEDED(hr)) ? "OK" : "FAILED");
-                }
-
-                isRunning = true;
-                ::SetEvent(m_syncEvent);
-                BOOL bRet;
-                MSG msg;
-                m_listener_tid = GetCurrentThreadId();
-                cv.notify_all();
-                while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0)
-                {
-                    if (bRet == -1)
-                    {
-                        break;
-                    }
-                    if (msg.message == WM_QUIT && msg.lParam == LparamMessageValue)
-                    {
-                        break;
-                    }
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
-                }
-                isRunning = false;
-                if (pc3 != NULL)
-                {
-                    pc3->Unadvise(dwCookie_INetworkListManagerEvents);
-                    pc3.Reset();
-                }
-                if (pc2 != NULL)
-                {
-                    pc2->Unadvise(dwCookie_INetworkEvents);
-                    pc2.Reset();
-                }
-                if (pc1 != NULL)
-                {
-                    pc1->Unadvise(dwCookie_INetworkConnectionEvents);
-                    pc1.Reset();
-                }
-
-                pCpc.Reset();
-            }
-            else
+            if (FAILED(hr))
             {
                 LOG_ERROR("Unable to QueryInterface IID_IConnectionPointContainer!");
-                retutnValue = false;
+                return false;
             }
-            ::SetEvent(m_syncEvent);
-            return retutnValue;
-        }
 
-        bool NetworkDetector::IsWindows8orLater()
-        {
-            static HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
-            typedef HRESULT NTSTATUS;
-            typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-            static RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
-
-            RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
-            OSVERSIONINFOW osvi = { sizeof(osvi) };
-            bool bIsWindows8orLater = false;
-            if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
+            hr = pCpc->FindConnectionPoint(IID_INetworkConnectionEvents, &m_pc1);
+            if (SUCCEEDED(hr))
             {
-                bIsWindows8orLater = ((rtlOsvi.dwMajorVersion >= 6) && (rtlOsvi.dwMinorVersion >= 2)) || (rtlOsvi.dwMajorVersion > 6);
+                hr = m_pc1->Advise(
+                    pSink.Get(),
+                    &m_dwCookie_INetworkConnectionEvents);
+                LOG_INFO("listening to INetworkConnectionEvents... %s",
+                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
             }
-            LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
-            return bIsWindows8orLater;
+
+            hr = pCpc->FindConnectionPoint(IID_INetworkEvents, &m_pc2);
+            if (SUCCEEDED(hr))
+            {
+                hr = m_pc2->Advise(
+                    pSink.Get(),
+                    &m_dwCookie_INetworkEvents);
+                LOG_INFO("listening to INetworkEvents... %s",
+                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
+            }
+
+            hr = pCpc->FindConnectionPoint(IID_INetworkListManagerEvents, &m_pc3);
+            if (SUCCEEDED(hr))
+            {
+                hr = m_pc3->Advise(
+                    pSink.Get(),
+                    &m_dwCookie_INetworkListManagerEvents);
+                LOG_INFO("listening to INetworkListManagerEvents... %s",
+                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
+            }
+
+            BOOL bRet;
+            MSG msg;
+            m_listener_tid = GetCurrentThreadId();
+            PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
+            cv.notify_all();
+            while ((bRet = GetMessage(&msg, NULL, 0, 0)) > 0)
+            {
+                switch (msg.message)
+                {
+                case NETDETECTOR_STOP:
+                    PostQuitMessage(0);
+                    break;
+                default:
+                    break;
+                }
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+            return true;
         }
+
         /// <summary>
-        /// Register for COM events and block-wait in run
+        /// 
         /// </summary>
+        void NetworkDetector::Reset()
+        {
+            if (m_pc1 != nullptr)
+            {
+                m_pc1->Unadvise(m_dwCookie_INetworkConnectionEvents);
+                m_pc1 = nullptr;
+            }
+
+            if (m_pc2 != nullptr)
+            {
+                m_pc2->Unadvise(m_dwCookie_INetworkEvents);
+                m_pc2 = nullptr;
+            }
+
+            if (m_pc3 != nullptr)
+            {
+                m_pc3->Unadvise(m_dwCookie_INetworkListManagerEvents);
+                m_pc3 = nullptr;
+            }
+
+            m_connection_profile.Reset();
+            pSink.Reset();
+            pCpc.Reset();
+
+            networkInfoStats.Reset();
+            if (pNlm != nullptr)
+            {
+                LOG_TRACE("release network list manager...");
+                pNlm->Release();
+                pNlm = nullptr;
+            };
+
+            m_listener_tid = 0;
+        }
+
+        /// <summary>
+        /// Register for COM events and block-wait in RegisterAndListen
+        /// </summary>
+#pragma warning( push )
+#pragma warning(disable:28159)
+#pragma warning(disable:4996)
+#pragma warning(disable:6320)
+// We must use GetVersionEx to retain backwards compat with Win 7 SP1
         void NetworkDetector::run()
         {
-            if (isRunning)
+            // Check Windows version and if below Windows 8, then avoid running Network cost detection logic
+            OSVERSIONINFO osvi;
+            BOOL bIsWindows8orLater;
+            ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+            osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+            GetVersionEx(&osvi);
+            bIsWindows8orLater = ((osvi.dwMajorVersion >= 6) && (osvi.dwMinorVersion >= 2)) || (osvi.dwMajorVersion > 6);
+            // Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2)
+            if (!bIsWindows8orLater)
             {
-                LOG_WARN("Already running!"); //m_syncEvent should be signaled
+                isRunning = false;
+                LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
                 return;
             }
 
-            // Check Windows version and if below Windows 8, then avoid running Network cost detection logic                 
-            if (IsWindows8orLater())
+            __try
             {
-                try
+                HRESULT hr = CoInitialize(nullptr);
+                if (FAILED(hr))
                 {
-                    HRESULT hr = CoInitialize(nullptr);
-                    if (SUCCEEDED(hr))
-                    {// Current network info stats
-                        ComPtr<INetworkInformationStatics>  networkInfoStats;
+                    LOG_ERROR("CoInitialize Failed.");
+                    return;
+                }
 
-                        hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Networking_Connectivity_NetworkInformation).Get(), &networkInfoStats);
-                        if (hr == S_OK)
-                        {
-                            LOG_INFO("create network list manager...");
-                            hr = CoCreateInstance(
-                                CLSID_NetworkListManager,
-                                NULL,
-                                CLSCTX_ALL,
-                                IID_INetworkListManager,
-                                (void**)&pNlm);
-                            if (FAILED(hr))
-                            {
-                                LOG_ERROR("Unable to CoCreateInstance for CLSID_NetworkListManager!");
-                            }
-                            else
-                            {
-                                GetCurrentNetworkCost();
-                                LOG_TRACE("start listening to events...");
-                                RegisterAndListen(); // we block here to process COM events
-                            }
-                            networkInfoStats.Detach();
-                            if (pNlm != NULL)
-                            {
-                                LOG_TRACE("release network list manager...");
-                                pNlm->Release();
-                            };
-                        }
-                        else
-                        {
-                            LOG_ERROR("Unable to get Windows::Networking::Connectivity::NetworkInformation");
-                        }
-
-                        networkInfoStats.Reset();
-                        CoUninitialize();
+                isCoInitialized = true;
+                if (GetNetworkInfoStats())
+                {
+                    LOG_INFO("create network list manager...");
+                    hr = CoCreateInstance(
+                        CLSID_NetworkListManager,
+                        nullptr,
+                        CLSCTX_ALL,
+                        IID_INetworkListManager,
+                        (void**)&pNlm);
+                    if (FAILED(hr))
+                    {
+                        LOG_ERROR("Unable to CoCreateInstance for CLSID_NetworkListManager!");
                     }
                     else
                     {
-                        LOG_ERROR("CoInitialize Failed.");
+                        GetCurrentNetworkCost();
+                        LOG_TRACE("start listening to events...");
+                        RegisterAndListen(); // we block here to process COM events
                     }
-                }
-                catch (...)
-                {
-                    LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
-                    isRunning = false;
+                    // Once we are done OR cannot init NLM, we must perform the clean-up
+                    Reset();
                 }
             }
-            else
+            __except (EXCEPTION_EXECUTE_HANDLER)
             {
-                isRunning = false;
+                LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
             }
-            ::SetEvent(m_syncEvent);  // setting event, so it can be retried after fail
+
+            if (isCoInitialized)
+            {
+                CoUninitialize();
+                isCoInitialized = false;
+            }
+
         }
+#pragma warning( pop )
 
         /// <summary>
         /// Start network monitoring thread
@@ -435,20 +608,46 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>true - if start is successful, false - otherwise</returns>
         bool NetworkDetector::Start()
         {
-            if (!isRunning)
             {
-                if (::WaitForSingleObject(m_syncEvent, 0) == WAIT_OBJECT_0)
+                std::lock_guard<std::mutex> lk(m_lock);
+                if (isRunning)
                 {
-                    if (!isRunning)
-                    { // Start a new thread. Notify waiters on exit.
-                        netDetectThread = std::thread([this]() {
-                            run();
-                            cv.notify_all();
-                        });
-                        netDetectThread.detach();
-                        WaitForSingleObject(m_syncEvent, 1000);
-                    }
+                    LOG_TRACE("NetworkDetector tid=%p is already running", m_listener_tid);
+                    return true;
                 }
+                isRunning = true;
+            }
+
+            // Start a new thread. Notify waiters on exit.
+            netDetectThread = std::thread([this]()
+            {
+                run();
+                LOG_TRACE("NetworkDetector tid=%p is shutting down..", m_listener_tid);
+                isRunning = false;
+            });
+
+            if (netDetectThread.joinable())
+            {
+                LOG_TRACE("NetworkDetector is starting...");
+                {
+                    std::unique_lock<std::mutex> lock(m_lock);
+                    // Wait for up to NETDETECTOR_COM_SETTLE_MS ms until:
+                    // - COM object is ready; OR
+                    // - COM object can't be started (pre-Win 8 scenario)
+                    unsigned retry = 1;
+                    while (!cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS),
+                        [this] {return (m_listener_tid != 0); }) && (isRunning))
+                    {
+                        LOG_TRACE("NetworkDetector starting up... [%u]", retry);
+                        retry++;
+                    }
+                    LOG_TRACE("NetworkDetector tid=%p running=%u", m_listener_tid, isRunning);
+                }
+            }
+            else
+            {
+                LOG_WARN("NetworkDetector thread can't be started!");
+                isRunning = false;
             }
 
             return isRunning;
@@ -459,11 +658,19 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         void NetworkDetector::Stop()
         {
-            PostThreadMessage(m_listener_tid, WM_QUIT, 0, LparamMessageValue);
-            if (isRunning && netDetectThread.joinable())
+            if ((isRunning) || (netDetectThread.joinable()))
             {
-                std::unique_lock<std::mutex> lock(m_lock);
-                cv.wait_for(lock, std::chrono::milliseconds(1000));
+                PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL);
+                try {
+                    if (netDetectThread.joinable())
+                        netDetectThread.join();
+                    LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                }
+                catch (std::system_error &ex)
+                {
+                    UNREFERENCED_PARAMETER(ex);
+                    LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
+                }
             }
         };
 
@@ -473,18 +680,119 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         NetworkDetector::~NetworkDetector()
         {
-            LOG_TRACE("Shutting down NetworkDetector...");
-            LOG_TRACE("NetworkDetector destroyed.");
+            LOG_TRACE("NetworkDetector dtor tid=%p", m_listener_tid);
+            Stop();
+            LOG_TRACE("NetworkDetector done tid=%p", m_listener_tid);
         }
 
-        const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity() const
+        /// <summary>
+        /// Get network cost name
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
+        {
+            char *typeName;
+            switch (type) {
+            case NetworkCostType_Unrestricted:
+                typeName = "Unrestricted";
+                break;
+            case NetworkCostType_Fixed:
+                typeName = "Fixed";
+                break;
+            case NetworkCostType_Variable:
+                typeName = "Variable";
+            case NetworkCostType_Unknown:
+            default:
+                typeName = "Unknown";
+                break;
+            }
+            return typeName;
+        }
+
+        const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity()
         {
             return m_networks_connectivity;
         }
 
-        const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity() const
+        const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetConnectionsConnectivity()
         {
             return m_connections_connectivity;
+        }
+
+        /// <summary>
+        /// Obtain various details about network stack
+        /// </summary>
+        void NetworkDetector::GetNetworkDetails()
+        {
+            LOG_TRACE("Getting network details...");
+            ComPtr<IVectorView<HostName *>> hostNames;
+            HRESULT hr = networkInfoStats->GetHostNames(&hostNames);
+            if (!hostNames)
+                return;
+
+            m_hostnames.clear();
+            unsigned int hostNameCount;
+            hr = hostNames->get_Size(&hostNameCount);
+            for (unsigned i = 0; i < hostNameCount; ++i) {
+                MATW::HostNameInfo hostInfo;
+                ComPtr<IHostName> hostName;
+                hr = hostNames->GetAt(i, &hostName);
+
+                HString rawName;
+                hostName->get_RawName(rawName.GetAddressOf());
+                LOG_TRACE("RawName: %s", to_string(&rawName).c_str());
+
+                HostNameType type;
+                hr = hostName->get_Type(&type);
+                LOG_TRACE("HostNameType: %d", type);
+
+                if (type == HostNameType_DomainName)
+                    continue;
+
+                ComPtr<IIPInformation> ipInformation;
+                hr = hostName->get_IPInformation(&ipInformation);
+
+                ComPtr<INetworkAdapter> currentAdapter;
+                hr = ipInformation->get_NetworkAdapter(&currentAdapter);
+                hr = currentAdapter->get_NetworkAdapterId(&hostInfo.adapterId);
+                LOG_TRACE("CurrentAdapterId: %s", to_string(hostInfo.adapterId).c_str());
+
+                ComPtr<IReference<unsigned char>> prefixLengthReference;
+                hr = ipInformation->get_PrefixLength(&prefixLengthReference);
+                hr = prefixLengthReference->get_Value(&hostInfo.prefixLength);
+                LOG_TRACE("PrefixLength: %d", hostInfo.prefixLength);
+
+                // invalid prefixes
+                if ((type == HostNameType_Ipv4 && hostInfo.prefixLength > 32)
+                    || (type == HostNameType_Ipv6 && hostInfo.prefixLength > 128))
+                    continue;
+
+                HString name;
+                hr = hostName->get_CanonicalName(name.GetAddressOf());
+                hostInfo.address = to_string(&name);
+                LOG_TRACE("CanonicalName: %s", hostInfo.address.c_str());
+
+                m_hostnames.push_back(hostInfo);
+            }
+
+            // hr = networkInfoStats->GetInternetConnectionProfile(&m_connection_profile);
+            // auto profile0 = m_connection_profile.Get();
+
+            ComPtr<IVectorView<ConnectionProfile *>> m_connection_profiles;
+            hr = networkInfoStats->GetConnectionProfiles(&m_connection_profiles);
+
+            unsigned int size;
+            hr = m_connection_profiles->get_Size(&size);
+            for (unsigned int i = 0; i < size; ++i) {
+                ComPtr<IConnectionProfile> profile;
+                hr = m_connection_profiles->GetAt(i, &profile);
+                auto prof = profile.Get();
+                HString name;
+                hr = prof->get_ProfileName(name.GetAddressOf());
+                LOG_TRACE("Profile[%d]: name = %s", i, to_string(&name).c_str());
+                LOG_TRACE("Profile[%d]: guid = %s", i, GetAdapterId(prof).c_str());
+            }
         }
 
     } // ::Windows
