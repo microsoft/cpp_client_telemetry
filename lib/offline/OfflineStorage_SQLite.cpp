@@ -803,7 +803,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
     // TODO: [MG] - for on-disk database this has to be replaced by filesize check
-    unsigned OfflineStorage_SQLite::GetSize()
+    size_t OfflineStorage_SQLite::GetSize()
     {
         LOCKGUARD(m_lock);
         unsigned pageCount;
@@ -811,11 +811,11 @@ namespace ARIASDK_NS_BEGIN {
         while (!pageCountStmt.select())
         {
             PAL::sleep(100);
-    }
+        }
         pageCountStmt.getRow(pageCount);
         pageCountStmt.reset();
         return pageCount * m_pageSize;
-}
+    }
 
     bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
     {

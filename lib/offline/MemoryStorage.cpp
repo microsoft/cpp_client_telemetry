@@ -336,7 +336,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <remarks>
     /// Called from the internal worker thread.
     /// </remarks>
-    unsigned MemoryStorage::GetSize()
+    size_t MemoryStorage::GetSize()
     {
         return m_size.load();
     }

@@ -247,7 +247,7 @@ namespace ARIASDK_NS_BEGIN {
         /// Get current Db size returned. Called from the internal worker thread.
         /// </remarks>
         /// <returns>Value of the requested DB size</returns>
-        virtual unsigned GetSize() = 0;
+        virtual size_t GetSize() = 0;
 
         /// <summary>
         /// Get Vector of records from DB

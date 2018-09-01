@@ -49,13 +49,16 @@ namespace ARIASDK_NS_BEGIN {
             bool result = true;
             int64_t stopTimes[5] = { 0, 0, 0, 0, 0 };
 
-            if (timeoutInSec > 0)
+            // Perform upload only if not paused
+            if ((timeoutInSec > 0) && (!tpm.isPaused()))
             {
+                upload();
                 // perform uploads if required
                 stopTimes[0] = GetUptimeMs();
                 LOG_TRACE("Shutdown timer started...");
                 upload();
-                while (tpm.isUploadInProgress())
+                // try to push thru as much data as possible
+                while (storage.GetSize())
                 {
                     auto uploadTime = GetUptimeMs() - stopTimes[0];
                     if (uploadTime >= (1000L * timeoutInSec))

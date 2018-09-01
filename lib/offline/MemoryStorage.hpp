@@ -51,7 +51,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual std::string GetSetting(std::string const& name) override;
 
-        virtual unsigned GetSize() override;
+        virtual size_t GetSize() override;
 
         virtual size_t GetRecordCount();
 

@@ -154,6 +154,11 @@ namespace ARIASDK_NS_BEGIN {
             return (uploadCount() > 0) || m_isUploadScheduled;
         }
 
+        virtual bool isPaused()
+        {
+            return m_isPaused;
+        }
+
     };
 
 

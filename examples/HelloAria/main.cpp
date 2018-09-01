@@ -20,7 +20,7 @@
 #endif
 
 #include "DebugCallback.hpp"
-
+ 
 LOGMANAGER_INSTANCE
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
@@ -220,23 +220,27 @@ int main()
 #if 1
     // LogManager::PauseTransmission();
     logger->LogEvent("TestEvent");
-    // LogManager::Flush();
 #endif
 
-    Api_v1_CompatChecks();
+    // Api_v1_CompatChecks();
      
     printf("LogManager::GetSemanticContext \n");
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
+    // Ingest events of various latencies
     printf("Starting stress-test...\n");
     for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
-        std::string eventName("ariasdk_test_linktest");
+        EventLatency latency = (EventLatency)(1 + i % (unsigned)EventLatency_RealTime);
+        std::string eventName("sample_event_lat");
+        eventName += std::to_string((unsigned)latency);
+
         EventProperties event(eventName);
         event.SetProperty("result", "Success");
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i);
+        event.SetLatency(latency);
         logger->LogEvent(event);
     }
 
@@ -244,9 +248,6 @@ int main()
     // high		- 2 sec
     // normal	- 4 sec
     // low		- 8 sec
-
-    printf("LogManager::UploadNow\n"); 
-    LogManager::UploadNow();
 
     printf("LogManager::FlushAndTeardown\n");
     LogManager::FlushAndTeardown();

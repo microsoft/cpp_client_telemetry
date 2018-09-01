@@ -102,11 +102,24 @@ namespace ARIASDK_NS_BEGIN {
             m_offlineStorageDisk->Shutdown();
         }
     }
-
-    unsigned OfflineStorageHandler::GetSize()
+    
+    /// <summary>
+    /// Get estimated DB size
+    /// </summary>
+    /// <returns>
+    /// Size of memory + disk storage
+    /// </returns>
+    /// <remarks>
+    /// Value may change at runtime, so it's only approximate value.
+    /// </remarks>
+    size_t OfflineStorageHandler::GetSize()
     {
-        // TODO: [MG] - add sum of memory + offline
-        return 0;
+        size_t size = 0;
+        if (m_offlineStorageMemory != nullptr)
+            size += m_offlineStorageMemory->GetSize();
+        if (m_offlineStorageDisk != nullptr)
+            size += m_offlineStorageDisk->GetSize();
+        return size;
     }
 
     void OfflineStorageHandler::Flush()
