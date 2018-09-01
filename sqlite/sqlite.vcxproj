@@ -289,7 +289,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -339,7 +339,7 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <OmitFramePointers>false</OmitFramePointers>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
