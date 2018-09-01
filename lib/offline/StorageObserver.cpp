@@ -36,8 +36,6 @@ namespace ARIASDK_NS_BEGIN {
             storeRecordFailed(ctx);
             return false;
         }
-
-        DispatchEvent(DebugEventType::EVT_CACHED);
         return true;
     }
 
