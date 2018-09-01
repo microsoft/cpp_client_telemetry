@@ -388,7 +388,7 @@ namespace ARIASDK_NS_BEGIN {
         //Add the tenantID (not the entire tenantToken) to the stats event
 
         std::string statTenantToken = m_config.GetMetaStatsTenantToken();
-        record.iKey = "O:" + statTenantToken.substr(0, statTenantToken.find('-'));;
+        record.iKey = "o:" + statTenantToken.substr(0, statTenantToken.find('-'));;
         record.name = "stats";
 
         // session fileds
