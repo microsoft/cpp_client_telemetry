@@ -264,6 +264,7 @@
     <ClCompile Include="DebugCallback.cpp" />
     <ClCompile Include="guest.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OfficeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="deploy-dll.cmd" />
