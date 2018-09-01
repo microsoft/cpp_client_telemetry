@@ -38,7 +38,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
-        LOCKGUARD(ILogManagerInternal::managers_lock);
+        // LOCKGUARD(ILogManagerInternal::managers_lock);
         for (auto instance : ILogManagerInternal::managers)
         {
             instance->DispatchEvent(evt);
@@ -252,8 +252,10 @@ namespace ARIASDK_NS_BEGIN {
             m_eventFilterRegulator.Reset();
         }
 
+        auto shutTime = GetUptimeMs();
         PAL::shutdown();
-        LOG_INFO("Shutdown complete");
+        shutTime = GetUptimeMs() - shutTime;
+        LOG_INFO("Shutdown complete in %lld ms", shutTime);
 
         m_alive = false;
 #ifdef ANDROID
