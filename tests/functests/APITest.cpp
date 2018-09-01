@@ -5,7 +5,7 @@
 #include "common/Common.hpp"
 
 #include <atomic>
-
+#include <cassert>
 #include <LogManager.hpp>
 
 using namespace MAT;
@@ -381,37 +381,48 @@ TEST(APITest, LogManager_Reinitialize_Test)
     }
 }
 
+static void logBenchMark(const char * label)
+{
+#ifdef DEBUG_PERF
+    static int64_t lastTime = GetUptimeMs();
+    int64_t currTime = GetUptimeMs();
+    printf("%s: ... %lld\n", label, (currTime - lastTime));
+    lastTime = currTime;
+#else
+    UNREFERENCED_PARAMETER(label);
+#endif
+}
+
 TEST(APITest, LogManager_Reinitialize_UploadNow)
 {
-    // TODO: [MG] - remove the old config remap
-    MAT_v1::LogConfiguration config;
-    config.traceLevelMask = 0;
-    config.minimumTraceLevel = ACTTraceLevel_Warn;
-    config.maxTeardownUploadTimeInSec = 1;
-    ILogConfiguration newConfig = FromLogConfiguration(config);
-
-    {
-        // Clean-up the DB
-        config.maxTeardownUploadTimeInSec = 10;
-        ILogger *logger = LogManager::Initialize(TEST_TOKEN, newConfig);
-        logger->LogEvent("HelloAPITest");
-        LogManager::UploadNow();
-        LogManager::FlushAndTeardown();
-    }
-
-    // Restart with fast teardown duration
-    config.maxTeardownUploadTimeInSec = 1;
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
-    size_t numIterations     = 20;
-    const size_t shutdownSec = 35; // Must complete 20 runs in 35 seconds on Release
+
+    size_t numIterations     = 10;
+    const size_t shutdownSec = 15; // Must complete 10 runs in 15 seconds on Release
 
     bool flipFlop = true;
     while (numIterations--)
     {
-        ILogger *logger = LogManager::Initialize(TEST_TOKEN, newConfig);
+        logBenchMark("started");
+        auto& config = LogManager::GetLogConfiguration();
+        logBenchMark("created");
+
+        config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+        config[CFG_INT_TRACE_LEVEL_MIN]  = ACTTraceLevel_Debug;
+        config[CFG_INT_SDK_MODE]         = SdkModeTypes::SdkModeTypes_Aria;
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
+        logBenchMark("config ");
+
+        ILogger *logger = LogManager::Initialize(TEST_TOKEN, config);
+        logBenchMark("inited ");
+
         logger->LogEvent("test");
+        logBenchMark("logged ");
+
         // Try to switch transmit profile
         LogManager::SetTransmitProfile(TRANSMITPROFILE_REALTIME);
+        logBenchMark("profile");
+
         if (flipFlop)
         {
             LogManager::PauseTransmission();
@@ -420,12 +431,21 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         {
             LogManager::ResumeTransmission();
         }
+        logBenchMark("flipflp");
+
+        logBenchMark("upload ");
         LogManager::UploadNow();
+
+        logBenchMark("flush  ");
         LogManager::FlushAndTeardown();
+
+        logBenchMark("done   ");
         flipFlop = !flipFlop;
     }
+
     std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
     uint64_t total_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
+
     EXPECT_GE(shutdownSec+1, total_time);
 }
 

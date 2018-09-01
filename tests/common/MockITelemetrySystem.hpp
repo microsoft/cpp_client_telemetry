@@ -2,6 +2,8 @@
 
 #pragma once
 #include <system/ITelemetrySystem.hpp>
+#include "config/RuntimeConfig_Default.hpp"
+#include "NullObjects.hpp"
 
 using namespace MAT;
 
@@ -17,8 +19,21 @@ namespace testing {
         MOCK_METHOD0(pause, void());
         MOCK_METHOD0(resume, void());
         MOCK_METHOD0(upload, void());
-        MOCK_METHOD0(getLogManager, ILogManager&());
-        MOCK_METHOD0(getConfig, IRuntimeConfig&());
+
+        // MOCK_METHOD0(getLogManager, ILogManager&());
+        ILogManager& getLogManager()
+        {
+            static NullLogManager nullLogManager;
+            return nullLogManager;
+        }
+
+        // MOCK_METHOD0(getConfig, IRuntimeConfig&());        
+        IRuntimeConfig& getConfig()
+        {
+            static RuntimeConfig_Default       testConfig;
+            return testConfig;
+        }
+
         MOCK_METHOD0(getContext, ISemanticContext&());
         MOCK_METHOD1(DispatchEvent, bool(DebugEvent evt));
         MOCK_METHOD1(sendEvent, void(IncomingEventContextPtr const& event));

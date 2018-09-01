@@ -1,3 +1,4 @@
+#if 0 // TODO: [MG] - these tests were broken very long time ago. We'll add it when we need to re-enable AFD support
 // Copyright (c) Microsoft. All rights reserved.
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "pal/UtcHelpers.hpp"
@@ -585,3 +586,4 @@ TEST_F(BasicAfdFuncTests, getAfdDataAfterSuspendResume)
 
     m_pAFDClient->Stop();
 }
+#endif

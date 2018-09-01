@@ -3,9 +3,22 @@
 #pragma once
 #include <api/IRuntimeConfig.hpp>
 
+#include "config/RuntimeConfig_Default.hpp"
+
 namespace testing {
 
-    class MockIRuntimeConfig : public ARIASDK_NS::IRuntimeConfig {
+    class MockIRuntimeConfig : public ARIASDK_NS::RuntimeConfig_Default /* ARIASDK_NS::IRuntimeConfig */ {
+
+    protected:
+
+#if 0
+        ARIASDK_NS::IRuntimeConfig& GetDefaultConfig()
+        {
+            static ARIASDK_NS::RuntimeConfig_Default defaultTestConfig;
+            return defaultTestConfig;
+        }
+#endif
+
     public:
         MockIRuntimeConfig();
         virtual ~MockIRuntimeConfig();
@@ -27,10 +40,11 @@ namespace testing {
         MOCK_METHOD0(GetTeardownTime, uint32_t());
         MOCK_METHOD0(IsClockSkewEnabled, bool());
 
-        // FIXME: Google Mock doesn't support operators
+        // FIXME: [MG] - Google Mock doesn't support mocking operators
         virtual ARIASDK_NS::Variant & operator[](const char* key)
         {
-            return (*this)[key];
+            return config[key];
+            // return (*this)[key];
         };
 
     };

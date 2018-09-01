@@ -157,13 +157,11 @@ TEST(MemoryStorageTests, StoreAndGetRecords)
     EXPECT_THAT(storage.GetSize(), 0);
 }
 
-TEST(MemoryStorageTests, DeleteRecords)
+TEST(MemoryStorageTests, GetRecordsDeletesRecords)
 {
     MemoryStorage storage(testLogManager, testConfig);
 
     std::vector<StorageRecordId> ids;
-    HttpHeaders headers;
-    bool fromMemory = true;
 
     // Add some events to storage
     auto total_db_size = addEvents(storage);
@@ -173,24 +171,11 @@ TEST(MemoryStorageTests, DeleteRecords)
     std::unique_ptr< std::vector<StorageRecord> > records;
     records.reset(storage.GetRecords());
 
-    // Storage size is "zero" because all records are currently reserved (in-flight)
-    EXPECT_THAT(storage.GetSize(), 0);
-    EXPECT_THAT(storage.GetRecordCount(), 0);
-
-    // Reserved count equals to the number of records added then reserved
-    EXPECT_THAT(storage.GetReservedCount(), num_iterations * 4); // 4 latencies
-
-    // Track IDs of all reserved records
-    for (auto &record : *records)
-    {
-        ids.push_back(record.id);
-    }
-
-    // Perform deletion of all reserved records
-    storage.DeleteRecords(ids, headers, fromMemory);
+    // Storage size is "zero" because all records are fetched
     EXPECT_THAT(storage.GetSize(), 0);
     EXPECT_THAT(storage.GetRecordCount(), 0);
     EXPECT_THAT(storage.GetReservedCount(), 0);
+    EXPECT_THAT(records->size(), num_iterations * 4); // 4 latencies
 }
 
 TEST(MemoryStorageTests, ReleaseRecords)
@@ -208,7 +193,14 @@ TEST(MemoryStorageTests, ReleaseRecords)
 
     // Retrieve those into records
     std::unique_ptr< std::vector<StorageRecord> > records;
-    records.reset(storage.GetRecords());
+    records.reset(new std::vector<StorageRecord>);
+
+    auto consumer = [&records](StorageRecord&& record) -> bool {
+        records->push_back(std::move(record));
+        return true; // want more
+    };
+
+    storage.GetAndReserveRecords(consumer, 1500);
 
     // Storage size is "zero" because all records are currently reserved (in-flight)
     EXPECT_THAT(storage.GetSize(), 0);
