@@ -296,7 +296,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             record.name = "NotSpecified";
         }
-        record.iKey = "O:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
+        record.iKey = "o:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
 
         // TODO: [MG] - optimize this code
         bool result = true;
