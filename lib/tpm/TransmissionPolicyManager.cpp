@@ -17,9 +17,7 @@ namespace ARIASDK_NS_BEGIN {
         m_bandwidthController(bandwidthController),
         m_isPaused(true),
         m_isUploadScheduled(false),
-        m_finishing(false),
         m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-        m_uploadInProgress(false),
         m_runningLatency(EventLatency_RealTime)
     {
         m_backoffConfig = "E,3000,300000,2,1";
@@ -51,34 +49,33 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
         LOG_TRACE("Scheduling another upload in %d msec, latency=%d", delayInMs, latency);
-
-        if (force || delayInMs == 0)
+        if (m_isPaused)
         {
-            if (m_scheduledUpload.m_item)
-                m_scheduledUpload.cancel();
-            m_isUploadScheduled = false;
-        }
-
-        if (!m_isUploadScheduled.exchange(true))
-        {
-            m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
-            m_uploadInProgress = true;
-        }
-
-    }
-
-    void TransmissionPolicyManager::uploadAsync(EventLatency latency)
-    {
-        m_isUploadScheduled = false;
-        m_runningLatency = latency;
-
-        if (m_isPaused) {
             LOG_TRACE("Paused, not uploading anything until resumed");
             return;
         }
 
-        if (!m_activeUploads.empty()) {
-            LOG_TRACE("Busy, not uploading anything else until the previous upload finishes");
+        // Cancel upload that's been already scheduled
+        if (force || delayInMs == 0)
+        {
+            cancelUploadTask();
+        }
+
+        // Schedule a new one
+        if (!m_isUploadScheduled.exchange(true))
+        {
+            m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
+        }
+    }
+
+    void TransmissionPolicyManager::uploadAsync(EventLatency latency)
+    {
+        m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
+        m_runningLatency = latency;
+
+        if (m_isPaused) {
+            LOG_TRACE("Paused, not uploading anything until resumed");
+            cancelUploadTask();    // If there is a pending upload task, kill it
             return;
         }
 
@@ -93,83 +90,56 @@ namespace ARIASDK_NS_BEGIN {
                 unsigned delayMs = 1000;
                 LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
                     proposedBandwidthBps, minimumBandwidthBps, delayMs);
-                scheduleUpload(delayMs, latency);
+                scheduleUpload(delayMs, latency); // reschedule uploadAsync to run again 1000 ms later
                 return;
             }
         }
 
         EventsUploadContextPtr ctx = new EventsUploadContext();
-        ctx->requestedMinLatency = m_runningLatency;// EventLatency_Low;
-        m_activeUploads.insert(ctx);
+        ctx->requestedMinLatency = m_runningLatency;
+        addUpload(ctx);
         initiateUpload(ctx);
     }
 
     void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
     {
-        // TODO: [MG] - verify this codepath
-
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx);
-        if (m_activeUploads.find(ctx) != m_activeUploads.cend())
-        {
-            LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx);
-            m_activeUploads.erase(ctx);
-            delete ctx;
-        }
-        else
+        if (!removeUpload(ctx))
         {
             LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx);
         }
 
-        if (m_activeUploads.empty())
+        // Rescheduling upload
+        if (nextUploadInMs >= 0)
         {
-            m_uploadInProgress = false;
-        }
-
-        if (m_finishing) {
-            if (m_activeUploads.empty()) {
-                allUploadsFinished();
-            }
-            return;
-        }
-
-        if (nextUploadInMs >= 0 && m_activeUploads.empty())
-        {
-            if (m_isUploadScheduled) {
-                m_scheduledUpload.cancel();
-                m_isUploadScheduled = false;
-            }
-
+            LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(nextUploadInMs, proposed);
+            scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
         }
     }
 
     bool TransmissionPolicyManager::handleStart()
     {
         m_isPaused = false;
-        scheduleUpload(0, EventLatency_Normal);
+        // TODO: [MG] - this implies that start would force the immediate upload, but
+        // some customers require to be able to start in a paused (no telemetry) state.
+        // We may avoid the issue if we schedule the first upload to happen 1 second
+        // after start
+        scheduleUpload(1000, EventLatency_Normal);
         return true;
     }
 
     bool TransmissionPolicyManager::handleStopOrPause()
     {
-        m_isPaused = true;
-        m_scheduledUpload.cancel();
-        m_isUploadScheduled = false;
+        abortAllUploads();
         return true;
     }
 
+    // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
-        if (m_activeUploads.empty()) {
-            LOG_TRACE("There are no active uploads");
-            allUploadsFinished();
-            return;
-        }
-
-        LOG_TRACE("Waiting for %u outstanding upload(s)...",
-            static_cast<unsigned>(m_activeUploads.size()));
-        m_finishing = true;
+        abortAllUploads();
+        allUploadsFinished();   // calls stats.onStop >> this->flushWorkerThread;
     }
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
@@ -178,20 +148,19 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
         bool forceTimerRestart = false;
+
+        // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
             EventsUploadContextPtr ctx = new EventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
-            m_activeUploads.insert(ctx);
+            addUpload(ctx);
             initiateUpload(ctx);
+            return;
         }
-        else if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
-        {
-            if (m_isUploadScheduled)
-            {
-                m_scheduledUpload.cancel();
-                m_isUploadScheduled = false;
-            }
 
+        // Schedule async upload if not scheduled yet
+        if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
+        {
             if (TransmitProfiles::isTimerUpdateRequired())
             {
                 TransmitProfiles::getTimers(m_timers);
@@ -201,9 +170,7 @@ namespace ARIASDK_NS_BEGIN {
                     forceTimerRestart = true;
                 }
             }
-
             EventLatency proposed = calculateNewPriority();
-
             scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
         }
     }
