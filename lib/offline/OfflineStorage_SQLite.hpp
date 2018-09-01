@@ -15,6 +15,8 @@
 #include <atomic>
 #include <mutex>
 
+// #define ENABLE_LOCKING      // Enable DB locking for flush
+
 namespace ARIASDK_NS_BEGIN {
 
     class SqliteDB;
@@ -28,6 +30,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
         virtual void Flush() override {};
+        virtual void Execute(std::string command);
         virtual bool StoreRecord(StorageRecord const& record) override;
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool IsLastReadFromMemory() override;

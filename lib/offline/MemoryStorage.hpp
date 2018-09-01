@@ -45,6 +45,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
+        virtual void ReleaseAllRecords() override;
+
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
 
         virtual std::string GetSetting(std::string const& name) override;

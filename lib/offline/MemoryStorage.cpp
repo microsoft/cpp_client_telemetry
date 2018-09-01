@@ -63,6 +63,15 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
     
+    template<typename T, typename V>
+    bool contains(T vec, V value)
+    {
+        auto it = std::find(vec.begin(), vec.end(), value);
+        if (it != vec.end())
+            return true;
+        return false;
+    }
+
     /// <summary>
     /// Store one telemetry event record
     /// </summary>
@@ -83,8 +92,13 @@ namespace ARIASDK_NS_BEGIN {
 
         LOCKGUARD(m_records_lock);
         m_size += record.blob.size() + sizeof(record); // approximate contents size
-        m_records[record.latency].push_back(std::move(record));
 
+#ifdef DEBUG_DUPLICATE_ROUTES
+        if (contains(m_records[record.latency], record))
+            LOG_WARN("Vector already contains this element!");
+#endif
+
+        m_records[record.latency].push_back(std::move(record));
         return true;
     }
 
@@ -116,19 +130,20 @@ namespace ARIASDK_NS_BEGIN {
         m_lastReadCount = 0;
         for (unsigned latency = minLatency; (latency <= EventLatency_Max) && (maxCount); latency++)
         {
-            while (maxCount && (m_records[latency]).size() )
+            while (maxCount && (m_records[latency]).size())
             {
                 m_lastReadCount++;
                 StorageRecord & record = m_records[latency].back();
-                // TODO: [MG] - time-based reservation is not currently supported for ram records.
-                // Records in ram get deleted when the retry counter is exceeded, which is rather
-                // long period of time based on expotential back-off policy.
-                record.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
                 size_t recordSize = record.blob.size() + sizeof(record);
+
+                // Reserve records only if asked
+                if (leaseTimeMs)
                 {
                     LOCKGUARD(m_reserved_lock);
+                    record.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
                     m_reserved_records[record.id] = record; // copy to reserved
                 }
+
                 consumer(std::move(record));                // move to consumer
                 m_records[latency].pop_back();              // destroy in records
 
@@ -265,7 +280,23 @@ namespace ARIASDK_NS_BEGIN {
                 ++it;
             }
         }
+    }
 
+    void MemoryStorage::ReleaseAllRecords()
+    {
+        // In case if HTTP upload has been canceled or didn't succeed,
+        // we'd move all reserved records to regular ram queue
+        LOCKGUARD(m_reserved_lock);
+        if (m_reserved_records.size())
+        {
+            auto it = m_reserved_records.begin();
+            while (it != m_reserved_records.end())
+            {
+                auto &kv = *it;
+                StoreRecord(kv.second);
+                it = m_reserved_records.erase(it);
+            }
+        }
     }
 
     /// <summary>
@@ -342,7 +373,7 @@ namespace ARIASDK_NS_BEGIN {
 
     MemoryStorage::~MemoryStorage()
     {
-        Shutdown();
+        // Shutdown();
     }
     
     /// <summary>

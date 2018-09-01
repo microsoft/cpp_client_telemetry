@@ -38,6 +38,11 @@ namespace ARIASDK_NS_BEGIN {
             int64_t timestamp, std::vector<uint8_t>&& blob, int retryCount = 0, int64_t reservedUntil = 0)
             : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence), timestamp(timestamp), blob(blob), retryCount(retryCount), reservedUntil(reservedUntil)
         {}
+
+        bool operator==(const StorageRecord& rhs) {
+            return ((*this).id == rhs.id);
+        }
+
     };
 
     class IOfflineStorageObserver {
@@ -258,6 +263,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) = 0;
 
         virtual bool ResizeDb() = 0;
+
+        virtual void ReleaseAllRecords() {};
     };
 
 
