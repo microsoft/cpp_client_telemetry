@@ -46,7 +46,7 @@
     <ProjectGUID>{1DC6B38A-B390-34CE-907F-4958807A3D42}</ProjectGUID>
     <Keyword>Win32LibProj</Keyword>
     <RootNamespace>ClientTelemetry</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>win32-lib</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">

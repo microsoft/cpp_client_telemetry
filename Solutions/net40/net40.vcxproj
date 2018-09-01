@@ -24,7 +24,7 @@
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>Microsoft.Applications.Telemetry.Windows</RootNamespace>
     <ProjectName>net40</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <CLRSupport>true</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
