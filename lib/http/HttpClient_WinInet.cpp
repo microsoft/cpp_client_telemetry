@@ -1,3 +1,4 @@
+#include "HttpClient_WinInet.hpp"
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClient_WinInet.hpp"
@@ -302,24 +303,7 @@ HttpClient_WinInet::HttpClient_WinInet()
 
 HttpClient_WinInet::~HttpClient_WinInet()
 {
-    bool done;
-
-    {
-		std::lock_guard<std::mutex> lock(m_requestsMutex);
-        for (auto const& item : m_requests) {
-            item.second->cancel();
-        }
-        done = m_requests.empty();
-    }
-
-    while (!done) {
-        PAL::sleep(100);
-        {
-			std::lock_guard<std::mutex> lock(m_requestsMutex);
-            done = m_requests.empty();
-        }
-    }
-
+    CancelAllRequests();
     ::InternetCloseHandle(m_hInternet);
 }
 
@@ -329,7 +313,10 @@ void HttpClient_WinInet::signalDoneAndErase(std::string const& id)
     auto it = m_requests.find(id);
     if (it != m_requests.end()) {
         it->second->signalDone();
+        auto req = it->second;
         m_requests.erase(it);
+        // delete WinInetRequestWrapper
+        delete req;
     }
 }
 
@@ -362,5 +349,27 @@ void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
     }
 }
 
+
+void HttpClient_WinInet::CancelAllRequests()
+{
+    // vector of all request IDs
+    std::vector<std::string> ids;
+    {
+        std::lock_guard<std::mutex> lock(m_requestsMutex);
+        for (auto const& item : m_requests) {
+            ids.push_back(item.first);
+        }
+    }
+    // cancel all requests one-by-one not holding the lock
+    for (const auto &id : ids)
+        CancelRequestAsync(id);
+
+    // wait for all destructors to run
+    while (!m_requests.empty())
+    {
+        PAL::sleep(100);
+        std::this_thread::yield();
+    }
+};
 
 } ARIASDK_NS_END
