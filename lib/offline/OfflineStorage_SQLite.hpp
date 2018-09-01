@@ -15,7 +15,7 @@
 #include <atomic>
 #include <mutex>
 
-// #define ENABLE_LOCKING      // Enable DB locking for flush
+#define ENABLE_LOCKING      // Enable DB locking for flush
 
 namespace ARIASDK_NS_BEGIN {
 
