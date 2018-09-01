@@ -614,9 +614,8 @@ namespace ARIASDK_NS_BEGIN {
             "timestamp"      " INTEGER,"
             "retry_count"    " INTEGER DEFAULT 0,"
             "reserved_until" " INTEGER DEFAULT 0,"
-            "payload"        " BLOB"
-            // TODO: [MG] - uncompressed record_id GUIDs as record key are overkill...
-            // ", PRIMARY KEY (record_id))"
+            "payload"        " BLOB,"
+            "PRIMARY KEY (record_id))"
         ).execute()) {
             return false;
         }

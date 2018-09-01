@@ -127,10 +127,10 @@ namespace ARIASDK_NS_BEGIN {
             std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             size_t totalSaved = 0;
 
-            OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
-
-            if (sqlite)
-                sqlite->Execute("BEGIN");
+////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
+// TODO: [MG] - consider running the batch in transaction
+//            if (sqlite)
+//                sqlite->Execute("BEGIN");
 
             while (records->size())
             {
@@ -138,8 +138,11 @@ namespace ARIASDK_NS_BEGIN {
                     totalSaved++;
                 records->pop_back();
             }
-            if (sqlite)
-                sqlite->Execute("END");
+
+// TODO: [MG] - consider running the batch in transaction
+//            if (sqlite)
+//                sqlite->Execute("END");
+
             delete records;
 
             // Notify event listener about the records cached
