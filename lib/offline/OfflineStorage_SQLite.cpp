@@ -41,6 +41,7 @@ namespace ARIASDK_NS_BEGIN {
         m_clockSkewManager(),
         m_lastReadCount(0),
         m_isStorageFullNotificationSend(false),
+        m_isOpened(false),
         m_DbSizeHeapLimit(0)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
@@ -91,10 +92,16 @@ namespace ARIASDK_NS_BEGIN {
             m_observer->OnStorageOpened("SQLite/Default");
             sqlStartTime = GetUptimeMs() - sqlStartTime;
             LOG_INFO("Storage opened in %lld ms", sqlStartTime);
+            m_isOpened = true;
             return;
         }
 
-        recreate(1);
+        // TODO: implement DB recreation
+        // recreate(1);
+
+        // DB is not opened
+        m_db.reset();
+        m_isOpened = false;
     }
 
     void OfflineStorage_SQLite::Shutdown()
@@ -102,14 +109,18 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
         LOCKGUARD(m_lock);
         if (m_db) {
-            m_db->shutdown();
-            m_db.reset();
+            if (m_isOpened) {
+                m_db->shutdown();
+                m_db.reset();
+            }
+            m_isOpened = false;
         }
     }
 
     void OfflineStorage_SQLite::Execute(std::string command)
     {
-        m_db->execute(command.c_str());
+        if (m_db)
+            m_db->execute(command.c_str());
     }
 
     bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
@@ -805,6 +816,11 @@ namespace ARIASDK_NS_BEGIN {
     // TODO: [MG] - for on-disk database this has to be replaced by filesize check
     size_t OfflineStorage_SQLite::GetSize()
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to get DB size: database is not open");
+            return 0;
+        }
+
         LOCKGUARD(m_lock);
         unsigned pageCount;
         SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
@@ -819,6 +835,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to trim: database is not open");
+            return 0;
+        }
+
         m_currentlyAddedBytes += justAddedBytes;
         if (m_currentlyAddedBytes < 10240) {
             return true;
@@ -926,6 +947,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::ResizeDb()
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to resize: database is not open");
+            return 0;
+        }
+
         SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
         if (!trimStmt.select()) {
             LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");

@@ -66,6 +66,7 @@ namespace ARIASDK_NS_BEGIN {
         int                         m_pageSize;
         size_t                      m_currentlyAddedBytes;
         bool                        m_skipInitAndShutdown;
+        bool                        m_isOpened;
         std::atomic<bool>           m_isInTransaction;
         size_t                      m_stmtBeginTransaction;
         size_t                      m_stmtCommitTransaction;
