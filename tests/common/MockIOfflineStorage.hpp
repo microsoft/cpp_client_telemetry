@@ -23,7 +23,7 @@ class MockIOfflineStorage : public ARIASDK_NS::IOfflineStorage {
     MOCK_METHOD4(ReleaseRecords, void(std::vector<ARIASDK_NS::StorageRecordId> const &, bool, ARIASDK_NS::HttpHeaders, bool&));
     MOCK_METHOD2(StoreSetting, bool(std::string const &, std::string const &));
     MOCK_METHOD1(GetSetting, std::string(std::string const &));
-    MOCK_METHOD0(GetSize, unsigned());
+    MOCK_METHOD0(GetSize, size_t());
     MOCK_METHOD3(GetRecords, std::vector<ARIASDK_NS::StorageRecord>*(bool, ARIASDK_NS::EventLatency, unsigned));
 	MOCK_METHOD0(ResizeDb, bool());
 };
