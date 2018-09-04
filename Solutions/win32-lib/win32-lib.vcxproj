@@ -34,14 +34,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
-      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
-      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{1DC6B38A-B390-34CE-907F-4958807A3D42}</ProjectGUID>
     <Keyword>Win32LibProj</Keyword>
