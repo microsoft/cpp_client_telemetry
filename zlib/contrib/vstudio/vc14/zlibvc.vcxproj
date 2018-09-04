@@ -387,8 +387,8 @@ bld_ml32.bat</Command>
       <Culture>0x040c</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>..\..\masmx86\match686.obj;..\..\masmx86\inffas32.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:ARM %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)zlib.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\zlibvc.def</ModuleDefinitionFile>
@@ -403,8 +403,6 @@ bld_ml32.bat</Command>
       <ImportLibrary>$(OutDir)zlib.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>cd ..\..\masmx86
-bld_ml32.bat</Command>
     </PreBuildEvent>
     <Lib>
       <TargetMachine>MachineARM</TargetMachine>
@@ -442,8 +440,8 @@ bld_ml32.bat</Command>
       <Culture>0x040c</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>..\..\masmx86\match686.obj;..\..\masmx86\inffas32.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:ARM %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)zlib.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\zlibvc.def</ModuleDefinitionFile>
@@ -457,9 +455,7 @@ bld_ml32.bat</Command>
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)zlib.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>cd ..\..\masmx86
-bld_ml32.bat</Command>
+    <PreBuildEvent>     
     </PreBuildEvent>
     <Lib>
       <TargetMachine>MachineARM</TargetMachine>
@@ -627,8 +623,8 @@ bld_ml32.bat</Command>
       <Culture>0x040c</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>..\..\masmx86\match686.obj;..\..\masmx86\inffas32.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:ARM %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)zlib.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -643,8 +639,6 @@ bld_ml32.bat</Command>
       <ImportLibrary>$(OutDir)zlib.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>cd ..\..\masmx86
-bld_ml32.bat</Command>
     </PreBuildEvent>
     <Lib>
       <TargetMachine>MachineARM</TargetMachine>
@@ -685,8 +679,8 @@ bld_ml32.bat</Command>
       <Culture>0x040c</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>..\..\masmx86\match686.obj;..\..\masmx86\inffas32.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:ARM %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)zlib.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -701,8 +695,6 @@ bld_ml32.bat</Command>
       <ImportLibrary>$(OutDir)zlib.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>cd ..\..\masmx86
-bld_ml32.bat</Command>
     </PreBuildEvent>
     <Lib>
       <TargetMachine>MachineARM</TargetMachine>
