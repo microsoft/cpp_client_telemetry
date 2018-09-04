@@ -72,15 +72,15 @@ namespace ARIASDK_NS_BEGIN {
                 stopTimes[0] = GetUptimeMs() - stopTimes[0];
             }
 
-            // initiate the stop sequence
-            stopTimes[1] = GetUptimeMs();
-            result &= tpm.stop();
-            stopTimes[1] = GetUptimeMs() - stopTimes[1];
-
             // cancel all pending and force-finish all uploads
-            stopTimes[2] = GetUptimeMs();
+            stopTimes[1] = GetUptimeMs();
             hcm.cancelAllRequests();
             tpm.finishAllUploads();
+            stopTimes[1] = GetUptimeMs() - stopTimes[1];
+
+            // initiate the stop sequence
+            stopTimes[2] = GetUptimeMs();
+            result &= tpm.stop();
             stopTimes[2] = GetUptimeMs() - stopTimes[2];
 
             // cancel all pending tasks
@@ -97,8 +97,8 @@ namespace ARIASDK_NS_BEGIN {
 
 #if 1       // Shutdown performance printout
             LOG_WARN("upload  = %lld ms", stopTimes[0]);
-            LOG_WARN("stop    = %lld ms", stopTimes[1]);
-            LOG_WARN("abort   = %lld ms", stopTimes[2]);
+            LOG_WARN("abort   = %lld ms", stopTimes[1]);
+            LOG_WARN("stop    = %lld ms", stopTimes[2]);
             LOG_WARN("worker  = %lld ms", stopTimes[3]);
             LOG_WARN("storage = %lld ms", stopTimes[4]);
 #endif
