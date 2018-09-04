@@ -275,7 +275,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0,                    debugListener.numReject);
 
     LogManager::UploadNow();                                    // Try to upload whatever we got
-    PAL::sleep(500);                                            // Give enough time to upload at least one event
+    PAL::sleep(1000);                                           // Give enough time to upload at least one event
     EXPECT_NE(0,                    debugListener.numSent);     // Some posts have successed within 500ms
 
     LogManager::PauseTransmission();
@@ -479,7 +479,7 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 TEST(APITest, LogManager_BadNetwork_Test)
 {
     MAT_v1::LogConfiguration config;
-    config.eventCollectorUri = "http://127.0.0.1";
+    config.eventCollectorUri = "http://1.2.3.4"; // "http://127.0.0.1";
     config.traceLevelMask = 0;
     config.minimumTraceLevel = ACTTraceLevel_Warn;
     config.maxTeardownUploadTimeInSec = 2; // Wait for 2 seconds
