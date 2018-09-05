@@ -4,17 +4,7 @@ REM TODO: add Debug flavor to the build
 
 set ProjectName=Microsoft.Applications.Telemetry.Windows
 set NuGetFolder=%CD%
-cd ../..
-set SolutionDir=%CD%
-
-set /p PackageVersion=<version.txt
-REM This path is managed by Visual Studio nuget package NuGet.CommandLine
-REM Make sure it's installed before running this batch file!
-set PATH=%CD%\packages\NuGet.CommandLine.3.4.3\tools;%PATH%
-
-set OUTDIR=%CD%\..\..\dist\aria-windows-sdk
-set NativeSDKFolder=%OUTDIR%\%PackageVersion%
-echo NativeSDKFolder=%NativeSDKFolder%
+set NativeSDKFolder=%OUTDIR%
 
 cd %NuGetFolder%
 del /s *.pri *.lib *.winmd *.dll *.obj *.pdb *.exp *.iobj *.ipdb *.bsc
