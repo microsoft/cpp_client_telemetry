@@ -45,3 +45,5 @@ echo Windows Desktop (win32) dynamic runtime .lib...
 call sku-create.cmd win32-lib-vs2015-md  win32-lib
 call sku-create.cmd win32-lib-vs2015-md  sqlite
 call sku-create.cmd win32-lib-vs2015-md  zlib
+
+copy /Y %ROOT%\docs\release-notes.md %OUTDIR%\

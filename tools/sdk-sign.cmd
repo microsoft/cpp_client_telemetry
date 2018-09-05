@@ -51,8 +51,8 @@ copy lib\win32-net40-vs2015\x86\Release\Microsoft.Applications.Telemetry.Windows
 
 REM Sign Intel / PC / Desktop .dlls
 cd %OUTDIR%
-%ROOT%\tools\codesign\bin\x86\Release\codesign.exe %OUTDIR%\windows-sdk-intel.xml -dir %CD%
+echo | %ROOT%\tools\codesign\bin\x86\Release\codesign.exe %OUTDIR%\windows-sdk-intel.xml -dir %CD%
 
 REM Sign ARM / Phone .dlls
 cd %OUTDIR%
-%ROOT%\tools\codesign\bin\x86\Release\codesign.exe %OUTDIR%\windows-sdk-arm.xml -dir %CD%
+echo | %ROOT%\tools\codesign\bin\x86\Release\codesign.exe %OUTDIR%\windows-sdk-arm.xml -dir %CD%
