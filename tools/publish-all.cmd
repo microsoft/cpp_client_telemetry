@@ -8,7 +8,7 @@ cd %ROOT%\tools
 
 call publish-nupkg.cmd NuGet\native\Microsoft.Applications.Telemetry.Windows.%PackageVersion%.nupkg
 call publish-nupkg.cmd NuGet\net40\Microsoft.Applications.Telemetry.Desktop.%PackageVersion%.nupkg
+call publish-nupkg.cmd NuGet\uap\Microsoft.Applications.Telemetry.Windows.UAP.%PackageVersion%.nupkg
 
-REM call publish-nupkg.cmd NuGet\uap\Microsoft.Applications.Telemetry.Windows.UAP.%PackageVersion%.nupkg
 REM call publish-nupkg.cmd NuGet\static-vc140-MD\Microsoft.Applications.Telemetry.Windows.static-vc140-MD.%PackageVersion%.nupkg
 REM call publish-nupkg.cmd NuGet\static-vc140-MT\Microsoft.Applications.Telemetry.Windows.static-vc140-MT.%PackageVersion%.nupkg
