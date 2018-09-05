@@ -455,7 +455,7 @@ bld_ml32.bat</Command>
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)zlib.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>     
+    <PreBuildEvent>
     </PreBuildEvent>
     <Lib>
       <TargetMachine>MachineARM</TargetMachine>
@@ -613,7 +613,7 @@ bld_ml32.bat</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
