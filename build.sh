@@ -54,6 +54,8 @@ make package
 if [ -f /usr/bin/dpkg ]; then
 # Install new package
 sudo dpkg -i *.deb
+else
+sudo rpm -i --force -v *.rpm
 fi
 
 # TODO: remove this section below ... consider moving 'strip' commands to release configuration above
