@@ -91,7 +91,7 @@ namespace ARIASDK_NS_BEGIN
             uint32_t filterRate = filterRates[i];
             if (nullptr != filterString)
             {
-                assert(filterRates[i] >= 0 && filterRates[i] <= 100);
+                assert(filterRates[i] <= 100);
                 _filterRules[std::string(filterString)] = filterRate;
             }
         }

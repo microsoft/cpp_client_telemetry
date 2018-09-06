@@ -653,6 +653,8 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         // *INDENT-OFF* Uncrustify insists on adding a namespace closing comment after the closing curly brace
+#pragma warning(push)
+#pragma warning(disable:4296) // expression always false.
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
 // *INDENT-ON*
@@ -729,6 +731,7 @@ namespace ARIASDK_NS_BEGIN {
             "SELECT value FROM " TABLE_NAME_SETTINGS " WHERE name=?");
 
 #undef PREPARE_SQL
+#pragma warning(pop)
 
         m_currentlyAddedBytes = 0;
         m_isInTransaction = false;
