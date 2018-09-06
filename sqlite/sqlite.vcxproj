@@ -303,6 +303,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -329,6 +330,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -355,6 +357,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -381,6 +384,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <SDLCheck>true</SDLCheck>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
