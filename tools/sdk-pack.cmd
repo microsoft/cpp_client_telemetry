@@ -13,7 +13,7 @@ set SRCDIR=%ROOT%\Solutions\out
 set OUTDIR=%ROOT%\dist\aria-windows-sdk\%PackageVersion%
 set ProjectName=Microsoft.Applications.Telemetry.Windows
 
-set PATH=C:\MinGW\msys\1.0\bin;%PATH%
+set PATH=C:\MinGW\msys\1.0\bin;C:\msys64\usr\bin;%PATH%
 
 cd %OUTDIR%
 copy /Y %ROOT%\Solutions\version.txt %OUTDIR%\version.txt
