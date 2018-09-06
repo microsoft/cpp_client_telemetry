@@ -17,75 +17,149 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-class TransmissionPolicyManager
-{
-  public:
-    TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
-    virtual ~TransmissionPolicyManager();
-    virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
-    virtual bool isUploadInProgress() { return m_uploadInProgress; }
+    class TransmissionPolicyManager
+    {
 
-  protected:
-    ARIASDK_LOG_DECL_COMPONENT_CLASS();
-    void checkBackoffConfigUpdate();
-    
-    void uploadAsync(EventLatency priority);
-    void finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs);
+    public:
+        TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
+        virtual ~TransmissionPolicyManager();
+        virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
-    bool handleStart();
-    bool handleStopOrPause();
-    void handleFinishAllUploads();
+    protected:
+        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        void checkBackoffConfigUpdate();
 
-    void handleEventArrived(IncomingEventContextPtr const& event);
+        void uploadAsync(EventLatency priority);
+        void finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs);
 
-    void handleNothingToUpload(EventsUploadContextPtr const& ctx);
-    void handlePackagingFailed(EventsUploadContextPtr const& ctx);
-    void handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx);
-    void handleEventsUploadRejected(EventsUploadContextPtr const& ctx);
-    void handleEventsUploadFailed(EventsUploadContextPtr const& ctx);
-    void handleEventsUploadAborted(EventsUploadContextPtr const& ctx);
+        bool handleStart();
+        bool handleStopOrPause();
+        void handleFinishAllUploads();
 
-    EventLatency calculateNewPriority();
+        void handleEventArrived(IncomingEventContextPtr const& event);
 
-  protected:
-    std::mutex                       m_lock;
+        void handleNothingToUpload(EventsUploadContextPtr const& ctx);
+        void handlePackagingFailed(EventsUploadContextPtr const& ctx);
+        void handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx);
+        void handleEventsUploadRejected(EventsUploadContextPtr const& ctx);
+        void handleEventsUploadFailed(EventsUploadContextPtr const& ctx);
+        void handleEventsUploadAborted(EventsUploadContextPtr const& ctx);
 
-    ITelemetrySystem&                m_system;
-    IRuntimeConfig&                  m_config;
-    IBandwidthController*            m_bandwidthController;
+        EventLatency calculateNewPriority();
 
-    std::string                      m_backoffConfig;           // TODO: [MG] - move to config
-    std::unique_ptr<IBackoff>        m_backoff;
-    DeviceStateHandler               m_deviceStateHandler;
+        std::mutex                       m_lock;
 
-    bool                             m_isPaused;
-    std::atomic<bool>                m_isUploadScheduled;
-    bool                             m_finishing;
-    PAL::DeferredCallbackHandle      m_scheduledUpload;
+        ITelemetrySystem&                m_system;
+        IRuntimeConfig&                  m_config;
+        IBandwidthController*            m_bandwidthController;
 
-    std::set<EventsUploadContextPtr> m_activeUploads;
-    int                              m_timerdelay;
-    bool                             m_uploadInProgress;
-    EventLatency                     m_runningLatency;
-    std::vector<int>                 m_timers;
+        std::string                      m_backoffConfig;           // TODO: [MG] - move to config
+        std::unique_ptr<IBackoff>        m_backoff;
+        DeviceStateHandler               m_deviceStateHandler;
 
-  public:
-    RoutePassThrough<TransmissionPolicyManager>                          start{this, &TransmissionPolicyManager::handleStart};
-    RoutePassThrough<TransmissionPolicyManager>                          pause{this, &TransmissionPolicyManager::handleStopOrPause};
-    RoutePassThrough<TransmissionPolicyManager>                          stop{this, &TransmissionPolicyManager::handleStopOrPause};
-    RouteSink<TransmissionPolicyManager>                                 finishAllUploads{this, &TransmissionPolicyManager::handleFinishAllUploads};
-    RouteSource<>                                                        allUploadsFinished;
+        bool                             m_isPaused;
+        std::atomic<bool>                m_isUploadScheduled;
+        PAL::DeferredCallbackHandle      m_scheduledUpload;
 
-    RouteSink<TransmissionPolicyManager, IncomingEventContextPtr const&> eventArrived{this, &TransmissionPolicyManager::handleEventArrived};
+        std::mutex                       m_activeUploads_lock;
+        std::set<EventsUploadContextPtr> m_activeUploads;
+        
+        /// <summary>
+        /// Thread-safe method to add the upload to active uploads.
+        /// </summary>
+        /// <param name="ctx">The CTX.</param>
+        void addUpload(EventsUploadContextPtr ctx)
+        {
+            LOCKGUARD(m_activeUploads_lock);
+            m_activeUploads.insert(ctx);
+        }
+        
+        /// <summary>
+        /// Thread-safe method to remove the upload from active uploads.
+        /// </summary>
+        /// <param name="ctx">The CTX.</param>
+        /// <returns></returns>
+        bool removeUpload(EventsUploadContextPtr ctx)
+        {
+            LOCKGUARD(m_activeUploads_lock);
+            auto it = m_activeUploads.find(ctx);
+            if (it != m_activeUploads.cend())
+            {
+                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx);
+                m_activeUploads.erase(it);
+                delete ctx;
+                return true;
+            }
+            return false;
+        }
+        
+        /// <summary>
+        /// Thread-safe method to removes all uploads from active uploads.
+        /// </summary>
+        void abortAllUploads()
+        {
+            m_isPaused = true;
+            cancelUploadTask();
+            while (m_activeUploads.size())
+                std::this_thread::yield();
+        }
+        
+        /// <summary>
+        /// Cancels pending upload task.
+        /// </summary>
+        void cancelUploadTask()
+        {
+            if (m_scheduledUpload.m_item)
+                m_scheduledUpload.cancel();
+            m_isUploadScheduled = false;
+        }
+        
+        /// <summary>
+        /// Calculate the number of pending upload contexts.
+        /// </summary>
+        /// <returns></returns>
+        size_t uploadCount()
+        {
+            LOCKGUARD(m_activeUploads_lock);
+            return m_activeUploads.size();
+        }
 
-    RouteSource<EventsUploadContextPtr const&>                           initiateUpload;
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  nothingToUpload{this, &TransmissionPolicyManager::handleNothingToUpload};
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  packagingFailed{this, &TransmissionPolicyManager::handlePackagingFailed};
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadSuccessful{this, &TransmissionPolicyManager::handleEventsUploadSuccessful};
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadRejected{this, &TransmissionPolicyManager::handleEventsUploadRejected};
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{this, &TransmissionPolicyManager::handleEventsUploadFailed};
-    RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{this, &TransmissionPolicyManager::handleEventsUploadAborted};
-};
+        int                              m_timerdelay;
+        EventLatency                     m_runningLatency;
+        std::vector<int>                 m_timers;
+
+    public:
+        RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };
+        RoutePassThrough<TransmissionPolicyManager>                          pause{ this, &TransmissionPolicyManager::handleStopOrPause };
+        RoutePassThrough<TransmissionPolicyManager>                          stop{ this, &TransmissionPolicyManager::handleStopOrPause };
+        RouteSink<TransmissionPolicyManager>                                 finishAllUploads{ this, &TransmissionPolicyManager::handleFinishAllUploads };
+        RouteSource<>                                                        allUploadsFinished;
+
+        RouteSink<TransmissionPolicyManager, IncomingEventContextPtr const&> eventArrived{ this, &TransmissionPolicyManager::handleEventArrived };
+
+        RouteSource<EventsUploadContextPtr const&>                           initiateUpload;
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  nothingToUpload{ this, &TransmissionPolicyManager::handleNothingToUpload };
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  packagingFailed{ this, &TransmissionPolicyManager::handlePackagingFailed };
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadSuccessful{ this, &TransmissionPolicyManager::handleEventsUploadSuccessful };
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadRejected{ this, &TransmissionPolicyManager::handleEventsUploadRejected };
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{ this, &TransmissionPolicyManager::handleEventsUploadFailed };
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{ this, &TransmissionPolicyManager::handleEventsUploadAborted };
+
+        virtual bool isUploadInProgress()
+        {
+            // paused
+            if (m_isPaused)
+                return false;
+            // unfinished uploads that haven't processed callbacks or pending upload task
+            return (uploadCount() > 0) || m_isUploadScheduled;
+        }
+
+        virtual bool isPaused()
+        {
+            return m_isPaused;
+        }
+
+    };
 
 
 } ARIASDK_NS_END

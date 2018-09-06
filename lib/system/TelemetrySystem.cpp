@@ -45,15 +45,23 @@ namespace ARIASDK_NS_BEGIN {
         onStop = [this](void)
         {
             uint32_t timeoutInSec = m_config.GetTeardownTime();
-            if (timeoutInSec > 0)
+
+            bool result = true;
+            int64_t stopTimes[5] = { 0, 0, 0, 0, 0 };
+
+            // Perform upload only if not paused
+            if ((timeoutInSec > 0) && (!tpm.isPaused()))
             {
-                LOG_TRACE("Shutdown timer started...");
-                std::uint64_t startTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
                 upload();
-                while (tpm.isUploadInProgress())
+                // perform uploads if required
+                stopTimes[0] = GetUptimeMs();
+                LOG_TRACE("Shutdown timer started...");
+                upload();
+                // try to push thru as much data as possible
+                while (storage.GetSize())
                 {
-                    std::uint64_t nowTime = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
-                    if ((nowTime - startTime) > timeoutInSec)
+                    auto uploadTime = GetUptimeMs() - stopTimes[0];
+                    if (uploadTime >= (1000L * timeoutInSec))
                     {
                         // Hard-stop if it takes longer than planned
                         LOG_TRACE("Shutdown timer expired, exiting...");
@@ -61,17 +69,39 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     MAT::sleep(100);
                 }
+                stopTimes[0] = GetUptimeMs() - stopTimes[0];
             }
-            bool result = true;
-            result &= tpm.stop();
-            result &= hcm.cancelAllRequestsAsync();
-            tpm.finishAllUploads();
 
+            // cancel all pending and force-finish all uploads
+            stopTimes[1] = GetUptimeMs();
+            hcm.cancelAllRequests();
+            tpm.finishAllUploads();
+            stopTimes[1] = GetUptimeMs() - stopTimes[1];
+
+            // initiate the stop sequence
+            stopTimes[2] = GetUptimeMs();
+            result &= tpm.stop();
+            stopTimes[2] = GetUptimeMs() - stopTimes[2];
+
+            // cancel all pending tasks
+            stopTimes[3] = GetUptimeMs();
             LOG_TRACE("Waiting for all queued callbacks...");
             m_done.wait();
             LOG_TRACE("Stopped.");
+            stopTimes[3] = GetUptimeMs() - stopTimes[3];
 
+            // stop storage
+            stopTimes[4] = GetUptimeMs();
             storage.stop();
+            stopTimes[4] = GetUptimeMs() - stopTimes[4];
+
+#if 1       // Shutdown performance printout
+            LOG_WARN("upload  = %lld ms", stopTimes[0]);
+            LOG_WARN("abort   = %lld ms", stopTimes[1]);
+            LOG_WARN("stop    = %lld ms", stopTimes[2]);
+            LOG_WARN("worker  = %lld ms", stopTimes[3]);
+            LOG_WARN("storage = %lld ms", stopTimes[4]);
+#endif
 
             return result;
         };
@@ -81,7 +111,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             bool result = true;
             result &= tpm.pause();
-            result &= hcm.cancelAllRequestsAsync();
+            hcm.cancelAllRequests();
             return result;
         };
 

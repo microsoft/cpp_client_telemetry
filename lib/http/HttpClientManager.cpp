@@ -15,6 +15,8 @@
 #endif
 #endif
 
+// #define USE_SYNC_HTTPRESPONSE_HANDLER
+
 namespace ARIASDK_NS_BEGIN {
 
 
@@ -60,7 +62,7 @@ namespace ARIASDK_NS_BEGIN {
 
     HttpClientManager::~HttpClientManager()
     {
-        handleCancelAllRequestsAsync();
+        cancelAllRequestsAsync();
     }
 
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
@@ -89,9 +91,13 @@ namespace ARIASDK_NS_BEGIN {
 
         assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
 
-        IHttpResponse const& response = (*ctx->httpResponse);
-        LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
-            response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
+        // Response may be null if request got aborted
+        if (ctx->httpResponse != nullptr)
+        {
+            IHttpResponse const& response = (*ctx->httpResponse);
+            LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
+                response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
+        }
 
         requestDone(ctx);
         // request done should be handled by now
@@ -102,18 +108,19 @@ namespace ARIASDK_NS_BEGIN {
         delete callback;
     }
 
-    bool HttpClientManager::handleCancelAllRequestsAsync()
+    bool HttpClientManager::cancelAllRequestsAsync()
     {
-        LOCKGUARD(m_httpCallbacksMtx);
-        if (!m_httpCallbacks.empty()) {
-            LOG_TRACE("Cancelling %u outstanding HTTP requests...", static_cast<unsigned>(m_httpCallbacks.size()));
-            for (const HttpCallback* callback : m_httpCallbacks) {
-                LOG_WARN("Cancel HTTP callback %p", callback);
-                m_httpClient.CancelRequestAsync(callback->m_ctx->httpRequestId);
-            }
-            // Requests will be cancelled asynchronously.
-        }
+        m_httpClient.CancelAllRequests();
         return true;
     }
+
+    void HttpClientManager::cancelAllRequests()
+    {
+        cancelAllRequestsAsync();
+        while (!m_httpCallbacks.empty())
+            std::this_thread::yield();
+    }
+
+    // start async cancellation
 
 } ARIASDK_NS_END

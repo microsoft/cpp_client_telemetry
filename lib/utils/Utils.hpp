@@ -158,6 +158,11 @@ namespace ARIASDK_NS_BEGIN {
 
     std::string to_utf8_string(const std::wstring& in);
 
+    inline uint64_t GetUptimeMs()
+    {
+        return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    }
+
 #ifdef _WINRT
 
     Platform::String ^to_platform_string(const std::string& s);

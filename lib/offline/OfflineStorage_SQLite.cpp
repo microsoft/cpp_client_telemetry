@@ -40,7 +40,9 @@ namespace ARIASDK_NS_BEGIN {
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_lastReadCount(0),
-        m_isStorageFullNotificationSend(false)
+        m_isStorageFullNotificationSend(false),
+        m_isOpened(false),
+        m_DbSizeHeapLimit(0)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
         uint32_t fileSize = (inMemory) ? m_config[CFG_INT_RAM_QUEUE_SIZE] : m_config[CFG_INT_CACHE_FILE_SIZE];
@@ -84,14 +86,22 @@ namespace ARIASDK_NS_BEGIN {
         m_db.reset(new SqliteDB(m_skipInitAndShutdown));
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());
-
+        auto sqlStartTime = GetUptimeMs();
         if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit) && initializeDatabase()) {
             LOG_INFO("Using configured on-disk database");
             m_observer->OnStorageOpened("SQLite/Default");
+            sqlStartTime = GetUptimeMs() - sqlStartTime;
+            LOG_INFO("Storage opened in %lld ms", sqlStartTime);
+            m_isOpened = true;
             return;
         }
 
-        recreate(1);
+        // TODO: implement DB recreation
+        // recreate(1);
+
+        // DB is not opened
+        m_db.reset();
+        m_isOpened = false;
     }
 
     void OfflineStorage_SQLite::Shutdown()
@@ -99,39 +109,54 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
         LOCKGUARD(m_lock);
         if (m_db) {
-            m_db->shutdown();
-            m_db.reset();
+            if (m_isOpened) {
+                m_db->shutdown();
+                m_db.reset();
+            }
+            m_isOpened = false;
         }
+    }
+
+    void OfflineStorage_SQLite::Execute(std::string command)
+    {
+        if (m_db)
+            m_db->execute(command.c_str());
     }
 
     bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
     {
+        // TODO: [MG] - this works, but may not play nicely with several LogManager instances
+        // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
+
         // TODO: [MG] - verify this codepath
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            m_observer->OnStorageFailed("Invalid parameters");
             return false;
         }
 
         if (!m_db) {
             LOG_ERROR("Failed to store event %s:%s: Database is not open",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            m_observer->OnStorageFailed("Database is not open");
             return false;
         }
 
-        LOCKGUARD(m_lock);
         {
+#ifdef ENABLE_LOCKING
+            LOCKGUARD(m_lock);
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
                 LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-                // FIXME: [MG] - add callback to notify that store failed
+                m_observer->OnStorageFailed("Database error");
                 return false;
             }
-            LOG_TRACE("Storing event %s:%s to offline storage", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+#endif
             SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+            // m_observer->OnStorageRecordsSaved(1); // [MG]: don't issue notification for individual record, only for batches at higher-level
         }
-
         return true;
 
     }
@@ -159,13 +184,14 @@ namespace ARIASDK_NS_BEGIN {
         /* ============================================================================================================= */
         LOCKGUARD(m_lock);
         {
+#ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
                 LOG_ERROR("Failed to lock");
                 return false;
             }
-
+#endif
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
 
             // FIXME: [MG] - add error checking here
@@ -335,13 +361,14 @@ namespace ARIASDK_NS_BEGIN {
         /* ============================================================================================================= */
         LOCKGUARD(m_lock);
         {
+#ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
                 LOG_ERROR("Failed to DeleteRecords");
                 return;
             }
-
+#endif
             LOG_TRACE("Deleting %u sent event(s) {%s%s}...", static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
 
             std::vector<uint8_t> idList = packageIdList(ids);
@@ -489,7 +516,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     {
-        UNREFERENCED_PARAMETER(failureCode);
+        LOG_WARN("DB failure %u: recreate not implemented!", failureCode);
         return false;
     }
 
@@ -546,17 +573,21 @@ namespace ARIASDK_NS_BEGIN {
             return false;
         }
 
-        if (!SqliteStatement(*m_db,
-            "PRAGMA journal_mode=WAL"
-        ).select()) {
-            return false;
-        }
+#if 1
+        SqliteStatement(*m_db, "PRAGMA journal_mode=WAL").select();
+        SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
+#else
+        SqliteStatement(*m_db, "PRAGMA journal_mode=off").select();
+        SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
+#endif
 
+#if 0
         if (!SqliteStatement(*m_db,
             ("PRAGMA journal_size_limit=" + toString(m_config.GetOfflineStorageMaximumSizeBytes())).c_str()
         ).select()) {
             return false;
         }
+#endif
 
         int openedDbVersion;
         {
@@ -595,7 +626,7 @@ namespace ARIASDK_NS_BEGIN {
             "retry_count"    " INTEGER DEFAULT 0,"
             "reserved_until" " INTEGER DEFAULT 0,"
             "payload"        " BLOB,"
-            " PRIMARY KEY (record_id))"
+            "PRIMARY KEY (record_id))"
         ).execute()) {
             return false;
         }
@@ -622,16 +653,21 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         // *INDENT-OFF* Uncrustify insists on adding a namespace closing comment after the closing curly brace
+#pragma warning(push)
+#pragma warning(disable:4296) // expression always false.
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
 // *INDENT-ON*
 
+#ifdef ENABLE_LOCKING
         PREPARE_SQL(m_stmtBeginTransaction,
             "BEGIN IMMEDIATE");
         PREPARE_SQL(m_stmtCommitTransaction,
             "COMMIT");
         PREPARE_SQL(m_stmtRollbackTransaction,
             "ROLLBACK");
+#endif
+
         PREPARE_SQL(m_stmtGetPageCount,
             "PRAGMA page_count");
         PREPARE_SQL(m_stmtIncrementalVacuum0,
@@ -695,6 +731,7 @@ namespace ARIASDK_NS_BEGIN {
             "SELECT value FROM " TABLE_NAME_SETTINGS " WHERE name=?");
 
 #undef PREPARE_SQL
+#pragma warning(pop)
 
         m_currentlyAddedBytes = 0;
         m_isInTransaction = false;
@@ -780,22 +817,32 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
     // TODO: [MG] - for on-disk database this has to be replaced by filesize check
-    unsigned OfflineStorage_SQLite::GetSize()
+    size_t OfflineStorage_SQLite::GetSize()
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to get DB size: database is not open");
+            return 0;
+        }
+
         LOCKGUARD(m_lock);
         unsigned pageCount;
         SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
         while (!pageCountStmt.select())
         {
             PAL::sleep(100);
-    }
+        }
         pageCountStmt.getRow(pageCount);
         pageCountStmt.reset();
         return pageCount * m_pageSize;
-}
+    }
 
     bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to trim: database is not open");
+            return 0;
+        }
+
         m_currentlyAddedBytes += justAddedBytes;
         if (m_currentlyAddedBytes < 10240) {
             return true;
@@ -804,13 +851,14 @@ namespace ARIASDK_NS_BEGIN {
 
         LOCKGUARD(m_lock);
         {
+#ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
                 LOG_WARN("Failed to trim database");
                 return false;
             }
-
+#endif
             unsigned pageCount;
             SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
             if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
@@ -902,6 +950,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::ResizeDb()
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to resize: database is not open");
+            return 0;
+        }
+
         SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
         if (!trimStmt.select()) {
             LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");

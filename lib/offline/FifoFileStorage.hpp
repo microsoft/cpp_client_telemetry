@@ -113,7 +113,7 @@ namespace ARIASDK_NS_BEGIN {
                 }
                 else
                 {
-                    return idResult < 0;
+                    return false;
                 }
             }
             else

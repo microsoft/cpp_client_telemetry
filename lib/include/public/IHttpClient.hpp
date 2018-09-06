@@ -488,6 +488,8 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
+
+        virtual void CancelAllRequests() {};
     };
 
     /// @endcond

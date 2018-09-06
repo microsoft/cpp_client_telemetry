@@ -2,7 +2,6 @@
 
 #include "Logger.hpp"
 #include "LogSessionData.hpp"
-#include "LogManagerImpl.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
@@ -21,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
         :
         m_tenantToken(tenantToken),
         m_source(source),
-        m_logManager(logManager),
+        m_logManager( *(dynamic_cast<ILogManagerInternal *>(&logManager)) ),
         m_context(parentContext),
         m_config(runtimeConfig),
         m_eventFilter(eventFilter),
@@ -297,7 +296,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             record.name = "NotSpecified";
         }
-        record.iKey = "O:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
+        record.iKey = "o:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
 
         // TODO: [MG] - optimize this code
         bool result = true;
@@ -322,6 +321,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
+#ifdef ENABLE_FILTERING /* XXX: [MG] - temporarily disable  */
         if (m_eventFilter.IsEventExcluded(record.name))
         {
             DispatchEvent(DebugEventType::EVT_FILTERED);
@@ -330,18 +330,12 @@ namespace ARIASDK_NS_BEGIN {
                 record.name.c_str());
             return;
         }
+#endif
 
-        IncomingEventContextPtr event = new IncomingEventContext(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
-        event->policyBitFlags = policyBitFlags;
-
-        // TODO: [MG] - ideally we can avoid dynamic cast here if we expose sendEvent in ILogManager
-        // as protected and keep ILogger a friend class to ILogManager
-        ILogManagerInternal *lm = dynamic_cast<ILogManagerInternal *>(&m_logManager);
-        if (lm)
-        {
-            lm->sendEvent(event);
-        }
-
+        // TODO: [MG] - check if optimization is possible in generateUuidString
+        IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
+        event.policyBitFlags = policyBitFlags;
+        m_logManager.sendEvent(&event);
     }
 
     void Logger::onSubmitted()
@@ -546,6 +540,31 @@ namespace ARIASDK_NS_BEGIN {
 
         submit(record, latency, prop.GetPersistence(), prop.GetPolicyBitFlags());
         DispatchEvent(DebugEventType::EVT_LOG_SESSION);
+    }
+
+    ILogManager& Logger::GetParent()
+    {
+        return m_logManager;
+    }
+
+    LogSessionData* Logger::GetLogSessionData()
+    {
+        return m_logManager.GetLogSessionData();
+    }
+
+    IAuthTokensController*  Logger::GetAuthTokensController()
+    {
+        return m_logManager.GetAuthTokensController();
+    }
+
+    bool Logger::DispatchEvent(DebugEvent evt)
+    {
+        return m_logManager.DispatchEvent(std::move(evt));
+    };
+
+    std::string Logger::GetSource()
+    {
+        return m_source;
     }
 
 } ARIASDK_NS_END

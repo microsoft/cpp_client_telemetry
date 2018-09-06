@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#endif
 #include "Common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include <api/LogManagerImpl.hpp>
@@ -24,6 +26,7 @@ class MultipleLogManagersTests : public ::testing::Test,
     HttpServer                     server;
 
   public:
+
     virtual void SetUp() override
     {
         int port = server.addListeningPort(0);
@@ -37,15 +40,27 @@ class MultipleLogManagersTests : public ::testing::Test,
 
         server.start();
 
+#if 0
         sqlite3_initialize();
         config1["skipSqliteInitAndShutdown"] = "true";
         config2["skipSqliteInitAndShutdown"] = "true";
+#endif
 
+        // Config for instance #1
         config1["cacheFilePath"] = "lm1.db";
         ::remove(config1["cacheFilePath"]);
+        config1[CFG_STR_COLLECTOR_URL] = serverAddress + "/1/";
+        config1["name"] = "Instance1";
+        config1["version"] = "1.0.0";
+        config1["config"]["host"] = "Instance1";
 
+        // Config for instance #2
         config2["cacheFilePath"] = "lm2.db";
         ::remove(config2["cacheFilePath"]);
+        config2[CFG_STR_COLLECTOR_URL] = serverAddress + "/2/";
+        config1["name"] = "Instance2";
+        config1["version"] = "1.0.0";
+        config1["config"]["host"] = "Instance2"; // host
     }
 
     virtual void TearDown() override
@@ -114,11 +129,13 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     l1b1p.SetProperty("asdf", 1234);
     l1b->LogEvent(l1b1p);
 
+    lm1->GetLogController()->UploadNow();
+    lm2->GetLogController()->UploadNow();
+
     waitForRequests(5000, 2);
 
     // Add more tests
 
     lm1.reset();
-
     lm2.reset();
 }

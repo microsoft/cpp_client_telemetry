@@ -191,11 +191,8 @@ namespace ARIASDK_NS_BEGIN {
             if (iter != m_commonContextFieldsP->end())
             {
                 // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
-                // Use "c:" prefix instead of "m:" prefix because Aria Device.Id
-                // is a custom device ID, not MAC address. Unfortunately c: isn't
-                // handled by collector, so we'd use the iOS identifier prefix
-                // for now.
-                std::string temp("i:");
+                // Use "c:" prefix
+                std::string temp("c:");
                 const char *deviceId = iter->second.as_string;
                 if (deviceId != nullptr)
                 {

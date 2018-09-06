@@ -5,7 +5,10 @@
 #include <pal/PAL.hpp>
 
 #include "api/IRuntimeConfig.hpp"
+
 #include "ILogManager.hpp"
+#include "LogManagerImpl.hpp"
+
 #include <ILogger.hpp>
 
 #include "ContextFieldsProvider.hpp"
@@ -22,6 +25,8 @@
 namespace ARIASDK_NS_BEGIN {
 
     class BaseDecorator;
+
+    class ILogManagerInternal;
 
     class Logger :
         public ILogger,
@@ -134,37 +139,22 @@ namespace ARIASDK_NS_BEGIN {
             long timeToLiveInMillis,
             EventProperties const& properties) override;
 
-        virtual std::string GetSource()
-        {
-            return m_source;
-        }
+        virtual std::string GetSource();
 
-        virtual ILogManager& GetParent()
-        {
-            return m_logManager;
-        }
+        virtual ILogManager& GetParent();
 
         /// <summary>
         /// Gets the log session data.
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
-        virtual LogSessionData* GetLogSessionData() override
-        {
-            return m_logManager.GetLogSessionData();
-        }
+        virtual LogSessionData* GetLogSessionData() override;
 
         /// <summary>
-        /// Set the Auth ticket controller
+        /// Get the Auth ticket controller
         /// </summary>
-        virtual IAuthTokensController*  GetAuthTokensController()
-        {
-            return m_logManager.GetAuthTokensController();
-        }
+        virtual IAuthTokensController*  GetAuthTokensController() override;
 
-        virtual bool DispatchEvent(DebugEvent evt) override
-        {
-            return m_logManager.DispatchEvent(std::move(evt));
-        };
+        virtual bool DispatchEvent(DebugEvent evt) override;
 
         virtual void onSubmitted();
 
@@ -185,7 +175,7 @@ namespace ARIASDK_NS_BEGIN {
         int64_t                   m_sessionStartTime;
         std::string               m_sessionId;
 
-        ILogManager&              m_logManager;
+        ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;
         IRuntimeConfig&           m_config;
         IEventFilter&             m_eventFilter;

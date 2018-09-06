@@ -44,6 +44,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "maxBlobSize",        2097152 },
                 { "maxRetryCount",      5},
                 { "clockSkewEnabled",   true},
+                { "backoffConfig",      "E,3000,300000,2,1" },
             }
         },
         {
@@ -62,6 +63,8 @@ namespace ARIASDK_NS_BEGIN {
 /// </summary>
 /// <seealso cref="IRuntimeConfig" />
     class RuntimeConfig_Default : public IRuntimeConfig {
+
+    protected:
 
         ILogConfiguration config;
 
@@ -130,8 +133,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual std::string GetUploadRetryBackoffConfig() override
         {
-            // FIXME: [MG] - add parameter for that
-            return "";
+            return config["tpm"]["backoffConfig"];
         }
 
         virtual bool IsHttpRequestCompressionEnabled() override

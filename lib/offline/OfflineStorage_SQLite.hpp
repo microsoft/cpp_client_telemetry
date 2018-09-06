@@ -15,6 +15,8 @@
 #include <atomic>
 #include <mutex>
 
+#define ENABLE_LOCKING      // Enable DB locking for flush
+
 namespace ARIASDK_NS_BEGIN {
 
     class SqliteDB;
@@ -28,6 +30,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
         virtual void Flush() override {};
+        virtual void Execute(std::string command);
         virtual bool StoreRecord(StorageRecord const& record) override;
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool IsLastReadFromMemory() override;
@@ -36,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
-        virtual unsigned GetSize() override;
+        virtual size_t GetSize() override;
         virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 
@@ -63,6 +66,7 @@ namespace ARIASDK_NS_BEGIN {
         int                         m_pageSize;
         size_t                      m_currentlyAddedBytes;
         bool                        m_skipInitAndShutdown;
+        bool                        m_isOpened;
         std::atomic<bool>           m_isInTransaction;
         size_t                      m_stmtBeginTransaction;
         size_t                      m_stmtCommitTransaction;

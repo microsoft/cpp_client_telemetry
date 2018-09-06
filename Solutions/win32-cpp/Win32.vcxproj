@@ -243,9 +243,6 @@
     <ProjectReference Include="..\..\win32-dll\win32-dll.vcxproj">
       <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\win32-static\win32-static.vcxproj">
-      <Project>{82c8ee9a-f706-4a97-9eea-1d7b5fc9e6db}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

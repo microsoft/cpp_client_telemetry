@@ -567,7 +567,7 @@ namespace testing {
                     continue;
                 }
 
-                assert(dwResult >= WSA_WAIT_EVENT_0 && dwResult <= WSA_WAIT_EVENT_0 + m_events.size());
+                assert(dwResult <= WSA_WAIT_EVENT_0 + m_events.size());
                 int index = dwResult - WSA_WAIT_EVENT_0;
                 Socket socket = m_sockets[index].socket;
                 int flags = m_sockets[index].flags;

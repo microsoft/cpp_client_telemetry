@@ -46,6 +46,12 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorage  & m_offlineStorage;
 
     public:
+
+        size_t GetSize()
+        {
+            return m_offlineStorage.GetSize();
+        }
+
         RoutePassThrough<StorageObserver>                                        start{ this, &StorageObserver::handleStart };
         RoutePassThrough<StorageObserver>                                        stop{ this, &StorageObserver::handleStop };
 

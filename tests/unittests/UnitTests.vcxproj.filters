@@ -39,6 +39,7 @@
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
       <Filter>mocks</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryStorageTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

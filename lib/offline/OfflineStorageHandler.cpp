@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorageHandler.hpp"
+
 #include "offline/OfflineStorage_SQLite.hpp"
+#include "offline/MemoryStorage.hpp"
+
 #include "ILogManager.hpp"
 #include <algorithm>
 #include <numeric>
@@ -56,7 +59,10 @@ namespace ARIASDK_NS_BEGIN {
         {
             m_offlineStorageMemory.reset();
         }
-        m_offlineStorageDisk.reset();
+        if (nullptr != m_offlineStorageDisk)
+        {
+            m_offlineStorageDisk.reset();
+        }
     }
 
     void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
@@ -64,14 +70,17 @@ namespace ARIASDK_NS_BEGIN {
         m_observer = &observer;
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-        if (cacheMemorySizeLimitInBytes > 0)
-        {
-            m_offlineStorageMemory.reset(new OfflineStorage_SQLite(m_logManager, m_config, true));
-            m_offlineStorageMemory->Initialize(*this);
-        }
-
         m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
         m_offlineStorageDisk->Initialize(*this);
+
+        // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
+        // so that the Flush() op on memory storage leads to saving unflushed events to
+        // disk.
+        if (cacheMemorySizeLimitInBytes > 0)
+        {
+            m_offlineStorageMemory.reset(new MemoryStorage(m_logManager, m_config));
+            m_offlineStorageMemory->Initialize(*this);
+        }
 
         m_shutdownStarted = false;
         LOG_TRACE("Initializing offline storage handler");
@@ -84,16 +93,33 @@ namespace ARIASDK_NS_BEGIN {
         WaitForFlush();
         if (nullptr != m_offlineStorageMemory)
         {
+            m_offlineStorageMemory->ReleaseAllRecords();
             Flush();
             m_offlineStorageMemory->Shutdown();
         }
-        m_offlineStorageDisk->Shutdown();
+        if (nullptr != m_offlineStorageDisk)
+        {
+            m_offlineStorageDisk->Shutdown();
+        }
     }
-
-    unsigned OfflineStorageHandler::GetSize()
+    
+    /// <summary>
+    /// Get estimated DB size
+    /// </summary>
+    /// <returns>
+    /// Size of memory + disk storage
+    /// </returns>
+    /// <remarks>
+    /// Value may change at runtime, so it's only approximate value.
+    /// </remarks>
+    size_t OfflineStorageHandler::GetSize()
     {
-        // TODO: [MG] - add sum of memory + offline
-        return 0;
+        size_t size = 0;
+        if (m_offlineStorageMemory != nullptr)
+            size += m_offlineStorageMemory->GetSize();
+        if (m_offlineStorageDisk != nullptr)
+            size += m_offlineStorageDisk->GetSize();
+        return size;
     }
 
     void OfflineStorageHandler::Flush()
@@ -107,29 +133,43 @@ namespace ARIASDK_NS_BEGIN {
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
         m_flushHandle.cancel();
 
-        for (auto latency : { EventLatency_Normal , EventLatency_CostDeferred , EventLatency_RealTime , EventLatency_Max })
+        size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
+        if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, latency);
-            if (records->size())
+            
+            std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+            size_t totalSaved = 0;
+
+////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
+// TODO: [MG] - consider running the batch in transaction
+//            if (sqlite)
+//                sqlite->Execute("BEGIN");
+
+            while (records->size())
             {
-                std::vector<StorageRecord>::const_iterator iter;
-                std::vector<StorageRecordId> recordIds;
-                for (iter = records->begin(); iter != records->end(); iter++)
-                {
-                    recordIds.push_back(iter->id);
-                    m_offlineStorageDisk->StoreRecord(*iter);
-                }
-                OnStorageRecordsSaved(records->size());
-                HttpHeaders temp;
-                bool fromMemory = true;
-                m_offlineStorageMemory->DeleteRecords(recordIds, temp, fromMemory);
+                if (m_offlineStorageDisk->StoreRecord(std::move(records->back())))
+                    totalSaved++;
+                records->pop_back();
             }
+
+// TODO: [MG] - consider running the batch in transaction
+//            if (sqlite)
+//                sqlite->Execute("END");
+
             delete records;
+
+            // Notify event listener about the records cached
+            OnStorageRecordsSaved(totalSaved);
+
+            if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
+            {
+                // We managed to accumulate as much data as we had before the flush,
+                // means we cannot keep up flushing at the same speed as incoming
+                // obviously because the disk is slower than ram.
+                LOG_WARN("Data is arriving too fast!");
+            }
         }
 
-        //Resize the memory DB after delete
-        m_offlineStorageMemory->ResizeDb();
-        m_queryDbSize = 100;
         m_isStorageFullNotificationSend = false;
 
         // Flush is done, notify the waiters
@@ -140,23 +180,15 @@ namespace ARIASDK_NS_BEGIN {
     // TODO: [MG] - investigate if StoreRecord is thread-safe if executed simultaneously with Flush
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
+        // Check cache size only once at start
+        static uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
+
         if (nullptr != m_offlineStorageMemory && !m_shutdownStarted)
         {
+            auto memDbSize = m_offlineStorageMemory->GetSize();
             {
-                LOCKGUARD(m_flushLock);
-                ++m_queryDbSize;
-
-                //query DB size from DB only every 100 Events, use size calculation done before that
-                if (m_queryDbSize >= 100)
-                {
-                    m_queryDbSize = 0;
-                    m_memoryDbSize = m_offlineStorageMemory->GetSize();
-                }
-
-                m_queryDbSize = m_queryDbSize + static_cast<unsigned>(/* empiric estimate */ 32 + 2 * record.id.size() + record.tenantToken.size() + record.blob.size());
-
                 //check if Application needs to be notified
-                if (m_memoryDbSize > m_memoryDbSizeNotificationLimit && !m_isStorageFullNotificationSend)
+                if ( (memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
                 {
                     // TODO: [MG] - do we really need in-memory DB size limit notifications here?
                     DebugEvent evt;
@@ -172,24 +204,27 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             // Perform periodic flush to disk
-            uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
-            if (m_queryDbSize > cacheMemorySizeLimitInBytes)
+            if (memDbSize > cacheMemorySizeLimitInBytes)
             {
-                // Schedule flush if there isn't one already pending
-                LOCKGUARD(m_flushLock);
-                if (!m_flushPending)
+                if (m_flushLock.try_lock())
                 {
-                    m_flushPending = true;
-                    m_flushComplete.Reset();
-                    m_flushHandle = PAL::scheduleOnWorkerThread(0, this, &OfflineStorageHandler::Flush);
-                    LOG_INFO("Requested Flush (%p)", m_flushHandle.m_item);
+                    if (!m_flushPending)
+                    {
+                        m_flushPending = true;
+                        m_flushComplete.Reset();
+                        m_flushHandle = PAL::scheduleOnWorkerThread(0, this, &OfflineStorageHandler::Flush);
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_item);
+                    }
+                    m_flushLock.unlock();
                 }
             }
         }
         else
         {
-            OnStorageRecordsSaved(1);
-            m_offlineStorageDisk->StoreRecord(record);
+            if (m_offlineStorageDisk != nullptr)
+            {
+                m_offlineStorageDisk->StoreRecord(record);
+            }
         }
 
         return true;
@@ -219,7 +254,6 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorageHandler::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount)
     {
-        LOCKGUARD(m_flushLock);
 
         bool returnValue = false;
 
@@ -267,9 +301,6 @@ namespace ARIASDK_NS_BEGIN {
         {
             return;
         }
-
-        LOCKGUARD(m_flushLock);
-
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
             static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
         if (fromMemory && nullptr != m_offlineStorageMemory)
@@ -288,8 +319,6 @@ namespace ARIASDK_NS_BEGIN {
         {
             return;
         }
-
-        LOCKGUARD(m_flushLock);
 
         if (fromMemory && nullptr != m_offlineStorageMemory)
         {

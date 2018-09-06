@@ -12,9 +12,11 @@ namespace ARIASDK_NS_BEGIN {
 
 
 class HttpClientManager {
+
   public:
     HttpClientManager(IHttpClient& httpClient);
     virtual ~HttpClientManager();
+    void cancelAllRequests();
 
   protected:
     class HttpCallback;
@@ -23,7 +25,7 @@ class HttpClientManager {
     void handleSendRequest(EventsUploadContextPtr const& ctx);
     virtual void scheduleOnHttpResponse(HttpCallback* callback);
     void onHttpResponse(HttpCallback* callback);
-    bool handleCancelAllRequestsAsync();
+    bool cancelAllRequestsAsync();
 
   protected:
     IHttpClient&             m_httpClient;
@@ -34,8 +36,6 @@ class HttpClientManager {
   public:
     RouteSource<EventsUploadContextPtr const&>                  requestDone;
     RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest{this, &HttpClientManager::handleSendRequest};
-
-    RoutePassThrough<HttpClientManager>                         cancelAllRequestsAsync{this, &HttpClientManager::handleCancelAllRequestsAsync};
 };
 
 

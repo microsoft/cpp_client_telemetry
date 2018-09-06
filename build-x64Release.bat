@@ -1,26 +1,14 @@
 @echo off
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
-echo ***************************************************************************************************
-echo ***************************************************************************************************
-echo ** Building projects using MSBuild...                                                            **
-echo ***************************************************************************************************
-echo ***************************************************************************************************
+echo "Building using Visual Studio 2017 tools"
+call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
+set SOLUTION=Solutions\AriaSDK.sln
 
-REM Disable parallel builds for now because of a vs2013 bug that randomly triggers :
-REM cl : Command line error D8040: error creating or communicating with child process
-REM Start in clienttelemetry
-
-echo ***************************************************************************************************
-echo ***************************************************************************************************
-echo ** Creating x64 Release ...                                                                      **
-echo ***************************************************************************************************
-echo ***************************************************************************************************
-msbuild Solutions\AriaSDK.sln /target:build\build-sdk /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=Release /p:Platform=x64
+msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=Release /p:Platform=x64
 Solutions\out\Release\x64\UnitTests\UnitTests.exe
 Solutions\out\Release\x64\FuncTests\FuncTests.exe

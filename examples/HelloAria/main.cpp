@@ -20,12 +20,12 @@
 #endif
 
 #include "DebugCallback.hpp"
-
+ 
 LOGMANAGER_INSTANCE
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
-
-extern "C" void guestTest();    // see guest.cpp
+ 
+extern "C" void guestTest();    // see guest.cpp 
 
 /**
 * All v1.x legacy API compile-time checks in alphabetic order
@@ -35,7 +35,7 @@ void Api_v1_CompatChecks()
     ILogger *logger = LogManager::GetLogger();
     auto context = logger->GetSemanticContext();
     context->SetAppVersion("1.2.3");
-    logger->SetContext("CommonContextVar", 12345);
+    logger->SetContext("CommonContextVar", 12345); 
 
     {
         EventProperties props("AggregatedMetric1");
@@ -157,11 +157,22 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
+#define MAX_EVENTS_TO_LOG       50000L
+
+extern "C" int OfficeTest();
+
 int main()
 {
+#ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
+    OfficeTest();
+    if (1)
+        return 0;
+#endif
 
+#if 0
     // Guest SDKs start first
     guestTest();
+#endif
 
     // Host SDK starts
     printf("Setting up configuration...\n");
@@ -172,9 +183,9 @@ int main()
 
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  0xFFFFFFFF ^ 128;
-    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Info; // ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
-    config[CFG_INT_MAX_TEARDOWN_TIME] = 5;
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
 #endif
@@ -205,41 +216,38 @@ int main()
 
     printf("LogManager::Initialize\n");
     ILogger *logger = LogManager::Initialize(TOKEN);
-    Api_v1_CompatChecks();
+    
+#if 1
+    // LogManager::PauseTransmission();
+    logger->LogEvent("TestEvent");
+#endif
 
-    printf("LogManager::GetSemanticContext\n");
+    // Api_v1_CompatChecks();
+     
+    printf("LogManager::GetSemanticContext \n");
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
+    // Ingest events of various latencies
     printf("Starting stress-test...\n");
-    for(size_t i = 1; i <= 10000; i++)
+    for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
-        std::string eventName("ariasdk_test_linktest");
+        EventLatency latency = (EventLatency)(1 + i % (unsigned)EventLatency_RealTime);
+        std::string eventName("sample_event_lat");
+        eventName += std::to_string((unsigned)latency);
+
         EventProperties event(eventName);
         event.SetProperty("result", "Success");
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i);
-
-        samplingTest();
-
+        event.SetLatency(latency);
         logger->LogEvent(event);
-        if ((i % 1000) == 0)
-        {
-            printf("processed %u events...\n", i);
-            LogManager::Flush();
-        }
     }
 
     // Default transmission timers:
     // high		- 2 sec
     // normal	- 4 sec
     // low		- 8 sec
-
-    printf("LogManager::UploadNow\n");
-    LogManager::UploadNow();
-
-    // Sleep for 5 seconds
-    sleep(5000);
 
     printf("LogManager::FlushAndTeardown\n");
     LogManager::FlushAndTeardown();

@@ -96,8 +96,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Version"].stringValue, Eq("appVersion"));
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
-    // XXX: [MG] - 1DS prepends m:
-    EXPECT_THAT(record1.extDevice[0].localId, Eq("m:deviceId"));
+    EXPECT_THAT(record1.extDevice[0].localId, Eq("c:deviceId"));
 
     //EXPECT_THAT(record1.extDevice[0]..properties["DeviceInfo.Make"].stringValue, Eq("deviceMake"));
     //EXPECT_THAT(record1.data[0].properties["DeviceInfo.Model"].stringValue, Eq("deviceModel"));
