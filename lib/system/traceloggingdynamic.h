@@ -300,6 +300,8 @@ namespace tld
     It is ok to create an array of nested structures where fields in the
     structure have TypeNone or TypeBinary.
     */
+#pragma warning(push)
+#pragma warning(disable:4471) //a forward declaration of an unscoped enumeration must have an underlying type. Not fixing Windows code.
     enum Type;
 
     /*
@@ -345,6 +347,7 @@ namespace tld
     The type of a provider trait. Used when building up provider metadata.
     */
     enum ProviderTraitType;
+#pragma warning(pop)
 
     /*
     class ProviderMetadataBuilder (low-level API):
