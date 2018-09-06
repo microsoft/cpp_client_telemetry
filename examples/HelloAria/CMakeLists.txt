@@ -8,7 +8,14 @@ project(HelloAria)
 # set(ARIA_SDK_LIB       /usr/local/lib/armv7l-linux-gnu)
 
 # Point example to SDK dirs for x86_64 Desktop
+if(EXISTS "/usr/local/lib/libaria.a")
+# Use local libaria.a
+set(ARIA_SDK_LIB	/usr/local/lib/)
+else()
+# Use architecture-specific libaria.a
 set(ARIA_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+endif()
+
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
 

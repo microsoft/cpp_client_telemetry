@@ -1,4 +1,7 @@
 #!/bin/bash
+
+export PATH=/usr/local/bin:$PATH
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
@@ -17,29 +20,41 @@ if [ ! -f .buildtools ]; then
   echo >.buildtools
 fi
 
+if [ -f /usr/bin/gcc ]; then
+echo "gcc version: `gcc --version`"
+fi
+
 #rm -rf out
 mkdir -p out
 cd out
 
+if [ -f /usr/bin/rpmbuild ]; then
+export CMAKE_PACKAGE_TYPE=rpm
+else
+export CMAKE_PACKAGE_TYPE=deb
+fi
+
 if [ "$2" == "release" ]; then
 # TODO: pass custom build flags?
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release ..
+  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 # TODO: strip symbols to minimize
 else
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug ..
+  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 fi
 
 # Build all
 make
 
 # Remove old package
-rm -f *.deb
+rm -f *.deb *.rpm
 
 # Build new package
 make package
 
+if [ -f /usr/bin/dpkg ]; then
 # Install new package
 sudo dpkg -i *.deb
+fi
 
 # TODO: remove this section below ... consider moving 'strip' commands to release configuration above
 #
