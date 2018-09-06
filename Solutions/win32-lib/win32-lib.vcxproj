@@ -198,6 +198,8 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Guard</ControlFlowGuard>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -225,6 +227,8 @@
     <Lib>
       <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkTimeCodeGeneration>
     </Lib>
     <Bscmake>
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
@@ -251,6 +255,8 @@
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Guard</ControlFlowGuard>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -278,6 +284,8 @@
     <Lib>
       <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</LinkTimeCodeGeneration>
     </Lib>
     <Bscmake>
       <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</PreserveSbr>
@@ -344,6 +352,8 @@
     <Lib>
       <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2015.MT-sqlite'">
@@ -405,6 +415,8 @@
     <Lib>
       <AdditionalDependencies>wininet.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
