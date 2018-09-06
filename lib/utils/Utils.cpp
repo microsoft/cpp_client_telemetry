@@ -128,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
 
     std::string toString(char const*        value) { return std::string(value); }
     std::string toString(bool               value) { return value ? "true" : "false"; }
-    std::string toString(char               value) { return PAL::to_string("%d", value); }
+    std::string toString(char               value) { return PAL::to_string("%d", static_cast<signed char>(value)); }
     std::string toString(int                value) { return PAL::to_string("%d", value); }
     std::string toString(long               value) { return PAL::to_string("%ld", value); }
     std::string toString(long long          value) { return PAL::to_string("%lld", value); }
