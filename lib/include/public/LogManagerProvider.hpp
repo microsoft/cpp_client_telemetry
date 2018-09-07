@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="status">Status.</param> 
         /// <param name="wantController">WantController.</param> 
         /// </summary> 
-        static ILogManager* CreateLogManager(
+        static ILogManager* ARIASDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
             ILogConfiguration& cfg,
@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="status">Status.</param> 
         /// <param name="wantController">WantController.</param> 
         /// </summary> 
-        static ILogManager* CreateLogManager(
+        static ILogManager* ARIASDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
             status_t& status,
@@ -102,7 +102,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="id">Instance Id.</param> 
         /// <param name="status">Status.</param> 
         /// </summary> 
-        static ILogManager* CreateLogManager(char const* id,
+        static ILogManager* ARIASDK_SPEC CreateLogManager(char const* id,
             status_t& status,
 #ifdef ANDROID
             JNIEnv *env,
@@ -125,7 +125,7 @@ namespace ARIASDK_NS_BEGIN {
             );
         }
 
-        static ILogManager* CreateLogManager(
+        static ILogManager* ARIASDK_SPEC CreateLogManager(
             ILogConfiguration& cfg,
             status_t& status)
         {
@@ -136,7 +136,7 @@ namespace ARIASDK_NS_BEGIN {
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id.</param> 
         /// </summary> 
-        static status_t DestroyLogManager(char const* id)
+        static status_t ARIASDK_SPEC DestroyLogManager(char const* id)
         {
             return Release(id);
         }
@@ -145,9 +145,9 @@ namespace ARIASDK_NS_BEGIN {
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id</param> 
         /// </summary> 
-        static status_t Release(const char * id);
+        static status_t ARIASDK_SPEC Release(const char * id);
 
-        static status_t Release(ILogConfiguration & cfg);
+        static status_t ARIASDK_SPEC Release(ILogConfiguration & cfg);
 
     private:
 
@@ -159,7 +159,7 @@ namespace ARIASDK_NS_BEGIN {
         // methods deprecated.
         //
 
-        static ILogManager * Get(
+        static ILogManager * ARIASDK_SPEC Get(
             ILogConfiguration & cfg,
             status_t &status
 #ifdef ANDROID
@@ -169,7 +169,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
         );
 
-        static ILogManager* Get(
+        static ILogManager* ARIASDK_SPEC Get(
             const char * id,
             status_t& status
 #ifdef ANDROID

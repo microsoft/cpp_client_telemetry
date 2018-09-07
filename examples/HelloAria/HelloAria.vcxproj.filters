@@ -39,7 +39,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="deploy-dll.cmd" />
-  </ItemGroup>
 </Project>
