@@ -486,7 +486,7 @@ namespace ARIASDK_NS_BEGIN {
         SqliteStatement(SqliteDB& db, size_t stmtId)
             : m_db(db),
             m_stmtId(stmtId),
-            m_stmt((stmtId >= 0) ? db.statement(stmtId) : nullptr),
+            m_stmt(db.statement(stmtId)),
             m_changes(0),
             m_duration(0),
             m_ownStmt(false),
@@ -499,7 +499,7 @@ namespace ARIASDK_NS_BEGIN {
         SqliteStatement(SqliteDB& db, char const* statement)
             : m_db(db),
             m_stmtId(db.prepare(statement)),
-            m_stmt((m_stmtId >= 0) ? db.statement(m_stmtId) : nullptr),
+            m_stmt(db.statement(m_stmtId)),
             m_changes(0),
             m_duration(0),
             m_ownStmt(true),
@@ -511,7 +511,7 @@ namespace ARIASDK_NS_BEGIN {
 
         ~SqliteStatement()
         {
-            if (m_ownStmt && m_stmtId >= 0) {
+            if (m_ownStmt) {
                 m_db.release(m_stmtId);
             }
         }

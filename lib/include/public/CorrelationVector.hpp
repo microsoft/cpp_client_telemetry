@@ -102,11 +102,11 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         // String constant to use for sending a CV through EventProperties.SetProperty API.
-        ARIASDK_LIBABI static constexpr const char* PropertyName = "__TlgCV__";
+        static constexpr const char* PropertyName = "__TlgCV__";
 
         // String constant to use when sending a CV through any transport other than
         // this telemetry API, e.g. as a name for an HTTP header.
-        ARIASDK_LIBABI static constexpr const char* HeaderName = "MS-CV";
+        static constexpr const char* HeaderName = "MS-CV";
 
     private:
 

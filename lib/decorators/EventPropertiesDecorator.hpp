@@ -85,8 +85,8 @@ namespace ARIASDK_NS_BEGIN {
                     m_owner.DispatchEvent(evt);
                     return false;
                 }
-                auto &k = kv.first;
-                auto &v = kv.second;
+                const auto &k = kv.first;
+                const auto &v = kv.second;
                 if (v.piiKind != PiiKind_None)
                 {
                     if (v.piiKind == PiiKind::CustomerContentKind_GenericData)

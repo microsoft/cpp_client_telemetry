@@ -546,7 +546,6 @@ namespace PAL_NS_BEGIN {
     void unregisterSemanticContext(ISemanticContext* context)
     {
         UNREFERENCED_PARAMETER(context);
-        OACR_USE_PTR(this);
     }
 
     //---
