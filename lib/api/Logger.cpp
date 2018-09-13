@@ -34,7 +34,9 @@ namespace ARIASDK_NS_BEGIN {
         m_sessionStartTime(0),
         m_sessionId("")
     {
-        LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantTokenToId(m_tenantToken).c_str());
+        std::string tenantId = tenantTokenToId(m_tenantToken);
+        LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
+        m_iKey = "o:" + tenantId;
     }
 
     Logger::~Logger()
@@ -296,7 +298,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             record.name = "NotSpecified";
         }
-        record.iKey = "o:" + (m_tenantToken).substr(0, (m_tenantToken).find('-'));
+        record.iKey = m_iKey;
 
         // TODO: [MG] - optimize this code
         bool result = true;

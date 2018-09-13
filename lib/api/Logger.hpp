@@ -171,6 +171,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::mutex                m_lock;
         std::string               m_tenantToken;
+        std::string               m_iKey;
         std::string               m_source;
         int64_t                   m_sessionStartTime;
         std::string               m_sessionId;
