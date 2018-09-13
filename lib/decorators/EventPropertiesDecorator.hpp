@@ -20,6 +20,9 @@ namespace ARIASDK_NS_BEGIN {
 
         bool decorate(::AriaProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {
+            if (latency == EventLatency_Unspecified)
+                latency = EventLatency_Normal;
+
             if (eventProperties.GetName().empty()) {
                 // OK, using some default set by earlier decorator.
             }
@@ -54,12 +57,11 @@ namespace ARIASDK_NS_BEGIN {
                 flags = flags | 0x01;
             }
 
-
-            if (eventProperties.GetLatency() >= EventLatency_RealTime)
+            if (latency >= EventLatency_RealTime)
             {
                 flags = flags | 0x0200;
             }
-            else if (EventLatency_CostDeferred == eventProperties.GetLatency())
+            else if (latency == EventLatency_CostDeferred)
             {
                 flags = flags | 0x0300;
             }
@@ -83,8 +85,8 @@ namespace ARIASDK_NS_BEGIN {
                     m_owner.DispatchEvent(evt);
                     return false;
                 }
-                auto k = kv.first;
-                auto v = kv.second;
+                const auto &k = kv.first;
+                const auto &v = kv.second;
                 if (v.piiKind != PiiKind_None)
                 {
                     if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
@@ -336,10 +338,6 @@ namespace ARIASDK_NS_BEGIN {
                     }
                 }
             }
-
-                if (eventProperties.GetLatency() != EventLatency_Unspecified) {
-                    latency = eventProperties.GetLatency();
-                }
 
                 if (extPartB.size() > 0)
                 {
