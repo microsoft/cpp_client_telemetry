@@ -179,7 +179,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <returns></returns>
     unsigned MemoryStorage::LastReadRecordCount()
     {
-        return m_lastReadCount.load();
+        return static_cast<unsigned>(m_lastReadCount.load());
     }
 
     /// <summary>

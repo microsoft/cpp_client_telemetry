@@ -209,11 +209,6 @@ SAVE_FAILED:
                 // nullptr-terminate the buffer (empty buffer)
                 buffer[0]=0;
                 goto LOAD_OK;
-            } else
-            if (readSize < 0)
-            {
-                LOG_ERROR("load offline data failed: pos=%d, left=%d", bufferPosition, bytesToRead);
-                goto LOAD_FAILED;
             }
 
             bytesToRead -= readSize;
@@ -223,11 +218,6 @@ SAVE_FAILED:
 LOAD_OK:
         m_FileStatus = oldStatus;
         return RES_SUCC;
-
-LOAD_FAILED:
-
-        m_FileStatus = oldStatus;
-        return RES_ERROR;
     }
 
 	int FIFOFileStorage::ReadFileHeader()
@@ -264,7 +254,7 @@ LOAD_FAILED:
         //size_t  checkCount = 0;
         PhysicalBlockInfo block = {};
 
-        AssertAbort(m_FileHeader.physicalBlockCount >= 0 && m_FileHeader.fileSize > 0);
+        AssertAbort(m_FileHeader.fileSize > 0);
 
         fileOffset += sizeof(struct FileHeader);
 
@@ -438,7 +428,6 @@ LOAD_FAILED:
 
             if (blockId == -1)
             {
-                AssertAbort(m_LogicalBlocks.size() >= 0);
                 if (m_LogicalBlocks.size() > 0)
                 {
                     //if there is no block exist, release one oldest block
