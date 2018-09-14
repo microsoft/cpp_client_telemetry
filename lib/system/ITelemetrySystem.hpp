@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void stop() = 0;
         virtual void pause() = 0;
         virtual void resume() = 0;
-        virtual void upload() = 0;
+        virtual bool upload() = 0;
 
         // Access to common core components
         virtual ILogManager& getLogManager() = 0;

@@ -155,10 +155,19 @@ namespace ARIASDK_NS_BEGIN {
             }
 #endif
             SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
-            // m_observer->OnStorageRecordsSaved(1); // [MG]: don't issue notification for individual record, only for batches at higher-level
         }
         return true;
 
+    }
+
+    // Debug routine to print record count in the DB
+    void OfflineStorage_SQLite::printRecordCount()
+    {
+        for (unsigned lat = static_cast<unsigned>(EventLatency_Off); lat < static_cast<unsigned>(EventLatency_Max); lat++)
+        {
+            size_t count = GetRecordCount(static_cast<EventLatency>(lat));
+            LOG_TRACE("latency[%u] count=%zu", lat, count);
+        }
     }
 
     /// <summary>
@@ -625,8 +634,8 @@ namespace ARIASDK_NS_BEGIN {
             "timestamp"      " INTEGER,"
             "retry_count"    " INTEGER DEFAULT 0,"
             "reserved_until" " INTEGER DEFAULT 0,"
-            "payload"        " BLOB,"
-            "PRIMARY KEY (record_id))"
+            "payload"        " BLOB"
+            ")"
         ).execute()) {
             return false;
         }
@@ -670,6 +679,12 @@ namespace ARIASDK_NS_BEGIN {
 
         PREPARE_SQL(m_stmtGetPageCount,
             "PRAGMA page_count");
+
+        PREPARE_SQL(m_stmtGetRecordCount,
+            "SELECT count(*) FROM " TABLE_NAME_EVENTS);
+        PREPARE_SQL(m_stmtGetRecordCountBylatency,
+            "SELECT count(*) FROM " TABLE_NAME_EVENTS " WHERE latency=?");
+
         PREPARE_SQL(m_stmtIncrementalVacuum0,
             "PRAGMA incremental_vacuum(0)");
         PREPARE_SQL(m_stmtPerTenantTrimCount,
@@ -834,6 +849,32 @@ namespace ARIASDK_NS_BEGIN {
         pageCountStmt.getRow(pageCount);
         pageCountStmt.reset();
         return pageCount * m_pageSize;
+    }
+
+    size_t OfflineStorage_SQLite::GetRecordCount(EventLatency minLatency = EventLatency_Unspecified)
+    {
+        if (!m_db) {
+            LOG_ERROR("Failed to get DB size: database is not open");
+            return 0;
+        }
+
+        LOCKGUARD(m_lock);
+        size_t count = 0;
+        if (minLatency == EventLatency_Unspecified)
+        {
+            SqliteStatement recordCount(*m_db, m_stmtGetRecordCount);
+            recordCount.select();
+            recordCount.getOneValue(count);
+            recordCount.reset();
+        }
+        else
+        {
+            SqliteStatement recordCount(*m_db, m_stmtGetRecordCountBylatency);
+            recordCount.select(minLatency);
+            recordCount.getOneValue(count);
+            recordCount.reset();
+        }
+        return count;
     }
 
     bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)

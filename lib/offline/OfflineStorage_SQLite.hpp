@@ -40,6 +40,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
         virtual size_t GetSize() override;
+        virtual size_t GetRecordCount(EventLatency minLatency) override;
         virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 
@@ -55,6 +56,9 @@ namespace ARIASDK_NS_BEGIN {
 
         bool trimDbIfNeeded(size_t justAddedBytes);
         std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
+
+        // Debug routine to print record count in the DB
+        void printRecordCount();
 
     protected:
         std::mutex                  m_lock;
@@ -72,6 +76,8 @@ namespace ARIASDK_NS_BEGIN {
         size_t                      m_stmtCommitTransaction;
         size_t                      m_stmtRollbackTransaction;
         size_t                      m_stmtGetPageCount;
+        size_t                      m_stmtGetRecordCount;
+        size_t                      m_stmtGetRecordCountBylatency;
         size_t                      m_stmtIncrementalVacuum0;
         size_t                      m_stmtPerTenantTrimCount;
         size_t                      m_stmtTrimEvents_percent;

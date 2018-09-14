@@ -122,6 +122,16 @@ namespace ARIASDK_NS_BEGIN {
         return size;
     }
 
+    size_t OfflineStorageHandler::GetRecordCount(EventLatency latency)
+    {
+        size_t count = 0;
+        if (m_offlineStorageMemory != nullptr)
+            count += m_offlineStorageMemory->GetRecordCount(latency);
+        if (m_offlineStorageDisk != nullptr)
+            count += m_offlineStorageDisk->GetRecordCount(latency);
+        return count;
+    }
+
     void OfflineStorageHandler::Flush()
     {
         // Flush could be executed from context of worker thread, as well as from TPM and
@@ -138,6 +148,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             
             std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+            std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
 
 ////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
@@ -147,6 +158,7 @@ namespace ARIASDK_NS_BEGIN {
 
             while (records->size())
             {
+                ids.push_back(records->back().id);
                 if (m_offlineStorageDisk->StoreRecord(std::move(records->back())))
                     totalSaved++;
                 records->pop_back();
@@ -155,6 +167,11 @@ namespace ARIASDK_NS_BEGIN {
 // TODO: [MG] - consider running the batch in transaction
 //            if (sqlite)
 //                sqlite->Execute("END");
+
+            // Delete records from reserved on flush
+            HttpHeaders dummy;
+            bool fromMemory = true;
+            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
 
             delete records;
 
@@ -267,6 +284,11 @@ namespace ARIASDK_NS_BEGIN {
             if (m_lastReadCount <= maxCount)
                 maxCount -= m_lastReadCount;
             m_readFromMemory = true;
+            // Prefer to send all of in-memory first before going to disk. This also helps in case if in-ram queue
+            // is larger than request size (2MB), we'd exit the function because the consumer no longer wants more
+            // records.
+            if (m_lastReadCount)
+                return returnValue;
         }
 
         if (m_offlineStorageDisk)
@@ -297,10 +319,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
-        if (m_shutdownStarted)
-        {
-            return;
-        }
+
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
             static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
         if (fromMemory && nullptr != m_offlineStorageMemory)
@@ -315,10 +334,6 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorageHandler::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
     {
-        if (m_shutdownStarted)
-        {
-            return;
-        }
 
         if (fromMemory && nullptr != m_offlineStorageMemory)
         {
