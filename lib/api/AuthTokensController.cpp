@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN {
 
     AuthTokensController::~AuthTokensController()
     {
-        LOG_INFO("destructor");
+        LOG_TRACE("destructor");
     }
 
     status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
