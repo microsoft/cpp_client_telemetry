@@ -263,7 +263,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
-    configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+
     addAllListeners(debugListener);
     ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
 
@@ -272,25 +272,30 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     while (numIterations--)
         result->LogEvent("foo1");
     // Check the counts
-    EXPECT_EQ(MAX_ITERATIONS,       debugListener.numLogged);
+    EXPECT_LE(MAX_ITERATIONS,       debugListener.numLogged);
     EXPECT_EQ(0,                    debugListener.numDropped);
     EXPECT_EQ(0,                    debugListener.numReject);
 
     LogManager::UploadNow();                                    // Try to upload whatever we got
     PAL::sleep(1000);                                           // Give enough time to upload at least one event
     EXPECT_NE(0,                    debugListener.numSent);     // Some posts have successed within 500ms
+
     LogManager::PauseTransmission();
     numIterations = MAX_ITERATIONS;
     while (numIterations--)
         result->LogEvent("bar2");                               // New events go straight to offline storage
-    EXPECT_EQ(2 * MAX_ITERATIONS,   debugListener.numLogged);
-
     LogManager::Flush();
-    EXPECT_LE(MAX_ITERATIONS,   debugListener.numCached);       // Verify we saved at least the number of 'bar2' + possibly stats
+    PAL::sleep(500);                                            // Wait for async flush to complete    
+    EXPECT_LE(MAX_ITERATIONS,   debugListener.numCached);       // Verify we saved at least the number we logged (+possibly stats)
+
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
-    PAL::sleep(3000);                                           // Wait long enough for transmit timer to kick-in
-    EXPECT_GE(debugListener.numSent, debugListener.numLogged);  // Check that we sent whatever we logged + stats    LogManager::FlushAndTeardown();
+    PAL::sleep(2000);                                           // Wait long enough for transmit timer to kick-in
+    LogManager::UploadNow();
+    PAL::sleep(2000);
+    EXPECT_GE(debugListener.numSent, debugListener.numLogged);  // Check that we sent whatever we logged + stats
+
+    LogManager::FlushAndTeardown();
     debugListener.printStats();
     removeAllListeners(debugListener);
 }

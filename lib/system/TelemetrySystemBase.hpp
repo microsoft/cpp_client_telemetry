@@ -66,10 +66,9 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// Uploads pending events.
         /// </summary>
-        virtual bool upload() override
+        virtual void upload() override
         {
             // Subclass must implement
-            return false;
         };
         
         /// <summary>

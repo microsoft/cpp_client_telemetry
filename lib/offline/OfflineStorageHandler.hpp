@@ -33,8 +33,6 @@ namespace ARIASDK_NS_BEGIN {
         virtual std::string GetSetting(std::string const& name) override;
 
         virtual size_t GetSize() override;
-        virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) override;
-
         virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 

@@ -250,17 +250,6 @@ namespace ARIASDK_NS_BEGIN {
         virtual size_t GetSize() = 0;
 
         /// <summary>
-        /// Get number of records of specific latency.
-        /// If latency is unspecified, then get the total number of records in storage.
-        /// </summary>
-        /// <remarks>
-        /// Gets the total number of records. Primarily used on shutdown to evaluate
-        /// if upload still has to be done for the remaining records.
-        /// </remarks>
-        /// <returns>Number of records</returns>
-        virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) = 0;
-
-        /// <summary>
         /// Get Vector of records from DB
         /// </summary>
         /// <remarks>

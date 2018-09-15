@@ -38,7 +38,7 @@ namespace ARIASDK_NS_BEGIN {
 
         ~TelemetrySystem();
 
-        virtual bool upload() override;
+        virtual void upload() override;
         virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override;
 
     protected:

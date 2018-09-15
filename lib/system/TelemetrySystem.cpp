@@ -57,11 +57,8 @@ namespace ARIASDK_NS_BEGIN {
                 stopTimes[0] = GetUptimeMs();
                 LOG_TRACE("Shutdown timer started...");
                 upload();
-                // Try to push thru as much data as possible.
-                // If either data is available for upload or
-                // If there's outstanding request (some records marked in-flight),
-                // then try to wait for up to config[CFG_INT_MAX_TEARDOWN_TIME]
-                while (storage.GetRecordCount() || tpm.isUploadInProgress() )
+                // try to push thru as much data as possible
+                while (storage.GetSize())
                 {
                     auto uploadTime = GetUptimeMs() - stopTimes[0];
                     if (uploadTime >= (1000L * timeoutInSec))
@@ -71,7 +68,6 @@ namespace ARIASDK_NS_BEGIN {
                         break;
                     }
                     MAT::sleep(100);
-                    LOG_INFO("offline records=%zu, pending uploads=%zu", storage.GetRecordCount(), hcm.requestCount());
                 }
                 stopTimes[0] = GetUptimeMs() - stopTimes[0];
             }
@@ -174,15 +170,9 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
-    bool TelemetrySystem::upload()
+    void TelemetrySystem::upload()
     {
-        if (storage.GetRecordCount())
-        {
-            tpm.scheduleUpload(0, EventLatency_Normal, true);
-            return true;
-        }
-
-        return false;
+        tpm.scheduleUpload(0, EventLatency_Normal, true);
     }
 
     void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)

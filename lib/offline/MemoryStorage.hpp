@@ -53,7 +53,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual size_t GetSize() override;
 
-        virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) override;
+        virtual size_t GetRecordCount();
 
         virtual size_t GetReservedCount();
 
