@@ -177,7 +177,7 @@ namespace ARIASDK_NS_BEGIN {
          //   bond_lite::CompactBinaryProtocolReader reader(ctx->record.blob);
          //   bond_lite::Deserialize(reader, r);
 
-        LOG_TRACE("Event %s/%s submitted, priority %u (%s), serialized size %u bytes, ID %s",
+        LOG_INFO("Event %s/%s submitted, priority %u (%s), serialized size %u bytes, ID %s",
             tenantTokenToId(ctx->record.tenantToken).c_str(), ctx->source->baseType.c_str(),
             ctx->record.latency, latencyToStr(ctx->record.latency),
             static_cast<unsigned>(ctx->record.blob.size()), ctx->record.id.c_str());
