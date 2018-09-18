@@ -18,7 +18,7 @@ namespace testing {
         MOCK_METHOD0(stop, void());
         MOCK_METHOD0(pause, void());
         MOCK_METHOD0(resume, void());
-        MOCK_METHOD0(upload, void());
+        MOCK_METHOD0(upload, bool());
 
         // MOCK_METHOD0(getLogManager, ILogManager&());
         ILogManager& getLogManager()

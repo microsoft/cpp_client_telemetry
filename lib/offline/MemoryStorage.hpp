@@ -53,7 +53,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual size_t GetSize() override;
 
-        virtual size_t GetRecordCount();
+        virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
         virtual size_t GetReservedCount();
 
@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN {
         IRuntimeConfig&             m_config;
         ILogManager&                m_logManager;
 
-        std::mutex                  m_records_lock;
+        mutable std::mutex          m_records_lock;
         std::vector<StorageRecord>  m_records[EventLatency_Max+1];
         
         /// <summary>

@@ -18,6 +18,11 @@ class HttpClientManager {
     virtual ~HttpClientManager();
     void cancelAllRequests();
 
+    size_t requestCount() const
+    {
+        return m_httpCallbacks.size();
+    }
+
   protected:
     class HttpCallback;
 

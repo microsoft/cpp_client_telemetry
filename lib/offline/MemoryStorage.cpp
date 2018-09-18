@@ -128,7 +128,8 @@ namespace ARIASDK_NS_BEGIN {
 
         LOCKGUARD(m_records_lock);
         m_lastReadCount = 0;
-        for (unsigned latency = minLatency; (latency <= EventLatency_Max) && (maxCount); latency++)
+        // Start processing events of critical latency first
+        for (int latency = static_cast<int>(EventLatency_Max); (latency >= static_cast<int>(minLatency)) && (maxCount); latency--)
         {
             while (maxCount && (m_records[latency]).size())
             {
@@ -144,8 +145,8 @@ namespace ARIASDK_NS_BEGIN {
                     m_reserved_records[record.id] = record; // copy to reserved
                 }
 
-                consumer(std::move(record));                // move to consumer
-                m_records[latency].pop_back();              // destroy in records
+                bool wantMore = consumer(std::move(record)); // move to consumer
+                m_records[latency].pop_back();               // destroy in records
 
                 if (m_size.load() > recordSize)
                 {
@@ -156,6 +157,10 @@ namespace ARIASDK_NS_BEGIN {
                     m_size = 0;
                 }
                 maxCount--;
+
+                // If consumer has no space left for the records, exit
+                if (!wantMore)
+                    return true;
             }
         }
 
@@ -341,6 +346,27 @@ namespace ARIASDK_NS_BEGIN {
         return m_size.load();
     }
 
+    /// <summary>
+    /// Gets the number of records of specific latency in the DB.
+    /// If latency is unspecified, get the total number of records.
+    /// </summary>
+    /// <returns></returns>
+    size_t MemoryStorage::GetRecordCount(EventLatency latency) const
+    {
+        LOCKGUARD(m_records_lock);
+        size_t numRecords = 0;
+        if (latency == EventLatency_Unspecified)
+        {
+            for (unsigned lat = EventLatency_Off; lat <= EventLatency_Max; lat++)
+                numRecords += m_records[lat].size();
+        }
+        else
+        {
+            numRecords = m_records[latency].size();
+        }
+        return numRecords;
+    }
+
     std::vector<StorageRecord>* MemoryStorage::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
     {
         UNREFERENCED_PARAMETER(shutdown);
@@ -376,20 +402,6 @@ namespace ARIASDK_NS_BEGIN {
         // Shutdown();
     }
     
-    /// <summary>
-    /// Gets the record count.
-    /// This method is currently internal, but up for consideration to add it to common storage interface.
-    /// </summary>
-    /// <returns></returns>
-    size_t MemoryStorage::GetRecordCount()
-    {
-        LOCKGUARD(m_records_lock);
-        size_t numRecords = 0;
-        for (unsigned latency = EventLatency_Off; latency <= EventLatency_Max; latency++)
-            numRecords += m_records[latency].size();
-        return numRecords;
-    }
-
     /// <summary>
     /// Gets the reserved (in-flight) record count.
     /// This method is currently internal, but up for consideration to add it to common storage interface.
