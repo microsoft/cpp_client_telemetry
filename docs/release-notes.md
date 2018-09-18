@@ -9,6 +9,30 @@
 - Mac OS X (experimental, source only)
 - MinGW (source only)
 
+
+## Version 3.0.261.1 (09/18/2018)
+
+### New features
+
+None
+
+### Design Changes
+
+- LogEvent performance improvements
+- Offline storage write performance improvements
+- Enable .rpm packaging for RHEL and CentOS
+- Turn off whole program opt, LTCG and JustMyCode to enable linking with older vs2017
+
+### Bug Fixes
+
+- Fix for ClientTelemetry.dll not loading on Windows 7.1A
+- Compiler warnings clean-up
+- FlushAndTeardown: skipped uploading some records on shutdown
+- FlushAndTeardown: may unnecessarily wait for up to CFG_INT_MAX_TEARDOWN_TIME
+- FlushAndTeardown: possible event duplication of some events sent immediately before shutdown
+
+---
+
 ## Version 3.0.248.1 (09/05/2018)
 
 ### New features
