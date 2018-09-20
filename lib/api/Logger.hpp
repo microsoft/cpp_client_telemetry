@@ -37,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-            ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
+            ILogManagerInternal& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
             IEventFilter& eventFilter);
 
         ~Logger();
