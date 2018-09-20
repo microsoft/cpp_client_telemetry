@@ -2,16 +2,16 @@
 
 unsigned   latency[MAX_LATENCY_SAMPLES] = { 0 };
 
-std::atomic<unsigned>   eps(0);
-std::atomic<unsigned>   numLogged0(0);
-std::atomic<unsigned>   numLogged(0);
-std::atomic<unsigned>   numSent(0);
-std::atomic<unsigned>   numDropped(0);
-std::atomic<unsigned>   numReject(0);
-std::atomic<unsigned>   numCached(0);
-std::atomic<unsigned>   logLatMin(100);
-std::atomic<unsigned>   logLatMax(0);
-unsigned long           testStartMs;
+std::atomic<size_t>   eps(0);
+std::atomic<size_t>   numLogged0(0);
+std::atomic<size_t>   numLogged(0);
+std::atomic<size_t>   numSent(0);
+std::atomic<size_t>   numDropped(0);
+std::atomic<size_t>   numReject(0);
+std::atomic<size_t>   numCached(0);
+std::atomic<size_t>   logLatMin(100);
+std::atomic<size_t>   logLatMax(0);
+unsigned long         testStartMs;
 
 /// <summary>
 /// The network cost names
@@ -73,31 +73,31 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
             eps = (1000 * numLogged) / (ms - testStartMs);
             if ((numLogged % 500) == 0)
             {
-                printf("EPS=%u\n", eps.load() );
+                printf("EPS=%zu\n", eps.load() );
             }
         }
         break;
     case EVT_REJECTED:
         numReject++;
-        printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_ADDED:
-        printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_CACHED:
         numCached += evt.param1;
-        printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventCached:      seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_DROPPED:
         numDropped += evt.param1;
-        printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_SENT:
         numSent += evt.param1;
-        printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventsSent:       seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_STORAGE_FULL:
-        printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         if (evt.param1 >= 75) {
             // UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
             // or notify the main app that it has to do the profile timers housekeeping / force the upload...
@@ -110,26 +110,26 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
     case EVT_COMPRESS_FAILED:
     case EVT_UNKNOWN_HOST:
     case EVT_SEND_FAILED:
-        printf("OnEventsSendFailed: seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventsSendFailed: seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_HTTP_ERROR:
-        printf("OnHttpError:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+        printf("OnHttpError:        seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu, data=%p, size=%zu\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
         break;
     case EVT_HTTP_OK:
-        printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+        printf("OnHttpOK:           seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu, data=%p, size=%zu\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
         break;
     case EVT_SEND_RETRY:
-        printf("OnSendRetry:        seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+        printf("OnSendRetry:        seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu, data=%p, size=%zu\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
         break;
     case EVT_SEND_RETRY_DROPPED:
-        printf("OnSendRetryDropped: seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u, data=%p, size=%d\n",
+        printf("OnSendRetryDropped: seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu, data=%p, size=%zu\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
         break;
     case EVT_NET_CHANGED:
-        printf("OnNetChanged:       seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u [%s]\n",
+        printf("OnNetChanged:       seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu [%s]\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, networkCostNames[evt.param1]);
         if (evt.param2)
         {
@@ -138,7 +138,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
         break;
     case EVT_UNKNOWN:
     default:
-        printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("OnEventUnknown:     seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     };
 
