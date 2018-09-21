@@ -25,6 +25,7 @@
     <ProjectName>win32-cpp</ProjectName>
     <WindowsTargetPlatformVersion>10.0.15005.0</WindowsTargetPlatformVersion>
     <TargetUniversalCRTVersion>10.0.15005.0</TargetUniversalCRTVersion>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

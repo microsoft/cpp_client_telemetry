@@ -31,3 +31,8 @@ if exist "%REL_SRC%\ARM\%SRC_NAME%" (
   robocopy %REL_SRC%\ARM\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
   robocopy %DBG_SRC%\ARM\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
 )
+
+if exist "%REL_SRC%\ARM64\%SRC_NAME%" (
+  robocopy %REL_SRC%\ARM64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM64\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+  robocopy %DBG_SRC%\ARM64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM64\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+)

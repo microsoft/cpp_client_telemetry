@@ -160,6 +160,7 @@ ILogConfiguration testConfiguration()
 #define MAX_EVENTS_TO_LOG       50000L
 
 extern "C" int OfficeTest();
+extern "C" void test_c_api();
 
 int main()
 {

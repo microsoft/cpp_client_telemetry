@@ -2,7 +2,7 @@
 #define ARIA_H
 
 #ifndef ARIASDK_LIBCABI
-#define ARIASDK_LIBCABI
+#define ARIASDK_LIBCABI __cdecl
 #endif
 
 #ifdef __cplusplus
@@ -99,13 +99,13 @@ typedef struct
 #define PII_GUID(key, val, kind) { .name = key, .type = TYPE_GUID,    .value = { .as_guid   = val }, .piiKind = kind }
 #define PII_TIME(key, val, kind) { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = kind }
 
-ARIASDK_LIBCABI bool aria_initialize(const char* token);
-ARIASDK_LIBCABI void aria_logevent(aria_prop* evt);
-ARIASDK_LIBCABI void aria_teardown();
-ARIASDK_LIBCABI void aria_pause();
-ARIASDK_LIBCABI void aria_resume();
-ARIASDK_LIBCABI void aria_upload();
-ARIASDK_LIBCABI void aria_flush();
+bool ARIASDK_LIBCABI aria_initialize(const char* token);
+void ARIASDK_LIBCABI aria_logevent(aria_prop* evt);
+void ARIASDK_LIBCABI aria_teardown();
+void ARIASDK_LIBCABI aria_pause();
+void ARIASDK_LIBCABI aria_resume();
+void ARIASDK_LIBCABI aria_upload();
+void ARIASDK_LIBCABI aria_flush();
 
 #ifdef __cplusplus
 }

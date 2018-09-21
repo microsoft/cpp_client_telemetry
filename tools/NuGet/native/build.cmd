@@ -6,6 +6,8 @@ set DST=uap10.0
 robocopy %OUTDIR%\include               .\include
 robocopy %OUTDIR%\lib\win10\ARM\Release	.\lib\%DST%\Release\ARM
 robocopy %OUTDIR%\lib\win10\ARM\Debug	.\lib\%DST%\Debug\ARM
+robocopy %OUTDIR%\lib\win10\ARM64\Release .\lib\%DST%\Release\ARM64
+robocopy %OUTDIR%\lib\win10\ARM64\Debug	.\lib\%DST%\Debug\ARM64
 robocopy %OUTDIR%\lib\win10\x86\Release	.\lib\%DST%\Release\x86
 robocopy %OUTDIR%\lib\win10\x86\Debug	.\lib\%DST%\Debug\x86
 robocopy %OUTDIR%\lib\win10\x86\Release	.\lib\%DST%\Release\chpe
