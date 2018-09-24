@@ -79,7 +79,7 @@ class WinInetRequestWrapper
         urlc.dwUrlPathLength = sizeof(path);
         if (!::InternetCrackUrlA(request->m_url.data(), (DWORD)request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
-            LOG_WARN("InternetCrackUrl() failed: %d", dwError);
+            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, request->m_url.data());
             onRequestComplete(dwError);
             return;
         }
