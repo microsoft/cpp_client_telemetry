@@ -1,5 +1,5 @@
 #ifdef _WIN32
-#define ARIASDK_LIBCABI __declspec(dllexport)
+#define ARIASDK_DECLSPEC __declspec(dllexport)
 #endif
 
 #include <LogManager.hpp>
@@ -48,7 +48,7 @@ extern "C" {
     //
     // Marashal C struct tro Aria C++ API
     //
-    ARIASDK_LIBCABI void aria_logevent(aria_prop* evt)
+    ARIASDK_DECLSPEC void aria_logevent(aria_prop* evt)
     {
         EventProperties props;
         props.unpack(evt);

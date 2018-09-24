@@ -1,9 +1,7 @@
 #ifndef ARIA_H
 #define ARIA_H
 
-#ifndef ARIASDK_LIBCABI
-#define ARIASDK_LIBCABI __cdecl
-#endif
+#include <ctmacros.hpp>
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,13 +97,13 @@ typedef struct
 #define PII_GUID(key, val, kind) { .name = key, .type = TYPE_GUID,    .value = { .as_guid   = val }, .piiKind = kind }
 #define PII_TIME(key, val, kind) { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = kind }
 
-bool ARIASDK_LIBCABI aria_initialize(const char* token);
-void ARIASDK_LIBCABI aria_logevent(aria_prop* evt);
-void ARIASDK_LIBCABI aria_teardown();
-void ARIASDK_LIBCABI aria_pause();
-void ARIASDK_LIBCABI aria_resume();
-void ARIASDK_LIBCABI aria_upload();
-void ARIASDK_LIBCABI aria_flush();
+ARIASDK_LIBABI bool ARIASDK_LIBABI_CDECL aria_initialize(const char* token);
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_logevent(aria_prop* evt);
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_teardown();
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_pause();
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_resume();
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_upload();
+ARIASDK_LIBABI void ARIASDK_LIBABI_CDECL aria_flush();
 
 #ifdef __cplusplus
 }
