@@ -15,12 +15,12 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
     Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-        ILogManager& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
+        ILogManagerInternal& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
         IEventFilter& eventFilter)
         :
         m_tenantToken(tenantToken),
         m_source(source),
-        m_logManager( *(dynamic_cast<ILogManagerInternal *>(&logManager)) ),
+        m_logManager(logManager),
         m_context(parentContext),
         m_config(runtimeConfig),
         m_eventFilter(eventFilter),
