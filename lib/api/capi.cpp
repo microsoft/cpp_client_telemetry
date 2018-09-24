@@ -48,7 +48,7 @@ extern "C" {
     //
     // Marashal C struct tro Aria C++ API
     //
-    ARIASDK_DECLSPEC void aria_logevent(aria_prop* evt)
+    void aria_logevent(aria_prop* evt)
     {
         EventProperties props;
         props.unpack(evt);
