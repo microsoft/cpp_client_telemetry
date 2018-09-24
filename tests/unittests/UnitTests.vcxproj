@@ -142,13 +142,13 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -186,7 +186,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
@@ -194,7 +194,7 @@
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -232,7 +232,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
@@ -240,7 +240,7 @@
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -278,7 +278,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
@@ -286,7 +286,7 @@
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -325,13 +325,13 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -370,13 +370,13 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="OneSDK";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"Aria\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
