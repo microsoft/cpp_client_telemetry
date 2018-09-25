@@ -2,13 +2,33 @@
 
 ### Supported Platforms
 
-- Windows Desktop for C/C++ (x86/x64)
-- Windows 10 Universal (x86/x64/ARM)
+- Windows Desktop for C/C++ (x86/x64/ARM64)
+- Windows 10 Universal (x86/x64/ARM/ARM64)
 - Windows Desktop for .NET 4.x (x86/x64)
-- Linux x86/x64/ARM (gcc-5+)
+- Linux x86/x64/ARM/ARM64 (gcc-5+)
 - Mac OS X (experimental, source only)
 - MinGW (source only)
 
+
+## Version 3.0.268.1 (09/25/2018)
+
+### New features
+
+1432826 arm64 SKU
+
+### Design Changes
+
+1438210	Support LoadTransmitProfiles for C# apps
+1438212	Full- vs Basic- Telemetry: allow to set transmit profile at SDK start
+
+### Bug Fixes
+
+1436626 Spurious wakes-up (OTEL power scorecard regression after upgrade from v1.7 to v3)
+1403099	Fix 1DS collector URLs in ILogConfiguration.hpp
+1438211	Fix 1DS collector URLs in C# projection code
+1403101	LogConfigurationCX.cpp needs to create a string copy
+
+---
 
 ## Version 3.0.261.1 (09/18/2018)
 
