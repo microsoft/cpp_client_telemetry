@@ -312,7 +312,6 @@ namespace ARIASDK_NS_BEGIN
     private:
         std::string*     m_eventNameP;
         std::string*     m_eventTypeP;
-        EventPriority    m_eventPriority;
         EventLatency     m_eventLatency;
         EventPersistence m_eventPersistence;
         double           m_eventPopSample;

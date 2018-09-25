@@ -41,6 +41,8 @@ namespace Microsoft {
                     static void Flush();
                     static void FlushAndTeardown();
                     static void UploadNow();
+
+                    static bool LoadTransmitProfiles(String^ json);
                     static void SetTransmitProfile(TransmitProfile profile);
 #ifdef WIN10_CS
                     [::Windows::Foundation::Metadata::DefaultOverloadAttribute]
@@ -55,10 +57,15 @@ namespace Microsoft {
 
                 private:
                     
+                    static void reset();
+
                     LogManager();
                     ~LogManager();
 
                     static bool isInited;
+
+                    static String^ startProfileName;
+                    static String^ transmitProfiles;
 
                     static SendEventTestCallback^ m_eventCallaback;
                     static ITestCallback* m_testCallback;

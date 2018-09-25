@@ -124,6 +124,26 @@ namespace ARIASDK_NS_BEGIN {
             // TODO: [MG] - verify that cache file is writeable
         }
 
+        if (m_logConfiguration.count(CFG_STR_TRANSMIT_PROFILES))
+        {
+            std::string transmitProfiles = m_logConfiguration[CFG_STR_TRANSMIT_PROFILES];
+            if (!transmitProfiles.empty())
+            {
+                LOG_INFO("Loading custom transmit profiles...");
+                LoadTransmitProfiles(transmitProfiles);
+            }
+        }
+
+        if (m_logConfiguration.count(CFG_STR_START_PROFILE_NAME))
+        {
+            std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
+            if (!transmitProfile.empty())
+            {
+                LOG_INFO("Setting custom transmit profile %s", transmitProfile.c_str());
+                SetTransmitProfile(transmitProfile);
+            }
+        }
+
         m_config = new RuntimeConfig_Default(m_logConfiguration);
 
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem

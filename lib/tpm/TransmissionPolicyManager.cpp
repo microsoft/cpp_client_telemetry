@@ -125,7 +125,7 @@ namespace ARIASDK_NS_BEGIN {
         // some customers require to be able to start in a paused (no telemetry) state.
         // We may avoid the issue if we schedule the first upload to happen 1 second
         // after start
-        scheduleUpload(1000, EventLatency_Normal);
+        scheduleUpload(1000, calculateNewPriority());
         return true;
     }
 

@@ -107,7 +107,8 @@ namespace Microsoft {
                 {
                     this->Name = eventName;
                     this->Timestamp = ResetPlatformDateTime();
-                    this->Priority = EventPriority::Unspecified;
+                    // By default we assume that the priority is normal
+                    this->Priority = EventPriority::Normal;
 
                     this->Properties = CreateEditablePropertyMap(properties);
                     this->Measurements = CreateEditableMeasurementMap(measurements);
@@ -128,7 +129,8 @@ namespace Microsoft {
                 {
                     this->Name = name;
                     this->Timestamp = ResetPlatformDateTime();
-                    this->Priority = EventPriority::Unspecified;
+                    // By default we assume that the priority is normal
+                    this->Priority = EventPriority::Normal;
 
                     this->Properties = CreateEditablePropertyMap();
                     this->Measurements = CreateEditableMeasurementMap();

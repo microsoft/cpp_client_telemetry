@@ -77,6 +77,8 @@ namespace Microsoft {
                     property unsigned int MaxTeardownUploadTimeInSec;
                     property unsigned int MaxPendingHTTPRequests;
                     property unsigned int MaxDBFlushQueues;
+                    property String^ TransmitProfiles;
+                    property String^ StartProfileName;
 
                 internal:
                     void ToLogConfigurationCore();

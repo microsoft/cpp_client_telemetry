@@ -11,7 +11,7 @@ TEST(EventPropertiesTests, Construction)
 {
     EventProperties ep("test");
     EXPECT_THAT(ep.GetName(), Eq("test"));
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Unspecified);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_Normal);
     EXPECT_THAT(ep.GetTimestamp(), 0ll);
     EXPECT_THAT(ep.GetProperties(), IsEmpty());
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
@@ -50,28 +50,26 @@ TEST(EventPropertiesTests, Timestamp)
     EXPECT_THAT(ep.GetTimestamp(), -1);
 }
 
-TEST(EventPropertiesTests, Priority)
+TEST(EventPropertiesTests, Latency)
 {
     EventProperties ep("test");
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Unspecified);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_Normal);
 
     ep.SetPriority(EventPriority_Off);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Off);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_Off);
 
     ep.SetPriority(EventPriority_Low);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Low);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_Normal);
 
     ep.SetPriority(EventPriority_Normal);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Normal);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_Normal);
 
     ep.SetPriority(EventPriority_High);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_High);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_RealTime);
 
     ep.SetPriority(EventPriority_Immediate);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Immediate);
+    EXPECT_THAT(ep.GetLatency(), EventLatency_RealTime);
 
-    ep.SetPriority(EventPriority_Unspecified);
-    EXPECT_THAT(ep.GetPriority(), EventPriority_Unspecified);
 }
 
 TEST(EventPropertiesTests, Properties)

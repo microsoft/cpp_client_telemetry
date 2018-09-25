@@ -98,6 +98,11 @@ namespace MATW_NS_BEGIN {
 #endif
         isInited = true;
 
+        // Pass down transmit profiles and initial profile name to core
+        if (!startProfileName->Equals(""))
+            configuration->StartProfileName = startProfileName;
+        if (!transmitProfiles->Equals(""))
+            configuration->TransmitProfiles = transmitProfiles;
         configuration->ToLogConfigurationCore();
         return platform_new Logger(MAT::LogManager::Initialize(token));
     }
@@ -136,7 +141,7 @@ namespace MATW_NS_BEGIN {
     void LogManager::FlushAndTeardown()
     {
         MAT::LogManager::FlushAndTeardown();
-        isInited = false;
+        reset();
     }
 
     void LogManager::UploadNow()
@@ -150,6 +155,20 @@ namespace MATW_NS_BEGIN {
         MAT::LogManager::ResumeTransmission();
     }
 
+    bool LogManager::LoadTransmitProfiles(String^ json)
+    {
+        if (!isInited)
+        {
+            transmitProfiles = json;
+            // [MG] - note that in this delay-loading scenario we cannot verify
+            // that the profile supplied by the customer is valid!
+            return true;
+        }
+
+        //LOG_TRACE("LogManager::LoadTransmitProfiles()");
+        const std::string profiles = FromPlatformString(json);
+        return MAT::LogManager::LoadTransmitProfiles(profiles);
+    }
     void LogManager::SetTransmitProfile(TransmitProfile profile)
     {
         //LOG_TRACE("LogManager::SetTransmitProfile()");
@@ -158,6 +177,11 @@ namespace MATW_NS_BEGIN {
 
     void LogManager::SetTransmitProfile(String^ profileName)
     {
+        if (!isInited)
+        {
+            startProfileName = profileName;
+            return;
+        }
         //LOG_TRACE("LogManager::SetTransmitProfile()");
         const std::string name = FromPlatformString(profileName);
         MAT::LogManager::SetTransmitProfile(name);
@@ -197,14 +221,17 @@ namespace MATW_NS_BEGIN {
 
     LogManager::LogManager()
     {
-        isInited = false;
-        //LOG_TRACE("LogManager::LogManager()");
     }
 
     LogManager::~LogManager()
     {
-        //LOG_TRACE("LogManager::~LogManager()");
+    }
+
+    void LogManager::reset()
+    {
         isInited = false;
+        startProfileName = "";
+        transmitProfiles = "";
     }
 
 } MATW_NS_END

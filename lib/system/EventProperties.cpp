@@ -48,7 +48,6 @@ namespace ARIASDK_NS_BEGIN {
      */
     EventProperties::EventProperties()
         : m_timestampInMillis(0LL)
-        , m_eventPriority(EventPriority_Unspecified)
         , m_eventLatency(EventLatency_Normal)
         , m_eventPersistence(EventPersistence_Normal)
         , m_eventPopSample(100)
@@ -62,7 +61,6 @@ namespace ARIASDK_NS_BEGIN {
 
     EventProperties::EventProperties(const string& name)
         : m_timestampInMillis(0LL)
-        , m_eventPriority(EventPriority_Unspecified)
         , m_eventLatency(EventLatency_Normal)
         , m_eventPersistence(EventPersistence_Normal)
         , m_eventPopSample(100)
@@ -87,7 +85,6 @@ namespace ARIASDK_NS_BEGIN {
         m_eventTypeP = new std::string(*(copy.m_eventTypeP));
         m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
         m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
-        m_eventPriority = copy.m_eventPriority;
         m_eventLatency = copy.m_eventLatency;
         m_eventPersistence = copy.m_eventPersistence;
         m_eventPopSample = copy.m_eventPopSample;
@@ -112,7 +109,6 @@ namespace ARIASDK_NS_BEGIN {
         m_eventTypeP = new std::string(*(copy.m_eventTypeP));
         m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
         m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
-        m_eventPriority = copy.m_eventPriority;
         m_eventLatency = copy.m_eventLatency;
         m_eventPersistence = copy.m_eventPersistence;
         m_eventPopSample = copy.m_eventPopSample;
@@ -195,15 +191,16 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetPriority(EventPriority priority)
     {
-        m_eventPriority = priority;
-
-        if (m_eventPriority >= EventPriority_High)
+        m_eventLatency = (EventLatency)priority;
+        if (priority >= EventPriority_High)
         {
             m_eventLatency = EventLatency_RealTime;
             m_eventPersistence = EventPersistence_Critical;
         }
         else
+        if (priority >= EventPriority_Low)
         {
+            // TODO: 1438270 - [v3][1DS] Direct upload to respect low priority
             m_eventLatency = EventLatency_Normal;
             m_eventPersistence = EventPersistence_Normal;
         }
@@ -215,7 +212,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     EventPriority EventProperties::GetPriority() const
     {
-        EventPriority result = m_eventPriority;
+        EventPriority result = (EventPriority)m_eventLatency;
         return result;
     }
 
