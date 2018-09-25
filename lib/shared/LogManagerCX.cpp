@@ -35,6 +35,8 @@ namespace MATW_NS_BEGIN {
     PlatformEventHandler^       LogManager::m_platformEventHandler  = nullptr;
     ITestCallback*              LogManager::m_testCallback          = nullptr;
     IPlatformEventReceiver*     LogManager::m_eventReceiver         = nullptr;
+    String^                     LogManager::startProfileName;
+    String^                     LogManager::transmitProfiles;
 #endif
 
     class LogManagerTestCallback : public ITestCallback
