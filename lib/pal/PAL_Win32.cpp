@@ -344,11 +344,14 @@ namespace PAL_NS_BEGIN {
     protected:
         static void threadFunc(void* lpThreadParameter)
         {
+            uint64_t wakeupCount = 0;
+
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
             detail::WorkerThreadItemPtr item = nullptr;
             for (;;) {
+                wakeupCount++;
                 unsigned nextTimerInMs = UINT_MAX;
                 {
                     LOCKGUARD(self->m_lock);
@@ -369,8 +372,8 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (!item) {
-                    self->m_event.wait(nextTimerInMs);
-                    Sleep(100);
+                    if (!self->m_event.Reset())
+                        self->m_event.wait(nextTimerInMs);
                     continue;
                 }
 
@@ -378,7 +381,7 @@ namespace PAL_NS_BEGIN {
                     break; // TODO: [MG] - delete item
                 }
                 
-                LOG_TRACE("Execute item=%p type=%s\n", item, item->typeName.c_str() );
+                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item, item->typeName.c_str() );
                 self->m_itemInProgress = item;
                 (*item)();
                 self->m_itemInProgress = nullptr;
