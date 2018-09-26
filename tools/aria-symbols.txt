@@ -1,8 +1,8 @@
-BuildId=3.0.261.1
+BuildId=3.0.268.1
 BuildLabPhone=32707
 BuildRemark=release
 ContactPeople=maxgolov;actlab
-Directory=\\aria-build-01.redmond.corp.microsoft.com\Releases\Windows\3.0.261.1\lib
+Directory=\\aria-build-01.redmond.corp.microsoft.com\Releases\Windows\3.0.268.1\lib
 Project=ARIA
 Recursive=yes
 StatusMail=ariaesdks
