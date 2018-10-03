@@ -20,7 +20,7 @@ extern "C" {
     // TODO: expose struct LogConfiguration as a second parameter
     // TODO: allow the customer to specify their module name
     //
-    bool aria_initialize(const char* token)
+    bool ARIASDK_LIBABI_CDECL aria_initialize(const char* token)
     {
         if (!is_inited.exchange(true))
         {
@@ -48,7 +48,7 @@ extern "C" {
     //
     // Marashal C struct tro Aria C++ API
     //
-    void aria_logevent(aria_prop* evt)
+    void ARIASDK_LIBABI_CDECL aria_logevent(aria_prop* evt)
     {
         EventProperties props;
         props.unpack(evt);
@@ -69,27 +69,27 @@ extern "C" {
         logger->LogEvent(props);
     }
 
-    void aria_teardown()
+    void ARIASDK_LIBABI_CDECL aria_teardown()
     {
         LogManagerC::FlushAndTeardown();
     }
 
-    void aria_pause()
+    void ARIASDK_LIBABI_CDECL aria_pause()
     {
         LogManagerC::PauseTransmission();
     }
 
-    void aria_resume()
+    void ARIASDK_LIBABI_CDECL aria_resume()
     {
         LogManagerC::ResumeTransmission();
     }
 
-    void aria_upload()
+    void ARIASDK_LIBABI_CDECL aria_upload()
     {
         LogManagerC::UploadNow();
     }
 
-    void aria_flush()
+    void ARIASDK_LIBABI_CDECL aria_flush()
     {
         LogManagerC::Flush();
     }
