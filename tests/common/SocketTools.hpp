@@ -255,7 +255,7 @@ namespace testing {
             m_sock = Invalid;
         }
 
-        int recv(void* buffer, unsigned size)
+        int recv(_Out_bytecap_(size) void* buffer, unsigned size)
         {
             assert(m_sock != Invalid);
             return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, 0);
