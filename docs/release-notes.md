@@ -10,6 +10,34 @@
 - MinGW (source only)
 
 
+## Version 3.0.289.1 (10/16/2018)
+
+### New features
+
+None
+
+### Design Changes
+
+New configuration - config["compat"]["dotType"]=false - allows to replace dots by underscores
+in EventProperties.SetType(...) API call for C++ SDK. This is necessary for ODIN, Office
+annotations and MDM exporters to work, replicating legacy v1 C++ SDK behavior. Note that
+the default value is 'true', preserving dots in record.baseType, thus customers expecting
+legacy v1 behavior must explicitly set this config value to boolean false.
+
+### Bug Fixes
+
+1458981 HTTP client crash inserting range into vector in onrequestcomplete
+1403111 SDK stats improvements
+1459042 EventProperties.SetType(...) not setting record.baseType
+1462033 Must allow Aria to Initialize in UTC mode on a thread that has already done RoInitialize
+1467488 Experimental pure C API: cdecl-spec fixes for apps built with stdcall
+xxxxxxx DDV tool: ability to inspect HTTP payloads from a debug callback
+xxxxxxx BVT: SDK re-initialize did not respect new configuration parameters
+xxxxxxx BVT: LogManagerFactory C++11 magic-static must return a reference, not an obj instance
+
+---
+
+
 ## Version 3.0.268.1 (09/25/2018)
 
 ### New features

@@ -104,10 +104,26 @@ class HttpClientTests : public ::testing::Test,
         return 0;
     }
 
+    /**
+     * This method temporarily copies SimpleHttpResponse to a responses buffer.
+     * TODO: [MG] - ideally we should create a copy-constructor for that.
+     */
+    virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
+    {
+        SimpleHttpResponse *src = dynamic_cast<SimpleHttpResponse*>(inResponse);
+        SimpleHttpResponse *dst = new SimpleHttpResponse("");
+        dst->m_id = src->m_id;
+        dst->m_result = src->m_result;
+        dst->m_statusCode = src->m_statusCode;
+        dst->m_headers = src->m_headers;
+        dst->m_body = src->m_body;
+        return dst;
+    }
+
     virtual void OnHttpResponse(IHttpResponse* inResponse) override
     {
         std::lock_guard<std::mutex> lock(_lock);
-        _responses.push_back(inResponse);
+        _responses.push_back(clone(inResponse));
     }
 
 };
@@ -297,7 +313,7 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
 {
     Clear();
 
-    size_t Count = 2000;
+    size_t Count = 100;
     for (size_t i = 0; i < Count; i++) {
         IHttpRequest* request = _client->CreateRequest();
         // _requests.push_back(request);
@@ -311,6 +327,11 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
         request->SetBody(body);
         _countedRequests.push_back(Sent);
         _client->SendRequestAsync(request, this);
+        // slowdown if responses are not coming back because SDK itself
+        // throttles its HTTP requests at a rate of no more than 2
+        // per second
+        if (_responses.size() + 2 < i )
+            PAL::sleep(100);
     }
 
     while (_responses.size() < Count) {
@@ -327,4 +348,5 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
     // Count the number of requests that were not done
     auto it = std::find(_countedRequests.begin(), _countedRequests.end(), Sent);
     EXPECT_THAT(it, _countedRequests.end());
+
 }

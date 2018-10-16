@@ -2,8 +2,8 @@
 // WARNING: DO NOT MODIFY THIS FILE!
 // Copyright (c) Microsoft. All rights reserved.
 // This file has been automatically generated, manual changes will be lost.
-#define BUILD_VERSION_STR "3.0.288.1"
-#define BUILD_VERSION 3,0,288,1
+#define BUILD_VERSION_STR "3.0.289.1"
+#define BUILD_VERSION 3,0,289,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include <stdint.h>
@@ -24,7 +24,7 @@ namespace ARIASDK_NS_BEGIN {
 uint64_t const Version =
 	((uint64_t)3 << 48) |
 	((uint64_t)0 << 32) |
-	((uint64_t)288 << 16) |
+	((uint64_t)289 << 16) |
 	((uint64_t)1);
 
 // TODO: [MG] - move declaration of ARIA_SDK_UNUSED to separate include file
