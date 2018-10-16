@@ -3,6 +3,15 @@
 #pragma once
 #include "SocketTools.hpp"
 
+// #define ENABLE_HTTP_DEBUG
+
+#ifdef ENABLE_HTTP_DEBUG
+#ifdef  LOG_TRACE
+#undef  LOG_TRACE
+#define LOG_TRACE(x, ...) printf(x "\n" , __VA_ARGS__)
+#endif
+#endif
+
 namespace testing {
 
 // Simple HTTP server
@@ -49,6 +58,7 @@ class HttpServer : private Reactor::Callback
     };
 
   protected:
+    bool allowKeepalive;
     Reactor m_reactor;
     std::list<Socket> m_listeningSockets;
     std::list<std::pair<std::string, Callback*>> m_handlers;
@@ -57,11 +67,18 @@ class HttpServer : private Reactor::Callback
     std::string m_serverHost;
 
   public:
+
+    void setKeepalive(bool keepAlive)
+    {
+        allowKeepalive = keepAlive;
+    }
+
     HttpServer()
       : m_reactor(*this),
         m_maxRequestHeadersSize(8192),
         m_maxRequestContentSize(1048576),
-        m_serverHost("unnamed")
+        m_serverHost("unnamed"),
+        allowKeepalive(true)
     {
     }
 
@@ -355,6 +372,8 @@ class HttpServer : private Reactor::Callback
                 if (sendMore(conn)) {
                     return;
                 }
+
+                conn.keepalive &= allowKeepalive;
 
                 if (conn.keepalive) {
                     m_reactor.addSocket(conn.socket, Reactor::Readable | Reactor::Closed);

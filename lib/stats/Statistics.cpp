@@ -67,8 +67,7 @@ namespace ARIASDK_NS_BEGIN {
             if (result)
             {
                 IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
-                eventGenerated(&evt);
-                // m_iTelemetrySystem.sendEvent(&evt); // TODO: [MG] - this is sending duplicate event!!!
+                m_iTelemetrySystem.sendEvent(&evt);
             }
             else
             {

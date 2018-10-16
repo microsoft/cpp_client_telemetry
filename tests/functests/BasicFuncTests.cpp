@@ -1,5 +1,3 @@
-#if 0
-
 // Copyright (c) Microsoft. All rights reserved.
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "common/Common.hpp"
@@ -12,6 +10,9 @@
 #include <fstream>
 
 #include <LogManager.hpp>
+#include <atomic>
+
+#include <AriaDecoderV3.hpp>
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -19,6 +20,9 @@ using namespace ARIASDK_NS;
 LOGMANAGER_INSTANCE
 
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
+
+#define TEST_TOKEN      "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define HTTP_PORT       19000
 
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
@@ -31,11 +35,15 @@ protected:
     ILogger* logger;
     ILogger* logger2;
 
+    std::atomic<bool> isSetup = false;
+
 public:
 
     virtual void SetUp() override
     {
-        int port = server.addListeningPort(0);
+        if (isSetup.exchange(true))
+            return;
+        int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "localhost:" << port;
         serverAddress = "http://" + os.str() + "/simple/";
@@ -43,30 +51,54 @@ public:
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
         server.addHandler("/503/", *this);
+        server.setKeepalive(false); // This test doesn't work well with keep-alive enabled
         server.start();
     }
 
     virtual void TearDown() override
     {
+        if (!isSetup.exchange(false))
+            return;
         server.stop();
+    }
+
+    virtual void CleanStorage()
+    {
+        std::string fileName = MAT::GetTempDirectory();
+        fileName += "\\";
+        fileName += TEST_STORAGE_FILENAME;
+        std::remove(fileName.c_str());
     }
 
     virtual void Initialize()
     {
+        receivedRequests.clear();
         auto configuration = LogManager::GetLogConfiguration();
-        configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+
+        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+        configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        ::remove(configuration[CFG_STR_CACHE_FILE_PATH]);
-        LogManager::Initialize("test-token", configuration);
-        logger = LogManager::GetLogger("functests-Tenant-Token", "source");
-        logger2 = LogManager::GetLogger("FuncTests2-tenant-token", "Source");
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+        configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+        configuration["http"]["compress"] = false;      // disable compression for now
+
+        configuration["name"] = __FILE__;
+        configuration["version"] = "1.0.0";
+        configuration["config"] = { { "host", __FILE__ } }; // Host instance
+
+        LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::ResumeTransmission();
+
+        logger = LogManager::GetLogger(TEST_TOKEN, "source1");
+        logger2 = LogManager::GetLogger(TEST_TOKEN, "source2");
     }
 
     virtual void FlushAndTeardown()
     {
         LogManager::FlushAndTeardown();
-        ::remove(TEST_STORAGE_FILENAME);
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
@@ -148,11 +180,10 @@ public:
 
     std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
-        std::vector<AriaProtocol::Record> vector;
+        UNREFERENCED_PARAMETER(decompress);
+        // TODO: [MG] - implement decompression
 
-        if (decompress) {
-            // TODO
-        }
+        std::vector<AriaProtocol::Record> vector;
 
         size_t data = 0;
         size_t length = 0;
@@ -172,10 +203,13 @@ public:
 
                 if (index < length)
                 {
-                    if (test[index + 1] == '3' && test[index + 2] == '.')
+                    if (index + 2 < length)
                     {
-                        found = true;
-                        break;
+                        if (test[index + 1] == '3' && test[index + 2] == '.')
+                        {
+                            found = true;
+                            break;
+                        }
                     }
                     index++;
                 }
@@ -203,6 +237,14 @@ public:
         EXPECT_THAT(actual.time, Gt(now - 60000000000));
         EXPECT_THAT(actual.time, Le(now));
         EXPECT_THAT(actual.name, expected.GetName());
+
+        // If empty event property bag, then verify the name and return
+        if (!actual.data.size())
+        {
+            EXPECT_THAT(actual.name, expected.GetName());
+            return;
+        }
+
         for (std::pair<std::string, EventProperty> prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None)
@@ -343,6 +385,48 @@ public:
         ifile.seekg(0, std::ios_base::end);
         return ifile.tellg();
     }
+
+    std::vector<AriaProtocol::Record> records()
+    {
+        std::vector<AriaProtocol::Record> result;
+        if (receivedRequests.size())
+        {
+            for (auto &request : receivedRequests)
+            {
+                // TODO: [MG] - add compression support
+                auto payload = decodeRequest(request, false);
+                for (auto &record : payload)
+                {
+                    result.push_back(std::move(record));
+                }
+            }
+        }
+        return result;
+    }
+
+    // Find first matching event
+    AriaProtocol::Record find(std::string name)
+    {
+        AriaProtocol::Record result;
+        result.name = "";
+        if (receivedRequests.size())
+        {
+            for (auto &request : receivedRequests)
+            {
+                // TODO: [MG] - add compression support
+                auto payload = decodeRequest(request, false);
+                for (auto &record : payload)
+                {
+                    if (record.name == name)
+                    {
+                        result = record;
+                        return result;
+                    }
+                }
+            }
+        }
+        return result;
+    }
 };
 
 
@@ -352,19 +436,20 @@ TEST_F(BasicFuncTests, doNothing)
 
 TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
 {
-    receivedRequests.clear();
+    CleanStorage();
     Initialize();
     EventProperties event("first_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     FlushAndTeardown();
-    EXPECT_EQ(receivedRequests.size(), 1);
+    EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
 }
 
 TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
-    receivedRequests.clear();
+    CleanStorage();
     Initialize();
+
     EventProperties event("first_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
@@ -373,23 +458,26 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
     logger->LogEvent(event2);
+
     LogManager::UploadNow();
-    waitForEvents(5, 3); // 5 seconds
+    waitForEvents(1, 3);
+    EXPECT_GE(receivedRequests.size(), (size_t)1);
+
     FlushAndTeardown();
 
-    EXPECT_EQ(receivedRequests.size(), 1);
-    if (receivedRequests.size() == 1)
+    if (receivedRequests.size() >= 1)
     {
-        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        ASSERT_THAT(payload, SizeIs(3));
-        verifyEvent(event, payload[1]);
-        verifyEvent(event2, payload[2]);
+        verifyEvent(event,  find("first_event"));
+        verifyEvent(event2, find("second_event"));
     }
+
 }
 
 TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
 {
+    CleanStorage();
     Initialize();
+
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
@@ -397,23 +485,18 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
     event.SetProperty("property1", intvector);
-
     std::vector<double> dvector(8);
     std::fill(dvector.begin(), dvector.begin() + 4, 4.9999);
     std::fill(dvector.begin() + 3, dvector.end() - 2, 7.9999);
     event.SetProperty("property2", dvector);
-
     std::vector<std::string> svector(8);
     std::fill(svector.begin(), svector.begin() + 4, "string");
     std::fill(svector.begin() + 3, svector.end() - 2, "string2");
     event.SetProperty("property3", svector);
-
     std::vector<GUID_t> gvector(8);
     std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
-
-
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -422,22 +505,20 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
-
-
     logger->LogEvent(event2);
 
     waitForEvents(2, 3);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-
-    ASSERT_THAT(payload, SizeIs(3));
-    verifyEvent(event, payload[1]);
-    verifyEvent(event2, payload[2]);
+    for (const auto &evt : { event, event2 })
+    {
+        verifyEvent(evt, find(evt.GetName()));
+    }
 
     FlushAndTeardown();
 }
 
 TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 {
+    CleanStorage();
     Initialize();
 
     EventProperties event("first_event");
@@ -476,19 +557,20 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 
     logger->LogEvent(event2);
 
-    PAL::sleep(100); // Some time to let events be saved to DB
-    waitForEvents(2, 3);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+    LogManager::UploadNow();
+    waitForEvents(1, 2);
 
-    ASSERT_THAT(payload, SizeIs(3));
-    verifyEvent(event2, payload[1]);
-    verifyEvent(event, payload[2]);
+    for (const auto &evt : { event, event2 })
+    {
+        verifyEvent(evt, find(evt.GetName()));
+    }
 
     FlushAndTeardown();
 }
 
 TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 {
+    CleanStorage();
     Initialize();
 
     EventProperties event1("first_event");
@@ -521,25 +603,24 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     logger2->LogEvent(event2);
 
-    waitForEvents(2, 3);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+    LogManager::UploadNow();
+    waitForEvents(1, 2);
+    for (const auto &evt : { event1, event2 })
+    {
+        verifyEvent(evt, find(evt.GetName()));
+    }
 
-    ASSERT_THAT(payload, SizeIs(3));
-    verifyEvent(event1, payload[1]);
-    verifyEvent(event2, payload[2]);
-
-    //   ASSERT_THAT(dp2.Records, SizeIs(1));
-   //    verifyEvent(event2, dp2.Records[0]);
     FlushAndTeardown();
 
 }
 
 TEST_F(BasicFuncTests, configDecorations)
 {
+    CleanStorage();
     Initialize();
 
-    EventProperties event("first_event");
-    logger->LogEvent(event);
+    EventProperties event1("first_event");
+    logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     logger->LogEvent(event2);
@@ -550,16 +631,13 @@ TEST_F(BasicFuncTests, configDecorations)
     EventProperties event4("4th_event");
     logger->LogEvent(event4);
 
-    PAL::sleep(100);
+    LogManager::UploadNow();
     waitForEvents(2, 5);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
 
-    ASSERT_THAT(payload, SizeIs(5));
-
-    verifyEvent(event, payload[1]);
-    verifyEvent(event2, payload[2]);
-    verifyEvent(event3, payload[3]);
-    verifyEvent(event4, payload[4]);
+    for (const auto &evt : { event1, event2, event3, event4 })
+    {
+        verifyEvent(evt, find(evt.GetName()));
+    }
 
     FlushAndTeardown();
 }
@@ -567,7 +645,9 @@ TEST_F(BasicFuncTests, configDecorations)
 TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 {
     {
+        CleanStorage();
         Initialize();
+        LogManager::PauseTransmission();
         EventProperties event1("first_event");
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
@@ -582,8 +662,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     }
 
     {
-        auto &configuration = LogManager::GetLogConfiguration();
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
+        // auto &configuration = LogManager::GetLogConfiguration();
+        // configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
         Initialize();
         // 1st request is from MetaStats
         waitForEvents(2, 4);
@@ -603,137 +683,110 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         */
 }
 
-TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorage)
-{
-    auto &configuration = LogManager::GetLogConfiguration();
-
-    {
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        Initialize();
-        EventProperties event1("first_event");
-        EventProperties event2("second_event");
-        event1.SetProperty("property1", "value1");
-        event2.SetProperty("property2", "value2");
-        logger->LogEvent(event1);
-        logger->LogEvent(event2);
-        FlushAndTeardown();
-    }
-
-    // 1st request is from MetaStats
-    waitForEvents(100, 5);
-
-    /*    auto payload = decodeRequest(receivedRequests[1], false);
-        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-        ASSERT_THAT(payload, SizeIs(2));
-        verifyEvent(event1, payload[0]);
-        verifyEvent(event2, payload[1]);
-        */
-}
-
-TEST_F(BasicFuncTests, restartRecoversEventsFromDiskStorageWithTimeout)
-{
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
-    {
-        Initialize();
-        EventProperties event1("first_event");
-        EventProperties event2("second_event");
-        event1.SetProperty("property1", "value1");
-        event2.SetProperty("property2", "value2");
-        logger->LogEvent(event1);
-        logger->LogEvent(event2);
-        FlushAndTeardown();
-    }
-    // PAL::sleep(1000); // Some time to let events be saved to DB
-     // 1st request is from MetaStats
-    waitForEvents(2, 4);
-}
-
+#if 0 // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
+    CleanStorage();
+
+    static int64_t const ONE_EVENT_SIZE = 500 * 1024;
+    static int64_t const MAX_FILE_SIZE = 8 * 1024 * 1024;
+    static int64_t const ALLOWED_OVERFLOW = 10 * MAX_FILE_SIZE / 100;
+
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
+    configuration[CFG_INT_CACHE_FILE_SIZE] = MAX_FILE_SIZE;
+
     std::string slowServiceUrl;
     slowServiceUrl.insert(slowServiceUrl.find('/', sizeof("http://")) + 1, "slow/");
     configuration[CFG_STR_COLLECTOR_URL] = slowServiceUrl.c_str();
     {
         Initialize();
-        static int64_t const ONE_EVENT_SIZE = 500 * 1024;
-        static int64_t const MAX_FILE_SIZE = 8 * 1024 * 1024;
-        static int64_t const ALLOWED_OVERFLOW = 10 * MAX_FILE_SIZE / 100;
+        LogManager::PauseTransmission();
         for (int i = 0; i < 50; i++) {
             EventProperties event("event" + toString(i));
             event.SetPriority(EventPriority_Normal);
             event.SetProperty("property", "value");
             event.SetProperty("big_data", std::string(ONE_EVENT_SIZE, '\42'));
             logger->LogEvent(event);
-            EXPECT_THAT(getFileSize(TEST_STORAGE_FILENAME), Lt(MAX_FILE_SIZE + ALLOWED_OVERFLOW));
         }
         // Check meta stats after restart. Because of their high priority, they will
         // be sent alone in the very first request regardless of other events.
         FlushAndTeardown();
+
+        std::string fileName = MAT::GetTempDirectory();
+        fileName += "\\";
+        fileName += TEST_STORAGE_FILENAME;
+        size_t fileSize = getFileSize(fileName);
+        EXPECT_LE(fileSize, (size_t)(MAX_FILE_SIZE + ALLOWED_OVERFLOW));
     }
 
-    receivedRequests.clear();
+    // Restore fast URL
+    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
 
     {
         Initialize();
         waitForEvents(2, 8);
-        auto payload = decodeRequest(receivedRequests[0], false);
-        /*    auto payload = decodeRequest(receivedRequests[0], false);
-            ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-            auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-            ASSERT_THAT(payload, SizeIs(2));
-            EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-            EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-            EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-            // The expected number of dropped events is hard to estimate because of database overhead,
-            // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-            EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
-            */
+        if (receivedRequests.size())
+        {
+            auto payload = decodeRequest(receivedRequests[0], false);
+            /*    auto payload = decodeRequest(receivedRequests[0], false);
+                ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
+                auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+                ASSERT_THAT(payload, SizeIs(2));
+                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+                // The expected number of dropped events is hard to estimate because of database overhead,
+                // varying timing, some events have been sent etc. Just check that it's at least a quarter.
+                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
+                */
+        }
         FlushAndTeardown();
     }
+
 }
+#endif
 
 TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 {
+    CleanStorage();
+
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
 
+    // Run offline
+    Initialize();
+    LogManager::PauseTransmission();
+
+    EventProperties event1("first_event");
+    event1.SetPriority(EventPriority_High);
+    event1.SetProperty("property1", "value1");
+    logger->LogEvent(event1);
+
+    EventProperties event2("second_event");
+    event2.SetProperty("property2", "value2");
+    logger->LogEvent(event2);
+    FlushAndTeardown();
+
+    // Check
+    Initialize();
+    LogManager::ResumeTransmission(); // ?
+    LogManager::UploadNow();
+    PAL::sleep(2000);
+
+    auto r = records();
+    ASSERT_EQ(r.size(), (size_t)6); // (start+ongoing+stop) + 2 events + start
+
+    for (const auto &evt : { event1, event2 })
     {
-        Initialize();
-        EventProperties event1("first_event");
-        event1.SetPriority(EventPriority_High);
-        event1.SetProperty("property1", "value1");
-        logger->LogEvent(event1);
-        EventProperties event2("second_event");
-        event2.SetProperty("property2", "value2");
-        logger->LogEvent(event2);
-        FlushAndTeardown();
+        verifyEvent(evt, find(evt.GetName()));
     }
 
-    {
-        Initialize();
-        waitForEvents(2, 2);
-        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        /*   auto payload = decodeRequest(receivedRequests[1], false);
-           ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-           ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-           auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-           ASSERT_THAT(payload, SizeIs(2));
-           EXPECT_THAT(payload[1].Id, Not(IsEmpty()));
-           EXPECT_THAT(payload[1].Type, Eq("client_telemetry"));
-           EXPECT_THAT(payload[1].Extension, Contains(Pair("records_received_count", "3")));
-           EXPECT_THAT(payload[1].Extension, Contains(Pair("stats_rollup_kind",      "stop")));
-           */
-        FlushAndTeardown();
-    }
+    FlushAndTeardown();
 }
+
+#if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
 {
@@ -757,15 +810,22 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
         // If the code works correctly, the event was not dropped (despite being retried twice)
         // because the retry was caused by network connectivity failures only - validate it.
         waitForEvents(2, 2);
-        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+        if (receivedRequests.size() > 1)
+        {
+            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+        }
 
         FlushAndTeardown();
     }
     //    EXPECT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
 }
+#endif
 
+#if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 {
+    CleanStorage();
+
     auto &configuration = LogManager::GetLogConfiguration();
 
     std::string badServiceUrl;
@@ -790,53 +850,26 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
         FlushAndTeardown();
     }
 
+    // Restore fast URL
+    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+
     {
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         Initialize();
         waitForEvents(5, 2);
-        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-            ASSERT_THAT(payload, SizeIs(1));
-            EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-            EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-            EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-            EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
-            */
+        if (receivedRequests.size())
+        {
+            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+            /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
+                ASSERT_THAT(payload, SizeIs(1));
+                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
+                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
+                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
+                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
+                */
+        }
         FlushAndTeardown();
     }
-}
-
-TEST_F(BasicFuncTests, metaStatsAreSentOnlyWhenNewDataAreAvailable)
-{
-    Initialize();
-    // Wait to see what is coming after start. There should be no uploads since nothing has happened yet.
-    PAL::sleep(3500);
-    ASSERT_THAT(receivedRequests, SizeIs(1));
-
-    receivedRequests.clear();
-    EventProperties event("some_event");
-    event.SetPriority(EventPriority_Immediate);
-    logger->LogEvent(event);
-
-    // 2 requests should be sent:
-    //   1st with "some_event" and immediate priority
-    //   2nd with act_stats about that
-    waitForEvents(3500, 2);
-    auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-
-    /*    ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("metastats-tenant-token")));
-        ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-        auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-        ASSERT_THAT(payload, SizeIs(1));
-        EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "ongoing")));
-        EXPECT_THAT(payload[0].Extension, Contains(Pair("records_received_count", "2")));
-        EXPECT_THAT(payload[0].Extension, Contains(Pair("requests_acked_succeeded", "2")));
-
-        // Wait a few more seconds to see that no more events are being sent.
-        PAL::sleep(3500);
-        EXPECT_THAT(receivedRequests.size(), 2);
-        */
-    FlushAndTeardown();
 }
 #endif

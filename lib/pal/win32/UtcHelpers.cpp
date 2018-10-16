@@ -42,12 +42,8 @@ namespace PAL_NS_BEGIN {
 
     bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize)
     {
-        // Initialize the Windows Runtime.
+        // Initialize the Windows Runtime if it hasn't been initialized yet
         RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
-        if (FAILED(initialize))
-        {
-            return false;
-        }
 
         // Get the activation factory for the IUriRuntimeClass interface.
         ComPtr<IPlatformTelemetryClientStatics> clientFactory;

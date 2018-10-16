@@ -24,7 +24,7 @@
 LOGMANAGER_INSTANCE
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
- 
+
 extern "C" void guestTest();    // see guest.cpp 
 
 /**
@@ -157,7 +157,7 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
-#define MAX_EVENTS_TO_LOG       50000L
+#define MAX_EVENTS_TO_LOG       100000L 
 
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
@@ -181,11 +181,14 @@ int main()
     config["name"] = "HelloAria";
     config["version"] = "1.2.5";
     config["config"]["host"] = "HelloAria"; // host
+    config["compat"]["dotType"] = false;    // Legacy v1 behaviour with respect to SetType using underscore instead of a dot
+
+    // config["stats"]["interval"] = 1;     // uncomment for accelerated stats sent every second
 
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
-    config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria;
+    config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
@@ -233,10 +236,13 @@ int main()
     for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
         EventLatency latency = (EventLatency)(1 + i % (unsigned)EventLatency_RealTime);
-        std::string eventName("sample_event_lat");
+        std::string eventName("Microsoft.Applications.Telemetry.HelloAria.sample_event_lat");
         eventName += std::to_string((unsigned)latency);
 
         EventProperties event(eventName);
+
+        std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
+        event.SetType(evtType);
         event.SetProperty("result", "Success");
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);

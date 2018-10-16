@@ -133,7 +133,6 @@ namespace ARIASDK_NS_BEGIN {
         // On the inner worker thread
         this->preparedIncomingEvent >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
 
-        stats.eventGenerated >> bondSerializer.serialize >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
 
         storage.storeRecordFailed >> stats.onIncomingEventFailed;
 
@@ -176,7 +175,8 @@ namespace ARIASDK_NS_BEGIN {
 
     bool TelemetrySystem::upload()
     {
-        if (storage.GetRecordCount())
+        size_t recordCount = storage.GetRecordCount();
+        if (recordCount)
         {
             tpm.scheduleUpload(0, EventLatency_Normal, true);
             return true;

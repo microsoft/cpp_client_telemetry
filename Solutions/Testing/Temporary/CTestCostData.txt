@@ -1,6 +1,0 @@
-BondLiteUnitTests 6 0.0252663
-UnitTests 4 0
-FuncTests 5 0
----
-UnitTests
-FuncTests

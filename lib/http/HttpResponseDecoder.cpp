@@ -40,6 +40,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
         IHttpResponse const& response = *(ctx->httpResponse);
+        IHttpRequest & request = *(ctx->httpRequest);
 
         enum { Accepted, Rejected, RetryServer, RetryNetwork, Abort } outcome = Abort;
         auto result = response.GetResult();
@@ -127,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             catch (...)
             {
-                LOG_ERROR("Http response jason parsing failed");
+                LOG_ERROR("Http response JSON parsing failed");
             }
         }
 
@@ -138,6 +139,9 @@ namespace ARIASDK_NS_BEGIN {
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_OK;
+                evt.param1 = response.GetStatusCode();
+                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.size = request.GetBody().size();
                 DispatchEvent(evt);
             }
             eventsAccepted(ctx);
@@ -152,7 +156,13 @@ namespace ARIASDK_NS_BEGIN {
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_ERROR;
+                // TODO: [MG] - currently we do not have means of bubbling up
+                // HTTP response text, we can only populate the status code.
+                // This is to be addressed with ETW trace API that can send
+                // a detailed error context to ETW provider.
                 evt.param1 = response.GetStatusCode();
+                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.size = request.GetBody().size();
                 DispatchEvent(evt);
                 eventsRejected(ctx);
             }

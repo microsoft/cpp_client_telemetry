@@ -92,6 +92,7 @@ public:
 
         type = TYPE_STRING2;
         SV = value;
+        sV = SV.c_str();
         return *this;
     }
 
@@ -104,6 +105,7 @@ public:
 
         type = TYPE_STRING2;
         SV = (value) ? value : "";
+        sV = SV.c_str();
         return *this;
     }
 
@@ -209,7 +211,7 @@ public:
         SV(v),
         type(TYPE_STRING2)
     {
-
+        sV = SV.c_str();
     };
 
     /**

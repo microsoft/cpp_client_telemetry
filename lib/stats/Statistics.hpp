@@ -65,7 +65,6 @@ namespace ARIASDK_NS_BEGIN {
         std::int64_t                m_statEventSentTime;
 
     public:
-        RouteSource<IncomingEventContextPtr const&>                     eventGenerated;
 
         RouteSource<>                                                   onStartupDone;
         RoutePassThrough<Statistics>                                    onStart{ this, &Statistics::handleOnStart };

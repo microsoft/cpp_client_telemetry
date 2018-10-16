@@ -45,7 +45,6 @@ namespace ARIASDK_NS_BEGIN {
     const char* const UTC_PARTA_USER_AUTH_ID = "PartA_Ext_User_AuthId";
     const char* const UTC_PARTA_ARIA_METADATA = "PartA_Ext_AriaMD";
     const char* const UTC_PARTA_ARIA_METADATA_FIELDS = "fields";
-    const char* const UTC_STATS_TOKEN = "a6fb6dce35104339aec4b7c9e6a5ad46-c141d578-a12a-460d-8de3-a5b2ff0235ae-7076";
 
     enum AriaType : UINT16
     {

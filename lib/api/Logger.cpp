@@ -32,11 +32,13 @@ namespace ARIASDK_NS_BEGIN {
         m_semanticApiDecorators(logManager),
 
         m_sessionStartTime(0),
-        m_sessionId("")
+        m_sessionId(""),
+        m_allowDotsInType(false)
     {
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
+        m_allowDotsInType = m_config["compat"]["dotType"];
     }
 
     Logger::~Logger()
@@ -294,6 +296,17 @@ namespace ARIASDK_NS_BEGIN {
     {
         record.name = properties.GetName();
         record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
+
+        std::string evtType = properties.GetType();
+        if (!evtType.empty())
+        {
+            record.baseType.append(".");
+            if (!m_allowDotsInType)
+                std::replace(evtType.begin(), evtType.end(), '.', '_');
+            record.baseType.append(evtType);
+
+        }
+
         if (record.name.empty())
         {
             record.name = "NotSpecified";

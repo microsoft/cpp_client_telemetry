@@ -396,7 +396,9 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
     size_t numIterations     = 10;
-    const size_t shutdownSec = 15; // Must complete 10 runs in 15 seconds on Release
+    const size_t shutdownSec = 20; // Must complete 10 runs in 20 seconds on Release
+                                   // Max teardown time is ~1s per run, maybe up to 2s
+                                   // This time may be longer on a slow box, e.g. build server
 
     bool flipFlop = true;
     while (numIterations--)
@@ -407,6 +409,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
         config[CFG_INT_TRACE_LEVEL_MIN]  = ACTTraceLevel_Debug;
+        config[CFG_STR_COLLECTOR_URL]    = COLLECTOR_URL_PROD;
         config[CFG_INT_SDK_MODE]         = SdkModeTypes::SdkModeTypes_Aria;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         logBenchMark("config ");
@@ -486,6 +489,52 @@ TEST(APITest, LogManager_BadNetwork_Test)
     size_t numIterations = 10;
     while (numIterations--)
         EXPECT_GE(StressSingleThreaded(newConfig), MAX_ITERATIONS);
+}
+
+TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
+{
+    auto& config = LogManager::GetLogConfiguration();
+
+    auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
+    auto logger1 = LogManager::GetLogger();
+    auto logger2 = LogManager::GetLogger("my_source");
+    auto logger3 = LogManager::GetLogger(TEST_TOKEN, "my_source");
+
+    EXPECT_EQ(logger0, logger1);
+    EXPECT_EQ(logger2, logger3);
+    EXPECT_NE(logger0, logger2);
+
+    EXPECT_NE(logger0, nullptr);
+    EXPECT_NE(logger1, nullptr);
+    EXPECT_NE(logger2, nullptr);
+    EXPECT_NE(logger3, nullptr);
+
+    logBenchMark("created");
+
+    size_t numThreads = 10;
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < numThreads; i++)
+    {
+        threads.push_back(std::thread([logger1,logger2,logger3](){
+            size_t count = 1000;
+            while (count--)
+            {
+                auto myLogger1 = LogManager::GetLogger();
+                auto myLogger2 = LogManager::GetLogger("my_source");
+                auto myLogger3 = LogManager::GetLogger(TEST_TOKEN, "my_source");
+                EXPECT_EQ(myLogger1, logger1);
+                EXPECT_EQ(myLogger2, logger2);
+                EXPECT_EQ(myLogger3, logger3);
+            }
+        }));
+    }
+    // Wait for completion
+    for (auto &thread : threads)
+        thread.join();
+    logBenchMark("destroyed");
+    LogManager::FlushAndTeardown();
+
+    LogManager::GetLogger();
 }
 
 #if 0

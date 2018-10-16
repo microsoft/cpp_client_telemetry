@@ -24,12 +24,10 @@ class HttpClientTests : public ::testing::Test,
     int                                  _port;
     std::string                          _hostname;
     std::unique_ptr<IHttpClient>         _client;
-    volatile bool                        _responseReceived;
-    std::unique_ptr<IHttpResponse const> _response;
-    volatile int                         _receivedRequestsCount;
-    volatile int                         _receivedResponsesCount;
+    std::vector<IHttpResponse*>          _responses;
+
     enum RequestState { Planned, Sent, Processed, Done };
-    std::vector<RequestState>            _countedRequestsMap;
+    std::vector<RequestState>            _countedRequests;
     std::mutex                           _lock;
 
   public:
@@ -40,6 +38,19 @@ class HttpClientTests : public ::testing::Test,
 #elif ARIASDK_PAL_WIN32
         _client.reset(new HttpClient_WinInet());
 #endif
+    }
+
+    void Clear()
+    {
+        for (auto &v : _responses)
+            delete v;
+        _responses.clear();
+        _countedRequests.clear();
+    }
+
+    bool responseReceived()
+    {
+        return (_responses.size() > 0);
     }
 
     virtual void SetUp() override
@@ -54,15 +65,14 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/count/",  *this);
         _server.start();
 
-        _responseReceived       = false;
-        _receivedRequestsCount  = 0;
-        _receivedResponsesCount = 0;
+        Clear();
     }
 
     virtual void TearDown() override
     {
         _server.stop();
         _client.reset();
+        Clear();
     }
 
   protected:
@@ -83,10 +93,9 @@ class HttpClientTests : public ::testing::Test,
 
         if (request.uri.substr(0, 7) == "/count/") {
             int id = atoi(request.uri.substr(7).c_str());
-            if (id >= 0 && static_cast<size_t>(id) < _countedRequestsMap.size()) {
-                _countedRequestsMap[id] = Processed;
+            if (id >= 0 && static_cast<size_t>(id) < _countedRequests.size()) {
+                _countedRequests[id] = Processed;
             }
-            _receivedRequestsCount++;
             inResponse.headers["Content-Type"] = "text/plain";
             inResponse.content = request.uri.substr(7);
             return 200;
@@ -97,19 +106,10 @@ class HttpClientTests : public ::testing::Test,
 
     virtual void OnHttpResponse(IHttpResponse* inResponse) override
     {
-		std::lock_guard<std::mutex> lock(_lock);
-
-        if (!_countedRequestsMap.empty() && inResponse->GetResult() == HttpResult_OK && inResponse->GetStatusCode() == 200) {
-            int id = atoi(std::string(reinterpret_cast<char const*>(inResponse->GetBody().data()), inResponse->GetBody().size()).c_str());
-            if (id >= 0 && static_cast<size_t>(id) < _countedRequestsMap.size()) {
-                _countedRequestsMap[id] = Done;
-            }
-            _receivedResponsesCount++;
-        }
-
-        this->_response.reset(inResponse);
-        _responseReceived = true;
+        std::lock_guard<std::mutex> lock(_lock);
+        _responses.push_back(inResponse);
     }
+
 };
 
 std::vector<uint8_t> Binary(std::string const& str)
@@ -121,44 +121,50 @@ std::vector<uint8_t> Binary(std::string const& str)
 
 TEST_F(HttpClientTests, HandlesSimpleRequest)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://" + _hostname + "/simple/200");
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 20 && !_responseReceived; i++) {
+    while (!responseReceived())
         PAL::sleep(100);
-    }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 200u);
     EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetBody(), Eq(Binary("It works!")));
+    _response.release();
 }
 
 TEST_F(HttpClientTests, HandlesErrorRequest)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://" + _hostname + "/simple/404");
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 20 && !_responseReceived; i++) {
+    while (!responseReceived())
         PAL::sleep(100);
-    }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
     EXPECT_THAT(_response->GetStatusCode(), 404u);
     EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetBody(), Eq(Binary("It works!")));
+    _response.release();
+
 }
 
 TEST_F(HttpClientTests, HandlesPostRequest)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetMethod("POST");
@@ -168,10 +174,10 @@ TEST_F(HttpClientTests, HandlesPostRequest)
     request->SetBody(body);
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 20 && !_responseReceived; i++) {
+    while (!responseReceived())
         PAL::sleep(100);
-    }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
@@ -179,75 +185,89 @@ TEST_F(HttpClientTests, HandlesPostRequest)
     EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetHeaders().get("Content-Type"), Eq("application/octet-stream"));
     EXPECT_THAT(_response->GetBody(), Eq(Binary("Some\xBB\x11naryContent")));
+    _response.release();
 }
 
 TEST_F(HttpClientTests, HandlesLocalErrors)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("://trololo!");
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 200 && !_responseReceived; i++) {
+    for (int i = 0; i < 200 && !responseReceived(); i++) {
         PAL::sleep(100);
     }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_LocalFailure);
+    _response.release();
 }
 
 TEST_F(HttpClientTests, HandlesDnsError)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://domain.name.doesnt.exist");
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 200 && !_responseReceived; i++) {
+    for (int i = 0; i < 200 && !responseReceived(); i++) {
         PAL::sleep(100);
     }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_NetworkFailure);
+    _response.release();
 }
 
 TEST_F(HttpClientTests, HandlesConnectionError)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://localhost:4");
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 200 && !_responseReceived; i++) {
+    for (int i = 0; i < 200 && !responseReceived(); i++) {
         PAL::sleep(100);
     }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_NetworkFailure);
+    _response.release();
 }
 
 TEST_F(HttpClientTests, HandlesCancellation)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://" + _hostname + "/echo/");
     _client->SendRequestAsync(request.release(), this);
     _client->CancelRequestAsync(requestId);
 
-    for (int i = 0; i < 20 && !_responseReceived; i++) {
+    for (int i = 0; i < 20 && !responseReceived(); i++) {
         PAL::sleep(100);
     }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_Aborted);
+    _response.release();
 }
 
 TEST_F(HttpClientTests, Handles100Continue)
 {
+    Clear();
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetMethod("POST");
@@ -258,10 +278,11 @@ TEST_F(HttpClientTests, Handles100Continue)
     request->SetBody(body);
     _client->SendRequestAsync(request.release(), this);
 
-    for (int i = 0; i < 20 && !_responseReceived; i++) {
+    for (int i = 0; i < 20 && !responseReceived(); i++) {
         PAL::sleep(100);
     }
 
+    std::unique_ptr<IHttpResponse> _response(_responses[0]);
     ASSERT_THAT(_response.get(), NotNull());
     EXPECT_THAT(_response->GetId(), requestId);
     EXPECT_THAT(_response->GetResult(), HttpResult_OK);
@@ -269,15 +290,17 @@ TEST_F(HttpClientTests, Handles100Continue)
     EXPECT_THAT(_response->GetHeaders().get("Host"), _hostname);
     EXPECT_THAT(_response->GetHeaders().get("Content-Type"), Eq("application/octet-stream"));
     EXPECT_THAT(_response->GetBody(), Eq(Binary("Some\xBB\x11naryContent")));
+    _response.release();
 }
 
 TEST_F(HttpClientTests, SurvivesManyRequests)
 {
-    int Count = 2000;
-    _countedRequestsMap.resize(Count, Planned);
+    Clear();
 
-    for (int i = 0; i < Count; i++) {
-        std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    size_t Count = 2000;
+    for (size_t i = 0; i < Count; i++) {
+        IHttpRequest* request = _client->CreateRequest();
+        // _requests.push_back(request);
         request->SetMethod("POST");
         request->GetHeaders().set("expect", "100-continue");
         request->GetHeaders().set("content-type", "application/octet-stream");
@@ -286,28 +309,22 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
         request->SetUrl(url.str());
         auto body = Binary("content");
         request->SetBody(body);
-
-        _countedRequestsMap[i] = Sent;
-        _client->SendRequestAsync(request.release(), this);
-
-        int lag = i - _receivedRequestsCount;
-        if (lag > 100) {
-            LOG_ERROR("Failed to receive requests in time");
-            break;
-        }
-        PAL::sleep(std::max(lag, 0) * 10);
+        _countedRequests.push_back(Sent);
+        _client->SendRequestAsync(request, this);
     }
 
-    for (int i = 0; i < 50 && _receivedResponsesCount < Count; i++) {
+    while (_responses.size() < Count) {
         PAL::sleep(100);
     }
 
-    EXPECT_THAT(_receivedRequestsCount,  Count);
-    EXPECT_THAT(_receivedResponsesCount, Count);
-    EXPECT_THAT(_countedRequestsMap,     Not(Contains(Ne(Done))));
-    for (int i = 0; i < Count; i++) {
-        if (_countedRequestsMap[i] != Done) {
-            LOG_ERROR("Request #%u: %u", static_cast<unsigned>(i), _countedRequestsMap[i]);
-        }
+    // Verify the count of completed requests by the number of completed responses
+    for (auto &v : _responses)
+    {
+        int id = atoi(std::string(reinterpret_cast<char const*>(v->GetBody().data()), v->GetBody().size()).c_str());
+        _countedRequests[id] = Done;
     }
+
+    // Count the number of requests that were not done
+    auto it = std::find(_countedRequests.begin(), _countedRequests.end(), Sent);
+    EXPECT_THAT(it, _countedRequests.end());
 }

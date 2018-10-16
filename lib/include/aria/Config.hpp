@@ -9,11 +9,6 @@ namespace ARIASDK_NS_BEGIN
 
     /// Default collector url to send events to
     const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0";
-    //const char* const TC_DEFAULT_EVENT_COLLECTOR_URL_INT  = "https://pipe.int.trafficmanager.net/Collector/3.0/";
-
-    /// Default collector url to send BOLBs to
-    /// Note: the actual value of the DEFAULT_BLOB_COLLECTOR_URL_PROD is TBD
-    //const char* const TC_DEFAULT_BLOB_COLLECTOR_URL_PROD = "https://mobile.pipe.aria.microsoft.com/Collector/3.0/";
 
     // Default size limit for storing events in offline storage file
     // It should be enough to save all messages in cache queue.

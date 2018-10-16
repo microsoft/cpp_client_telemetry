@@ -162,6 +162,7 @@ namespace ARIASDK_NS_BEGIN {
             m_system.reset(new UtcTelemetrySystem(*this, *m_config));
             m_system->start();
             m_alive = true;
+            LOG_INFO("Started up and running in UTC mode");
             return;
         }
 #endif

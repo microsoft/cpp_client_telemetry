@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{9DCAD3A8-10AE-42A2-8FAD-3B54E9BF20D0}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)AriaDecoderV3.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\generated\BondConstTypes.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\generated\DataPackage_readers.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\generated\DataPackage_types.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\generated\DataPackage_writers.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\include\bond_lite\CompactBinaryProtocolReader.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\bondlite\include\bond_lite\CompactBinaryProtocolWriter.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AriaDecoderV3.hpp" />
+  </ItemGroup>
+</Project>

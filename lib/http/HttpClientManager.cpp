@@ -15,7 +15,7 @@
 #endif
 #endif
 
-// #define USE_SYNC_HTTPRESPONSE_HANDLER
+#define USE_SYNC_HTTPRESPONSE_HANDLER
 
 namespace ARIASDK_NS_BEGIN {
 

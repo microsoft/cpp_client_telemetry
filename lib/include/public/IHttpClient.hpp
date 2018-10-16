@@ -138,6 +138,11 @@ namespace ARIASDK_NS_BEGIN
         virtual void SetBody(std::vector<uint8_t>& body) = 0;
 
         /// <summary>
+        /// Gets the request body.
+        /// </summary>
+        virtual std::vector<uint8_t>& GetBody() = 0;
+
+        /// <summary>
         /// Sets the request latency.
         /// </summary>
         /// <param name="priority">The event latency, as one of the EventLatency enumeration values.</param>
@@ -321,6 +326,12 @@ namespace ARIASDK_NS_BEGIN
             }
             return size;
         }
+
+        virtual std::vector<uint8_t>& GetBody() override
+        {
+            return m_body;
+        }
+
     };
 
     /// Excluded from public docs

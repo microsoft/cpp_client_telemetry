@@ -89,11 +89,6 @@ bool UtcForwarder::registerTenantWithUtc(std::string const& iKey, uint32_t stora
     using namespace Microsoft::WRL::Wrappers;
 
     RoInitializeWrapper apartment(RO_INIT_MULTITHREADED);
-    if (FAILED(apartment)) {
-        LOG_ERROR("Could not enter WinRT apartment (0x%08X)",
-            static_cast<HRESULT>(apartment));
-        return false;
-    }
 
     HString hstrIkey;
     HRESULT hr = createHStringFromUtf8(iKey, hstrIkey);

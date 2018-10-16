@@ -57,7 +57,7 @@ namespace ARIASDK_NS_BEGIN {
         void parseConfig(ILogConfiguration& c, std::string& name, std::string& host);
 
         //  C++11 Magic Statics (N2660)
-        static LogManagerFactory instance() {
+        static LogManagerFactory& instance() {
             static LogManagerFactory impl;
             return impl;
         }

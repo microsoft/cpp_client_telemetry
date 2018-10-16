@@ -267,6 +267,8 @@ namespace ARIASDK_NS_BEGIN {
         m_telemetryStats.offlineStorageEnabled = true;
         m_telemetryStats.resourceManagerEnabled = false;
         m_telemetryStats.ecsClientEnabled = false;
+
+        m_sessionId = PAL::generateUuidString();
     }
 
     MetaStats::~MetaStats()
@@ -308,11 +310,11 @@ namespace ARIASDK_NS_BEGIN {
             storageStats.Reset();
 
             telemetryStats.statsStartTimestamp = PAL::getUtcSystemTimeMs();
+            telemetryStats.sessionId = m_sessionId;
 
             if (start) {
                 telemetryStats.statsSequenceNum = 0;
                 telemetryStats.sessionStartTimestamp = telemetryStats.statsStartTimestamp;
-                telemetryStats.sessionId = PAL::generateUuidString();
                 LOG_TRACE("session start, session ID: %s", telemetryStats.sessionId.c_str());
 
                 initDistributionKeys(m_statsConfig.rtt_first_duration_in_millisecs, m_statsConfig.rtt_next_factor,
@@ -373,7 +375,7 @@ namespace ARIASDK_NS_BEGIN {
         record.baseType = "act_stats";
 
         ::AriaProtocol::Value temp;
-        temp.stringValue = telemetryStats.sessionId;
+        temp.stringValue = m_sessionId;
 
         if (record.data.size() == 0)
         {
@@ -389,7 +391,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::string statTenantToken = m_config.GetMetaStatsTenantToken();
         record.iKey = "o:" + statTenantToken.substr(0, statTenantToken.find('-'));;
-        record.name = "stats";
+        record.name = "act_stats";
 
         // session fileds
         insertNonZero(ext, "s_stime", telemetryStats.sessionStartTimestamp);

@@ -148,10 +148,6 @@ namespace ARIASDK_NS_BEGIN {
     {
         std::string name, host;
         parseConfig(c, name, host);
-        if (host.empty())
-        {
-            return release(name);
-        }
         return release(name, host);
     }
 
@@ -167,7 +163,7 @@ namespace ARIASDK_NS_BEGIN {
                 {
                     // Last owner is gone, destroy 
                     if (shared[host].second)
-                        delete shared[host].second;
+                        Destroy(shared[host].second);
                     shared.erase(host);
                 }
                 return true;
@@ -185,7 +181,7 @@ namespace ARIASDK_NS_BEGIN {
                 auto val = exclusive[name];
                 // destroy LM
                 if (val.second)
-                    delete val.second;
+                    Destroy(val.second);
                 exclusive.erase(name);
                 return true;
             }
@@ -200,7 +196,7 @@ namespace ARIASDK_NS_BEGIN {
             {
                 // Last owner is gone, destroy LM
                 if (shared[host].second)
-                    delete shared[host].second;
+                    Destroy(shared[host].second);
                 shared.erase(host);
             }
             return true;

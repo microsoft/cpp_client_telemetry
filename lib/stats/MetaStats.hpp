@@ -516,6 +516,11 @@ namespace ARIASDK_NS_BEGIN {
         /// Overall telemetry stats
         /// </summary>
         TelemetryStats                  m_telemetryStats;
+
+        /// <summary>
+        /// Stats Session ID shared between all tenant stats
+        /// </summary>
+        std::string                     m_sessionId;
         
         /// <summary>
         /// Per-tenant stats

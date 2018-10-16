@@ -21,14 +21,14 @@ class WinInetRequestWrapper
     HINTERNET              m_hWinInetSession;
     HINTERNET              m_hWinInetRequest;
     HANDLE                 m_hDoneEvent;
-    std::vector<uint8_t>   m_bodyBuffer;
+    std::unique_ptr<SimpleHttpRequest> m_request;
     BYTE                   m_buffer[1024];
-    DWORD                  m_bufferUsed;
 
   public:
-    WinInetRequestWrapper(HttpClient_WinInet& parent, std::string const& id)
+    WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
-        m_id(id),
+        m_request(request),
+        m_id(request->GetId()),
         m_hWinInetSession(NULL),
         m_hWinInetRequest(NULL),
         m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
@@ -59,7 +59,7 @@ class WinInetRequestWrapper
         m_hWinInetRequest = NULL;
     }
 
-    void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
+    void send(IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
 
@@ -77,9 +77,9 @@ class WinInetRequestWrapper
         char path[1024];
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlA(request->m_url.data(), (DWORD)request->m_url.size(), 0, &urlc)) {
+        if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
-            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, request->m_url.data());
+            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
             onRequestComplete(dwError);
             return;
         }
@@ -96,7 +96,7 @@ class WinInetRequestWrapper
 
         PCSTR szAcceptTypes[] = {"*/*", NULL};
         m_hWinInetRequest = ::HttpOpenRequestA(
-            m_hWinInetSession, request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
+            m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
             INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
             INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
@@ -111,16 +111,14 @@ class WinInetRequestWrapper
         ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
 
         std::ostringstream os;
-        for (auto const& header : request->m_headers) {
+        for (auto const& header : m_request->m_headers) {
             os << header.first << ": " << header.second << "\r\n";
         }
         ::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE);
 
-        // Take over the body buffer ownership, it must stay alive until
-        // the async operation finishes.
-        m_bodyBuffer.swap(request->m_body);
-
-        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, m_bodyBuffer.data(), (DWORD)m_bodyBuffer.size());
+        void *data = static_cast<void *>(m_request->m_body.data());
+        DWORD size = static_cast<DWORD>(m_request->m_body.size());
+        BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, data, (DWORD)size);
         DWORD dwError = GetLastError();
 
         if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
@@ -144,8 +142,6 @@ class WinInetRequestWrapper
         switch (dwInternetStatus) {
             case INTERNET_STATUS_REQUEST_SENT: {
                 assert(hInternet == self->m_hWinInetRequest);
-                self->m_bodyBuffer.clear();
-                self->m_bufferUsed = 0;
                 return;
             }
 
@@ -153,7 +149,9 @@ class WinInetRequestWrapper
                 assert(dwStatusInformationLength >= sizeof(INTERNET_ASYNC_RESULT));
                 INTERNET_ASYNC_RESULT& result = *static_cast<INTERNET_ASYNC_RESULT*>(lpvStatusInformation);
                 assert(hInternet == self->m_hWinInetRequest);
-                self->onRequestComplete(result.dwError);
+                if ((self != nullptr) && (self->m_hWinInetRequest != nullptr)) {
+                    self->onRequestComplete(result.dwError);
+                }
                 return;
             }
 
@@ -164,6 +162,11 @@ class WinInetRequestWrapper
 
     void onRequestComplete(DWORD dwError)
     {
+        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+
+        std::vector<uint8_t> & m_bodyBuffer = response->m_body;
+        DWORD m_bufferUsed = 0;
+
         if (dwError == ERROR_SUCCESS) {
             // If looking good so far, try to fetch the response body first.
             // It might potentially be another async operation which will
@@ -192,11 +195,8 @@ class WinInetRequestWrapper
             } while (m_bufferUsed == sizeof(m_buffer));
         }
 
-        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id)); // FIXME: [MG] - Error #129: POSSIBLE LEAK 152 direct bytes + 64 indirect bytes
-
         if (dwError == ERROR_SUCCESS) {
             response->m_result = HttpResult_OK;
-            response->m_body.swap(m_bodyBuffer);
 
             uint32_t value = 0;
             DWORD dwSize = sizeof(value);
@@ -286,6 +286,7 @@ class WinInetRequestWrapper
             }
         }
 
+        // response gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
 
         m_parent.signalDoneAndErase(m_id);
@@ -328,10 +329,8 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
-    SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
-    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, req->m_id); // FIXME: [MG] - Error #159: POSSIBLE LEAK 1144 direct bytes + 32 indirect bytes
-    wrapper->send(req, callback);
-    delete req;
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<SimpleHttpRequest*>(request));
+    wrapper->send(callback);
 }
 
 void HttpClient_WinInet::CancelRequestAsync(std::string const& id)

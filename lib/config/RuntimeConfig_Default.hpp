@@ -4,9 +4,9 @@
 #include "api/IRuntimeConfig.hpp"
 
 #if defined(__linux__) || defined(__gnu_linux__)
-#define STATS_TOKEN_PROD "37f99178d02b46a4815783b92b8a5c91-4dc3ce45-9251-4684-9874-40f475c74a32-6908"
+#define STATS_TOKEN_PROD "4bb4d6f7cafc4e9292f972dca2dcde42-bd019ee8-e59c-4b0f-a02c-84e72157a3ef-7485"
 #else
-#define STATS_TOKEN_PROD "ead4d35d9f17486581d6c09afbe41263-01b1a12d-a157-460b-8efd-af9a10b09682-7259"
+#define STATS_TOKEN_PROD "4bb4d6f7cafc4e9292f972dca2dcde42-bd019ee8-e59c-4b0f-a02c-84e72157a3ef-7485"
 #endif
 #define STATS_TOKEN_INT  "8130ef8ff472405d89d6f420038927ea-0c0d561e-cca5-4c81-90ed-0aa9ad786a03-7166"
 
@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN {
         },
         { "http",
             {
-                { "compress",            true} // false}
+                { "compress",            true }
             }
         },
         { "tpm",
@@ -45,6 +45,11 @@ namespace ARIASDK_NS_BEGIN {
                 { "maxRetryCount",      5},
                 { "clockSkewEnabled",   true},
                 { "backoffConfig",      "E,3000,300000,2,1" },
+            }
+        },
+        { "compat",
+            {
+                { "dotType",            true } // false: v1 backwards-compat: event.SetType("My.Custom.Type") => custom.my_custom_type
             }
         },
         {

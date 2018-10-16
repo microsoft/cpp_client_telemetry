@@ -177,7 +177,10 @@ namespace ARIASDK_NS_BEGIN
                 // Copy alternate configuration into currentConfig
                 if (&configuration != &currentConfig)
                 {
-                    currentConfig.insert(configuration.begin(), configuration.end());
+                    for (const auto &kv : configuration)
+                    {
+                        currentConfig[kv.first] = kv.second;
+                    }
                 }
 
                 if (!tenantToken.empty())

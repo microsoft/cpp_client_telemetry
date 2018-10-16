@@ -5,6 +5,8 @@
 #include "http/HttpResponseDecoder.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <atomic>
+
 using namespace testing;
 using namespace ARIASDK_NS;
 
@@ -20,7 +22,8 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
 
   protected:
     HttpResponseDecoderTests() :
-        decoder(testing::getSystem())
+        decoder(testing::getSystem()),
+        reqId(0)
     {
         decoder.eventsAccepted          >> eventsAccepted;
         decoder.eventsRejected          >> eventsRejected;
@@ -35,7 +38,9 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
     MOCK_METHOD1(resultTemporaryServerFailure,  void(EventsUploadContextPtr const &));
     MOCK_METHOD1(resultRequestAborted,          void(EventsUploadContextPtr const &));
 
-    EventsUploadContextPtr createContextWith(HttpResult result, int status, std::string const& body)
+    std::atomic<unsigned> reqId;
+
+    std::unique_ptr<EventsUploadContext> createContextWith(HttpResult result, int status, std::string const& body)
     {
         SimpleHttpResponse* rsp = (new SimpleHttpResponse("HttpResponseDecoderTests"));
         rsp->m_result     = result;
@@ -43,10 +48,11 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
         rsp->m_body.assign(reinterpret_cast<uint8_t const*>(body.data()), reinterpret_cast<uint8_t const*>(body.data()) + body.size());
 
         EventsUploadContextPtr ctx = new EventsUploadContext();
-        ctx->httpRequestId = rsp->GetId();
+        ctx->httpRequest = new SimpleHttpRequest(std::to_string(reqId++));
+        ctx->httpRequestId = ctx->httpRequest->GetId();
         ctx->httpResponse = (rsp);
         ctx->durationMs = 1234;
-        return ctx;
+        return std::unique_ptr <EventsUploadContext>(ctx);
     }
 };
 
@@ -54,49 +60,47 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
 TEST_F(HttpResponseDecoderTests, AcceptsAccepted)
 {
     auto ctx = createContextWith(HttpResult_OK, 200, "");
-    EXPECT_CALL(*this, resultEventsAccepted(ctx))
-        .WillOnce(Return());
-    decoder.decode(ctx);
+    EXPECT_CALL(*this, resultEventsAccepted(ctx.get())).WillOnce(Return());
+    decoder.decode(ctx.get());
 }
 
 TEST_F(HttpResponseDecoderTests, RejectsRejected)
 {
     auto ctx = createContextWith(HttpResult_OK, 404, "<h1>Service not found</h1>");
-    EXPECT_CALL(*this, resultEventsRejected(ctx))
-        .WillOnce(Return());
-    decoder.decode(ctx);
+    EXPECT_CALL(*this, resultEventsRejected(ctx.get())).WillOnce(Return());
+    decoder.decode(ctx.get());
 }
 
 TEST_F(HttpResponseDecoderTests, UnderstandsTemporaryServerFailures)
 {
     auto ctx = createContextWith(HttpResult_OK, 500, "{error:500,detail:\"Bad karma\"}");
-    EXPECT_CALL(*this, resultTemporaryServerFailure(ctx))
+    EXPECT_CALL(*this, resultTemporaryServerFailure(ctx.get()))
         .WillOnce(Return());
-    decoder.decode(ctx);
+    decoder.decode(ctx.get());
 
     ctx = createContextWith(HttpResult_OK, 408, "Timeout");
-    EXPECT_CALL(*this, resultTemporaryServerFailure(ctx))
+    EXPECT_CALL(*this, resultTemporaryServerFailure(ctx.get()))
         .WillOnce(Return());
-    decoder.decode(ctx);
+    decoder.decode(ctx.get());
 }
 
 TEST_F(HttpResponseDecoderTests, UnderstandsTemporaryNetworkFailures)
 {
     auto ctx = createContextWith(HttpResult_LocalFailure, -1, "");
-    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx))
+    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx.get()))
         .WillOnce(Return());
-    decoder.decode(ctx);
+    decoder.decode(ctx.get());
 
     ctx = createContextWith(HttpResult_NetworkFailure, -1, "");
-    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx))
+    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx.get()))
         .WillOnce(Return());
-    decoder.decode(ctx);
+    decoder.decode(ctx.get());
 }
 
 TEST_F(HttpResponseDecoderTests, SkipsAbortedRequests)
 {
     auto ctx = createContextWith(HttpResult_Aborted, -1, "");
-    EXPECT_CALL(*this, resultRequestAborted(ctx))
+    EXPECT_CALL(*this, resultRequestAborted(ctx.get()))
         .WillOnce(Return());
-    decoder.decode(ctx);
+    decoder.decode(ctx.get());
 }

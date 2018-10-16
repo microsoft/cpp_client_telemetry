@@ -186,6 +186,8 @@ namespace ARIASDK_NS_BEGIN {
         RuntimeConfigDecorator    m_runtimeConfigDecorator;
         SemanticContextDecorator  m_semanticContextDecorator;
         SemanticApiDecorators     m_semanticApiDecorators;
+
+        bool                      m_allowDotsInType;
     };
 
 } ARIASDK_NS_END

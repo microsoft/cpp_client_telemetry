@@ -222,6 +222,7 @@ TEST_F(HttpServerTestsSimple, AddsResponseMessagePerResponseCode)
 
 TEST_F(HttpServerTestsSimple, PipeliningWorks)
 {
+    server.setKeepalive(true);
     ASSERT_THAT(connect(), true);
     ASSERT_THAT(sendRequest(
         "GET /simple/200 HTTP/1.1\r\n"
