@@ -167,7 +167,7 @@ namespace ARIASDK_NS_BEGIN {
             MAT::EventPersistence persistence,
             std::uint64_t  const& policyBitFlags);
 
-        void SetContext(const std::string& name, EventProperty prop);
+        void SetContext(const std::string& name, const EventProperty& prop);
 
         std::mutex                m_lock;
         std::string               m_tenantToken;

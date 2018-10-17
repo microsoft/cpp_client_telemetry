@@ -60,7 +60,7 @@ namespace ARIASDK_NS_BEGIN {
     * (ie. m_commonContextFields)
     *
     ******************************************************************************/
-    void Logger::SetContext(const std::string& name, EventProperty prop)
+    void Logger::SetContext(const std::string& name, const EventProperty& prop)
     {
         LOG_TRACE("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
             this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
