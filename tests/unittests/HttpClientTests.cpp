@@ -110,7 +110,7 @@ class HttpClientTests : public ::testing::Test,
      */
     virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
     {
-        SimpleHttpResponse *src = dynamic_cast<SimpleHttpResponse*>(inResponse);
+        SimpleHttpResponse *src = static_cast<SimpleHttpResponse*>(inResponse);
         SimpleHttpResponse *dst = new SimpleHttpResponse("");
         dst->m_id = src->m_id;
         dst->m_result = src->m_result;
