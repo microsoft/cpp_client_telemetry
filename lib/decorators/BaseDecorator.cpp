@@ -53,7 +53,7 @@ namespace ARIASDK_NS_BEGIN {
                 std::vector<std::string> temp;
                 record.extProtocol[0].ticketKeys.push_back(temp);
             }
-            for (auto ticket : tokensController->GetTickets())
+            for (const auto& ticket : tokensController->GetTickets())
             {
                 record.extProtocol[0].ticketKeys[0].push_back(ticket);
             }

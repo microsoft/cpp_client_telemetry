@@ -304,7 +304,7 @@ namespace ARIASDK_NS_BEGIN {
                         temp.type = ::AriaProtocol::ValueKind::ValueArrayGuid;
 
                         std::vector<std::vector<uint8_t>> values;
-                        for (GUID_t tempValue : *v.as_guidArray)
+                        for (const auto& tempValue : *v.as_guidArray)
                         {
                             tempValue.to_bytes(guid_bytes);
                             guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));

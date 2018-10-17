@@ -622,7 +622,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_TRACE("clearStats");
 
-        for (auto tenantStats : m_telemetryTenantStats)
+        for (auto& tenantStats : m_telemetryTenantStats)
         {
             TelemetryStats& telemetryStats = tenantStats.second;
             privateClearStats(telemetryStats);
@@ -643,9 +643,9 @@ namespace ARIASDK_NS_BEGIN {
         unsigned int droppedCount = 0;
         unsigned int receivedCountnotStats = 0;
 
-        for (auto tenantStats : m_telemetryTenantStats)
+        for (const auto& tenantStats : m_telemetryTenantStats)
         {
-            TelemetryStats& telemetryStats = tenantStats.second;
+            const auto& telemetryStats = tenantStats.second;
             rejectedCount += telemetryStats.recordStats.rejectedCount;
             bannedCount += telemetryStats.recordStats.bannedCount;
             droppedCount += telemetryStats.recordStats.droppedCount;
@@ -812,7 +812,7 @@ namespace ARIASDK_NS_BEGIN {
 
         //per tenant stats
         std::string stattenantToken = m_config.GetMetaStatsTenantToken();
-        for (auto entry : recordIdsAndTenantids)
+        for (const auto& entry : recordIdsAndTenantids)
         {
             std::string tenantToken = entry.second;
 
@@ -889,9 +889,9 @@ namespace ARIASDK_NS_BEGIN {
     void MetaStats::updateOnRecordsDropped(EventDroppedReason reason, std::map<std::string, size_t> const& droppedCount)
     {
         int overallCount = 0;
-        for (auto dropcouttenant : droppedCount)
+        for (const auto& dropcouttenant : droppedCount)
         {
-            TelemetryStats& temp = m_telemetryTenantStats[dropcouttenant.first];
+            auto& temp = m_telemetryTenantStats[dropcouttenant.first];
             temp.recordStats.droppedCountReasonDistribution[reason] += static_cast<unsigned int>(dropcouttenant.second);
             temp.recordStats.droppedCount += static_cast<unsigned int>(dropcouttenant.second);
             overallCount += static_cast<unsigned int>(dropcouttenant.second);
@@ -907,9 +907,9 @@ namespace ARIASDK_NS_BEGIN {
     void MetaStats::updateOnRecordsOverFlown(std::map<std::string, size_t> const& overflownCount)
     {
         int overallCount = 0;
-        for (auto overflowntenant : overflownCount)
+        for (const auto& overflowntenant : overflownCount)
         {
-            TelemetryStats& temp = m_telemetryTenantStats[overflowntenant.first];
+            auto& temp = m_telemetryTenantStats[overflowntenant.first];
             temp.recordStats.overflownCount += static_cast<unsigned int>(overflowntenant.second);
             overallCount += static_cast<unsigned int>(overflowntenant.second);
         }
@@ -924,7 +924,7 @@ namespace ARIASDK_NS_BEGIN {
     void MetaStats::updateOnRecordsRejected(EventRejectedReason reason, std::map<std::string, size_t> const& rejectedCount)
     {
         int overallCount = 0;
-        for (auto rejecttenant : rejectedCount)
+        for (const auto& rejecttenant : rejectedCount)
         {
             TelemetryStats& temp = m_telemetryTenantStats[rejecttenant.first];
             temp.recordStats.rejectedCountReasonDistribution[reason] += static_cast<unsigned int>(rejecttenant.second);

@@ -293,11 +293,11 @@ namespace ARIASDK_NS_BEGIN {
 
                                     auto timers = itRule.value()["timers"];
 
-                                    for (auto i : timers)
+                                    for (const auto& timer : timers)
                                     {
-                                        if (i.is_number())
+                                        if (timer.is_number())
                                         {
-                                            rule.timers.push_back(i);
+                                            rule.timers.push_back(timer);
                                         }
                                     }
                                     profile.rules.push_back(rule);
@@ -320,7 +320,7 @@ namespace ARIASDK_NS_BEGIN {
             LOCK_PROFILES;
             removeCustomProfiles();
             // Add new profiles
-            for (auto profile : newProfiles) {
+            for (const auto& profile : newProfiles) {
                 profiles[profile.name] = profile;
             }
             // Check if profile is still valid. If no such profile loaded anymore, then switch to default.

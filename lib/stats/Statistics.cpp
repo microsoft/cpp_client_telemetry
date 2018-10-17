@@ -179,7 +179,7 @@ namespace ARIASDK_NS_BEGIN {
         m_metaStats.updateOnPackageFailed(status);
 
         std::map<std::string, size_t> countOnTenant;
-        for (auto recordAndTenant : ctx->recordIdsAndTenantIds)
+        for (const auto& recordAndTenant : ctx->recordIdsAndTenantIds)
         {
             countOnTenant[recordAndTenant.second]++;
         }

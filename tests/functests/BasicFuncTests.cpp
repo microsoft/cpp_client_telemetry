@@ -245,7 +245,7 @@ public:
             return;
         }
 
-        for (std::pair<std::string, EventProperty> prop : expected.GetProperties())
+        for (const auto& prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None)
             {

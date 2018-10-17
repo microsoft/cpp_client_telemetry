@@ -303,10 +303,9 @@ namespace Microsoft {
 
                 std::map<std::string, std::string> requestParamsLocal;
 
-                std::map<std::string, std::string>::const_iterator it;
-                for (it = requestParams.begin(); it != requestParams.end(); it++)
+                for (const auto& requestParam : requestParams)
                 {
-                    requestParamsLocal[it->first] = it->second;
+                    requestParamsLocal[requestParam.first] = requestParam.second;
                 }
 
                 if (!m_configActiveDeviceId.empty())
