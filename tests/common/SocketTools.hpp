@@ -179,7 +179,7 @@ namespace testing {
         {
         }
 
-        operator Socket::Type()
+        operator Socket::Type() const
         {
             return m_sock;
         }
@@ -450,7 +450,7 @@ namespace testing {
 #endif
         }
 
-        void addSocket(Socket socket, int flags)
+        void addSocket(const Socket& socket, int flags)
         {
             if (flags == 0) {
                 removeSocket(socket);
@@ -515,7 +515,7 @@ namespace testing {
             }
         }
 
-        void removeSocket(Socket socket)
+        void removeSocket(const Socket& socket)
         {
             LOG_TRACE("Reactor: Removing socket %d", static_cast<int>(socket));
             auto it = std::find(m_sockets.begin(), m_sockets.end(), socket);

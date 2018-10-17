@@ -27,7 +27,7 @@ namespace Microsoft {
                 };
 
                 // You could also take an existing vector as a parameter.
-                std::vector<std::string> splitString(std::string str, char delimiter);
+                std::vector<std::string> splitString(const std::string& str, char delimiter);
 
                 ARIASDK_LOG_DECL_COMPONENT_NS();
 

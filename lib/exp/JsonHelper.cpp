@@ -75,7 +75,7 @@ namespace Microsoft {
 			}
 
 			/*static*/
-			std::vector<std::string> JsonHelper::GetKeys(const json& var, const std::string path)
+			std::vector<std::string> JsonHelper::GetKeys(const json& var, const std::string& path)
 			{
 				std::vector<std::string> keyvec;
 				json tmp;

@@ -207,7 +207,7 @@ public:
         return SV;
     }
 
-    Variant(std::string v) :
+    Variant(const std::string& v) :
         SV(v),
         type(TYPE_STRING2)
     {

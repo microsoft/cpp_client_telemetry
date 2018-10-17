@@ -214,7 +214,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="distributionName">prefix of the key name in record extension map</param>
     /// <param name="distribution">map<unsigned int, unsigned int>, key is the http return code, value is the count</param>
     static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::Record& record, std::string const& prefix,
-        uint_uint_dict_t const countsPerHttpReturnCodeMap)
+        uint_uint_dict_t const& countsPerHttpReturnCodeMap)
     {
         if (countsPerHttpReturnCodeMap.empty()) {
             return;

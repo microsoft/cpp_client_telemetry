@@ -180,7 +180,7 @@ namespace Microsoft {
 
                 void _StopInternal();
                 void _FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromEXP);
-                std::string GetRequestName(const std::string clientName);
+                std::string GetRequestName(const std::string& clientName);
                 bool SetRequestParameters(const std::map<std::string, std::string>& requestParams, bool setUserId = true);
 
                 void _DispatchMessage(const Message& msg);
@@ -197,11 +197,11 @@ namespace Microsoft {
 
                 void handleMessageTask();				
 
-                void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::string configIds);
-                void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds);
+                void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, const std::string& agentName, const std::string& etag, const std::string& configIds);
+                void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, const std::string& agentName, const std::string& etag, const std::map<std::string, std::string>& eventconfigIds);
                 void _LogEXPConfigEvent(MAT::EventProperties& evtProperties);
 
-                void _ScheduleFetch(unsigned int seconds = 0);				
+                void _ScheduleFetch(unsigned int seconds = 0);
 
             
                 EXPClientStatus                     m_status;

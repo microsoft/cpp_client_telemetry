@@ -374,13 +374,13 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         EventProperty& operator=(uint64_t value);
 
-        EventProperty& operator=(std::vector<int64_t> value);
+        EventProperty& operator=(const std::vector<int64_t>& value);
 
-        EventProperty& operator=(std::vector<double> value);
+        EventProperty& operator=(const std::vector<double>& value);
 
-        EventProperty& operator=(std::vector<GUID_t> value);
+        EventProperty& operator=(const std::vector<GUID_t>& value);
 
-        EventProperty& operator=(std::vector<std::string> value);
+        EventProperty& operator=(const std::vector<std::string>& value);
 
         /// <summary>
         /// An EventProperty assignment operator that takes a double.

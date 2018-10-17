@@ -63,7 +63,7 @@ public:
 
 	}
 
-	void addToken(std::string tokenId, int64_t timeInSeconds)
+	void addToken(const std::string& tokenId, int64_t timeInSeconds)
 	{
 		std::lock_guard<std::mutex> guard(m_lock);
 		if (timeInSeconds > 0)
@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	bool isTokenBlocked(std::string tokenId)
+	bool isTokenBlocked(const std::string& tokenId)
 	{
 		std::lock_guard<std::mutex> guard(m_lock);
 
@@ -106,7 +106,7 @@ public:
 		return false;
 	}
 
-	void removeToken(std::string tokenId)
+	void removeToken(const std::string& tokenId)
 	{
 		std::lock_guard<std::mutex> guard(m_lock);
 		std::map<std::string, int64_t>::iterator iter = m_tokenTime.find(tokenId);

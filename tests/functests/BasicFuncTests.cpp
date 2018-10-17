@@ -405,7 +405,7 @@ public:
     }
 
     // Find first matching event
-    AriaProtocol::Record find(std::string name)
+    AriaProtocol::Record find(const std::string& name)
     {
         AriaProtocol::Record result;
         result.name = "";

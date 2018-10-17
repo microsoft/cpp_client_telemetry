@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN {
 		{
 		}
 		
-		void SetDelta(std::string delta)
+		void SetDelta(const std::string& delta)
 		{
 			m_deltaReceived = true;
 			m_delta = delta;
@@ -56,7 +56,7 @@ namespace ARIASDK_NS_BEGIN {
 	RoutePassThrough<ClockSkewDelta, EventsUploadContextPtr const&> decode{ this, &ClockSkewDelta::handleDecode };
 
 	private:
-		std::string				m_delta;
+		std::string			m_delta;
 		bool					m_pingSent;
 		bool					m_deltaReceived;
 		bool handleEncode(EventsUploadContextPtr const& ctx)
