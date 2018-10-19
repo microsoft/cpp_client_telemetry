@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
 
         bool decorate(::AriaProtocol::Record& record)
         {
-            ContextFieldsProvider& provider = dynamic_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext());
+            ContextFieldsProvider& provider = static_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext());
             provider.writeToRecord(record);
             return true;
         }

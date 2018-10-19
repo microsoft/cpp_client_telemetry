@@ -249,9 +249,9 @@ namespace ARIASDK_NS_BEGIN
                 public:
 
                     // Inherited via INetworkListManagerEvents
-                    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) override;
-                    virtual ULONG   STDMETHODCALLTYPE AddRef(void) override;
-                    virtual ULONG   STDMETHODCALLTYPE Release(void) override;
+                    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void ** ppvObject) noexcept override;
+                    virtual ULONG   STDMETHODCALLTYPE AddRef(void) noexcept override;
+                    virtual ULONG   STDMETHODCALLTYPE Release(void) noexcept override;
                     virtual HRESULT STDMETHODCALLTYPE ConnectivityChanged(NLM_CONNECTIVITY newConnectivity) override;
 
                     // Inherited via INetworkEvents

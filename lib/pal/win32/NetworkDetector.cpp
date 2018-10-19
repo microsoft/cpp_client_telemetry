@@ -327,7 +327,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="riid"></param>
         /// <param name="ppv"></param>
         /// <returns></returns>
-        HRESULT NetworkDetector::QueryInterface(REFIID riid, void ** ppv)
+        HRESULT NetworkDetector::QueryInterface(REFIID riid, void ** ppv) noexcept
         {
             static const QITAB rgqit[] =
             {
@@ -339,12 +339,12 @@ namespace ARIASDK_NS_BEGIN
             return QISearch(this, rgqit, riid, ppv);
         }
 
-        ULONG NetworkDetector::AddRef(void)
+        ULONG NetworkDetector::AddRef(void) noexcept
         {
             return InterlockedIncrement((LONG *)&m_lRef);
         }
 
-        ULONG NetworkDetector::Release(void)
+        ULONG NetworkDetector::Release(void) noexcept
         {
             ULONG ulNewRef = (ULONG)InterlockedDecrement((LONG *)&m_lRef);
             if (ulNewRef == 0)
