@@ -21,9 +21,9 @@ namespace ARIASDK_NS_BEGIN {
         ContextFieldsProvider& operator=(ContextFieldsProvider const& copy);
         virtual ~ContextFieldsProvider();
 
-        void setCustomField(std::string const& name, EventProperty value);
+        void setCustomField(std::string const& name, EventProperty const& value);
         void writeToRecord(::AriaProtocol::Record& record);
-        void setCommonField(std::string const& name, EventProperty value);
+        void setCommonField(std::string const& name, EventProperty const& value);
 
     public:
         // ISemanticContext implementation

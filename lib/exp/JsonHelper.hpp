@@ -17,7 +17,7 @@ namespace Microsoft {
 
 				static bool GetJson(const json& var, const std::string& path, json& output);
 
-				static std::vector<std::string> GetKeys(const json& var, const std::string path);
+				static std::vector<std::string> GetKeys(const json& var, const std::string& path);
 
 				static std::vector<std::string> GetValuesString(const json& var, const std::string& path);
 

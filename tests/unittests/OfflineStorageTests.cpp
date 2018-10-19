@@ -134,7 +134,7 @@ TEST_F(OfflineStorageTests, DeleteRecordsIsForwarded)
     HttpHeaders test;
     bool fromMemory = false;
     std::vector<std::string> recordIds;
-    for (auto element : ctx->recordIdsAndTenantIds)
+    for (const auto& element : ctx->recordIdsAndTenantIds)
     {
         recordIds.push_back(element.first);
     }
@@ -149,7 +149,7 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
     HttpHeaders test;
     bool fromMemory = false;
     std::vector<std::string> recordIds;
-    for (auto element : ctx->recordIdsAndTenantIds)
+    for (const auto& element : ctx->recordIdsAndTenantIds)
     {
         recordIds.push_back(element.first);
     }

@@ -32,12 +32,10 @@ namespace ARIASDK_NS_BEGIN {
 			m_resumeTransmissionAfterClockSkew = true;
 		}
 
-		void SetDelta(std::string delta)
+		void SetDelta(const std::string& delta)
 		{
-			{
-				m_deltaReceived = true;
-				m_delta = delta;
-			}
+			m_deltaReceived = true;
+			m_delta = delta;
 		}
 
 		bool isClockSkewOn() const

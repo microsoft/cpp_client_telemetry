@@ -243,7 +243,7 @@ namespace Microsoft {
                 * update one logger with config
                 *
                 ******************************************************************************/
-                void AFDClient::_UpdateLoggerWithEXPConfig(ILogger* pLogger, std::string agentName)
+                void AFDClient::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName)
                 {
                     if (m_configActive)
                     {

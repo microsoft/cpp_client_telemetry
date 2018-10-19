@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN {
             headers = ctx->httpResponse->GetHeaders();
         }
         std::vector<StorageRecordId> recordIds;
-        for (auto item : ctx->recordIdsAndTenantIds)
+        for (const auto& item : ctx->recordIdsAndTenantIds)
         {
             recordIds.push_back(item.first);
         }
@@ -87,7 +87,7 @@ namespace ARIASDK_NS_BEGIN {
             headers = ctx->httpResponse->GetHeaders();
         }
         std::vector<StorageRecordId> recordIds;
-        for (auto item : ctx->recordIdsAndTenantIds)
+        for (const auto& item : ctx->recordIdsAndTenantIds)
         {
             recordIds.push_back(item.first);
         }
@@ -104,7 +104,7 @@ namespace ARIASDK_NS_BEGIN {
             headers = ctx->httpResponse->GetHeaders();
         }
         std::vector<StorageRecordId> recordIds;
-        for (auto item : ctx->recordIdsAndTenantIds)
+        for (const auto& item : ctx->recordIdsAndTenantIds)
         {
             recordIds.push_back(item.first);
         }
@@ -132,7 +132,7 @@ namespace ARIASDK_NS_BEGIN {
         StorageNotificationContext ctx;
 
         size_t overallCount = 0;
-        for (auto records : numRecords)
+        for (const auto& records : numRecords)
         {
             ctx.countonTenant[records.first] = records.second;
             overallCount += records.second;
@@ -152,7 +152,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         StorageNotificationContext ctx;
         size_t overallCount = 0;
-        for (auto records : numRecords)
+        for (const auto& records : numRecords)
         {
             ctx.countonTenant[records.first] = records.second;
             overallCount += records.second;
@@ -172,7 +172,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         StorageNotificationContext ctx;
         size_t overallCount = 0;
-        for (auto records : numRecords)
+        for (const auto& records : numRecords)
         {
             ctx.countonTenant[records.first] = records.second;
             overallCount += records.second;

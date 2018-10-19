@@ -268,7 +268,7 @@ namespace Microsoft {
             }
 
                         
-            std::string ExpCommon::GetRequestName(const std::string clientName)
+            std::string ExpCommon::GetRequestName(const std::string& clientName)
             {
                 std::string requestName;
 
@@ -303,10 +303,9 @@ namespace Microsoft {
 
                 std::map<std::string, std::string> requestParamsLocal;
 
-                std::map<std::string, std::string>::const_iterator it;
-                for (it = requestParams.begin(); it != requestParams.end(); it++)
+                for (const auto& requestParam : requestParams)
                 {
-                    requestParamsLocal[it->first] = it->second;
+                    requestParamsLocal[requestParam.first] = requestParam.second;
                 }
 
                 if (!m_configActiveDeviceId.empty())
@@ -572,7 +571,7 @@ namespace Microsoft {
             }
             
             
-            void ExpCommon::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const string& agentName, const std::string etag, const std::string configIds)
+            void ExpCommon::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const string& agentName, const std::string& etag, const std::string& configIds)
             {
                 if (pLogger && !agentName.empty())
                 {
@@ -597,7 +596,7 @@ namespace Microsoft {
                 }
             }
 
-            void ExpCommon::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName, const std::string etag, const std::map<std::string, std::string> eventconfigIds)
+            void ExpCommon::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName, const std::string& etag, const std::map<std::string, std::string>& eventconfigIds)
             {
                 if (pLogger && !agentName.empty())
                 {
@@ -611,10 +610,10 @@ namespace Microsoft {
                     LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) added with ETag=%s", pLogger, eTag.c_str());
 
                     // For version 2, the ConfigIDs are under the EventToConfigIds
-                    for (std::map<std::string, std::string>::const_iterator iter  = eventconfigIds.begin(); iter != eventconfigIds.end(); iter++)
-                    {						
-                        LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) SetEventExperimentIds eventName=%s, eventConfigIds=%s", pLogger, iter->first.c_str(), iter->second.c_str());
-                        pLoggerCtx->SetEventExperimentIds(iter->first, iter->second);
+                    for (const auto& eventConfigId : eventconfigIds)
+                    {
+                        LOG_TRACE("_UpdateLoggerWithEXPConfig: logger(0x%x) SetEventExperimentIds eventName=%s, eventConfigIds=%s", pLogger, eventConfigId.first.c_str(), eventConfigId.second.c_str());
+                        pLoggerCtx->SetEventExperimentIds(eventConfigId.first, eventConfigId.second);
                     }
 
                     // TODO: consider whether we should clean-up/reset the EventToConfigIds mapping previously set on a logger

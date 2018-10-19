@@ -97,7 +97,7 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         void _ValidateECSClientConfiguration(const ECSClientConfiguration& config);
 		void _LogEXPConfigUpdateEvent(EXPConfigUpdateResult result, EXPConfigUpdateSource source);
 		void _LogEXPCleintStateChangeEvent(EXPClientStatus status);
-		void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, std::string agentName);
+		void _UpdateLoggerWithEXPConfig(MAT::ILogger* pLogger, const std::string& agentName);
 		void _UpdateLoggersWithEXPConfig();
 		std::int64_t _GetExpiryTimeInSecFromHeader(Message& msg);
 

@@ -531,7 +531,7 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
-    EventProperty& EventProperty::operator=(std::vector<int64_t> value)
+    EventProperty& EventProperty::operator=(const std::vector<int64_t>& value)
     {
         clear();
         type = TYPE_INT64_ARRAY;
@@ -539,21 +539,21 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
-    EventProperty& EventProperty::operator=(std::vector<double> value)
+    EventProperty& EventProperty::operator=(const std::vector<double>& value)
     {
         clear();
         type = TYPE_DOUBLE_ARRAY;
         as_doubleArray = new std::vector<double>(value);
         return (*this);
     }
-    EventProperty& EventProperty::operator=(std::vector<GUID_t> value)
+    EventProperty& EventProperty::operator=(const std::vector<GUID_t>& value)
     {
         clear();
         type = TYPE_GUID_ARRAY;
         as_guidArray = new std::vector<GUID_t>(value);
         return (*this);
     }
-    EventProperty& EventProperty::operator=(std::vector<std::string> value)
+    EventProperty& EventProperty::operator=(const std::vector<std::string>& value)
     {
         clear();
         type = TYPE_STRING_ARRAY;
@@ -827,7 +827,7 @@ namespace ARIASDK_NS_BEGIN {
             if (as_guidArray != NULL)
             {
                 stringstream ss;
-                for (GUID_t element : *as_guidArray)
+                for (const auto& element : *as_guidArray)
                 {
                     ss << element.to_string();
                     ss << ",";
@@ -842,7 +842,7 @@ namespace ARIASDK_NS_BEGIN {
             if (as_stringArray != NULL)
             {
                 stringstream ss;
-                for (std::string element : *as_stringArray)
+                for (const auto& element : *as_stringArray)
                 {
                     ss << element;
                     ss << ",";

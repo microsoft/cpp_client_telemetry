@@ -8,7 +8,7 @@ namespace testing {
 
     ARIASDK_LOG_INST_COMPONENT_NS("Testing", "Unit testing helpers");
 
-    AriaProtocol::Value toAriaProtocolValue(std::string val)
+    AriaProtocol::Value toAriaProtocolValue(const std::string& val)
     {
         AriaProtocol::Value temp;
         temp.stringValue = val;

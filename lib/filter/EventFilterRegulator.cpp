@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        for (auto tenantFilter : _tenantFilters)
+        for (const auto& tenantFilter : _tenantFilters)
         {
             delete tenantFilter.second;
         }

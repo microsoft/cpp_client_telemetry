@@ -33,7 +33,7 @@ namespace testing {
         testing::Sequence* sequence = nullptr;
     };
 
-    AriaProtocol::Value toAriaProtocolValue(std::string val);
+    AriaProtocol::Value toAriaProtocolValue(const std::string& val);
     AriaProtocol::Value toAriaProtocolValue(bool val);
     AriaProtocol::Value toAriaProtocolValue(double val);
     AriaProtocol::Value toAriaProtocolValue(int64_t val);

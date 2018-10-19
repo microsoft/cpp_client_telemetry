@@ -59,7 +59,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     EXPECT_THAT(ctx->body, Not(IsEmpty()));
     EXPECT_THAT(ctx->recordIdsAndTenantIds, SizeIs(1));
     std::vector<std::string> recordIds;
-    for (auto element : ctx->recordIdsAndTenantIds)
+    for (const auto& element : ctx->recordIdsAndTenantIds)
     {
         recordIds.push_back(element.first);
     }
@@ -86,7 +86,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     EXPECT_THAT(ctx->recordIdsAndTenantIds, SizeIs(2));
 
     recordIds.clear();
-    for (auto element : ctx->recordIdsAndTenantIds)
+    for (const auto& element : ctx->recordIdsAndTenantIds)
     {
         recordIds.push_back(element.first);
     }

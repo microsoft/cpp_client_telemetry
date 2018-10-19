@@ -66,13 +66,13 @@ namespace ARIASDK_NS_BEGIN {
         if (m_ticketsMapP) delete m_ticketsMapP;
     }
 
-    void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty value)
+    void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty const& value)
     {
         LOCKGUARD(m_lock);
         (*m_commonContextFieldsP)[name] = value;
     }
 
-    void ContextFieldsProvider::setCustomField(std::string const& name, EventProperty value)
+    void ContextFieldsProvider::setCustomField(std::string const& name, EventProperty const& value)
     {
         LOCKGUARD(m_lock);
         (*m_customContextFieldsP)[name] = value;

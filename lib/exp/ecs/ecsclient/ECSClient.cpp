@@ -299,7 +299,7 @@ namespace Microsoft {
 
                     return true;
                 }
-                void ECSClient::_UpdateLoggerWithEXPConfig(ILogger* pLogger, std::string agentName)
+                void ECSClient::_UpdateLoggerWithEXPConfig(ILogger* pLogger, const std::string& agentName)
                 {
                     // update all registered loggers with the EXP configurations infos(such as Etag, configIDs)
                     // For version 1 the ConfigIDs are not under the EventToConfigIds mapping.

@@ -169,7 +169,7 @@ public:
     Variant(VariantMap& m) :
         type(TYPE_OBJ)
     {
-        for (auto kv : m)
+        for (const auto& kv : m)
         {
             mV[kv.first] = kv.second;
         }
@@ -207,7 +207,7 @@ public:
         return SV;
     }
 
-    Variant(std::string v) :
+    Variant(const std::string& v) :
         SV(v),
         type(TYPE_STRING2)
     {
@@ -380,7 +380,7 @@ public:
      */
     static Variant from_array(std::initializer_list<Variant> l) {
         VariantArray arr;
-        for (auto v : l)
+        for (const auto& v : l)
             arr.push_back(v);
         return Variant(arr);
     }

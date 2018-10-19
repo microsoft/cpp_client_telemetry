@@ -245,7 +245,7 @@ public:
             return;
         }
 
-        for (std::pair<std::string, EventProperty> prop : expected.GetProperties())
+        for (const auto& prop : expected.GetProperties())
         {
             if (prop.second.piiKind == PiiKind_None)
             {
@@ -405,7 +405,7 @@ public:
     }
 
     // Find first matching event
-    AriaProtocol::Record find(std::string name)
+    AriaProtocol::Record find(const std::string& name)
     {
         AriaProtocol::Record result;
         result.name = "";

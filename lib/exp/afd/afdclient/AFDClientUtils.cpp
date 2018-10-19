@@ -15,7 +15,7 @@ namespace Microsoft {
 
                 ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.AFD", "Aria AFD");
 
-                std::vector<std::string> splitString(std::string str, char delimiter)
+                std::vector<std::string> splitString(const std::string& str, char delimiter)
                 {
                     std::vector<std::string> internal;
                     std::stringstream ss(str);
