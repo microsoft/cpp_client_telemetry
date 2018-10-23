@@ -6,7 +6,6 @@
 using namespace testing;
 using namespace ARIASDK_NS;
 
-
 // TODO: [MG] - this test would benefit from uncommenting a bunch of lines that have been commented by someone before..
 TEST(ContextFieldsProviderTests, SetProperties)
 {
@@ -128,4 +127,52 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
     //EXPECT_THAT(record.data[0].properties["DeviceInfo.NetworkType"].stringValue, Not(IsEmpty()));
     EXPECT_THAT(record.extOs[0].name, Not(IsEmpty()));
     EXPECT_THAT(record.extOs[0].ver, Not(IsEmpty()));
+}
+
+class TestContextFieldsProvider : public ContextFieldsProvider
+{
+public:
+	std::map<std::string, std::string>& GetCommonContextEventToConfigIds() noexcept
+	{
+		return m_commonContextEventToConfigIds;
+	}
+
+};
+
+TEST(ContextFieldsProviderTests, EventExperimentIdsStartEmpty)
+{
+	TestContextFieldsProvider provider;
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds().size(), 0);
+}
+
+TEST(ContextFieldsProviderTests, SetEventExperimentIds_EmptyEventNameDoesntChangeContext)
+{
+	TestContextFieldsProvider provider;
+	provider.SetEventExperimentIds(std::string {}, "Fred");
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds().size(), 0);
+}
+
+TEST(ContextFieldsProviderTests, SetEventExperimentIds_MixedUpperAndLoerCaseEventNameNormalizedToLowerCase)
+{
+	TestContextFieldsProvider provider;
+	provider.SetEventExperimentIds("Rodgers", "Fred");
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds().size(), 1);
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds()["rodgers"], Eq("Fred"));
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds().find("Rodgers"), provider.GetCommonContextEventToConfigIds().end());
+}
+
+TEST(ContextFieldsProviderTests, SetEventExperimentIds_SameKeyUpdatesValue)
+{
+	TestContextFieldsProvider provider;
+	provider.SetEventExperimentIds("Rodgers", "Fred");
+	provider.SetEventExperimentIds("rodgers", "Mister");
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds()["rodgers"], Eq("Mister"));
+}
+
+TEST(ContextFieldsProviderTests, SetEventExperimentIds_EmptyExperimentIdsRemovesEntry)
+{
+	TestContextFieldsProvider provider;
+	provider.SetEventExperimentIds("Rodgers", "Fred");
+	provider.SetEventExperimentIds("Rodgers", "");
+	EXPECT_THAT(provider.GetCommonContextEventToConfigIds().size(), 0);
 }

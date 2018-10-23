@@ -15,7 +15,6 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
         : m_parent(parent)
-        , m_ticketsMapP(new std::map<TicketType, std::string>())
     {
         if (!m_parent)
         {
@@ -29,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
-        m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP); // TODO: [MG] - Error #71: LEAK 16 direct bytes + 104 indirect bytes
+        m_ticketsMap = copy.m_ticketsMap;
     }
 
     ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
@@ -38,18 +37,17 @@ namespace ARIASDK_NS_BEGIN {
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
-        m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
+        m_ticketsMap = copy.m_ticketsMap;
         return *this;
     }
 
 
     ContextFieldsProvider::~ContextFieldsProvider()
     {
-        if (!m_parent) {
+        if (!m_parent) 
+        {
             PAL::unregisterSemanticContext(this);
         }
-
-        if (m_ticketsMapP) delete m_ticketsMapP;
     }
 
     void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty const& value)
@@ -270,10 +268,10 @@ namespace ARIASDK_NS_BEGIN {
                 record.extNet[0].type = iter->second.as_string;
             }
 
-            if (m_ticketsMapP->size() > 0)
+            if (m_ticketsMap.size() > 0)
             {
                 std::vector<std::string> tickets;
-                for (auto const& field : (*m_ticketsMapP))
+                for (auto const& field : m_ticketsMap)
                 {
                     tickets.push_back(field.second);
                 }
@@ -560,7 +558,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (!ticketValue.empty())
         {
-            (*m_ticketsMapP)[type] = ticketValue;
+            m_ticketsMap[type] = ticketValue;
         }
     }
 
