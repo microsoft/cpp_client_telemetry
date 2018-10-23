@@ -15,7 +15,6 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
         : m_parent(parent)
-        , m_CommonFieldsAppExperimentIdsP(new std::string())
         , m_ticketsMapP(new std::map<TicketType, std::string>())
     {
         if (!m_parent)
@@ -29,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
-        m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
+        m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP); // TODO: [MG] - Error #71: LEAK 16 direct bytes + 104 indirect bytes
     }
 
@@ -38,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
-        m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
+        m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
         return *this;
     }
@@ -50,7 +49,6 @@ namespace ARIASDK_NS_BEGIN {
             PAL::unregisterSemanticContext(this);
         }
 
-        if (m_CommonFieldsAppExperimentIdsP) delete m_CommonFieldsAppExperimentIdsP;
         if (m_ticketsMapP) delete m_ticketsMapP;
     }
 
@@ -124,9 +122,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOCKGUARD(m_lock);
 
-            if (!m_CommonFieldsAppExperimentIdsP->empty())
+            if (!m_CommonFieldsAppExperimentIds.empty())
             {// for ECS set event specific config ids
-                std::string value = *m_CommonFieldsAppExperimentIdsP;
+                std::string value = m_CommonFieldsAppExperimentIds;
                 std::string eventName = record.name;
                 if (!eventName.empty())
                 {
@@ -386,14 +384,14 @@ namespace ARIASDK_NS_BEGIN {
     void ContextFieldsProvider::_ClearExperimentIds()
     {
         // Clear the common ExperimentIds
-        m_CommonFieldsAppExperimentIdsP->clear();
+        m_CommonFieldsAppExperimentIds.clear();
         // Clear the map of all ExperimentsIds (that's associated with event)
         m_commonContextEventToConfigIds.clear();
     }
 
     void ContextFieldsProvider::SetAppExperimentIds(std::string const& appExperimentIds)
     {
-        *m_CommonFieldsAppExperimentIdsP = appExperimentIds;
+        m_CommonFieldsAppExperimentIds = appExperimentIds;
     }
 
     void ContextFieldsProvider::SetAppExperimentImpressionId(std::string const& appExperimentImpressionId)

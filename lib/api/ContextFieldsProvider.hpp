@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN {
         // mapping from an event name to a list of CSV'ed ECS configIds
         std::map<std::string, std::string> m_commonContextEventToConfigIds;
 
-        std::string* m_CommonFieldsAppExperimentIdsP;
+        std::string m_CommonFieldsAppExperimentIds;
         std::map<TicketType, std::string>* m_ticketsMapP;
     };
 
