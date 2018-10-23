@@ -9,14 +9,8 @@
 namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider()
-        : m_parent(nullptr)
-        , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
-        , m_customContextFieldsP(new std::map<std::string, EventProperty>())
-        , m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
-        , m_CommonFieldsAppExperimentIdsP(new std::string())
-        , m_ticketsMapP(new std::map<TicketType, std::string>())
+        : ContextFieldsProvider(nullptr)
     {
-
     }
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
