@@ -15,8 +15,6 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
         : m_parent(parent)
-        , m_commonContextFieldsP(new std::map<std::string, EventProperty>())
-        , m_customContextFieldsP(new std::map<std::string, EventProperty>())
         , m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
         , m_CommonFieldsAppExperimentIdsP(new std::string())
         , m_ticketsMapP(new std::map<TicketType, std::string>())
@@ -29,8 +27,8 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     {
-        m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP); // TODO: [MG] - Error #37: LEAK 16 direct bytes + 24 indirect bytes
-        m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
+        m_commonContextFields = copy.m_commonContextFields;
+        m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
         m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP); // TODO: [MG] - Error #71: LEAK 16 direct bytes + 104 indirect bytes
@@ -38,8 +36,8 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
     {
-        m_commonContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_commonContextFieldsP);
-        m_customContextFieldsP = new std::map<std::string, EventProperty>(*copy.m_customContextFieldsP);
+        m_commonContextFields = copy.m_commonContextFields;
+        m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
         m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
@@ -53,8 +51,6 @@ namespace ARIASDK_NS_BEGIN {
             PAL::unregisterSemanticContext(this);
         }
 
-        if (m_commonContextFieldsP) delete m_commonContextFieldsP;
-        if (m_customContextFieldsP) delete m_customContextFieldsP;
         if (m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
         if (m_CommonFieldsAppExperimentIdsP) delete m_CommonFieldsAppExperimentIdsP;
         if (m_ticketsMapP) delete m_ticketsMapP;
@@ -63,13 +59,13 @@ namespace ARIASDK_NS_BEGIN {
     void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty const& value)
     {
         LOCKGUARD(m_lock);
-        (*m_commonContextFieldsP)[name] = value;
+        m_commonContextFields[name] = value;
     }
 
     void ContextFieldsProvider::setCustomField(std::string const& name, EventProperty const& value)
     {
         LOCKGUARD(m_lock);
-        (*m_customContextFieldsP)[name] = value;
+        m_customContextFields[name] = value;
     }
 
     void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record)
@@ -146,43 +142,43 @@ namespace ARIASDK_NS_BEGIN {
                 record.extApp[0].expId = value;
             }
 
-            if (m_commonContextFieldsP->find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFieldsP->end())
+            if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFields.end())
             {
                 AriaProtocol::Value temp;
-                EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
+                EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
                 temp.stringValue = prop.as_string;
 
                 ext[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID] = temp;
             }
 
-            if (m_commonContextFieldsP->find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFieldsP->end())
+            if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFields.end())
             {
                 AriaProtocol::Value temp;
-                EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_APP_EXPERIMENTETAG];
+                EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENTETAG];
                 temp.stringValue = prop.as_string;
 
                 ext[COMMONFIELDS_APP_EXPERIMENTETAG] = temp;
             }
-            std::map<std::string, EventProperty>::iterator iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_ID);
-            if (iter != m_commonContextFieldsP->end())
+            auto iter = m_commonContextFields.find(COMMONFIELDS_APP_ID);
+            if (iter != m_commonContextFields.end())
             {
                 record.extApp[0].id = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_VERSION);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_APP_VERSION);
+            if (iter != m_commonContextFields.end())
             {
                 record.extApp[0].ver = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_APP_LANGUAGE);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_APP_LANGUAGE);
+            if (iter != m_commonContextFields.end())
             {
                 record.extApp[0].locale = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_ID);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ID);
+            if (iter != m_commonContextFields.end())
             {
                 // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
                 // Use "c:" prefix
@@ -205,75 +201,75 @@ namespace ARIASDK_NS_BEGIN {
                 record.extDevice[0].localId = temp;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MAKE);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MAKE);
+            if (iter != m_commonContextFields.end())
             {
                 record.extProtocol[0].devMake = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_MODEL);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MODEL);
+            if (iter != m_commonContextFields.end())
             {
                 record.extProtocol[0].devModel = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_DEVICE_CLASS);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_CLASS);
+            if (iter != m_commonContextFields.end())
             {
                 record.extDevice[0].deviceClass = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_OS_NAME);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_OS_NAME);
+            if (iter != m_commonContextFields.end())
             {
                 record.extOs[0].name = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_OS_BUILD);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_OS_BUILD);
+            if (iter != m_commonContextFields.end())
             {
                 //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
                 record.extOs[0].ver = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_ID);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_USER_ID);
+            if (iter != m_commonContextFields.end())
             {
                 record.extUser[0].localId = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_LANGUAGE);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_USER_LANGUAGE);
+            if (iter != m_commonContextFields.end())
             {
                 record.extUser[0].locale = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_TIMEZONE);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_USER_TIMEZONE);
+            if (iter != m_commonContextFields.end())
             {
                 record.extLoc[0].timezone = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_USER_MSAID);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_USER_MSAID);
+            if (iter != m_commonContextFields.end())
             {
                 record.extDevice[0].authSecId = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_COST);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_COST);
+            if (iter != m_commonContextFields.end())
             {
                 record.extNet[0].cost = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_PROVIDER);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_PROVIDER);
+            if (iter != m_commonContextFields.end())
             {
                 record.extNet[0].provider = iter->second.as_string;
             }
 
-            iter = m_commonContextFieldsP->find(COMMONFIELDS_NETWORK_TYPE);
-            if (iter != m_commonContextFieldsP->end())
+            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_TYPE);
+            if (iter != m_commonContextFields.end())
             {
                 record.extNet[0].type = iter->second.as_string;
             }
@@ -290,7 +286,7 @@ namespace ARIASDK_NS_BEGIN {
                 record.extProtocol.push_back(temp);
             }
 
-            for (auto const& field : (*m_customContextFieldsP))
+            for (auto const& field : m_customContextFields)
             {
                 if (field.second.piiKind != PiiKind_None)
                 {
