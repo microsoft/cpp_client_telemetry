@@ -15,7 +15,6 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider* parent)
         : m_parent(parent)
-        , m_commonContextEventToConfigIdsP(new std::map<std::string, std::string>())
         , m_CommonFieldsAppExperimentIdsP(new std::string())
         , m_ticketsMapP(new std::map<TicketType, std::string>())
     {
@@ -29,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
-        m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
+        m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP); // TODO: [MG] - Error #71: LEAK 16 direct bytes + 104 indirect bytes
     }
@@ -38,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
-        m_commonContextEventToConfigIdsP = new std::map<std::string, std::string>(*copy.m_commonContextEventToConfigIdsP);
+        m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_CommonFieldsAppExperimentIdsP = new std::string(*copy.m_CommonFieldsAppExperimentIdsP);
         m_ticketsMapP = new std::map<TicketType, std::string>(*copy.m_ticketsMapP);
         return *this;
@@ -51,7 +50,6 @@ namespace ARIASDK_NS_BEGIN {
             PAL::unregisterSemanticContext(this);
         }
 
-        if (m_commonContextEventToConfigIdsP) delete m_commonContextEventToConfigIdsP;
         if (m_CommonFieldsAppExperimentIdsP) delete m_CommonFieldsAppExperimentIdsP;
         if (m_ticketsMapP) delete m_ticketsMapP;
     }
@@ -132,8 +130,8 @@ namespace ARIASDK_NS_BEGIN {
                 std::string eventName = record.name;
                 if (!eventName.empty())
                 {
-                    std::map<std::string, std::string>::const_iterator iter = m_commonContextEventToConfigIdsP->find(eventName);
-                    if (iter != m_commonContextEventToConfigIdsP->end())
+                    const auto& iter = m_commonContextEventToConfigIds.find(eventName);
+                    if (iter != m_commonContextEventToConfigIds.end())
                     {
                         value = iter->second;
                     }
@@ -390,7 +388,7 @@ namespace ARIASDK_NS_BEGIN {
         // Clear the common ExperimentIds
         m_CommonFieldsAppExperimentIdsP->clear();
         // Clear the map of all ExperimentsIds (that's associated with event)
-        m_commonContextEventToConfigIdsP->clear();
+        m_commonContextEventToConfigIds.clear();
     }
 
     void ContextFieldsProvider::SetAppExperimentIds(std::string const& appExperimentIds)
@@ -405,25 +403,17 @@ namespace ARIASDK_NS_BEGIN {
 
     void ContextFieldsProvider::SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds)
     {
-        std::string eventNameNormalized = toLower(eventName);
+        if (eventName.empty())
+          return;
 
-        if (!eventName.empty())
+        std::string eventNameNormalized = toLower(eventName);
+        if (!experimentIds.empty())
         {
-            if (!experimentIds.empty())
-            {
-                if (m_commonContextEventToConfigIdsP->find(eventNameNormalized) == m_commonContextEventToConfigIdsP->end())
-                {
-                    m_commonContextEventToConfigIdsP->insert(std::pair<std::string, std::string>(eventNameNormalized, experimentIds));
-                }
-                else
-                {
-                    (*m_commonContextEventToConfigIdsP)[eventNameNormalized] = experimentIds;
-                }
-            }
-            else
-            {
-                m_commonContextEventToConfigIdsP->erase(eventNameNormalized);
-            }
+            m_commonContextEventToConfigIds[eventNameNormalized] = experimentIds;
+        }
+        else
+        {
+            m_commonContextEventToConfigIds.erase(eventNameNormalized);
         }
     }
 
