@@ -83,7 +83,7 @@ namespace ARIASDK_NS_BEGIN {
 #pragma warning (pop)
 #endif //_MSC_VER
 
-    inline std::string sanitizeIdentifier(std::string &str)
+    inline std::string sanitizeIdentifier(const std::string &str)
     {
 #if 0
         // TODO: [MG] - we have to add some sanitizing logic, but definitely NOT replacing dots by underscores
