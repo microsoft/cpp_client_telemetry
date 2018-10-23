@@ -18,6 +18,8 @@ using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN {
 
+    const char* const DefaultEventName = "undefined";
+
     EventProperties::EventProperties(const std::string& name, const std::map<std::string, EventProperty> &properties) :
         EventProperties(name)
     {
@@ -42,23 +44,16 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
-    /**
-     * \brief EventProperties constructor
-     * \param name Event name - must not be empty!
-     */
+
     EventProperties::EventProperties()
-        : m_timestampInMillis(0LL)
-        , m_eventLatency(EventLatency_Normal)
-        , m_eventPersistence(EventPersistence_Normal)
-        , m_eventPopSample(100)
-        , m_eventPolicyBitflags(0)
-        , m_eventNameP(new std::string("undefined"))
-        , m_eventTypeP(new std::string())
-        , m_propertiesP(new std::map<std::string, EventProperty>())
-        , m_propertiesBP(new std::map<std::string, EventProperty>())
+        : EventProperties(DefaultEventName)
     {
     }
 
+	 /**
+	 * \brief EventProperties constructor
+	 * \param name Event name - must not be empty!
+	 */
     EventProperties::EventProperties(const string& name)
         : m_timestampInMillis(0LL)
         , m_eventLatency(EventLatency_Normal)
@@ -75,7 +70,7 @@ namespace ARIASDK_NS_BEGIN {
             SetName(name);
         }
         else {
-            SetName("undefined");
+            SetName(DefaultEventName);
         }
     }
 
