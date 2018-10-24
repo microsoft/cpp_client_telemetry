@@ -1,6 +1,26 @@
 Source obtained from
 --------------------
-https://www.sqlite.org/snapshot/sqlite-snapshot-201605041445.tar.gz
+https://www.sqlite.org/tmp/sqlite-win10-all-3230200.zip
+
+OSS approval
+------------
+https://ossmsft.visualstudio.com/_oss?searchText=SQLite&_a=componentversion&cvid=53176&fullPageArtifact=true
+
+Integration steps
+-----------------
+* Obtain the .zip from above link and unzip
+* Copy contents of .\Source directory with a new version on top of existing files
+* Ignore .\Debug and .\Release prebuilts as we are not building / using winsqlite3.dll
+* Check Makefile.msc new build options, migrate new options to sqlite.vcxproj and ..\sqliteUWP\sqlite-uwp.vcxproj
+
+Shipping products that include SQLite
+-------------------------------------
+* OSS Questions. Consult docs.opensource.microsoft.com.
+* Legal Questions. Contact your CELA representative or OSS CELA mailto:OSSStandardsLegal@service.microsoft.com
+* Third Party IP Policy. Use of OSS is subject to the Third Party IP Policy Requirements https://liquid.microsoft.com/Web/Collection/Read/ms.thirdpartyip
+* Include license below as part of your product licenses
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 License
 -------
