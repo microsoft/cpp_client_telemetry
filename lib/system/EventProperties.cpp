@@ -18,6 +18,8 @@ using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN {
 
+    const char* const DefaultEventName = "undefined";
+
     EventProperties::EventProperties(const std::string& name, const std::map<std::string, EventProperty> &properties) :
         EventProperties(name)
     {
@@ -42,30 +44,23 @@ namespace ARIASDK_NS_BEGIN {
         return (*this);
     }
 
-    /**
-     * \brief EventProperties constructor
-     * \param name Event name - must not be empty!
-     */
+
     EventProperties::EventProperties()
-        : m_timestampInMillis(0LL)
-        , m_eventLatency(EventLatency_Normal)
-        , m_eventPersistence(EventPersistence_Normal)
-        , m_eventPopSample(100)
-        , m_eventPolicyBitflags(0)
-        , m_eventNameP(new std::string("undefined"))
-        , m_eventTypeP(new std::string())
-        , m_propertiesP(new std::map<std::string, EventProperty>())
-        , m_propertiesBP(new std::map<std::string, EventProperty>())
+        : EventProperties(DefaultEventName)
     {
     }
 
+	 /**
+	 * \brief EventProperties constructor
+	 * \param name Event name - must not be empty!
+	 */
     EventProperties::EventProperties(const string& name)
         : m_timestampInMillis(0LL)
         , m_eventLatency(EventLatency_Normal)
         , m_eventPersistence(EventPersistence_Normal)
         , m_eventPopSample(100)
         , m_eventPolicyBitflags(0)
-        , m_eventNameP(new std::string(name))
+        , m_eventNameP(new std::string())
         , m_eventTypeP(new std::string())
         , m_propertiesP(new std::map<std::string, EventProperty>())
         , m_propertiesBP(new std::map<std::string, EventProperty>())
@@ -75,7 +70,7 @@ namespace ARIASDK_NS_BEGIN {
             SetName(name);
         }
         else {
-            SetName("undefined");
+            SetName(DefaultEventName);
         }
     }
 
@@ -90,41 +85,19 @@ namespace ARIASDK_NS_BEGIN {
         m_eventPopSample = copy.m_eventPopSample;
         m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
         m_timestampInMillis = copy.m_timestampInMillis;
-
-        std::map<std::string, EventProperty>::iterator iter;
-        for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
-        {
-            (*m_propertiesP)[iter->first] = iter->second;
-        }
-
-        for (iter = copy.m_propertiesBP->begin(); iter != copy.m_propertiesBP->end(); ++iter)
-        {
-            (*m_propertiesBP)[iter->first] = iter->second;
-        }
     }
 
     EventProperties& EventProperties::operator=(EventProperties const& copy)
     {
-        m_eventNameP = new std::string(*(copy.m_eventNameP));
-        m_eventTypeP = new std::string(*(copy.m_eventTypeP));
-        m_propertiesP = new std::map<std::string, EventProperty>(*copy.m_propertiesP);
-        m_propertiesBP = new std::map<std::string, EventProperty>(*copy.m_propertiesBP);
+        *m_eventNameP = *copy.m_eventNameP;
+        *m_eventTypeP = *copy.m_eventTypeP;
+        *m_propertiesP = *copy.m_propertiesP;
+        *m_propertiesBP = *copy.m_propertiesBP;
         m_eventLatency = copy.m_eventLatency;
         m_eventPersistence = copy.m_eventPersistence;
         m_eventPopSample = copy.m_eventPopSample;
         m_eventPolicyBitflags = copy.m_eventPolicyBitflags;
         m_timestampInMillis = copy.m_timestampInMillis;
-
-        std::map<std::string, EventProperty>::iterator iter;
-        for (iter = copy.m_propertiesP->begin(); iter != copy.m_propertiesP->end(); ++iter)
-        {
-            (*m_propertiesP)[iter->first] = iter->second;
-        }
-
-        for (iter = copy.m_propertiesBP->begin(); iter != copy.m_propertiesBP->end(); ++iter)
-        {
-            (*m_propertiesBP)[iter->first] = iter->second;
-        }
 
         return *this;
     }
@@ -294,20 +267,18 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     bool EventProperties::SetName(const string& name)
     {
-        std::string m_eventName = name;
-        // Sanitize the name of EventProperties
-        m_eventName = sanitizeIdentifier(m_eventName);
+        std::string sanitizedEventName = sanitizeIdentifier(name);
 
-        EventRejectedReason isValidEventName = validateEventName(m_eventName);
+        EventRejectedReason isValidEventName = validateEventName(sanitizedEventName);
         if (isValidEventName != REJECTED_REASON_OK) {
-            LOG_ERROR("Invalid event properties!");
+            LOG_ERROR("Invalid event name!");
             DebugEvent evt;
             evt.type = DebugEventType::EVT_REJECTED;
             evt.param1 = isValidEventName;
             ILogManager::DispatchEventBroadcast(evt);
             return false;
         }
-        this->m_eventNameP->assign(m_eventName);
+        m_eventNameP->assign(sanitizedEventName);
         return true;
     }
 

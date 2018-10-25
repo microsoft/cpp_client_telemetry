@@ -62,14 +62,14 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex              m_lock;
         ContextFieldsProvider*  m_parent;
 
-        std::map<std::string, EventProperty>*  m_commonContextFieldsP;      // common context fields
-        std::map<std::string, EventProperty>*  m_customContextFieldsP;      // custom context fields
+        std::map<std::string, EventProperty> m_commonContextFields;
+        std::map<std::string, EventProperty> m_customContextFields;
 
         // mapping from an event name to a list of CSV'ed ECS configIds
-        std::map<std::string, std::string>* m_commonContextEventToConfigIdsP;
+        std::map<std::string, std::string> m_commonContextEventToConfigIds;
 
-        std::string* m_CommonFieldsAppExperimentIdsP;
-        std::map<TicketType, std::string>* m_ticketsMapP;
+        std::string m_CommonFieldsAppExperimentIds;
+        std::map<TicketType, std::string> m_ticketsMap;
     };
 
 
