@@ -8,13 +8,13 @@ using namespace ARIASDK_NS;
 
 using std::string;
 
-void TestCorrelationVectorVersion(int version, int baseLength, int maxLength, const string & testMaxMinusOneValue)
+void TestCorrelationVectorVersion(int version, size_t baseLength, int maxLength, const string & testMaxMinusOneValue)
 {
     CorrelationVector cv;
 
     // test uninitialized value
     string emptyValue = cv.GetValue();
-    ASSERT_EQ(emptyValue.length(), 0) << "Uninitialized base value length is incorrect";
+    ASSERT_EQ(emptyValue.length(), 0ul) << "Uninitialized base value length is incorrect";
 
     // test initialized value
     cv.Initialize(version);

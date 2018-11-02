@@ -19,12 +19,12 @@ TEST(StringUtilsTests, SplitString)
 	// empty input gives empty output
 	parts.clear();
 	StringUtils::SplitString("", ' ', parts);
-	ASSERT_EQ(parts.size(), 0);
+	ASSERT_EQ(parts.size(), 0ul);
 
 	// string with no separator gives single entry
 	parts.clear();
 	StringUtils::SplitString("abcdef0123456\t\r\n", ' ', parts);
-	ASSERT_EQ(parts.size(), 1);
+	ASSERT_EQ(parts.size(), 1ul);
 	ASSERT_EQ(parts.size() > 0 ? parts[0] : "null", "abcdef0123456\t\r\n");
 
 	// special case '\0' character gives single entry
@@ -36,7 +36,7 @@ TEST(StringUtilsTests, SplitString)
 	// string with separator gives the correct number of entries
 	parts.clear();
 	StringUtils::SplitString("ab:cd:ef", ':', parts);
-	ASSERT_EQ(parts.size(), 3);
+	ASSERT_EQ(parts.size(), 3ul);
 	ASSERT_EQ(parts.size() > 0 ? parts[0] : "null", "ab");
 	ASSERT_EQ(parts.size() > 1 ? parts[1] : "null", "cd");
 	ASSERT_EQ(parts.size() > 2 ? parts[2] : "null", "ef");
@@ -44,7 +44,7 @@ TEST(StringUtilsTests, SplitString)
 	// consequitive separators produce empty string entries
 	parts.clear();
 	StringUtils::SplitString("..test..", '.', parts);
-	ASSERT_EQ(parts.size(), 5);
+	ASSERT_EQ(parts.size(), 5ul);
 	ASSERT_EQ(parts.size() > 0 ? parts[0] : "null", "");
 	ASSERT_EQ(parts.size() > 1 ? parts[1] : "null", "");
 	ASSERT_EQ(parts.size() > 2 ? parts[2] : "null", "test");
@@ -56,7 +56,7 @@ TEST(StringUtilsTests, SplitString)
 	parts.push_back("ab");
 	parts.push_back("cd");
 	StringUtils::SplitString(" 01 23 ", ' ', parts);
-	ASSERT_EQ(parts.size(), 6);
+	ASSERT_EQ(parts.size(), 6ul);
 	ASSERT_EQ(parts.size() > 0 ? parts[0] : "null", "ab");
 	ASSERT_EQ(parts.size() > 1 ? parts[1] : "null", "cd");
 	ASSERT_EQ(parts.size() > 2 ? parts[2] : "null", "");

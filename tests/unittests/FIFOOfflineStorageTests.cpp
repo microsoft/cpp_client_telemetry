@@ -51,7 +51,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageBaseUnitTest)
 
     ret = storeFile.PopNextItem(&buf, size, NULL);
     EXPECT_GT(ret, 0);
-    EXPECT_EQ(ret, size);
+    EXPECT_EQ(static_cast<size_t>(ret), size);
     //EXPECT_STREQ(buf, str);
     EXPECT_EQ(0, std::memcmp(buf, str, size));
     storeFile.Free(&buf);
@@ -72,7 +72,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageBaseUnitTest)
     EXPECT_EQ(0, ret);
     ret = storeFile.PopNextItem(&buf, size, NULL);
     EXPECT_GT(ret, 0);
-    EXPECT_EQ(ret, size);
+    EXPECT_EQ(static_cast<size_t>(ret), size);
     //EXPECT_STREQ(str, buf);
     EXPECT_EQ(0, std::memcmp(buf, str, size));
     storeFile.Close();
@@ -114,12 +114,12 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteUnitTest)
 
     EXPECT_EQ(0, storeFile.Open(fileName, fileSize, blockSize));
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     //EXPECT_EQ(5, storeFile.GetBlockNum());
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     //EXPECT_EQ(5, storeFile.GetBlockNum());
     EXPECT_EQ(contLen, storeFile.PopNextItem(&buff, size, NULL));
 
@@ -131,12 +131,12 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteUnitTest)
 
     EXPECT_EQ(0, storeFile.Open(fileName, fileSize, blockSize));
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     //EXPECT_EQ(5, storeFile.GetBlockNum());
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     EXPECT_EQ(0, storeFile.SaveItem(content, contLen, NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     //EXPECT_EQ(5, storeFile.GetBlockNum());
     EXPECT_EQ(contLen, storeFile.PopNextItem(&buff, size, NULL));
 
@@ -169,16 +169,16 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageMultiBlocksUnitTest)
     int ret = storeFile.PopNextItem(&buff, size, NULL);
     //EXPECT_STREQ(content, buff);
     EXPECT_EQ(0, std::memcmp(buff, content, size));
-    EXPECT_EQ(ret, size);
+    EXPECT_EQ(static_cast<size_t>(ret), size);
     EXPECT_EQ(ret, contLen);
     EXPECT_EQ(0, storeFile.SaveItem(content, strlen(content), NULL));
-    EXPECT_EQ(contLen, storeFile.GetBufferSize());
+    EXPECT_EQ(static_cast<size_t>(contLen), storeFile.GetBufferSize());
     storeFile.Free(&buff);
     storeFile.Close();
 
     EXPECT_EQ(0, storeFile.Open(filename, fileSize, blockSize));
     EXPECT_EQ(contLen, storeFile.PopNextItem(&buff, size, NULL));
-    EXPECT_EQ(size, contLen);
+    EXPECT_EQ(size, static_cast<size_t>(contLen));
     //EXPECT_STREQ(content, buff);
     EXPECT_EQ(0, std::memcmp(buff, content, size));
     storeFile.Free(&buff);
@@ -399,11 +399,11 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageDelayCreationUnitTest)
     storeFile.DeleteFileLocal(filename);
 
     EXPECT_EQ(0, storeFile.Open(filename, fileSize, blockSize));
-    EXPECT_EQ(0, storeFile.GetBufferSize());
+    EXPECT_EQ(0ul, storeFile.GetBufferSize());
     EXPECT_EQ(0, storeFile.PopNextItem(&buf, size, NULL));
     EXPECT_EQ(sizeof(FileHeader), storeFile.GetFileSize());
     storeFile.Close();
-    EXPECT_EQ(0, storeFile.GetFileSize());
+    EXPECT_EQ(0ul, storeFile.GetFileSize());
     //	EXPECT_EQ(sizeof(FileHeader), StorageHelper::GetFileSize(filename));
 
     EXPECT_EQ(0, storeFile.Open(filename, fileSize, blockSize));
@@ -570,7 +570,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageFindFirstFindNextUnitTest)
 
         int inputArrayIndex = i / 2;
 
-        EXPECT_EQ(inputArrayIndex, findItemInfo.Key.Priority);
+        EXPECT_EQ(static_cast<uint32_t>(inputArrayIndex), findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data[inputArrayIndex]), findItemInfo.ItemSize);
 
         storeFile.ReadItem(findItemInfo, findItemInfo.ItemSize, &pBlockBuffer, &bytesRead);
@@ -710,7 +710,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemAndMoveNextUnitTest)
 
         int inputArrayIndex = i;
 
-        EXPECT_EQ(inputArrayIndex, findItemInfo.Key.Priority);
+        EXPECT_EQ(static_cast<uint32_t>(inputArrayIndex), findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data[inputArrayIndex]), findItemInfo.ItemSize);
 
         char* pBlockBuffer = NULL;
@@ -816,7 +816,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
 
         int inputArrayIndex = i % 5;
 
-        EXPECT_EQ(i, findItemInfo.Key.Priority);
+        EXPECT_EQ(static_cast<uint32_t>(i), findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data[inputArrayIndex]), findItemInfo.ItemSize);
 
         bool hasMoreItems = false;
@@ -896,7 +896,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRetrievesItemsInChronologicalOrder
 
         int inputArrayIndex = i;
 
-        EXPECT_EQ(inputArrayIndex, findItemInfo.Key.Priority);
+        EXPECT_EQ(static_cast<uint32_t>(inputArrayIndex), findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data[inputArrayIndex]), findItemInfo.ItemSize);
 
         storeFile.ReadItem(findItemInfo, findItemInfo.ItemSize, &pBlockBuffer, &bytesRead);
@@ -966,7 +966,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
 
         sprintf_s(data, "Data Item %d", itemIndex);
 
-        EXPECT_EQ(1, findItemInfo.Key.Priority);
+        EXPECT_EQ(1u, findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data), findItemInfo.ItemSize);
 
         storeFile.ReadItem(findItemInfo, findItemInfo.ItemSize, &pBlockBuffer, &bytesRead);
