@@ -20,6 +20,8 @@
 namespace ARIASDK_NS_BEGIN
 {
 
+    struct EventPropertiesStorage; 
+
     /// <summary>
     /// The EventProperties class encapsulates event properties.
     /// </summary>
@@ -310,16 +312,7 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
     private:
-        std::string*     m_eventNameP;
-        std::string*     m_eventTypeP;
-        EventLatency     m_eventLatency;
-        EventPersistence m_eventPersistence;
-        double           m_eventPopSample;
-        uint64_t         m_eventPolicyBitflags;
-        int64_t          m_timestampInMillis;
-
-        std::map<std::string, EventProperty>* m_propertiesP;
-        std::map<std::string, EventProperty>* m_propertiesBP;
+        EventPropertiesStorage* m_storage;
     };
 
 } ARIASDK_NS_END

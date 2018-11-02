@@ -20,7 +20,6 @@
 #include "decorators/EventPropertiesDecorator.hpp"
 #include "decorators/SemanticApiDecorators.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
-#include "decorators/RuntimeConfigDecorator.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -183,7 +182,6 @@ namespace ARIASDK_NS_BEGIN {
 
         BaseDecorator             m_baseDecorator;
         EventPropertiesDecorator  m_eventPropertiesDecorator;
-        RuntimeConfigDecorator    m_runtimeConfigDecorator;
         SemanticContextDecorator  m_semanticContextDecorator;
         SemanticApiDecorators     m_semanticApiDecorators;
 

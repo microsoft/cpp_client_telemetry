@@ -554,6 +554,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp">
       <Filter>offline</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventPropertiesStorage.hpp">
+      <Filter>system</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

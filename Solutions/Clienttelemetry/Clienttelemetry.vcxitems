@@ -170,6 +170,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Contexts.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventPropertiesStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Route.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.hpp" />

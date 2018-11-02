@@ -14,7 +14,7 @@ namespace ARIASDK_NS_BEGIN {
     void SendAsJSON(const EventProperties& props, const std::string& token);
 #endif
 
-    Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
+    Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& /*experimentationProject*/,
         ILogManagerInternal& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
         IEventFilter& eventFilter)
         :
@@ -26,13 +26,11 @@ namespace ARIASDK_NS_BEGIN {
         m_eventFilter(eventFilter),
 
         m_baseDecorator(logManager),
-        m_runtimeConfigDecorator(logManager, m_config, tenantTokenToId(tenantToken), experimentationProject),
         m_semanticContextDecorator(logManager),
         m_eventPropertiesDecorator(logManager),
         m_semanticApiDecorators(logManager),
 
         m_sessionStartTime(0),
-        m_sessionId(""),
         m_allowDotsInType(false)
     {
         std::string tenantId = tenantTokenToId(m_tenantToken);
@@ -318,7 +316,6 @@ namespace ARIASDK_NS_BEGIN {
         result &= m_baseDecorator.decorate(record);
         result &= m_semanticContextDecorator.decorate(record);
         result &= m_eventPropertiesDecorator.decorate(record, latency, properties);
-        result &= m_runtimeConfigDecorator.decorate(record);
         return result;
 
     }
