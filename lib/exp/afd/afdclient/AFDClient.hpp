@@ -29,63 +29,71 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
         AFDClient();
         virtual ~AFDClient();
 
-        virtual void Initialize(const AFDClientConfiguration& config);
+        virtual void Initialize(const AFDClientConfiguration& config) override;
 
-        virtual bool AddListener(IAFDClientCallback* listener);
+        virtual bool AddListener(IAFDClientCallback* listener) override;
 
-        virtual bool RemoveListener(IAFDClientCallback* listener);
+        virtual bool RemoveListener(IAFDClientCallback* listener) override;
 
         // Register a logger to auto-tag events sent by the logger with AFD configuration infos like ETag
 
-        virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName);
+        virtual bool RegisterLogger(MAT::ILogger* pLoger, const std::string& agentName) override;
              
-        virtual bool SetRequestParameters(const std::map<std::string, std::string>& requestParams);
+        virtual bool SetRequestParameters(const std::map<std::string, std::string>& requestParams) override;
         
-        virtual bool SetRequestHeaders(const std::map<std::string, std::string>& headerParams);
+        virtual bool SetRequestHeaders(const std::map<std::string, std::string>& headerParams) override;
 
-        virtual bool Start();
+        virtual bool Start() override;
 
-        virtual bool Stop();
+        virtual bool Stop() override;
 
-        virtual bool Suspend();
+        virtual bool Suspend() override;
 
-        virtual bool Resume(bool fetchConfig = true);
+        virtual bool Resume(bool fetchConfig = true) override;
 
-        virtual std::string GetETag();
+        virtual std::string GetETag() override;
         
-        virtual std::vector<std::string> GetFlights();
+        virtual std::vector<std::string> GetFlights() override;
         
-        virtual std::vector<std::string> GetFeatures();
+        virtual std::vector<std::string> GetFeatures() override;
 
-        virtual std::map<std::string, std::string> GetConfigs();
+        virtual std::map<std::string, std::string> GetConfigs() override;
 
-        virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue);
+        virtual std::string GetSetting(const std::string& agentName, const std::string& settingPath, const std::string& defaultValue) override;
 
-        virtual bool GetSetting(const std::string& agentName, const std::string& settingPath, const bool defaultValue);
+        virtual bool GetSetting(const std::string& agentName, const std::string& settingPath, const bool defaultValue) override;
 
-        virtual int GetSetting(const std::string& agentName, const std::string& settingPath, const int defaultValue);
+        virtual int GetSetting(const std::string& agentName, const std::string& settingPath, const int defaultValue) override;
 
-        virtual double GetSetting(const std::string& agentName, const std::string& settingPath, const double defaultValue);
+        virtual double GetSetting(const std::string& agentName, const std::string& settingPath, const double defaultValue) override;
 
-        virtual std::vector<std::string> GetSettings(const std::string& agentName, const std::string& settingPath);
+        virtual std::vector<std::string> GetSettings(const std::string& agentName, const std::string& settingPath) override;
 
-        virtual std::vector<int> GetSettingsAsInts(const std::string& agentName, const std::string& settingPath);
+        virtual std::vector<int> GetSettingsAsInts(const std::string& agentName, const std::string& settingPath) override;
 
-        virtual std::vector<double> GetSettingsAsDbls(const std::string& agentName, const std::string& settingPath);
+        virtual std::vector<double> GetSettingsAsDbls(const std::string& agentName, const std::string& settingPath) override;
 
-        std::vector<std::string> GetKeys(const std::string& agentName, const std::string& keysPath);
+        std::vector<std::string> GetKeys(const std::string& agentName, const std::string& keysPath) override;
 
-        virtual void HandleHttpCallback(Message& msg, bool& isActiveConfigUpdatedOnAFD, bool& isActiveConfigUpdatedOnAFDSaveNeeded);
-        virtual void FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromServer);
-        virtual void HandleConfigReload(Message& msg, bool& isActiveConfigSwitched, bool& isActiveConfigSwitchedSaveNeeded);
-        virtual void HandleConfigSave(bool isActiveConfigSwitchedSaveNeeded, bool isActiveConfigUpdatedOnEXPSaveNeeded);
-        virtual void HandleUpdateClient(bool isActiveConfigSwitched, bool isActiveConfigUpdatedOnEXP, bool isActiveConfigUpdatedOnEXPSaveNeeded);
-        virtual bool FetchFromServerIfRequired();
-        virtual unsigned int GetExpiryTimeInSec();
-        virtual nlohmann::json GetActiveConfigVariant();
+        virtual void HandleHttpCallback(Message& msg, bool& isActiveConfigUpdatedOnAFD, bool& isActiveConfigUpdatedOnAFDSaveNeeded) override;
+
+        virtual void FireClientEvent(CommonClientEventType evtType, bool fConfigUpdateFromServer) override;
+
+        virtual void HandleConfigReload(Message& msg, bool& isActiveConfigSwitched, bool& isActiveConfigSwitchedSaveNeeded) override;
+
+        virtual void HandleConfigSave(bool isActiveConfigSwitchedSaveNeeded, bool isActiveConfigUpdatedOnEXPSaveNeeded) override;
+
+        virtual void HandleUpdateClient(bool isActiveConfigSwitched, bool isActiveConfigUpdatedOnEXP, bool isActiveConfigUpdatedOnEXPSaveNeeded) override;
+
+        virtual bool FetchFromServerIfRequired() override;
+
+        virtual unsigned int GetExpiryTimeInSec() override;
+
+        virtual nlohmann::json GetActiveConfigVariant() override;
+
         virtual std::string GetAFDConfiguration() override;
 
-        virtual void SetRetryTimeFactor(int time);
+        virtual void SetRetryTimeFactor(int time) override;
 
     private:
         nlohmann::json _GetActiveConfigVariant();

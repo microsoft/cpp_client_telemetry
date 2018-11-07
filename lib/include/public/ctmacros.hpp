@@ -69,4 +69,8 @@
 #define ARCH_ARM
 #endif
 
+#define EVTSDK_LIBABI       ARIASDK_LIBABI
+#define EVTSDK_LIBABI_CDECL ARIASDK_LIBABI_CDECL
+#define EVTSDK_SPEC         ARIASDK_SPEC
+
 #endif

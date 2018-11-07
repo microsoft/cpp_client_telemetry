@@ -278,6 +278,31 @@ namespace ARIASDK_NS_BEGIN {
             as_stringArray = new std::vector<std::string>(*source->as_stringArray);
             break;
         }
+        case TYPE_GUID:
+        {
+            as_guid = source->as_guid;
+            break;
+        }
+        case TYPE_INT64:
+        {
+            as_int64 = source->as_int64;
+            break;
+        }
+        case TYPE_DOUBLE:
+        {
+            as_double = source->as_double;
+            break;
+        }
+        case TYPE_TIME:
+        {
+            as_time_ticks = source->as_time_ticks;
+            break;
+        }
+        case TYPE_BOOLEAN:
+        {
+            as_bool = source->as_bool;
+            break;
+        }
         }
     }
 
@@ -289,6 +314,7 @@ namespace ARIASDK_NS_BEGIN {
     EventProperty::EventProperty(const EventProperty& source) :
         type(source.type)
     {
+        // TODO: [MG] - memcpy is probably no longer needed here
         memcpy((void*)this, (void*)&source, sizeof(EventProperty));
         copydata(&source);
     }
@@ -300,6 +326,7 @@ namespace ARIASDK_NS_BEGIN {
     EventProperty::EventProperty(EventProperty&& source) /* noexcept */ :
         type(source.type)
     {
+        // TODO: [MG] - memcpy is probably no longer needed here
         memcpy((void*)this, (void*)&source, sizeof(EventProperty));
         copydata(&source);
     }

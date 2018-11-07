@@ -1,6 +1,6 @@
 #ifndef DEVICEINFORMATIONIMPL_HPP
 #define DEVICEINFORMATIONIMPL_HPP
-
+// Copyright (c) Microsoft. All rights reserved.
 #include <pal/PAL.hpp>
 #include "Enums.hpp"
 
@@ -16,17 +16,25 @@ namespace PAL_NS_BEGIN {
     public:
         static IDeviceInformation* Create();
 
-        // IInformationProvider API
-        virtual int RegisterInformationChangedCallback(PAL::IPropertyChangedCallback* pCallback) override;
-        virtual void UnRegisterInformationChangedCallback(int callbackToken) override;
+        virtual int RegisterInformationChangedCallback(PAL::IPropertyChangedCallback* pCallback) override
+        {
+            m_registredCount++;
+            return m_info_helper.RegisterInformationChangedCallback(pCallback);
+        }
+
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) override
+        {
+            --m_registredCount;
+            m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
+        }
 
         // IDeviceInformation API
-        virtual std::string const& GetDeviceId() const { return m_device_id; }
-        virtual std::string const& GetManufacturer() const { return m_manufacturer; }
-        virtual std::string const& GetModel() const { return m_model; }
-        virtual OsArchitectureType GetOsArchitectureType() const { return m_os_architecture; }
-        virtual PowerSource GetPowerSource() const { return m_powerSource; }
-        virtual std::string GetDeviceTicket();
+        virtual std::string const& GetDeviceId() const override { return m_device_id; }
+        virtual std::string const& GetManufacturer() const override { return m_manufacturer; }
+        virtual std::string const& GetModel() const override { return m_model; }
+        virtual OsArchitectureType GetOsArchitectureType() const override { return m_os_architecture; }
+        virtual PowerSource GetPowerSource() const override { return m_powerSource; }
+        virtual std::string GetDeviceTicket() const override;
 
     private:
         std::string m_device_id;

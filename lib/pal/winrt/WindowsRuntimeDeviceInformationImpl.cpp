@@ -106,7 +106,7 @@ namespace PAL_NS_BEGIN {
 #endif
                 }
 
-                std::string DeviceInformationImpl::GetDeviceTicket()
+                std::string DeviceInformationImpl::GetDeviceTicket() const
                 {
                     return m_deviceTicket;
                 }

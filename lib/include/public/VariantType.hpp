@@ -8,10 +8,10 @@
 #endif
 
 // Constructor and getter for Variant type
-#define VARIANT_PROP(basetype, field, typeenum)						\
-		Variant(basetype v) : field(v), type(typeenum) {} ;			\
-		operator basetype() { return (basetype)field; };            \
-		Variant& operator=(basetype v) { field = v; type = typeenum; return *this; };
+#define VARIANT_PROP(basetype, field, typeenum)                 \
+    Variant(basetype v) : field(v), type(typeenum) {} ;         \
+    operator basetype() { return (basetype)field; };            \
+    Variant& operator=(basetype v) { field = v; type = typeenum; return *this; };
 
 /**
  * Variant type for containers
@@ -19,10 +19,10 @@
 class Variant {
 
     union {
-        int64_t		 iV;
-        double		 dV;
-        const char*  sV;
-        bool		 bV;
+        int64_t     iV;
+        double      dV;
+        const char* sV;
+        bool        bV;
     };
 
     // Unfortunately keeping object pointers inside the union above causes issues
@@ -58,11 +58,11 @@ public:
     Variant() : iV(0), type(TYPE_NULL) {};
 
     // All integer types
-    VARIANT_PROP(int8_t,   iV, TYPE_INT);
-    VARIANT_PROP(int16_t,  iV, TYPE_INT);
-    VARIANT_PROP(int32_t,  iV, TYPE_INT);
-    VARIANT_PROP(int64_t,  iV, TYPE_INT);
-    VARIANT_PROP(uint8_t,  iV, TYPE_INT);
+    VARIANT_PROP(int8_t, iV, TYPE_INT);
+    VARIANT_PROP(int16_t, iV, TYPE_INT);
+    VARIANT_PROP(int32_t, iV, TYPE_INT);
+    VARIANT_PROP(int64_t, iV, TYPE_INT);
+    VARIANT_PROP(uint8_t, iV, TYPE_INT);
     VARIANT_PROP(uint16_t, iV, TYPE_INT);
     VARIANT_PROP(uint32_t, iV, TYPE_INT);
     VARIANT_PROP(uint64_t, iV, TYPE_INT);
@@ -119,39 +119,39 @@ public:
         type = other.type;
         switch (other.type)
         {
-            case TYPE_NULL:
-                iV = 0;
-                break;
-            case TYPE_INT:
-                iV = other.iV;
-                break;
-            case TYPE_DOUBLE:
-                dV = other.dV;
-                break;
+        case TYPE_NULL:
+            iV = 0;
+            break;
+        case TYPE_INT:
+            iV = other.iV;
+            break;
+        case TYPE_DOUBLE:
+            dV = other.dV;
+            break;
 
-            case TYPE_STRING:
-                type = TYPE_STRING2;
-                SV = (other.sV) ? other.sV : "";
-                break;
+        case TYPE_STRING:
+            type = TYPE_STRING2;
+            SV = (other.sV) ? other.sV : "";
+            break;
 
-            case TYPE_STRING2:
-                SV = other.SV;
-                break;
+        case TYPE_STRING2:
+            SV = other.SV;
+            break;
 
-            case TYPE_BOOL:
-                bV = other.bV;
-                break;
+        case TYPE_BOOL:
+            bV = other.bV;
+            break;
 
-            case TYPE_OBJ:
-                for (const auto& kv : other.mV)
-                {
-                    mV[kv.first] = kv.second;
-                }
-                break;
+        case TYPE_OBJ:
+            for (const auto& kv : other.mV)
+            {
+                mV[kv.first] = kv.second;
+            }
+            break;
 
-            case TYPE_ARR:
-                // std::swap(aV, other.aV);
-                break;
+        case TYPE_ARR:
+            // std::swap(aV, other.aV);
+            break;
         }
 
         return *this;
@@ -195,9 +195,9 @@ public:
             mV.clear();
         }
         else
-        if (type == TYPE_ARR) {
-            aV.clear();
-        }
+            if (type == TYPE_ARR) {
+                aV.clear();
+            }
     }
 
     operator std::string&()

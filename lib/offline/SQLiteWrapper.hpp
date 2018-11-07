@@ -162,7 +162,7 @@ namespace ARIASDK_NS_BEGIN {
             return ::sqlite3_step(stmt);
         }
 
-        int64_t sqlite3_soft_heap_limit64(int64_t N)
+        int64_t sqlite3_soft_heap_limit64(int64_t N) override
         {
             return ::sqlite3_soft_heap_limit64((sqlite3_int64)N);
         }

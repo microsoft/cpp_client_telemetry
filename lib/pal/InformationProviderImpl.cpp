@@ -1,7 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #include "pal/PAL.hpp"
-
 #include "InformationProviderImpl.hpp"
-
 #include <vector>
 
 #ifdef _WIN32

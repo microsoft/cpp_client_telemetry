@@ -307,8 +307,8 @@ namespace ARIASDK_NS_BEGIN
 
 #ifdef ARIA_C_API
         /// Implementation of ABI-safe packing of EventProperties object
-        aria_prop* pack();
-        bool unpack(aria_prop *packed);
+        evt_prop* pack();
+        bool unpack(evt_prop *packed);
 #endif
 
     private:

@@ -103,3 +103,4 @@ wrappers/go/offlinestorage.db.session64
 /tests/ecs/node_modules
 *.ipch
 /Solutions/Testing/Temporary
+/Default/

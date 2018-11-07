@@ -16,17 +16,21 @@ Environment:
 
 --*/
 
+// TODO: [MG] - verify this header against the latest version in //depot/*/publicint/onecoreuapbase/inc/traceloggingdynamic.h
 #pragma once
 #include <windows.h>
 //#include <winapifamily.h>
 #include <evntprov.h>
 
 // Enum declaration may be missing from older evntprov.h:
+// XXX: [MG] - workaround for clang compiler not liking enum redifinition here
+#ifndef __clang__
 enum _EVENT_INFO_CLASS
 #if !defined(__INTELLISENSE__) && defined(__cplusplus) && (_MSC_VER >= 1700)
     : int // base type for enum forward declaration
 #endif
     ;
+#endif
 
 namespace tld
 {
@@ -300,9 +304,7 @@ namespace tld
     It is ok to create an array of nested structures where fields in the
     structure have TypeNone or TypeBinary.
     */
-#pragma warning(push)
-#pragma warning(disable:4471) //a forward declaration of an unscoped enumeration must have an underlying type. Not fixing Windows code.
-    enum Type;
+    enum Type : UINT16;
 
     /*
     Used for composing Type values.
@@ -318,7 +320,7 @@ namespace tld
     The comments for each InType value indicate the payload encoding rules and
     the OutTypes that are most likely to be usable with this InType.
     */
-    enum InType;
+    enum InType : UINT8;
 
     /*
     Used for composing Type values.
@@ -339,7 +341,7 @@ namespace tld
     consumer. The most commonly-supported combinations are the combinations
     with corresponding precomposed Type... values.
     */
-    enum OutType;
+    enum OutType : UINT8;
 
     /*
     enum ProviderTraitType (low-level API):
@@ -347,7 +349,6 @@ namespace tld
     The type of a provider trait. Used when building up provider metadata.
     */
     enum ProviderTraitType;
-#pragma warning(pop)
 
     /*
     class ProviderMetadataBuilder (low-level API):

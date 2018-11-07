@@ -233,6 +233,9 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerImpl::Configure()
     {
+        // TODO: [MG] - this API should allow to reconfigure the instance
+        // at runtime using customer-provided instance of ILogConfiguration object
+        // without having to restart the instance.
     };
 
 
@@ -411,7 +414,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    status_t LogManagerImpl::SetContext(const std::string& name, int64_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, int64_t value, PiiKind piiKind)
+    {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
@@ -424,7 +428,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    status_t LogManagerImpl::SetContext(const std::string& name, bool value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, bool value, PiiKind piiKind)
+    {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
@@ -437,7 +442,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    status_t LogManagerImpl::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind)
+    {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
@@ -450,12 +456,22 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <param name="piiKind"></param>
-    status_t LogManagerImpl::SetContext(const std::string& name, GUID_t value, PiiKind piiKind) {
+    status_t LogManagerImpl::SetContext(const std::string& name, GUID_t value, PiiKind piiKind)
+    {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.setCustomField(name, prop);
         return STATUS_SUCCESS;
     }
+
+    /// <summary>
+    /// Obtain current ILogConfiguration instance associated with the LogManager
+    /// </summary>
+    ILogConfiguration & LogManagerImpl::GetLogConfiguration()
+    {
+        return m_logConfiguration;
+    }
+
 
     ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject)
     {
@@ -546,7 +562,6 @@ namespace ARIASDK_NS_BEGIN {
     {
         return m_logSessionData.get();
     }
-
 
     status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
     {

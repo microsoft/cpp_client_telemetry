@@ -164,6 +164,12 @@ extern "C" void test_c_api();
 
 int main()
 {
+    if (1)
+    {
+        test_c_api();
+        return 0;
+    }
+
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
     OfficeTest();
     if (1)
@@ -185,8 +191,13 @@ int main()
 
     // config["stats"]["interval"] = 1;     // uncomment for accelerated stats sent every second
 
+#ifdef __APPLE__
+    config[CFG_STR_CACHE_FILE_PATH]   = "/tmp/offlinestorage.db";
+#else
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
-    config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  0xFFFFFFFF ^ 128;
+#endif
+
+    config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  // 0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
@@ -195,8 +206,6 @@ int main()
 #endif
     config[CFG_INT_RAM_QUEUE_SIZE]    = 32 * 1024 * 1024;  // 32 MB heap limit for sqlite3
     config[CFG_INT_CACHE_FILE_SIZE]   = 16 * 1024 * 1024; // 16 MB storage file limit
-
-    // printf("LogConfiguration: %s\n", configuration.data());
 
     printf("Adding debug event listeners...\n");
     auto eventsList = {
@@ -230,6 +239,10 @@ int main()
      
     printf("LogManager::GetSemanticContext \n");
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
+    semanticContext->SetAppVersion("1.0.1");
+    semanticContext->SetAppLanguage("en-US");
+//  semanticContext->SetUserId("maxgolov@microsoft.com");
+    semanticContext->SetUserLanguage("en-US");
 
     // Ingest events of various latencies
     printf("Starting stress-test...\n");

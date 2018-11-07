@@ -98,7 +98,7 @@ namespace PAL_NS_BEGIN {
         return converterX.to_bytes(wstr);
     }
 
-    std::string DeviceInformationImpl::GetDeviceTicket()
+    std::string DeviceInformationImpl::GetDeviceTicket() const
     {
         return m_deviceTicket;
     }

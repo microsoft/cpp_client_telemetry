@@ -34,8 +34,6 @@ set(SRCS decorators/BaseDecorator.cpp
   exp/ecs/ecsclient/ECSConfigCache.cpp
   exp/JsonHelper.cpp
   exp/EXPCommonClient.cpp
-  pal/NetworkInformationImpl.cpp
-  pal/DeviceInformationImpl.cpp
   pal/InformationProviderImpl.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
@@ -57,23 +55,35 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     http/HttpClient.hpp
     pal/PAL_CPP11.cpp
     pal/PAL_CPP11.hpp
-    pal/linux/LinuxDeviceInformationImpl.cpp
-    pal/linux/LinuxNetworkInformationImpl.cpp
-    pal/linux/LinuxSystemInformationImpl.cpp
-    pal/linux/sysinfo_sources.cpp
+    pal/posix/DeviceInformationImpl.cpp
+    pal/posix/NetworkInformationImpl.cpp
+    pal/posix/SystemInformationImpl.cpp
+    pal/posix/sysinfo_sources.cpp
+  )
+elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
+# Win32 Desktop for now.
+# TODO: define a separate PAL for Win10 cmake build
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
+add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DARIASDK_PLATFORM_WINDOWS=1 -DARIASDK_SHARED_LIB=1 -D_ARIA_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+remove_definitions(-D_MBCS)
+  list(APPEND SRCS
+    http/HttpClient_WinInet.cpp
+    http/HttpClient_WinInet.hpp
+    http/HttpClient.hpp
+    pal/PAL_Win32.cpp
+    pal/PAL_Win32.hpp
+    pal/win32/WindowsDesktopDeviceInformationImpl.cpp
+    pal/win32/WindowsDesktopNetworkInformationImpl.cpp
+    pal/win32/WindowsDesktopSystemInformationImpl.cpp
+    pal/win32/WindowsEnvironmentInfo.cpp
+    pal/win32/NetworkDetector.cpp
+    pal/win32/UtcHelpers.cpp
+    system/UtcTelemetrySystem.cpp
   )
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()
 
-if(ARIASDK_UTC_ENABLED)
-  list(APPEND SRCS
-    utc/MicrosoftTelemetry.h
-    utc/traceloggingdynamic.h
-    utc/UtcForwarder.cpp
-    utc/UtcForwarder.hpp
-  )
-endif()
 
 create_source_files_groups_per_folder(${SRCS})
 

@@ -175,7 +175,7 @@ namespace ARIASDK_NS_BEGIN {
             return config[CFG_INT_MAX_TEARDOWN_TIME];
         }
 
-        virtual Variant & operator[](const char* key)
+        virtual Variant & operator[](const char* key) override
         {
             return config[key]; // FIXME: [MG] - Error #116: LEAK 32 bytes
         }

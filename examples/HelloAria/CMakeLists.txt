@@ -37,7 +37,13 @@ else()
 set (SQLITE3_LIB "sqlite3")
 endif()
 
+set (PLATFORM_LIBS "")
+# Add flags for obtaining system UUID via IOKit
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
+endif()
+
 #tcmalloc turned off by default
 #target_link_libraries(HelloAria ${ARIA_SDK_LIB}/libaria.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
 
-target_link_libraries(HelloAria ${ARIA_SDK_LIB}/libaria.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl)
+target_link_libraries(HelloAria ${ARIA_SDK_LIB}/libaria.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)

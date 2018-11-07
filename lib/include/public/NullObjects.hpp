@@ -139,6 +139,12 @@ namespace ARIASDK_NS_BEGIN {
             return STATUS_ENOSYS;
         }
 
+        virtual ILogConfiguration& GetLogConfiguration() override
+        {
+            static ILogConfiguration nullConfig;
+            return nullConfig;
+        }
+
         virtual const std::string & GetTransmitProfileName() override
         {
             static std::string nothing;
@@ -246,7 +252,7 @@ namespace ARIASDK_NS_BEGIN {
             return nullptr;
         }
 
-        virtual ILogController* GetLogController()
+        virtual ILogController* GetLogController() override
         {
             return this;
         }

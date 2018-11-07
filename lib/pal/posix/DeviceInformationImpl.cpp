@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #define LOG_MODULE DBG_API
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
@@ -46,7 +47,7 @@ namespace PAL_NS_BEGIN {
 
     }
 
-    std::string DeviceInformationImpl::GetDeviceTicket()
+    std::string DeviceInformationImpl::GetDeviceTicket() const
     {
         return m_deviceTicket;
     }

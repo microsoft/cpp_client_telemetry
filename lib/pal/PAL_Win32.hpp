@@ -1,5 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
-
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #pragma once
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
@@ -283,7 +282,7 @@ namespace PAL_NS_BEGIN {
     void unregisterSemanticContext(ISemanticContext * context);
 
     // Convert various numeric types and bool to string in an uniform manner.
-    template<typename T, typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
+    template<typename T>
     std::string to_string(char const* format, T value)
     {
         // TODO: [MG] - sync with Linux implementation

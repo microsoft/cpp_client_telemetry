@@ -141,12 +141,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp">
       <Filter>pal</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.cpp">
-      <Filter>pal</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.cpp">
-      <Filter>pal</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
       <Filter>tpm</Filter>
     </ClCompile>
@@ -556,6 +550,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventPropertiesStorage.hpp">
       <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CAPIClient.hpp">
+      <Filter>include\public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

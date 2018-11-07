@@ -8,30 +8,34 @@
 #include <vector>
 #include <map>
 
+#ifndef _WIN32
+#include <sys/errno.h>
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
-    /// <summary> 
-    /// The status_t enumeration contains a set of status code. 
-    /// </summary> 
+    /// <summary>
+    /// The status_t enumeration contains a set of status code.
+    /// </summary>
     enum status_t
     {
-        /// <summary>General failure</summary> 
-        STATUS_EFAIL    = -1,
+        /// <summary>General failure</summary>
+        STATUS_EFAIL = -1,
 
         /// <summary>Success.</summary>
-        STATUS_SUCCESS  = 0,
+        STATUS_SUCCESS = 0,
 
-        /// <summary>Permission denied</summary> 
-        STATUS_EPERM    = EPERM,
+        /// <summary>Permission denied</summary>
+        STATUS_EPERM = EPERM,
 
-        /// <summary>Already done / already in progress</summary> 
+        /// <summary>Already done / already in progress</summary>
         STATUS_EALREADY = EALREADY,
 
-        /// <summary>Not implemented or no-op</summary> 
-        STATUS_ENOSYS   = ENOSYS,
+        /// <summary>Not implemented or no-op</summary>
+        STATUS_ENOSYS = ENOSYS,
 
-        /// <summary>Not supported.</summary> 
-        STATUS_ENOTSUP  = ENOTSUP
+        /// <summary>Not supported.</summary>
+        STATUS_ENOTSUP = ENOTSUP
     };
 
     enum DataCategory

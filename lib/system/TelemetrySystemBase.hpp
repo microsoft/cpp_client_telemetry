@@ -110,9 +110,8 @@ namespace ARIASDK_NS_BEGIN {
             m_done.post();
         };
 
-        virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override
+        virtual void handleIncomingEventPrepared(IncomingEventContextPtr const&) override
         {
-            (event);
         };
 
         virtual void preparedIncomingEventAsync(IncomingEventContextPtr const& event) override
@@ -129,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
         /// Gets the log manager.
         /// </summary>
         /// <returns></returns>
-        ILogManager& getLogManager()
+        ILogManager& getLogManager() override
         {
             return m_logManager;
         }
@@ -138,12 +137,12 @@ namespace ARIASDK_NS_BEGIN {
         /// Gets the configuration.
         /// </summary>
         /// <returns></returns>
-        IRuntimeConfig& getConfig()
+        IRuntimeConfig& getConfig() override
         {
             return m_config;
         }
 
-        ISemanticContext& getContext()
+        ISemanticContext& getContext() override
         {
             return m_logManager.GetSemanticContext();
         }

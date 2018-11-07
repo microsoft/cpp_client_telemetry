@@ -50,7 +50,9 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         if (m_reserved_records.size())
+        {
             LOG_WARN("Discarding %u reserved records", m_reserved_records.size());
+        }
     }
     
     /// <summary>

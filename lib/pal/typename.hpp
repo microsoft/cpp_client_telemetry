@@ -1,6 +1,6 @@
 #ifndef TYPENAME_HPP
 #define TYPENAME_HPP
-
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #include <string>
 #include <typeinfo>
 

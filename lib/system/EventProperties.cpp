@@ -361,7 +361,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 #ifdef ARIA_C_API
-    static inline void cppprop_to_cprop(EventProperty &rhs, aria_prop &lhs)
+    static inline void cppprop_to_cprop(EventProperty &rhs, evt_prop &lhs)
     {
         switch (rhs.type)
         {
@@ -381,7 +381,7 @@ namespace ARIASDK_NS_BEGIN {
             lhs.value.as_bool = rhs.as_bool;
             break;
         case TYPE_GUID:
-            lhs.value.as_guid = new aria_guid_t();
+            lhs.value.as_guid = new evt_guid_t();
             // TODO: copy from GUID_t to aria_guid_t
             break;
 #if 0
@@ -403,10 +403,10 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    aria_prop* EventProperties::pack()
+    evt_prop* EventProperties::pack()
     {
         size_t size = m_storage->Properties.size() + m_storage->PropertiesPartB.size() + 1;
-        aria_prop * result = (aria_prop *)calloc(sizeof(aria_prop), size);
+        evt_prop * result = static_cast<evt_prop *>(calloc(sizeof(evt_prop), size));
         size_t i = 0;
         for(auto &props : { m_storage->Properties, m_storage->PropertiesPartB })
             for (auto &kv : props)
@@ -414,7 +414,7 @@ namespace ARIASDK_NS_BEGIN {
                 auto k = kv.first;
                 auto v = kv.second;
                 result[i].name = (char *)k.c_str();
-                result[i].type = (aria_prop_type)v.type;
+                result[i].type = static_cast<evt_prop_t>(v.type);
                 result[i].piiKind = v.piiKind;
                 cppprop_to_cprop(v, result[i]);
             };
@@ -422,14 +422,14 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
-    bool EventProperties::unpack(aria_prop *packed)
+    bool EventProperties::unpack(evt_prop *packed)
     {
         // List of attributes going into envelope section
         static const std::string keyName = "name";
         static const std::string keyTime = "time";
         static const std::string keyPopSample = "popSample";
 
-        aria_prop *curr = packed;
+        evt_prop *curr = packed;
         for (size_t i = 0; curr->type != TYPE_NULL; i++, curr++)
         {
             // Event name
@@ -487,7 +487,6 @@ namespace ARIASDK_NS_BEGIN {
                 break;
             }
         }
-        (packed);
         return true;
     }
 #endif /* end of ARIA_C_API */

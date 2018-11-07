@@ -29,6 +29,14 @@
 #define _WINRT
 #endif
 
+#ifndef EOK
+#define EOK 0
+#endif
+
+#ifndef EFAIL
+#define EFAIL   -1
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
     // TODO: [MG] - refactor this
@@ -145,7 +153,7 @@ namespace ARIASDK_NS_BEGIN {
         case EventLatency_RealTime:
             return "RealTime";
 
-        case EventPriority_Immediate:
+        case EventLatency_Max:
             return "Immediate";
 
         default:
@@ -177,6 +185,8 @@ namespace ARIASDK_NS_BEGIN {
     std::string from_platform_string(Platform::String ^ ps);
 
 #endif
+
+    unsigned hashCode(const char* str, int h = 0);
 
 } ARIASDK_NS_END
 

@@ -49,6 +49,12 @@ namespace PAL_NS_BEGIN {
         /// </summary>
         /// <returns>Source of power the device is using</returns>
         virtual PowerSource GetPowerSource() const = 0;
+
+        /// <summary>
+        /// Gets the device ticket.
+        /// </summary>
+        /// <returns>Device ticket</returns>
+        virtual std::string GetDeviceTicket() const = 0;
     };
 
 } PAL_NS_END

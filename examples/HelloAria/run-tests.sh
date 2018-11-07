@@ -1,12 +1,11 @@
 #!/bin/bash
 
-
-#
-# Clean-up previous results
-#
-sudo rm /tmp/aria*.log
-sudo rm offline*
-sudo rm -f heap*
+##
+## Clean-up previous results
+##
+#sudo rm /tmp/aria*.log
+#sudo rm offline*
+#sudo rm -f heap*
 
 BIN=./out/HelloAria
 

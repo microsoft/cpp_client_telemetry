@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft. All rights reserved.
 #include "Version.hpp"
 #include "WindowsEnvironmentInfo.h"
 #include <Windows.h>

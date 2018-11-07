@@ -2,12 +2,14 @@
 #define ARIA_LOGMANAGER_HPP
 // Copyright (c) Microsoft. All rights reserved.
 
-// TODO: [MG] - temporary workaround for error: ISO C++ does not permit ‘XXX::foo’ to be defined as ‘YYY::foo’
+// TODO: [MG] - temporary workaround for error: ISO C++ does not permit ï¿½XXX::fooï¿½ to be defined as ï¿½YYY::fooï¿½
 // This error is benign and this syntax is allowed by MSVC and clang. We utilize this down there below to
 // instantiate a private singleton using a macro and a template.
 
 #pragma warning(push)
-#pragma warning(disable:4459 4100 4121 4244)
+#pragma warning(disable:4459 4100 4121 4244 4068)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-var-template"
 
 #ifdef _MANAGED
 #include <msclr/lock.h>
@@ -30,6 +32,16 @@ public:
             return STATUS_SUCCESS;                  \
         }                                           \
         return STATUS_EFAIL;                        \
+    }
+
+#define LM_SAFE_CALL_STR(method , ... )             \
+    {                                               \
+        LM_LOCKGUARD(stateLock());                  \
+        if (nullptr != instance)                    \
+        {                                           \
+            return instance-> method ( __VA_ARGS__);\
+        }                                           \
+        return "";                                  \
     }
 
 #define LM_SAFE_CALL_PTR(method , ... )             \
@@ -338,8 +350,8 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>Get profile name based on built-in profile enum<summary>
         /// <param name="profile">Transmit profile</param>
-        static const std::string& GetTransmitProfileName()
-            LM_SAFE_CALL_PTR(GetTransmitProfileName);
+        static std::string GetTransmitProfileName()
+            LM_SAFE_CALL_STR(GetTransmitProfileName);
 
         /// <summary>
         /// Retrieve an ISemanticContext interface through which to specify context information 
@@ -565,7 +577,7 @@ namespace ARIASDK_NS_BEGIN
     };
 
 // Implements LogManager<T> singleton template static  members
-#if defined(_MANAGED) || defined(_MSC_VER)
+#if (defined(_MANAGED) || defined(_MSC_VER)) && (!defined(__clang__))
 // Definition that is compatible with managed and native code compiled with MSVC.
 // Unfortuantey we can't use ISO C++11 template definitions because of compiler bug
 // that causes improper global static templated member initialization:
@@ -580,5 +592,8 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
 } ARIASDK_NS_END
+
+#pragma clang diagnostic pop
 #pragma warning(pop)
+
 #endif

@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft. All rights reserved.
 #pragma once
 #include "Enums.hpp"
 #include <string>

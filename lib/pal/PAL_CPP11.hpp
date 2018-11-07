@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #ifndef PAL_CPP11_HPP
 #define PAL_CPP11_HPP
 
@@ -41,7 +41,7 @@
 
 namespace ARIASDK_NS_BEGIN {
     extern void print_backtrace();
-}ARIASDK_NS_END
+} ARIASDK_NS_END
 
 #ifdef _WIN32
 #define PATH_SEPARATOR_CHAR '\\'
@@ -88,13 +88,13 @@ namespace PAL_NS_BEGIN {
             if (millis == UINT_MAX)
             {
                 std::unique_lock< std::mutex > lock(m_mutex);
-                m_condition.wait(lock, [&]()->bool {return m_bFlag;});
+                m_condition.wait(lock, [&]()->bool {return m_bFlag; });
                 return true;
             }
 
             auto crRelTime = std::chrono::milliseconds(millis);
             std::unique_lock<std::mutex> ulock(m_mutex);
-            if (!m_condition.wait_for(ulock, crRelTime, [&]()->bool {return m_bFlag;}))
+            if (!m_condition.wait_for(ulock, crRelTime, [&]()->bool {return m_bFlag; }))
                 return false;
             return true;
         }
@@ -120,7 +120,7 @@ namespace PAL_NS_BEGIN {
             return bWasSignalled;
         }
 
-        inline bool IsSet() const {return m_bFlag;}
+        inline bool IsSet() const { return m_bFlag; }
 
     };
 
@@ -133,7 +133,7 @@ namespace PAL_NS_BEGIN {
         class WorkerThreadItem
         {
         public:
-            volatile enum {Shutdown, Call, TimedCall, Done}type;
+            volatile enum { Shutdown, Call, TimedCall, Done } type;
             int64_t targetTime;
             virtual ~WorkerThreadItem() {}
             virtual void operator()() {}
@@ -151,11 +151,11 @@ namespace PAL_NS_BEGIN {
             WorkerThreadCall(TCall& call) :
                 WorkerThreadItem(),
                 m_call(call)
-        {
+            {
                 this->typeName = __typename(call);
                 this->type = WorkerThreadItem::Call;
                 this->targetTime = -1;
-        }
+            }
 
             WorkerThreadCall(TCall& call, int64_t targetTime) :
                 WorkerThreadItem(),
@@ -190,9 +190,9 @@ namespace PAL_NS_BEGIN {
     public:
         detail::WorkerThreadItemPtr m_item;
 
-        DeferredCallbackHandle(detail::WorkerThreadItemPtr item) : m_item(item) {};
+        DeferredCallbackHandle(detail::WorkerThreadItemPtr item) : m_item(item) { };
         DeferredCallbackHandle() : m_item(nullptr) {};
-        DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) {};
+        DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) { };
         void cancel()
         {
             if (m_item)
@@ -259,8 +259,8 @@ namespace PAL_NS_BEGIN {
         }
 
     protected:
-        std::default_random_engine m_engine {std::random_device()()};
-        std::uniform_real_distribution<double> m_distribution {0.0, 1.0};
+        std::default_random_engine m_engine{ std::random_device()() };
+        std::uniform_real_distribution<double> m_distribution{ 0.0, 1.0 };
 #else   /* Unfortunately the functionality above fails memory checker on Linux with gcc-5 */
     public:
         double getRandomDouble()
@@ -285,6 +285,8 @@ namespace PAL_NS_BEGIN {
     void unregisterSemanticContext(ISemanticContext * context);
 
     // Convert various numeric types and bool to string in an uniform manner.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
     template<typename T>// , typename Check = std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, bool>::value, void>::type>
     std::string to_string(char const* format, T value)
     {
@@ -292,13 +294,13 @@ namespace PAL_NS_BEGIN {
         // This function is private so it will only be called for numeric types.
         static const int buf_size = 33;
         char buf[buf_size] = {0};
-        int rc = snprintf(buf, buf_size, format, value);
-        (rc);
+        snprintf(buf, buf_size, format, value);
         return std::string(buf);
     }
 
     // Return SDK version in Aria schema "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
     std::string getSdkVersion();
+#pragma clang diagnostic pop
 
 } PAL_NS_END
 

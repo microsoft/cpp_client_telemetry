@@ -31,14 +31,11 @@ namespace ARIASDK_NS_BEGIN {
     class ITelemetrySystem;
 
     class ILogManagerInternal : public ILogManager {
-
     public:
-
         static std::recursive_mutex     managers_lock;
         static std::set<ILogManager*>   managers;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
-
     };
 
     class Logger;
@@ -65,7 +62,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual status_t SetTransmitProfile(TransmitProfile profile) override;
         virtual status_t SetTransmitProfile(const std::string& profile) override;
         virtual status_t LoadTransmitProfiles(const std::string& profiles_json) override;
-        virtual status_t ResetTransmitProfiles();
+        virtual status_t ResetTransmitProfiles() override;
         virtual const std::string& GetTransmitProfileName() override;
 
         /**
@@ -101,6 +98,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual status_t SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
 
+        virtual ILogConfiguration & GetLogConfiguration() override;
 
         /**
          * GetLogger method
@@ -109,7 +107,7 @@ namespace ARIASDK_NS_BEGIN {
 
         LogSessionData* GetLogSessionData() override;
 
-        ILogController *GetLogController(void);
+        ILogController *GetLogController(void) override;
 
         IAuthTokensController* GetAuthTokensController() override;
 
@@ -147,7 +145,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="filterStrings">The filter strings.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount);
+        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
         
 
         /// <summary>
@@ -158,7 +156,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="filterRates">The filter rates.</param>
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount);
+        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
 
         /// <summary>
         /// Adds the incoming event.

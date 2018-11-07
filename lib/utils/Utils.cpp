@@ -325,4 +325,9 @@ namespace ARIASDK_NS_BEGIN {
     }
 #endif
 
+    unsigned hashCode(const char* str, int h)
+    {
+        return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
+    }
+
 } ARIASDK_NS_END

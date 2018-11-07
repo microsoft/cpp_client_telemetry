@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #pragma once
 #include "pal/PAL.hpp"
 #include "Enums.hpp"
@@ -24,9 +25,9 @@ namespace PAL_NS_BEGIN {
         virtual NetworkType GetNetworkType() { return m_type; }
         virtual NetworkCost GetNetworkCost() { return m_cost; }
 
-        virtual bool IsEthernetAvailable();
-        virtual bool IsWifiAvailable();
-        virtual bool IsWwanAvailable();
+        virtual bool IsEthernetAvailable() { return false; }
+        virtual bool IsWifiAvailable() { return false; }
+        virtual bool IsWwanAvailable() { return false; }
 
         NetworkInformationImpl();
         virtual ~NetworkInformationImpl();

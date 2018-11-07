@@ -15,7 +15,11 @@
 #endif
 #endif
 
+#ifdef _WIN32
 #define USE_SYNC_HTTPRESPONSE_HANDLER
+#else
+// Linux and Mac OS X with libcurl require an async handler for now
+#endif
 
 namespace ARIASDK_NS_BEGIN {
 

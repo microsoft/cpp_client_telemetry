@@ -101,7 +101,12 @@ namespace Microsoft {
                         char month[4] = {};
 
                         // There should be 7 valid fields scanned. 
+#ifdef _MSC_VER
                         if (7 == sscanf_s(gmt.c_str(), "%3c, %d %3c %d %d:%d:%d", wday, 3, &tms.tm_mday, month, 3, &tms.tm_year, &tms.tm_hour, &tms.tm_min, &tms.tm_sec))
+#else
+// There is NO sscanf_s in the standard, so we cannot use it with clang and gcc. Previous 'hack' for gcc won't work for clang
+                        if (7 == sscanf(gmt.c_str(), "%3c, %d %3c %d %d:%d:%d", wday, &tms.tm_mday, month, &tms.tm_year, &tms.tm_hour, &tms.tm_min, &tms.tm_sec))
+#endif
                         {
                             tms.tm_wday = GetDayIndex(wday);
                             tms.tm_mon = GetMonthIndex(month);

@@ -113,7 +113,7 @@ namespace ARIASDK_NS_BEGIN
     /// This class is used to manage the Events logging system
     /// </summary>
     class ARIASDK_LIBABI ILogManager :
-        protected ILogController,
+        public ILogController,
         public IContextProvider,
         public DebugEventDispatcher
     {
@@ -124,7 +124,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="evt">DebugEvent</param>
         /// <returns></returns>
-        virtual bool DispatchEvent(DebugEvent evt) = 0;
+        virtual bool DispatchEvent(DebugEvent evt) override = 0;
 
         /// <summary>
         /// Dispatches broadcast event to all active ILogManager instances.
@@ -270,6 +270,9 @@ namespace ARIASDK_NS_BEGIN
         /// whose configuration IDs are associated with events sent by this ILogger.</param>
         /// <returns>A pointer to the ILogger instance.</returns>
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) = 0;
+
+        /// <summary>Retrieves the current LogManager instance configuration</summary>
+        virtual ILogConfiguration& GetLogConfiguration() = 0;
 
         /// <summary>
         /// Adds the event listener.

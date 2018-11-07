@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #define LOG_MODULE DBG_PAL
 #include "pal/PAL.hpp"
 #include "pal/NetworkInformationImpl.hpp"
@@ -8,7 +9,7 @@ namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
-    class LinuxNetworkInformation : public NetworkInformationImpl
+    class NetworkInformation : public NetworkInformationImpl
     {
         std::string m_network_provider;
 
@@ -17,12 +18,12 @@ namespace PAL_NS_BEGIN {
         ///
         /// </summary>
         /// <param name="pal"></param>
-        LinuxNetworkInformation();
+        NetworkInformation();
 
         /// <summary>
         ///
         /// </summary>
-        virtual ~LinuxNetworkInformation();
+        virtual ~NetworkInformation();
 
         /// <summary>
         /// Gets the current network provider for the device
@@ -58,20 +59,20 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    LinuxNetworkInformation::LinuxNetworkInformation() :
+    NetworkInformation::NetworkInformation() :
         NetworkInformationImpl()
     {
         m_type = NetworkType_Wired;
         m_cost = NetworkCost_Unmetered;
     }
 
-    LinuxNetworkInformation::~LinuxNetworkInformation()
+    NetworkInformation::~NetworkInformation()
     {
     }
 
     INetworkInformation* NetworkInformationImpl::Create()
     {
-        return new LinuxNetworkInformation();
+        return new NetworkInformation();
     }
 
 } PAL_NS_END

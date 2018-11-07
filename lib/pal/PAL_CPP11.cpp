@@ -1,5 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
-
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #include "PAL.hpp"
 #ifdef ARIASDK_PAL_CPP11
 #include "ILogManager.hpp"
@@ -87,7 +86,11 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
+#ifdef NDEBUG
+        LogLevel g_logLevel = LogLevel::Error;
+#else
         LogLevel g_logLevel = LogLevel::Detail;
+#endif
 
 #define DBG_BUFFER_LEN		2048
 
@@ -279,9 +282,17 @@ namespace PAL_NS_BEGIN {
                     m_hThread.detach();
             }
             catch (...) {};
-            assert(m_queue.empty());
-            // FIXME: [MG] - investigate why sometimes we shutdown on non-empty queue?!
-            assert(m_timerQueue.empty());
+
+            // TODO: [MG] - investigate how often that happens.
+            // Side-effect is that we have a queued work item discarded on shutdown.
+            if (!m_queue.empty())
+            {
+                LOG_WARN("m_queue is not empty!");
+            }
+            if (!m_timerQueue.empty())
+            {
+                LOG_WARN("m_timerQueue is not empty!");
+            }
         }
 
         void queue(detail::WorkerThreadItemPtr item)
@@ -336,11 +347,14 @@ namespace PAL_NS_BEGIN {
     protected:
         static void threadFunc(void* lpThreadParameter)
         {
+            uint64_t wakeupCount = 0;
+
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
             detail::WorkerThreadItemPtr item = nullptr;
             for (;;) {
+                wakeupCount++;
                 unsigned nextTimerInMs = UINT_MAX;
                 {
                     LOCKGUARD(self->m_lock);
@@ -361,16 +375,16 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (!item) {
-                    self->m_event.wait(nextTimerInMs);
-                    Sleep(100);
+                    if (!self->m_event.Reset())
+                        self->m_event.wait(nextTimerInMs);
                     continue;
                 }
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
-                    break;
+                    break; // TODO: [MG] - delete item
                 }
                 
-                LOG_TRACE("Execute item=%p type=%s\n", item, item->typeName.c_str() );
+                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item, item->typeName.c_str() );
                 self->m_itemInProgress = item;
                 (*item)();
                 self->m_itemInProgress = nullptr;
@@ -436,6 +450,7 @@ namespace PAL_NS_BEGIN {
         return getUtcSystemTimeMs() / 1000;
     }
 
+    // TODO: [MG] - use time_ticks_t for that
     int64_t getUtcSystemTimeinTicks()
     {
 #ifdef _WIN32
@@ -482,10 +497,9 @@ namespace PAL_NS_BEGIN {
         }
 
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-        int rc = snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+        snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
             1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
             tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
-        (rc);
 #endif
         return buf;
     }
@@ -550,15 +564,25 @@ namespace PAL_NS_BEGIN {
     void unregisterSemanticContext(ISemanticContext* context)
     {
         UNREFERENCED_PARAMETER(context);
-        OACR_USE_PTR(this);
     }
+
+// FIXME: [MG] - This isn't the most elegant way of OS name detection
+#undef OS_NAME
+#ifdef __APPLE__
+#define OS_NAME "MacOSX"
+#else
+#define OS_NAME "Linux"
+#endif
+
+// FIXME: [MG] - we'd be rolling out SKU without ECS for 3r parties
+#define ECS_SUPP "ECS"
 
     //---
     // TODO: [MG] - make it portable...
     std::string getSdkVersion()
     {
         // TODO: [MG] - move this code to common PAL code
-        return std::string(ARIASDK_VERSION_PREFIX "-Linux-C++-No-") + BUILD_VERSION_STR;
+        return std::string(ARIASDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-") + BUILD_VERSION_STR;
     }
 
     //---

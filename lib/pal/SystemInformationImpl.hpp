@@ -1,6 +1,6 @@
 #ifndef SYSTEMINFORMATIONIMPL_HPP
 #define SYSTEMINFORMATIONIMPL_HPP
-
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #include <pal/PAL.hpp>
 
 #include "ISystemInformation.hpp"
@@ -23,19 +23,19 @@ namespace PAL_NS_BEGIN {
         virtual void UnRegisterInformationChangedCallback(int callbackToken) override;
 
         // ISystemInformation API
-        virtual std::string const& GetAppId() const { return m_app_id; };
-        virtual std::string const& GetAppVersion() const { return m_app_version; }
-        virtual std::string const& GetAppLanguage() const { return m_app_language; }
+        virtual std::string const& GetAppId() const override { return m_app_id; };
+        virtual std::string const& GetAppVersion() const override { return m_app_version; }
+        virtual std::string const& GetAppLanguage() const override { return m_app_language; }
 
-        virtual std::string const& GetOsFullVersion() const { return m_os_full_version; };
-        virtual std::string const& GetOsMajorVersion() const { return m_os_major_version; };
-        virtual std::string const& GetOsName() const { return m_os_name; };
+        virtual std::string const& GetOsFullVersion() const override { return m_os_full_version; };
+        virtual std::string const& GetOsMajorVersion() const override { return m_os_major_version; };
+        virtual std::string const& GetOsName() const override { return m_os_name; };
 
-        virtual std::string const& GetUserLanguage() const { return m_user_language; };
-        virtual std::string const& GetUserTimeZone() const { return m_user_timezone; };
-        virtual std::string const& GetUserAdvertisingId() const { return m_user_advertising_id; };
+        virtual std::string const& GetUserLanguage() const override { return m_user_language; };
+        virtual std::string const& GetUserTimeZone() const override { return m_user_timezone; };
+        virtual std::string const& GetUserAdvertisingId() const override { return m_user_advertising_id; };
 
-        virtual std::string const& GetDeviceClass() const { return m_device_class; };
+        virtual std::string const& GetDeviceClass() const override { return m_device_class; };
 
     private:
         std::string m_app_id;

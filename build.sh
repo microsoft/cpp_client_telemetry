@@ -15,23 +15,40 @@ fi
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
-if [ ! -f .buildtools ]; then
-  sudo tools/setup-buildtools.sh
-  echo >.buildtools
+OS_NAME=`uname -a`
+if [ ! -f $FILE ]; then
+case "$OS_NAME" in
+ *Darwin*) echo "TODO: install build tools on Mac OS X..." ;;
+ *Linux*)  sudo tools/setup-buildtools.sh ;;
+ *)        echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation.."
+esac
+# Assume that the build tools have been successfully installed
+echo > $FILE
 fi
 
 if [ -f /usr/bin/gcc ]; then
-echo "gcc version: `gcc --version`"
+echo "gcc   version: `gcc --version`"
+fi
+
+if [ -f /usr/bin/clang ]; then
+echo "clang version: `clang --version`"
 fi
 
 #rm -rf out
 mkdir -p out
 cd out
 
+# .tgz package
+CMAKE_PACKAGE_TYPE=tgz
+
+# .deb package
+if [ -f /usr/bin/dpkg ]; then
+export CMAKE_PACKAGE_TYPE=deb
+fi
+
+# .rpm package
 if [ -f /usr/bin/rpmbuild ]; then
 export CMAKE_PACKAGE_TYPE=rpm
-else
-export CMAKE_PACKAGE_TYPE=deb
 fi
 
 if [ "$2" == "release" ]; then
@@ -43,7 +60,9 @@ else
 fi
 
 # Build all
-make
+# TODO: what are the pros and cons of using 'make' vs 'cmake --build' ?
+#make
+cmake --build .
 
 # Remove old package
 rm -f *.deb *.rpm
@@ -51,24 +70,25 @@ rm -f *.deb *.rpm
 # Build new package
 make package
 
+# Debian / Ubuntu / Raspbian
 if [ -f /usr/bin/dpkg ]; then
 # Install new package
 sudo dpkg -i *.deb
-else
+fi
+
+# RedHat / CentOS
+if [ -f /usr/bin/rpmbuild ]; then
 sudo rpm -i --force -v *.rpm
 fi
 
-# TODO: remove this section below ... consider moving 'strip' commands to release configuration above
-#
 # Install SDK headers and lib to /usr/local
 #
-#cd ..
-#ARIA_SDK_INSTALL_DIR="${ARIA_SDK_INSTALL_DIR:-/usr/local}"
-#echo "Install SDK to $ARIA_SDK_INSTALL_DIR .."
-#sudo mkdir -p $ARIA_SDK_INSTALL_DIR/lib/aria
-#sudo cp out/lib/libaria.a $ARIA_SDK_INSTALL_DIR/lib/aria
+## TODO: [MG] - fix this section for shared library
 ## strip --strip-unneeded out/lib/libaria.so
 ## strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag out/lib/libaria.so
-#sudo cp out/lib/libaria.so $ARIA_SDK_INSTALL_DIR/lib/aria
-#sudo mkdir -p $ARIA_SDK_INSTALL_DIR/include/aria
-#sudo cp lib/include/public/* $ARIA_SDK_INSTALL_DIR/include/aria
+
+if [ "$CMAKE_PACKAGE_TYPE" == "tgz" ]; then
+cd ..
+ARIA_SDK_INSTALL_DIR="${ARIA_SDK_INSTALL_DIR:-/usr/local}"
+sudo ./install.sh $ARIA_SDK_INSTALL_DIR
+fi

@@ -1,5 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
-
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #include "PAL.hpp"
 #include <rtnet/rtnet_interface.hpp>
 #include <list>

@@ -30,7 +30,7 @@ namespace ARIASDK_NS_BEGIN
         virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
         virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
         virtual IEventFilter& GetTenantFilter(const std::string& normalizedTenantToken) override;
-        virtual void Reset();
+        virtual void Reset() override;
     };
 
 } ARIASDK_NS_END

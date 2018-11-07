@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
-
 /*
  * sysinfo_sources.cpp
  *
@@ -30,8 +29,39 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <vector>
 
 #include "EventProperty.hpp"
+
+#ifdef __APPLE__
+#include <IOKit/IOKitLib.h>
+#include <mach-o/dyld.h>
+#include <sys/syslimits.h>
+#include <libgen.h>
+
+// This would be better than  int gethostuuid(uuid_t id, const struct timespec *wait);
+void get_platform_uuid(char * buf, int bufSize)
+{
+    io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+    CFStringRef uuidCf = (CFStringRef) IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+    IOObjectRelease(ioRegistryRoot);
+    CFStringGetCString(uuidCf, buf, bufSize, kCFStringEncodingMacRoman);
+    CFRelease(uuidCf);
+}
+
+std::string get_app_name()
+{
+    std::vector<char> appId(PATH_MAX+1, 0);
+    uint32_t length = 0;
+    if(_NSGetExecutablePath(&appId[0], &length))
+    {
+        appId.resize(length, 0);
+	    _NSGetExecutablePath(&appId[0], &length);
+    }
+    std::string result = basename(appId.data());
+    return result;
+}
+#endif
 
 /**
  * Read file contents
@@ -79,27 +109,30 @@ static std::string Exec(const char* cmd)
  */
 bool sysinfo_sources::fetch(std::string key)
 {
-    for(auto &kv : (*this))
-    {
-        if(kv.first == key)
-        {
-            std::string contents = ReadFile(kv.second.path);
-            if((kv.second.selector == "*") || (kv.second.selector == ""))
-            {
-                cache[key] = contents;
-                return true;
-            }
-            // Run regexp
-            std::regex selector_regex(kv.second.selector);
-            std::smatch match;
-            if(std::regex_search(contents, match, selector_regex))
-            {
-                cache[key] = match[1];
-                return true;
-            }
-        }
-    }
-    return false;
+	for(auto &kv : (*this))
+	{
+		if(kv.first == key)
+		{
+			const std::string star("*");
+			const std::string empty("");
+
+			std::string contents = ReadFile(kv.second.path);
+			if((kv.second.selector == star) || (kv.second.selector == empty))
+			{
+				cache[key] = contents;
+				return true;
+			}
+			// Run regexp
+			std::regex selector_regex(kv.second.selector);
+			std::smatch match;
+			if(std::regex_search(contents, match, selector_regex))
+			{
+				cache[key] = match[1];
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**
@@ -164,6 +197,12 @@ public:
         add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName",  "*"});
 #endif
 
+#if defined(__APPLE__)
+        // FIXME: [MG] - This is not the most elegant way of obtaining it
+        cache["devMake"] = "Apple";
+        cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
+#endif
+
         // Fallback to uname if above methods failed
         if (!get("osVer").compare(""))
         {
@@ -180,8 +219,20 @@ public:
             cache["osRel"]  = (const char *)(buf.release);
         }
 
+#ifndef __APPLE__
+        add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
+#else
+    	cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
+#endif
+
         if (!get("devId").compare(""))
         {
+#ifdef __APPLE__
+        	// std::string contents = Exec("ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}'");
+        	char deviceId[512] = { 0 };
+        	get_platform_uuid(deviceId, sizeof(deviceId));
+        	cache["devId"] = MAT::GUID_t(deviceId).to_string(); // TODO: [MG] - do we need to prepend i:{...} here?
+#else
             // We were unable to obtain Device Id using standard means.
             // Try to use hash of blkid + hostname instead. Both blkid
             // and hostname would rarely change, as well as guarantee
@@ -196,9 +247,9 @@ public:
                 }
                 cache["devId"] = MAT::GUID_t(guid_bytes).to_string();
             }
+#endif
         }
 
-        add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
     }
 
 };

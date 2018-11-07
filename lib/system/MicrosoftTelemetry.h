@@ -91,12 +91,14 @@ Example:
 
 #include <evntprov.h>
 
+#ifndef __clang__
 // Enum declaration may be missing from older evntprov.h:
 enum _EVENT_INFO_CLASS
 #if !defined(__INTELLISENSE__) && defined(__cplusplus) && (_MSC_VER >= 1700)
     : int // base type for enum forward declaration
 #endif
     ;
+#endif
 
 /*
 Macro MICROSOFTTELEMETRY_EVENT_SET_INFORMATION:
