@@ -35,7 +35,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
-        virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
+        virtual std::vector<StorageRecord> GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 
         virtual void OnStorageOpened(std::string const& type) override;

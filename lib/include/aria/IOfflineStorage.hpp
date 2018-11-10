@@ -101,7 +101,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class IOfflineStorage {
     public:
-        virtual ~IOfflineStorage() {}
+		virtual ~IOfflineStorage() noexcept = default;
 
         /// <summary>
         /// Initialize the offline storage
@@ -271,7 +271,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="minPriority">lowest priority selected</param>
         /// <param name="maxCount"> max count to be selected</param>
         /// <returns>Value of the requested setting or an empty string</returns>
-        virtual std::vector<StorageRecord>* GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) = 0;
+        virtual std::vector<StorageRecord> GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) = 0;
 
         virtual bool ResizeDb() = 0;
 
