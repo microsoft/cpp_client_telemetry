@@ -101,7 +101,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class IOfflineStorage {
     public:
-		virtual ~IOfflineStorage() noexcept = default;
+        virtual ~IOfflineStorage() noexcept = default;
 
         /// <summary>
         /// Initialize the offline storage

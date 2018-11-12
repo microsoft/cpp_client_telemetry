@@ -311,7 +311,7 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(shutdown);
         UNREFERENCED_PARAMETER(minLatency);
         UNREFERENCED_PARAMETER(maxCount);
-		return std::vector<StorageRecord>{};
+        return std::vector<StorageRecord>{};
     }
 
     void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
