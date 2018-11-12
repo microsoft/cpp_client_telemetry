@@ -189,11 +189,10 @@ TEST(MemoryStorageTests, ReleaseRecords)
     auto total_records = storage.GetRecordCount();
 
     // Retrieve those into records
-    std::unique_ptr< std::vector<StorageRecord> > records;
-    records.reset(new std::vector<StorageRecord>);
+    std::vector<StorageRecord> records;
 
     auto consumer = [&records](StorageRecord&& record) -> bool {
-        records->push_back(std::move(record));
+        records.push_back(std::move(record));
         return true; // want more
     };
 
@@ -203,10 +202,10 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetSize(), 0);
     EXPECT_THAT(storage.GetRecordCount(), 0);
     EXPECT_THAT(storage.GetReservedCount(), total_records);
-    EXPECT_THAT(records->size(), total_records);
+    EXPECT_THAT(records.size(), total_records);
 
     // Track IDs of all reserved records
-    for (auto &record : *records)
+    for (auto &record : records)
     {
         ids.push_back(record.id);
     }
