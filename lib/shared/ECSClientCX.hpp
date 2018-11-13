@@ -66,7 +66,7 @@ namespace MATW_NS_BEGIN {
     {
     private:
         MAEE::IECSClient *m_ecsClient;
-        std::map<std::string, std::string> requestParams;
+        std::map<std::string, std::string> m_requestParams;
 
         std::vector<ECSClientCallbackProxy*> *listeners_native;
         std::vector<std::string> splitString(std::string str, char delimiter);

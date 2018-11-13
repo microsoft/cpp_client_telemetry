@@ -138,8 +138,8 @@ namespace MATW_NS_BEGIN {
 
     void ECSClient::ClearRequestParams() {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::ClearRequestParams");
-        requestParams.clear();
-        m_ecsClient->SetRequestParameters(requestParams);
+        m_requestParams.clear();
+        m_ecsClient->SetRequestParameters(m_requestParams);
     }
 
     bool ECSClient::SetRequestParameter(String^ name, String^ value)
@@ -147,8 +147,8 @@ namespace MATW_NS_BEGIN {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::SetRequestParameter");
         std::string key = FromPlatformString(name);
         std::string val = FromPlatformString(value);
-        requestParams.emplace(key, val);
-        return m_ecsClient->SetRequestParameters(requestParams);
+        m_requestParams.emplace(key, val);
+        return m_ecsClient->SetRequestParameters(m_requestParams);
     }
 
     bool ECSClient::Start()
