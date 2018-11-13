@@ -39,7 +39,6 @@ namespace MATW_NS_BEGIN {
     }
 
     ECSClient::ECSClient() {
-        requestParams = new std::map<std::string, std::string>();
         listeners_native = new std::vector<ECSClientCallbackProxy*>();
         m_ecsClient = MAEE::IECSClient::CreateInstance();
     }
@@ -55,7 +54,6 @@ namespace MATW_NS_BEGIN {
 #endif
             MAEE::IECSClient::DestroyInstance(ptr);
         }
-        delete requestParams;
         delete listeners_native;
     }
 
@@ -140,8 +138,8 @@ namespace MATW_NS_BEGIN {
 
     void ECSClient::ClearRequestParams() {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::ClearRequestParams");
-        requestParams->clear();
-        m_ecsClient->SetRequestParameters(*requestParams);
+        requestParams.clear();
+        m_ecsClient->SetRequestParameters(requestParams);
     }
 
     bool ECSClient::SetRequestParameter(String^ name, String^ value)
@@ -149,8 +147,8 @@ namespace MATW_NS_BEGIN {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::SetRequestParameter");
         std::string key = FromPlatformString(name);
         std::string val = FromPlatformString(value);
-        requestParams->emplace(key, val);
-        return m_ecsClient->SetRequestParameters(*requestParams);
+        requestParams.emplace(key, val);
+        return m_ecsClient->SetRequestParameters(requestParams);
     }
 
     bool ECSClient::Start()
