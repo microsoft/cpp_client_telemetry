@@ -39,7 +39,6 @@ namespace MATW_NS_BEGIN {
     }
 
     ECSClient::ECSClient() {
-        listeners_native = new std::vector<ECSClientCallbackProxy*>();
         m_ecsClient = MAEE::IECSClient::CreateInstance();
     }
 
@@ -54,7 +53,6 @@ namespace MATW_NS_BEGIN {
 #endif
             MAEE::IECSClient::DestroyInstance(ptr);
         }
-        delete listeners_native;
     }
 
     std::vector<std::string> ECSClient::splitString(std::string str, char delimiter)
@@ -86,7 +84,7 @@ namespace MATW_NS_BEGIN {
     bool ECSClient::AddListener(IECSClientCallback^ listener) {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::AddListener");
         ECSClientCallbackProxy *callback = new ECSClientCallbackProxy(listener);
-        listeners_native->push_back(callback);
+        listeners_native.push_back(callback);
         return m_ecsClient->AddListener(callback);
     }
 
@@ -103,11 +101,11 @@ namespace MATW_NS_BEGIN {
     {
         //CTDEBUGLOG("[ECSClientCX] ECSClient::RemoveListener");
         bool result = false;
-        for (std::vector<ECSClientCallbackProxy *>::iterator it = listeners_native->begin(); it != listeners_native->end(); ++it) {
+        for (std::vector<ECSClientCallbackProxy *>::iterator it = listeners_native.begin(); it != listeners_native.end(); ++it) {
             ECSClientCallbackProxy *callback = (*it);
             if (callback->compare(listener)) {
                 result = m_ecsClient->RemoveListener(callback);
-                listeners_native->erase(it);
+                listeners_native.erase(it);
                 delete callback;
             }
         }
