@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
-#include "pal/win32/WindowsEnvironmentInfo.h"
+#include "pal/desktop/WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
 #include <exception>  
 

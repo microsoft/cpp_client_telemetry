@@ -6,7 +6,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientTelemetry", "Clienttelemetry\Clienttelemetry.vcxitems", "{45D41ACC-2C3C-43D2-BC10-02AA73FFC7C7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32", "..\lib\pal\win32\win32.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32", "..\lib\pal\desktop\win32.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winrt", "..\lib\pal\winrt\winrt.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CC}"
 EndProject
@@ -78,12 +78,12 @@ EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\winrt\winrt.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
-		..\lib\pal\win32\win32.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cd}*SharedItemsImports = 9
-		..\lib\pal\win32\win32.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
+		..\lib\pal\desktop\win32.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cd}*SharedItemsImports = 9
+		..\lib\pal\desktop\win32.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
-		..\lib\pal\win32\win32.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
+		..\lib\pal\desktop\win32.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
-		..\lib\pal\win32\win32.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
+		..\lib\pal\desktop\win32.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{45d41acc-2c3c-43d2-bc10-02aa73ffc7c7}*SharedItemsImports = 9
 		..\lib\pal\winrt\winrt.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
@@ -97,7 +97,7 @@ Global
 		..\lib\shared\Shared.vcxitems*{dc91621e-a203-42df-8e03-3a23dd0602b1}*SharedItemsImports = 4
 		..\lib\shared\Shared.vcxitems*{ef859326-2a11-481c-ae8c-03d754f1c412}*SharedItemsImports = 9
 		..\lib\decoder\decoder.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
-		..\lib\pal\win32\win32.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
+		..\lib\pal\desktop\win32.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
