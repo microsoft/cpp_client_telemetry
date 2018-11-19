@@ -127,13 +127,12 @@ TEST(MemoryStorageTests, StoreAndGetRecords)
         EXPECT_THAT(storage.GetSize(), total_db_size);
         // Verify the contents
         size_t total_records = num_iterations * latencies.size();
-        std::unique_ptr< std::vector<StorageRecord> > records;
         for (auto latency : { EventLatency_Max , EventLatency_RealTime , EventLatency_CostDeferred , EventLatency_Normal })
         {
-            records.reset(storage.GetRecords(false, latency, 0));
-            EXPECT_THAT(records->size(), num_iterations);
-            EXPECT_THAT(records->size(), storage.LastReadRecordCount());
-            total_records -= records->size();
+            auto records = storage.GetRecords(false, latency, 0);
+            EXPECT_THAT(records.size(), num_iterations);
+            EXPECT_THAT(records.size(), storage.LastReadRecordCount());
+            total_records -= records.size();
         }
         EXPECT_THAT(storage.GetSize(), 0);
         EXPECT_THAT(total_records, 0);
@@ -146,10 +145,9 @@ TEST(MemoryStorageTests, StoreAndGetRecords)
         EXPECT_THAT(storage.GetSize(), total_db_size);
         // Verify the contents
         size_t total_records = num_iterations * latencies.size();
-        std::unique_ptr< std::vector<StorageRecord> > records;
-        records.reset(storage.GetRecords(false, EventLatency_Normal, 0));
-        EXPECT_THAT(records->size(), total_records);
-        EXPECT_THAT(records->size(), storage.LastReadRecordCount());
+        auto records = storage.GetRecords(false, EventLatency_Normal, 0);
+        EXPECT_THAT(records.size(), total_records);
+        EXPECT_THAT(records.size(), storage.LastReadRecordCount());
         EXPECT_THAT(storage.GetSize(), 0);
     }
 
@@ -168,14 +166,13 @@ TEST(MemoryStorageTests, GetRecordsDeletesRecords)
     EXPECT_THAT(storage.GetSize(), total_db_size);
 
     // Retrieve those into records
-    std::unique_ptr< std::vector<StorageRecord> > records;
-    records.reset(storage.GetRecords());
+    auto records = storage.GetRecords();
 
     // Storage size is "zero" because all records are fetched
     EXPECT_THAT(storage.GetSize(), 0);
     EXPECT_THAT(storage.GetRecordCount(), 0);
     EXPECT_THAT(storage.GetReservedCount(), 0);
-    EXPECT_THAT(records->size(), num_iterations * 4); // 4 latencies
+    EXPECT_THAT(records.size(), num_iterations * 4); // 4 latencies
 }
 
 TEST(MemoryStorageTests, ReleaseRecords)
@@ -192,11 +189,10 @@ TEST(MemoryStorageTests, ReleaseRecords)
     auto total_records = storage.GetRecordCount();
 
     // Retrieve those into records
-    std::unique_ptr< std::vector<StorageRecord> > records;
-    records.reset(new std::vector<StorageRecord>);
+    std::vector<StorageRecord> records;
 
     auto consumer = [&records](StorageRecord&& record) -> bool {
-        records->push_back(std::move(record));
+        records.push_back(std::move(record));
         return true; // want more
     };
 
@@ -206,10 +202,10 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetSize(), 0);
     EXPECT_THAT(storage.GetRecordCount(), 0);
     EXPECT_THAT(storage.GetReservedCount(), total_records);
-    EXPECT_THAT(records->size(), total_records);
+    EXPECT_THAT(records.size(), total_records);
 
     // Track IDs of all reserved records
-    for (auto &record : *records)
+    for (auto &record : records)
     {
         ids.push_back(record.id);
     }
@@ -262,12 +258,11 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
             addEvents(storage);
 
             // Retrieve them
-            std::unique_ptr< std::vector<StorageRecord> > records;
-            records.reset(storage.GetRecords());
+            auto records = storage.GetRecords();
 
             // Acquire IDs
             std::vector<StorageRecordId> ids;
-            for (auto &record : *records)
+            for (const auto &record : records)
                 ids.push_back(record.id);
 
             // Release records

@@ -369,15 +369,15 @@ namespace ARIASDK_NS_BEGIN {
         return numRecords;
     }
 
-    std::vector<StorageRecord>* MemoryStorage::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
+    std::vector<StorageRecord> MemoryStorage::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
     {
         UNREFERENCED_PARAMETER(shutdown);
         UNREFERENCED_PARAMETER(minLatency);
         UNREFERENCED_PARAMETER(maxCount);
 
-        std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
-        auto consumer = [records](StorageRecord&& record) -> bool {
-            records->push_back(std::move(record));
+        std::vector<StorageRecord> records;
+        auto consumer = [&records](StorageRecord&& record) -> bool {
+            records.push_back(std::move(record));
             return true; // want more
         };
         GetAndReserveRecords(consumer, 0, minLatency, maxCount);

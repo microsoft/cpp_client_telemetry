@@ -147,7 +147,7 @@ namespace ARIASDK_NS_BEGIN {
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
             
-            std::vector<StorageRecord>* records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
 
@@ -156,12 +156,12 @@ namespace ARIASDK_NS_BEGIN {
 //            if (sqlite)
 //                sqlite->Execute("BEGIN");
 
-            while (records->size())
+            while (records.size())
             {
-                ids.push_back(records->back().id);
-                if (m_offlineStorageDisk->StoreRecord(std::move(records->back())))
+                ids.push_back(records.back().id);
+                if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
                     totalSaved++;
-                records->pop_back();
+                records.pop_back();
             }
 
 // TODO: [MG] - consider running the batch in transaction
@@ -172,8 +172,6 @@ namespace ARIASDK_NS_BEGIN {
             HttpHeaders dummy;
             bool fromMemory = true;
             m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
-
-            delete records;
 
             // Notify event listener about the records cached
             OnStorageRecordsSaved(totalSaved);
@@ -305,7 +303,7 @@ namespace ARIASDK_NS_BEGIN {
         return returnValue;
     }
 
-    std::vector<StorageRecord>* OfflineStorageHandler::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
+    std::vector<StorageRecord> OfflineStorageHandler::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
     {
         // This method should not be called directly because it's a no-op
         assert(false);
@@ -313,8 +311,7 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(shutdown);
         UNREFERENCED_PARAMETER(minLatency);
         UNREFERENCED_PARAMETER(maxCount);
-        std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
-        return records;
+        return std::vector<StorageRecord>{};
     }
 
     void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)

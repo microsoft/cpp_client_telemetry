@@ -311,9 +311,9 @@ namespace ARIASDK_NS_BEGIN {
         return  m_lastReadCount;
     }
 
-    std::vector<StorageRecord>* OfflineStorage_SQLite::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
+    std::vector<StorageRecord> OfflineStorage_SQLite::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
     {
-        std::vector<StorageRecord>* records = new std::vector<StorageRecord>();
+        std::vector<StorageRecord> records;
         StorageRecord record;
 
         if (shutdown)
@@ -325,7 +325,7 @@ namespace ARIASDK_NS_BEGIN {
                 while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
                 {
                     record.latency = static_cast<EventLatency>(latency);
-                    records->push_back(record);
+                    records.push_back(record);
                 }
                 selectStmt.reset();
             }
@@ -339,7 +339,7 @@ namespace ARIASDK_NS_BEGIN {
                 while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
                 {
                     record.latency = static_cast<EventLatency>(latency);
-                    records->push_back(record);
+                    records.push_back(record);
                 }
                 selectStmt.reset();
             }
