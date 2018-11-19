@@ -4,7 +4,7 @@
 
 #include "ISystemInformation.hpp"
 #include "pal/SystemInformationImpl.hpp"
-#include "pal/win32/WindowsEnvironmentInfo.h"
+#include "pal/desktop/WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
 
 #ifdef _WINRT_DLL

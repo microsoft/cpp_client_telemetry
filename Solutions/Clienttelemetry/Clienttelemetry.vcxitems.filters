@@ -144,7 +144,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
       <Filter>tpm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\win32\WindowsEnvironmentInfo.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp">
       <Filter>pal</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
@@ -344,7 +344,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp">
       <Filter>tpm</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\win32\WindowsEnvironmentInfo.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h">
       <Filter>pal</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h">
