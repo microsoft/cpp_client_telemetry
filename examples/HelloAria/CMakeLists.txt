@@ -27,7 +27,7 @@ set(ARIA_SDK_INCLUDE	/usr/local/include/aria)
 include_directories( . ${ARIA_SDK_INCLUDE} )
 
 # Link main.cpp to executable
-add_executable(HelloAria main.cpp DebugCallback.cpp)
+add_executable(HelloAria main.cpp DebugCallback.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
 # Prefer linking to more recent local sqlite3

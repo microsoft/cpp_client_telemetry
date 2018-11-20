@@ -25,6 +25,8 @@
 #include <regex>
 
 #include <iostream>
+#include <iomanip>
+
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -34,6 +36,7 @@
 #include "EventProperty.hpp"
 
 #ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 #include <mach-o/dyld.h>
 #include <sys/syslimits.h>
@@ -56,7 +59,7 @@ std::string get_app_name()
     if(_NSGetExecutablePath(&appId[0], &length))
     {
         appId.resize(length, 0);
-	    _NSGetExecutablePath(&appId[0], &length);
+        _NSGetExecutablePath(&appId[0], &length);
     }
     std::string result = basename(appId.data());
     return result;
@@ -201,6 +204,26 @@ public:
         // FIXME: [MG] - This is not the most elegant way of obtaining it
         cache["devMake"] = "Apple";
         cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
+        cache["osName"]  = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductName");
+        cache["osVer"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductVersion");
+        cache["osRel"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductUserVisibleVersion");
+        cache["osBuild"] = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductBuildVersion");
+
+        // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
+        CFTimeZoneRef tz = CFTimeZoneCopySystem();
+        CFTimeInterval minsFromGMT = CFTimeZoneGetSecondsFromGMT(tz, CFAbsoluteTimeGetCurrent()) / 60.0;
+        CFRelease(tz);
+        std::ostringstream oss;
+        int hh = std::abs((int)minsFromGMT / 60);
+        int mm = std::abs((int)minsFromGMT % 60);
+        if (minsFromGMT<0)
+        {
+            oss << "-";
+        }
+        oss << std::setw(2) << std::setfill('0') << hh;
+        oss << std::setw(1) << ":";
+        oss << std::setw(2) << std::setfill('0') << mm;
+        cache["tz"] = oss.str();
 #endif
 
         // Fallback to uname if above methods failed
@@ -220,9 +243,9 @@ public:
         }
 
 #ifndef __APPLE__
-        add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
+       add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
 #else
-    	cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
+       cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
 #endif
 
         if (!get("devId").compare(""))

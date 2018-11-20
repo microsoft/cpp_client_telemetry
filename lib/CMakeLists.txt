@@ -24,6 +24,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/LogConfiguration.cpp
   api/AuthTokensController.cpp
   api/LogManagerFactory.cpp
+  api/capi.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
   exp/afd/afdclient/AFDClientUtils.cpp

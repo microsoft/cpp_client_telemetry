@@ -12,8 +12,10 @@ void test_c_api()
     evt_handle_t handle = evt_open(TOKEN);
 #else   // Initialize using ILogConfiguration in JSON format
 
+#ifdef _WIN32
     // Attemppt to load an alternate impl if possible
     evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry2.Dll"));
+#endif
 
     static const char* config =
     "{"

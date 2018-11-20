@@ -164,11 +164,7 @@ extern "C" void test_c_api();
 
 int main()
 {
-    if (1)
-    {
-        test_c_api();
-        return 0;
-    }
+    test_c_api();
 
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
     OfficeTest();
@@ -239,10 +235,18 @@ int main()
      
     printf("LogManager::GetSemanticContext \n");
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
-    semanticContext->SetAppVersion("1.0.1");
-    semanticContext->SetAppLanguage("en-US");
-//  semanticContext->SetUserId("maxgolov@microsoft.com");
-    semanticContext->SetUserLanguage("en-US");
+
+    semanticContext->SetAppId("MyAppName");     // caller must obtain this from app manifest, e.g. .plist on Mac OS X
+    semanticContext->SetAppVersion("1.0.1");    // caller must obtain this from app manifest, e.g. .plist on Mac OS X
+    semanticContext->SetAppLanguage("en-US");   // caller must obtain this from app manifest, e.g. .plist on Mac OS X
+    semanticContext->SetUserLanguage("en-US");  // caller must obtain the user language from preferences
+
+#ifndef _WIN32
+    // Platforms other than Windows currently do not have automatic network detection implemented,
+    // so the caller must populated these fields using semantic context API
+    semanticContext->SetNetworkCost(MAT::NetworkCost::NetworkCost_Unmetered);
+    semanticContext->SetNetworkType(MAT::NetworkType::NetworkType_Wired);
+#endif
 
     // Ingest events of various latencies
     printf("Starting stress-test...\n");

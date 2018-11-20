@@ -10,8 +10,7 @@ namespace PAL_NS_BEGIN {
 
     SystemInformationImpl::SystemInformationImpl() : m_info_helper()
     {
-        // TODO: [MG] - implement timezone detection for Linux
-        m_user_timezone = "UTC";
+        m_user_timezone = aria_hwinfo.get("tz");
         m_app_id = aria_hwinfo.get("appId");
         m_os_name = aria_hwinfo.get("osName");
         m_os_major_version = aria_hwinfo.get("osVer");
