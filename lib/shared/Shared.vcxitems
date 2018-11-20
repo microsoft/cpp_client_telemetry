@@ -5,7 +5,7 @@
     <HasSharedItems>true</HasSharedItems>
     <ItemsProjectGuid>{ef859326-2a11-481c-ae8c-03d754f1c412}</ItemsProjectGuid>
     <ItemsRootNamespace>Microsoft.Applications.Telemetry</ItemsRootNamespace>
-    <ItemsProjectName>shared</ItemsProjectName>
+    <ItemsProjectName>managed</ItemsProjectName>
     <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
   </PropertyGroup>
   <ItemDefinitionGroup>

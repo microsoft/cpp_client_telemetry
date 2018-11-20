@@ -13,6 +13,7 @@
 #include "vccorlib.h"
 #include <Roapi.h>
 #include "WinInet.h"
+#include "HttpClient_WinRt.hpp"
 
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Collections;
@@ -26,8 +27,9 @@ namespace ARIASDK_NS_BEGIN {
     class WinRtRequestWrapper
     {
     protected:
-        HttpClient_WinRt * m_parent;
-        std::string            m_id;
+        HttpClient_WinRt&      m_parent;
+        std::unique_ptr<SimpleHttpRequest> m_request;
+        const std::string&     m_id;
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
         HttpResponseMessage^   m_httpResponseMessage;
@@ -35,14 +37,19 @@ namespace ARIASDK_NS_BEGIN {
         concurrency::cancellation_token_source m_cancellationTokenSource;
 
     public:
-        WinRtRequestWrapper(HttpClient_WinRt* parent, std::string const& id)
+        WinRtRequestWrapper(HttpClient_WinRt& parent, SimpleHttpRequest* request)
             : m_parent(parent),
-            m_id(id),
+            m_request(request),
+            m_id(request->GetId()),
             m_httpRequestMessage(nullptr),
             m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
         {
             LOG_TRACE("%p WinRtRequestWrapper()", this);
         }
+
+        WinRtRequestWrapper(WinRtRequestWrapper const&) = delete;
+
+        WinRtRequestWrapper& operator=(WinRtRequestWrapper const&) = delete;
 
         ~WinRtRequestWrapper()
         {
@@ -62,21 +69,21 @@ namespace ARIASDK_NS_BEGIN {
             //m_httpRequestMessage, don't need to delete, ref object framework will delete it
         }
 
-        void send(SimpleHttpRequest* request, IHttpResponseCallback* callback)
+        void send(IHttpResponseCallback* callback)
         {
             m_appCallback = callback;
 
             {
-                std::lock_guard<std::mutex> lock(m_parent->m_requestsMutex);
-                m_parent->m_requests[m_id] = this;
+                std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
+                m_parent.m_requests[m_id] = this;
             }
 
             try
             {
                 // Convert std::string to Uri
-                Uri ^ uri = ref new Uri(to_platform_string(request->m_url));
+                Uri ^ uri = ref new Uri(to_platform_string(m_request->m_url));
                 // Create new request message
-                if (request->m_method.compare("GET") == 0)
+                if (m_request->m_method.compare("GET") == 0)
                 {
                     m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Get, uri);
                 }
@@ -87,14 +94,14 @@ namespace ARIASDK_NS_BEGIN {
 
                 // Initialize the in-memory stream where data will be stored.
                 DataWriter^ dataWriter = ref new DataWriter();
-                dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(request->m_body.data()), (DWORD)request->m_body.size())));
+                dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(m_request->m_body.data()), (DWORD)m_request->m_body.size())));
                 IBuffer ^ibuffer = dataWriter->DetachBuffer();
                 HttpBufferContent^ httpBufferContent = ref new HttpBufferContent(ibuffer);
 
                 m_httpRequestMessage->Content = httpBufferContent;// ref new HttpBufferContent(ibuffer);
 
                 // Populate headers based on user-supplied headers
-                for (auto &kv : request->m_headers)
+                for (auto &kv : m_request->m_headers)
                 {
                     Platform::String^ key = to_platform_string(kv.first);
                     Platform::String^ value = to_platform_string(kv.second);
@@ -136,7 +143,7 @@ namespace ARIASDK_NS_BEGIN {
 
         void SendHttpAsyncRequest(HttpRequestMessage ^req)
         {
-            IAsyncOperationWithProgress<HttpResponseMessage^, HttpProgress>^ operation = m_parent->getHttpClient()->SendRequestAsync(req, HttpCompletionOption::ResponseContentRead);
+            IAsyncOperationWithProgress<HttpResponseMessage^, HttpProgress>^ operation = m_parent.getHttpClient()->SendRequestAsync(req, HttpCompletionOption::ResponseContentRead);
             m_cancellationTokenSource = cancellation_token_source();
 
             create_task(operation, m_cancellationTokenSource.get_token()).
@@ -239,7 +246,7 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             m_appCallback->OnHttpResponse(response.release());
-            m_parent->signalDoneAndErase(m_id);
+            m_parent.signalDoneAndErase(m_id);
 
         }
     };
@@ -275,7 +282,9 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        if (m_httpClient) delete m_httpClient;
+        if (m_httpClient) {
+            delete m_httpClient;
+        }
     }
 
 
@@ -286,8 +295,9 @@ namespace ARIASDK_NS_BEGIN {
         if (it != m_requests.end())
         {
             it->second->signalDone();
-            delete it->second;
+            auto req = it->second;
             m_requests.erase(it);
+            delete req;
         }
     }
 
@@ -299,19 +309,53 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
+        if (request==nullptr)
+        {
+            LOG_ERROR("request is null!");
+            return;
+        }
         SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
-        WinRtRequestWrapper* wrapper = new WinRtRequestWrapper(this, req->m_id);
-        wrapper->send(req, callback);
-        delete req;
+        WinRtRequestWrapper* wrapper = new WinRtRequestWrapper(*this, req);
+        wrapper->send(callback);
     }
 
     void HttpClient_WinRt::CancelRequestAsync(std::string const& id)
     {
-        auto it = m_requests.find(id);
-        if (it != m_requests.end())
+        WinRtRequestWrapper* request = nullptr;
         {
-            it->second->cancel();
+            std::lock_guard<std::mutex> lock(m_requestsMutex);
+            auto it = m_requests.find(id);
+            if (it != m_requests.end())
+            {
+                request = it->second;
+            }
+        }
+        if (request) {
+            request->cancel();
         }
     }
+
+    void HttpClient_WinRt::CancelAllRequests()
+    {
+        // vector of all request IDs
+        std::vector<std::string> ids;
+        {
+            std::lock_guard<std::mutex> lock(m_requestsMutex);
+            for (auto const& item : m_requests) {
+                ids.push_back(item.first);
+            }
+        }
+        // cancel all requests one-by-one not holding the lock
+        for (const auto &id : ids)
+            CancelRequestAsync(id);
+
+        // wait for all destructors to run
+        while (!m_requests.empty())
+        {
+            PAL::sleep(100);
+            std::this_thread::yield();
+        }
+    };
+
 
 } ARIASDK_NS_END

@@ -72,12 +72,12 @@ remove_definitions(-D_MBCS)
     http/HttpClient.hpp
     pal/PAL_Win32.cpp
     pal/PAL_Win32.hpp
-    pal/win32/WindowsDesktopDeviceInformationImpl.cpp
-    pal/win32/WindowsDesktopNetworkInformationImpl.cpp
-    pal/win32/WindowsDesktopSystemInformationImpl.cpp
-    pal/win32/WindowsEnvironmentInfo.cpp
-    pal/win32/NetworkDetector.cpp
-    pal/win32/UtcHelpers.cpp
+    pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
+    pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
+    pal/desktop/WindowsDesktopSystemInformationImpl.cpp
+    pal/desktop/WindowsEnvironmentInfo.cpp
+    pal/desktop/NetworkDetector.cpp
+    pal/desktop/UtcHelpers.cpp
     system/UtcTelemetrySystem.cpp
   )
 else()

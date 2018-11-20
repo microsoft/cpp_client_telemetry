@@ -6,9 +6,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientTelemetry", "Clienttelemetry\Clienttelemetry.vcxitems", "{45D41ACC-2C3C-43D2-BC10-02AA73FFC7C7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32", "..\lib\pal\desktop\desktop.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "desktop", "..\lib\pal\desktop\desktop.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winrt", "..\lib\pal\universal\universal.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "universal", "..\lib\pal\universal\universal.vcxitems", "{10E9165B-49D1-4D1C-8248-334B9905B9CC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32-dll", "win32-dll\win32-dll.vcxproj", "{216A8E97-21F7-4BEF-9E52-7F772C177C32}"
 EndProject
@@ -35,7 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PAL", "PAL", "{34B3E59D-E74
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{EB2950D7-DF24-4079-BF8B-29338DD602A0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shared", "..\lib\shared\Shared.vcxitems", "{EF859326-2A11-481C-AE8C-03D754F1C412}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "managed", "..\lib\shared\Shared.vcxitems", "{EF859326-2A11-481C-AE8C-03D754F1C412}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{553836FF-B1FD-4B70-AC81-AEC7752F9284}"
 	ProjectSection(SolutionItems) = preProject

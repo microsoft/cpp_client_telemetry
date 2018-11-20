@@ -4,7 +4,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
     <ItemsProjectGuid>{10E9165B-49D1-4D1C-8248-334B9905B9CD}</ItemsProjectGuid>
-    <ItemsProjectName>win32</ItemsProjectName>
+    <ItemsProjectName>desktop</ItemsProjectName>
     <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
   </PropertyGroup>
   <ItemDefinitionGroup>

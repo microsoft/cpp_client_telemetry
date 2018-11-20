@@ -201,6 +201,7 @@
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -235,6 +236,7 @@
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
@@ -266,6 +268,7 @@
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
@@ -297,6 +300,7 @@
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -329,6 +333,7 @@
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -360,6 +365,7 @@
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -375,6 +381,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -389,6 +396,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
