@@ -33,6 +33,8 @@
 #include <array>
 #include <vector>
 
+#include <algorithm>
+
 #include "EventProperty.hpp"
 
 #ifdef __APPLE__
@@ -99,6 +101,12 @@ static std::string Exec(const char* cmd)
     {
         if (fgets(buffer.data(), buffer.size(), pipe.get())!=NULL)
             result += buffer.data();
+    }
+
+    // Remove EOL. In all use-cases below we don't need it.
+    if (!result.empty() && result[result.length()-1]=='\n')
+    {
+        result.erase(result.length()-1);
     }
 
     return result;
