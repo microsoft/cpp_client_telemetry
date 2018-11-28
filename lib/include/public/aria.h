@@ -108,12 +108,12 @@ extern "C" {
 
     typedef struct
     {
-        char*                   name;
+        const char*             name;
         evt_prop_t              type;
         union
         {
             // Basic types
-            char*               as_string;
+            const char*         as_string;
             int64_t             as_int64;
             double              as_double;
             bool                as_bool;
