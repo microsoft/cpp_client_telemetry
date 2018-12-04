@@ -9,56 +9,56 @@ namespace ARIASDK_NS_BEGIN {
 
     struct EventPropertiesStorage
     {
-       std::string      EventName;
-       std::string      EventType;
-       EventLatency     EventLatency = EventLatency_Normal;
-       EventPersistence EventPersistence = EventPersistence_Normal;
-       double           EventPopSample = 100;
-       uint64_t         EventPolicyBitflags = {};
-       int64_t          TimestampInMillis = {};
+       std::string      eventName;
+       std::string      eventType;
+       EventLatency     eventLatency = EventLatency_Normal;
+       EventPersistence eventPersistence = EventPersistence_Normal;
+       double           eventPopSample = 100;
+       uint64_t         eventPolicyBitflags = {};
+       int64_t          timestampInMillis = {};
 
-       std::map<std::string, EventProperty> Properties;
-       std::map<std::string, EventProperty> PropertiesPartB;
+       std::map<std::string, EventProperty> properties;
+       std::map<std::string, EventProperty> propertiesPartB;
 
        EventPropertiesStorage() noexcept {}
 
        EventPropertiesStorage(const EventPropertiesStorage& other) noexcept
        {
-          EventName = other.EventName;
-          EventType = other.EventType;
-          EventLatency = other.EventLatency;
-          EventPersistence = other.EventPersistence;
-          EventPopSample = other.EventPopSample;
-          EventPolicyBitflags = other.EventPolicyBitflags;
-          TimestampInMillis = other.TimestampInMillis;
-          Properties = other.Properties;
-          PropertiesPartB = other.PropertiesPartB;
+          eventName = other.eventName;
+          eventType = other.eventType;
+          eventLatency = other.eventLatency;
+          eventPersistence = other.eventPersistence;
+          eventPopSample = other.eventPopSample;
+          eventPolicyBitflags = other.eventPolicyBitflags;
+          timestampInMillis = other.timestampInMillis;
+          properties = other.properties;
+          propertiesPartB = other.propertiesPartB;
        }
 
        EventPropertiesStorage(EventPropertiesStorage&& other) noexcept 
        {
-          EventName = std::move(other.EventName);
-          EventType = std::move(other.EventType);
-          EventLatency = std::move(other.EventLatency);
-          EventPersistence = std::move(other.EventPersistence);
-          EventPopSample = std::move(other.EventPopSample);
-          EventPolicyBitflags = std::move(other.EventPolicyBitflags);
-          TimestampInMillis = std::move(other.TimestampInMillis);
-          Properties = std::move(other.Properties);
-          PropertiesPartB = std::move(other.PropertiesPartB);
+          eventName = std::move(other.eventName);
+          eventType = std::move(other.eventType);
+          eventLatency = std::move(other.eventLatency);
+          eventPersistence = std::move(other.eventPersistence);
+          eventPopSample = std::move(other.eventPopSample);
+          eventPolicyBitflags = std::move(other.eventPolicyBitflags);
+          timestampInMillis = std::move(other.timestampInMillis);
+          properties = std::move(other.properties);
+          propertiesPartB = std::move(other.propertiesPartB);
        }
 
        EventPropertiesStorage& operator=(const EventPropertiesStorage& other) noexcept
        {
-          EventName = other.EventName;
-          EventType = other.EventType;
-          Properties = other.Properties;
-          PropertiesPartB = other.PropertiesPartB;
-          EventLatency = other.EventLatency;
-          EventPersistence = other.EventPersistence;
-          EventPopSample = other.EventPopSample;
-          EventPolicyBitflags = other.EventPolicyBitflags;
-          TimestampInMillis = other.TimestampInMillis;
+          eventName = other.eventName;
+          eventType = other.eventType;
+          properties = other.properties;
+          propertiesPartB = other.propertiesPartB;
+          eventLatency = other.eventLatency;
+          eventPersistence = other.eventPersistence;
+          eventPopSample = other.eventPopSample;
+          eventPolicyBitflags = other.eventPolicyBitflags;
+          timestampInMillis = other.timestampInMillis;
 
           return *this;
        }

@@ -33,14 +33,14 @@ namespace ARIASDK_NS_BEGIN {
         {
             auto key = kv.first;
             auto val = kv.second;
-            m_storage->Properties[key] = val;
+            m_storage->properties[key] = val;
         }
         return (*this);
     }
 
     EventProperties& EventProperties::operator=(const std::map<std::string, EventProperty> &properties)
     {
-        m_storage->Properties.clear();
+        m_storage->properties.clear();
         (*this) += properties;
         return (*this);
     }
@@ -98,15 +98,15 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     EventProperties& EventProperties::operator=(std::initializer_list<std::pair<std::string const, EventProperty> > properties)
     {
-        m_storage->Properties.clear();
-        m_storage->PropertiesPartB.clear();
+        m_storage->properties.clear();
+        m_storage->propertiesPartB.clear();
 
         for (auto &kv : properties)
         {
             auto key = kv.first;
             auto val = kv.second;
 
-            m_storage->Properties[key] = val;
+            m_storage->properties[key] = val;
         }
 
         return (*this);
@@ -120,7 +120,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetTimestamp(const int64_t timestampInEpochMillis)
     {
-        m_storage->TimestampInMillis = timestampInEpochMillis;
+        m_storage->timestampInMillis = timestampInEpochMillis;
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     int64_t EventProperties::GetTimestamp() const
     {
-        return m_storage->TimestampInMillis;
+        return m_storage->timestampInMillis;
     }
 
     /// <summary>
@@ -138,18 +138,18 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetPriority(EventPriority priority)
     {
-        m_storage->EventLatency = (EventLatency)priority;
+        m_storage->eventLatency = (EventLatency)priority;
         if (priority >= EventPriority_High)
         {
-            m_storage->EventLatency = EventLatency_RealTime;
-            m_storage->EventPersistence = EventPersistence_Critical;
+            m_storage->eventLatency = EventLatency_RealTime;
+            m_storage->eventPersistence = EventPersistence_Critical;
         }
         else
         if (priority >= EventPriority_Low)
         {
             // TODO: 1438270 - [v3][1DS] Direct upload to respect low priority
-            m_storage->EventLatency = EventLatency_Normal;
-            m_storage->EventPersistence = EventPersistence_Normal;
+            m_storage->eventLatency = EventLatency_Normal;
+            m_storage->eventPersistence = EventPersistence_Normal;
         }
     }
 
@@ -159,7 +159,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     EventPriority EventProperties::GetPriority() const
     {
-        return static_cast<EventPriority>(m_storage->EventLatency);
+        return static_cast<EventPriority>(m_storage->eventLatency);
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetLatency(EventLatency latency)
     {
-        m_storage->EventLatency = latency;
+        m_storage->eventLatency = latency;
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     EventLatency EventProperties::GetLatency() const
     {
-        return m_storage->EventLatency;
+        return m_storage->eventLatency;
     }
 
     /// <summary>
@@ -186,7 +186,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetPersistence(EventPersistence persistence)
     {
-        m_storage->EventPersistence = persistence;
+        m_storage->eventPersistence = persistence;
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     EventPersistence EventProperties::GetPersistence() const
     {
-        return m_storage->EventPersistence;
+        return m_storage->eventPersistence;
     }
 
     /// <summary>
@@ -204,7 +204,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="priority">popSample of the event</param>
     void EventProperties::SetPopsample(double popSample)
     {
-        m_storage->EventPopSample = popSample;
+        m_storage->eventPopSample = popSample;
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <returns>popSample of the event<returns>
     double EventProperties::GetPopSample() const
     {
-        return m_storage->EventPopSample;
+        return m_storage->eventPopSample;
     }
 
     /// <summary>
@@ -221,7 +221,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void EventProperties::SetPolicyBitFlags(uint64_t policyBitFlags)
     {
-        m_storage->EventPolicyBitflags = policyBitFlags;
+        m_storage->eventPolicyBitflags = policyBitFlags;
     }
 
     /// <summary>
@@ -229,7 +229,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     uint64_t EventProperties::GetPolicyBitFlags() const
     {
-        return m_storage->EventPolicyBitflags;
+        return m_storage->eventPolicyBitflags;
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ namespace ARIASDK_NS_BEGIN {
             ILogManager::DispatchEventBroadcast(evt);
             return false;
         }
-        m_storage->EventName.assign(sanitizedEventName);
+        m_storage->eventName.assign(sanitizedEventName);
         return true;
     }
 
@@ -259,7 +259,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     const string& EventProperties::GetName() const
     {
-        return m_storage->EventName;
+        return m_storage->eventName;
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ namespace ARIASDK_NS_BEGIN {
             ILogManager::DispatchEventBroadcast(evt);
             return false;
         }
-        m_storage->EventType.assign(eventType);
+        m_storage->eventType.assign(eventType);
         return true;
     }
 
@@ -288,7 +288,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     const string& EventProperties::GetType() const
     {
-        return m_storage->EventType;
+        return m_storage->eventType;
     }
 
     /// <summary>
@@ -311,7 +311,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        m_storage->Properties[name] = prop;
+        m_storage->properties[name] = prop;
     }
 
     //
@@ -332,11 +332,11 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (category == DataCategory_PartC)
         {
-            return m_storage->Properties;
+            return m_storage->properties;
         }
         else
         {
-            return m_storage->PropertiesPartB;
+            return m_storage->propertiesPartB;
         }
     }
 
@@ -347,7 +347,7 @@ namespace ARIASDK_NS_BEGIN {
     const map<string, pair<string, PiiKind> > EventProperties::GetPiiProperties(DataCategory category) const
     {
         std::map<string, pair<string, PiiKind> > pIIExtensions;
-        auto &props = (category == DataCategory_PartC) ? m_storage->Properties : m_storage->PropertiesPartB;
+        auto &props = (category == DataCategory_PartC) ? m_storage->properties : m_storage->propertiesPartB;
         for (const auto &kv : props)
         {
             auto k = kv.first;
@@ -405,10 +405,10 @@ namespace ARIASDK_NS_BEGIN {
 
     evt_prop* EventProperties::pack()
     {
-        size_t size = m_storage->Properties.size() + m_storage->PropertiesPartB.size() + 1;
+        size_t size = m_storage->properties.size() + m_storage->propertiesPartB.size() + 1;
         evt_prop * result = static_cast<evt_prop *>(calloc(sizeof(evt_prop), size));
         size_t i = 0;
-        for(auto &props : { m_storage->Properties, m_storage->PropertiesPartB })
+        for(auto &props : { m_storage->properties, m_storage->propertiesPartB })
             for (auto &kv : props)
             {
                 auto k = kv.first;
