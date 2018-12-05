@@ -13,6 +13,16 @@
     operator basetype() { return (basetype)field; };            \
     Variant& operator=(basetype v) { field = v; type = typeenum; return *this; };
 
+// Avoid conflict with Mac platforms where <ConditionalMacros.h> #defines TYPE_BOOL.
+//
+// If some one needs the macro TYPE_BOOL in a file that includes this header, it's
+// possible to bring it back using push/pop_macro as follows.
+//
+// #pragma push_macro("TYPE_BOOL")
+// #include this header and/or all headers that need the macro to be undefined.
+// #pragma pop_macro("TYPE_BOOL")
+#undef TYPE_BOOL
+
 /**
  * Variant type for containers
  */
