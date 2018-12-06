@@ -1,0 +1,66 @@
+﻿[
+    {
+        "name": "HIGH_PRI_ONLY",
+        "rules": [
+            {
+                "netCost": "restricted",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "netCost": "high",
+                "powerState": "battery",
+                "timers": [ -1, -1, 60 ]
+            },
+            {
+                "netCost": "high",
+                "powerState": "charging",
+                "timers": [ -1, -1, 30 ]
+            },
+            {
+                "netCost": "low",
+                "powerState": "battery",
+                "timers": [ -1, -1, 60 ]
+            },
+            {
+                "netCost": "low",
+                "powerState": "charging",
+                "timers": [ -1, -1, 30 ]
+            },
+            {
+                "timers": [ -1, -1, -1 ]
+            }
+        ]
+    },
+    {
+        "name": "Offline",
+        "rules": [
+            {
+                "netCost": "restricted",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "netCost": "high",
+                "powerState": "battery",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "netCost": "high",
+                "powerState": "charging",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "netCost": "low",
+                "powerState": "battery",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "netCost": "low",
+                "powerState": "charging",
+                "timers": [ -1, -1, -1 ]
+            },
+            {
+                "timers": [ -1, -1, -1 ]
+            }
+        ]
+    }
+]
