@@ -18,45 +18,37 @@ namespace ARIASDK_NS_BEGIN {
         m_baseDecorator(m_logManager),
         m_semanticContextDecorator(m_logManager)
     {
+        m_intervalMs = m_config.GetMetaStatsSendIntervalSec() * 1000;
     }
 
     Statistics::~Statistics()
     {
     }
 
-    void Statistics::scheduleSend()
+    inline void Statistics::scheduleSend()
     {
         if (!m_isStarted) {
             return;
         }
-
-        unsigned intervalMs = m_config.GetMetaStatsSendIntervalSec() * 1000;
-        // FIXME: [MG] - review if this code works properly
-#if 1
-        if (!m_isScheduled && intervalMs != 0)
+        if (m_intervalMs != 0)
         {
-            m_isScheduled = true;
-            m_scheduledSend = PAL::scheduleOnWorkerThread(intervalMs, this, &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
-            LOG_TRACE("Ongoing stats event generation scheduled in %u msec", intervalMs);
+            if (!m_isScheduled.exchange(true))
+            {
+                m_scheduledSend = PAL::scheduleOnWorkerThread(m_intervalMs, this, &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
+                LOG_TRACE("Ongoing stats event generation scheduled in %u msec", m_intervalMs);
+            }
         }
-#else
-        std::int64_t timedelta = PAL::getMonotonicTimeMs() - m_statEventSentTime;
-        if (!m_isScheduled && intervalMs != 0 && timedelta > intervalMs)
-        {
-            m_isScheduled = true;
-            send(ACT_STATS_ROLLUP_KIND_ONGOING);
-            LOG_TRACE("Ongoing stats event generation scheduled in %u msec", intervalMs);
-        }
-#endif
-
     }
 
     void Statistics::send(RollUpKind rollupKind)
     {
-        // TODO: [MG] - verify this codepath
         m_isScheduled = false;
 
-        std::vector< ::AriaProtocol::Record> records = m_metaStats.generateStatsEvent(rollupKind);
+        std::vector< ::AriaProtocol::Record> records;
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            records = m_metaStats.generateStatsEvent(rollupKind);
+        }
         std::string tenantToken = m_config.GetMetaStatsTenantToken();
 
         for (auto& record : records)
@@ -79,7 +71,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool Statistics::handleOnStart()
     {
-        // TODO: [MG] - verify this codepath
+        // synchronously send stats event on SDK start
         send(ACT_STATS_ROLLUP_KIND_START);
 
         m_isStarted = true;
@@ -90,26 +82,27 @@ namespace ARIASDK_NS_BEGIN {
     {
         m_isStarted = false;
 
-        if (m_isScheduled) {
+        if (m_isScheduled.exchange(false)) {
             m_scheduledSend.cancel();
-            m_isScheduled = false;
         }
 
-        // TODO: [MG] - verify this codepath
+        // synchronously send stats event on SDK stop
         send(ACT_STATS_ROLLUP_KIND_STOP);
         return true;
     }
 
     void Statistics::OnDebugEvent(DebugEvent &evt)
     {
-        // TODO: refactor the rest of code here to go thru this method
         m_logManager.DispatchEvent(evt);
     }
 
     bool Statistics::handleOnIncomingEventAccepted(IncomingEventContextPtr const& ctx)
     {
         bool metastats = (ctx->record.tenantToken == m_config.GetMetaStatsTenantToken());
-        m_metaStats.updateOnEventIncoming(ctx->record.tenantToken, static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnEventIncoming(ctx->record.tenantToken, static_cast<unsigned>(ctx->record.blob.size()), ctx->record.latency, metastats);
+        }
         scheduleSend();
 
         DebugEvent evt;
@@ -125,7 +118,10 @@ namespace ARIASDK_NS_BEGIN {
         UNREFERENCED_PARAMETER(ctx);
         std::map<std::string, size_t> failedData;
         failedData[ctx->record.tenantToken] = 1;
-        m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, failedData);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnRecordsDropped(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED, failedData);
+        }
         scheduleSend();
 
         DebugEvent evt;
@@ -139,7 +135,10 @@ namespace ARIASDK_NS_BEGIN {
     bool Statistics::handleOnUploadStarted(EventsUploadContextPtr const& ctx)
     {
         bool metastatsOnly = (ctx->packageIds.count(m_config.GetMetaStatsTenantToken()) == ctx->packageIds.size());
-        m_metaStats.updateOnPostData(static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()), metastatsOnly);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnPostData(static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()), metastatsOnly);
+        }
         scheduleSend();
 
         DebugEvent evt;
@@ -168,7 +167,10 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         bool metastatsOnly = (ctx->packageIds.count(m_config.GetMetaStatsTenantToken()) == ctx->packageIds.size());
-        m_metaStats.updateOnPackageSentSucceeded(ctx->recordIdsAndTenantIds, ctx->latency, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnPackageSentSucceeded(ctx->recordIdsAndTenantIds, ctx->latency, ctx->maxRetryCountSeen, ctx->durationMs, latencyToSendMs, metastatsOnly);
+        }
         scheduleSend();
         return true;
     }
@@ -176,16 +178,16 @@ namespace ARIASDK_NS_BEGIN {
     bool Statistics::handleOnUploadRejected(EventsUploadContextPtr const& ctx)
     {
         unsigned status = (ctx->httpResponse)?ctx->httpResponse->GetStatusCode():0;
-        m_metaStats.updateOnPackageFailed(status);
-
-        std::map<std::string, size_t> countOnTenant;
-        for (const auto& recordAndTenant : ctx->recordIdsAndTenantIds)
         {
-            countOnTenant[recordAndTenant.second]++;
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnPackageFailed(status);
+            std::map<std::string, size_t> countOnTenant;
+            for (const auto& recordAndTenant : ctx->recordIdsAndTenantIds)
+            {
+                countOnTenant[recordAndTenant.second]++;
+            }
+            m_metaStats.updateOnRecordsRejected(REJECTED_REASON_SERVER_DECLINED, countOnTenant);
         }
-
-        m_metaStats.updateOnRecordsRejected(REJECTED_REASON_SERVER_DECLINED, countOnTenant);
-
         scheduleSend();
         return true;
     }
@@ -194,54 +196,56 @@ namespace ARIASDK_NS_BEGIN {
     {
         // TODO: [MG] - identify a special status code other than 0 for "request aborted" condition
         unsigned status = (ctx->httpResponse)?ctx->httpResponse->GetStatusCode():0;
-        m_metaStats.updateOnPackageRetry(status, ctx->maxRetryCountSeen);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnPackageRetry(status, ctx->maxRetryCountSeen);
+        }
         scheduleSend();
         return true;
     }
 
     bool Statistics::handleOnStorageOpened(StorageNotificationContext const* ctx)
     {
+        LOCKGUARD(m_metaStats_mtx);
         m_metaStats.updateOnStorageOpened(ctx->str);
         return true;
     }
 
     bool Statistics::handleOnStorageFailed(StorageNotificationContext const* ctx)
     {
+        LOCKGUARD(m_metaStats_mtx);
         m_metaStats.updateOnStorageFailed(ctx->str);
         return true;
     }
 
     bool Statistics::handleOnStorageTrimmed(StorageNotificationContext const* ctx)
     {
-        m_metaStats.updateOnRecordsOverFlown(ctx->countonTenant);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnRecordsOverFlown(ctx->countonTenant);
+        }
         scheduleSend();
         return true;
     }
 
     bool Statistics::handleOnStorageRecordsDropped(StorageNotificationContext const* ctx)
     {
-        m_metaStats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, ctx->countonTenant);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, ctx->countonTenant);
+        }
         scheduleSend();
         return true;
     }
 
     bool Statistics::handleOnStorageRecordsRejected(StorageNotificationContext const* ctx)
     {
-        m_metaStats.updateOnRecordsRejected(REJECTED_REASON_TENANT_KILLED, ctx->countonTenant);
+        {
+            LOCKGUARD(m_metaStats_mtx);
+            m_metaStats.updateOnRecordsRejected(REJECTED_REASON_TENANT_KILLED, ctx->countonTenant);
+        }
         scheduleSend();
         return true;
     }
-
-#if 0
-    void Statistics::createNewTenantIfNotFound(std::string token)
-    {
-        if (m_metaStats.find(token) == m_metaStats.end()) {
-            MetaStats *newTenant = new MetaStats(m_runtimeConfig, m_globalContext);
-            LOG_TRACE("!!! tenantToken      obj=%p", newTenant);
-            m_metaStats[token] = newTenant;
-            m_metaStats[token]->setTenantId(token);
-        }
-    }
-#endif
 
 } ARIASDK_NS_END

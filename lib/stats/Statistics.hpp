@@ -14,6 +14,9 @@
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
+#include <mutex>
+#include <atomic>
+
 namespace ARIASDK_NS_BEGIN {
 
     class ITelemetrySystem;
@@ -49,6 +52,7 @@ namespace ARIASDK_NS_BEGIN {
         bool handleOnStorageRecordsRejected(StorageNotificationContext const* ctx);
 
     protected:
+        std::mutex                  m_metaStats_mtx;
         MetaStats                   m_metaStats;
         ITelemetrySystem&           m_iTelemetrySystem;
         IRuntimeConfig&             m_config;
@@ -59,10 +63,11 @@ namespace ARIASDK_NS_BEGIN {
         SemanticContextDecorator    m_semanticContextDecorator;
 
         PAL::DeferredCallbackHandle m_scheduledSend;
-        bool                        m_isScheduled;
+        std::atomic<bool>           m_isScheduled;
         bool                        m_isStarted;
 
         std::int64_t                m_statEventSentTime;
+        unsigned                    m_intervalMs;
 
     public:
 

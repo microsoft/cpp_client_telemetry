@@ -2,8 +2,8 @@
 // WARNING: DO NOT MODIFY THIS FILE!
 // Copyright (c) Microsoft. All rights reserved.
 // This file has been automatically generated, manual changes will be lost.
-#define BUILD_VERSION_STR "3.0.309.0"
-#define BUILD_VERSION 3,0,309,0
+#define BUILD_VERSION_STR "3.0.339.1"
+#define BUILD_VERSION 3,0,339,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include <stdint.h>
@@ -24,15 +24,15 @@ namespace ARIASDK_NS_BEGIN {
 uint64_t const Version =
 	((uint64_t)3 << 48) |
 	((uint64_t)0 << 32) |
-	((uint64_t)309 << 16) |
-	((uint64_t)0);
+	((uint64_t)339 << 16) |
+	((uint64_t)1);
 
 // TODO: [MG] - move declaration of ARIA_SDK_UNUSED to separate include file
 #ifdef ARIASDK_UNUSED
 #elif defined(__GNUC__) || defined(__clang__)
 # define ARIASDK_UNUSED(x) (x) /* __attribute__((unused)) */
 #elif defined(__LCLINT__)
-# define ARIASDK_UNUSED(x) /**/ x
+# define ARIASDK_UNUSED(x) /*@unused@*/ x
 #elif defined(__cplusplus)
 # define ARIASDK_UNUSED(x)
 #else
@@ -46,3 +46,4 @@ uint64_t const Version =
 namespace PAL_NS_BEGIN { } PAL_NS_END
 
 #endif // RESOURCE_COMPILER_INVOKED
+
