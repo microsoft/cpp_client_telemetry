@@ -539,6 +539,8 @@ namespace PAL_NS_BEGIN {
             context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
             context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
             //context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
+
+            context->SetCommercialId(g_SystemInformation->GetCommercialId());
         }
         if (g_NetworkInformation != nullptr)
         {

@@ -154,6 +154,12 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="timeZone">user's time zone relative to UTC, in ISO 8601 time zone format</param>
         virtual void  SetUserTimeZone(std::string const& timeZone) {};
 
+        /// <summary>
+        /// Set the Commercial Id context information of telemetry event.
+        /// </summary>
+        /// <param name="commercialId">CommercialId of a machine</param>
+        virtual void  SetCommercialId(std::string const& commercialId) {};
+
         virtual void SetTicket(TicketType type, std::string const& ticketValue) {};
     };
 

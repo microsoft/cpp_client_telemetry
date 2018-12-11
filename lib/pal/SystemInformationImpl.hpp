@@ -36,6 +36,7 @@ namespace PAL_NS_BEGIN {
         virtual std::string const& GetUserAdvertisingId() const override { return m_user_advertising_id; };
 
         virtual std::string const& GetDeviceClass() const override { return m_device_class; };
+        virtual std::string const& GetCommercialId() const override { return m_commercial_id; };
 
     private:
         std::string m_app_id;
@@ -51,6 +52,7 @@ namespace PAL_NS_BEGIN {
         std::string m_user_advertising_id;
 
         std::string m_device_class;
+        std::string m_commercial_id;
 
         InformatonProviderImpl m_info_helper;
 

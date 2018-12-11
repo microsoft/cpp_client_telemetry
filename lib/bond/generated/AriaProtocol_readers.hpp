@@ -259,9 +259,6 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Device& value, bool isBase)
                 if (!reader.ReadString(value.localId)) {
                     return false;
                 }
-#if 0 /* XXX */
-                value.RecordType = static_cast< ::AriaProtocol::AriaRecordType>(item4);
-#endif
                 break;
             }
 
@@ -598,6 +595,65 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Utc& value, bool isBase)
 
             case 13: {
                 if (!reader.ReadInt64(value.seq)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 14: {
+                if (!reader.ReadDouble(value.popSample)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 15: {
+                if (!reader.ReadInt64(value.eventFlags)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::AriaProtocol::M365a& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.enrolledTenantId)) {
                     return false;
                 }
                 break;
@@ -2230,6 +2286,27 @@ bool Deserialize(TReader& reader, ::AriaProtocol::Record& value, bool isBase)
                 value.extCloud.resize(size4);
                 for (unsigned i4 = 0; i4 < size4; i4++) {
                     if (!Deserialize(reader, value.extCloud[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 37: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extM365a.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extM365a[i4], false)) {
                         return false;
                     }
                 }

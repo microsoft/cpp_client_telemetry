@@ -254,17 +254,20 @@ namespace ARIASDK_NS_BEGIN
     const char* const COMMONFIELDS_APP_EXPERIMENTIDS = "AppInfo.ExperimentIds";
     const char* const COMMONFIELDS_APP_EXPERIMENTETAG = "AppInfo.ETag";
     const char* const COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID = "AppInfo.ImpressionId";
+
     const char* const COMMONFIELDS_DEVICE_ID = "DeviceInfo.Id";
     const char* const COMMONFIELDS_DEVICE_MAKE = "DeviceInfo.Make";
     const char* const COMMONFIELDS_DEVICE_MODEL = "DeviceInfo.Model";
+    const char* const COMMONFIELDS_DEVICE_CLASS = "DeviceInfo.Class";
+
     const char* const COMMONFIELDS_NETWORK_PROVIDER = "DeviceInfo.NetworkProvider";
     const char* const COMMONFIELDS_NETWORK_TYPE = "DeviceInfo.NetworkType";
     const char* const COMMONFIELDS_NETWORK_COST = "DeviceInfo.NetworkCost";
+
     const char* const COMMONFIELDS_OS_NAME = "DeviceInfo.OsName";
     const char* const COMMONFIELDS_OS_VERSION = "DeviceInfo.OsVersion";
     const char* const COMMONFIELDS_OS_BUILD = "DeviceInfo.OsBuild";
-    const char* const COMMONFIELDS_DEVICE_CLASS = "DeviceInfo.Class";
-
+    const char* const COMMONFIELDS_COMMERCIAL_ID = "M365aInfo.EnrolledTenantId";
 
     const char* const COMMONFIELDS_EVENT_SDK_TYPE = "S_t";
     const char* const COMMONFIELDS_EVENT_SDK_OSNAME = "S_p";

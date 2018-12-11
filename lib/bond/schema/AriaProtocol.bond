@@ -86,6 +86,14 @@ struct Utc
     11: optional string bSeq;
     12: optional string epoch;
     13: optional int64 seq;
+    // cs4.0 fields
+    14: optional double popSample;
+    15: optional int64 eventFlags;
+}
+
+struct M365a
+{
+    1: optional string enrolledTenantId;
 }
 
 struct Xbl
@@ -282,6 +290,7 @@ struct CsEvent
     32: optional vector<Sdk> extSdk;
     33: optional vector<Loc> extLoc;
     34: optional vector<Cloud> extCloud;
+    37: optional vector<M365a> extM365a;
     41: optional vector<Data> ext;
     51: optional map<string, string> tags;
     60: optional string baseType;

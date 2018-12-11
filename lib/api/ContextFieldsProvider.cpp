@@ -116,6 +116,12 @@ namespace ARIASDK_NS_BEGIN {
             record.extProtocol.push_back(proto);
         }
 
+        if (record.extM365a.size() == 0)
+        {
+            ::AriaProtocol::M365a m365a;
+            record.extM365a.push_back(m365a);
+        }
+
         std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
         {
             LOCKGUARD(m_lock);
@@ -211,6 +217,12 @@ namespace ARIASDK_NS_BEGIN {
             if (iter != m_commonContextFields.end())
             {
                 record.extDevice[0].deviceClass = iter->second.as_string;
+            }
+
+            iter = m_commonContextFields.find(COMMONFIELDS_COMMERCIAL_ID);
+            if (iter != m_commonContextFields.end())
+            {
+                record.extM365a[0].enrolledTenantId = iter->second.as_string;
             }
 
             iter = m_commonContextFields.find(COMMONFIELDS_OS_NAME);
@@ -552,6 +564,11 @@ namespace ARIASDK_NS_BEGIN {
     void ContextFieldsProvider::SetUserTimeZone(std::string const& timeZone)
     {
         setCommonField(COMMONFIELDS_USER_TIMEZONE, timeZone);
+    }
+
+    void ContextFieldsProvider::SetCommercialId(std::string const& commercialId)
+    {
+        setCommonField(COMMONFIELDS_COMMERCIAL_ID, commercialId);
     }
 
     void ContextFieldsProvider::SetTicket(TicketType type, std::string const& ticketValue)

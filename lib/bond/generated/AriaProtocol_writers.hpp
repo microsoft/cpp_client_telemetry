@@ -451,6 +451,38 @@ void Serialize(TWriter& writer, ::AriaProtocol::Utc const& value, bool isBase)
         writer.WriteFieldOmitted(BT_INT64, 13, nullptr);
     }
 
+    if (value.popSample != 0.0) {
+        writer.WriteFieldBegin(BT_DOUBLE, 14, nullptr);
+        writer.WriteDouble(value.popSample);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_DOUBLE, 14, nullptr);
+    }
+
+    if (value.eventFlags != 0) {
+        writer.WriteFieldBegin(BT_INT64, 15, nullptr);
+        writer.WriteInt64(value.eventFlags);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 15, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::AriaProtocol::M365a const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.enrolledTenantId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.enrolledTenantId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
     writer.WriteStructEnd(isBase);
 }
 
@@ -1464,6 +1496,18 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
         writer.WriteFieldOmitted(BT_LIST, 34, nullptr);
     }
 
+    if (!value.extM365a.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 37, nullptr);
+        writer.WriteContainerBegin(value.extM365a.size(), BT_STRUCT);
+        for (auto const& item2 : value.extM365a) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 37, nullptr);
+    }
+
     if (!value.ext.empty()) {
         writer.WriteFieldBegin(BT_LIST, 41, nullptr);
         writer.WriteContainerBegin(value.ext.size(), BT_STRUCT);
@@ -1522,8 +1566,6 @@ void Serialize(TWriter& writer, ::AriaProtocol::Record const& value, bool isBase
     }
 
     writer.WriteStructEnd(isBase);
-    // TODO: [MG] - investigate
-    // Run-Time Check Failure #2 - Stack around the variable '<begin>$L6' was corrupted.
 }
 
 } // namespace bond_lite

@@ -72,6 +72,13 @@ namespace PAL_NS_BEGIN {
         /// </summary>
         /// <returns>Advertising Id</returns>
         virtual std::string const& GetDeviceClass() const = 0;
+
+        /// <summary>
+        /// Gets the Commercial Id
+        /// </summary>
+        /// <returns>Commercial Id</returns>
+        virtual std::string const& GetCommercialId() const = 0;
+
     };
 
 } PAL_NS_END

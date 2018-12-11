@@ -19,6 +19,7 @@ class MockISemanticContext : public ARIASDK_NS::ContextFieldsProvider {
     MOCK_METHOD1(SetUserMsaId,         void(std::string const & userMsaId));
     MOCK_METHOD1(SetUserANID,          void(std::string const & userANID));
     MOCK_METHOD1(SetUserAdvertisingId, void(std::string const & userAdvertingId));
+    MOCK_METHOD1(SetCommercialId,      void(std::string const & commercialId));
     MOCK_METHOD1(SetUserLanguage,      void(std::string const & locale));
     MOCK_METHOD1(SetUserTimeZone,      void(std::string const & timeZone));
 	MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));

@@ -54,6 +54,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void SetUserAdvertisingId(std::string const& userAdvertingId) override;
         virtual void SetUserLanguage(std::string const& language) override;
         virtual void SetUserTimeZone(std::string const& timeZone) override;
+        virtual void SetCommercialId(std::string const& commercialId) override;
         virtual void SetTicket(TicketType type, std::string const& ticketValue) override;
 
     protected:

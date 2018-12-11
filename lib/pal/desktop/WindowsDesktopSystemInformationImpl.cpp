@@ -121,6 +121,19 @@ namespace PAL_NS_BEGIN {
     }
 
     /**
+     * Get CommercialId from registry
+     */
+    std::string getCommercialId()
+    {
+        char buff[MAX_PATH] = { 0 };
+        const PCSTR c_dataCollection_Key = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection";
+        const PCSTR c_commercialId = "CommercialId";
+        DWORD size = sizeof(buff);
+        RegGetValueA(HKEY_LOCAL_MACHINE, c_dataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, (char*)buff, &size);
+        return buff;
+    }
+
+    /**
      * Get OS major and full version strings
      */
     void getOsVersion(std::string& osMajorVersion, std::string& osFullVersion)
@@ -166,7 +179,7 @@ namespace PAL_NS_BEGIN {
     SystemInformationImpl::SystemInformationImpl()
         : m_info_helper()
     {
-#if 1
+
         m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
         m_os_name = WindowsOSName;
         m_app_id = getAppId();
@@ -196,33 +209,8 @@ namespace PAL_NS_BEGIN {
                 m_device_class = str;
             }
         }
-#else   // FIXME: [MG] - figure out which implementation is better
-        m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
-        m_os_name = WindowsOSName;
 
-        // Auto-detect the app name - executable name without .exe suffix
-        char buff[MAX_PATH] = { 0 };
-        if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
-        {
-            //std::wstring app_name_w(buff);
-            std::string  app_name(buff);// app_name_w.begin(), app_name_w.end());
-            size_t pos_dot = app_name.rfind(".");
-            size_t pos_slash = app_name.rfind("\\");
-            if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
-            {
-                app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
-            }
-            m_app_id = app_name;
-        }
-
-        OSVERSIONINFO osvi = { 0 };
-        osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        // FIXME: [MG] - C4996 'GetVersionExW': was declared deprecated
-        GetVersionEx(&osvi);
-
-        m_os_major_version = std::to_string((long long)osvi.dwMajorVersion) + "." + std::to_string((long long)osvi.dwMinorVersion);
-        m_os_full_version = m_os_major_version + "." + std::to_string((long long)osvi.dwBuildNumber);
-#endif
+        m_commercial_id = getCommercialId();
     }
 
     SystemInformationImpl::~SystemInformationImpl()

@@ -222,6 +222,10 @@ struct Utc {
     std::string epoch;
     // 13: optional int64 seq
     int64_t seq = 0;
+    // 14: optional double popSample
+    double popSample = 0.0;
+    // 15: optional int64 eventFlags
+    int64_t eventFlags = 0;
 
     bool operator==(Utc const& other) const
     {
@@ -236,10 +240,27 @@ struct Utc {
             && (cpId == other.cpId)
             && (bSeq == other.bSeq)
             && (epoch == other.epoch)
-            && (seq == other.seq);
+            && (seq == other.seq)
+            && (popSample == other.popSample)
+            && (eventFlags == other.eventFlags);
     }
 
     bool operator!=(Utc const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct M365a {
+    // 1: optional string enrolledTenantId
+    std::string enrolledTenantId;
+
+    bool operator==(M365a const& other) const
+    {
+        return (enrolledTenantId == other.enrolledTenantId);
+    }
+
+    bool operator!=(M365a const& other) const
     {
         return !(*this == other);
     }
@@ -718,6 +739,8 @@ struct Record {
     std::vector< ::AriaProtocol::Loc> extLoc;
     // 34: optional vector<Cloud> extCloud
     std::vector< ::AriaProtocol::Cloud> extCloud;
+    // 37: optional vector<M365a> extM365a
+    std::vector< ::AriaProtocol::M365a> extM365a;
     // 41: optional vector<Data> ext
     std::vector< ::AriaProtocol::Data> ext;
     // 51: optional map<string, string> tags
@@ -752,6 +775,7 @@ struct Record {
             && (extSdk == other.extSdk)
             && (extLoc == other.extLoc)
             && (extCloud == other.extCloud)
+            && (extM365a == other.extM365a)
             && (ext == other.ext)
             && (tags == other.tags)
             && (baseType == other.baseType)
