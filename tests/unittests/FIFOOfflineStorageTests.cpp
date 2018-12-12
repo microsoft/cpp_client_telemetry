@@ -793,7 +793,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
         EXPECT_EQ(DATARV_ERROR_OK, pOfflineStorage->FindFirstItem(&findItemInfo));
         int inputArrayIndex = i % midIndex;
 
-        EXPECT_EQ(inputArrayIndex, findItemInfo.Key.Priority);
+        EXPECT_EQ(inputArrayIndex, static_cast<int>(findItemInfo.Key.Priority));
         EXPECT_EQ(strlen(data[inputArrayIndex]), findItemInfo.ItemSize);
 
         bool hasMoreItems = false;

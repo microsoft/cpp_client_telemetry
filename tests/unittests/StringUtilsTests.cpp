@@ -30,7 +30,7 @@ TEST(StringUtilsTests, SplitString)
 	// special case '\0' character gives single entry
 	parts.clear();
 	StringUtils::SplitString("abcdef0123456\t\r\n", '\0', parts);
-	ASSERT_EQ(parts.size(), 1);
+	ASSERT_EQ(parts.size(), 1ul);
 	ASSERT_EQ(parts.size() > 0 ? parts[0] : "null", "abcdef0123456\t\r\n");
 
 	// string with separator gives the correct number of entries
