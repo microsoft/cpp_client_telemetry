@@ -10,7 +10,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    class ARIASDK_LIBABI StringUtils
+    class StringUtils
     {
     public:
 
