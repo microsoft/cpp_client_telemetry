@@ -19,7 +19,7 @@ void TestCorrelationVectorVersion(int version, size_t baseLength, int maxLength,
     // test initialized value
     cv.Initialize(version);
     string baseValue = cv.GetValue();
-    ASSERT_EQ(baseValue.length(), baseLength + 2) << "Initialized base value length is incorrect";
+    ASSERT_EQ(baseValue.length(), static_cast<size_t>(baseLength + 2)) << "Initialized base value length is incorrect";
 
     // test properties
     EXPECT_TRUE(cv.CanExtend());
