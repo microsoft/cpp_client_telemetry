@@ -8,15 +8,24 @@ namespace ARIASDK_NS_BEGIN {
 
     class SemanticContextDecorator : public DecoratorBase {
 
+    protected:
+        ContextFieldsProvider& provider;
+
     public:
-        SemanticContextDecorator(ILogManager& owner):
-            DecoratorBase(owner)
+        SemanticContextDecorator(ILogManager& owner) :
+            DecoratorBase(owner),
+            provider(static_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext()))
+        {
+        }
+
+        SemanticContextDecorator(ILogManager& owner, ContextFieldsProvider& context) :
+            DecoratorBase(owner),
+            provider(context)
         {
         }
 
         bool decorate(::AriaProtocol::Record& record)
         {
-            ContextFieldsProvider& provider = static_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext());
             provider.writeToRecord(record);
             return true;
         }

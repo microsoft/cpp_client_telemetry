@@ -142,142 +142,146 @@ namespace ARIASDK_NS_BEGIN {
                 record.extApp[0].expId = value;
             }
 
-            if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFields.end())
+            if (!m_commonContextFields.empty())
             {
-                AriaProtocol::Value temp;
-                EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
-                temp.stringValue = prop.as_string;
-
-                ext[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID] = temp;
-            }
-
-            if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFields.end())
-            {
-                AriaProtocol::Value temp;
-                EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENTETAG];
-                temp.stringValue = prop.as_string;
-
-                ext[COMMONFIELDS_APP_EXPERIMENTETAG] = temp;
-            }
-            auto iter = m_commonContextFields.find(COMMONFIELDS_APP_ID);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extApp[0].id = iter->second.as_string;
-            }
-
-            iter = m_commonContextFields.find(COMMONFIELDS_APP_VERSION);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extApp[0].ver = iter->second.as_string;
-            }
-
-            iter = m_commonContextFields.find(COMMONFIELDS_APP_LANGUAGE);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extApp[0].locale = iter->second.as_string;
-            }
-
-            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ID);
-            if (iter != m_commonContextFields.end())
-            {
-                // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
-                // Use "c:" prefix
-                std::string temp("c:");
-                const char *deviceId = iter->second.as_string;
-                if (deviceId != nullptr)
+                if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFields.end())
                 {
-                    size_t len = strlen(deviceId);
-                    // Strip curly braces from GUID while populating localId.
-                    // Otherwise 1DS collector would not strip the prefix.
-                    if ((deviceId[0] == '{') && (deviceId[len - 1] == '}'))
-                    {
-                        temp.append(deviceId + 1, len - 2);
-                    }
-                    else
-                    {
-                        temp.append(deviceId);
-                    }
+                    AriaProtocol::Value temp;
+                    EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
+                    temp.stringValue = prop.as_string;
+
+                    ext[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID] = temp;
                 }
-                record.extDevice[0].localId = temp;
-            }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MAKE);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extProtocol[0].devMake = iter->second.as_string;
-            }
+                if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFields.end())
+                {
+                    AriaProtocol::Value temp;
+                    EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENTETAG];
+                    temp.stringValue = prop.as_string;
 
-            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MODEL);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extProtocol[0].devModel = iter->second.as_string;
-            }
+                    ext[COMMONFIELDS_APP_EXPERIMENTETAG] = temp;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_CLASS);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extDevice[0].deviceClass = iter->second.as_string;
-            }
+                auto iter = m_commonContextFields.find(COMMONFIELDS_APP_ID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extApp[0].id = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_COMMERCIAL_ID);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extM365a[0].enrolledTenantId = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_APP_VERSION);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extApp[0].ver = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_OS_NAME);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extOs[0].name = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_APP_LANGUAGE);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extApp[0].locale = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_OS_BUILD);
-            if (iter != m_commonContextFields.end())
-            {
-                //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
-                record.extOs[0].ver = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ID);
+                if (iter != m_commonContextFields.end())
+                {
+                    // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
+                    // Use "c:" prefix
+                    std::string temp("c:");
+                    const char *deviceId = iter->second.as_string;
+                    if (deviceId != nullptr)
+                    {
+                        size_t len = strlen(deviceId);
+                        // Strip curly braces from GUID while populating localId.
+                        // Otherwise 1DS collector would not strip the prefix.
+                        if ((deviceId[0] == '{') && (deviceId[len - 1] == '}'))
+                        {
+                            temp.append(deviceId + 1, len - 2);
+                        }
+                        else
+                        {
+                            temp.append(deviceId);
+                        }
+                    }
+                    record.extDevice[0].localId = temp;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_USER_ID);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extUser[0].localId = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MAKE);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extProtocol[0].devMake = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_USER_LANGUAGE);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extUser[0].locale = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MODEL);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extProtocol[0].devModel = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_USER_TIMEZONE);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extLoc[0].timezone = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_CLASS);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extDevice[0].deviceClass = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_USER_MSAID);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extDevice[0].authSecId = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_COMMERCIAL_ID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extM365a[0].enrolledTenantId = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_COST);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extNet[0].cost = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_OS_NAME);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extOs[0].name = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_PROVIDER);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extNet[0].provider = iter->second.as_string;
-            }
+                iter = m_commonContextFields.find(COMMONFIELDS_OS_BUILD);
+                if (iter != m_commonContextFields.end())
+                {
+                    //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
+                    record.extOs[0].ver = iter->second.as_string;
+                }
 
-            iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_TYPE);
-            if (iter != m_commonContextFields.end())
-            {
-                record.extNet[0].type = iter->second.as_string;
+                iter = m_commonContextFields.find(COMMONFIELDS_USER_ID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extUser[0].localId = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_USER_LANGUAGE);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extUser[0].locale = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_USER_TIMEZONE);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extLoc[0].timezone = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_USER_MSAID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extDevice[0].authSecId = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_COST);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extNet[0].cost = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_PROVIDER);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extNet[0].provider = iter->second.as_string;
+                }
+
+                iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_TYPE);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extNet[0].type = iter->second.as_string;
+                }
             }
 
             if (m_ticketsMap.size() > 0)

@@ -21,12 +21,12 @@ namespace ARIASDK_NS_BEGIN {
         m_tenantToken(tenantToken),
         m_source(source),
         m_logManager(logManager),
-        m_context(parentContext),
+        m_context(&parentContext),
         m_config(runtimeConfig),
         m_eventFilter(eventFilter),
 
         m_baseDecorator(logManager),
-        m_semanticContextDecorator(logManager),
+        m_semanticContextDecorator(logManager, m_context),
         m_eventPropertiesDecorator(logManager),
         m_semanticApiDecorators(logManager),
 
