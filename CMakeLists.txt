@@ -166,7 +166,6 @@ if (BUILD_PACKAGE)
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
     # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/AriaSDK/* - what should we use instead?
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_BUILD_TYPE}/${TARGET_ARCH})
     include(tools/MakeTgz.cmake)
   endif()
 endif()
