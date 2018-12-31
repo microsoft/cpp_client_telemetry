@@ -29,43 +29,43 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual status_t  SetTicketToken(TicketType type, char const* tokenValue);
+        virtual status_t  SetTicketToken(TicketType type, char const* tokenValue) override;
 
         /// <summary>
         /// Clears all tokens.
         /// </summary>
-        virtual status_t  Clear();
+        virtual status_t  Clear() override;
 
         /// <summary>
         /// sets strict mode for application( all tokens in that app).
         /// </summary>
-        virtual status_t  SetStrictMode(bool value);
+        virtual status_t  SetStrictMode(bool value) override;
 
         /// <summary>
         /// gets strict mode for application.
         /// </summary>
-        virtual bool  GetStrictMode();
+        virtual bool  GetStrictMode() override;
 
         /// <summary>
         /// Set the Auth ticket.
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual std::vector<std::string>&  GetTickets();
+        virtual std::vector<std::string>&  GetTickets() override;
 
         /// <summary>
         /// Set the Auth ticket.
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual std::map<TicketType, std::string>&  GetDeviceTokens();
+        virtual std::map<TicketType, std::string>&  GetDeviceTokens() override;
 
         /// <summary>
         /// Set the Auth ticket.
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticketvalue</param>
-        virtual std::map<TicketType, std::string>&  GetUserTokens();
+        virtual std::map<TicketType, std::string>&  GetUserTokens() override;
 
     private:
         ARIASDK_LOG_DECL_COMPONENT_CLASS();
