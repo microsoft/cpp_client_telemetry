@@ -322,6 +322,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -379,6 +380,7 @@ bld_ml32.bat</Command>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -434,6 +436,7 @@ bld_ml32.bat</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -487,6 +490,7 @@ bld_ml32.bat</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -539,6 +543,7 @@ bld_ml32.bat</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -592,6 +597,7 @@ bld_ml32.bat</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -652,6 +658,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -712,6 +719,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -774,6 +782,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -834,6 +843,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -889,6 +899,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -945,6 +956,7 @@ bld_ml32.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -999,6 +1011,7 @@ bld_ml32.bat</Command>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1052,6 +1065,7 @@ bld_ml64.bat</Command>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1111,6 +1125,7 @@ bld_ml64.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1167,6 +1182,7 @@ bld_ml64.bat</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

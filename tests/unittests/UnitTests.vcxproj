@@ -147,6 +147,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -196,6 +197,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -242,6 +244,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -290,6 +293,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -338,6 +342,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -384,6 +389,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
