@@ -180,7 +180,7 @@ extern "C" {
     /**
      * Simple stable backwards- / forward- compatible ABI interface
      */
-    EVTSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx)
+    evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx)
     {
         evt_status_t result = EFAIL;
 
