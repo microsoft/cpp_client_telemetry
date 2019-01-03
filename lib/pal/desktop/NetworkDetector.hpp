@@ -213,19 +213,19 @@ namespace ARIASDK_NS_BEGIN
                     /// Get current network cost
                     /// </summary>
                     /// <returns></returns>
-                    int NetworkDetector::GetCurrentNetworkCost();
+                    int GetCurrentNetworkCost();
 
                     /// <summary>
                     /// Get last cached network cost
                     /// </summary>
                     /// <returns></returns>
-                    NetworkCost const& NetworkDetector::GetNetworkCost();
+                    NetworkCost const& GetNetworkCost();
 
                     /// <summary>
                     /// Get last cached network type
                     /// </summary>
                     /// <returns></returns>
-                    NetworkType NetworkDetector::GetNetworkType();
+                    NetworkType GetNetworkType();
 
                     /// <summary>
                     /// Get adapter ID for connection profile
@@ -234,7 +234,7 @@ namespace ARIASDK_NS_BEGIN
                     /// <returns></returns>
                     std::string GetAdapterId(IConnectionProfile *profile);
 
-                    int NetworkDetector::GetConnectivity();
+                    int GetConnectivity();
 
                     const std::map<std::string, NLM_CONNECTIVITY>& GetNetworksConnectivity();
                     const std::map<std::string, NLM_CONNECTIVITY>& GetConnectionsConnectivity();

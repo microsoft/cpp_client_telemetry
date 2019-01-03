@@ -348,7 +348,7 @@ namespace tld
 
     The type of a provider trait. Used when building up provider metadata.
     */
-    enum ProviderTraitType;
+    enum ProviderTraitType : UINT8;
 
     /*
     class ProviderMetadataBuilder (low-level API):
@@ -1595,7 +1595,7 @@ namespace tld
         TypeHResult = _TLD_MAKE_TYPE(InTypeInt32, OutTypeHResult)
     };
 
-    enum ProviderTraitType
+    enum ProviderTraitType : UINT8
     {
         ProviderTraitNone = 0, // Invalid value
         ProviderTraitGroupGuid = 1 // Data is the group GUID.
@@ -1984,8 +1984,8 @@ namespace tld
         void Begin(
             _In_z_ CharTy const* szUtfProviderName)
         {
-            BaseBegin();
-            AddString(szUtfProviderName);
+            this->BaseBegin();
+            this->AddString(szUtfProviderName);
         }
 
         void AddTrait(
@@ -1993,14 +1993,14 @@ namespace tld
             _In_bytecount_(cbData) void const* pData,
             unsigned cbData)
         {
-            AddU16(static_cast<UINT16>(cbData + 3));
-            AddU8(static_cast<UINT8>(type));
-            AddBytes(pData, cbData);
+            this->AddU16(static_cast<UINT16>(cbData + 3));
+            this->AddU8(static_cast<UINT8>(type));
+            this->AddBytes(pData, cbData);
         }
 
         bool End()
         {
-            return BaseEnd();
+            return this->BaseEnd();
         }
     };
 
@@ -2056,11 +2056,11 @@ namespace tld
                 auto val = static_cast<UINT8>(tags >> 21);
                 if ((tags & 0x1fffff) == 0)
                 {
-                    AddU8(val & 0x7f);
+                    this->AddU8(val & 0x7f);
                     break;
                 }
 
-                AddU8(val | 0x80);
+                this->AddU8(val | 0x80);
                 tags = tags << 7;
             }
         }
@@ -2074,44 +2074,44 @@ namespace tld
             UINT8 outMeta = static_cast<UINT8>(type >> 8);
             if (tags != 0)
             {
-                AddU8(static_cast<UINT8>(inMeta | InMetaChain));
-                AddU8(static_cast<UINT8>(outMeta | OutMetaChain));
+                this->AddU8(static_cast<UINT8>(inMeta | InMetaChain));
+                this->AddU8(static_cast<UINT8>(outMeta | OutMetaChain));
                 AddTags(tags);
             }
             else if (outMeta != 0)
             {
-                AddU8(static_cast<UINT8>(inMeta | InMetaChain));
-                AddU8(static_cast<UINT8>(outMeta));
+                this->AddU8(static_cast<UINT8>(inMeta | InMetaChain));
+                this->AddU8(static_cast<UINT8>(outMeta));
             }
             else
             {
-                AddU8(inMeta);
+                this->AddU8(inMeta);
             }
 
             if (m_bookmark != 0)
             {
-                IncrementU7(m_bookmark);
+                this->IncrementU7(m_bookmark);
             }
         }
 
         UINT32 AddStructInfo(UINT8 arity, UINT32 tags)
         {
             UINT8 inMeta = arity | InTypeStruct;
-            AddU8(static_cast<UINT8>(inMeta | InMetaChain));
-            UINT32 bookmark = GetBookmark();
+            this->AddU8(static_cast<UINT8>(inMeta | InMetaChain));
+            UINT32 bookmark = this->GetBookmark();
             if (tags == 0)
             {
-                AddU8(0);
+                this->AddU8(0);
             }
             else
             {
-                AddU8(OutMetaChain);
+                this->AddU8(OutMetaChain);
                 AddTags(tags);
             }
 
             if (m_bookmark != 0)
             {
-                IncrementU7(m_bookmark);
+                this->IncrementU7(m_bookmark);
             }
 
             return bookmark;
@@ -2147,15 +2147,15 @@ namespace tld
             UINT32 eventTags = 0)
         {
             _TLD_ASSERT(m_bookmark == 0, "Must not call Begin on a struct builder");
-            BaseBegin();
+            this->BaseBegin();
             AddTags(eventTags);
-            AddString(szUtfEventName);
+            this->AddString(szUtfEventName);
         }
 
         bool End()
         {
             _TLD_ASSERT(m_bookmark == 0, "Must not call End on a struct builder");
-            return BaseEnd();
+            return this->BaseEnd();
         }
 
         template<class CharTy>
@@ -2163,9 +2163,9 @@ namespace tld
             _In_z_ CharTy const* szUtfStructName,
             UINT32 fieldTags = 0)
         {
-            AddString(szUtfStructName);
+            this->AddString(szUtfStructName);
             auto bookmark = AddStructInfo(InMetaScalar, fieldTags);
-            return EventMetadataBuilder(GetBuffer(), bookmark);
+            return EventMetadataBuilder(this->GetBuffer(), bookmark);
         }
 
         template<class CharTy>
@@ -2185,7 +2185,7 @@ namespace tld
         {
             AddString(szUtfStructName);
             auto bookmark = AddStructInfo(InMetaVcount, fieldTags);
-            return EventMetadataBuilder(GetBuffer(), bookmark);
+            return EventMetadataBuilder(this->GetBuffer(), bookmark);
         }
 
         template<class CharTy>
@@ -2196,8 +2196,8 @@ namespace tld
         {
             AddString(szUtfStructName);
             auto bookmark = AddStructInfo(InMetaCcount, fieldTags);
-            AddU16(itemCount);
-            return EventMetadataBuilder(GetBuffer(), bookmark);
+            this->AddU16(itemCount);
+            return EventMetadataBuilder(this->GetBuffer(), bookmark);
         }
 
         template<class CharTy>
@@ -2206,8 +2206,8 @@ namespace tld
             Type type,
             UINT32 fieldTags = 0)
         {
-            AddString(szUtfFieldName);
-            AddFieldInfo(InMetaScalar, type, fieldTags);
+            this->AddString(szUtfFieldName);
+            this->AddFieldInfo(InMetaScalar, type, fieldTags);
         }
 
         template<class CharTy>
@@ -2227,9 +2227,9 @@ namespace tld
             Type type,
             UINT32 fieldTags = 0)
         {
-            AddString(szUtfFieldName);
+            this->AddString(szUtfFieldName);
             AddFieldInfo(InMetaCcount, type, fieldTags);
-            AddU16(itemCount);
+            this->AddU16(itemCount);
         }
 
         template<class CharTy>
@@ -2242,7 +2242,7 @@ namespace tld
         {
             AddString(szUtfFieldName);
             AddFieldInfo(InMetaCustom, type, fieldTags);
-            AddU16(cbSchema);
+            this->AddU16(cbSchema);
             auto pbSchema = static_cast<UINT8 const*>(pSchema);
             for (UINT32 i = 0; i != cbSchema; i++)
             {
@@ -2509,7 +2509,7 @@ namespace tld
             if (!builder.End())
             {
                 InitFail(E_INVALIDARG); // Metadata > 64KB.
-                goto Done;
+                return;
             }
 
             UINT32 const cbMetadata = wrapper.size();
@@ -2517,7 +2517,7 @@ namespace tld
             if (!pbMetadata)
             {
                 InitFail(E_OUTOFMEMORY);
-                goto Done;
+                return;
             }
 
             m_pbMetadata = pbMetadata;
@@ -2530,7 +2530,7 @@ namespace tld
             if (!builder.End() || cbMetadata < wrapper.size())
             {
                 InitFail(0x8000000CL);
-                goto Done;
+                return;
             }
 
             HRESULT hr = ::tld::RegisterProvider(&m_hProvider, &m_id, m_pbMetadata, &EnableCallback, this);
@@ -2538,10 +2538,6 @@ namespace tld
             {
                 InitFail(hr);
             }
-
-        Done:
-
-            return;
         }
 
         bool IsEnabledForKeywords(ULONGLONG keywords) const
