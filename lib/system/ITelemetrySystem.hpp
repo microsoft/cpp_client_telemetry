@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual ISemanticContext& getContext() = 0;
 
         // Debug functionality
-        virtual bool DispatchEvent(DebugEvent evt) = 0;
+        virtual bool DispatchEvent(DebugEvent evt) override = 0;
 
         // Core sendEvent
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;

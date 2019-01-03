@@ -31,7 +31,7 @@ class FullDumpBinaryEqMatcher : public testing::MatcherInterface<FullDumpBinaryB
 
     FullDumpBinaryEqMatcher(FullDumpBinaryEqMatcher const&) = delete;
 
-    virtual bool MatchAndExplain(FullDumpBinaryBlob const& actual, testing::MatchResultListener* listener) const
+    virtual bool MatchAndExplain(FullDumpBinaryBlob const& actual, testing::MatchResultListener* listener) const override
     {
         if (actual == m_expected) {
             return true;
@@ -93,13 +93,13 @@ class FullDumpBinaryEqMatcher : public testing::MatcherInterface<FullDumpBinaryB
         return false;
     }
 
-    virtual void DescribeTo(::std::ostream* os) const
+    virtual void DescribeTo(::std::ostream* os) const override
     {
         *os << "equals ";
         PrintTo(m_expected, os);
     }
 
-    virtual void DescribeNegationTo(::std::ostream* os) const
+    virtual void DescribeNegationTo(::std::ostream* os) const override
     {
         *os << "does not equal ";
         PrintTo(m_expected, os);

@@ -46,7 +46,7 @@ public:
 
     // Callback functions
     // IPropertyChangedCallback::OnChanged from platform on any connectivity, power, device system changes
-    virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue);
+    virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) override;
 
 private:
 

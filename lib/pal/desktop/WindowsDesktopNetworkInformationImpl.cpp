@@ -34,7 +34,7 @@ namespace PAL_NS_BEGIN {
         /// Gets the current network provider for the device
         /// </summary>
         /// <returns>The current network provider for the device</returns>
-        virtual std::string const& GetNetworkProvider()
+        virtual std::string const& GetNetworkProvider() override
         {
             return m_network_provider;
         }
@@ -44,7 +44,7 @@ namespace PAL_NS_BEGIN {
         /// E.g. Wifi, 3G, Ethernet
         /// </summary>
         /// <returns>The current network type for the device</returns>
-        virtual NetworkType GetNetworkType()
+        virtual NetworkType GetNetworkType() override
         {
             m_type = NetworkType_Unknown;
             DWORD flags;
@@ -70,7 +70,7 @@ namespace PAL_NS_BEGIN {
         /// UNMETERED
         /// </summary>
         /// <returns>The current network cost for the device</returns>
-        virtual NetworkCost GetNetworkCost()
+        virtual NetworkCost GetNetworkCost() override
         {
 #ifndef NO_ROAM_SUP
             m_cost = networkDetector->GetNetworkCost();

@@ -116,7 +116,7 @@ namespace ARIASDK_NS_BEGIN {
         RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsDropped{ this, &Statistics::handleOnStorageRecordsDropped };
         RoutePassThrough<Statistics, StorageNotificationContext const*> onStorageRecordsRejected{ this, &Statistics::handleOnStorageRecordsRejected };
 
-        virtual void OnDebugEvent(DebugEvent &evt);
+        virtual void OnDebugEvent(DebugEvent &evt) override;
 
     };
 
