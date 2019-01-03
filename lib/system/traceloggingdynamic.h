@@ -2509,7 +2509,7 @@ namespace tld
             if (!builder.End())
             {
                 InitFail(E_INVALIDARG); // Metadata > 64KB.
-                goto Done;
+                return;
             }
 
             UINT32 const cbMetadata = wrapper.size();
@@ -2517,7 +2517,7 @@ namespace tld
             if (!pbMetadata)
             {
                 InitFail(E_OUTOFMEMORY);
-                goto Done;
+                return;
             }
 
             m_pbMetadata = pbMetadata;
@@ -2530,7 +2530,7 @@ namespace tld
             if (!builder.End() || cbMetadata < wrapper.size())
             {
                 InitFail(0x8000000CL);
-                goto Done;
+                return;
             }
 
             HRESULT hr = ::tld::RegisterProvider(&m_hProvider, &m_id, m_pbMetadata, &EnableCallback, this);
@@ -2538,10 +2538,6 @@ namespace tld
             {
                 InitFail(hr);
             }
-
-        Done:
-
-            return;
         }
 
         bool IsEnabledForKeywords(ULONGLONG keywords) const
