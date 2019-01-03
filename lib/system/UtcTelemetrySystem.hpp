@@ -84,7 +84,7 @@ namespace ARIASDK_NS_BEGIN {
 
         ProviderData getProviderFortoken(const std::string& tenantToken);
 
-        void UtcTelemetrySystem::PutData(std::vector< ::AriaProtocol::Data>& ext,
+        void PutData(std::vector< ::AriaProtocol::Data>& ext,
             std::vector<std::string>& MD,
             tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
             tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
