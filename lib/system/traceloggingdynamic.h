@@ -348,7 +348,7 @@ namespace tld
 
     The type of a provider trait. Used when building up provider metadata.
     */
-    enum ProviderTraitType;
+    enum ProviderTraitType : UINT8;
 
     /*
     class ProviderMetadataBuilder (low-level API):
@@ -1595,7 +1595,7 @@ namespace tld
         TypeHResult = _TLD_MAKE_TYPE(InTypeInt32, OutTypeHResult)
     };
 
-    enum ProviderTraitType
+    enum ProviderTraitType : UINT8
     {
         ProviderTraitNone = 0, // Invalid value
         ProviderTraitGroupGuid = 1 // Data is the group GUID.
@@ -2056,11 +2056,11 @@ namespace tld
                 auto val = static_cast<UINT8>(tags >> 21);
                 if ((tags & 0x1fffff) == 0)
                 {
-                    AddU8(val & 0x7f);
+                    this->AddU8(val & 0x7f);
                     break;
                 }
 
-                AddU8(val | 0x80);
+                this->AddU8(val | 0x80);
                 tags = tags << 7;
             }
         }
@@ -2098,7 +2098,7 @@ namespace tld
         {
             UINT8 inMeta = arity | InTypeStruct;
             this->AddU8(static_cast<UINT8>(inMeta | InMetaChain));
-            UINT32 bookmark = GetBookmark();
+            UINT32 bookmark = this->GetBookmark();
             if (tags == 0)
             {
                 this->AddU8(0);
@@ -2185,7 +2185,7 @@ namespace tld
         {
             AddString(szUtfStructName);
             auto bookmark = AddStructInfo(InMetaVcount, fieldTags);
-            return EventMetadataBuilder(GetBuffer(), bookmark);
+            return EventMetadataBuilder(this->GetBuffer(), bookmark);
         }
 
         template<class CharTy>
@@ -2196,8 +2196,8 @@ namespace tld
         {
             AddString(szUtfStructName);
             auto bookmark = AddStructInfo(InMetaCcount, fieldTags);
-            AddU16(itemCount);
-            return EventMetadataBuilder(GetBuffer(), bookmark);
+            this->AddU16(itemCount);
+            return EventMetadataBuilder(this->GetBuffer(), bookmark);
         }
 
         template<class CharTy>
@@ -2242,7 +2242,7 @@ namespace tld
         {
             AddString(szUtfFieldName);
             AddFieldInfo(InMetaCustom, type, fieldTags);
-            AddU16(cbSchema);
+            this->AddU16(cbSchema);
             auto pbSchema = static_cast<UINT8 const*>(pSchema);
             for (UINT32 i = 0; i != cbSchema; i++)
             {
