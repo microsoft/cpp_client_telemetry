@@ -68,7 +68,7 @@ namespace PAL_NS_BEGIN {
             }
         }
         _exit:
-        return (const char *)(netIfGuid);
+        return netIfGuid;
     }
 
     // Helper functions.
