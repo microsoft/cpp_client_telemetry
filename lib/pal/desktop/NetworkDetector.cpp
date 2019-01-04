@@ -692,22 +692,17 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         const char* NetworkDetector::GetNetworkCostName(NetworkCostType type)
         {
-            char *typeName;
             switch (type) {
             case NetworkCostType_Unrestricted:
-                typeName = "Unrestricted";
-                break;
+                return "Unrestricted";
             case NetworkCostType_Fixed:
-                typeName = "Fixed";
-                break;
+                return "Fixed";
             case NetworkCostType_Variable:
-                typeName = "Variable";
+                return "Variable";
             case NetworkCostType_Unknown:
             default:
-                typeName = "Unknown";
-                break;
+                return "Unknown";
             }
-            return typeName;
         }
 
         const std::map<std::string, NLM_CONNECTIVITY>& NetworkDetector::GetNetworksConnectivity()

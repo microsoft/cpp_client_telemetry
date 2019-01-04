@@ -604,7 +604,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageFindFirstFindNextWithStringKeyUnit
     struct InputData
     {
         StorageItemKey Key;
-        char Data[32];
+        const char Data[32];
     };
 
     InputData inputSet[] =

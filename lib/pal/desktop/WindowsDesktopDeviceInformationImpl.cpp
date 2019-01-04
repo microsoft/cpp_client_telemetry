@@ -31,7 +31,7 @@ ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 namespace PAL_NS_BEGIN {
 
     /* Value returned on computers with no network adapter available */
-    static char *netIfGuid = "{deadbeef-fade-dead-c0de-cafebabefeed}";
+    static const char *netIfGuid = "{deadbeef-fade-dead-c0de-cafebabefeed}";
     static const char *manufacturer = "Unknown Manufacturer";
     static const char *model = "Unknown Model";
 
@@ -60,14 +60,15 @@ namespace PAL_NS_BEGIN {
             {
                 if (pAdapterInfo->AdapterName != NULL)
                 {
-                    netIfGuid = _strdup(pAdapterInfo->AdapterName);
-                    _strlwr_s(netIfGuid, lstrlenA(netIfGuid) + 1);
+                    std::string adapterName { pAdapterInfo->AdapterName };
+                    std::transform(adapterName.begin(), adapterName.end(), adapterName.begin(), ::tolower);
+                    netIfGuid = _strdup(adapterName.c_str());
                 }
                 FREE(pAdapterInfo);
             }
         }
         _exit:
-        return (const char *)(netIfGuid);
+        return netIfGuid;
     }
 
     // Helper functions.

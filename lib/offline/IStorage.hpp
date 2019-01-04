@@ -110,7 +110,7 @@ public:
     std::uint32_t CustomProperty2;
     char CustomProperty3[STORAGE_KEY_ID_AND_PROPERTY_SIZE];
 
-    StorageItemKey(char *Id, std::uint32_t Priority, std::int64_t Time) {
+    StorageItemKey(const char *Id, std::uint32_t Priority, std::int64_t Time) {
     	clear();
     	memcpy(&(this->Id[0]), (void *)Id, STORAGE_KEY_ID_AND_PROPERTY_SIZE -1);
     	this->Priority = Priority;
