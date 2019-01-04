@@ -2328,7 +2328,7 @@ namespace tld
         template<class T>
         void AddValues(_In_count_(cValues) T const* pValues, unsigned cValues)
         {
-            AddBytes(pValue, sizeof(T) * cValues);
+            AddBytes(pValues, sizeof(T) * cValues);
         }
 
         /*
