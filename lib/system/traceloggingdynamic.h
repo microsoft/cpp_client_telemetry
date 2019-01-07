@@ -1673,8 +1673,10 @@ namespace tld
 
 #pragma region Support functions
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 26018) // PREfast: Potential read overflow. (Analysis is incorrect.)
+#endif
 
     template<class ByteBufferTy>
     void PushBackAsUtf8(

@@ -8,8 +8,10 @@
 #include "Enums.hpp"
 #include <string>
 
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4100 ) // unreferenced formal parameter
+#endif
 namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
@@ -164,6 +166,8 @@ namespace ARIASDK_NS_BEGIN
     };
 
 } ARIASDK_NS_END
+#ifdef _MSC_VER
 #pragma warning( pop )
+#endif
 
 #endif //ISEMANTICCONTEXT_H

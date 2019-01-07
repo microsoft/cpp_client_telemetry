@@ -528,8 +528,10 @@ namespace ARIASDK_NS_BEGIN {
         initTransmitProfileFields();
     }
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:6320)
+#endif
     TransmitProfiles::~TransmitProfiles()
     {
 #ifdef _WIN32
@@ -545,7 +547,9 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
     }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;

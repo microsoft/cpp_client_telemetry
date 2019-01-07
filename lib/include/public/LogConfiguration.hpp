@@ -1,7 +1,7 @@
 #ifndef ARIA_LOGCONFIGURATION_HPP
 #define ARIA_LOGCONFIGURATION_HPP
 
-#include <Version.hpp>
+#include "Version.hpp"
 
 #include "ILogConfiguration.hpp"
 
@@ -14,8 +14,10 @@
 namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4251 ) // std::string container is safe to expose without DLL export attribute on Windows
+#endif
             struct ARIASDK_LIBABI LogConfiguration
             {
                 /// <summary>[optional] Enable lifecycle session.
@@ -88,7 +90,9 @@ namespace Microsoft {
                 /// Default value is 3 queues (back buffers)</summary>
                 unsigned int maxDBFlushQueues;
             };
+#ifdef _MSC_VER
 #pragma warning( pop )
+#endif
         }
     }
 }

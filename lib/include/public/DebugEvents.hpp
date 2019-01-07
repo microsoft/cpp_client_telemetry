@@ -153,8 +153,10 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-#  pragma warning( push )
-#  pragma warning( disable: 4251 )
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4251 )
+#endif
     /// <summary>The DebugEventSource class represents a debug event source.</summary>
     class ARIASDK_LIBABI DebugEventSource: public DebugEventDispatcher
     {
@@ -190,7 +192,9 @@ namespace ARIASDK_NS_BEGIN
 
         uint64_t seq;
     };
-#  pragma warning( pop )
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 } ARIASDK_NS_END
 

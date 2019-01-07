@@ -58,10 +58,14 @@ namespace ARIASDK_NS_BEGIN {
         }
         m_FileOpenSize = size; // for later file size adjustment
 
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning(disable: 4996)
+#endif
 		m_FileHandle = std::fopen(m_FilePath.c_str(), "r+b");
+#ifdef _MSC_VER
 #pragma warning( pop ) 
+#endif
 		if (nullptr == m_FileHandle)
 		{// open for read/write failed, lets open for wrire read
 			return RecreateFile(false);
@@ -91,10 +95,14 @@ namespace ARIASDK_NS_BEGIN {
 		{
 			std::fclose(m_FileHandle);
 		}
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning(disable: 4996)
+#endif
 		m_FileHandle = std::fopen(m_FilePath.c_str(), "w+b");
-#pragma warning( pop ) 
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 		if (nullptr != m_FileHandle)
 		{

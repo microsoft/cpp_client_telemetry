@@ -156,8 +156,10 @@ namespace PAL_NS_BEGIN {
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
             if (!isLoggingInited)
@@ -225,7 +227,9 @@ namespace PAL_NS_BEGIN {
             va_end(ap);
 #endif
         }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
     } // namespace detail
 
@@ -414,8 +418,10 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:6031)
+#endif
     std::string generateUuidString()
     {
         auto now = std::chrono::high_resolution_clock::now();
@@ -438,7 +444,9 @@ namespace PAL_NS_BEGIN {
             uuid.Data4[4], uuid.Data4[5], uuid.Data4[6], uuid.Data4[7]);
         return buf;
     }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
     int64_t getUtcSystemTimeMs()
     {

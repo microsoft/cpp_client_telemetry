@@ -32,7 +32,9 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4189 4100)
+#endif
 
 namespace PAL_NS_BEGIN {
     std::string getOsBuildLabEx();

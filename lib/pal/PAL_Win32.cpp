@@ -156,8 +156,10 @@ namespace PAL_NS_BEGIN {
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
             if (!isLoggingInited)
@@ -225,7 +227,9 @@ namespace PAL_NS_BEGIN {
             va_end(ap);
 #endif
         }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
     } // namespace detail
 
@@ -410,8 +414,10 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:6031)
+#endif
     std::string inline generateUuidString()
     {
         // TODO: [MG] - port Linux implementation in here
@@ -428,7 +434,9 @@ namespace PAL_NS_BEGIN {
             return MAT::to_string(uuid);
         }
     }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
     int64_t getUtcSystemTimeMs()
     {

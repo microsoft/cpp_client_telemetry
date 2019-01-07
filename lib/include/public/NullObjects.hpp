@@ -3,8 +3,10 @@
 #include "ILogManager.hpp"
 #include "ILogger.hpp"
 
+#ifdef _MSC_VER
 #pragma warning( push )
-#pragma warning( disable : 4100 ) // unreferenced formal parameter 
+#pragma warning( disable : 4100 ) // unreferenced formal parameter
+#endif
 namespace ARIASDK_NS_BEGIN {
 
     class NullLogger : public ILogger
@@ -275,4 +277,6 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+#ifdef _MSC_VER
 #pragma warning( pop )
+#endif

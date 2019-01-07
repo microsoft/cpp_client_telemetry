@@ -6,8 +6,11 @@
 // This error is benign and this syntax is allowed by MSVC and clang. We utilize this down there below to
 // instantiate a private singleton using a macro and a template.
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4459 4100 4121 4244 4068)
+#endif
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundefined-var-template"
 
@@ -594,6 +597,9 @@ namespace ARIASDK_NS_BEGIN
 } ARIASDK_NS_END
 
 #pragma clang diagnostic pop
+
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #endif
