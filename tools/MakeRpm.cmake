@@ -8,7 +8,7 @@ set(CPACK_RPM_PACKAGE_DESCRIPTION_SUMMARY "Aria SDK for events ingestion from Li
 set(CPACK_RPM_PACKAGE_CONTACT "ariaesdks@microsoft.com")
 
 set(MAJOR_VERSION "3")
-set(MINOR_VERSION "0")
+set(MINOR_VERSION "1")
 string(TIMESTAMP DAYNUMBER "%j")
 set(PATCH_VERSION "${DAYNUMBER}")
 
