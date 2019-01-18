@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define _CRT_SECURE_LOG_S
 #include "aria.h"
 
 #define API_KEY "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
@@ -44,8 +45,15 @@ void test_c_api()
 		_STR("ext.app.ver",    "1.0.0")
 	);
 
-	printf("Testing C API...\n");
+#ifdef _WIN32
+	// It is possible to delay-load the loading of default ClientTelemetry.dll ,
+	// then load an alternate implementation with a matching set of exported syms.
+	// That way the calls are essentially redirected to user-supplied telemetry
+	printf("Testing custom implementation library...\n");
+	evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry2.dll"));
+#endif
 
+	printf("Testing C API...\n");
 	handle = evt_open(config);
 
 	// Ref. https://docs.microsoft.com/en-us/windows/privacy/basic-level-windows-diagnostic-events-and-fields for description of Common Schema fields

@@ -10,6 +10,11 @@
 
 #include "aria.h"
 
+/* This class is currently incompatible with Secure Template Overloads */
+#ifdef evt_log
+#undef evt_log
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
     // TODO: [MG] - consider __fastcall for all methods here for best perf
@@ -80,8 +85,7 @@ namespace ARIASDK_NS_BEGIN {
 
         const char * version()
         {
-            // FIXME: [MG] - pass version hardcoded in our header
-            return evt_version("1.0.0");
+            return evt_version();
         }
 
     };

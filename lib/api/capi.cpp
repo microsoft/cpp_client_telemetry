@@ -7,6 +7,10 @@
 #include "utils/Utils.hpp"
 #include <map>
 
+#include <PAL.hpp>
+
+static const char * libSemver = TELEMETRY_EVENTS_VERSION;
+
 using namespace MAT;
 
 typedef struct
@@ -108,7 +112,7 @@ evt_status_t aria_log(evt_context_t *ctx)
 
     evt_prop *evt = (evt_prop*)ctx->data;
     EventProperties props;
-    props.unpack(evt);
+    props.unpack(evt, ctx->size);
 
     // TODO: should we remove the iKey from props?
     auto m = props.GetProperties();
@@ -229,10 +233,23 @@ extern "C" {
                 break;
 
             case EVT_OP_VERSION:
-                result = ENOTSUP;
+                // TODO: [MG] - add handling of ctx->data passed by caller inline stub.
+                // If there is API version mismatch between the stub and lib impl, then
+                // depending on version passed down to SDK - lib may need to figure out
+                // how to handle the mismatch. For now the onus of verifying for SDK
+                // compatibility is on API caller.
+
+                // Inlined stub version passed by the caller - compiled in executable.
+                LOG_TRACE("header  version: %s", ctx->data);
+
+                // Actual SDK library implementation version - compiled in the library.
+                ctx->data = (void*)libSemver;
+                LOG_TRACE("library version: %s", ctx->data);
+
+                result = STATUS_SUCCESS;
                 break;
 
-            // Add more OPs here
+                // Add more OPs here
 
             default:
                 result = ENOTSUP;

@@ -1,6 +1,14 @@
 #ifndef TELEMETRY_EVENTS_H
 #define TELEMETRY_EVENTS_H
 
+/* Copyright (c) Microsoft. All rights reserved. */
+
+/* API semver $MAJOR.$MINOR.$PATCH must be updated with every $MAJOR or $MINOR change.
+ * For version handshake check there is no mandatory requirement to update the $PATCH level.
+ * Ref. https://semver.org/ for Semantic Versioning documentation.
+ */
+#define TELEMETRY_EVENTS_VERSION	"3.1.0"
+
 #include <ctmacros.hpp>
 
 #ifdef _WIN32
@@ -25,6 +33,12 @@ typedef int                 bool;
 #include <stdbool.h>
 #endif
 
+#ifndef EVT_ARRAY_SIZE
+#define EVT_ARRAY_SIZE(a)                               \
+  ((sizeof(a) / sizeof(*(a))) /                     \
+  (unsigned)(!(sizeof(a) % sizeof(*(a)))))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,58 +56,61 @@ extern "C" {
         EVT_OP_UPLOAD = 0x00000009,
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
-        //
         EVT_OP_MAX = EVT_OP_VERSION + 1
     } evt_call_t;
 
     typedef enum
     {
-        // Basic types
+        /* Basic types */
         TYPE_STRING,
         TYPE_INT64,
         TYPE_DOUBLE,
         TYPE_TIME,
         TYPE_BOOLEAN,
         TYPE_GUID,
-        // Arrays of basic types
+        /* Arrays of basic types */
         TYPE_STRING_ARRAY,
         TYPE_INT64_ARRAY,
         TYPE_DOUBLE_ARRAY,
         TYPE_TIME_ARRAY,
         TYPE_BOOL_ARRAY,
         TYPE_GUID_ARRAY,
-        // NULL-type
+        /* NULL-type */
         TYPE_NULL
     } evt_prop_t;
 
     typedef struct
     {
-        /// <summary>
-        /// Specifies the first eight hexadecimal digits of the GUID.
-        /// </summary>
+        /**
+         * <summary>
+         * Specifies the first eight hexadecimal digits of the GUID.
+         * </summary>
+         */
         uint32_t Data1;
 
-        /// <summary>
-        /// Specifies the first group of four hexadecimal digits.
-        ///</summary>
+        /* <summary>
+         * Specifies the first group of four hexadecimal digits.
+         * </summary>
+         */
         uint16_t Data2;
 
-        /// <summary>
-        /// Specifies the second group of four hexadecimal digits.
-        /// </summary>
+        /**
+         * <summary>
+         * Specifies the second group of four hexadecimal digits.
+         * </summary>
+         */
         uint16_t Data3;
 
-        /// <summary>
-        /// An array of eight bytes.
-        /// The first two bytes contain the third group of four hexadecimal digits.
-        /// The remaining six bytes contain the final 12 hexadecimal digits.
-        /// </summary>
+        /** <summary>
+         * An array of eight bytes.
+         * The first two bytes contain the third group of four hexadecimal digits.
+         * The remaining six bytes contain the final 12 hexadecimal digits.
+         * </summary>
+         */
         uint8_t  Data4[8];
     } evt_guid_t;
 
-    // FIXME: [MG] - this should be the size of platform void*, e.g. 32 or 64 bit
     typedef int64_t  evt_handle_t;
-
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
@@ -103,7 +120,7 @@ extern "C" {
         evt_handle_t    handle;     /* In / Out */
         void*           data;       /* In / Out */
         evt_status_t    result;     /* Out      */
-        // TODO: add context version here?
+        uint32_t        size;       /* In / Out */
     } evt_context_t;
 
     typedef struct
@@ -112,14 +129,14 @@ extern "C" {
         evt_prop_t              type;
         union
         {
-            // Basic types
+            /* Basic types */
             const char*         as_string;
             int64_t             as_int64;
             double              as_double;
             bool                as_bool;
             evt_guid_t*         as_guid;
             uint64_t            as_time;
-            // Array types are nullptr-terminated array of pointers
+            /* Array types are nullptr-terminated array of pointers */
             char**              as_arr_string;
             int64_t**           as_arr_int64;
             bool**              as_arr_bool;
@@ -183,17 +200,17 @@ extern "C" {
     __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
 #endif
 
-    /*
-     * Load implementation of a Client Telemetry library.
-     *
-     * TODO: consider accepting a library path on Linux and Mac rather than a handle.
-     * Assume we accept a handle on Windows. The code to load a corresponding library
-     * in-proc would have to reside in customer's code.
-     *
+    /**
+     * <summary>
+     * Load alternate implementation of SDK Client Telemetry library at runtime.
+     * </summary>
+     * <param name="handle">Library handle.</param>
+     * <returns>Status code.</returns>
      */
     static inline evt_status_t evt_load(evt_handle_t handle)
     {
 #ifdef _WIN32
+        /* This code accepts a handle of a library loaded in customer's code */
         evt_app_call_t impl = (evt_app_call_t)GetProcAddress((HMODULE)handle, "evt_api_call_default");
         if (impl != NULL)
         {
@@ -203,15 +220,26 @@ extern "C" {
         // Unable to load alternate implementation
         return -1;
 #else
-        /* review this for consistency on other platforms */
+        /* TODO:
+         * - provide implementation for Linux and Mac
+         * - consider accepting a library path rather than a library handle for dlopen
+         */
         evt_context_t ctx;
         ctx.call = EVT_OP_LOAD;
         ctx.handle = handle;
         return evt_api_call(&ctx);
 #endif
     }
-
-    /* TODO: [MG] - we don't need to unload the routine that has been loaded... consider removal of that funciton. */
+    
+    /**
+     * <summary>
+     * Unloads SDK instance loaded with evt_load
+     * </summary>
+     * <param name="handle">SDK instance handle.</param>
+     * <returns>
+     * Status code.
+     * </returns>
+     */
     static inline evt_status_t evt_unload(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -219,7 +247,14 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+        
+    /**
+     * <summary>
+     * Create or open existing SDK instance.
+     * </summary>
+     * <param name="config">SDK configuration.</param>
+     * <returns>SDK instance handle.</returns>
+     */
     static inline evt_handle_t evt_open(const char* config)
     {
         evt_context_t ctx;
@@ -228,7 +263,14 @@ extern "C" {
         evt_api_call(&ctx);
         return ctx.handle;
     }
-
+    
+    /**
+     * <summary>
+     * Destroy or close SDK instance by handle
+     * </summary>
+     * <param name="handle">SDK instance handle.</param>
+     * <returns>Status code.</returns>
+     */
     static inline evt_status_t evt_close(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -236,7 +278,15 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
+    /**
+     * <summary>
+     * Configure SDK instance using configuration provided.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="config">The configuration.</param>
+     * <returns></returns>
+     */
     static inline evt_status_t evt_configure(evt_handle_t handle, const char* config)
     {
         evt_context_t ctx;
@@ -245,16 +295,64 @@ extern "C" {
         ctx.data = (void *)config;
         return evt_api_call(&ctx);
     }
+    
+    /** 
+     * <summary>
+     * Logs a telemetry event (security-enhanced _s function)
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_log_s(evt_handle_t handle, uint32_t size, evt_prop* evt)
+    {
+        evt_context_t ctx;
+        ctx.call = EVT_OP_LOG;
+        ctx.handle = handle;
+        ctx.data = (void *)evt;
+        ctx.size = size;
+        return evt_api_call(&ctx);
+    }
 
+    /**
+     * <summary>
+     * Logs a telemetry event.
+     * Last item in evt_prop array must be { .name = NULL, .type = TYPE_NULL }
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
     static inline evt_status_t evt_log(evt_handle_t handle, evt_prop* evt)
     {
         evt_context_t ctx;
         ctx.call = EVT_OP_LOG;
         ctx.handle = handle;
         ctx.data = (void *)evt;
+        ctx.size = 0;
         return evt_api_call(&ctx);
     }
 
+    /* This macro automagically calculates the array size and passes it down to evt_log_s.
+     * Developers don't have to calculate the number of event properties passed down to
+     *'Log Event' API call utilizing the concept of Secure Template Overloads:
+     * https://docs.microsoft.com/en-us/cpp/c-runtime-library/secure-template-overloads
+     */
+#if defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES) || defined(_CRT_SECURE_LOG_S)
+#if _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES || defined(_CRT_SECURE_LOG_S)
+#define evt_log(handle, evt) evt_log_s(handle, EVT_ARRAY_SIZE(evt), evt)
+#endif
+#endif
+    
+    /**
+     * <summary>
+     * Pauses transmission. In that mode events stay in ram or saved to disk, not sent.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
     static inline evt_status_t evt_pause(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -262,7 +360,14 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
+    /**
+     * <summary>
+     * Resumes transmission. Pending telemetry events should be attempted to be sent.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
     static inline evt_status_t evt_resume(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -270,7 +375,15 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
+    /** <summary>
+     * Provide a hint to telemetry system to attempt force-upload of events
+     * without waiting for the next batch timer interval. This API does not
+     * guarantee the upload.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
     static inline evt_status_t evt_upload(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -278,7 +391,13 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
+    /** <summary>
+     * Save pending telemetry events to offline storage on disk.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
     static inline evt_status_t evt_flush(evt_handle_t handle)
     {
         evt_context_t ctx;
@@ -286,18 +405,27 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
-    static inline const char * evt_version(const char* libSemver)
+    
+    /** <summary>
+     * Pass down SDK header version to SDK library. Needed for late binding version checking.
+     * This method provides means of a handshake between library header and a library impl.
+     * It is up to app dev to verify the value returned, making a decision whether some SDK
+     * features are implemented/supported by particular SDK version or not.
+     * </summary>
+     * <param name="libSemver">SDK header semver.</param>
+     * <returns>SDK library semver</returns>
+     */
+    static inline const char * evt_version()
     {
+        static const char * libSemver = TELEMETRY_EVENTS_VERSION;
         evt_context_t ctx;
         ctx.call = EVT_OP_VERSION;
         ctx.data = (void*)libSemver;
         evt_api_call(&ctx);
-        // TODO: [MG] - make sure that the API call always returns a const char *
         return (const char *)(ctx.data);
     }
 
-    // TODO: [MG] - more API calls can be added later using evt_api_call(&ctx) for backwards-forward ABI compat
+    /* New API calls to be added using evt_api_call(&ctx) for backwards-forward / ABI compat */
 
 #ifdef __cplusplus
 }

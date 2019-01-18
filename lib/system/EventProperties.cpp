@@ -422,7 +422,7 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
-    bool EventProperties::unpack(evt_prop *packed)
+    bool EventProperties::unpack(evt_prop *packed, size_t size)
     {
         // List of attributes going into envelope section
         static const std::string keyName = "name";
@@ -430,7 +430,14 @@ namespace ARIASDK_NS_BEGIN {
         static const std::string keyPopSample = "popSample";
 
         evt_prop *curr = packed;
-        for (size_t i = 0; curr->type != TYPE_NULL; i++, curr++)
+
+        // Verify size using size_t size parameter passed down by evt_log_s API call
+        if (size == 0)
+        {
+            size = SIZE_MAX;
+        }
+
+        for (size_t i = 0; (i<size)&&(curr->type != TYPE_NULL); i++, curr++)
         {
             // Event name
             if (keyName == curr->name)

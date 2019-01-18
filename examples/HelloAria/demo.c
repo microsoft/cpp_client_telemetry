@@ -1,3 +1,5 @@
+#define _CRT_SECURE_LOG_S   /* Replace evt_log by evt_log_s following Secure Template principle */
+
 #include <aria.h>
 #include <stdio.h>
 #include <stdlib.h>
