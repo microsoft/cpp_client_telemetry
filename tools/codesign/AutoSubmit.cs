@@ -47,7 +47,7 @@ namespace AutoSubmit
                 //Initialize the Codesign.Submitter object
                 //"Codesign" represents the server - constant value do not change
                 //9556 represents the port - constant value do not change
-                job = CODESIGN.Submitter.Job.Initialize("codesign.gtm.microsoft.com", 9556, true);
+                job = CODESIGN.Submitter.Job.Initialize("codesignshimlbcp1.redmond.corp.microsoft.com", 9556, true);
 
                 // Sets the Partial return flag option.
                 // False - If any files fail signing you will not get any files back.

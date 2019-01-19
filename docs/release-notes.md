@@ -5,10 +5,31 @@
 - Windows Desktop for C/C++ (x86/x64/ARM64)
 - Windows 10 Universal (x86/x64/ARM/ARM64)
 - Windows Desktop for .NET 4.x (x86/x64)
-- Linux x86/x64/ARM/ARM64 (gcc-5+)
-- Mac OS X (experimental, source only)
-- MinGW (source only)
+- Linux x86/x64/ARM/ARM64 (gcc-5+, source only)
+- Mac OS X (BETA, source only)
+- MinGW (experimental, source only)
 
+## Version 3.1.18.1 (01/18/2019)
+
+### New features
+
+- C API surface for C89+ compilers; also offering a path to "light" C SDK
+- Resolving OACR warnings and security hardening
+- Better support for Mac OS X clang and common properties acquisition
+- Auto-capture M365 CommercialId field
+
+### Design Changes
+
+None
+
+### Bug Fixes
+
+1588215 Win32 2685462-Watson - defensive fix for OOM scenarios in Office
+1550788 logger->SetContext("LocalContextVar", "Value") was inadvertently broken by 1DS SDK
+1541368 Thread-safety in SDK statistics
+1541369 Custom integration instructions for C# UWP applications
+1470816 1521798 Remove EOL in Mac OS X device identifiers
+1510118 Win 10 UWP SDK sporadic crash in HTTP stack
 
 ## Version 3.0.289.1 (10/16/2018)
 
