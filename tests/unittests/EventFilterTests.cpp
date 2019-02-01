@@ -1,3 +1,4 @@
+#ifdef USE_EVENT_FILTER
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
@@ -123,3 +124,4 @@ TEST(EventFilterTests, BadMatchBlocksNoEvents)
 	EXPECT_FALSE(filter.IsEventExcluded(event3));
 }
 */
+#endif

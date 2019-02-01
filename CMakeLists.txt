@@ -65,6 +65,10 @@ if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
+if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+ add_definitions(-DZLIB_WINAPI)
+endif()
+
 ################################################################################################
 # Build prefix and version
 ################################################################################################
@@ -112,23 +116,34 @@ endif()
 option(BUILD_HEADERS      "Build API headers"       YES)
 option(BUILD_LIBRARY      "Build library"           YES)
 option(BUILD_TEST_TOOL    "Build console test tool" YES)
-option(BUILD_UNIT_TESTS   "Build unit tests"        NO)
-option(BUILD_FUNC_TESTS   "Build functional tests"  NO)
+option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
+option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_PACKAGE      "Build package"           YES)
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+    message("Adding gtest")
     add_library(gtest STATIC IMPORTED GLOBAL)
+    message("Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
+    
+#    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
+#    message("Building gtest")
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
+#    message("Building gmock")
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
 endif()
 
 # Bond Lite subdirectories
 include_directories(bondlite/include)
 
-if(BUILD_UNIT_TESTS)
-  enable_testing()
-  add_subdirectory(bondlite/tests)
-endif()
+include_directories(lib/pal)
+
+#if(BUILD_UNIT_TESTS)
+#  message("Adding bondlite tests")
+#  enable_testing()
+#  add_subdirectory(bondlite/tests)
+#endif()
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
@@ -140,6 +155,7 @@ if(BUILD_LIBRARY)
 endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+  message("Building tests")
   enable_testing()
   add_subdirectory(tests)
 endif()

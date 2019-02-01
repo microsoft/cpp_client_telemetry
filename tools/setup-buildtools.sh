@@ -65,3 +65,6 @@ tar -xvf /tmp/sqlite-snapshot.tar.gz
 cd $SQLITE_PKG
 ./configure && make && make install
 cd ..
+
+## Build Google Test framework
+./build-gtest.sh

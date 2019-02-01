@@ -9,7 +9,10 @@
 
 #include <stdio.h>
 #include <regex>
+
+#ifdef _WIN32
 #include "pal/PAL_Win32.hpp"
+#endif
 
 #include <set>
 #include <memory>
@@ -245,7 +248,7 @@ constexpr size_t MAX_STRESS_THREADS = 20;
 TEST(MemoryStorageTests, MultiThreadPerfTest)
 {
     MemoryStorage storage(testLogManager, testConfig);
-    std::atomic<size_t> totalRecords = 0;
+    std::atomic<size_t> totalRecords(0);
 
     std::vector<std::thread> workers;
     std::thread t[MAX_STRESS_THREADS];

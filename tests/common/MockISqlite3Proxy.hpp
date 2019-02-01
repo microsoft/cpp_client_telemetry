@@ -4,8 +4,10 @@
 
 #include "sqlite3.h"
 #include "offline/ISqlite3Proxy.hpp"
-#include "pal\PAL_Win32.hpp"
 
+#ifdef _WIN32
+#include "pal\PAL_Win32.hpp"
+#endif
 namespace testing {
 
 

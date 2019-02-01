@@ -1,7 +1,11 @@
-﻿#ifndef _CRT_SECURE_NO_WARNINGS
+﻿// #ifdef _WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif 
+
+#ifdef _MSC_VER
 #pragma warning (disable : 4389)
+#endif
 
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
@@ -20,16 +24,30 @@ constexpr static const char* TEST_TOKEN2 = "0ae6cd22d8264818933f4857dd3c1472-eea
 class TestDebugEventListener : public DebugEventListener {
 
 public:
-    std::atomic<bool>       netChanged = false;
-    std::atomic<unsigned>   eps        = 0;
-    std::atomic<unsigned>   numLogged0 = 0;
-    std::atomic<unsigned>   numLogged  = 0;
-    std::atomic<unsigned>   numSent    = 0;
-    std::atomic<unsigned>   numDropped = 0;
-    std::atomic<unsigned>   numReject  = 0;
-    std::atomic<unsigned>   numCached  = 0;
-    std::atomic<unsigned>   logLatMin  = 100;
-    std::atomic<unsigned>   logLatMax  = 0;
+	std::atomic<bool>       netChanged;
+	std::atomic<unsigned>   eps;
+	std::atomic<unsigned>   numLogged0;
+	std::atomic<unsigned>   numLogged;
+	std::atomic<unsigned>   numSent;
+	std::atomic<unsigned>   numDropped;
+	std::atomic<unsigned>   numReject;
+	std::atomic<unsigned>   numCached;
+	std::atomic<unsigned>   logLatMin;
+	std::atomic<unsigned>   logLatMax;
+
+	TestDebugEventListener() :
+		netChanged(false),
+		eps(0),
+		numLogged0(0),
+		numLogged(0),
+		numSent(0),
+		numDropped(0),
+		numReject(0),
+		numCached(0),
+		logLatMin(100),
+		logLatMax(0)
+	{
+	}
 
     virtual void OnDebugEvent(DebugEvent &evt)
     {
@@ -104,6 +122,7 @@ public:
     }
 };
 
+
 /// <summary>
 /// Create sample event of a given priority
 /// </summary>
@@ -112,6 +131,8 @@ public:
 /// <returns></returns>
 EventProperties CreateSampleEvent(const char *name, EventPriority prio)
 {
+#ifdef _WIN32
+    /* Test for Win32 GUID type, specific to Windows only */
     GUID win_guid;
     win_guid.Data1 = 0;
     win_guid.Data2 = 1;
@@ -121,6 +142,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     {
         win_guid.Data4[i] = i;
     }
+#endif
 
     // GUID constructor from byte[16]
     const uint8_t guid_b[16] = {
@@ -146,8 +168,9 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
     EventProperties props(name,
     {
+#ifdef _MSC_VER
         { "_MSC_VER", _MSC_VER },
-
+#endif
         { "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
         { "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
         { "piiKind.GenericData",        EventProperty("maxgolov",  PiiKind_GenericData) },
@@ -164,19 +187,22 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
 
         { "strKey",   "hello" },
         { "strKey2",  "hello2" },
-        { "int64Key", 1L },
+        { "int64Key", (int64_t)1L },
         { "dblKey",   3.14 },
         { "boolKey",  false },
+
         { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
         { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
         { "guidKey2", GUID_t(guid_b) },
         { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
         { "guidKey4", GUID_t(guid_c) },
+        
         { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
         { "timeKey2",  time_ticks_t(&t) }               // seconds precision
     });
-
+#ifdef _WIN32
     props.SetProperty("win_guid", GUID_t(win_guid));
+#endif
     props.SetPriority(prio);
 
     return props;
@@ -459,10 +485,15 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
     std::vector<std::string> paths =
     {
-        "invalid-path",                          // This would pass
+#ifdef _WIN32
         "T:\\invalid\\file\\path",               // This fails - no offline storage
         u8"C:\\неправильный\\каталог\\utf-8",    // This fails - no offline storage
         u8"C:\\Проверка-проверка 1 2 3\\файл.db" // This should pass if dir exists
+#else
+        "/invalid/file/path",
+        u8"/неправильный/каталог/utf-8",         // This fails - no offline storage
+        u8"/Проверка-проверка 1 2 3/файл.db"     // This should pass if dir exists
+#endif
     };
 
     for (const auto &path : paths)
@@ -647,5 +678,7 @@ TEST(APITest, TracingAPI_FileSizeLimit)
     EXPECT_LE(common::GetFileSize(PAL::GetDefaultTracePath().c_str()), maxFileSize + maxContingency);
 }
 #endif
+
+// #endif
 
 // TEST_PULL_ME_IN(APITest)

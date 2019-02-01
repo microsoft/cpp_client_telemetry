@@ -14,12 +14,12 @@
 #include <LogManager.hpp>
 #include <atomic>
 
-#include <AriaDecoderV3.hpp>
+//#include <AriaDecoderV3.hpp>
 
 using namespace testing;
 using namespace ARIASDK_NS;
 
-LOGMANAGER_INSTANCE
+// LOGMANAGER_INSTANCE
 
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
@@ -37,9 +37,13 @@ protected:
     ILogger* logger;
     ILogger* logger2;
 
-    std::atomic<bool> isSetup = false;
+    std::atomic<bool> isSetup;
 
 public:
+
+	BasicFuncTests() :
+		isSetup(false)
+	{};
 
     virtual void SetUp() override
     {
@@ -286,8 +290,8 @@ public:
                         EXPECT_THAT(temp.guidValue[0].size(), guid.size());
                         for (size_t index = 0; index < guid.size(); index++)
                         {
-                            UINT8 val1 = temp.guidValue.at(0).at(index);
-                            UINT8 val2 = guid[index];
+                            uint8_t val1 = temp.guidValue.at(0).at(index);
+                            uint8_t val2 = guid[index];
                             EXPECT_THAT(val1, val2);
                         }
                         break;
@@ -349,8 +353,8 @@ public:
                             EXPECT_THAT(vectror.at(index).size(), guid.size());
                             for (size_t index1 = 0; index1 < guid.size(); index1++)
                             {
-                                UINT8 val1 = vectror.at(index).at(index1);
-                                UINT8 val2 = guid[index1];
+                                uint8_t val1 = vectror.at(index).at(index1);
+                                uint8_t val2 = guid[index1];
                                 EXPECT_THAT(val1, val2);
                             }
                         }

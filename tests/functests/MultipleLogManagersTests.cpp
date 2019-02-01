@@ -2,7 +2,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
-#include "Common/Common.hpp"
+#include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include <api/LogManagerImpl.hpp>
 #include <bond_lite/All.hpp>

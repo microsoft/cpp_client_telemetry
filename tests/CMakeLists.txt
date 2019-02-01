@@ -1,32 +1,16 @@
-include_directories(.)
-include_directories(../lib)
+include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
 
-if(PAL_IMPLEMENTATION STREQUAL "Skype")
-  set(TESTS_COMMON_SKYPE_SRCS
-    ../common/MockIEcsClient.hpp
-  )
-endif()
+include_directories(../lib)
 
 set(TESTS_COMMON_SRCS
   ../common/Common.cpp
-  ../common/Common.hpp
-  ../common/HttpServer.hpp
   ../common/Mocks.cpp
-  ../common/MockIHttpClient.hpp
-  ../common/MockILogManagerInternal.hpp
-  ../common/MockIOfflineStorage.hpp
-  ../common/MockIOfflineStorageObserver.hpp
-  ../common/MockIRuntimeConfig.hpp
-  ../common/MockISemanticContext.hpp
-  ../common/MockISqlite3Proxy.hpp
-  ../common/SocketTools.hpp
-  ${TESTS_COMMON_SKYPE_SRCS}
 )
-
-if(BUILD_UNIT_TESTS)
-  add_subdirectory(unittests)
-endif()
 
 if(BUILD_FUNC_TESTS)
   add_subdirectory(functests)
+endif()
+
+if(BUILD_UNIT_TESTS)
+  add_subdirectory(unittests)
 endif()

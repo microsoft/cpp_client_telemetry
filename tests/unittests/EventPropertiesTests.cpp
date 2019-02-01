@@ -94,10 +94,10 @@ TEST(EventPropertiesTests, NumericProperties)
 
     ep.SetProperty("char",     static_cast<signed char>(-123));
     ep.SetProperty("int",      static_cast<int>(-123123));
-    ep.SetProperty("long",     static_cast<long>(-123123123));
+    ep.SetProperty("int64_t",  static_cast<int64_t>(-123123123));
     ep.SetProperty("uint8",    static_cast<uint8_t>(255));
     ep.SetProperty("unsigned", static_cast<unsigned>(999999999));
-    ep.SetProperty("ull",      static_cast<unsigned long long>(9999999999999999999ull));
+    ep.SetProperty("ull",      (uint64_t)(9999999999999999999ull));
     ep.SetProperty("float",    static_cast<float>(1234.5f));
     ep.SetProperty("double",   static_cast<double>(-9876.543));
 //    ep.SetProperty("lodouble", static_cast<long double>(-98769876.5435431));
@@ -106,10 +106,10 @@ TEST(EventPropertiesTests, NumericProperties)
     EXPECT_THAT(ep.GetProperties(), SizeIs(10));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("char", EventProperty(-123))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("int",  EventProperty(-123123))));
-    EXPECT_THAT(ep.GetProperties(), Contains(Pair("long", EventProperty(-123123123))));
+    EXPECT_THAT(ep.GetProperties(), Contains(Pair("int64_t", EventProperty(-123123123))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("uint8", EventProperty(255))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("unsigned", 999999999)));
-    EXPECT_THAT(ep.GetProperties(), Contains(Pair("ull", EventProperty(9999999999999999999))));
+    EXPECT_THAT(ep.GetProperties(), Contains(Pair("ull", EventProperty((uint64_t)9999999999999999999))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("float", EventProperty(1234.500000))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("double", EventProperty(-9876.543000))));
 //    EXPECT_THAT(ep.GetProperties(), Contains(Pair("lodouble", EventProperty("-98769876.543543"))));

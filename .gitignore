@@ -1,5 +1,5 @@
 # Build artifacts
-
+.buildtools
 Debug/
 Release/
 *.VC.db
@@ -19,7 +19,6 @@ staging.d/
 sysroot/
 skype-ant.zip
 uap-cpp/
-Win32/
 Debug/
 
 # Ignore auto-generated Version.hpp

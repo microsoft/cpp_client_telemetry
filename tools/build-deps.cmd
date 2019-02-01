@@ -11,6 +11,13 @@ set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
 set SOLUTION=%ROOT%\Solutions\AriaSDK.sln
 
+
+REM Build gmock and gtest
+msbuild %SOLUTION% /target:Tests\gmock,Tests\gtest /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32
+msbuild %SOLUTION% /target:Tests\gmock,Tests\gtest /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32
+msbuild %SOLUTION% /target:Tests\gmock,Tests\gtest /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=x64
+msbuild %SOLUTION% /target:Tests\gmock,Tests\gtest /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64
+
 REM DLL and static /MD build
 msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32
 msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32

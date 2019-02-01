@@ -6,7 +6,7 @@ set ROOT=%~dp0
 REM ********************************************************************
 REM Use cmake
 REM ********************************************************************
-set PATH="C:\Program Files\CMake\bin\";%PATH%
+set "PATH=C:\Program Files\CMake\bin\;%PATH%"
 
 REM ********************************************************************
 REM Use clang compiler
@@ -24,7 +24,6 @@ if "%1" == "clean" (
   @rmdir /s /q %OUTDIR%
 )
 if not exist "%OUTDIR%" mkdir %OUTDIR%
-cd %OUTDIR%
 
 REM ********************************************************************
 REM Build all deps using MSVC - Visual Studio 2017 (15)
@@ -33,12 +32,14 @@ if "%1" == "nodeps" goto NODEPS
 call tools\build-deps.cmd
 :NODEPS
 
+cd %OUTDIR%
+
 REM ********************************************************************
 REM Invoke the build script
 REM ********************************************************************
 set CMAKE_PACKAGE_TYPE=tgz
 for %%a in ( m32 m64 ) do (
-  for %%c in ( Debug Release ) do (
+  for %%c in ( Release ) do (
     if "%%a"=="m32" (
       set ARCH=Win32
       set ARCH_GEN=

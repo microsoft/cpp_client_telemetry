@@ -9,9 +9,9 @@
 #include "MockISqlite3Proxy.hpp"
 #include "MockITelemetrySystem.hpp"
 
-#ifdef ARIASDK_PAL_SKYPE
-#include "MockIEcsClient.hpp"
-#endif
+//#ifdef ARIASDK_PAL_SKYPE
+//#include "MockIEcsClient.hpp"
+//#endif
 
 namespace testing {
 

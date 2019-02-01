@@ -35,14 +35,27 @@ namespace testing {
 // For _beginthread() etc.
 #include <process.h>
 #else
+
+#ifdef __linux__
 #include <sys/epoll.h>
+#else
+#if __APPLE__
+// Use kqueue on mac
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#endif
+#endif
+
+// Common POSIX headers for Linux and Mac OS X
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
-#endif
+
+#endif // end of network headers
 
 // *INDENT-OFF*
 
@@ -67,7 +80,7 @@ namespace testing {
         {
             sockaddr_in& inet4 = reinterpret_cast<sockaddr_in&>(m_data);
             inet4.sin_family = AF_INET;
-            inet4.sin_port = htons(static_cast<USHORT>(port));
+            inet4.sin_port = htons(static_cast<unsigned short>(port));
             inet4.sin_addr.s_addr = htonl(addr);
         }
 
@@ -255,7 +268,7 @@ namespace testing {
             m_sock = Invalid;
         }
 
-        int recv(_Out_bytecap_(size) void* buffer, unsigned size)
+        int recv(void* buffer, unsigned size)
         {
             assert(m_sock != Invalid);
             return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, 0);
@@ -394,6 +407,7 @@ namespace testing {
 
     //---
 
+//#if defined(_WIN32) || defined(__linux__)
     // Reactor for asynchronous watching of sockets
     class Reactor : protected Thread
     {
@@ -430,23 +444,36 @@ namespace testing {
         std::vector<SocketData> m_sockets;
 #ifdef _WIN32
         std::vector<WSAEVENT> m_events;
-#else
+#endif
+
+#ifdef __linux__
         int m_epollFd;
+#endif
+
+#ifdef __APPLE__
+        int kq;
 #endif
 
     public:
         Reactor(Callback& callback)
             : m_callback(callback)
         {
-#ifndef _WIN32
+#ifdef __linux__
             m_epollFd = ::epoll_create1(0);
+#endif
+#ifdef __APPLE__
+            kq = kqueue();
 #endif
         }
 
         ~Reactor()
         {
-#ifndef _WIN32
+#ifdef __linux__
+//#ifndef _WIN32
             ::close(m_epollFd);
+#endif
+#ifdef __APPLE__
+            close(kq);
 #endif
         }
 
@@ -461,12 +488,21 @@ namespace testing {
                     LOG_TRACE("Reactor: Adding socket %d with flags %d", static_cast<int>(socket), flags);
 #ifdef _WIN32
                     m_events.push_back(::WSACreateEvent());
-#else
+#endif
+
+#ifdef __linux__
                     epoll_event event = {};
                     event.data.fd = socket;
                     event.events = 0;
                     ::epoll_ctl(m_epollFd, EPOLL_CTL_ADD, socket, &event);
 #endif
+#ifdef __APPLE__
+                    struct kevent event;
+                    event.ident = socket;
+#endif
+
+// TODO: Mac OS X socket polling using kqueue
+
                     m_sockets.push_back(SocketData());
                     m_sockets.back().socket = socket;
                     m_sockets.back().flags = 0;
@@ -494,7 +530,9 @@ namespace testing {
                     }
                     auto eventIt = m_events.begin() + std::distance(m_sockets.begin(), it);
                     ::WSAEventSelect(socket, *eventIt, lNetworkEvents);
-#else
+#endif
+
+#ifdef __linux__
                     int events = 0;
                     if (it->flags & Readable) {
                         events |= EPOLLIN;
@@ -511,6 +549,8 @@ namespace testing {
                     event.events = events;
                     ::epoll_ctl(m_epollFd, EPOLL_CTL_MOD, socket, &event);
 #endif
+
+// TODO: Mac OS X socket accepting implementation
                 }
             }
         }
@@ -525,9 +565,12 @@ namespace testing {
                 ::WSAEventSelect(it->socket, *eventIt, 0);
                 ::WSACloseEvent(*eventIt);
                 m_events.erase(eventIt);
-#else
+#endif
+
+#ifdef __linux__
                 ::epoll_ctl(m_epollFd, EPOLL_CTL_DEL, socket, nullptr);
 #endif
+
                 m_sockets.erase(it);
             }
         }
@@ -547,7 +590,9 @@ namespace testing {
             for (auto& hEvent : m_events) {
                 ::WSACloseEvent(hEvent);
             }
-#else
+#endif
+
+#ifdef __linux__
             for (auto& sd : m_sockets) {
                 ::epoll_ctl(m_epollFd, EPOLL_CTL_DEL, sd.socket, nullptr);
             }
@@ -588,7 +633,10 @@ namespace testing {
                 if ((flags & Closed) && (ne.lNetworkEvents & FD_CLOSE)) {
                     m_callback.onSocketClosed(socket);
                 }
-#else
+#endif
+
+
+#ifdef __linux__
                 epoll_event events[4];
                 int result = ::epoll_wait(m_epollFd, events, sizeof(events) / sizeof(events[0]), 500);
                 if (result == 0 || (result == -1 && errno == EINTR)) {
@@ -618,10 +666,12 @@ namespace testing {
                     }
                 }
 #endif
+
+// TODO: provide Mac OS X polling implementation using kqueue
+
             }
             LOG_INFO("Reactor: Thread done");
         }
     };
-
 
 } // namespace testing

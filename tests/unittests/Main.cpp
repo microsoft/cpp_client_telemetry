@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include "utils/utils.hpp"
+#include "utils/Utils.hpp"
 
 #ifdef ARIASDK_PAL_SKYPE
 #include <auf/auf_log2_utils.hpp>
@@ -25,9 +25,11 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
         LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
     }
 };
-
+#ifdef _MSC_VER
 #pragma warning(suppress:4447) // 'main' signature found without threading model. Consider using 'int main(Platform::Array<Platform::String^>^ args)'.
-int _cdecl main(int argc, char** argv)
+#endif
+
+int main(int argc, char** argv)
 {
     ::testing::InitGoogleMock(&argc, argv);
 

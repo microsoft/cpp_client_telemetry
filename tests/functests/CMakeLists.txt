@@ -1,20 +1,73 @@
-if(PAL_IMPLEMENTATION STREQUAL "Skype")
-  set(PAL_SPECIFIC_SRCS
-    SkypeResourceManagerTests.cpp
-  )
-endif()
+include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
+
+
+message("--- functests")
 
 set(SRCS
+  APITest.cpp
+  BasicAfdFuncTests.cpp
   BasicFuncTests.cpp
   LoadTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
-  ${PAL_SPECIFIC_SRCS}
 )
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
 add_executable(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
-target_link_libraries(FuncTests gtest gmock aria)
+
+if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+  # Link against prebuilt libraries on Windows
+  message("--- WIN32: Linking against prebuilt libraries")
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
+  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+  target_link_libraries(FuncTests
+  	aria
+	wininet.lib
+	${CMAKE_BINARY_DIR}/gtest/gtest.lib
+	${CMAKE_BINARY_DIR}/gmock/gmock.lib
+	${CMAKE_BINARY_DIR}/zlib/zlib.lib
+	${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+  )
+else()
+
+  # Prefer linking to more recent local sqlite3
+  if(EXISTS "/usr/local/lib/libsqlite3.a")
+    set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+  elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
+    set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
+  else()
+    set (SQLITE3_LIB "sqlite3")
+  endif()
+
+  # Find zlib
+  find_package( ZLIB REQUIRED )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+
+  set (PLATFORM_LIBS "")
+  # Add flags for obtaining system UUID via IOKit
+  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
+  endif()
+
+  # Find libraries
+  message("--- Linking libraries! ")
+  message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+  message("Binary Dir: ${CMAKE_BINARY_DIR}")
+  target_link_libraries(FuncTests 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
+    aria
+    curl
+    ${ZLIB_LIBRARIES}
+    ${SQLITE3_LIB}
+    ${PLATFORM_LIBS}
+    dl)
+endif()
+
 add_test(FuncTests FuncTests "--gtest_output=xml:${CMAKE_BINARY_DIR}/test-reports/FuncTests.xml")

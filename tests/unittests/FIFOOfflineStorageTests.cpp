@@ -1,3 +1,5 @@
+#ifdef ENABLE_FIFO_TESTS
+
 // Copyright (c) Microsoft. All rights reserved .
 
 #include "common/Common.hpp"
@@ -933,7 +935,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
     // Save items in newest to oldest order
     for (size_t itemIndex = 1; itemIndex <= writeCount; itemIndex++)
     {
-        sprintf_s(data, "Data Item %d", static_cast<int>(itemIndex));
+        sprintf(data, "Data Item %d", static_cast<int>(itemIndex));
         StorageItemKey fileItemInfo = {};
 
         fileItemInfo.Time = itemIndex;
@@ -964,7 +966,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
         int itemIndex = static_cast<int>(writeCount - (blockCount - i));
         printf("Item Index %d", itemIndex);
 
-        sprintf_s(data, "Data Item %d", itemIndex);
+        sprintf(data, "Data Item %d", itemIndex);
 
         EXPECT_EQ(1u, findItemInfo.Key.Priority);
         EXPECT_EQ(strlen(data), findItemInfo.ItemSize);
@@ -977,3 +979,5 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageOverwriteOldestItemUnitTest)
     storeFile.Close();
     storeFile.DeleteFileLocal(filename);
 }
+
+#endif

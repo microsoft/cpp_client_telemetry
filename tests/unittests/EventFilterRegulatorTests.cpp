@@ -1,3 +1,4 @@
+#ifdef USE_EVENT_FILTER
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
@@ -221,3 +222,4 @@ TEST(EventFilterRegulatorTests, CallingSetExclusionFilterTwiceCreatesTwoFilterAn
 	ASSERT_EQ(1, filter1.GetSimulatedDeleteCount());
 	ASSERT_EQ(1, filter2.GetSimulatedDeleteCount());
 }
+#endif

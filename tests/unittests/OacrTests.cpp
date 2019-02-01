@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#ifdef _WIN32
 #include "common/Common.hpp"
 
 using namespace testing;
@@ -34,3 +34,4 @@ TEST(OacrTests, BuildMachineOnly_VerifyThisBuildHasNoOacrErrors)
         free(buildNumber);
     }
 }
+#endif
