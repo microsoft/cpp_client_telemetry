@@ -29,7 +29,9 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_RAMCACHE_FULL_PCT,     75 },
         { "stats",
             {
-                { "interval",            60 },
+                /* Parameter that allows to split stats events by tenant */
+                { "split",               false },
+                { "interval",            1800 },
                 { "tokenProd",           STATS_TOKEN_PROD },
                 { "tokenInt",            STATS_TOKEN_INT }
             }

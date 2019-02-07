@@ -499,10 +499,19 @@ namespace PAL_NS_BEGIN {
         return buf;
     }
 
-    // TODO: [MG] - add Linux implementation
+    /**
+     * Get monotonic time in milliseconds.
+     *
+     * PAL function used by the following comonents:
+     * - HttpClientManager request perf counter
+     * - PAL WorkItem scheduler
+     * - SQLiteWrapper perf counter
+     */
     int64_t getMonotonicTimeMs()
     {
-        static bool frequencyQueried;
+#ifdef USE_WIN32_PERFCOUNTER
+        /* Win32 API implementation */
+        static bool frequencyQueried = false;
         static int64_t ticksPerMillisecond;
         if (!frequencyQueried) {
             // There is no harm in querying twice in case of a race condition.
@@ -515,6 +524,10 @@ namespace PAL_NS_BEGIN {
         LARGE_INTEGER now;
         ::QueryPerformanceCounter(&now);
         return now.QuadPart / ticksPerMillisecond;
+#else
+        /* Cross-platform C++11 implementation */
+        return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+#endif
     }
 
     static ISystemInformation* g_SystemInformation;

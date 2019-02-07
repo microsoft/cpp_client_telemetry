@@ -105,3 +105,5 @@ wrappers/go/offlinestorage.db.session64
 /Default/
 /dist/
 /docs/out
+
+Version.hpp

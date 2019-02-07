@@ -568,6 +568,47 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
     LogManager::GetLogger();
 }
 
+TEST(APITest, Aria_Pii_Kind_E2E_Test)
+{
+    auto& config = LogManager::GetLogConfiguration();
+    LogManager::Initialize(TEST_TOKEN, config);
+    // Log detailed event with various properties
+    EventProperties detailed_event("MyApp.DetailedEvent.Pii",
+        {
+            // Log compiler version
+            { "_MSC_VER", _MSC_VER },
+            // Pii-typed fields
+            { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
+            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+            { "piiKind.GenericData",        EventProperty("generic_data",  PiiKind_GenericData) },
+            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
+            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
+            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
+            { "piiKind.PhoneNumber",        EventProperty("+1-425-829-5875", PiiKind_PhoneNumber) },
+            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
+            { "piiKind.SipAddress",         EventProperty("sip:info@microsoft.com", PiiKind_SipAddress) },
+            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@fabrikam.com>", PiiKind_SmtpAddress) },
+            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
+            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
+            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
+            // Various typed key-values
+            { "strKey1",  "hello1" },
+            { "strKey2",  "hello2" },
+            { "int64Key", 1L },
+            { "dblKey",   3.14 },
+            { "boolKey",  false },
+            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
+            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
+        });
+    auto logger = LogManager::GetLogger();
+    EXPECT_NE(logger, nullptr);
+    logger->LogEvent(detailed_event);
+    LogManager::FlushAndTeardown();
+    // Verify that contents get hashed by server
+}
+
 #if 0
 // FIXME: [MG] - enable tracing API
 
@@ -677,6 +718,7 @@ TEST(APITest, TracingAPI_FileSizeLimit)
     TracingAPI_File("", ACTTraceLevel_Debug, maxFileSize, maxEventCount);
     EXPECT_LE(common::GetFileSize(PAL::GetDefaultTracePath().c_str()), maxFileSize + maxContingency);
 }
+
 #endif
 
 // #endif

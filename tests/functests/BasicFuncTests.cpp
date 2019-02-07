@@ -775,14 +775,17 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     logger->LogEvent(event2);
     FlushAndTeardown();
 
+    auto r1 = records();
+    ASSERT_EQ(r1.size(), 0);
+
     // Check
     Initialize();
     LogManager::ResumeTransmission(); // ?
     LogManager::UploadNow();
     PAL::sleep(2000);
 
-    auto r = records();
-    ASSERT_EQ(r.size(), (size_t)6); // (start+ongoing+stop) + 2 events + start
+    auto r2 = records();
+    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
 
     for (const auto &evt : { event1, event2 })
     {

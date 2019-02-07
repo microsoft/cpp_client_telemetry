@@ -58,7 +58,7 @@ namespace ARIASDK_NS_BEGIN {
             result &= m_semanticContextDecorator.decorate(record);
             if (result)
             {
-                IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_RealTime, EventPersistence_Critical, &record);
+                IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_Normal, EventPersistence_Normal, &record);
                 m_iTelemetrySystem.sendEvent(&evt);
             }
             else
@@ -66,7 +66,7 @@ namespace ARIASDK_NS_BEGIN {
                 LOG_WARN("Failed to decorate stats event rollupKind=%u", rollupKind);
             }
         }
-        m_statEventSentTime = PAL::getMonotonicTimeMs();
+        m_statEventSentTime = PAL::getUtcSystemTimeMs();
     }
 
     bool Statistics::handleOnStart()

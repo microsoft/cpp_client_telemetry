@@ -26,11 +26,6 @@ namespace ARIASDK_NS_BEGIN {
     typedef std::map<std::string, unsigned int> string_uint_dict_t;
 
     /// <summary>
-    /// Define a new name for a map to store information per source and event type.
-    /// </summary>
-    typedef std::map<std::string, std::map<std::string, unsigned int>> eventsMap;
-
-    /// <summary>
     /// Class defining some configurations used in collecting stats,
     /// including sending frequency and frequency distributions of multiple data sets.
     /// </summary>
@@ -61,7 +56,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB
         unsigned int record_size_first_in_kb; // unit: kb
 
-                                              /// The factor used to calculate next spot of frequency distribution for record size.
+        /// The factor used to calculate next spot of frequency distribution for record size.
         unsigned int record_size_next_factor;
 
         /// The total spots of frequency distribution of record size.
@@ -116,51 +111,38 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         /// total number of records received
-        unsigned int bannedCount;
+        unsigned int banned;
 
         /// total number of records received
-        unsigned int receivedCount;
+        unsigned int received;
 
         /// total number of metastats records received
-        unsigned int receivedMetastatsCount;
+        unsigned int receivedStats;
 
         /// the number of records rejected by SDK
-        unsigned int rejectedCount;
+        unsigned int rejected;
 
         /// distribution of records count by reason due to which record was rejected
-        uint_uint_dict_t rejectedCountReasonDistribution;
+        uint_uint_dict_t rejectedByReason;
 
         /// the number of dropped records
-        unsigned int droppedCount;
+        unsigned int dropped;
 
         /// the number of overflown records
-        unsigned int overflownCount;
+        unsigned int overflown;
 
         /// distribution of records count by reason due to which record was dropped
-        uint_uint_dict_t droppedCountReasonDistribution;
+        uint_uint_dict_t droppedByReason;
 
         /// key: http return code
         /// value: the number of records declined by collector (either rejected or dropped due to server error) per each HTTP return code
-        uint_uint_dict_t droppedCountPerHttpReturnCode;
+        uint_uint_dict_t droppedByHTTPCode;
 
         /// the number of sent records
-        unsigned int sentCount;
-
-        /// the number of sent records from the current session
-        unsigned int sentCountFromCurrentSession;
-
-        /// the number of sent records from previous sessions
-        unsigned int sentCountFromPreviousSession;
+        unsigned int sent;
 
         /// the delta of events added/removed from in flight
-        unsigned int inflightCount;
-
-        /// the total number of records per semantic
-        string_uint_dict_t semanticToRecordCountMap;
-
-        /// TODO: do we need this anymore if we are going to count the reasons frop dropping events?
-        /// the total number of exceptions per semantic
-        string_uint_dict_t semanticToExceptionCountMap;
+        unsigned int inflight;
 
         /// min record size
         unsigned int minOfRecordSizeInBytes;
@@ -174,42 +156,32 @@ namespace ARIASDK_NS_BEGIN {
         ///<1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB \n
         ///key: min value of each size range \n
         ///value: the number of records with size in given range
-        uint_uint_dict_t sizeInKBytesDistribution;
+        // uint_uint_dict_t sizeInKBytesDistribution;
 
         /// min record size which is dropped in SendAsync
-        unsigned int minOfDroppedRecordSizeInBytes;
+        // unsigned int minOfDroppedRecordSizeInBytes;
 
         /// max record size which is dropped in SendAsync
-        unsigned int maxOfDroppedRecordSizeInBytes;
+        // unsigned int maxOfDroppedRecordSizeInBytes;
 
         /// reset all members
         void Reset()
         {
-            bannedCount = 0;
-            receivedCount = 0;
-            receivedMetastatsCount = 0;
-            droppedCount = 0;
-            rejectedCount = 0;
-            overflownCount = 0;
-            sentCount = 0;
-            sentCountFromCurrentSession = 0;
-            sentCountFromPreviousSession = 0;
-            inflightCount = 0;
-
-            semanticToRecordCountMap.clear();
-            semanticToExceptionCountMap.clear();
+            banned = 0;
+            received = 0;
+            receivedStats = 0;
+            dropped = 0;
+            rejected = 0;
+            overflown = 0;
+            sent = 0;
+            inflight = 0;
 
             minOfRecordSizeInBytes = static_cast<unsigned int>(~0);
             maxOfRecordSizeInBytes = 0;
             totalRecordsSizeInBytes = 0;
 
-            minOfDroppedRecordSizeInBytes = static_cast<unsigned int>(~0);;
-            maxOfDroppedRecordSizeInBytes = 0;
-
-            sizeInKBytesDistribution.clear();
-
-            droppedCountReasonDistribution.clear();
-            rejectedCountReasonDistribution.clear();
+            droppedByReason.clear();
+            rejectedByReason.clear();
         }
 
         RecordStats()
@@ -301,11 +273,6 @@ namespace ARIASDK_NS_BEGIN {
         /// min latency
         unsigned int minOfLatencyInMilliSecs;
 
-        /// <100ms, 100ms~200ms, 200ms~400ms, 400ms~800ms, 800ms~1600ms, 1600s~3200ms, >3200ms \n
-        /// key: min value of each range \n
-        /// value: the number of success packages with latency in given range \n
-        uint_uint_dict_t latencyDistribution;
-
         /// reset all members
         void Reset()
         {
@@ -390,6 +357,10 @@ namespace ARIASDK_NS_BEGIN {
             recordDroppedCount = 0;
             recordRetrievedCount = 0;
             inOnlineCount = 0;
+
+            saveSizeInKBytesDistribution.clear();
+            successSaveSizeInKBytesDistribution.clear();
+            overwrittenSizeInKBytesDistribution.clear();
         }
 
         OfflineStorageStats()
@@ -428,32 +399,42 @@ namespace ARIASDK_NS_BEGIN {
         /// true if ecs client is used
         bool ecsClientEnabled;
 
-        /// a guid created when starting the SCT client.
+        /// SDK session ID GUID
         std::string sessionId;
 
-        /// the utc timestamp of starting the SCT client.
+        /// SDK sesion start UTC timestamp
         int64_t sessionStartTimestamp;
 
-        /// the utc timestamp of starting the SCT client.
-        int64_t session_startup_time_in_millisec;
-
-        /// the utc timestamp of starting collecting new telemetry stats.
+        /// Stats interval UTC timestamp
         int64_t statsStartTimestamp;
 
         /// the sequence number of the new telemetry stats within the session as indicated by the sessionId
         int64_t statsSequenceNum;
 
+        /// Package statistics
         PackageStats packageStats;
 
+        /// Retry count by code distribution
         uint_uint_dict_t retriesCountDistribution;
-        
+
+        /// RTT stats
         LatencyStats rttStats;
-        std::map<EventLatency, LatencyStats> logToSuccessfulSendLatencyPerLatency;
 
         RecordStats recordStats;
-        std::map<EventLatency, RecordStats> recordStatsPerLatency;
 
+        std::map<EventLatency, RecordStats> recordStatsPerLatency;
+        
         OfflineStorageStats offlineStorageStats;
+
+        void Reset()
+        {
+            packageStats.Reset();
+            retriesCountDistribution.clear();
+            rttStats.Reset();
+            recordStats.Reset();
+            recordStatsPerLatency.clear();
+            offlineStorageStats.Reset();
+        }
     };
 
     
@@ -503,7 +484,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// stats records created
         /// </summary>
-        void snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind);
+        void rollup(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind);
 
     protected:
 
@@ -521,15 +502,41 @@ namespace ARIASDK_NS_BEGIN {
         /// Stats Session ID shared between all tenant stats
         /// </summary>
         std::string                     m_sessionId;
-        
+
+        /// <summary>
+        /// Flag to enable per-tenant stats logic
+        /// </summary>
+        bool                            m_enableTenantStats;
+
         /// <summary>
         /// Per-tenant stats
         /// </summary>
         std::map<std::string, TelemetryStats>  m_telemetryTenantStats;
 
+        const std::map<EventLatency, std::string> m_latency_pfx =
+        {
+            { EventLatency_Normal,       "ln_" },
+            { EventLatency_CostDeferred, "ld_" },
+            { EventLatency_RealTime,     "lr_" },
+            { EventLatency_Max,          "lm_" }
+        };
+
+        const std::map<EventRejectedReason, std::string>   m_reject_reasons =
+        {
+            { REJECTED_REASON_VALIDATION_FAILED,            "rej_inv" },
+            { REJECTED_REASON_OLD_RECORD_VERSION,           "rej_old" },
+            { REJECTED_REASON_INVALID_CLIENT_MESSAGE_TYPE,  "rej_typ" },
+            { REJECTED_REASON_REQUIRED_ARGUMENT_MISSING,    "rej_ams" },
+            { REJECTED_REASON_EVENT_NAME_MISSING,           "rej_nms" },
+            { REJECTED_REASON_EVENT_SIZE_LIMIT_EXCEEDED,    "rej_siz" },
+            { REJECTED_REASON_EVENT_BANNED,                 "rej_ban" },
+            { REJECTED_REASON_EVENT_EXPIRED,                "rej_exp" },
+            { REJECTED_REASON_SERVER_DECLINED,              "rej_403" },
+            { REJECTED_REASON_TENANT_KILLED,                "rej_kl" }
+        };
+
     private:
-        void privateSnapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats);
-        void privateClearStats(TelemetryStats& telemetryStats);
+        void snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats);
     };
 
 } ARIASDK_NS_END

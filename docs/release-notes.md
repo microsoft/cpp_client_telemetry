@@ -9,6 +9,8 @@
 - Mac OS X (BETA, source only)
 - MinGW (experimental, source only)
 
+---
+
 ## Version 3.1.18.1 (01/18/2019)
 
 ### New features
@@ -30,6 +32,8 @@ None
 1541369 Custom integration instructions for C# UWP applications
 1470816 1521798 Remove EOL in Mac OS X device identifiers
 1510118 Win 10 UWP SDK sporadic crash in HTTP stack
+
+---
 
 ## Version 3.0.289.1 (10/16/2018)
 
@@ -57,7 +61,6 @@ xxxxxxx BVT: SDK re-initialize did not respect new configuration parameters
 xxxxxxx BVT: LogManagerFactory C++11 magic-static must return a reference, not an obj instance
 
 ---
-
 
 ## Version 3.0.268.1 (09/25/2018)
 
