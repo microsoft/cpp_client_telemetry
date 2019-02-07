@@ -1,3 +1,7 @@
+# Data/Telemetry
+
+This project collects usage data and sends it to Microsoft to help improve our products and services.
+Read our privacy statement to learn more.
 
 # Contributing
 
