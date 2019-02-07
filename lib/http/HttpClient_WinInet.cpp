@@ -20,7 +20,6 @@ class WinInetRequestWrapper
     IHttpResponseCallback* m_appCallback;
     HINTERNET              m_hWinInetSession;
     HINTERNET              m_hWinInetRequest;
-    HANDLE                 m_hDoneEvent;
     std::unique_ptr<SimpleHttpRequest> m_request;
     BYTE                   m_buffer[1024];
 
@@ -30,8 +29,7 @@ class WinInetRequestWrapper
         m_request(request),
         m_id(request->GetId()),
         m_hWinInetSession(NULL),
-        m_hWinInetRequest(NULL),
-        m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
+        m_hWinInetRequest(NULL)
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -42,21 +40,23 @@ class WinInetRequestWrapper
     ~WinInetRequestWrapper()
     {
         LOG_TRACE("%p ~WinInetRequestWrapper()", this);
-        ::InternetCloseHandle(m_hWinInetRequest);
-        ::InternetCloseHandle(m_hWinInetSession);
-        ::CloseHandle(m_hDoneEvent);
+        if (m_hWinInetRequest != nullptr)
+        {
+            ::InternetCloseHandle(m_hWinInetRequest);
+            ::InternetCloseHandle(m_hWinInetSession);
+        }
     }
 
-    void signalDone()
-    {
-        ::SetEvent(m_hDoneEvent);
-    }
-
+    /**
+     * Async cancel pending request 
+     */
     void cancel()
     {
-        ::InternetCloseHandle(m_hWinInetRequest);
-        ::WaitForSingleObject(m_hDoneEvent, INFINITE);
-        m_hWinInetRequest = NULL;
+        if (m_hWinInetRequest != nullptr)
+        {
+            ::InternetCloseHandle(m_hWinInetRequest);
+            // don't wait for request callback
+        }
     }
 
     void send(IHttpResponseCallback* callback)
@@ -289,7 +289,7 @@ class WinInetRequestWrapper
         // response gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
 
-        m_parent.signalDoneAndErase(m_id);
+        m_parent.erase(m_id);
     }
 };
 
@@ -308,12 +308,11 @@ HttpClient_WinInet::~HttpClient_WinInet()
     ::InternetCloseHandle(m_hInternet);
 }
 
-void HttpClient_WinInet::signalDoneAndErase(std::string const& id)
+void HttpClient_WinInet::erase(std::string const& id)
 {
 	std::lock_guard<std::mutex> lock(m_requestsMutex);
     auto it = m_requests.find(id);
     if (it != m_requests.end()) {
-        it->second->signalDone();
         auto req = it->second;
         m_requests.erase(it);
         // delete WinInetRequestWrapper
@@ -336,15 +335,13 @@ void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCa
 void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
 {
     WinInetRequestWrapper* request = nullptr;
-    {
-        std::lock_guard<std::mutex> lock(m_requestsMutex);
-        auto it = m_requests.find(id);
-        if (it != m_requests.end()) {
-            request = it->second;
+    LOCKGUARD(m_requestsMutex);
+    auto it = m_requests.find(id);
+    if (it != m_requests.end()) {
+        request = it->second;
+        if (request) {
+            request->cancel();
         }
-    }
-    if (request) {
-        request->cancel();
     }
 }
 

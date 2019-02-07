@@ -23,7 +23,7 @@ class HttpClient_WinInet : public IHttpClient {
     virtual void CancelAllRequests() override;
 
   protected:
-    void signalDoneAndErase(std::string const& id);
+    void erase(std::string const& id);
 
   protected:
     HINTERNET                                                        m_hInternet;

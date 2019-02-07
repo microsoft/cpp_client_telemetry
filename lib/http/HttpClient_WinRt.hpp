@@ -32,7 +32,7 @@ class HttpClient_WinRt : public IHttpClient {
 	HttpClient^ getHttpClient() { return m_httpClient; }
 
   protected:
-    void signalDoneAndErase(std::string const& id);
+    void erase(std::string const& id);
 	
   protected:
 	HttpClient^                                                      m_httpClient;

@@ -795,6 +795,91 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 }
 
+class RequestMonitor : public DebugEventListener
+{
+
+public:
+
+    RequestMonitor() : DebugEventListener()
+    {
+    }
+
+    virtual void OnDebugEvent(DebugEvent &evt)
+    {
+        switch (evt.type)
+        {
+        case EVT_HTTP_OK:
+            printf("O"); // OK
+            break;
+        case EVT_HTTP_ERROR:
+            printf("x"); // NOT OK
+            break;
+        case EVT_HTTP_FAILURE:
+            printf("X"); // exception
+            break;
+        default:
+            break;
+        }
+    }
+};
+
+TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
+{
+    CleanStorage();
+    printf("Sending rapid burst of requests...\n");
+
+    RequestMonitor listener;
+
+    auto eventsList = {
+        DebugEventType::EVT_HTTP_OK,
+        DebugEventType::EVT_HTTP_ERROR,
+        DebugEventType::EVT_HTTP_FAILURE
+    };
+
+    for (size_t i = 0; i < 20; i++)
+    {
+        auto &configuration = LogManager::GetLogConfiguration();
+        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        configuration["http"]["compress"] = true;
+        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+
+        // Add event listeners
+        for (auto evt : eventsList)
+        {
+            LogManager::AddEventListener(evt, listener);
+        }
+        LogManager::Initialize(TEST_TOKEN);
+        auto myLogger = LogManager::GetLogger();
+        for (size_t j = 0; j < 5; j++)
+        {
+            EventProperties myEvent1("sample_realtime");
+            myEvent1.SetLatency(EventLatency_RealTime);
+            myLogger->LogEvent(myEvent1);
+            EventProperties myEvent2("sample_max");
+            myEvent2.SetLatency(EventLatency_Max);
+            myLogger->LogEvent(myEvent2);
+            if (j % 2)
+            {
+                std::this_thread::yield();
+            }
+        }
+        if (i % 2)
+        {
+            LogManager::UploadNow();
+            std::this_thread::yield();
+        }
+        LogManager::FlushAndTeardown();
+        // Add event listeners
+        for (auto evt : eventsList)
+        {
+            LogManager::RemoveEventListener(evt, listener);
+        }
+    }
+    printf("\n");
+}
+
 #if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)

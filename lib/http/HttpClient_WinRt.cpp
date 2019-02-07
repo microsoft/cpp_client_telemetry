@@ -33,7 +33,6 @@ namespace ARIASDK_NS_BEGIN {
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
         HttpResponseMessage^   m_httpResponseMessage;
-        HANDLE                 m_hDoneEvent;
         concurrency::cancellation_token_source m_cancellationTokenSource;
 
     public:
@@ -41,8 +40,7 @@ namespace ARIASDK_NS_BEGIN {
             : m_parent(parent),
             m_request(request),
             m_id(request->GetId()),
-            m_httpRequestMessage(nullptr),
-            m_hDoneEvent(::CreateEvent(NULL, TRUE, FALSE, NULL))
+            m_httpRequestMessage(nullptr)
         {
             LOG_TRACE("%p WinRtRequestWrapper()", this);
         }
@@ -54,18 +52,12 @@ namespace ARIASDK_NS_BEGIN {
         ~WinRtRequestWrapper()
         {
             LOG_TRACE("%p ~WinRtRequestWrapper()", this);
-            ::CloseHandle(m_hDoneEvent);
         }
 
-        void signalDone()
-        {
-            ::SetEvent(m_hDoneEvent);
-        }
 
         void cancel()
         {
             m_cancellationTokenSource.cancel();
-            ::WaitForSingleObject(m_hDoneEvent, INFINITE);
             //m_httpRequestMessage, don't need to delete, ref object framework will delete it
         }
 
@@ -246,7 +238,7 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             m_appCallback->OnHttpResponse(response.release());
-            m_parent.signalDoneAndErase(m_id);
+            m_parent.erase(m_id);
 
         }
     };
@@ -288,13 +280,12 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-    void HttpClient_WinRt::signalDoneAndErase(std::string const& id)
+    void HttpClient_WinRt::erase(std::string const& id)
     {
         std::lock_guard<std::mutex> lock(m_requestsMutex);
         auto it = m_requests.find(id);
         if (it != m_requests.end())
         {
-            it->second->signalDone();
             auto req = it->second;
             m_requests.erase(it);
             delete req;
@@ -328,10 +319,10 @@ namespace ARIASDK_NS_BEGIN {
             if (it != m_requests.end())
             {
                 request = it->second;
+                if (request) {
+                    request->cancel();
+                }
             }
-        }
-        if (request) {
-            request->cancel();
         }
     }
 

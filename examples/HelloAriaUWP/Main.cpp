@@ -336,7 +336,7 @@ ILogger* init() {
     configuration[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
     configuration[CFG_INT_CACHE_FILE_SIZE]   = 50000000;
     configuration[CFG_INT_RAM_QUEUE_SIZE]    = 2000000;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 20;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes_Aria; /* or UTC mode: SdkModeTypes_UTCAriaBackCompat; */
 
     // OTEL profile example
@@ -578,13 +578,13 @@ all_done:
 
     eps = (1000 * numLogged) / (ms - testStartMs);
     printf("***************** BEFORE TEARDOWN ************\n");
-    printf("EPS:        %u\n", eps);
-    printf("Latency:    [%u..%u]\n", logLatMin, logLatMax);
-    printf("Logged:     %u\n", numLogged);
-    printf("Cached:     %u\n", numCached);
-    printf("Sent:       %u\n", numSent);
-    printf("Dropped:    %u\n", numDropped);
-    printf("Rejected:   %u\n", numReject);
+    printf("EPS:        %u\n", eps.load());
+    printf("Latency:    [%u..%u]\n", logLatMin.load(), logLatMax.load());
+    printf("Logged:     %u\n", numLogged.load());
+    printf("Cached:     %u\n", numCached.load());
+    printf("Sent:       %u\n", numSent.load());
+    printf("Dropped:    %u\n", numDropped.load());
+    printf("Rejected:   %u\n", numReject.load());
 
     shutdownTimeMs = (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     done();
@@ -594,11 +594,11 @@ all_done:
     auto totalTimeDelta = shutdownTimeMs - testStartMs;
     printf("***************** AFTER TEARDOWN ************\n");
     printf("Stop dur:   %u ms\n", shutdownTimeMsDelta);
-    printf("Logged:     %u\n", numLogged);
-    printf("Cached:     %u\n", numCached);
-    printf("Sent:       %u\n", numSent);
-    printf("Dropped:    %u\n", numDropped);
-    printf("Rejected:   %u\n", numReject);
+    printf("Logged:     %u\n", numLogged.load());
+    printf("Cached:     %u\n", numCached.load());
+    printf("Sent:       %u\n", numSent.load());
+    printf("Dropped:    %u\n", numDropped.load());
+    printf("Rejected:   %u\n", numReject.load());
     printf("Total time: %u ms\n", totalTimeDelta);
 
     return 0;
