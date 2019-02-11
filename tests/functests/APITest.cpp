@@ -510,16 +510,37 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 TEST(APITest, LogManager_BadNetwork_Test)
 {
-    MAT_v1::LogConfiguration config;
-    config.eventCollectorUri = "http://1.2.3.4"; // "http://127.0.0.1";
-    config.traceLevelMask = 0;
-    config.minimumTraceLevel = ACTTraceLevel_Warn;
-    config.maxTeardownUploadTimeInSec = 2; // Wait for 2 seconds
+    auto& config = LogManager::GetLogConfiguration();
 
-    ILogConfiguration newConfig = FromLogConfiguration(config);
-    size_t numIterations = 10;
-    while (numIterations--)
-        EXPECT_GE(StressSingleThreaded(newConfig), MAX_ITERATIONS);
+    // Clean temp file first
+    const char *cacheFilePath = "bad-network.db";
+    std::string fileName = MAT::GetTempDirectory();
+    fileName += "\\";
+    fileName += cacheFilePath;
+    std::remove(fileName.c_str());
+
+    for (auto url : {
+        "https://0.0.0.0/",
+        "https://127.0.0.1/",
+        "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
+        "https://invalid.host.name.microsoft.com/"
+        })
+    {
+        printf("--- trying %s", url);
+        config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
+        config[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+        config[CFG_STR_COLLECTOR_URL] = url;
+        size_t numIterations = 5;
+        while (numIterations--)
+        {
+            printf(".");
+            EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
+        }
+        printf("\n");
+    }
 }
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)

@@ -25,6 +25,8 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
 
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
+    MOCK_METHOD1(removeUpload, void(EventsUploadContextPtr));
+    MOCK_METHOD0(handleStop, bool());
 
     bool uploadScheduled() const { return m_isUploadScheduled; }
     void uploadScheduled(bool state) { m_isUploadScheduled = state; }
@@ -81,13 +83,40 @@ TEST_F(TransmissionPolicyManagerTests, StartSchedulesUploadImmediately)
 }
 #endif
 
-TEST_F(TransmissionPolicyManagerTests, StopCancelsScheduledUploads)
+TEST_F(TransmissionPolicyManagerTests, StopLeavesNoScheduledUploads)
 {
-    tpm.uploadScheduled(true);
     tpm.paused(false);
-    EXPECT_THAT(tpm.stop(), true);
-    EXPECT_THAT(tpm.paused(), true);
-    EXPECT_THAT(tpm.uploadScheduled(), false);
+
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
+        .WillOnce(Return());
+    tpm.start();
+
+    size_t i = 1000;
+    while (i--)
+    {
+        EXPECT_CALL(tpm, scheduleUpload(_, EventLatency_Normal, false))
+            .Times(3)
+            .WillOnce(Return())
+            .WillOnce(Return())
+            .WillOnce(Return());
+        for (auto k :
+            {
+                tpm.eventsUploadSuccessful,
+                tpm.eventsUploadRejected,
+                tpm.eventsUploadFailed,
+                tpm.eventsUploadAborted,
+            }
+            )
+        {
+            k(tpm.fakeActiveUpload());
+        }
+    }
+
+    EXPECT_CALL(*this, resultAllUploadsFinished())
+        .WillOnce(Return());
+    tpm.stop();
+
+    EXPECT_THAT(tpm.activeUploads(), SizeIs(0));
 }
 
 TEST_F(TransmissionPolicyManagerTests, IncomingEventDoesNothingWhenPaused)
@@ -128,7 +157,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenPaused)
 {
     tpm.uploadScheduled(true);
     tpm.paused(true);
-    tpm.scheduleUpload(0, EventLatency_Normal, true);
+    tpm.fakeActiveUpload();
     EXPECT_CALL(tpm, uploadAsync(_)).Times(0);
 }
 
@@ -137,7 +166,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenAlreadyActive)
     tpm.uploadScheduled(true);
     tpm.paused(false);
     tpm.fakeActiveUpload();
-    tpm.scheduleUpload(0, EventLatency_Normal, true);
     EXPECT_CALL( tpm, uploadAsync(_) ).Times(0);
 }
 
@@ -309,11 +337,22 @@ TEST_F(TransmissionPolicyManagerTests, FinishAllUploadsWhenIdleIsSynchronous)
 TEST_F(TransmissionPolicyManagerTests, FinishAllUploads)
 {
     tpm.paused(false);
+
+    EXPECT_CALL(*this, resultAllUploadsFinished())
+        .WillOnce(Return());
     tpm.stop();
+
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
+        .WillOnce(Return());
     tpm.start();
 
+    EXPECT_CALL(tpm, scheduleUpload(0, EventLatency_Normal, false))
+        .Times(2)
+        .WillOnce(Return())
+        .WillOnce(Return());
     auto upload1 = tpm.fakeActiveUpload();
     auto upload2 = tpm.fakeActiveUpload();
+
     ASSERT_THAT(upload1, NotNull());
     ASSERT_THAT(upload2, NotNull());
 
@@ -321,10 +360,9 @@ TEST_F(TransmissionPolicyManagerTests, FinishAllUploads)
 
     tpm.eventsUploadSuccessful(upload1);
     tpm.eventsUploadSuccessful(upload2);
+    EXPECT_THAT(tpm.activeUploads(), SizeIs(0));
 
     EXPECT_CALL(*this, resultAllUploadsFinished())
         .WillOnce(Return());
-    tpm.finishAllUploads();
-
-    EXPECT_THAT(tpm.activeUploads(), SizeIs(0));
+    tpm.stop();
 }

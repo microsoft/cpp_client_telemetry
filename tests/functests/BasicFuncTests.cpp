@@ -797,37 +797,59 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 
 class RequestMonitor : public DebugEventListener
 {
+    const size_t IDX_OK   = 0;
+    const size_t IDX_ERR  = 1;
+    const size_t IDX_ABRT = 2;
+
+    std::atomic<size_t> counts[3];
 
 public:
 
     RequestMonitor() : DebugEventListener()
     {
+        reset();
+    }
+
+    void reset()
+    {
+        counts[IDX_OK] = 0;
+        counts[IDX_ERR] = 0;
+        counts[IDX_ABRT] = 0;
     }
 
     virtual void OnDebugEvent(DebugEvent &evt)
     {
         switch (evt.type)
         {
+            // 200 OK
         case EVT_HTTP_OK:
-            printf("O"); // OK
+            counts[IDX_OK]++;
             break;
+            // xxx ERROR
         case EVT_HTTP_ERROR:
-            printf("x"); // NOT OK
+            counts[IDX_ERR]++;
             break;
+            // HTTP stack failure (e.g. abort)
         case EVT_HTTP_FAILURE:
-            printf("X"); // exception
+            counts[IDX_ABRT]++;
             break;
         default:
             break;
         }
+    }
+
+    void dump()
+    {
+        printf("HTTP request stress stats:\n");
+        printf("OK    = %zu\n", counts[IDX_OK].load());
+        printf("ERR   = %zu\n", counts[IDX_ERR].load());
+        printf("ABRT  = %zu\n", counts[IDX_ABRT].load());
     }
 };
 
 TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 {
     CleanStorage();
-    printf("Sending rapid burst of requests...\n");
-
     RequestMonitor listener;
 
     auto eventsList = {
@@ -835,6 +857,11 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         DebugEventType::EVT_HTTP_ERROR,
         DebugEventType::EVT_HTTP_FAILURE
     };
+    // Add event listeners
+    for (auto evt : eventsList)
+    {
+        LogManager::AddEventListener(evt, listener);
+    }
 
     for (size_t i = 0; i < 20; i++)
     {
@@ -843,16 +870,12 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration["http"]["compress"] = true;
         configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-
-        // Add event listeners
-        for (auto evt : eventsList)
-        {
-            LogManager::AddEventListener(evt, listener);
-        }
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = i % 2;
+        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
         LogManager::Initialize(TEST_TOKEN);
         auto myLogger = LogManager::GetLogger();
-        for (size_t j = 0; j < 5; j++)
+        for (size_t j = 0; j < 200; j++)
         {
             EventProperties myEvent1("sample_realtime");
             myEvent1.SetLatency(EventLatency_RealTime);
@@ -860,24 +883,30 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
             EventProperties myEvent2("sample_max");
             myEvent2.SetLatency(EventLatency_Max);
             myLogger->LogEvent(myEvent2);
-            if (j % 2)
+        }
+        // force upload
+        LogManager::UploadNow();
+        if ((i % 3) == 0)
+        {
+            sleep(100);
+        }
+        if (i % 2)
+        {
+            size_t k = rand() % 10 + 1;
+            while (k--)
             {
                 std::this_thread::yield();
             }
         }
-        if (i % 2)
-        {
-            LogManager::UploadNow();
-            std::this_thread::yield();
-        }
         LogManager::FlushAndTeardown();
-        // Add event listeners
-        for (auto evt : eventsList)
-        {
-            LogManager::RemoveEventListener(evt, listener);
-        }
     }
-    printf("\n");
+
+    listener.dump();
+    // Remove event listeners
+    for (auto evt : eventsList)
+    {
+        LogManager::RemoveEventListener(evt, listener);
+    }
 }
 
 #if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests

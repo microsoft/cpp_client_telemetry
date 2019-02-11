@@ -52,7 +52,6 @@ namespace ARIASDK_NS_BEGIN {
             // Perform upload only if not paused
             if ((timeoutInSec > 0) && (!tpm.isPaused()))
             {
-                upload();
                 // perform uploads if required
                 stopTimes[0] = GetUptimeMs();
                 LOG_TRACE("Shutdown timer started...");
@@ -78,6 +77,7 @@ namespace ARIASDK_NS_BEGIN {
 
             // cancel all pending and force-finish all uploads
             stopTimes[1] = GetUptimeMs();
+            onPause();
             hcm.cancelAllRequests();
             tpm.finishAllUploads();
             stopTimes[1] = GetUptimeMs() - stopTimes[1];

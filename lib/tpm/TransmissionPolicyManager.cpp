@@ -48,6 +48,12 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
+        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
+        {
+            LOG_TRACE("Maximum number of HTTP requests reached");
+            return;
+        }
+
         LOG_TRACE("Scheduling another upload in %d msec, latency=%d", delayInMs, latency);
         if (m_isPaused)
         {
@@ -129,16 +135,37 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-    bool TransmissionPolicyManager::handleStopOrPause()
+    /**
+     * Stop scheduling upload task, but don't wait for in-progress uploads to stop.
+     * Once paused we let all in-progress uploads to run to completion.
+     */
+    bool TransmissionPolicyManager::handlePause()
     {
-        abortAllUploads();
+        pauseAllUploads();
+        return true;
+    }
+
+    /**
+     * Wait for all pending uploads to complete. This handler is invoked from
+     * TelemetrySystem::onStop after HCM has attempted to cancel all pending
+     * requests via hcm.cancelAllRequests. Since we don't directly couple TPM
+     * with HCM implementation, the system asks HCM to stop and TPM must wait
+     * for all callbacks to come.
+     */
+    bool TransmissionPolicyManager::handleStop()
+    {
+        while (uploadCount() > 0)
+        {
+            std::this_thread::yield();
+        }
+        allUploadsFinished();
         return true;
     }
 
     // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
-        abortAllUploads();
+        pauseAllUploads();
         allUploadsFinished();   // calls stats.onStop >> this->flushWorkerThread;
     }
 

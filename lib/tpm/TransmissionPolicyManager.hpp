@@ -33,7 +33,8 @@ namespace ARIASDK_NS_BEGIN {
         void finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs);
 
         bool handleStart();
-        bool handleStopOrPause();
+        bool handlePause();
+        bool handleStop();
         void handleFinishAllUploads();
 
         void handleEventArrived(IncomingEventContextPtr const& event);
@@ -57,7 +58,7 @@ namespace ARIASDK_NS_BEGIN {
         std::unique_ptr<IBackoff>        m_backoff;
         DeviceStateHandler               m_deviceStateHandler;
 
-        bool                             m_isPaused;
+        std::atomic<bool>                m_isPaused;
         std::atomic<bool>                m_isUploadScheduled;
         PAL::DeferredCallbackHandle      m_scheduledUpload;
 
@@ -94,14 +95,12 @@ namespace ARIASDK_NS_BEGIN {
         }
         
         /// <summary>
-        /// Thread-safe method to removes all uploads from active uploads.
+        /// Cancel pending upload task and stop scheduling further uploads.
         /// </summary>
-        void abortAllUploads()
+        void pauseAllUploads()
         {
             m_isPaused = true;
             cancelUploadTask();
-            while (m_activeUploads.size())
-                std::this_thread::yield();
         }
         
         /// <summary>
@@ -130,8 +129,8 @@ namespace ARIASDK_NS_BEGIN {
 
     public:
         RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };
-        RoutePassThrough<TransmissionPolicyManager>                          pause{ this, &TransmissionPolicyManager::handleStopOrPause };
-        RoutePassThrough<TransmissionPolicyManager>                          stop{ this, &TransmissionPolicyManager::handleStopOrPause };
+        RoutePassThrough<TransmissionPolicyManager>                          pause{ this, &TransmissionPolicyManager::handlePause };
+        RoutePassThrough<TransmissionPolicyManager>                          stop{ this, &TransmissionPolicyManager::handleStop };
         RouteSink<TransmissionPolicyManager>                                 finishAllUploads{ this, &TransmissionPolicyManager::handleFinishAllUploads };
         RouteSource<>                                                        allUploadsFinished;
 
@@ -147,9 +146,6 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool isUploadInProgress()
         {
-            // paused
-            if (m_isPaused)
-                return false;
             // unfinished uploads that haven't processed callbacks or pending upload task
             return (uploadCount() > 0) || m_isUploadScheduled;
         }
