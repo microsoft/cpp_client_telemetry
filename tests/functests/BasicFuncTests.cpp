@@ -888,7 +888,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         LogManager::UploadNow();
         if ((i % 3) == 0)
         {
-            sleep(100);
+            PAL::sleep(100);
         }
         if (i % 2)
         {
