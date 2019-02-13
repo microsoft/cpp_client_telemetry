@@ -596,8 +596,10 @@ TEST(APITest, Aria_Pii_Kind_E2E_Test)
     // Log detailed event with various properties
     EventProperties detailed_event("MyApp.DetailedEvent.Pii",
         {
+#ifdef _MSC_VER
             // Log compiler version
             { "_MSC_VER", _MSC_VER },
+#endif
             // Pii-typed fields
             { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
             { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
