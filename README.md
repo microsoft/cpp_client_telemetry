@@ -1,3 +1,14 @@
+---
+ArtifactType: nupkg, zip
+Documentation: https://1dsdocs.azurewebsites.net
+Language: C, C++
+Platform: windows, Mac OS X, Linux
+Stackoverflow: N/A
+Tags: 1DS,telemetry,C,C++,data ingestion,events
+ms.reviewedAt: 02/20/2019
+ms.reviewedBy: maxgolov
+---
+
 # Microsoft Applications Telemetry C/C++ SDK
 
 Microsoft Applications Telemetry C/C++ SDK enables cross-platform telemetry collection from various Microsoft products.
@@ -40,8 +51,7 @@ contributing to this project.
 ## Getting Started
 
 Please follow instructions published at our [Team SharePoint site](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/SitePages/Home.aspx)
-These instructions will get you a copy of the project up and running on your local machine for development and testing
-purposes.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ## Running the tests
 
@@ -66,16 +76,13 @@ SDK is integrated as a static or dynamic library runing in-proc within your exec
 
 ## Built With
 
-Please follow `Getting started` instructions to learn how to build using various compilers.
-We support building on:
+Please follow [Getting started](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/SitePages/Home.aspx) instructions to learn how to build.
+
+We support building SDK on:
 * Windows with Visual Studio 2017
 * Windows with cmake + llvm-clang compiler
 * Linux with gcc
-* 
-
-* Link to some dependency manager
-* Link to some framework or build tool
-* Link to some compiler, linting tool, bundler, etc
+* Mac OS X with cmake and XCode standard clang compiler
 
 ## Contributing
 
@@ -83,21 +90,32 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) which outlines all of our pol
 
 ## Versioning and changelog
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](link-to-tags-or-other-release-location).
+We use [SemVer](http://semver.org/) for versioning.
 
-It is a good practice to keep `CHANGELOG.md` file in repository that can be updated as part of a pull request.
+For the versions available, see the [tags on this repository](https://msasg.visualstudio.com/Shared%20Data/_git/Aria.SDK.Cpp/tags).
 
 ## Authors
 
-List main authors of this project with a couple of words about their contribution.
+Project authors and contributors:
 
-Also insert a link to the `owners.txt` file if it exists as well as any other dashboard or other resources that lists all contributors to the project.
+* Max Golovanov <maxgolov@microsoft.com> - Azure PIE 1DS C++ SDK team
+* Miguel Angel Casillas Maldonado <micasill@microsoft.com> - Azure PIE 1DS C++ SDK team
+* Matt Koscumb (OTEL) <makoscum@microsoft.com> - Microsoft Office Telemetry team
+* David Brown (OTEL) <dabrow@microsoft.com> - Microsoft Office Telemetry team
+* Trevor Lacey <tlacey@microsoft.com> - Micorosft Information Protection
+* Jason Bray <Jason.Bray@microsoft.com> - Microsoft Edge (Anaheim)
+
+
+Please refer to (owners.txt)[owners.txt] file.
 
 ## License
 
-This project is licensed under the < INSERT LICENSE NAME > - see the [LICENSE](LICENSE) file for details
+This project has adopted the internal open source model. (c) Microsoft - All Rights Reserved.
+We are currently working on contributing this project to open source under MIT license by April 2019.
+Please DO NOT SHARE THIS PROJECT SOURCE CODE EXTERNALLY until we satisfy all the legal requirements.
+
+Please see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
+* We appreciate our long-term strategic partnership with Microsoft Office, Microsoft OneDrive, Microsoft Edge (Anaheim), Microsoft Information Protection SDK and many other of our customers.
