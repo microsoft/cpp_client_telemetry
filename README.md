@@ -106,7 +106,7 @@ Project authors and contributors:
 * Jason Bray <Jason.Bray@microsoft.com> - Microsoft Edge (Anaheim)
 
 
-Please refer to (owners.txt)[owners.txt] file.
+Please refer to [owners.txt](owners.txt) file.
 
 ## License
 
@@ -118,4 +118,4 @@ Please see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-* We appreciate our long-term strategic partnership with Microsoft Office, Microsoft OneDrive, Microsoft Edge (Anaheim), Microsoft Information Protection SDK and many other of our customers.
+We appreciate our long-term strategic partnership with Microsoft Office, Microsoft OneDrive, Microsoft Edge (Anaheim), Microsoft Information Protection SDK, Cortana, Speech Services SDK, OneNote and many other of our customers.
