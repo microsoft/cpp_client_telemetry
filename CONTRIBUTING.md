@@ -2,7 +2,7 @@
 
 1DS C++ Client Library is used by many teams in Microsoft and follows the internal open source model. All interested parties can contribute with features, improvements and bug fixes. These guidelines allow easy collaboration during its development across all involved teams and ensure high quality of the resulting code. Before contributing to this project, please review this document for policies and procedures which will ease the contribution and review process for everyone.
 
-If you have questions, please contact **1ds.sdk.cpp <1ds.sdk.cpp@service.microsoft.com>** DL.
+If you have questions, please contact <1ds.sdk.cpp@service.microsoft.com> DL.
 
 This project adopted Inner Source [model](https://oe-documentation.azurewebsites.net/inner-source/index.html)
 
@@ -18,7 +18,7 @@ This project adopted Inner Source [model](https://oe-documentation.azurewebsites
 
     - Make sure the code builds cleanly on all platforms and there are no failed tests.
 
-3. Create a VSTS pull request for code review at[] MS ASG VSO](http://msasg.visualstudio.com).
+3. Create a VSTS pull request for code review at [MS ASG VSO](http://msasg.visualstudio.com).
    Completion of the pull request requires at least one reviewer.
 
 4. Iterate on the changes until all code review comments are addressed.
