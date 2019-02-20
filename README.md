@@ -1,8 +1,8 @@
 ---
 ArtifactType: nupkg, zip
 Documentation: https://1dsdocs.azurewebsites.net
-Language: C, C++
-Platform: windows, Mac OS X, Linux
+Language: C, C++, C++11, GoLang
+Platform: Windows, UWP, Mac OS X, Linux
 Stackoverflow: N/A
 Tags: 1DS,telemetry,C,C++,data ingestion,events
 ms.reviewedAt: 02/20/2019
