@@ -1,3 +1,8 @@
+---
+ms.reviewedAt: 02/20/2019
+ms.reviewedBy: maxgolov
+---
+
 # Contributing
 
 1DS C++ Client Library is used by many teams in Microsoft and follows the internal open source model. All interested parties can contribute with features, improvements and bug fixes. These guidelines allow easy collaboration during its development across all involved teams and ensure high quality of the resulting code. Before contributing to this project, please review this document for policies and procedures which will ease the contribution and review process for everyone.
