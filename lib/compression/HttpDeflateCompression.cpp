@@ -51,7 +51,7 @@ bool HttpDeflateCompression::handleCompress(EventsUploadContextPtr const& ctx)
     if (result == Z_OK || result == Z_STREAM_END) {
         std::copy(temp.cbegin(), temp.cbegin() + stream.total_out, ctx->body.begin());
         stream.next_out  = ctx->body.data() + stream.total_out;
-        stream.avail_out = static_cast<uInt>(ctx->body.size()) - stream.total_out;
+        stream.avail_out = static_cast<uInt>(ctx->body.size()) - static_cast<uInt>(stream.total_out);
     }
     if (result == Z_OK) {
         result = deflate(&stream, Z_FINISH);

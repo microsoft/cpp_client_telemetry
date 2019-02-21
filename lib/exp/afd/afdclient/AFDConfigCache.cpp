@@ -18,7 +18,6 @@ namespace Microsoft {
     namespace Applications {
         namespace Experimentation {
             namespace AFD {
-                const unsigned int RetryTimeOutinMiliSec = 5000;
                 AFDConfigCache::AFDConfigCache(const string& storagePath)
                     : m_pOfflineStorage(NULL)
                 {

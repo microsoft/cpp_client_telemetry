@@ -17,8 +17,6 @@ namespace Microsoft {
     namespace Applications {
         namespace Experimentation {
             namespace ECS {
-
-                const unsigned int RetryTimeOutinMiliSec = 5000;
                 ECSConfigCache::ECSConfigCache(const string& storagePath)
                     : m_pOfflineStorage(NULL)
                 {
