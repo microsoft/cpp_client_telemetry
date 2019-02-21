@@ -11,24 +11,13 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "pal/UtcHelpers.hpp"
+#include "http/HttpClientFactory.hpp"
 
 #if ARIASDK_PAL_SKYPE
 #include "bwcontrol/BandwidthController_ResourceManager.hpp"
 #include "config/RuntimeConfig_ECS.hpp"
-#include "http/HttpClient_HttpStack.hpp"
 #endif
 
-#if ARIASDK_PAL_WIN32
-#ifdef _WINRT_DLL
-#include "http/HttpClient_WinRt.hpp"
-#else 
-#include "http/HttpClient_WinInet.hpp"
-#endif
-#endif
-
-#if ARIASDK_PAL_CPP11
-#include "http/HttpClient.hpp"
-#endif
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -167,34 +156,13 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
 
-// ****************************************************************************************** //
-// BEGIN TODO: [MG] - simimlar HTTP client initialization code is being used in several spots.
-// We should refactor this to abstract away the client implementation type and obtain
-// the IHttpClient ptr from one convenient wrapper, maybe naming it "HTTP Client Factory"
         if (m_httpClient == nullptr) {
-#if ARIASDK_PAL_SKYPE
-            LOG_TRACE("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
-            m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
-#elif ARIASDK_PAL_WIN32
-            LOG_TRACE("HttpClient: WinInet");
-#ifdef _WINRT_DLL
-            m_ownHttpClient.reset(new HttpClient_WinRt());
-#else 
-            m_ownHttpClient.reset(new HttpClient_WinInet());
-#endif
-#elif ARIASDK_PAL_CPP11
-            LOG_TRACE("HttpClient: generic HTTP client");
-            m_ownHttpClient.reset(new HttpClient());
-#else
-#error The library cannot work without an HTTP client implementation.
-#endif
+            m_ownHttpClient.reset(HttpClientFactory::Create());
             m_httpClient = m_ownHttpClient.get();
         }
         else {
             LOG_TRACE("HttpClient: External %p", m_httpClient);
         }
-// END TODO: [MG]
-// ****************************************************************************************** //
 
         if (m_bandwidthController == nullptr) {
 #if ARIASDK_PAL_SKYPE

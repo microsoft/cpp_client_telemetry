@@ -4,6 +4,7 @@
 
 #include "EXPCommonClient.hpp"
 #include "pal/PAL.hpp"
+#include "http/HttpClientFactory.hpp"
 
 #include <iostream>
 #include <iterator>
@@ -11,18 +12,6 @@
 #include <string>
 #include <memory>
 
-// TODO: this section of code would benefit from common PAL HTTP header that includes
-// either of the impl headers.
-#if defined(ARIASDK_PAL_WIN32) || defined(_MSC_VER)
-#ifdef _WINRT_DLL
-#include "http/HttpClient_WinRt.hpp"
-#else 
-#include "http/HttpClient_WinInet.hpp"
-#endif
-#endif
-#if ARIASDK_PAL_CPP11
-#include "http/HttpClient.hpp"
-#endif
 
 using namespace std;
 using namespace MAT;
@@ -80,35 +69,7 @@ namespace Microsoft {
 
                 PAL::initialize();
 
-#if ARIASDK_PAL_SKYPE
-                LOG_TRACE("HttpClient: Skype HTTP Stack (provided IHttpStack=%p)", configuration.skypeHttpStack);
-                m_ownHttpClient.reset(new HttpClient_HttpStack(configuration.skypeHttpStack));
-#define HTTP_AVAIL
-#endif
-
-#if ARIASDK_PAL_WIN32 || defined(_MSC_VER)
-#ifdef _WINRT_DLL
-                LOG_TRACE("HttpClient: WinRt");
-                m_httpClient = new HttpClient_WinRt();
-#else 
-                LOG_TRACE("HttpClient: WinInet");
-                m_httpClient = new HttpClient_WinInet();
-#endif
-#define HTTP_AVAIL
-#endif
-
-#if ARIASDK_PAL_CPP11
-                LOG_TRACE("HttpClient: generic HTTP client");
-                m_httpClient = new HttpClient();
-#define HTTP_AVAIL
-#endif
-
-                // TODO: add support for EXPCommonClient in Linux
-
-#ifndef HTTP_AVAIL
-#error The library cannot work without an HTTP client implementation.
-#endif
-
+                m_ownHttpClient.reset(HttpClientFactory::Create());
             }
 
             /******************************************************************************

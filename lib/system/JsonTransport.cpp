@@ -7,18 +7,10 @@
  * storage and batching.
  */
 
+#include "http/HttpClientFactory.hpp"
 #include "LogManager.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>
-
-#if ARIASDK_PAL_WIN32
-#ifdef _WINRT_DLL
-#include "http/HttpClient_WinRt.hpp"
-#else 
-#include "http/HttpClient_WinInet.hpp"
-#endif
- //    #include "http/HttpClient_WinInet.hpp"
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -65,14 +57,8 @@ namespace ARIASDK_NS_BEGIN {
         return temp;
     };
 
-    static IHttpClient* httpClient =
-#if ARIASDK_PAL_WIN32
-#ifdef _WINRT_DLL
-        new HttpClient_WinRt();
-#else 
-        new HttpClient_WinInet();
-#endif
-#endif
+    static IHttpClient* httpClient = HttpClientFactory::Create();
+
     class ResponseCallback2 : public IHttpResponseCallback {
     public:
         ResponseCallback2() {};

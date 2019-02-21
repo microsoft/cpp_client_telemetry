@@ -3,12 +3,8 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
 #include "common/Common.hpp"
-#if ARIASDK_PAL_SKYPE
-    #include "http/HttpClient_HttpStack.hpp"
-#elif ARIASDK_PAL_WIN32
-    #include "http/HttpClient_WinInet.hpp"
-#endif
 #include "common/HttpServer.hpp"
+#include "http/HttpClientFactory.hpp"
 
 using namespace testing;
 using namespace ARIASDK_NS;
@@ -33,11 +29,7 @@ class HttpClientTests : public ::testing::Test,
   public:
     HttpClientTests()
     {
-#if ARIASDK_PAL_SKYPE
-        _client.reset(new HttpClient_HttpStack(nullptr));
-#elif ARIASDK_PAL_WIN32
-        _client.reset(new HttpClient_WinInet());
-#endif
+        _client.reset(HttpClientFactory::Create());
     }
 
     void Clear()
