@@ -39,6 +39,7 @@ set(SRCS decorators/BaseDecorator.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
   http/HttpResponseDecoder.cpp
+  http/HttpClientFactory.cpp
   stats/Statistics.cpp
   stats/MetaStats.cpp
   offline/StorageObserver.cpp
