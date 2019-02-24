@@ -5,8 +5,13 @@ queue:
 steps:
 
 - task: CmdLine@1
-  displayName: 'Doxygen Generate cpp documentation'
+  displayName: 'Build Release (x86) and Run Tests'
   inputs:
-    filename: tools/doxygen.exe
-    arguments: cppDoxygenConfig
-    workingFolder: docs
+    filename: build-Win32Release.bat
+    workingFolder: .
+
+- task: CmdLine@1
+  displayName: 'Build Release (x64) and Run Tests'
+  inputs:
+    filename: build-x64Release.bat
+    workingFolder: .
