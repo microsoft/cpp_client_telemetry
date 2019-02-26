@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <string>
 #include <thread>
+#include <condition_variable>
+#include <climits>
 
 #include "Version.hpp"
 
