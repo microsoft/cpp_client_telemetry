@@ -12,3 +12,4 @@ cmake -Dgtest_build_samples=ON \
       ..
 make
 CTEST_OUTPUT_ON_FAILURE=1 make test
+#make install
