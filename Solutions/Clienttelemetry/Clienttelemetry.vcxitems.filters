@@ -144,6 +144,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp">
       <Filter>pal</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.cpp">
+      <Filter>pal</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
       <Filter>tpm</Filter>
     </ClCompile>
@@ -345,6 +348,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.hpp">
       <Filter>pal</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.hpp">
+      <Filter>pal</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp">
       <Filter>tpm</Filter>
     </ClInclude>
@@ -541,9 +547,6 @@
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h">
-      <Filter>include\public</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria_netlib.h">
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp">

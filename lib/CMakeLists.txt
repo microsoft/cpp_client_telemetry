@@ -57,6 +57,8 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     http/HttpClient.hpp
     pal/PAL_CPP11.cpp
     pal/PAL_CPP11.hpp
+    pal/WorkerThread.cpp
+    pal/WorkerThread.hpp
     pal/posix/DeviceInformationImpl.cpp
     pal/posix/NetworkInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
@@ -74,6 +76,8 @@ remove_definitions(-D_MBCS)
     http/HttpClient.hpp
     pal/PAL_Win32.cpp
     pal/PAL_Win32.hpp
+    pal/WorkerThread.cpp
+    pal/WorkerThread.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp

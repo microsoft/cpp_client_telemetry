@@ -10,9 +10,6 @@ namespace PAL_NS_BEGIN {
 
     void sleep(unsigned delayMs);
 
-    // Declare log component for the PAL namespace
-    // ARIASDK_LOG_DECL_COMPONENT_NS();
-
     //
     // Debug logging
     //
@@ -26,6 +23,9 @@ namespace PAL_NS_BEGIN {
 // Declare/define log component for a class
 #define ARIASDK_LOG_DECL_COMPONENT_CLASS()                     static char const* getAriaSdkLogComponent()
 #define ARIASDK_LOG_INST_COMPONENT_CLASS(_class, _name, _desc) char const* _class::getAriaSdkLogComponent() { return _name; }
+
+    // Declare log component for the PAL namespace
+    ARIASDK_LOG_DECL_COMPONENT_NS();
 
 // *INDENT-ON*
 

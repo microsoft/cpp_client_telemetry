@@ -57,6 +57,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.cpp" />
@@ -120,7 +121,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\TraceHelper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria_netlib.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ctmacros.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CorrelationVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\DebugEvents.hpp" />
@@ -167,6 +167,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.hpp" />
