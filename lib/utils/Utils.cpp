@@ -292,25 +292,6 @@ namespace ARIASDK_NS_BEGIN {
         return converter.to_bytes(in);
     }
 
-    /**
-     * Read file contents into std::string.
-     *
-     * TODO: This function is in use by Linux SDK only.
-     *
-     * It needs an improvement to use wide strings for UTF-8
-     * support on Windows 7. Latest Windows 10 RS4 should
-     * natively support UTF-8.
-     *
-     * @param       flename
-     * @return      File contents
-     */
-    std::string ReadFile(const char *filename)
-    {
-        std::ifstream t(filename);
-        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-        return str;
-    }
-
 #ifdef _WINRT
     Platform::String ^to_platform_string(const std::string& s)
     {
@@ -328,6 +309,54 @@ namespace ARIASDK_NS_BEGIN {
     unsigned hashCode(const char* str, int h)
     {
         return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
+    }
+
+    /// <summary>
+    /// Return file size by filename
+    /// </summary>
+    /// <param name="filename">Filename</param>
+    /// <returns>File size</returns>
+    size_t GetFileSize(const char* filename)
+    {
+#ifdef _WIN32
+        std::wstring filename_w = to_utf16_string(filename);
+        std::ifstream in(filename_w.c_str(), std::ifstream::ate | std::ifstream::binary);
+#else
+        std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+#endif
+        return (size_t)(in.tellg());
+    }
+
+    int FileDelete(const char* filename)
+    {
+        int result = 0;
+#ifndef _WIN32
+        /* All OS other than Windows support UTF-8...   */
+        result = std::remove(filename);
+#else
+        /* ...but Windows requires us to support UTF-16 */
+        std::wstring filename_w = to_utf16_string(filename);
+        result = ::DeleteFileW(filename_w.c_str());
+#endif
+        return result;
+    }
+
+    std::FILE* FileOpen(const char* filename, const char *mode)
+    {
+#ifdef _WIN32
+        FILE* result = nullptr;
+        std::wstring  path = to_utf16_string(filename);
+        std::wstring _mode = to_utf16_string(mode);
+        _wfopen_s(&result, path.c_str(), _mode.c_str());
+        return result;
+#else
+        return std::fopen(filename, mode);
+#endif
+    }
+
+    int FileClose(std::FILE* _Stream)
+    {
+        return std::fclose(_Stream);
     }
 
 } ARIASDK_NS_END

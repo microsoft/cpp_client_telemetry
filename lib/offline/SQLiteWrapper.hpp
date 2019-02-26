@@ -262,13 +262,9 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 
-#ifdef linux    // TODO: [MG] - this feature should be supported on both Windows and Linux
             if (maxHeapLimit) {
                 g_sqlite3Proxy->sqlite3_soft_heap_limit64(maxHeapLimit);
             }
-#else
-            maxHeapLimit = maxHeapLimit;
-#endif
 
             LOG_TRACE("Database file was successfully opened");
             return true;
@@ -676,7 +672,7 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             int64_t startTime = PAL::getMonotonicTimeMs();
-            LOG_TRACE("=== [%p] execute2 step...", m_stmt);
+            LOG_DEBUG("=== [%p] execute2 step...", m_stmt);
             int result = g_sqlite3Proxy->sqlite3_step(m_stmt);
             m_duration = static_cast<unsigned>(PAL::getMonotonicTimeMs() - startTime);
 

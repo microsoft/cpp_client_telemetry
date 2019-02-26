@@ -18,6 +18,8 @@ namespace ARIASDK_NS_BEGIN {
     OfflineStorageHandler::OfflineStorageHandler(ILogManager & logManager, IRuntimeConfig& runtimeConfig)
         : m_logManager(logManager),
         m_config(runtimeConfig),
+        m_killSwitchManager(),
+        m_clockSkewManager(),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -39,6 +41,13 @@ namespace ARIASDK_NS_BEGIN {
         {// incase user has specified bad percentage, we stck to 75%
             m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheMemorySizeLimitInBytes) / 100;
         }
+    }
+
+    bool OfflineStorageHandler::isKilled(StorageRecord const& record)
+    {
+        return (
+            /* fast   */ m_killSwitchManager.isActive() &&
+            /* slower */ m_killSwitchManager.isTokenBlocked(record.tenantToken));
     }
 
     void OfflineStorageHandler::WaitForFlush()
@@ -195,6 +204,14 @@ namespace ARIASDK_NS_BEGIN {
     // TODO: [MG] - investigate if StoreRecord is thread-safe if executed simultaneously with Flush
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
+        // Don't discard on shutdown because the kill-switch may be temporary.
+        // Attempt to upload after restart.
+        if ((!m_shutdownStarted) && isKilled(record))
+        {
+            // Discard unwanted records associated with killed tenant, reporting events as dropped
+            return false;
+        }
+
         // Check cache size only once at start
         static uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
@@ -202,6 +219,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             auto memDbSize = m_offlineStorageMemory->GetSize();
             {
+#if 0
                 //check if Application needs to be notified
                 if ( (memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
                 {
@@ -212,7 +230,7 @@ namespace ARIASDK_NS_BEGIN {
                     m_logManager.DispatchEvent(evt);
                     m_isStorageFullNotificationSend = true;
                 }
-
+#endif
                 // TODO: [MG] - investigate what happens if Flush from memory to disk
                 // is happening concurrently with adding a new in-memory record
                 m_offlineStorageMemory->StoreRecord(record);
@@ -269,7 +287,6 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorageHandler::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount)
     {
-
         bool returnValue = false;
 
         m_lastReadCount = 0;
@@ -300,6 +317,14 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
+        if (m_config.IsClockSkewEnabled()
+            && !m_clockSkewManager.GetResumeTransmissionAfterClockSkew()
+            /* && !consumedIds.empty() */
+            )
+        {
+            m_clockSkewManager.GetDelta();
+        }
+
         return returnValue;
     }
 
@@ -314,8 +339,68 @@ namespace ARIASDK_NS_BEGIN {
         return std::vector<StorageRecord>{};
     }
 
+    /**
+     * Delete records by API ingestion key aka "Tenant Token".
+     * Internal method used by DeleteRecords and ReleaseRecords
+     * invoked by HTTP callback thread. The scrubbing is done
+     * async in context where the HTTP callback is running.
+     */
+    void OfflineStorageHandler::DeleteRecordsByKeys(const std::list<std::string> & keys)
+    {
+        for (const auto & key : keys)
+        {
+            /* DELETE * FROM events WHERE tenant_token=${key} */
+            DeleteRecords({ { "tenant_token", key } });
+        }
+    }
+
+    /**
+     * Perform scrub of both memory queue and offline storage.
+     */    
+     /// <summary>
+     /// Perform scrub of underlying storage systems using 'where' clause
+     /// </summary>
+     /// <param name="whereFilter">The where filter.</param>
+     /// <remarks>
+     /// whereFilter contains the key-value pairs for the
+     /// WHERE [key0==value0 .. keyN==valueN] clause.
+     /// </remarks>
+    void OfflineStorageHandler::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
+    {
+        for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
+        {
+            if (storagePtr != nullptr)
+            {
+                storagePtr->DeleteRecords(whereFilter);
+            }
+        }
+    }
+
+     /// <summary>
+     /// Delete records that would match the set of ids or based on kill-switch header
+     /// </summary>
+     /// <param name="ids">Identifiers of records to delete</param>
+     /// <param name="headers">Headers may indicate "Kill-Token" several times</param>
+     /// <param name="fromMemory">Flag that indicates where to delete from by IDs</param>
+     /// <remarks>
+     /// IDs of records that are no longer found in the storage are silently ignored.
+     /// Called from the internal worker thread.
+     /// Killed tokens deleted from both - memory storage and offline storage if available.
+     /// </remarks>
     void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
+        if (m_clockSkewManager.isWaitingForClockSkew())
+        {
+            m_clockSkewManager.handleResponse(headers);
+        }
+
+        /* Handle delete of killed tokens on 200 OK or non-retryable status code */
+        if ( (!headers.empty()) && m_killSwitchManager.handleResponse(headers))
+        {
+            /* Since we got the ask for a new token kill, means we sent something we should now stop sending */
+            LOG_TRACE("Scrub all pending events associated with killed token(s)");
+            DeleteRecordsByKeys(m_killSwitchManager.getTokensList());
+        }
 
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
             static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
@@ -331,6 +416,18 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorageHandler::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
     {
+        if (m_clockSkewManager.isWaitingForClockSkew())
+        {
+            m_clockSkewManager.handleResponse(headers);
+        }
+
+        /* Handle delete of kills tokens on 503 or other retryable status code */
+        if ((!headers.empty()) && m_killSwitchManager.handleResponse(headers))
+        {
+            /* Since we got the ask for a new token kill, means we sent something we should now stop sending */
+            LOG_TRACE("Scrub all pending events associated with killed token(s)");
+            DeleteRecordsByKeys(m_killSwitchManager.getTokensList());
+        }
 
         if (fromMemory && nullptr != m_offlineStorageMemory)
         {

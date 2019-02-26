@@ -318,11 +318,11 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        void cancel(detail::WorkerThreadItemPtr item)
+        bool cancel(detail::WorkerThreadItemPtr item)
         {
             if ((m_itemInProgress == item)||(item==nullptr))
             {
-                return;
+                return false;
             }
 
             {
@@ -332,7 +332,7 @@ namespace PAL_NS_BEGIN {
                     // Still in the queue
                     m_timerQueue.erase(it);
                     delete item;
-                    return;
+                    return true;
                 }
             }
 #if 0
@@ -346,6 +346,7 @@ namespace PAL_NS_BEGIN {
                 Sleep(10);
             }
 #endif
+            return false;
         }
 
     protected:
@@ -411,9 +412,9 @@ namespace PAL_NS_BEGIN {
             g_workerThread->queue(item);
         }
 
-        void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
+        bool cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
         {
-            g_workerThread->cancel(item);
+            return g_workerThread->cancel(item);
         }
 
     } // namespace detail

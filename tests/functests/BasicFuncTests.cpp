@@ -90,6 +90,7 @@ public:
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration["http"]["compress"] = false;      // disable compression for now
+        configuration["stats"]["interval"] = 30 * 60;   // 30 mins
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
@@ -653,6 +654,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     {
         CleanStorage();
         Initialize();
+        // This code is a bit racy because ResumeTransmission is done in Initialize
         LogManager::PauseTransmission();
         EventProperties event1("first_event");
         EventProperties event2("second_event");
@@ -668,12 +670,20 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     }
 
     {
-        // auto &configuration = LogManager::GetLogConfiguration();
-        // configuration[CFG_INT_RAM_QUEUE_SIZE] = 0;
         Initialize();
-        // 1st request is from MetaStats
-        waitForEvents(2, 4);
-        auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+        EventProperties fooEvent("fooEvent");
+        fooEvent.SetLatency(EventLatency_RealTime);
+        fooEvent.SetPersistence(EventPersistence_Critical);
+        LogManager::GetLogger()->LogEvent(fooEvent);
+        LogManager::UploadNow();
+
+        // 1st request for realtime event
+        waitForEvents(3, 6); // start, first_event, second_event, stop, start, fooEvent
+        EXPECT_GE(receivedRequests.size(), (size_t)1);
+        if (receivedRequests.size() != 0)
+        {
+            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
+        }
         FlushAndTeardown();
     }
 
@@ -756,11 +766,6 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 {
     CleanStorage();
-
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-
     // Run offline
     Initialize();
     LogManager::PauseTransmission();

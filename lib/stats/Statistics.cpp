@@ -71,8 +71,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool Statistics::handleOnStart()
     {
-        // synchronously send stats event on SDK start
-        send(ACT_STATS_ROLLUP_KIND_START);
+        // synchronously send stats event on SDK start, but only if stats are enabled
+        if (m_intervalMs != 0)
+        {
+            send(ACT_STATS_ROLLUP_KIND_START);
+        }
 
         m_isStarted = true;
         return true;
@@ -86,8 +89,11 @@ namespace ARIASDK_NS_BEGIN {
             m_scheduledSend.cancel();
         }
 
-        // synchronously send stats event on SDK stop
-        send(ACT_STATS_ROLLUP_KIND_STOP);
+        // synchronously send stats event on SDK stop, but only if stats are enabled
+        if (m_intervalMs != 0)
+        {
+            send(ACT_STATS_ROLLUP_KIND_STOP);
+        }
         return true;
     }
 

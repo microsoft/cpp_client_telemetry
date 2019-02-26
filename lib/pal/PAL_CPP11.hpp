@@ -182,7 +182,7 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
         extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr item);
-        extern void cancelWorkerThreadItem(detail::WorkerThreadItemPtr item);
+        extern bool cancelWorkerThreadItem(detail::WorkerThreadItemPtr item);
     } // namespace detail
 
     class DeferredCallbackHandle
@@ -193,13 +193,15 @@ namespace PAL_NS_BEGIN {
         DeferredCallbackHandle(detail::WorkerThreadItemPtr item) : m_item(item) { };
         DeferredCallbackHandle() : m_item(nullptr) {};
         DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) { };
-        void cancel()
+        bool cancel()
         {
             if (m_item)
             {
-                detail::cancelWorkerThreadItem(m_item);
+                bool result = detail::cancelWorkerThreadItem(m_item);
                 m_item = nullptr;
+                return result;
             }
+            return false;
         }
     };
 

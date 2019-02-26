@@ -16,6 +16,7 @@
 #include <atomic>
 #include <mutex>
 #include <map>
+#include <string>
 #include <unordered_set>
 
 namespace ARIASDK_NS_BEGIN {
@@ -40,6 +41,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool IsLastReadFromMemory() override;
 
         virtual unsigned LastReadRecordCount() override;
+
+        virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
 
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
 

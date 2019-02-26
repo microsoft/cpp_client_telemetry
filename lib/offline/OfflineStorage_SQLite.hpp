@@ -8,8 +8,6 @@
 
 #include "ILogManager.hpp"
 
-#include "KillSwitchManager.hpp"
-#include "ClockSkewManager.hpp"
 #include <memory>
 
 #include <atomic>
@@ -35,8 +33,11 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool IsLastReadFromMemory() override;
         virtual unsigned LastReadRecordCount() override;
+
+        virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
+
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
         virtual size_t GetSize() override;
@@ -48,37 +49,34 @@ namespace ARIASDK_NS_BEGIN {
         bool initializeDatabase();
         bool recreate(unsigned failureCode);
 
-        // bool beginIfNotInTransaction();
-        // bool commitIfInTransaction();
-        // bool rollbackIfInTransaction();
-        // virtual void scheduleAutoCommitTransaction();
-        // void autoCommitTransaction();
-
-        bool trimDbIfNeeded(size_t justAddedBytes);
         std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
 
         // Debug routine to print record count in the DB
         void printRecordCount();
 
+        // Perform DB full check once a minute
+        const size_t                DB_FULL_CHECK_TIME_MS = 5000;
+
     protected:
-        mutable std::mutex          m_lock;
+        mutable std::recursive_mutex m_lock;
         IOfflineStorageObserver*    m_observer;
         IRuntimeConfig&             m_config;
         ILogManager&                m_logManager;
         std::unique_ptr<SqliteDB>   m_db;
-        PAL::DeferredCallbackHandle m_scheduledAutoCommit;
+
+        bool                        isOpen();
+
         int                         m_pageSize;
-        size_t                      m_currentlyAddedBytes;
+
         bool                        m_skipInitAndShutdown;
         bool                        m_isOpened;
-        std::atomic<bool>           m_isInTransaction;
+
         size_t                      m_stmtBeginTransaction;
         size_t                      m_stmtCommitTransaction;
         size_t                      m_stmtRollbackTransaction;
         size_t                      m_stmtGetPageCount;
         size_t                      m_stmtGetRecordCount;
         size_t                      m_stmtGetRecordCountBylatency;
-        size_t                      m_stmtIncrementalVacuum0;
         size_t                      m_stmtPerTenantTrimCount;
         size_t                      m_stmtTrimEvents_percent;
         size_t                      m_stmtDeleteEvents_ids;
@@ -94,13 +92,13 @@ namespace ARIASDK_NS_BEGIN {
         size_t                      m_stmtInsertSetting_name_value;
         size_t                      m_stmtDeleteSetting_name;
         size_t                      m_stmtSelectSetting_name;
-        KillSwitchManager           m_killSwitchManager;
-        ClockSkewManager            m_clockSkewManager;
         unsigned                    m_lastReadCount;
         std::string                 m_offlineStorageFileName;
         unsigned                    m_DbSizeNotificationLimit;
         size_t                      m_DbSizeHeapLimit;
-        bool                        m_isStorageFullNotificationSend;
+        size_t                      m_DbSizeLimit;
+        size_t                      m_DbSizeEstimate;
+        uint64_t                    m_isStorageFullNotificationSendTime;
 
     protected:
         ARIASDK_LOG_DECL_COMPONENT_CLASS();

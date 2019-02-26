@@ -189,8 +189,67 @@ namespace ARIASDK_NS_BEGIN {
         return static_cast<unsigned>(m_lastReadCount.load());
     }
 
+    void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
+    {
+        auto matcher = [&](const StorageRecord &r, const std::map<std::string, std::string> & whereFilter)
+        {
+            bool matched = true;
+            for (const auto &kv : whereFilter)
+            {
+                matched &=
+                    (kv.first == "record_id") ? (r.id == kv.second) :
+                    (kv.first == "tenant_token") ? (r.tenantToken == kv.second) :
+                    (kv.first == "latency") ? (std::to_string(r.latency) == kv.second) :
+                    (kv.first == "persistence") ? (std::to_string(r.persistence) == kv.second) :
+                    (kv.first == "retry_count") ? (std::to_string(r.retryCount) == kv.second) : false;
+                if (!matched)
+                    break;
+            }
+            return matched;
+        };
+
+        // Delete from reserved, which is typically a shorter list
+        std::vector<StorageRecordId> m_reserved_ids;
+        {
+            LOCKGUARD(m_reserved_lock);
+            for (const auto & kv : m_reserved_records)
+            {
+                if (matcher(kv.second, whereFilter))
+                {
+                    m_reserved_ids.push_back(kv.first);
+                }
+            }
+        }
+        if (!m_reserved_ids.empty())
+        {
+            bool fromMemory = true;
+            DeleteRecords(m_reserved_ids, HttpHeaders(), fromMemory);
+        }
+
+        // Delete from ram queue, which is a bigger list
+        {
+            LOCKGUARD(m_records_lock);
+            for (unsigned latency = EventLatency_Off; latency <= EventLatency_Max;  latency++)
+            {
+                auto& records = m_records[latency];
+                auto it = records.begin();
+                // remove from records all ids that were found in the set
+                while (it != records.end()) {
+                    auto &v = *it;
+                    if (matcher(v, whereFilter))
+                    {
+                        it = records.erase(it);
+                        continue;
+                    }
+                    ++it;
+                }
+            }
+        }
+    }
+ 
+
     /// <summary>
-    /// MemoryStorage doesn't support deletion.
+    /// MemoryStorage delete from reserved and ram queue.
     /// </summary>
     /// <param name="ids"></param>
     /// <param name="headers"></param>

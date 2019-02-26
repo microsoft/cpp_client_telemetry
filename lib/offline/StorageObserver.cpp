@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
         ctx->record.timestamp = PAL::getUtcSystemTimeMs();
 
         if (!m_offlineStorage.StoreRecord(ctx->record)) {
-            // TODO: [MG] - add error callback for the case when record is not cached?
+            // stats implementation must trigger a failure notification
             storeRecordFailed(ctx);
             return false;
         }

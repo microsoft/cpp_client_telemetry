@@ -18,36 +18,43 @@ using namespace MAT;
 
 LOGMANAGER_INSTANCE
 
-constexpr static const char* TEST_TOKEN  = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
+constexpr static const char* TEST_TOKEN = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
+constexpr static const char* KILLED_TOKEN = "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
 constexpr static const char* TEST_TOKEN2 = "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385";
 
 class TestDebugEventListener : public DebugEventListener {
 
 public:
-	std::atomic<bool>       netChanged;
-	std::atomic<unsigned>   eps;
-	std::atomic<unsigned>   numLogged0;
-	std::atomic<unsigned>   numLogged;
-	std::atomic<unsigned>   numSent;
-	std::atomic<unsigned>   numDropped;
-	std::atomic<unsigned>   numReject;
-	std::atomic<unsigned>   numCached;
-	std::atomic<unsigned>   logLatMin;
-	std::atomic<unsigned>   logLatMax;
+    std::atomic<bool>       netChanged;
+    std::atomic<unsigned>   eps;
+    std::atomic<unsigned>   numLogged0;
+    std::atomic<unsigned>   numLogged;
+    std::atomic<unsigned>   numSent;
+    std::atomic<unsigned>   numDropped;
+    std::atomic<unsigned>   numReject;
+    std::atomic<unsigned>   numHttpError;
+    std::atomic<unsigned>   numHttpOK;
+    std::atomic<unsigned>   numCached;
+    std::atomic<unsigned>   logLatMin;
+    std::atomic<unsigned>   logLatMax;
+    std::atomic<unsigned>   storageFullPct;
 
-	TestDebugEventListener() :
-		netChanged(false),
-		eps(0),
-		numLogged0(0),
-		numLogged(0),
-		numSent(0),
-		numDropped(0),
-		numReject(0),
-		numCached(0),
-		logLatMin(100),
-		logLatMax(0)
-	{
-	}
+    TestDebugEventListener() :
+        netChanged(false),
+        eps(0),
+        numLogged0(0),
+        numLogged(0),
+        numSent(0),
+        numDropped(0),
+        numReject(0),
+        numHttpError(0),
+        numHttpOK(0),
+        numCached(0),
+        logLatMin(100),
+        logLatMax(0),
+        storageFullPct(0)
+    {
+    }
 
     virtual void OnDebugEvent(DebugEvent &evt)
     {
@@ -72,13 +79,13 @@ public:
         case EVT_ADDED:
             break;
 
-        /* Event counts below would never overflow the size of unsigned int */
+            /* Event counts below would never overflow the size of unsigned int */
         case EVT_CACHED:
-            numCached+= (unsigned int)evt.param1;
+            numCached += (unsigned int)evt.param1;
             break;
 
         case EVT_DROPPED:
-            numDropped+= (unsigned int)evt.param1;
+            numDropped += (unsigned int)evt.param1;
             break;
 
         case EVT_SENT:
@@ -86,6 +93,7 @@ public:
             break;
 
         case EVT_STORAGE_FULL:
+            storageFullPct = (unsigned int)evt.param1;
             break;
 
         case EVT_CONN_FAILURE:
@@ -93,8 +101,15 @@ public:
         case EVT_COMPRESS_FAILED:
         case EVT_UNKNOWN_HOST:
         case EVT_SEND_FAILED:
+
         case EVT_HTTP_ERROR:
+            numHttpError++;
+            break;
+
         case EVT_HTTP_OK:
+            numHttpOK++;
+            break;
+
         case EVT_SEND_RETRY:
         case EVT_SEND_RETRY_DROPPED:
             break;
@@ -114,11 +129,11 @@ public:
     {
         std::cerr << "[          ] netChanged = " << netChanged << std::endl;
         std::cerr << "[          ] numLogged0 = " << numLogged0 << std::endl;
-        std::cerr << "[          ] numLogged  = " << numLogged  << std::endl;
-        std::cerr << "[          ] numSent    = " << numSent    << std::endl;
+        std::cerr << "[          ] numLogged  = " << numLogged << std::endl;
+        std::cerr << "[          ] numSent    = " << numSent << std::endl;
         std::cerr << "[          ] numDropped = " << numDropped << std::endl;
-        std::cerr << "[          ] numReject  = " << numReject  << std::endl;
-        std::cerr << "[          ] numCached  = " << numCached  << std::endl;
+        std::cerr << "[          ] numReject  = " << numReject << std::endl;
+        std::cerr << "[          ] numCached  = " << numCached << std::endl;
     }
 };
 
@@ -167,39 +182,39 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
 
     /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
     EventProperties props(name,
-    {
-#ifdef _MSC_VER
-        { "_MSC_VER", _MSC_VER },
-#endif
-        { "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
-        { "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-        { "piiKind.GenericData",        EventProperty("maxgolov",  PiiKind_GenericData) },
-        { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
-        { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
-        { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
-        { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
-        { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-        { "piiKind.SipAddress",         EventProperty("sip:maxgolov@microsoft.com", PiiKind_SipAddress) },
-        { "piiKind.SmtpAddress",        EventProperty("Max Golovanov <maxgolov@microsoft.com>", PiiKind_SmtpAddress) },
-        { "piiKind.Identity",           EventProperty("Max Golovanov", PiiKind_Identity) },
-        { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
-        { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
+        {
+    #ifdef _MSC_VER
+            { "_MSC_VER", _MSC_VER },
+    #endif
+            { "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
+            { "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+            { "piiKind.GenericData",        EventProperty("maxgolov",  PiiKind_GenericData) },
+            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
+            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
+            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
+            { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
+            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
+            { "piiKind.SipAddress",         EventProperty("sip:maxgolov@microsoft.com", PiiKind_SipAddress) },
+            { "piiKind.SmtpAddress",        EventProperty("Max Golovanov <maxgolov@microsoft.com>", PiiKind_SmtpAddress) },
+            { "piiKind.Identity",           EventProperty("Max Golovanov", PiiKind_Identity) },
+            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
+            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
 
-        { "strKey",   "hello" },
-        { "strKey2",  "hello2" },
-        { "int64Key", (int64_t)1L },
-        { "dblKey",   3.14 },
-        { "boolKey",  false },
+            { "strKey",   "hello" },
+            { "strKey2",  "hello2" },
+            { "int64Key", (int64_t)1L },
+            { "dblKey",   3.14 },
+            { "boolKey",  false },
 
-        { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
-        { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-        { "guidKey2", GUID_t(guid_b) },
-        { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-        { "guidKey4", GUID_t(guid_c) },
-        
-        { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
-        { "timeKey2",  time_ticks_t(&t) }               // seconds precision
-    });
+            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
+            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "guidKey2", GUID_t(guid_b) },
+            { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "guidKey4", GUID_t(guid_c) },
+
+            { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
+            { "timeKey2",  time_ticks_t(&t) }               // seconds precision
+        });
 #ifdef _WIN32
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
@@ -273,11 +288,79 @@ TEST(APITest, LogManager_Initialize_Custom)
 {
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
-    configuration[CFG_INT_TRACE_LEVEL_MIN]  = ACTTraceLevel_Trace;
-    configuration[CFG_STR_COLLECTOR_URL]    = "https://127.0.0.1/";
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
+    configuration[CFG_STR_COLLECTOR_URL] = "https://127.0.0.1/";
     ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
     EXPECT_EQ(true, (result != NULL));
     LogManager::FlushAndTeardown();
+}
+
+#define TEST_STORAGE_FILENAME   "offlinestorage.db"
+
+static std::string GetStoragePath()
+{
+    std::string fileName = MAT::GetTempDirectory();
+#ifdef _WIN32
+    fileName += "\\";
+#else
+    fileName += "/";
+#endif
+    fileName += TEST_STORAGE_FILENAME;
+    return fileName;
+}
+
+static void CleanStorage()
+{
+    std::remove(GetStoragePath().c_str());
+}
+
+TEST(APITest, LogManager_KilledEventsAreDropped)
+{
+    constexpr static unsigned MAX_ITERATIONS = 100;
+    TestDebugEventListener debugListener;
+
+    auto &configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
+    configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
+
+    ILogger *result = LogManager::Initialize(KILLED_TOKEN, configuration);
+
+    CleanStorage();
+    addAllListeners(debugListener);
+
+    for (int i = 0; i < 2; i++)
+    {
+        // Log some foo
+        size_t numIterations = MAX_ITERATIONS;
+        while (numIterations--)
+            result->LogEvent("foo1");
+        LogManager::UploadNow();                                    // Try to upload whatever we got
+        PAL::sleep(2000);                                           // Give enough time to upload at least one event
+        if (i == 0)
+        {
+            EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
+            // TODO: it is possible that collector would return 503 here, in that case we may not get the 'kill-tokens' hint.
+            // If it ever happens, the test would fail because the second iteration might try to upload.
+            EXPECT_EQ(1, debugListener.numHttpError);
+            debugListener.numCached = 0;
+        }
+        if (i == 1)
+        {
+            // At this point we should get the error response from collector because we ingested with invalid tokens.
+            // Collector should have also asked us to ban that token... Check the counts
+            EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
+            EXPECT_EQ(0, debugListener.numCached);
+            EXPECT_EQ(MAX_ITERATIONS, debugListener.numDropped);
+        }
+    }
+    LogManager::FlushAndTeardown();
+    EXPECT_EQ(0, debugListener.numCached);
+    debugListener.printStats();
+    removeAllListeners(debugListener);
 }
 
 TEST(APITest, LogManager_Initialize_DebugEventListener)
@@ -290,7 +373,36 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
+    configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
+
+    CleanStorage();
     addAllListeners(debugListener);
+    {
+        LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::PauseTransmission();
+        size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
+        while (numIterations--)
+        {
+            LogManager::GetLogger()->LogEvent("foo1");
+        }
+        LogManager::Flush();
+        EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
+        LogManager::FlushAndTeardown();
+
+        debugListener.storageFullPct = 0;
+        LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::FlushAndTeardown();
+        EXPECT_EQ(debugListener.storageFullPct.load(), 0);
+
+    }
+    debugListener.numCached = 0;
+    debugListener.numSent   = 0;
+    debugListener.numLogged = 0;
+
+    CleanStorage();
     ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
 
     // Log some foo
@@ -298,26 +410,28 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     while (numIterations--)
         result->LogEvent("foo1");
     // Check the counts
-    EXPECT_EQ(MAX_ITERATIONS,       debugListener.numLogged);
-    EXPECT_EQ(0,                    debugListener.numDropped);
-    EXPECT_EQ(0,                    debugListener.numReject);
+    EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
+    EXPECT_EQ(0, debugListener.numDropped);
+    EXPECT_EQ(0, debugListener.numReject);
 
     LogManager::UploadNow();                                    // Try to upload whatever we got
     PAL::sleep(1000);                                           // Give enough time to upload at least one event
-    EXPECT_NE(0,                    debugListener.numSent);     // Some posts have successed within 500ms
+    EXPECT_NE(0, debugListener.numSent);     // Some posts have successed within 500ms
     LogManager::PauseTransmission();
+
     numIterations = MAX_ITERATIONS;
     while (numIterations--)
         result->LogEvent("bar2");                               // New events go straight to offline storage
-    EXPECT_EQ(2 * MAX_ITERATIONS,   debugListener.numLogged);
+    EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
 
     LogManager::Flush();
-    EXPECT_LE(MAX_ITERATIONS,   debugListener.numCached);       // Verify we saved at least the number of 'bar2' + possibly stats
+    EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);         // FAILED!!! Verify we saved exactly # of 'bar2' logged
+
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
-    PAL::sleep(3000);                                           // Wait long enough for transmit timer to kick-in
-    EXPECT_GE(debugListener.numSent, debugListener.numLogged);  // Check that we sent whatever we logged + stats
     LogManager::FlushAndTeardown();
+
+    EXPECT_EQ(debugListener.numSent, debugListener.numLogged);  // Check that we sent whatever exactly all of logged
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
@@ -421,7 +535,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 {
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
-    size_t numIterations     = 10;
+    size_t numIterations = 10;
     const size_t shutdownSec = 20; // Must complete 10 runs in 20 seconds on Release
                                    // Max teardown time is ~1s per run, maybe up to 2s
                                    // This time may be longer on a slow box, e.g. build server
@@ -434,9 +548,9 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         logBenchMark("created");
 
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-        config[CFG_INT_TRACE_LEVEL_MIN]  = ACTTraceLevel_Debug;
-        config[CFG_STR_COLLECTOR_URL]    = COLLECTOR_URL_PROD;
-        config[CFG_INT_SDK_MODE]         = SdkModeTypes::SdkModeTypes_Aria;
+        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+        config[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         logBenchMark("config ");
 
@@ -473,14 +587,14 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
     std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
     uint64_t total_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
 
-    EXPECT_GE(shutdownSec+1, total_time);
+    EXPECT_GE(shutdownSec + 1, total_time);
 }
 
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
     auto &config = LogManager::GetLogConfiguration();
-    config[CFG_INT_TRACE_LEVEL_MASK]  = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
-    config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
 
     std::vector<std::string> paths =
@@ -567,7 +681,7 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
     std::vector<std::thread> threads;
     for (size_t i = 0; i < numThreads; i++)
     {
-        threads.push_back(std::thread([logger1,logger2,logger3](){
+        threads.push_back(std::thread([logger1, logger2, logger3]() {
             size_t count = 1000;
             while (count--)
             {
@@ -651,7 +765,7 @@ bool TracingAPI_File(const char *filename, ACTTraceLevel verbosity = ACTTraceLev
     // out of scope ... what happens next is that the parser would attempt
     // to parse an invalid memory block!
     std::string size = std::to_string(traceFileSize);
-    config.SetProperty(CFG_INT_DBG_TRACE_SIZE, size.c_str() );
+    config.SetProperty(CFG_INT_DBG_TRACE_SIZE, size.c_str());
 
     if (strlen(filename))
         config.SetProperty(CFG_STR_DBG_TRACE_PATH, filename);

@@ -12,6 +12,7 @@
 #include <chrono>
 #include <algorithm>
 #include <string>
+#include <cstdio>
 
 #include "EventProperty.hpp"
 
@@ -49,7 +50,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void sleep(unsigned delayMs);
 
-    long		GetCurrentProcessId();
+    long GetCurrentProcessId();
 
     std::string GetTempDirectory();
     std::string GetAppLocalTempDirectory();
@@ -187,6 +188,12 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
     unsigned hashCode(const char* str, int h = 0);
+
+    /* Cross-platform C-style file utils that accept UTF-8 filenames */
+    size_t      GetFileSize(const char* filename);
+    int         FileDelete(const char* filename);
+    std::FILE*  FileOpen(const char* filename, const char *mode);
+    int         FileClose(std::FILE* _Stream);
 
 } ARIASDK_NS_END
 

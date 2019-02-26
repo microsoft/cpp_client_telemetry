@@ -57,7 +57,11 @@ namespace PAL_NS_BEGIN {
         PAL::detail::log((level_), (comp_), (fmt_), ##__VA_ARGS__); \
     } else static_cast<void>(0)
 
+#ifdef NDEBUG
+#define LOG_DEBUG(fmt_, ...)
+#else
 #define LOG_DEBUG(fmt_, ...)    ARIASDK_LOG_(PAL::Detail,  getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
+#endif
 #define LOG_TRACE(fmt_, ...)    ARIASDK_LOG_(PAL::Detail,  getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
 #define LOG_INFO(fmt_, ...)     ARIASDK_LOG_(PAL::Info,    getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
 #define LOG_WARN(fmt_, ...)     ARIASDK_LOG_(PAL::Warning, getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)

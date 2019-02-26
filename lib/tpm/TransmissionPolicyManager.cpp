@@ -4,6 +4,8 @@
 #include "TransmitProfiles.hpp"
 #include "utils/Utils.hpp"
 
+#include <limits>
+
 namespace ARIASDK_NS_BEGIN {
 
     int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
@@ -17,6 +19,7 @@ namespace ARIASDK_NS_BEGIN {
         m_bandwidthController(bandwidthController),
         m_isPaused(true),
         m_isUploadScheduled(false),
+        m_scheduledUploadTime(std::numeric_limits<uint64_t>::max()),
         m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
         m_runningLatency(EventLatency_RealTime)
     {
@@ -54,22 +57,47 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        LOG_TRACE("Scheduling another upload in %d msec, latency=%d", delayInMs, latency);
         if (m_isPaused)
         {
             LOG_TRACE("Paused, not uploading anything until resumed");
             return;
         }
 
-        // Cancel upload that's been already scheduled
-        if (force || delayInMs == 0)
+        if ((!force)&&(m_isUploadScheduled))
         {
-            cancelUploadTask();
+            if (m_runningLatency > latency)
+            {
+                // Allow lower priority (normal) events to get thru in the next batch
+                m_runningLatency = latency;
+            }
+            uint64_t now = PAL::getMonotonicTimeMs();
+            auto delta = (m_scheduledUploadTime >= now) ? m_scheduledUploadTime - now : 0;
+            if (delta <= delayInMs)
+            {
+                // Don't need to cancel and reschedule if it's about to happen now anyways.
+                // m_isUploadScheduled check does not have to be strictly atomic because
+                // the completion of upload will schedule more uploads as-needed, we only
+                // want to avoid the unnecessary wasteful rescheduling.
+                LOG_TRACE("WAIT  upload %d ms for lat=%d", delta, m_runningLatency);
+                return;
+            }
         }
 
-        // Schedule a new one
+        // Cancel upload if already scheduled.
+        if (force || delayInMs == 0)
+        {
+            if (!cancelUploadTask())
+            {
+                LOG_TRACE("Upload either hasn't been scheduled or already done.");
+            }
+        }
+
+        // Schedule new upload
         if (!m_isUploadScheduled.exchange(true))
         {
+            m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delayInMs;
+            m_runningLatency = latency;
+            LOG_TRACE("SCHED upload %d ms for lat=%d", delayInMs, m_runningLatency);
             m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
@@ -78,6 +106,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
         m_runningLatency = latency;
+        m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
         if (m_isPaused) {
             LOG_TRACE("Paused, not uploading anything until resumed");
@@ -85,6 +114,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
+#ifdef ENABLE_BW_CONTROLLER   /* Bandwidth controller is not currently supported */
         if (m_bandwidthController) {
             unsigned proposedBandwidthBps = m_bandwidthController->GetProposedBandwidthBps();
             unsigned minimumBandwidthBps = m_config.GetMinimumUploadBandwidthBps();
@@ -100,6 +130,7 @@ namespace ARIASDK_NS_BEGIN {
                 return;
             }
         }
+#endif
 
         EventsUploadContextPtr ctx = new EventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
@@ -176,6 +207,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         bool forceTimerRestart = false;
 
+        /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
             EventsUploadContextPtr ctx = new EventsUploadContext();

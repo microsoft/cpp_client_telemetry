@@ -332,8 +332,11 @@ namespace ARIASDK_NS_BEGIN {
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
-
-#ifdef ENABLE_FILTERING /* XXX: [MG] - temporarily disable  */
+#ifdef ENABLE_FILTERING
+        // TODO:
+        // - event filtering based on EventName
+        // - kill-switch based on TenantId
+        // handled here in one central place before serialization.
         if (m_eventFilter.IsEventExcluded(record.name))
         {
             DispatchEvent(DebugEventType::EVT_FILTERED);

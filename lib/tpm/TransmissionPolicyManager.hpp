@@ -60,6 +60,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::atomic<bool>                m_isPaused;
         std::atomic<bool>                m_isUploadScheduled;
+        uint64_t                         m_scheduledUploadTime;
         PAL::DeferredCallbackHandle      m_scheduledUpload;
 
         std::mutex                       m_activeUploads_lock;
@@ -106,11 +107,11 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// Cancels pending upload task.
         /// </summary>
-        void cancelUploadTask()
+        bool cancelUploadTask()
         {
-            if (m_scheduledUpload.m_item)
-                m_scheduledUpload.cancel();
-            m_isUploadScheduled = false;
+            bool result = m_scheduledUpload.cancel();
+            m_isUploadScheduled.exchange(false);
+            return result;
         }
         
         /// <summary>

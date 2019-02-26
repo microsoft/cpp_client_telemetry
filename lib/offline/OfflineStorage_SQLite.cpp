@@ -8,6 +8,9 @@
 #include <numeric>
 #include <set>
 
+
+#define IF_CLOSED_RETURN      if (!isOpen()) return
+
 namespace ARIASDK_NS_BEGIN {
 
     class DbTransaction {
@@ -17,13 +20,18 @@ namespace ARIASDK_NS_BEGIN {
 
         DbTransaction(SqliteDB* db) : m_db(db), locked(false)
         {
-            locked = m_db->trylock();
+            if (m_db)
+            {
+                locked = m_db->trylock();
+            }
         };
 
         ~DbTransaction()
         {
             if (locked)
+            {
                 m_db->unlock();
+            }
         }
     };
 
@@ -32,37 +40,41 @@ namespace ARIASDK_NS_BEGIN {
     static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"
 #define TABLE_NAME_SETTINGS "settings"
+#define TABLE_NAME_PACKAGES "packages"
+
+    bool OfflineStorage_SQLite::isOpen()
+    {
+        if ((!m_db) || (!m_isOpened))
+        {
+            LOG_ERROR("Database is not open!");
+            m_observer->OnStorageFailed("Database is not open");
+            return false;
+        }
+        return false;
+    }
 
     OfflineStorage_SQLite::OfflineStorage_SQLite(ILogManager & logManager, IRuntimeConfig& runtimeConfig, bool inMemory)
         : m_logManager(logManager),
         m_config(runtimeConfig),
         m_skipInitAndShutdown(false),
-        m_killSwitchManager(),
-        m_clockSkewManager(),
         m_lastReadCount(0),
-        m_isStorageFullNotificationSend(false),
+        m_isStorageFullNotificationSendTime(0),
+        m_DbSizeEstimate(0),
         m_isOpened(false),
         m_DbSizeHeapLimit(0)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
-        uint32_t fileSize = (inMemory) ? m_config[CFG_INT_RAM_QUEUE_SIZE] : m_config[CFG_INT_CACHE_FILE_SIZE];
-
+        m_DbSizeLimit = (inMemory) ? m_config[CFG_INT_RAM_QUEUE_SIZE] : m_config[CFG_INT_CACHE_FILE_SIZE];
         m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
 
-        if (percentage > 0 && percentage <= 100)
+        if (percentage < 0 || percentage > 100)
         {
-            m_DbSizeNotificationLimit = (percentage * fileSize) / 100;
+            percentage = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE; // 75%
         }
-        else
-        {// incase user has specified bad percentage, we stck to 75%
-            m_DbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * fileSize) / 100;
-        }
+        m_DbSizeNotificationLimit = (percentage * (uint32_t)m_DbSizeLimit) / 100;
 
-#if 0
-        // TODO: [MG] - impose optional RAM size constraint on sqlite3 heap
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
-#endif
 
         // TODO: [MG] - this needs to be moved into constant
         const char* skipSqliteInit = m_config["skipSqliteInitAndShutdown"];
@@ -96,8 +108,10 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        // TODO: implement DB recreation
-        // recreate(1);
+        if (recreate(1))
+        {
+            return;
+        }
 
         // DB is not opened
         m_db.reset();
@@ -155,7 +169,24 @@ namespace ARIASDK_NS_BEGIN {
             }
 #endif
             SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+            m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
         }
+
+        if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate>m_DbSizeLimit))
+        {
+            uint64_t now = (uint64_t)PAL::getMonotonicTimeMs();
+            if (std::abs(static_cast<long>(now-m_isStorageFullNotificationSendTime)) > static_cast<long>(DB_FULL_CHECK_TIME_MS))
+            {
+                // Notify the client that the DB is getting full, but only once in DB_FULL_CHECK_TIME_MS
+                m_isStorageFullNotificationSendTime = now;
+                m_DbSizeEstimate = GetSize();
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_STORAGE_FULL;
+                evt.param1 = (100 * m_DbSizeEstimate) / m_DbSizeLimit;
+                m_logManager.DispatchEvent(evt);
+            }
+        }
+
         return true;
 
     }
@@ -212,12 +243,6 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
-            if (m_config.IsClockSkewEnabled() && m_clockSkewManager.isWaitingForClockSkew())
-            {
-                LOG_INFO("Not sending - waiting for clock-skew...");
-                return false;
-            }
-
             SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
             if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
                 LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
@@ -226,7 +251,6 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             std::vector<StorageRecordId> consumedIds;
-            std::vector<StorageRecordId> killedConsumedIds;
             std::map<std::string, size_t> deletedData;
 
             StorageRecord record;
@@ -240,23 +264,11 @@ namespace ARIASDK_NS_BEGIN {
                 else {
                     record.latency = static_cast<EventLatency>(latency);
                 }
-                // The record ID needs to be saved before std::move() below.
-                if (!m_killSwitchManager.isTokenBlocked(record.tenantToken))
+                consumedIds.push_back(record.id);
+                if (!consumer(std::move(record)))
                 {
-                    consumedIds.push_back(record.id);
-                    if (!consumer(std::move(record)))
-                    {
-                        consumedIds.pop_back();
-                        break;
-                    }
-                }
-                else
-                {
-                    if (!m_killSwitchManager.isRetryAfterActive())
-                    {
-                        killedConsumedIds.push_back(record.id);
-                        deletedData[record.tenantToken]++;
-                    }
+                    consumedIds.pop_back();
+                    break;
                 }
             }
 
@@ -282,22 +294,7 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 
-            if (m_config.IsClockSkewEnabled() &&
-                !m_clockSkewManager.GetResumeTransmissionAfterClockSkew() &&
-                !consumedIds.empty())
-            {
-                m_clockSkewManager.GetDelta();
-            }
-
             m_lastReadCount = static_cast<unsigned>(consumedIds.size());
-
-            if (killedConsumedIds.size() > 0)
-            {
-                HttpHeaders temp;
-                bool fromMemory = false;
-                DeleteRecords(killedConsumedIds, temp, fromMemory);
-                m_observer->OnStorageRecordsRejected(deletedData);
-            }
         }
         return true;
     }
@@ -306,6 +303,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         return false;
     }
+
     unsigned OfflineStorage_SQLite::LastReadRecordCount()
     {
         return  m_lastReadCount;
@@ -315,6 +313,8 @@ namespace ARIASDK_NS_BEGIN {
     {
         std::vector<StorageRecord> records;
         StorageRecord record;
+
+        IF_CLOSED_RETURN records;
 
         if (shutdown)
         {
@@ -347,15 +347,61 @@ namespace ARIASDK_NS_BEGIN {
         return records;
     }
 
+    void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
+    {
+        UNREFERENCED_PARAMETER(whereFilter);
+        IF_CLOSED_RETURN;
+
+        LOCKGUARD(m_lock);
+        {
+#ifdef ENABLE_LOCKING
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to DeleteRecords");
+                return;
+            }
+#endif
+            auto formatter = [&](const std::map<std::string, std::string> & whereFilter)
+            {
+                std::string clause;
+                for (const auto &kv : whereFilter)
+                {
+                    bool quotes = false;
+                    if ((kv.first == "record_id") ||
+                        (kv.first == "tenant_token"))
+                    {
+                        // string types
+                        quotes = true;
+                    } 
+                    else if (
+                        // integer types
+                        (kv.first == "latency") ||
+                        (kv.first == "persistence") ||
+                        (kv.first == "retry_count"))
+                    {
+                        quotes = false;
+                    }
+                    if (!clause.empty())
+                    {
+                        clause += " AND ";
+                    }
+                    clause += kv.first;
+                    clause += "=";
+                    clause += (quotes) ?
+                        ("\"" + kv.second + "\"") :
+                        kv.second;
+                }
+                return clause;
+            };
+            std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE ";
+            Execute(sql + formatter(whereFilter));
+        }
+    }
 
     void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
-        m_killSwitchManager.handleResponse(headers);
-        if (m_clockSkewManager.isWaitingForClockSkew())
-        {
-            m_clockSkewManager.handleResponse(headers);
-        }
 
         if (ids.empty()) {
             return;
@@ -393,11 +439,6 @@ namespace ARIASDK_NS_BEGIN {
     void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
-        m_killSwitchManager.handleResponse(headers);
-        if (m_clockSkewManager.isWaitingForClockSkew())
-        {
-            m_clockSkewManager.handleResponse(headers);
-        }
 
         if (ids.empty()) {
             return;
@@ -409,8 +450,15 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         LOCKGUARD(m_lock);
-        if (m_db->trylock())
         {
+#ifdef ENABLE_LOCKING
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to ReleaseRecords");
+                return;
+            }
+#endif
             LOG_TRACE("Releasing %u event(s) {%s%s}, retry count %s...",
                 static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
 
@@ -460,7 +508,6 @@ namespace ARIASDK_NS_BEGIN {
                     m_observer->OnStorageRecordsDropped(deletedData);
                 }
             }
-            m_db->unlock();
         }
 
     }
@@ -504,19 +551,22 @@ namespace ARIASDK_NS_BEGIN {
             return result;
         }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to get setting \"%s\": Database is not open", name.c_str());
-            return result;
-        }
-
-        if (m_db->trylock()) {
+        IF_CLOSED_RETURN result;
+        {
+#ifdef ENABLE_LOCKING
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_WARN("Failed to get setting \"%s\"", name.c_str());
+                return result;
+            }
+#endif
             SqliteStatement stmt(*m_db, m_stmtSelectSetting_name);
             if (!stmt.select(name)) {
-                LOG_ERROR("Failed to get setting \"%s\": Database error occurred, recreating database", name.c_str());
-                recreate(505);
+                LOG_WARN("Failed to get setting \"%s\"", name.c_str());
+                return result;
             }
             stmt.getOneValue(result);
-            m_db->unlock();
         }
 
         return result;
@@ -525,17 +575,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     {
-        LOG_WARN("DB failure %u: recreate not implemented!", failureCode);
-        return false;
-    }
+        m_observer->OnStorageFailed(toString(failureCode));
 
-    /*
-            m_scheduledAutoCommit.cancel();
-            m_isInTransaction = false;
+        if (m_db)
+        {
             m_db->shutdown();
-
-            m_observer->OnStorageFailed(toString(failureCode));
-
             // Try again with deletePrevious = true
             if (m_db->initialize(m_offlineStorageFileName, true)) {
                 if (initializeDatabase()) {
@@ -545,58 +589,19 @@ namespace ARIASDK_NS_BEGIN {
                 }
                 m_db->shutdown();
             }
-
-            // Try again with "a private, temporary on-disk database" which "will be
-            // automatically deleted as soon as the database connection is closed".
-            if (m_db->initialize("", false)) {
-                if (initializeDatabase()) {
-                    m_observer->OnStorageOpened("SQLite/Temp");
-                    LOG_INFO("Using private temporary on-disk database");
-                    return true;
-                }
-                m_db->shutdown();
-            }
-
-            // Try again with "a private, temporary in-memory database".
-            if (m_db->initialize(":memory:", false)) {
-                if (initializeDatabase()) {
-                    m_observer->OnStorageOpened("SQLite/Memory");
-                    LOG_INFO("Using private temporary in-memory database");
-                    return true;
-                }
-                m_db->shutdown();
-            }
-
-            m_db.reset();
-            LOG_ERROR("No database could be opened");
-            m_observer->OnStorageOpened("SQLite/None");
-            return false;
         }
-    */
+
+        m_isOpened = false;
+        LOG_ERROR("No database could be opened");
+        m_observer->OnStorageOpened("SQLite/None");
+        return false;
+    }
 
     bool OfflineStorage_SQLite::initializeDatabase()
     {
-        if (!SqliteStatement(*m_db,
-            "PRAGMA auto_vacuum=INCREMENTAL"
-        ).execute()) {
-            return false;
-        }
-
-#if 1
+        SqliteStatement(*m_db, "PRAGMA auto_vacuum=FULL").select();
         SqliteStatement(*m_db, "PRAGMA journal_mode=WAL").select();
         SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
-#else
-        SqliteStatement(*m_db, "PRAGMA journal_mode=off").select();
-        SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
-#endif
-
-#if 0
-        if (!SqliteStatement(*m_db,
-            ("PRAGMA journal_size_limit=" + toString(m_config.GetOfflineStorageMaximumSizeBytes())).c_str()
-        ).select()) {
-            return false;
-        }
-#endif
 
         int openedDbVersion;
         {
@@ -685,8 +690,6 @@ namespace ARIASDK_NS_BEGIN {
         PREPARE_SQL(m_stmtGetRecordCountBylatency,
             "SELECT count(*) FROM " TABLE_NAME_EVENTS " WHERE latency=?");
 
-        PREPARE_SQL(m_stmtIncrementalVacuum0,
-            "PRAGMA incremental_vacuum(0)");
         PREPARE_SQL(m_stmtPerTenantTrimCount,
             "SELECT tenant_token FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
             "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
@@ -745,93 +748,16 @@ namespace ARIASDK_NS_BEGIN {
         PREPARE_SQL(m_stmtSelectSetting_name,
             "SELECT value FROM " TABLE_NAME_SETTINGS " WHERE name=?");
 
+        /* Delete v1 records */
+        Execute("DELETE FROM " TABLE_NAME_PACKAGES);
+
 #undef PREPARE_SQL
 #pragma warning(pop)
 
-        m_currentlyAddedBytes = 0;
-        m_isInTransaction = false;
+        ResizeDb();
         return true;
-    }
+}
 
-#if 0
-    bool OfflineStorage_SQLite::beginIfNotInTransaction()
-    {
-        LOCKGUARD(m_lock);
-        if (!m_isInTransaction)
-        {
-            m_isInTransaction = true;
-            SqliteStatement stmt(*m_db, m_stmtBeginTransaction);
-            if (stmt.execute()) {
-                LOG_INFO("=== [%p] Transaction started", stmt.handle());
-                return true;
-            }
-            LOG_ERROR("=== [%p] Transaction failed", stmt.handle());
-            m_isInTransaction = false;
-            return false;
-        }
-        return true;
-    }
-
-    bool OfflineStorage_SQLite::commitIfInTransaction()
-    {
-        LOCKGUARD(m_lock);
-        if (m_isInTransaction) {
-            m_scheduledAutoCommit.cancel();
-            SqliteStatement stmt(*m_db, m_stmtCommitTransaction);
-            if (stmt.execute()) {
-                LOG_INFO("=== [%p] Transaction committed in %u ms", stmt.handle(), stmt.duration());
-                m_isInTransaction = false;
-                return true;
-            }
-            else {
-                LOG_ERROR("=== [%p] Failed to commit database transaction", stmt.handle());
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool OfflineStorage_SQLite::rollbackIfInTransaction()
-    {
-        if (!m_isInTransaction) {
-            return true;
-        }
-
-        SqliteStatement stmt(*m_db, m_stmtRollbackTransaction);
-        if (stmt.execute()) {
-            LOG_INFO("=== [%p] Transaction rolled back in %u ms", stmt.handle(), stmt.duration());
-            m_isInTransaction = false;
-            return true;
-        }
-        else {
-            LOG_ERROR("=== [%p] Failed to rollback database transaction", stmt.handle());
-            return false;
-        }
-    }
-
-    void OfflineStorage_SQLite::scheduleAutoCommitTransaction()
-    {
-        autoCommitTransaction();
-        /*
-                if (!m_scheduledAutoCommit) {
-                    unsigned delayMs = 2500;
-                    LOG_TRACE("Scheduling auto commit in %u msec", delayMs);
-                    m_scheduledAutoCommit = PAL::scheduleOnWorkerThread(delayMs, this, &OfflineStorage_SQLite::autoCommitTransaction);
-                }
-         */
-    }
-
-    void OfflineStorage_SQLite::autoCommitTransaction()
-    {
-        m_scheduledAutoCommit.reset();
-        if (!commitIfInTransaction()) {
-            LOG_ERROR("Failed to commit queued events: Database error has occurred, recreating database");
-            recreate(601);
-        }
-    }
-#endif
-
-    // TODO: [MG] - for on-disk database this has to be replaced by filesize check
     size_t OfflineStorage_SQLite::GetSize()
     {
         if (!m_db) {
@@ -840,11 +766,12 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         LOCKGUARD(m_lock);
-        unsigned pageCount;
+        unsigned pageCount = 0;
         SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
-        while (!pageCountStmt.select())
+        if (!pageCountStmt.select())
         {
-            PAL::sleep(100);
+            LOG_TRACE("Failed to get DB size: database is busy");
+            return 0;
         }
         pageCountStmt.getRow(pageCount);
         pageCountStmt.reset();
@@ -877,18 +804,16 @@ namespace ARIASDK_NS_BEGIN {
         return count;
     }
 
-    bool OfflineStorage_SQLite::trimDbIfNeeded(size_t justAddedBytes)
+    bool OfflineStorage_SQLite::ResizeDb()
     {
         if (!m_db) {
-            LOG_ERROR("Failed to trim: database is not open");
-            return 0;
+            LOG_ERROR("Failed to resize DB: database is not open");
+            return false;
         }
 
-        m_currentlyAddedBytes += justAddedBytes;
-        if (m_currentlyAddedBytes < 10240) {
-            return true;
-        }
-        m_currentlyAddedBytes = 0;
+        m_DbSizeEstimate = GetSize();
+        if (m_DbSizeEstimate <= m_DbSizeLimit)
+            return false;
 
         LOCKGUARD(m_lock);
         {
@@ -900,112 +825,22 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 #endif
-            unsigned pageCount;
-            SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
-            if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount)) {
-                LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-                return false;
-            }
-            pageCountStmt.reset();
-
-            unsigned previousDbSize = pageCount * m_pageSize;
-
-            //check if Application needs to be notified
-            if (previousDbSize > m_DbSizeNotificationLimit && !m_isStorageFullNotificationSend)
+            if (m_DbSizeEstimate > 2 * m_DbSizeLimit)
             {
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_STORAGE_FULL;
-                evt.param1 = 2;
-                m_logManager.DispatchEvent(evt);
-                m_isStorageFullNotificationSend = true;
-            }
-
-            unsigned maxSize = m_config.GetOfflineStorageMaximumSizeBytes();
-            if (previousDbSize <= maxSize) {
-                LOG_TRACE("Database size (%u bytes) is below the maximum allowed size (%u bytes), no trimming necessary",
-                    previousDbSize, maxSize);
+                LOG_TRACE("DB is too big, deleting...");
+                Execute("DELETE FROM " TABLE_NAME_EVENTS);
+                Execute("VACUUM");
                 return true;
             }
 
-            m_isStorageFullNotificationSend = false; // to be notified again
-            unsigned pct = m_config.GetOfflineStorageResizeThresholdPct();
-            LOG_ERROR("Database size (%u bytes) exceeds the maximum allowed size (%u bytes), trimming %u%% off...",
-                previousDbSize, maxSize, pct);
-
-            SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtPerTenantTrimCount);
-            if (!getRowstobedeleteStmt.select(pct)) {
-                LOG_ERROR("Failed to get infor on events to be deleted to reduce size: Database error has occurred, recreating database");
-                return false;
-            }
-
-            std::map<std::string, size_t> deletedData;
-            std::string tenantToken;
-            while (getRowstobedeleteStmt.getRow(tenantToken))
+            SqliteStatement trimStmt(*m_db, m_stmtTrimEvents_percent);
+            if (!trimStmt.execute(25))
             {
-                deletedData[tenantToken]++;
+                // If something went wrong with trimming 25%, try more radical measure
+                LOG_TRACE("Evict all non-critical");
+                Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
             }
-
-            getRowstobedeleteStmt.reset();
-
-            SqliteStatement deleteStmt(*m_db, m_stmtTrimEvents_percent);
-            if (!deleteStmt.execute(pct)) {
-                LOG_ERROR("Failed to delete events to reduce size: Database error has occurred, recreating database");
-                return false;
-            }
-
-            unsigned droppedCount = deleteStmt.changes();
-            LOG_ERROR("Deleted %u event(s) in %u ms",
-                droppedCount, deleteStmt.duration());
-            m_observer->OnStorageTrimmed(deletedData);
-
-            SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
-            if (!trimStmt.select()) {
-                LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-                return false;
-            }
-            while (trimStmt.getRow()) {
-            }
-            if (trimStmt.error()) {
-                LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-                return false;
-            }
-
-            unsigned pageCount2;
-            if (!pageCountStmt.select() || !pageCountStmt.getRow(pageCount2)) {
-                LOG_ERROR("Failed to query database size: Database error has occurred, recreating database");
-                return false;
-            }
-
-            unsigned newDbSize = pageCount2 * m_pageSize;
-            LOG_TRACE("Trimmed %d bytes in %u ms",
-                previousDbSize - newDbSize, trimStmt.duration());
-
-            if (newDbSize > maxSize) {
-                LOG_ERROR("Failed to trim database: previous size %u, after trimming %u, still more than limit %u bytes, recreating database",
-                    previousDbSize, newDbSize, maxSize);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool OfflineStorage_SQLite::ResizeDb()
-    {
-        if (!m_db) {
-            LOG_ERROR("Failed to resize: database is not open");
-            return 0;
-        }
-
-        SqliteStatement trimStmt(*m_db, m_stmtIncrementalVacuum0);
-        if (!trimStmt.select()) {
-            LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-            return false;
-        }
-        while (trimStmt.getRow()) {
-        }
-        if (trimStmt.error()) {
-            LOG_ERROR("Failed to trim free pages to reduce size: Database error has occurred, recreating database");
-            return false;
+            trimStmt.reset();
         }
         return true;
     }

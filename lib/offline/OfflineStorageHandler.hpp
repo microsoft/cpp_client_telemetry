@@ -2,13 +2,18 @@
 
 #pragma once
 #include "pal/PAL.hpp"
-#include <IOfflineStorage.hpp>
+#include "IOfflineStorage.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 #include "ILogManager.hpp"
 
 #include <memory>
 #include <atomic>
+#include <list>
+#include <string>
+
+#include "KillSwitchManager.hpp"
+#include "ClockSkewManager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -26,6 +31,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool IsLastReadFromMemory() override;
         virtual unsigned LastReadRecordCount() override;
 
+        virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
@@ -46,12 +52,18 @@ namespace ARIASDK_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) override;
 
     protected:
+        virtual void DeleteRecordsByKeys(const std::list<std::string> & keys);
 
         IOfflineStorageObserver   * m_observer;
         ILogManager &               m_logManager;
         std::string                 m_databasePath;
         IRuntimeConfig&             m_config;
         
+        KillSwitchManager           m_killSwitchManager;
+        ClockSkewManager            m_clockSkewManager;
+
+        virtual bool isKilled(StorageRecord const& record);
+
         virtual void WaitForFlush();
 
         std::mutex                             m_flushLock;

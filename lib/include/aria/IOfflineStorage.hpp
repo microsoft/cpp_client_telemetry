@@ -193,6 +193,13 @@ namespace ARIASDK_NS_BEGIN {
         virtual unsigned LastReadRecordCount() = 0;
 
         /// <summary>
+        /// Bulk delete records using "where" clause.
+        /// Specify condition using key-value pairs in the map.
+        /// </summary>
+        /// <remarks>
+        virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) = 0;
+
+        /// <summary>
         /// Delete records with specified IDs
         /// </summary>
         /// <remarks>
@@ -276,6 +283,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool ResizeDb() = 0;
 
         virtual void ReleaseAllRecords() {};
+
     };
 
 
