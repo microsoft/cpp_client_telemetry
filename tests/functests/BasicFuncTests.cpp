@@ -875,7 +875,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration["http"]["compress"] = true;
         configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = i % 2;
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
         LogManager::Initialize(TEST_TOKEN);

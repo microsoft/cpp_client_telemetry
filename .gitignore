@@ -18,7 +18,6 @@ skype-ant/
 staging.d/
 sysroot/
 skype-ant.zip
-uap-cpp/
 Debug/
 
 # Ignore auto-generated Version.hpp
