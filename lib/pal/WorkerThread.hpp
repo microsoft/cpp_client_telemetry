@@ -8,6 +8,7 @@
 #include <thread>
 #include <condition_variable>
 #include <climits>
+#include <algorithm>
 
 #include "Version.hpp"
 
