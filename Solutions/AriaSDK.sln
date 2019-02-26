@@ -75,6 +75,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win10-lib", "win10-lib\win1
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "decoder", "..\lib\decoder\decoder.vcxitems", "{9DCAD3A8-10AE-42A2-8FAD-3B54E9BF20D0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tracing-api", "..\lib\tracing\api\tracing-api.vcxitems", "{4DA18A2A-8752-45EA-A2F1-212A959619F4}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\universal\universal.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
@@ -89,6 +91,7 @@ Global
 		..\lib\pal\universal\universal.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\shared\Shared.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
+		..\lib\tracing\api\tracing-api.vcxitems*{4da18a2a-8752-45ea-a2f1-212a959619f4}*SharedItemsImports = 9
 		..\lib\pal\universal\universal.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\pal\universal\universal.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
