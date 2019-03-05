@@ -66,7 +66,21 @@ class HttpServer : private Reactor::Callback
     size_t m_maxRequestHeadersSize, m_maxRequestContentSize;
     std::string m_serverHost;
 
+	// Map of killed token to kill duration of that token
+	// Ideally we need a map of string --> std::pair<std::string /* suffix */, uint64_t /* duration */
+	std::map<std::string, uint64_t> m_killedTokens;
+
   public:
+
+	void setKilledToken(std::string token, uint64_t duration)
+	{
+		m_killedTokens[token] = duration;
+	};
+
+	void clearKilledTokens()
+	{
+		m_killedTokens.clear();
+	}
 
     void setKeepalive(bool keepAlive)
     {
@@ -547,6 +561,18 @@ class HttpServer : private Reactor::Callback
         conn.response.headers["Connection"] = (conn.keepalive ? "keep-alive" : "close");
         conn.response.headers["Date"] = formatTimestamp(time(nullptr));
         conn.response.headers["Content-Length"] = std::to_string(conn.response.content.size());
+        int kill_duration = -1;
+        for (auto &kv : m_killedTokens)
+        {
+            std::string val = kv.first;
+            val += ":all";
+            conn.response.headers.insert(std::pair<std::string, std::string>("kill-tokens", val));
+            kill_duration = std::max(kill_duration, (int)kv.second);
+        }
+
+        if (m_killedTokens.size() > 0) {
+            conn.response.headers.insert(std::pair<std::string, std::string>("kill-duration", std::to_string(kill_duration)));
+        }
     }
 
     static std::string formatTimestamp(time_t time)

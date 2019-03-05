@@ -24,6 +24,7 @@ using namespace ARIASDK_NS;
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
 #define TEST_TOKEN      "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define HTTP_PORT       19000
 
 class BasicFuncTests : public ::testing::Test,
@@ -99,7 +100,7 @@ public:
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::ResumeTransmission();
 
-        logger = LogManager::GetLogger(TEST_TOKEN, "source1");
+        logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
         logger2 = LogManager::GetLogger(TEST_TOKEN, "source2");
     }
 
@@ -851,6 +852,263 @@ public:
         printf("ABRT  = %zu\n", counts[IDX_ABRT].load());
     }
 };
+
+class KillSwitchListener : public DebugEventListener {
+public :
+    std::atomic<unsigned>   numLogged;
+    std::atomic<unsigned>   numSent;
+    std::atomic<unsigned>   numDropped;
+    std::atomic<unsigned>   numReject;
+    std::atomic<unsigned>   numHttpError;
+    std::atomic<unsigned>   numHttpOK;
+    std::atomic<unsigned>   numHttpFailure;
+    std::atomic<unsigned>   numCached;
+
+    KillSwitchListener() :
+        numLogged(0),
+        numSent(0),
+        numDropped(0),
+        numReject(0),
+        numHttpError(0),
+        numHttpOK(0),
+        numHttpFailure(0),
+        numCached(0) 
+    {
+    }
+
+    virtual void OnDebugEvent(DebugEvent &evt) {
+        switch (evt.type) {
+            case EVT_LOG_SESSION:
+                numLogged++;
+                break;
+            case EVT_REJECTED:
+                numReject++;
+                break;
+            case EVT_ADDED:
+                break;
+            /* Event counts below would never overflow the size of unsigned int */
+            case EVT_CACHED:
+                numCached += (unsigned int)evt.param1;
+                break;
+            case EVT_DROPPED:
+                numDropped += (unsigned int)evt.param1;
+                break;
+            case EVT_SENT:
+                numSent += (unsigned int)evt.param1;
+                break;
+            case EVT_HTTP_FAILURE:
+                numHttpFailure++;
+                break;
+            case EVT_HTTP_ERROR:
+                numHttpError++;
+                break;
+            case EVT_HTTP_OK:
+                numHttpOK++;
+                break;
+            case EVT_UNKNOWN:
+            default:
+            break;
+        };
+    }
+    void printStats(){
+        std::cerr << "[          ] numLogged        = " << numLogged << std::endl;
+        std::cerr << "[          ] numSent          = " << numSent << std::endl;
+        std::cerr << "[          ] numDropped       = " << numDropped << std::endl;
+        std::cerr << "[          ] numReject        = " << numReject << std::endl;
+        std::cerr << "[          ] numHttpError     = " << numHttpError << std::endl;
+        std::cerr << "[          ] numHttpOK        = " << numHttpOK << std::endl;
+        std::cerr << "[          ] numHttpFailure   = " << numHttpFailure << std::endl;
+        std::cerr << "[          ] numCached        = " << numCached << std::endl;
+    }
+};
+
+void addListeners(DebugEventListener &listener) {
+    LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
+}
+
+void removeListeners(DebugEventListener &listener) {
+    LogManager::RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_SENT, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_CACHED, listener);
+}
+
+TEST_F(BasicFuncTests, killSwitchWorks)
+{
+    CleanStorage();
+    // Create the configuration to send to fake server
+    auto configuration = LogManager::GetLogConfiguration();
+
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+    configuration["http"]["compress"] = false;      // disable compression for now
+    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
+
+    configuration["name"] = __FILE__;
+    configuration["version"] = "1.0.0";
+    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+
+    // set the killed token on the server
+    server.setKilledToken(KILLED_TOKEN, 6384);
+    KillSwitchListener listener;
+    addListeners(listener);
+    // Log 100 events from valid and invalid 4 times
+    int repetitions = 4;
+    for (int i = 0; i < repetitions; i++) {
+        // Initialize the logger for the valid token and log 100 events
+        LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::ResumeTransmission();
+        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+        int numIterations = 100;
+        while (numIterations--) {
+            EventProperties event1("fooEvent");
+            event1.SetProperty("property", "value");
+            myLogger->LogEvent(event1);
+        }
+        // Initialize the logger for the killed token and log 100 events
+        LogManager::Initialize(KILLED_TOKEN, configuration);
+        LogManager::ResumeTransmission();
+        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+        numIterations = 100;
+        while (numIterations--) {
+            EventProperties event2("failEvent");
+            event2.SetProperty("property", "value");
+            myLogger->LogEvent(event2);
+        }
+    }
+    // Try to upload and wait for 2 seconds to complete
+    LogManager::UploadNow();
+    PAL::sleep(2000);
+
+    // Log 100 events with valid logger
+    LogManager::Initialize(TEST_TOKEN, configuration);
+    LogManager::ResumeTransmission();
+    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+    int numIterations = 100;
+    while (numIterations--) {
+        EventProperties event1("fooEvent");
+        event1.SetProperty("property", "value");
+        myLogger->LogEvent(event1);
+    }
+
+    LogManager::Initialize(KILLED_TOKEN, configuration);
+    LogManager::ResumeTransmission();
+    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    numIterations = 100;
+    while (numIterations--) {
+        EventProperties event2("failEvent");
+        event2.SetProperty("property", "value");
+        myLogger->LogEvent(event2);
+    }
+    // Expect all events to be dropped
+    EXPECT_EQ(100, listener.numDropped);
+    LogManager::FlushAndTeardown();
+
+    listener.printStats();
+    removeListeners(listener);
+    server.clearKilledTokens();
+}
+
+TEST_F(BasicFuncTests, killIsTemporary) 
+{
+    CleanStorage();
+    // Create the configuration to send to fake server
+    auto configuration = LogManager::GetLogConfiguration();
+
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+    configuration["http"]["compress"] = false;      // disable compression for now
+    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
+
+    configuration["name"] = __FILE__;
+    configuration["version"] = "1.0.0";
+    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    
+    // set the killed token on the server
+    server.setKilledToken(KILLED_TOKEN, 10);
+    KillSwitchListener listener;
+    addListeners(listener);
+    // Log 100 events from valid and invalid 4 times
+    int repetitions = 4;
+    for (int i = 0; i < repetitions; i++) {
+        // Initialize the logger for the valid token and log 100 events
+        LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::ResumeTransmission();
+        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+        int numIterations = 100;
+        while (numIterations--) {
+            EventProperties event1("fooEvent");
+            event1.SetProperty("property", "value");
+            myLogger->LogEvent(event1);
+        }
+        // Initialize the logger for the killed token and log 100 events
+        LogManager::Initialize(KILLED_TOKEN, configuration);
+        LogManager::ResumeTransmission();
+        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+        numIterations = 100;
+        while (numIterations--) {
+            EventProperties event2("failEvent");
+            event2.SetProperty("property", "value");
+            myLogger->LogEvent(event2);
+        }
+    }
+    // Try and wait to upload
+    LogManager::UploadNow();
+    PAL::sleep(2000);
+    // Sleep for 11 seconds so the killed time has expired, clear the killed tokens on server
+    PAL::sleep(11000);
+    server.clearKilledTokens();
+    // Log 100 events with valid logger
+    LogManager::Initialize(TEST_TOKEN, configuration);
+    LogManager::ResumeTransmission();
+    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+    int numIterations = 100;
+    while (numIterations--) {
+        EventProperties event1("fooEvent");
+        event1.SetProperty("property", "value");
+        myLogger->LogEvent(event1);
+    }
+
+    LogManager::Initialize(KILLED_TOKEN, configuration);
+    LogManager::ResumeTransmission();
+    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    numIterations = 100;
+    while (numIterations--) {
+        EventProperties event2("failEvent");
+        event2.SetProperty("property", "value");
+        myLogger->LogEvent(event2);
+    }
+    // Expect to 0 events to be dropped
+    EXPECT_EQ(0, listener.numDropped);
+    LogManager::FlushAndTeardown();
+
+    listener.printStats();
+    removeListeners(listener);
+    server.clearKilledTokens();
+}
 
 TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 {
