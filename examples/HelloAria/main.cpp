@@ -252,7 +252,7 @@ int main()
     printf("Starting stress-test...\n");
     for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
-        EventLatency latency = (EventLatency)(1 + i % (unsigned)EventLatency_RealTime);
+        EventLatency latency = (i % 2) ? EventLatency_Normal : EventLatency_CostDeferred;
         std::string eventName("Microsoft.Applications.Telemetry.HelloAria.sample_event_lat");
         eventName += std::to_string((unsigned)latency);
 

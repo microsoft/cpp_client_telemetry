@@ -61,8 +61,8 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogConfiguration FromJSON(const char* configuration)
     {
-#ifdef HAVE_MAT_JSONHPP
         ILogConfiguration result;
+#ifdef HAVE_MAT_JSONHPP
         auto src = json::parse(configuration);
         std::function<void(json &src, VariantMap &dst)> parse;
         parse = [&parse](json &src, VariantMap &dst)->void {
@@ -102,11 +102,11 @@ namespace ARIASDK_NS_BEGIN {
             }
         };
         parse(src, result);
-        return result;
 #else
+        (configuration);
         assert(false /* json.hpp support is not enabled! */);
-        return nullptr;
 #endif
+        return result;
     }
 
 } ARIASDK_NS_END

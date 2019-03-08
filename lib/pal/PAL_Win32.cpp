@@ -2,7 +2,7 @@
 #include "PAL.hpp"
 #ifdef ARIASDK_PAL_WIN32
 #include "ILogManager.hpp"
-#include <ISemanticContext.hpp>
+#include "ISemanticContext.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
@@ -19,7 +19,6 @@
 
 #include <stdarg.h>
 
-#include "utils/Utils.hpp"
 #include <sys/types.h>
 
 /* TODO: [MG] - currently this implementation is Windows-only, but it shares most of logic with POSIX PAL.
@@ -104,6 +103,7 @@ namespace PAL_NS_BEGIN {
 #define DEBUG_LOG_NULL		"NUL"
 #endif
 
+#ifdef HAVE_MAT_LOGGING
         static std::recursive_mutex	debugLogMutex;
         static std::string			debugLogPath;
         static std::ostream*		debugLogStream = NULL;
@@ -139,7 +139,9 @@ namespace PAL_NS_BEGIN {
             (*debugLogStream) << "Logging inited " << debugLogPath << " " << result << "\n";
             return result;
         }
-
+#else
+#define log_init()  false
+#endif
         static bool isLoggingInited = log_init();
 
 #if !defined(_WIN32) && defined(__linux__)

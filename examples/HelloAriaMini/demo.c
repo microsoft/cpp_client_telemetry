@@ -4,6 +4,8 @@
 
 void test_c_api(const char * token)
 {
+
+#if 0 /* No JSON parser in smallest SKU */
     static const char* config_template =
         "{"
         "\"cacheFilePath\":\"MyOfflineStorage.db\","  // Custom storage path
@@ -18,18 +20,13 @@ void test_c_api(const char * token)
         "}";
     static char config[1024] = { 0 };
     snprintf(config, sizeof(config), config_template, token);
+#endif
 
     printf("Testing C API...\t");
 
-#if 0   // Initialize using TOKEN
-    evt_handle_t handle = evt_open(TOKEN);
+#if 1   // Initialize using TOKEN
+    evt_handle_t handle = evt_open(token);
 #else   // Initialize using ILogConfiguration in JSON format
-
-#ifdef _WIN32
-    // Attemppt to load an alternate impl if possible
-    evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry2.Dll"));
-#endif
-
     evt_handle_t handle = evt_open((const char *)config);
 #endif
 

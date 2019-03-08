@@ -141,12 +141,12 @@ namespace ARIASDK_NS_BEGIN {
     /// Print transmit profiles to debug log
     /// </summary>
     void TransmitProfiles::dump() {
+#ifdef HAVE_MAT_LOGGING
         LOCK_PROFILES;
         for (auto &kv : profiles) {
             auto &profile = kv.second;
             LOG_TRACE("name=%s", profile.name.c_str());
             size_t i = 0;
-#ifdef HAVE_MAT_LOGGING
             for (auto &rule : profile.rules) {
                 LOG_TRACE("[%d] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
                     i, rule.netCost, rule.powerState,
@@ -155,8 +155,8 @@ namespace ARIASDK_NS_BEGIN {
                     rule.timers[2]);
                 i++;
             }
-#endif
         }
+#endif
     }
 
     /// <summary>
@@ -331,6 +331,8 @@ namespace ARIASDK_NS_BEGIN {
                 currProfileName = DEFAULT_PROFILE;
                 LOG_TRACE("Switched to profile %s", currProfileName.c_str());
             }
+
+#ifdef HAVE_MAT_LOGGING
             // Print combined list of profiles: default + custom
             LOG_TRACE("Profiles:");
             size_t i = 0;
@@ -341,6 +343,8 @@ namespace ARIASDK_NS_BEGIN {
                 );
                 i++;
             }
+#endif
+
             currRule = 0;
         } // Unlock here because updateStates performs its own LOCK_PROFILES
         updateStates(currNetCost, currPowState);
@@ -477,17 +481,18 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     void TransmitProfiles::onTimersUpdated() {
         isTimerUpdated = true;
+#ifdef HAVE_MAT_LOGGING
         auto it = profiles.find(currProfileName);
         if (it != profiles.end()) {
-#if 1   /* Debug routine to print the list of currently selected timers */
+            /* Debug routine to print the list of currently selected timers */
             TransmitProfileRule &rule = (it->second).rules[currRule];
             // Print just 3 timers for now because we support only 3
             LOG_INFO("timers=[%3d,%3d,%3d]",
                 rule.timers[0],
                 rule.timers[1],
                 rule.timers[2]);
-#endif
         }
+#endif
     }
 
     /// <summary>

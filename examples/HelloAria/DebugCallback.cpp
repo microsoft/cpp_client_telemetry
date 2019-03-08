@@ -79,10 +79,13 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
         break;
     case EVT_REJECTED:
         numReject++;
-        printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        if ((numReject % 10) == 0)
+            printf("R10\n");
+        // printf("OnEventRejected:    seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_ADDED:
-        printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        printf("+");
+        // printf("OnEventAdded:       seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_CACHED:
         numCached += evt.param1;
@@ -90,7 +93,9 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
         break;
     case EVT_DROPPED:
         numDropped += evt.param1;
-        printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
+        if ((numDropped % 10) == 0)
+            printf("D10\n");
+        // printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_SENT:
         numSent += evt.param1;
