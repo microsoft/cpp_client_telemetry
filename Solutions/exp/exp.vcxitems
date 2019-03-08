@@ -23,6 +23,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\IDataStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -33,10 +35,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="$(MSBuildThisFileDirectory)..\..\lib\exp\README" />
-    <Text Include="$(MSBuildThisFileDirectory)Text.txt" />
   </ItemGroup>
 </Project>

@@ -21,6 +21,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp">
       <Filter>ecs</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp" />
@@ -49,6 +50,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp">
       <Filter>ecs</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\IDataStorage.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="afd">
@@ -59,7 +62,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="$(MSBuildThisFileDirectory)Text.txt" />
     <Text Include="$(MSBuildThisFileDirectory)..\..\lib\exp\README" />
   </ItemGroup>
 </Project>
