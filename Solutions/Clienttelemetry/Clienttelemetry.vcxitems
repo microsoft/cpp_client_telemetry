@@ -37,7 +37,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
@@ -130,7 +130,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\VariantType.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ClockSkewManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\FifoFileStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
