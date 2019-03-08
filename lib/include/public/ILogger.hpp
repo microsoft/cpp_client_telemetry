@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef ARIA_ILOGGER_HPP
 #define ARIA_ILOGGER_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 
@@ -17,20 +17,26 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-// TODO: [MG] - MICROSOFT_* flags below are also defined in Windows Telemetry headers.
+// Data Type Flags
+#define MICROSOFT_KEYWORD_CRITICAL_DATA         0x0000800000000000 // Bit 47
+#define MICROSOFT_KEYWORD_MEASURES              0x0000400000000000 // Bit 46
+#define MICROSOFT_KEYWORD_TELEMETRY             0x0000200000000000 // Bit 45
 
-//Data Type Flags
-#define MICROSOFT_KEYWORD_CRITICAL_DATA 0x0000800000000000 // Bit 47
-#define MICROSOFT_KEYWORD_MEASURES      0x0000400000000000 // Bit 46
-#define MICROSOFT_KEYWORD_TELEMETRY     0x0000200000000000 // Bit 45
-
-//Core data Flags
+// Core data Flags
 #define MICROSOFT_EVENTTAG_CORE_DATA            0x00080000
 
-//Latency Flags
+// Latency Flags
 #define MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY 0x00040000
 #define MICROSOFT_EVENTTAG_REALTIME_LATENCY     0x00200000
 #define MICROSOFT_EVENTTAG_NORMAL_LATENCY       0x00400000
+
+// Privacy Tags
+#define PDT_BrowsingHistory                     0x0000000000000002u
+#define PDT_DeviceConnectivityAndConfiguration  0x0000000000000800u
+#define PDT_InkingTypingAndSpeechUtterance      0x0000000000020000u
+#define PDT_ProductAndServicePerformance        0x0000000001000000u
+#define PDT_ProductAndServiceUsage              0x0000000002000000u
+#define PDT_SoftwareSetupAndInventory           0x0000000080000000u
 
 /// <summary>
 /// The PageActionData structure represents the data of a page action event.
