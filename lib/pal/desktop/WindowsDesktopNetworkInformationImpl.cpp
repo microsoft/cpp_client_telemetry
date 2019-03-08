@@ -11,11 +11,11 @@ using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl():
-	m_info_helper(),
-	m_registredCount(0),
-	m_cost(NetworkCost_Unmetered)
-	{ };
+    NetworkInformationImpl::NetworkInformationImpl() :
+        m_info_helper(),
+        m_registredCount(0),
+        m_cost(NetworkCost_Unmetered)
+    { };
     NetworkInformationImpl::~NetworkInformationImpl() { };
 
     class Win32NetworkInformation : public NetworkInformationImpl

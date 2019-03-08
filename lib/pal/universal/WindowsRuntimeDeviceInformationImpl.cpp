@@ -1,9 +1,11 @@
 #include <collection.h>
 #include <windows.h>
+
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
 #include "pal/desktop/WindowsEnvironmentInfo.h"
 #include "PlatformHelpers.h"
+
 #include <exception>  
 
 #define LOG_MODULE DBG_PAL

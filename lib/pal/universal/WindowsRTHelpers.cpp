@@ -1,7 +1,7 @@
 #ifdef WIN10_CS
 /* Helpers for Win 10 C# Universal API */
 #include "pch.h"
-#include <LogManager.hpp>
+#include "LogManager.hpp"
 #include "PlatformHelpers.h"
 //#include "TimedEvent.hpp"
 

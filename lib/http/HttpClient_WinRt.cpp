@@ -3,17 +3,18 @@
 
 #include "http/HttpClient_WinRt.hpp"
 #include "utils/Utils.hpp"
+
 #include <algorithm>
 #include <memory>
 #include <sstream>
 #include <vector>
-#include "pplcancellation_token.h"
+
+#include <pplcancellation_token.h>
 #include <ppltasks.h>
 #include <pplawait.h>
-#include "vccorlib.h"
+#include <vccorlib.h>
 #include <Roapi.h>
-#include "WinInet.h"
-#include "HttpClient_WinRt.hpp"
+#include <WinInet.h>
 
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Collections;

@@ -2,8 +2,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "HttpClient_WinInet.hpp"
-#include <utils/Utils.hpp>
+#include "utils/Utils.hpp"
+
 #include <WinInet.h>
+
 #include <algorithm>
 #include <memory>
 #include <sstream>

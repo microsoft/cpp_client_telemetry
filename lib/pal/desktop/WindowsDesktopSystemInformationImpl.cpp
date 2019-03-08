@@ -15,7 +15,7 @@
  * versions of Windows or Windows Server must not use either MinCore.lib or MinCore_Downlevel.lib.
  */
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include <Windows.h>
 
