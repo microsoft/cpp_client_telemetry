@@ -10,6 +10,15 @@
 #endif
 
 #include "Windows.h"
+#include "mat/config.h"
+
+#ifdef HAVE_MAT_ZLIB
+#pragma comment(lib, "zlib.lib") 
+#endif
+
+#ifdef HAVE_MAT_STORAGE
+#pragma comment(lib, "sqlite-uwp.lib")
+#endif
 
 unsigned thread_count = 0;
 

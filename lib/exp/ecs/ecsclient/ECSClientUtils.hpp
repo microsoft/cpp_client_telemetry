@@ -1,7 +1,10 @@
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
+
+#include "pal/PAL.hpp"
 
 #include <string>
-#include "pal/PAL.hpp"
 
 namespace Microsoft { namespace Applications { namespace Experimentation { namespace ECS {
 
@@ -28,3 +31,4 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
 
 	ARIASDK_LOG_DECL_COMPONENT_NS();
 }}}}
+#endif

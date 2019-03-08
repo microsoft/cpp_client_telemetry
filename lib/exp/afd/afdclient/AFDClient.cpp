@@ -1,3 +1,5 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
 //#pragma unmanaged
@@ -6,8 +8,10 @@
 #include "AFDClientConfig.hpp"
 #include "AFDConfigCache.hpp"
 #include "AFDClientUtils.hpp"
-#include "../../JsonHelper.hpp"
+#include "exp/JsonHelper.hpp"
+
 #include "json.hpp"
+
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -126,11 +130,11 @@ namespace Microsoft {
                         }
                     }
 
-					if (!config.clientId.empty())
-					{
-						m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_CLIENTID] = config.clientId;
-						m_EXPCommon.m_configActiveDeviceId = config.clientId;
-					}
+                    if (!config.clientId.empty())
+                    {
+                    	m_EXPCommon.m_configActiveRequestParams[EXPCLIENT_RP_KEY_CLIENTID] = config.clientId;
+                    	m_EXPCommon.m_configActiveDeviceId = config.clientId;
+                    }
 
                     if (!config.impressionGuid.empty())
                     {
@@ -1179,3 +1183,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

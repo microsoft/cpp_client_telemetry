@@ -18,7 +18,8 @@ ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 #include <locale>
 #include <codecvt>
 
-#pragma comment(lib, "IPHLPAPI.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "AdvAPI32.Lib")
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
@@ -27,6 +28,8 @@ ARIASDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 #define MANUFACTURER    "SystemManufacturer"
 #define MODEL           "SystemProductName"
 #define HARDWARE_ID     "ComputerHardwareId"
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
@@ -141,7 +144,7 @@ namespace PAL_NS_BEGIN {
 
     IDeviceInformation* DeviceInformationImpl::Create()
     {
-        return  new DeviceInformationImpl();
+        return new DeviceInformationImpl();
     }
 
 } PAL_NS_END

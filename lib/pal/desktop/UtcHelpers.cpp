@@ -1,4 +1,5 @@
-#pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_UTC
 #include "pal/UtcHelpers.hpp"
 //#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Windows.h>
@@ -99,3 +100,4 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
+#endif

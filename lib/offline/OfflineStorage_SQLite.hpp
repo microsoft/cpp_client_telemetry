@@ -1,15 +1,16 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_STORAGE
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
 #include "pal/PAL.hpp"
-#include <IOfflineStorage.hpp>
+#include "IOfflineStorage.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 
 #include "ILogManager.hpp"
 
 #include <memory>
-
 #include <atomic>
 #include <mutex>
 
@@ -106,3 +107,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

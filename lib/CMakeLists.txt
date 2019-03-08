@@ -1,4 +1,4 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/exp /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -25,6 +25,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/AuthTokensController.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
+  utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
   exp/afd/afdclient/AFDClientUtils.cpp
@@ -35,6 +36,7 @@ set(SRCS decorators/BaseDecorator.cpp
   exp/ecs/ecsclient/ECSConfigCache.cpp
   exp/JsonHelper.cpp
   exp/EXPCommonClient.cpp
+  exp/FifoFileStorage.cpp
   pal/InformationProviderImpl.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
@@ -45,7 +47,6 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/StorageObserver.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
-  offline/FifoFileStorage.cpp
   offline/OfflineStorageHandler.cpp
   backoff/IBackoff.cpp
 )
@@ -113,7 +114,6 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
 else()
   message("-- Building static SDK library")
   add_library(aria STATIC ${SRCS})
-  
   if(PAL_IMPLEMENTATION STREQUAL "WIN32")
     target_link_libraries(aria ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()

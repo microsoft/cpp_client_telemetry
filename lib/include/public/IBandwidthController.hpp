@@ -4,7 +4,7 @@
 #include "Version.hpp"
 
 // *INDENT-OFF*
-namespace Microsoft { namespace Applications { namespace Events  {
+namespace ARIASDK_NS_BEGIN {
 // *INDENT-ON*
 
 
@@ -27,4 +27,4 @@ class IBandwidthController {
 };
 
 
-}}} // namespace Microsoft::Applications::Events 
+} ARIASDK_NS_END

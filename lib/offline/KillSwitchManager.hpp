@@ -1,6 +1,9 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef KILLSWITCHMANAGER_HPP
+#define KILLSWITCHMANAGER_HPP
 
 #include "pal/PAL.hpp"
+
 #include <map>
 #include <string>
 #include <mutex>
@@ -157,3 +160,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+#endif

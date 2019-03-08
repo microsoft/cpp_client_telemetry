@@ -1,7 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IPROPERTYCHANGEDCALLBACK_HPP
 #define IPROPERTYCHANGEDCALLBACK_HPP
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
+
 #include <string>
 
 namespace PAL_NS_BEGIN {

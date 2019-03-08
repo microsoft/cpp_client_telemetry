@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "Utils.hpp"
-
-#include <Config.hpp>
 
 #include <algorithm>
 #include <string>
@@ -23,8 +21,6 @@
 #endif
 
 #include <string>
-#include <fstream>
-#include <streambuf>
 
 #include <thread>
 
@@ -177,13 +173,7 @@ namespace ARIASDK_NS_BEGIN {
             return REJECTED_REASON_VALIDATION_FAILED;
         }
 
-#if ARIASDK_PAL_SKYPE
-        // Allow also ':' and '-' for Skype. Those are unfortunately used by
-        // someone (it was not an error before) and changing that needs time.
-        auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.') && (ch != '-') && (ch != ':'); };
-#else
         auto filter = [](char ch) -> bool { return !isalnum(static_cast<uint8_t>(ch)) && (ch != '_') && (ch != '.'); };
-#endif
 
         if (std::find_if(name.begin(), name.end(), filter) != name.end()) {
             LOG_ERROR("Invalid property name - \"%s\": must contain [0-9A-Za-z_.] characters only", name.c_str());
@@ -198,11 +188,11 @@ namespace ARIASDK_NS_BEGIN {
         return REJECTED_REASON_OK;
     }
 
-    std::string to_string(GUID_t uuid)
+    std::string to_string(const GUID_t& uuid)
     {
         static char inttoHex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
         const unsigned buffSize = 36 + 1;  // 36 + null-termination
-        char buf[buffSize];
+        char buf[buffSize] = { 0 };
 
         int  test = (uuid.Data1 >> 28 & 0x0000000F);
         buf[0] = inttoHex[test];
@@ -309,54 +299,6 @@ namespace ARIASDK_NS_BEGIN {
     unsigned hashCode(const char* str, int h)
     {
         return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
-    }
-
-    /// <summary>
-    /// Return file size by filename
-    /// </summary>
-    /// <param name="filename">Filename</param>
-    /// <returns>File size</returns>
-    size_t GetFileSize(const char* filename)
-    {
-#ifdef _WIN32
-        std::wstring filename_w = to_utf16_string(filename);
-        std::ifstream in(filename_w.c_str(), std::ifstream::ate | std::ifstream::binary);
-#else
-        std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
-#endif
-        return (size_t)(in.tellg());
-    }
-
-    int FileDelete(const char* filename)
-    {
-        int result = 0;
-#ifndef _WIN32
-        /* All OS other than Windows support UTF-8...   */
-        result = std::remove(filename);
-#else
-        /* ...but Windows requires us to support UTF-16 */
-        std::wstring filename_w = to_utf16_string(filename);
-        result = ::DeleteFileW(filename_w.c_str());
-#endif
-        return result;
-    }
-
-    std::FILE* FileOpen(const char* filename, const char *mode)
-    {
-#ifdef _WIN32
-        FILE* result = nullptr;
-        std::wstring  path = to_utf16_string(filename);
-        std::wstring _mode = to_utf16_string(mode);
-        _wfopen_s(&result, path.c_str(), _mode.c_str());
-        return result;
-#else
-        return std::fopen(filename, mode);
-#endif
-    }
-
-    int FileClose(std::FILE* _Stream)
-    {
-        return std::fclose(_Stream);
     }
 
 } ARIASDK_NS_END

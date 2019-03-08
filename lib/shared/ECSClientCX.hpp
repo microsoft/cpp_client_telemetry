@@ -1,5 +1,6 @@
-#ifdef ENABLE_ECSCLIENT
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 
 #include "PlatformHelpers.h"
 

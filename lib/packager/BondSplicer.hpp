@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef BONDSPLICER_HPP
+#define BONDSPLICER_HPP
 
-#pragma once
-
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 #include "DataPackage.hpp"
-//#include "bond/generated/AriaProtocol_types.hpp"
 
 #include <list>
 #include <vector>
@@ -47,3 +46,4 @@ class BondSplicer
 
 
 } ARIASDK_NS_END
+#endif

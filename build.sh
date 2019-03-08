@@ -34,6 +34,9 @@ if [ -f /usr/bin/clang ]; then
 echo "clang version: `clang --version`"
 fi
 
+# Skip Version.hpp changes
+git update-index --skip-worktree lib/include/public/Version.hpp
+
 #rm -rf out
 mkdir -p out
 cd out
@@ -90,5 +93,8 @@ fi
 if [ "$CMAKE_PACKAGE_TYPE" == "tgz" ]; then
 cd ..
 ARIA_SDK_INSTALL_DIR="${ARIA_SDK_INSTALL_DIR:-/usr/local}"
+echo "+-----------------------------------------------------------------------------------+"
+echo " This step may prompt for your sudo password to deploy SDK to $ARIA_SDK_INSTALL_DIR  "
+echo "+-----------------------------------------------------------------------------------+"
 sudo ./install.sh $ARIA_SDK_INSTALL_DIR
 fi

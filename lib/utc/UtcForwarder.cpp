@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+// TODO: [MG] - This file is not currently in use and needs to be removed
 #include "UtcForwarder.hpp"
 #include "utils/Common.hpp"
 #include "TraceLoggingDynamic.h"

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef SEMANTICCONTEXTDECORATOR_HPP
+#define SEMANTICCONTEXTDECORATOR_HPP
 
-#pragma once
 #include "IDecorator.hpp"
 #include "api/ContextFieldsProvider.hpp"
 
@@ -34,3 +35,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

@@ -1,8 +1,12 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
+
 #pragma once
+
+#include "pal/PAL.hpp"
 
 #include <string>
 #include <vector>
-#include "pal/PAL.hpp"
 
 namespace Microsoft {
     namespace Applications {
@@ -35,3 +39,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

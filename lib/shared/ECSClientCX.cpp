@@ -1,4 +1,5 @@
-#ifdef ENABLE_ECSCLIENT
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #include "ECSClientCX.hpp"
 #include "LoggerCX.hpp"
 #include <iostream>

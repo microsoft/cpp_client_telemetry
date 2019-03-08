@@ -8,6 +8,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    const char* const TICKETS_PREPEND_STRING = "1000";
 
     /// <summary>
     /// This class is used to manage the Events  logging system

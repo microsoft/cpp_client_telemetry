@@ -1,4 +1,6 @@
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 
 #include <string>
 
@@ -21,5 +23,4 @@ const std::string EVENT_FIELD_AFDCLIENT_CONFIG_SOURCE = "Source";
 const std::string EVENT_TYPE_AFDCLIENT_STATE_CHANGE = "EXPClientState";
 const std::string EVENT_FIELD_AFDCLIENT_STATE = "State";
 
-
-
+#endif

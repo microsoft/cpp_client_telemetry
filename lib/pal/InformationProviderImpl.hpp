@@ -1,8 +1,9 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #ifndef INFORMATIONPROVIDERIMPL_HPP
 #define INFORMATIONPROVIDERIMPL_HPP
-// Copyright (c) Microsoft Corporation. All rights reserved.
-#include <pal/PAL.hpp>
-#include <IInformationProvider.hpp>
+
+#include "pal/PAL.hpp"
+#include "IInformationProvider.hpp"
 
 #include <vector>
 #include <mutex>

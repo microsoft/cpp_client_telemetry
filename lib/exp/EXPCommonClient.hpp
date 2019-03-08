@@ -1,7 +1,9 @@
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 
 #include "json.hpp"   // KEEP THIS FIRST! (ILogger.hpp is defining max() and min() macros somewhere, which breaks json.hpp)
-#include <IHttpClient.hpp>
+#include "IHttpClient.hpp"
 #include "ILogger.hpp"
 #include "pal/PAL.hpp"
 
@@ -247,3 +249,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

@@ -1,13 +1,15 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef DEVICEINFORMATIONIMPL_HPP
 #define DEVICEINFORMATIONIMPL_HPP
-// Copyright (c) Microsoft. All rights reserved.
-#include <pal/PAL.hpp>
-#include "Enums.hpp"
 
+#include "pal/PAL.hpp"
+#include "Enums.hpp"
 #include "IDeviceInformation.hpp"
 #include "InformationProviderImpl.hpp"
 
 #include <string>
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 

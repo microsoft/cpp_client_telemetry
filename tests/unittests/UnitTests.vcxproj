@@ -130,7 +130,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -142,18 +142,18 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -179,7 +179,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -189,20 +189,19 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -213,7 +212,7 @@
       <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <SubSystem>Console</SubSystem>
       <Version>
@@ -226,7 +225,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -236,7 +235,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -244,11 +243,11 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -274,7 +273,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -284,7 +283,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -292,11 +291,11 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -322,7 +321,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -333,18 +332,18 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -355,7 +354,7 @@
       <AdditionalOptions> /machine:X64 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <SubSystem>Console</SubSystem>
       <Version>
@@ -368,7 +367,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -379,18 +378,18 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="EVT";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -401,7 +400,7 @@
       <AdditionalOptions> /machine:ARM64 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <SubSystem>Console</SubSystem>
       <Version>

@@ -1,7 +1,9 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef INETWORKINFORMATION_HPP
+#define INETWORKINFORMATION_HPP
 
-#include <pal/PAL.hpp>
-#include <IInformationProvider.hpp>
+#include "pal/PAL.hpp"
+#include "IInformationProvider.hpp"
 
 #include <string>
 
@@ -13,6 +15,8 @@
 #define NETWORK_PROVIDER "NetworkProvider"
 #define NETWORK_COST "NetworkCost"
 #define NETWORK_TYPE "NetworkType"
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
@@ -64,3 +68,4 @@ namespace PAL_NS_BEGIN {
     };
 
 } PAL_NS_END
+#endif

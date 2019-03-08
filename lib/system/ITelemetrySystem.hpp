@@ -2,7 +2,7 @@
 #ifndef ITELEMETRYSYSTEM_HPP
 #define ITELEMETRYSYSTEM_HPP
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "bond/BondSerializer.hpp"
 

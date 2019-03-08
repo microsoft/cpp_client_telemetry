@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef ANNEX_K_HPP
 #define ANNEX_K_HPP
 

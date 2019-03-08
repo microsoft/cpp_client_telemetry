@@ -1,3 +1,0 @@
-[submodule "tools/moxygen"]
-	path = tools/moxygen
-	url = https://github.com/sourcey/moxygen.git

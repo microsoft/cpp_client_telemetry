@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef ISQLITE3PROXY_HPP
+#define ISQLITE3PROXY_HPP
 
-#pragma once
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include <cinttypes>
 
@@ -57,3 +58,4 @@ extern ISqlite3Proxy* g_sqlite3Proxy;
 
 
 } ARIASDK_NS_END
+#endif

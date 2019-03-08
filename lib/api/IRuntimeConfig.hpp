@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IRUNTIMECONFIG_HPP
 #define IRUNTIMECONFIG_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 

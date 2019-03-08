@@ -1,7 +1,8 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
 #ifndef SYSTEMINFORMATIONIMPL_HPP
 #define SYSTEMINFORMATIONIMPL_HPP
-// Copyright (c) Microsoft Corporation. All rights reserved.
-#include <pal/PAL.hpp>
+
+#include "pal/PAL.hpp"
 
 #include "ISystemInformation.hpp"
 #include "IInformationProvider.hpp"

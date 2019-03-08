@@ -25,10 +25,10 @@ message("-- TARGET_ARCH:            ${TARGET_ARCH}")
 
 include(tools/ParseOsRelease.cmake)
 
-set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -fmerge-all-constants -ffast-math")
+set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wall -Wextra -pedantic -Wl,--gc-sections -fmerge-all-constants -ffast-math")
 
 # Use libtcmalloc for Debug builds memory leaks detection
-set(DBG_FLAGS "-ggdb -gdwarf-2 -O0 -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
+set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  -Wall -Wextra -pedantic -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
   #TODO: -fno-rtti
@@ -45,14 +45,10 @@ endif()
 
 include(tools/Utils.cmake)
 
-# Stand-alone or Skype (dev_buildtools etc.) build
 if (NOT DEFAULT_PAL_IMPLEMENTATION)
 # Linux, Mac OS X, MinGW, etc.
   set(DEFAULT_PAL_IMPLEMENTATION CPP11)
 endif()
-
-# TODO: [MG] - remove. No longer needed - legacy stuff from Skype.
-#set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
 
 set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
 
@@ -60,7 +56,7 @@ message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
 add_definitions(-DARIASDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
 
-option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility with Skype dependencies)" OFF)
+option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
@@ -159,10 +155,6 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
-
-#if(BUILD_TEST_TOOL)
-#  add_subdirectory(linktest)
-#endif()
 
 ################################################################################################
 # Packaging

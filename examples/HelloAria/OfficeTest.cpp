@@ -8,7 +8,7 @@
 
 LOGMANAGER_INSTANCE;
 
-using namespace Microsoft::Applications::Events;
+using namespace MAT;
 
 const char* officeCustomTransmitProfile = R"(
 [{

@@ -1,10 +1,11 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
-#include "../../EXPCommonClient.hpp"
-#include "../../JsonHelper.hpp"
+#include "exp/EXPCommonClient.hpp"
+#include "exp/JsonHelper.hpp"
 #include "ECSConfigCache.hpp"
-#include "offline/FifoFileStorage.hpp"
-#include "pal/UtcHelpers.hpp"
+#include "exp/FifoFileStorage.hpp"
 #include "ECSClientUtils.hpp"
 
 #include "utils/Utils.hpp"
@@ -326,11 +327,11 @@ namespace Microsoft {
                     return true;
                 }
 
-                ARIASDK_NS::IStorage* ECSConfigCache::_CreateOfflineStorage(const string& storagePath)
+                ARIASDK_NS::IDataStorage* ECSConfigCache::_CreateOfflineStorage(const string& storagePath)
                 {
                     std::lock_guard<std::mutex> lock(m_lock);
                     // create offline storage
-                    ARIASDK_NS::IStorage* pOfflineStorage = new MAT::FIFOFileStorage();
+                    ARIASDK_NS::IDataStorage* pOfflineStorage = new MAT::FIFOFileStorage();
                     if (!pOfflineStorage)
                     {
                         LOG_ERROR("[ECSClient]: Failed to create offline storage");
@@ -363,4 +364,4 @@ namespace Microsoft {
         }
     }
 }
-
+#endif

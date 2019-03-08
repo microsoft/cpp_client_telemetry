@@ -3,7 +3,6 @@
 // Copyright (c) Microsoft. All rights reserved .
 
 #include "common/Common.hpp"
-//#include "common/MockIStorage.hpp"
 #include "offline/FIFOFileStorage.hpp"
 
 using namespace testing;
@@ -758,7 +757,7 @@ TEST_F(FIFOOfflineStorageTests, OfflineStorageRemoveItemsByTimeUnitTest)
     FIFOFileStorage  storeFile;
     storeFile.DeleteFileLocal(filename);
 
-    Microsoft::Applications::Events::IStorage* pOfflineStorage = new FIFOFileStorage();
+    Microsoft::Applications::Events::IDataStorage* pOfflineStorage = new FIFOFileStorage();
     EXPECT_TRUE(pOfflineStorage != NULL);
 
     EXPECT_TRUE(pOfflineStorage->Open(filename, 1000 * (32 * 1024)) == 0);

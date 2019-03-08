@@ -3,13 +3,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
-
 #include "string"
 
 namespace ARIASDK_NS_BEGIN
 {
-
-    class IStorage;
 
     /// <summary>
     /// The LogSessionData class represents the session cache.
@@ -26,23 +23,25 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the time that this session began.
         /// </summary>
         /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSesionFirstTime() const;
+        unsigned long long getSessionFirstTime() const
+        {
+            return m_sessionFirstTimeLaunch;
+        }
 
         /// <summary>
         /// Gets the SDK unique identifier.
         /// </summary>
-        std::string& getSessionSDKUid();
+        std::string getSessionSDKUid() const
+        {
+            return m_sessionSDKUid;
+        }
 
-    private:
+    protected:
+
+        void open(const std::string& path);
 
         std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch;
-        IStorage*                           m_sessionStorage;
-
-        bool StartSessionStorage(std::string const& sessionpath);
-        void StopSessionStorage();
-        void PopulateSession();
-        unsigned long long to_long(const char *string, size_t size);
     };
 
 

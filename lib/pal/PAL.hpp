@@ -1,10 +1,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 #pragma once
-#include <Version.hpp>
+#include "mat/config.h"
+#include "Version.hpp"
 
 #include "typename.hpp"
 
 #include "ctmacros.hpp"
+
+#ifdef HAVE_MAT_EXP
+#define ECS_SUPP "ECS"
+#else
+#define ECS_SUPP "No"
+#endif
 
 namespace PAL_NS_BEGIN {
 
@@ -12,7 +19,7 @@ namespace PAL_NS_BEGIN {
 
     //
     // Debug logging
-    //
+    // TODO: [MG] - re-route logging to universal (ETW,File,syslog,etc.) tracing API from v1
 
     // *INDENT-OFF*
 
@@ -57,6 +64,14 @@ namespace PAL_NS_BEGIN {
         PAL::detail::log((level_), (comp_), (fmt_), ##__VA_ARGS__); \
     } else static_cast<void>(0)
 
+#ifndef HAVE_MAT_LOGGING
+/* No logging */
+#define LOG_DEBUG(fmt, ...)
+#define LOG_TRACE(fmt, ...)
+#define LOG_INFO(fmt,  ...)
+#define LOG_WARN(fmt,  ...)
+#define LOG_ERROR(fmt, ...)
+#else
 #ifdef NDEBUG
 #define LOG_DEBUG(fmt_, ...)
 #else
@@ -66,14 +81,13 @@ namespace PAL_NS_BEGIN {
 #define LOG_INFO(fmt_, ...)     ARIASDK_LOG_(PAL::Info,    getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
 #define LOG_WARN(fmt_, ...)     ARIASDK_LOG_(PAL::Warning, getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
 #define LOG_ERROR(fmt_, ...)    ARIASDK_LOG_(PAL::Error,   getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
+#endif
 
 } PAL_NS_END // namespace PAL
 
 // See docs/PAL.md for details about the classes, functions and macros a PAL implementation must support.
 
-#ifdef ARIASDK_PAL_SKYPE
-#include "PAL_Skype.hpp"
-#elif ARIASDK_PAL_WIN32
+#ifdef ARIASDK_PAL_WIN32
 #include "PAL_Win32.hpp"
 #elif ARIASDK_PAL_CPP11
 #include "PAL_CPP11.hpp"

@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef IBACKOFF_HPP
+#define IBACKOFF_HPP
 
-#pragma once
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
+
 #include <memory>
 #include <string>
 
@@ -42,3 +44,4 @@ class IBackoff {
 
 
 } ARIASDK_NS_END
+#endif

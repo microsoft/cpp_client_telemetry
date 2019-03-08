@@ -1,9 +1,10 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef TRANSMITPROFILES_HPP
 #define TRANSMITPROFILES_HPP
 
-#include <Version.hpp>
+#include "Version.hpp"
 
-#include <Enums.hpp>
+#include "Enums.hpp"
 
 #include <cstdint>
 #include <vector>

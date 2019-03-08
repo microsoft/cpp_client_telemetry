@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 #pragma once
+#ifndef PAL_WIN32_HPP
+#define PAL_WIN32_HPP
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
 
-#include <ISemanticContext.hpp>
-#include <api/ContextFieldsProvider.hpp>
+#include "ISemanticContext.hpp"
+#include "api/ContextFieldsProvider.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -107,8 +109,8 @@ namespace PAL_NS_BEGIN {
     std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
 
     // Populate per-platform fields in ISemanticContext and keep them updated during runtime.
-    void registerSemanticContext(ISemanticContext * context);
-    void unregisterSemanticContext(ISemanticContext * context);
+    void registerSemanticContext(MAT::ISemanticContext * context);
+    void unregisterSemanticContext(MAT::ISemanticContext * context);
 
     // Convert various numeric types and bool to string in an uniform manner.
     template<typename T>
@@ -124,4 +126,4 @@ namespace PAL_NS_BEGIN {
     std::string getSdkVersion();
 
 } PAL_NS_END
-
+#endif

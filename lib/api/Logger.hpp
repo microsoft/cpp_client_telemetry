@@ -2,14 +2,14 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 
 #include "ILogManager.hpp"
 #include "LogManagerImpl.hpp"
 
-#include <ILogger.hpp>
+#include "ILogger.hpp"
 
 #include "ContextFieldsProvider.hpp"
 

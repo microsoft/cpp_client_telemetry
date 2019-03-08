@@ -8,14 +8,23 @@
 #ifndef RESOURCE_COMPILER_INVOKED
 #include <stdint.h>
 
+#ifdef HAVE_MAT_SHORT_NS
+/* Short NS name reduces .DLL size */
+#define ARIASDK_NS_BEGIN MAT
+#define ARIASDK_NS       MAT
+#define ARIASDK_NS_END   
+#define PAL_NS_BEGIN     PAL
+#define PAL_NS_END       
+#else
 #define ARIASDK_NS_BEGIN Microsoft { namespace Applications { namespace Events
-#define ARIASDK_NS_END   }}
 #define ARIASDK_NS       Microsoft::Applications::Events
-#define MAT              ::ARIASDK_NS
+#define ARIASDK_NS_END   }}
 
 #define PAL_NS_BEGIN     Microsoft { namespace Applications { namespace Events { namespace PlatformAbstraction
 #define PAL_NS_END       }}}
 #define PAL              ::Microsoft::Applications::Events::PlatformAbstraction
+#define MAT              ::ARIASDK_NS
+#endif
 
 #define MAT_v1           ::Microsoft::Applications::Telemetry
 

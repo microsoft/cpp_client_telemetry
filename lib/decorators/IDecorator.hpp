@@ -1,9 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef IDECORATOR_HPP
+#define IDECORATOR_HPP
+
 #include "pal/PAL.hpp"
 
-#pragma once
 #include "utils/Utils.hpp"
 #include "bond/generated/AriaProtocol_types.hpp"
+
 #include <cstddef>
 
 #include "system/ITelemetrySystem.hpp"
@@ -27,6 +30,8 @@ namespace ARIASDK_NS_BEGIN {
 
         static bool checkNotEmpty(std::string const& value, char const* desc)
         {
+            UNREFERENCED_PARAMETER(desc);
+
             if (!value.empty()) {
                 return true;
             }
@@ -106,11 +111,7 @@ namespace ARIASDK_NS_BEGIN {
         };
 
         template<size_t N>
-#if 1
         static void setEnumValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
-#else // origin/dev
-        static void setEnumValue(std::map<std::string, std::string>& dest, std::string const& key, std::ptrdiff_t value, EnumValueName const (&names)[N])
-#endif
         {
             for (EnumValueName const& item : names) {
                 if (item.value == value) {
@@ -124,3 +125,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

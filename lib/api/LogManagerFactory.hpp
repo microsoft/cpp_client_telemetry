@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LOGMANAGERFACTORY_HPP
+#define LOGMANAGERFACTORY_HPP
 
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
@@ -135,3 +136,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+
+#endif

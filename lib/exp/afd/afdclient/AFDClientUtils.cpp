@@ -1,7 +1,10 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
 #include "AFDClientUtils.hpp"
 #include "pal/PAL.hpp"
+
 #include <assert.h>
 #include <string>
 #include <iostream>
@@ -32,3 +35,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

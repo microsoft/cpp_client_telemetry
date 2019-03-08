@@ -9,10 +9,6 @@
 #include "MockISqlite3Proxy.hpp"
 #include "MockITelemetrySystem.hpp"
 
-//#ifdef ARIASDK_PAL_SKYPE
-//#include "MockIEcsClient.hpp"
-//#endif
-
 namespace testing {
 
 
@@ -41,16 +37,6 @@ namespace testing {
 
     MockISqlite3Proxy::MockISqlite3Proxy() {}
     MockISqlite3Proxy::~MockISqlite3Proxy() {}
-
-#ifdef ARIASDK_PAL_SKYPE
-
-    MockIEcsConfig::MockIEcsConfig() {}
-    MockIEcsConfig::~MockIEcsConfig() {}
-
-    MockIEcsClient::MockIEcsClient() {}
-    MockIEcsClient::~MockIEcsClient() {}
-
-#endif
 
     ITelemetrySystem& getSystem()
     {

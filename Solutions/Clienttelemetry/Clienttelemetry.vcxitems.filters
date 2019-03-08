@@ -64,14 +64,8 @@
     <Filter Include="filter">
       <UniqueIdentifier>{3061113d-a28a-48eb-b0f7-6490f2885d4b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="exp">
-      <UniqueIdentifier>{29c3c023-857e-4285-ab3b-9006913e9448}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="exp\afd">
-      <UniqueIdentifier>{e8e6035c-573d-4a79-97eb-ba7c31210e76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="exp\ecs">
-      <UniqueIdentifier>{5e45366f-2f79-490f-ae37-ccf817379cfe}</UniqueIdentifier>
+    <Filter Include="include\mat">
+      <UniqueIdentifier>{f0264a27-35fe-4529-946f-9583e4624255}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -150,29 +144,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
       <Filter>tpm</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.cpp">
       <Filter>offline</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp">
-      <Filter>exp\afd</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp">
-      <Filter>exp\afd</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp">
-      <Filter>exp\afd</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.cpp">
-      <Filter>exp\ecs</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp">
-      <Filter>exp\ecs</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp">
-      <Filter>exp\ecs</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp">
-      <Filter>exp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp">
       <Filter>system</Filter>
@@ -192,9 +165,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp">
       <Filter>offline</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp">
-      <Filter>exp</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp">
       <Filter>api</Filter>
     </ClCompile>
@@ -209,9 +179,6 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp">
       <Filter>decorators</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonTransport.cpp">
-      <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp">
       <Filter>filter</Filter>
@@ -232,6 +199,9 @@
       <Filter>offline</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -357,7 +327,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ClockSkewDelta.h">
       <Filter>system</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.hpp">
       <Filter>offline</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp">
@@ -365,33 +335,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp">
       <Filter>system</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp">
-      <Filter>exp\afd</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientConfig.hpp">
-      <Filter>exp\afd</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.hpp">
-      <Filter>exp\afd</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.hpp">
-      <Filter>exp\afd</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.hpp">
-      <Filter>exp\ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientConfig.hpp">
-      <Filter>exp\ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp">
-      <Filter>exp\ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp">
-      <Filter>exp\ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp">
-      <Filter>exp</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp">
       <Filter>system</Filter>
@@ -447,9 +390,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp">
       <Filter>offline</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp">
-      <Filter>exp</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
@@ -470,12 +410,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp">
       <Filter>api</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Config.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp">
-      <Filter>include\aria</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp">
       <Filter>include\aria</Filter>
@@ -499,9 +433,6 @@
       <Filter>include\aria</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\TraceHelper.hpp">
       <Filter>include\aria</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp">
@@ -562,6 +493,25 @@
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-exp.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-dll.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

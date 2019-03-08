@@ -1,9 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef CONTEXTFIELDSPROVIDER_HPP
+#define CONTEXTFIELDSPROVIDER_HPP
 
-#pragma once
-#include <ILogger.hpp>
-#include <mutex>
+#include "ILogger.hpp"
 #include "bond/generated/AriaProtocol_types.hpp"
+#include "CommonFields.hpp"
+
+#include <mutex>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -75,3 +78,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

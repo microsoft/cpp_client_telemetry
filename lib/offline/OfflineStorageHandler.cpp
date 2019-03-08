@@ -2,7 +2,10 @@
 
 #include "OfflineStorageHandler.hpp"
 
+#ifdef HAVE_MAT_STORAGE
 #include "offline/OfflineStorage_SQLite.hpp"
+#endif
+
 #include "offline/MemoryStorage.hpp"
 
 #include "ILogManager.hpp"
@@ -79,8 +82,13 @@ namespace ARIASDK_NS_BEGIN {
         m_observer = &observer;
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
+#ifndef HAVE_MAT_STORAGE
+        /* No storage configured */
+        m_offlineStorageDisk.reset(nullptr);
+#else
         m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
         m_offlineStorageDisk->Initialize(*this);
+#endif
 
         // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
         // so that the Flush() op on memory storage leads to saving unflushed events to
@@ -111,7 +119,7 @@ namespace ARIASDK_NS_BEGIN {
             m_offlineStorageDisk->Shutdown();
         }
     }
-    
+
     /// <summary>
     /// Get estimated DB size
     /// </summary>
@@ -155,15 +163,15 @@ namespace ARIASDK_NS_BEGIN {
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            
+
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
 
-////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
-// TODO: [MG] - consider running the batch in transaction
-//            if (sqlite)
-//                sqlite->Execute("BEGIN");
+            ////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
+            // TODO: [MG] - consider running the batch in transaction
+            //            if (sqlite)
+            //                sqlite->Execute("BEGIN");
 
             while (records.size())
             {
@@ -173,11 +181,11 @@ namespace ARIASDK_NS_BEGIN {
                 records.pop_back();
             }
 
-// TODO: [MG] - consider running the batch in transaction
-//            if (sqlite)
-//                sqlite->Execute("END");
+            // TODO: [MG] - consider running the batch in transaction
+            //            if (sqlite)
+            //                sqlite->Execute("END");
 
-            // Delete records from reserved on flush
+                        // Delete records from reserved on flush
             HttpHeaders dummy;
             bool fromMemory = true;
             m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
@@ -221,7 +229,7 @@ namespace ARIASDK_NS_BEGIN {
             {
 #if 0
                 //check if Application needs to be notified
-                if ( (memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
+                if ((memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
                 {
                     // TODO: [MG] - do we really need in-memory DB size limit notifications here?
                     DebugEvent evt;
@@ -270,7 +278,10 @@ namespace ARIASDK_NS_BEGIN {
             m_offlineStorageMemory->ResizeDb();
         }
 
-        m_offlineStorageDisk->ResizeDb();
+        if (nullptr != m_offlineStorageDisk)
+        {
+            m_offlineStorageDisk->ResizeDb();
+        }
 
         return true;
     }
@@ -356,7 +367,7 @@ namespace ARIASDK_NS_BEGIN {
 
     /**
      * Perform scrub of both memory queue and offline storage.
-     */    
+     */
      /// <summary>
      /// Perform scrub of underlying storage systems using 'where' clause
      /// </summary>
@@ -376,17 +387,17 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-     /// <summary>
-     /// Delete records that would match the set of ids or based on kill-switch header
-     /// </summary>
-     /// <param name="ids">Identifiers of records to delete</param>
-     /// <param name="headers">Headers may indicate "Kill-Token" several times</param>
-     /// <param name="fromMemory">Flag that indicates where to delete from by IDs</param>
-     /// <remarks>
-     /// IDs of records that are no longer found in the storage are silently ignored.
-     /// Called from the internal worker thread.
-     /// Killed tokens deleted from both - memory storage and offline storage if available.
-     /// </remarks>
+    /// <summary>
+    /// Delete records that would match the set of ids or based on kill-switch header
+    /// </summary>
+    /// <param name="ids">Identifiers of records to delete</param>
+    /// <param name="headers">Headers may indicate "Kill-Token" several times</param>
+    /// <param name="fromMemory">Flag that indicates where to delete from by IDs</param>
+    /// <remarks>
+    /// IDs of records that are no longer found in the storage are silently ignored.
+    /// Called from the internal worker thread.
+    /// Killed tokens deleted from both - memory storage and offline storage if available.
+    /// </remarks>
     void OfflineStorageHandler::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
         if (m_clockSkewManager.isWaitingForClockSkew())
@@ -395,7 +406,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         /* Handle delete of killed tokens on 200 OK or non-retryable status code */
-        if ( (!headers.empty()) && m_killSwitchManager.handleResponse(headers))
+        if ((!headers.empty()) && m_killSwitchManager.handleResponse(headers))
         {
             /* Since we got the ask for a new token kill, means we sent something we should now stop sending */
             LOG_TRACE("Scrub all pending events associated with killed token(s)");
@@ -410,7 +421,10 @@ namespace ARIASDK_NS_BEGIN {
         }
         else
         {
-            m_offlineStorageDisk->DeleteRecords(ids, headers, fromMemory);
+            if (nullptr != m_offlineStorageDisk)
+            {
+                m_offlineStorageDisk->DeleteRecords(ids, headers, fromMemory);
+            }
         }
     }
 
@@ -435,19 +449,30 @@ namespace ARIASDK_NS_BEGIN {
         }
         else
         {
-            m_offlineStorageDisk->ReleaseRecords(ids, incrementRetryCount, headers, fromMemory);
+            if (nullptr != m_offlineStorageDisk)
+            {
+                m_offlineStorageDisk->ReleaseRecords(ids, incrementRetryCount, headers, fromMemory);
+            }
         }
     }
 
     bool OfflineStorageHandler::StoreSetting(std::string const& name, std::string const& value)
     {
-        m_offlineStorageDisk->StoreSetting(name, value);
-        return true;
+        if (nullptr != m_offlineStorageDisk)
+        {
+            m_offlineStorageDisk->StoreSetting(name, value);
+            return true;
+        }
+        return false;
     }
 
     std::string OfflineStorageHandler::GetSetting(std::string const& name)
     {
-        return m_offlineStorageDisk->GetSetting(name);
+        if (nullptr != m_offlineStorageDisk)
+        {
+            return m_offlineStorageDisk->GetSetting(name);
+        }
+        return "";
     }
 
 

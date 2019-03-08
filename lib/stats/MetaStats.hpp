@@ -5,15 +5,84 @@
 
 #include "api/IRuntimeConfig.hpp"
 
-#include <Enums.hpp>
+#include "Enums.hpp"
 #include "bond/generated/AriaProtocol_types.hpp"
-
-#include <Config.hpp>
 
 #include <memory>
 #include <algorithm>
 
 namespace ARIASDK_NS_BEGIN {
+
+    /** \brief The first positive spot for the frequency distribution of package consecutive failure duration.
+        <20s, 20s~40s, 40s~80s, 80s~160s, 160s~320s, 320s~640s, >640s
+     */
+    const unsigned int STATS_PACKAGE_CONSECUTIVE_FAILURE_FIRST_DURATION_IN_SECS = 20;
+
+    /** \brief The factor used to calculate next spot of frequency distribution of package consecutive failure duration.
+        <20s, 20s~40s, 40s~80s, 80s~160s, 160s~320s, 320s~640s, >640s
+     */
+    const unsigned int STATS_PACKAGE_CONSECUTIVE_FAILURE_NEXT_FACTOR = 2;
+
+    /** \brief The total spots of frequency distribution of package consecutive failure duration.
+        <20s, 20s~40s, 40s~80s, 80s~160s, 160s~320s, 320s~640s, >640s
+     */
+    const unsigned int STATS_PACKAGE_CONSECUTIVE_FAILURE_TOTAL_SPOTS = 7;
+
+    /** \brief The first positive spot for the frequency distribution of rtt.
+        <100ms, 100ms~200ms, 200ms~400ms, 400ms~800ms, 800ms~1600ms, 1600s~3200ms, >3200ms
+     */
+    const unsigned int STATS_RTT_FIRST_DURATION_IN_MILLISECS = 100;
+
+    /** \brief The factor used to calculate next spot of frequency distribution of rtt.
+     */
+    const unsigned int STATS_RTT_NEXT_FACTOR = 2;
+
+    /** \brief The total spots of frequency distribution of rtt.
+     */
+    const unsigned int STATS_RTT_TOTAL_SPOTS = 7;
+
+    /** \brief The first positive spot for the frequency distribution of latency.
+    <1000ms, 1000ms~2000ms, 2000ms~4000ms, 4000ms~8000ms, 8000ms~16000ms, 16000ms~32000ms, >32000ms
+    */
+    const unsigned int STATS_LATENCY_FIRST_DURATION_IN_MILLISECS = 1000;
+
+    /** \brief The factor used to calculate next spot of the latency distribution.
+    */
+    const unsigned int STATS_LATENCY_NEXT_FACTOR = 2;
+
+    /** \brief The total spots of the latency distribution.
+    */
+    const unsigned int STATS_LATENCY_TOTAL_SPOTS = 7;
+
+    /** \brief The first positive spot for the frequency distribution of record size.
+        <1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB
+     */
+    const unsigned int STATS_RECORD_SIZE_FIRST_IN_KB = 1; // unit: kB
+
+    /** \brief The factor used to calculate next spot of frequency distribution of record size.
+        <1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB
+     */
+    const unsigned int STATS_RECORD_SIZE_NEXT_FACTOR = 2;
+
+    /** \brief The total spots of frequency distribution of record size.
+        <1KB, 1KB~2KB, 2KB~4KB, 4KB~8KB, 8KB~16KB, 16KB~32KB, 32KB~64KB, > 64KB
+     */
+    const unsigned int STATS_RECORD_SIZE_TOTAL_SPOTS = 8;
+
+    /** \brief The first positive spot for the frequency distribution for saved size, overwritten size.
+        <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB
+     */
+    const unsigned int STATS_STORAGE_SIZE_FIRST_IN_KB = 8;
+
+    /** \brief The factor used to calculate next spot of frequency distribution for saved size, overwritten size.
+        <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB
+     */
+    const unsigned int STATS_STORAGE_SIZE_NEXT_FACTOR = 2;
+
+    /** \brief The total spots of frequency distribution for saved size, overwritten size.
+        <8KB, 8~16KB, 16~32KB, 32~64KB, 64KB~128KB, 128KB~256KB, 256KB~512KB,> 512KB
+     */
+    const unsigned int STATS_STORAGE_SIZE_TOTAL_SPOTS = 8;
 
     /// <summary>
     /// Define a new name for a map whose key, value are both unsigned int.

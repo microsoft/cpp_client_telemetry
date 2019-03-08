@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <IOfflineStorage.hpp>
-#include <IHttpClient.hpp>
+#include "IOfflineStorage.hpp"
+#include "IHttpClient.hpp"
 
 namespace testing {
 

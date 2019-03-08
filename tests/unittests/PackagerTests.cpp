@@ -4,7 +4,7 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include "packager/Packager.hpp"
-#include <bond_lite/All.hpp>
+#include "bond_lite/All.hpp"
 #include "bond/generated/AriaProtocol_types.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
 

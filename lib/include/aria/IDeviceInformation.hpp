@@ -1,7 +1,8 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IDEVICEINFORMATION_HPP
 #define IDEVICEINFORMATION_HPP
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "Enums.hpp"
 #include "IInformationProvider.hpp"
@@ -11,6 +12,8 @@
 // Property Name
 #define STORAGE_SIZE "StorageSize"
 #define POWER_SOURCE "PowerSource"
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 

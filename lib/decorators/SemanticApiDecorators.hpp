@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef SEMANTICAPIDECORATORS_HPP
+#define SEMANTICAPIDECORATORS_HPP
 
-#pragma once
 #include "IDecorator.hpp"
-#include "Config.hpp"
-#include <ILogger.hpp>
+#include "ILogger.hpp"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -297,4 +297,5 @@ namespace ARIASDK_NS_BEGIN {
 } ARIASDK_NS_END
 #ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 #endif

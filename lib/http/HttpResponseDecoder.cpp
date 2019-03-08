@@ -4,9 +4,12 @@
 #include "ILogManager.hpp"
 #include <IHttpClient.hpp>
 #include "utils/Utils.hpp"
-#include "json.hpp"
 #include <algorithm>
 #include <cassert>
+
+#ifdef HAVE_MAT_JSONHPP
+#include "json.hpp"
+#endif
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -19,7 +22,7 @@ namespace ARIASDK_NS_BEGIN {
     HttpResponseDecoder::~HttpResponseDecoder()
     {
     }
-    
+
     /// <summary>
     /// Dispatches the specified event via parent LogManager to a client callback.
     /// </summary>
@@ -42,17 +45,20 @@ namespace ARIASDK_NS_BEGIN {
         IHttpResponse const& response = *(ctx->httpResponse);
         IHttpRequest & request = *(ctx->httpRequest);
 
-        enum { Accepted, Rejected, RetryServer, RetryNetwork, Abort } outcome = Abort;
+        HttpRequestResult outcome = Abort;
         auto result = response.GetResult();
         switch (result) {
         case HttpResult_OK:
-            if (response.GetStatusCode() == 200) {
+            if (response.GetStatusCode() == 200)
+            {
                 outcome = Accepted;
             }
-            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429) {
+            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429)
+            {
                 outcome = RetryServer;
             }
-            else {
+            else
+            {
                 outcome = Rejected;
             }
             break;
@@ -70,66 +76,8 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         if (response.GetBody().size() > 0)
-        { // parse the response 
-            nlohmann::json responseBody;
-            try
-            {
-                std::string body(response.GetBody().begin(), response.GetBody().end());
-                responseBody = nlohmann::json::parse(body.c_str());
-                int accepted = 0;
-                auto acc = responseBody.find("acc");
-                if (responseBody.end() != acc)
-                {
-                    if (acc.value().is_number())
-                    {
-                        accepted = acc.value().get<int>();
-                    }
-                }
-
-                int rejected = 0;
-                auto rej = responseBody.find("rej");
-                if (responseBody.end() != rej)
-                {
-                    if (rej.value().is_number())
-                    {
-                        rejected = rej.value().get<int>();
-                    }
-                }
-
-                auto efi = responseBody.find("efi");
-                if (responseBody.end() != efi)
-                {
-                    for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
-                    {
-                        std::string efiKey(it.key());
-                        nlohmann::json val = it.value();
-                        if (val.is_array())
-                        {
-                            //std::vector<int> failureVector = val.get<std::vector<int>>();
-                            // eventsRejected(ctx);     with only the ids in the vector above
-                        }
-                        if (val.is_string())
-                        {
-                            if ("all" == val.get<std::string>())
-                            {
-                                outcome = Rejected;
-                            }
-                        }
-                    }
-                }
-
-                auto ticket = responseBody.find("TokenCrackingFailure");
-                if (responseBody.end() != ticket)
-                {
-                    DebugEvent evt;
-                    evt.type = DebugEventType::EVT_TICKET_EXPIRED;
-                    DispatchEvent(evt);
-                }
-            }
-            catch (...)
-            {
-                LOG_ERROR("Http response JSON parsing failed");
-            }
+        {
+            processBody(response, outcome);
         }
 
         switch (outcome) {
@@ -212,6 +160,75 @@ namespace ARIASDK_NS_BEGIN {
             break;
         }
         }
+    }
+
+    void HttpResponseDecoder::processBody(IHttpResponse const& response, HttpRequestResult & result)
+    {
+#ifdef HAVE_MAT_JSONHPP
+        // TODO: [MG] - parse HTTP response without json.hpp library
+        nlohmann::json responseBody;
+        try
+        {
+            std::string body(response.GetBody().begin(), response.GetBody().end());
+            responseBody = nlohmann::json::parse(body.c_str());
+            int accepted = 0;
+            auto acc = responseBody.find("acc");
+            if (responseBody.end() != acc)
+            {
+                if (acc.value().is_number())
+                {
+                    accepted = acc.value().get<int>();
+                }
+            }
+
+            int rejected = 0;
+            auto rej = responseBody.find("rej");
+            if (responseBody.end() != rej)
+            {
+                if (rej.value().is_number())
+                {
+                    rejected = rej.value().get<int>();
+                }
+            }
+
+            auto efi = responseBody.find("efi");
+            if (responseBody.end() != efi)
+            {
+                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+                {
+                    std::string efiKey(it.key());
+                    nlohmann::json val = it.value();
+                    if (val.is_array())
+                    {
+                        //std::vector<int> failureVector = val.get<std::vector<int>>();
+                        // eventsRejected(ctx);     with only the ids in the vector above
+                    }
+                    if (val.is_string())
+                    {
+                        if ("all" == val.get<std::string>())
+                        {
+                            result = Rejected;
+                        }
+                    }
+                }
+            }
+
+            auto ticket = responseBody.find("TokenCrackingFailure");
+            if (responseBody.end() != ticket)
+            {
+                DebugEvent evt;
+                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+                DispatchEvent(evt);
+            }
+        }
+        catch (...)
+        {
+            LOG_ERROR("Http response JSON parsing failed");
+        }
+#else
+        UNREFERENCED_PARAMETER(response);
+        UNREFERENCED_PARAMETER(result);
+#endif
     }
 
 } ARIASDK_NS_END

@@ -1,8 +1,10 @@
+#include "mat/config.h"
 #include "LogConfiguration.hpp"
 
+#ifdef HAVE_MAT_JSONHPP
 #include <json.hpp>
-
 using json = nlohmann::json;
+#endif
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -50,7 +52,7 @@ namespace ARIASDK_NS_BEGIN {
 
             { CFG_INT_STORAGE_FULL_PCT,     75 }, // v1 had these parameters inside STL map.
             { CFG_INT_RAMCACHE_FULL_PCT,    75 }  // Customers transitioning from v1 configuration to v3
-                                                  // and using these two parameters (e.g. OTEL) should
+                                                  // and using these two parameters (e.g. OTEL) should use
                                                   // ILogConfiguration class directly. It provides modern
                                                   // C++11 initializer list-based config tree.
         };
@@ -59,6 +61,7 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogConfiguration FromJSON(const char* configuration)
     {
+#ifdef HAVE_MAT_JSONHPP
         ILogConfiguration result;
         auto src = json::parse(configuration);
         std::function<void(json &src, VariantMap &dst)> parse;
@@ -100,7 +103,10 @@ namespace ARIASDK_NS_BEGIN {
         };
         parse(src, result);
         return result;
+#else
+        assert(false /* json.hpp support is not enabled! */);
+        return nullptr;
+#endif
     }
-
 
 } ARIASDK_NS_END

@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef EVENTPROPERTIESDECORATOR_HPP
+#define EVENTPROPERTIESDECORATOR_HPP
 
-#pragma once
 #include "IDecorator.hpp"
-#include <EventProperties.hpp>
+#include "EventProperties.hpp"
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
+
 #include <algorithm>
 #include <map>
 #include <string>
@@ -368,3 +370,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+#endif

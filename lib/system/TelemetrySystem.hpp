@@ -2,12 +2,15 @@
 
 #pragma once
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "system/TelemetrySystemBase.hpp"
 
 #include "bond/BondSerializer.hpp"
+
+#ifdef HAVE_MAT_ZLIB
 #include "compression/HttpDeflateCompression.hpp"
+#endif
 
 #include "http/HttpClientManager.hpp"
 #include "http/HttpRequestEncoder.hpp"
@@ -22,6 +25,12 @@
 #include "ClockSkewDelta.h"
 
 namespace ARIASDK_NS_BEGIN {
+
+    class NullCompression
+    {
+    public:
+          NullCompression(IRuntimeConfig & ) {};
+    };
 
     class TelemetrySystem : public TelemetrySystemBase
     {
@@ -45,7 +54,12 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void handleFlushWorkerThread() override;
 
+#ifdef HAVE_MAT_ZLIB
         HttpDeflateCompression    compression;
+#else
+        NullCompression           compression;
+#endif
+
         HttpClientManager         hcm;
         HttpRequestEncoder        httpEncoder;
         HttpResponseDecoder       httpDecoder;

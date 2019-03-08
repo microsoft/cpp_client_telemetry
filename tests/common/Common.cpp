@@ -150,7 +150,7 @@ namespace testing {
                     int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
                     if ((res != Z_OK) || (len != destLen))
                     {
-                        printf/*LOG_ERROR*/("Decompression failed, error=%d, len=%u, destLen=%u", res, len, (unsigned int)destLen);
+                        LOG_ERROR("Decompression failed, error=%d, len=%z, destLen=%z", res, len, (unsigned int)destLen);
                         delete[] decompBody;
                         return false;
                     }
@@ -159,8 +159,7 @@ namespace testing {
                     return true;
                 }
             }
-            catch (std::bad_alloc& ex) {
-                (ex);
+            catch (std::bad_alloc&) {
                 LOG_ERROR("Decompression failed (out of memory): destLen=%u", destLen);
                 dest = NULL;
                 destLen = 0;

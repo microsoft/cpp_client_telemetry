@@ -57,9 +57,13 @@ namespace PAL_NS_BEGIN {
             // TODO: [MG] - investigate how often that happens.
             // Side-effect is that we have a queued work item discarded on shutdown.
             if (!m_queue.empty())
+            {
                 LOG_WARN("m_queue is not empty!");
+            }
             if (!m_timerQueue.empty())
+            {
                 LOG_WARN("m_timerQueue is not empty!");
+            }
         }
 
         void queue(detail::WorkerThreadItemPtr item) override

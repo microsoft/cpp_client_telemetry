@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef AUTHTOKENSCONTROLLER_HPP
+#define AUTHTOKENSCONTROLLER_HPP
 
-#pragma once
 #include "Version.hpp"
 #include "Enums.hpp"
 #include "pal/PAL.hpp"
 #include "IAuthTokensController.hpp"
+
 #include <map>
 #include <vector>
 
@@ -77,3 +79,5 @@ namespace ARIASDK_NS_BEGIN
 
 
 } ARIASDK_NS_END
+
+#endif

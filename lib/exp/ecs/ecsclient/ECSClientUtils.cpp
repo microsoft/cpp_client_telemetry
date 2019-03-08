@@ -1,8 +1,11 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
 #include "ECSClientUtils.hpp"
 #include "pal/PAL.hpp"
-#include "../../JsonHelper.hpp"
+#include "exp/JsonHelper.hpp"
+
 #include <assert.h>
 #include <string>
 #include <stdexcept>
@@ -13,23 +16,23 @@ namespace Microsoft {
         namespace Experimentation {
             namespace ECS {
 
-				ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.ECS", "Aria ECS");
+                ARIASDK_LOG_INST_COMPONENT_NS("EventsSDK.ECS", "Aria ECS");
 
-				// replace "/" in clientVersion with "_"
-				std::string ConvertClientVersion(const std::string& clientVersion)
-				{
-					std::string clientVer;
+                // replace "/" in clientVersion with "_"
+                std::string ConvertClientVersion(const std::string& clientVersion)
+                {
+                    std::string clientVer;
 
-					if (!clientVersion.empty())
-					{
-						for (const char* p = clientVersion.c_str(); *p; ++p)
-						{
-							clientVer += (*p == '/' ? '_' : *p);
-						}
-					}
+                    if (!clientVersion.empty())
+                    {
+                        for (const char* p = clientVersion.c_str(); *p; ++p)
+                        {
+                            clientVer += (*p == '/' ? '_' : *p);
+                        }
+                    }
 
-					return clientVer;
-				}
+                    return clientVer;
+                }
 
                 std::string CreateServerUrl(
                     const std::string& serverUrl,
@@ -54,3 +57,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

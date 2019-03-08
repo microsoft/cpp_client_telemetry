@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifdef _WIN32 /* TODO: [MG] - implement HttpServer for Linux and Mac OS X and re-enable this test */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
@@ -139,3 +140,5 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     lm1.reset();
     lm2.reset();
 }
+#endif
+

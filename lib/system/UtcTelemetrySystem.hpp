@@ -1,12 +1,13 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_UTC
 // Copyright (c) Microsoft. All rights reserved.
-#ifdef _WIN32
 #ifndef UTCTELEMETRYSYSTEM_HPP
 #define UTCTELEMETRYSYSTEM_HPP
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "system/TelemetrySystemBase.hpp"
-#include <LogConfiguration.hpp>
+#include "LogConfiguration.hpp"
 #include "bond/BondSerializer.hpp"
 #include "system/Contexts.hpp"
 

@@ -69,7 +69,7 @@ namespace ARIASDK_NS_BEGIN {
     std::string toString(double             value);
     std::string toString(long double        value);
 
-    std::string to_string(GUID_t uuid);
+    std::string to_string(const GUID_t& uuid);
 
 #ifdef _MSC_VER
 #pragma warning (push)
@@ -188,12 +188,6 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
     unsigned hashCode(const char* str, int h = 0);
-
-    /* Cross-platform C-style file utils that accept UTF-8 filenames */
-    size_t      GetFileSize(const char* filename);
-    int         FileDelete(const char* filename);
-    std::FILE*  FileOpen(const char* filename, const char *mode);
-    int         FileClose(std::FILE* _Stream);
 
 } ARIASDK_NS_END
 

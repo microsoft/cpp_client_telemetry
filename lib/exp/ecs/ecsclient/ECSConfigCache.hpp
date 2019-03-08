@@ -1,9 +1,13 @@
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 
 #include "ECSClientConfig.hpp"
-#include "offline/IStorage.hpp"
+#include "exp/IDataStorage.hpp"
 #include "pal/PAL.hpp"
-#include <json.hpp>
+
+#include "json.hpp"
+
 #include <string>
 #include <map>
 
@@ -47,11 +51,11 @@ public:
     ECSConfig* GetConfigByRequestName(const std::string& requestName);
 
 private:
-    ARIASDK_NS::IStorage* _CreateOfflineStorage(const std::string& storagePath);
+    ARIASDK_NS::IDataStorage* _CreateOfflineStorage(const std::string& storagePath);
     bool _LoadConfig();
     bool _SaveConfig(const ECSConfig& config);
     std::string m_OfflineStoragePath;
-    ARIASDK_NS::IStorage* m_pOfflineStorage;
+    ARIASDK_NS::IDataStorage* m_pOfflineStorage;
 
     std::map<std::string, ECSConfig> m_configs;
     std::mutex                       m_lock;
@@ -62,3 +66,4 @@ private:
 };
 
 }}}}
+#endif

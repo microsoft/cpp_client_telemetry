@@ -1,13 +1,13 @@
-#define LOG_MODULE DBG_CONFIG
-
-#include "json.hpp"
-
-#include <pal/PAL.hpp>
-
+#include "mat/config.h"
 #include "TransmitProfiles.hpp"
-#include <set>
+#include "pal/PAL.hpp"
+
+#ifdef HAVE_MAT_JSONHPP
+#include "json.hpp"
 #include "utils/Utils.hpp"
+
 #include <mutex>
+#include <set>
 
 using namespace MAT;
 using namespace std;
@@ -146,6 +146,7 @@ namespace ARIASDK_NS_BEGIN {
             auto &profile = kv.second;
             LOG_TRACE("name=%s", profile.name.c_str());
             size_t i = 0;
+#ifdef HAVE_MAT_LOGGING
             for (auto &rule : profile.rules) {
                 LOG_TRACE("[%d] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
                     i, rule.netCost, rule.powerState,
@@ -154,6 +155,7 @@ namespace ARIASDK_NS_BEGIN {
                     rule.timers[2]);
                 i++;
             }
+#endif
         }
     }
 
@@ -555,3 +557,7 @@ namespace ARIASDK_NS_BEGIN {
     static TransmitProfiles __profiles;
 
 } ARIASDK_NS_END
+
+#else
+#include "TransmitProfilesStub.hpp"
+#endif

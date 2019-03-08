@@ -109,7 +109,7 @@ TEST(EventPropertiesTests, NumericProperties)
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("int64_t", EventProperty(-123123123))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("uint8", EventProperty(255))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("unsigned", 999999999)));
-    EXPECT_THAT(ep.GetProperties(), Contains(Pair("ull", EventProperty((uint64_t)9999999999999999999))));
+    EXPECT_THAT(ep.GetProperties(), Contains(Pair("ull", EventProperty((uint64_t)9999999999999999999u))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("float", EventProperty(1234.500000))));
     EXPECT_THAT(ep.GetProperties(), Contains(Pair("double", EventProperty(-9876.543000))));
 //    EXPECT_THAT(ep.GetProperties(), Contains(Pair("lodouble", EventProperty("-98769876.543543"))));

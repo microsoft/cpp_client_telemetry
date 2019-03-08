@@ -1,7 +1,10 @@
 #ifndef IECSCLIENT_HPP
 #define IECSCLIENT_HPP
 // Copyright (c) Microsoft. All rights reserved.
-
+//
+// TODO: [MG] - This file must tobe removed from opensource version of SDK
+// Not to be shared externally!
+//
 #include "Version.hpp"
 
 #include "ctmacros.hpp"

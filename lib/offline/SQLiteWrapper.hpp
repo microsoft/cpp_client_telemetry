@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef SQLITEWRAPPER_HPP
+#define SQLITEWRAPPER_HPP
 
-#pragma once
-
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
 #include "sqlite3.h"
 #include "ISqlite3Proxy.hpp"
+
 #include <algorithm>
 #include <map>
 #include <mutex>
-
 #include <vector>
 #include <string>
 
@@ -766,3 +766,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

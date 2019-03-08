@@ -1,3 +1,4 @@
+#include "mat/config.h"
 #include "DebugEvents.hpp"
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"

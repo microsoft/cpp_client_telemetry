@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IBANDWIDTHCONTROLLER_HPP
 #define IBANDWIDTHCONTROLLER_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 

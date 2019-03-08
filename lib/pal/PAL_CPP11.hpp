@@ -6,8 +6,8 @@
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
 
-#include <ISemanticContext.hpp>
-#include <api/ContextFieldsProvider.hpp>
+#include "ISemanticContext.hpp"
+#include "api/ContextFieldsProvider.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
 #ifndef WIN32_LEAN_AND_MEAN

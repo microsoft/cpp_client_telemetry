@@ -1,8 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IINFORMATIONPROVIDER_HPP
 #define IINFORMATIONPROVIDER_HPP
 
-#include <pal/PAL.hpp>
-#include <IPropertyChangedCallback.hpp>
+#include "pal/PAL.hpp"
+#include "IPropertyChangedCallback.hpp"
 
 namespace PAL_NS_BEGIN {
 

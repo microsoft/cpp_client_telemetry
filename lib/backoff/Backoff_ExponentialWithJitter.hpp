@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef BACKOFF_JITTER_HPP
+#define BACKOFF_JITTER_HPP
 
-#pragma once
 #include "backoff/IBackoff.hpp"
 #include "pal/PAL.hpp"
+
 #include <algorithm>
 #include <assert.h>
 #include <math.h>
@@ -98,3 +100,4 @@ private:
 
 
 } ARIASDK_NS_END
+#endif

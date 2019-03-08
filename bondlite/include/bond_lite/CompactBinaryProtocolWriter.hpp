@@ -1,17 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef COMPACTBINARYPROTOCOLWRITER_HPP
+#define COMPACTBINARYPROTOCOLWRITER_HPP
 
-#pragma once
+#include "pal/PAL.hpp"
+
 #include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "pal/PAL.hpp"
 
 namespace bond_lite {
 
 // Based on:
 // https://github.com/Microsoft/bond/blob/master/cpp/inc/bond/protocol/compact_binary.h
-// https://skype.visualstudio.com/DefaultCollection/ARIA/_git/client-shared_web_ariaportal#path=%2FSource%2FAriaPortal.WebRole%2FScripts%2Faria-web-telemetry.js&version=GBmaster&_a=contents
 
 class CompactBinaryProtocolWriter {
   protected:
@@ -180,3 +181,4 @@ class CompactBinaryProtocolWriter {
 };
 
 } // namespace bond_lite
+#endif

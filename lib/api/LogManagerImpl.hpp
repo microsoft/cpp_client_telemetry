@@ -2,23 +2,22 @@
 #ifndef LOGMANAGERIMPL_HPP
 #define LOGMANAGERIMPL_HPP
 
-#include <LogConfiguration.hpp>
-
+#include "LogConfiguration.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
 #include "system/Contexts.hpp"
 
-#include <IHttpClient.hpp>
-#include <ILogManager.hpp>
+#include "IHttpClient.hpp"
+#include "ILogManager.hpp"
 
 #include "api/Logger.hpp"
 
-#include <filter/EventFilterRegulator.hpp>
+#include "filter/EventFilterRegulator.hpp"
 
-#include <DebugEvents.hpp>
+#include "DebugEvents.hpp"
 #include <memory>
 
-#include <IBandwidthController.hpp>
+#include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
 
 #include "LogSessionData.hpp"

@@ -106,3 +106,4 @@ wrappers/go/offlinestorage.db.session64
 /docs/out
 
 Version.hpp
+sqlite-autoconf*

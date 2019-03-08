@@ -1,7 +1,7 @@
 #ifndef NETWORKDETECTOR_HPP
 #define NETWORKDETECTOR_HPP
-
-#ifndef NO_ROAM_SUP
+#include "mat/config.h"
+#ifdef HAVE_MAT_NETDETECT
 
 #pragma once
 

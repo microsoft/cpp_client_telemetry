@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <aria/IBandwidthController.hpp>
-#include <ResourceManager/ResourceManagerPublic.hpp>
+#include "aria/IBandwidthController.hpp"
+#include "ResourceManager/ResourceManagerPublic.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

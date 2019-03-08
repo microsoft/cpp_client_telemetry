@@ -1,13 +1,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
-#pragma once
+#ifndef NETWORKINFORMATIONIMPL_HPP
+#define NETWORKINFORMATIONIMPL_HPP
+
 #include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "INetworkInformation.hpp"
 #include "InformationProviderImpl.hpp"
 
-#include <IPropertyChangedCallback.hpp>
+#include "IPropertyChangedCallback.hpp"
 
 #include <string>
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
@@ -46,3 +50,4 @@ namespace PAL_NS_BEGIN {
     };
 
 } PAL_NS_END
+#endif

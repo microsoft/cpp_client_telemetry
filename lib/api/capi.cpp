@@ -7,7 +7,7 @@
 #include "utils/Utils.hpp"
 #include <map>
 
-#include <PAL.hpp>
+#include "PAL.hpp"
 
 static const char * libSemver = TELEMETRY_EVENTS_VERSION;
 

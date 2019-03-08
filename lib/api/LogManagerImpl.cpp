@@ -1,5 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#ifdef _MSC_VER
+// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
+#pragma warning( disable : 4459 )
+#endif
+#include "mat/config.h"
 #include "LogManagerImpl.hpp"
 
 #include "offline/OfflineStorageHandler.hpp"
@@ -13,10 +17,6 @@
 #include "pal/UtcHelpers.hpp"
 #include "http/HttpClientFactory.hpp"
 
-#if ARIASDK_PAL_SKYPE
-#include "bwcontrol/BandwidthController_ResourceManager.hpp"
-#include "config/RuntimeConfig_ECS.hpp"
-#endif
 
 
 namespace ARIASDK_NS_BEGIN {
@@ -140,8 +140,8 @@ namespace ARIASDK_NS_BEGIN {
 
         m_context.setCommonField("act_session_id", PAL::generateUuidString()); // GetLogSessionData()->getSessionSDKUid()
 
-#ifdef _WIN32
-        // UTC functionality is only available on Windows
+#ifdef HAVE_MAT_UTC
+        // UTC functionality is only available on Windows 10 RS2+
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
 
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
@@ -165,12 +165,6 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         if (m_bandwidthController == nullptr) {
-#if ARIASDK_PAL_SKYPE
-            if (configuration.skypeResourceManager) {
-                LOG_TRACE("BandwidthController: Skype ResourceManager (provided ResourceManager=%p)", configuration.skypeResourceManager.raw());
-                m_ownBandwidthController.reset(new BandwidthController_ResourceManager(configuration.skypeResourceManager));
-            }
-#endif
             m_bandwidthController = m_ownBandwidthController.get();
         }
         else {

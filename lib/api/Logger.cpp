@@ -2,10 +2,13 @@
 
 #include "Logger.hpp"
 #include "LogSessionData.hpp"
+#include "CommonFields.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
 #include <array>
+
+using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -290,7 +293,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="properties">The properties.</param>
     /// <param name="latency">The latency.</param>
     /// <returns></returns>
-    bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, ::Microsoft::Applications::Events::EventLatency& latency)
+    bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
     {
         record.name = properties.GetName();
         record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
@@ -321,8 +324,8 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     void Logger::submit(::AriaProtocol::Record& record,
-        ::Microsoft::Applications::Events::EventLatency latency,
-        ::Microsoft::Applications::Events::EventPersistence persistence,
+        EventLatency latency,
+        EventPersistence persistence,
         std::uint64_t  const& policyBitFlags)
     {
         if (latency == EventLatency_Off)
@@ -494,7 +497,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LogSessionData* logSessionData = m_logManager.GetLogSessionData();
         std::string sessionSDKUid = logSessionData->getSessionSDKUid();
-        unsigned long long sessionFirstTime = logSessionData->getSesionFirstTime();
+        unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {

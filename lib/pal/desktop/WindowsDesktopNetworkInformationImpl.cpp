@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #define LOG_MODULE DBG_PAL
 #include "pal/NetworkInformationImpl.hpp"
 
@@ -6,14 +7,20 @@
 
 #include "NetworkDetector.hpp"
 
+using namespace MAT;
+
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl(): m_info_helper(), m_registredCount(0) { };
+    NetworkInformationImpl::NetworkInformationImpl():
+	m_info_helper(),
+	m_registredCount(0),
+	m_cost(NetworkCost_Unmetered)
+	{ };
     NetworkInformationImpl::~NetworkInformationImpl() { };
 
     class Win32NetworkInformation : public NetworkInformationImpl
     {
-#ifndef NO_ROAM_SUP
+#ifdef HAVE_MAT_NETDETECT
         MATW::NetworkDetector *networkDetector;
 #endif
         std::string m_network_provider;
@@ -72,7 +79,7 @@ namespace PAL_NS_BEGIN {
         /// <returns>The current network cost for the device</returns>
         virtual NetworkCost GetNetworkCost() override
         {
-#ifndef NO_ROAM_SUP
+#ifdef HAVE_MAT_NETDETECT
             m_cost = networkDetector->GetNetworkCost();
 #else
             m_cost = NetworkCost_Unmetered;
@@ -86,7 +93,7 @@ namespace PAL_NS_BEGIN {
     {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
-#ifndef NO_ROAM_SUP
+#ifdef HAVE_MAT_NETDETECT
         networkDetector = new MATW::NetworkDetector(); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
         networkDetector->AddRef();
         networkDetector->Start();
@@ -96,9 +103,10 @@ namespace PAL_NS_BEGIN {
     Win32NetworkInformation::~Win32NetworkInformation()
     {
         //LOG_TRACE("Win32NetworkInformation::~Win32NetworkInformation dtor");
-#ifndef NO_ROAM_SUP                    
+#ifdef HAVE_MAT_NETDETECT
         networkDetector->Stop();
         networkDetector->Release();
+        // delete networkDetector; // TODO: [MG] - doublecheck on this!
 #endif
     }
 
@@ -107,4 +115,5 @@ namespace PAL_NS_BEGIN {
         return new Win32NetworkInformation();
     }
 } PAL_NS_END
+#endif
 

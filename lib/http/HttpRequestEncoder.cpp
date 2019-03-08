@@ -3,15 +3,14 @@
 #include "HttpRequestEncoder.hpp"
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
+
 #include <memory>
 #include <string>
 
 #include "utils/Utils.hpp"
-#include <bond_lite/All.hpp>
+#include "bond_lite/All.hpp"
 #include "bond/generated/AriaProtocol_writers.hpp"
 #include "bond/generated/AriaProtocol_readers.hpp"
-
-#include "Config.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

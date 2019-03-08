@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-
-#pragma once
+#ifndef STRINGUTILS_HPP
+#define STRINGUTILS_HPP
 
 #include "Version.hpp"
 #include "ctmacros.hpp"
@@ -24,3 +24,4 @@ namespace ARIASDK_NS_BEGIN
     };
 
 } ARIASDK_NS_END
+#endif

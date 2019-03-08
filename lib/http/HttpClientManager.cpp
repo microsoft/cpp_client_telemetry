@@ -95,6 +95,7 @@ namespace ARIASDK_NS_BEGIN {
 
         assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
 
+#if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
         // Response may be null if request got aborted
         if (ctx->httpResponse != nullptr)
         {
@@ -102,6 +103,7 @@ namespace ARIASDK_NS_BEGIN {
             LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
                 response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
         }
+#endif
 
         requestDone(ctx);
         // request done should be handled by now

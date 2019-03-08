@@ -1,3 +1,5 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
 //#pragma unmanaged
@@ -715,3 +717,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

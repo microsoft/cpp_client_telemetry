@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef IOFFLINESTORAGE_HPP
+#define IOFFLINESTORAGE_HPP
 
-#pragma once
 #include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "IHttpClient.hpp"
+
 #include <functional>
 #include <string>
 #include <vector>
@@ -288,3 +290,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

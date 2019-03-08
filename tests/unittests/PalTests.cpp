@@ -455,7 +455,7 @@ TEST_F(PalTests, SdkVersion)
     // <Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>
 
     EXPECT_THAT(std::count(v.cbegin(), v.cend(), '-'), Eq(4));
-    EXPECT_THAT(v, StartsWith(ARIASDK_VERSION_PREFIX "-"));
+    EXPECT_THAT(v, StartsWith(EVTSDK_VERSION_PREFIX "-"));
     EXPECT_THAT(v.at(v.find('-', 0) + 1), Ne('-'));
     EXPECT_THAT(v, HasSubstr("-C++-No-"));
     EXPECT_THAT(v, EndsWith(BUILD_VERSION_STR));

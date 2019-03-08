@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef STORAGEOBSERVER_HPP
+#define STORAGEOBSERVER_HPP
 
-#pragma once
-#include <IOfflineStorage.hpp>
+#include "IOfflineStorage.hpp"
 
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
@@ -81,3 +82,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

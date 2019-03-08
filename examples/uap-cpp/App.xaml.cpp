@@ -3,13 +3,17 @@
 // Implementation of the App class.
 //
 
-#include "pch.h"
+#include <collection.h>
+#include <ppltasks.h>
+
+#include "App.xaml.h"
+
 #include "MainPage.xaml.h"
 #include "LogManager.hpp"
 
 using namespace Microsoft::Applications::Telemetry;
 
-using namespace uap_cpp;
+using namespace UAPCPP;
 
 using namespace Platform;
 using namespace Windows::ApplicationModel;
@@ -25,6 +29,9 @@ using namespace Windows::UI::Xaml::Interop;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
+// The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=402347&clcid=0x409
+
+extern "C" void testTraceLogging();
 
 ILogger *logger;
 ILogger *logger2;
@@ -56,16 +63,6 @@ extern "C" void SendTelemetryEvents() {
 
 	logger2->LogSession(SessionState::Session_Started, EventProperties("LogSessionTest"));
 	logger2->LogSession(SessionState::Session_Ended, EventProperties("LogSessionTest"));
-
-	try {
-		EventProperties properties2("Bad_Event");
-		properties2.SetProperty("12345", 12345L);
-		logger->LogEvent(properties2);
-	}
-	catch (const std::logic_error& ex) {
-		UNREFERENCED_PARAMETER(ex);
-		OutputDebugStringA("Good stuff: we handled the exception here!\n");
-	}
 }
 
 void App::SendTelemetry() {
@@ -80,30 +77,26 @@ App::App()
 {
     InitializeComponent();
     Suspending += ref new SuspendingEventHandler(this, &App::OnSuspending);
-	ILogConfiguration& configuration = LogManager::GetLogConfiguration();
-	// configuration.cacheFilePath = "of";
-
-	// Windows SDK Test - Prod: Default Ingestion Token.
-	// Specify this API token in the SDK initialization call to send data for this application.
-	// Please keep this token secure if it is for production services.
-	// https://aria.microsoft.com/developer/start-now/using-aria/send-events
-
-	// Always enable debug output
-	configuration.SetIntProperty("traceLevelMask",  0xFFFFFFFF); // API calls + Global mask for general messages
-	configuration.SetMinimumTraceLevel(ACTTraceLevel_Trace);
-	configuration.SetSdkModeType( SdkModeTypes::SdkModeTypes_UTCAriaBackCompat);
+    Resuming += ref new EventHandler<Platform::Object^>(this, &App::OnResuming);
+    ILogConfiguration& configuration = LogManager::GetLogConfiguration();
+    // Windows SDK Test - Prod: Default Ingestion Token.
+    // Specify this API token in the SDK initialization call to send data for this application.
+    // Please keep this token secure if it is for production services.
+    // https://aria.microsoft.com/developer/start-now/using-aria/send-events
 
 #if 1 /* Use INT */
-	configuration.SetProperty("eventCollectorUri", "https://pipe.int.trafficmanager.net/Collector/3.0/");
-	logger = LogManager::Initialize("0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582");   // Windows SDK Test - INT on INT collector
+    configuration.eventCollectorUri = "https://pipe.int.trafficmanager.net/Collector/3.0/";
+    logger = LogManager::Initialize("0c21c15bdccc48c99678a748488bb87f-cca6848e-b4aa-48a6-b24a-0170caf27523-7582", configuration);   // Windows SDK Test - INT on INT collector
 #else
-	logger = LogManager::Initialize("6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322", configuration);
+    logger = LogManager::Initialize("6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322", configuration);
 #endif
 
 	logger2 = LogManager::GetLogger("4c824cfb53154a9b8e709962774ae879-e4db1514-2b8d-42e8-9700-9b9b3880278e-7210", "");
 
-	context = LogManager::GetSemanticContext();
+    context = LogManager::GetSemanticContext();
 
+    // Send some sample events
+    testTraceLogging();
 
 	SendTelemetry();
 }
@@ -175,7 +168,7 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 }
 
 /// <summary>
-/// Invoked when application execution is being suspended.  Application state is saved
+/// Invoked when application execution is being suspended.	Application state is saved
 /// without knowing whether the application will be terminated or resumed with the contents
 /// of memory still intact.
 /// </summary>
@@ -183,13 +176,23 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 /// <param name="e">Details about the suspend request.</param>
 void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
 {
-    (void) sender;  // Unused parameter
-    (void) e;   // Unused parameter
+    (void)sender;	// Unused parameter
+    (void)e;	// Unused parameter
 
-	SendTelemetry();
-	LogManager::FlushAndTeardown();
-    //TODO: Save application state and stop any background activity
+    OutputDebugStringA("OnSuspending\n");
+    SendTelemetry();
+    LogManager::Flush();
 }
+
+void App::OnResuming(Platform::Object^ sender, Platform::Object^ e)
+{
+    (void)sender;	// Unused parameter
+    (void)e;	// Unused parameter
+
+    OutputDebugStringA("OnResuming\n");
+    SendTelemetry();
+}
+
 
 /// <summary>
 /// Invoked when Navigation to a certain page fails

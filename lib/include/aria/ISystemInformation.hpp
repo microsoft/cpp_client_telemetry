@@ -1,8 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef ISYSTEMINFORMATION_HPP
 #define ISYSTEMINFORMATION_HPP
 
-#include <pal/PAL.hpp>
-#include <IInformationProvider.hpp>
+#include "pal/PAL.hpp"
+#include "IInformationProvider.hpp"
 
 #include <string>
 

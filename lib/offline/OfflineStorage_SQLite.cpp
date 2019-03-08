@@ -1,4 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
+#ifdef HAVE_MAT_STORAGE
 
 #include "OfflineStorage_SQLite.hpp"
 #include "ILogManager.hpp"
@@ -67,7 +69,7 @@ namespace ARIASDK_NS_BEGIN {
         m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE]) : static_cast<uint32_t>(m_config[CFG_INT_CACHE_FILE_SIZE]);
         m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
 
-        if (percentage < 0 || percentage > 100)
+        if ((percentage == 0)||(percentage > 100))
         {
             percentage = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE; // 75%
         }
@@ -194,11 +196,14 @@ namespace ARIASDK_NS_BEGIN {
     // Debug routine to print record count in the DB
     void OfflineStorage_SQLite::printRecordCount()
     {
+#ifndef NDEBUG
         for (unsigned lat = static_cast<unsigned>(EventLatency_Off); lat <= static_cast<unsigned>(EventLatency_Max); lat++)
         {
             size_t count = GetRecordCount(static_cast<EventLatency>(lat));
+            UNREFERENCED_PARAMETER(count);
             LOG_TRACE("latency[%u] count=%zu", lat, count);
         }
+#endif
     }
 
     /// <summary>
@@ -864,3 +869,4 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+#endif

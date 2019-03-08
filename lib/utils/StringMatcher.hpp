@@ -1,4 +1,6 @@
-// StringMatcher.hpp
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef STRINGMATCHER_HPP
+#define STRINGMATCHER_HPP
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -120,3 +122,4 @@ namespace ARIASDK_NS_BEGIN
     };
 
 } ARIASDK_NS_END
+#endif

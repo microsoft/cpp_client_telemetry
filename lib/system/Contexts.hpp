@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <IHttpClient.hpp>
-#include <IOfflineStorage.hpp>
+#include "IHttpClient.hpp"
+#include "IOfflineStorage.hpp"
 #include "packager/BondSplicer.hpp"
 #include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
+
 #include <map>
 #include <memory>
 #include <vector>
 #include <atomic>
-
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -22,13 +22,16 @@ namespace ARIASDK_NS_BEGIN {
         std::uint64_t            policyBitFlags;
 
     public:
-        IncomingEventContext()
+        IncomingEventContext() :
+          policyBitFlags(0),
+	  source(nullptr)
         {
         }
 
         IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::AriaProtocol::Record* source)
             : source(source),
-            record{ id, tenantToken, latency, persistence }
+            record{ id, tenantToken, latency, persistence },
+	    policyBitFlags(0)
         {
         }
 
@@ -107,7 +110,8 @@ namespace ARIASDK_NS_BEGIN {
 
         EventsUploadContext() :
             httpRequest(nullptr),
-            httpResponse(nullptr)
+            httpResponse(nullptr),
+	    fromMemory(false)
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(1);

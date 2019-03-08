@@ -1,4 +1,8 @@
-#ifndef NO_ROAM_SUP
+#include "Version.hpp"
+#include "mat/config.h"
+#ifdef HAVE_MAT_NETDETECT
+
+#pragma comment(lib, "runtimeobject.lib")
 
 // This macro is required for DEFINE_GUID below to declare a local instance of IID_INetworkCostManager GUID
 #define INITGUID
@@ -389,6 +393,8 @@ namespace ARIASDK_NS_BEGIN
 
         HRESULT NetworkDetector::NetworkPropertyChanged(GUID networkId, NLM_NETWORK_PROPERTY_CHANGE flags)
         {
+            UNREFERENCED_PARAMETER(networkId);
+            UNREFERENCED_PARAMETER(flags);
             LOG_TRACE("NetworkPropertyChanged: %s, %d", to_string(networkId).c_str(), flags);
             GetCurrentNetworkCost();
             return RPC_S_OK;
@@ -403,6 +409,8 @@ namespace ARIASDK_NS_BEGIN
 
         HRESULT NetworkDetector::NetworkConnectionPropertyChanged(GUID connectionId, NLM_CONNECTION_PROPERTY_CHANGE flags)
         {
+            UNREFERENCED_PARAMETER(connectionId);
+            UNREFERENCED_PARAMETER(flags);
             LOG_TRACE("NetworkConnectionPropertyChanged: %s, %d", to_string(connectionId).c_str(), flags);
             return RPC_S_OK;
         }

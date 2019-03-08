@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
 
-#include <IOfflineStorage.hpp>
+#include "IOfflineStorage.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 

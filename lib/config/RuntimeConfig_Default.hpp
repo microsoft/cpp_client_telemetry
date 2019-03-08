@@ -1,14 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
 
 #pragma once
 #include "api/IRuntimeConfig.hpp"
 
-#if defined(__linux__) || defined(__gnu_linux__)
-#define STATS_TOKEN_PROD "4bb4d6f7cafc4e9292f972dca2dcde42-bd019ee8-e59c-4b0f-a02c-84e72157a3ef-7485"
-#else
-#define STATS_TOKEN_PROD "4bb4d6f7cafc4e9292f972dca2dcde42-bd019ee8-e59c-4b0f-a02c-84e72157a3ef-7485"
-#endif
-#define STATS_TOKEN_INT  "8130ef8ff472405d89d6f420038927ea-0c0d561e-cca5-4c81-90ed-0aa9ad786a03-7166"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -38,7 +33,11 @@ namespace ARIASDK_NS_BEGIN {
         },
         { "http",
             {
+#ifdef HAVE_MAT_ZLIB
                 { "compress",            true }
+#else
+                { "compress",            false }
+#endif
             }
         },
         { "tpm",
@@ -89,6 +88,11 @@ namespace ARIASDK_NS_BEGIN {
         RuntimeConfig_Default()
         {
             config.insert(defaultRuntimeConfig.begin(), defaultRuntimeConfig.end());
+        }
+
+        virtual ~RuntimeConfig_Default()
+        {
+
         }
 
         virtual std::string GetCollectorUrl() override

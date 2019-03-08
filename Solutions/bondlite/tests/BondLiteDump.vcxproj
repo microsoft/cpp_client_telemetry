@@ -90,12 +90,12 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="SCT2";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -134,14 +134,14 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="SCT2";CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -180,14 +180,14 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="SCT2";CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -227,12 +227,12 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX="SCT2";CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;ARIASDK_VERSION_PREFIX=\"SCT2\";CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARIASDK_PAL_WIN32=1;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\lib\bond\generated;$(ProjectDir)..\..\..\lib\http;$(ProjectDir)..\..\..\lib\api;$(ProjectDir)..\..\..\lib\backoff;$(ProjectDir)..\..\..\lib\callbacks;$(ProjectDir)..\..\..\lib\config;$(ProjectDir)..\..\..\lib\compression;$(ProjectDir)..\..\..\lib\decorators;$(ProjectDir)..\..\..\lib\offline;$(ProjectDir)..\..\..\lib\packager;$(ProjectDir)..\..\..\lib\pal;$(ProjectDir)..\..\..\lib\stats;$(ProjectDir)..\..\..\lib\system;$(ProjectDir)..\..\..\lib\tpm;$(ProjectDir)..\..\..\lib\utils;$(ProjectDir)..\..\..\lib\include\aria;$(ProjectDir)..\..\..\lib\bond;$(ProjectDir)..\..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>

@@ -6,8 +6,9 @@
 
 #include <Windows.h>
 
-#include <IHttpClient.hpp>
+#include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
+
 #include <ppltasks.h>
 
 using namespace ::Windows::Foundation;

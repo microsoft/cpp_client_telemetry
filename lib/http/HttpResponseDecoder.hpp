@@ -1,12 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
-#pragma once
-#include <pal/PAL.hpp>
+#ifndef HTTPRESPONSEDECODER_HPP
+#define HTTPRESPONSEDECODER_HPP
+
+#include "pal/PAL.hpp"
 
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 #include "system/ITelemetrySystem.hpp"
 
 namespace ARIASDK_NS_BEGIN {
+
+    typedef enum
+    {
+        Accepted,
+        Rejected,
+        RetryServer,
+        RetryNetwork,
+        Abort
+    } HttpRequestResult;
 
     class HttpResponseDecoder : public DebugEventDispatcher
     {
@@ -16,6 +27,7 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         ITelemetrySystem & m_system;
+        void processBody(IHttpResponse const& response, HttpRequestResult & result);
         void handleDecode(EventsUploadContextPtr const& ctx);
 
     public:
@@ -30,3 +42,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+#endif

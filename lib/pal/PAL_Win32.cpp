@@ -22,6 +22,10 @@
 #include "utils/Utils.hpp"
 #include <sys/types.h>
 
+/* TODO: [MG] - currently this implementation is Windows-only, but it shares most of logic with POSIX PAL.
+ * Consider refactoring that to move more to common PAL layer. Only certain things bound to Windows APIs,
+ * e.g. CoCreateGuid should remain in this module.
+ */
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -35,8 +39,8 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <IPHlpApi.h>
 #include <Objbase.h>
+#pragma comment(lib, "Ole32.Lib")   /* needed for CoCreateGuid */
 #include <oacr.h>
 #endif
 
@@ -417,7 +421,7 @@ namespace PAL_NS_BEGIN {
     std::string getSdkVersion()
     {
         // TODO: [MG] - refactor this code and move to common PAL
-        return std::string(ARIASDK_VERSION_PREFIX "-Windows-C++-No-") + BUILD_VERSION_STR;
+        return std::string(EVTSDK_VERSION_PREFIX "-Windows-C++-" ECS_SUPP "-") + BUILD_VERSION_STR;
     }
 
     //---

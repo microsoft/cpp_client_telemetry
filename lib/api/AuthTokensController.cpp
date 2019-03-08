@@ -3,7 +3,6 @@
 #include "AuthTokensController.hpp"
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
-#include "Config.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

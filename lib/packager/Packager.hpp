@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include <IOfflineStorage.hpp>
-#include <LogConfiguration.hpp>
+#include "IOfflineStorage.hpp"
+#include "LogConfiguration.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 

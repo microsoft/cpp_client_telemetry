@@ -1,4 +1,13 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_UTC
 // Copyright (c) Microsoft. All rights reserved.
+#ifdef _MSC_VER
+// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
+#pragma warning( disable : 4459 )
+#endif
+
+#pragma comment(lib, "windowsapp")
+#pragma comment(lib, "runtimeobject" )
 
 #include "UtcTelemetrySystem.hpp"
 
@@ -6,6 +15,8 @@
 #include "pal/UtcHelpers.hpp"
 #include "utils/Utils.hpp"
 #include "MicrosoftTelemetry.h"
+
+#include "CommonFields.hpp"
 
 using namespace tld;
 
@@ -271,7 +282,7 @@ namespace ARIASDK_NS_BEGIN {
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MODEL);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_TIMEZONE);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_LANGUAGE);
-        eventCtx->source->data[0].properties.erase(EventInfo_Source);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SOURCE);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ADVERTISINGID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
 
@@ -364,16 +375,10 @@ namespace ARIASDK_NS_BEGIN {
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_VERSION);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_BUILD);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_TIME);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_TYPE);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_OSNAME);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_SKU);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_PROJECTION);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_VER_NUM);
-        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SDK_ECS);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ANID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_VERSION);
-        eventCtx->source->data[0].properties.erase(EventInfo_Name);
-        eventCtx->source->data[0].properties.erase(EventInfo_InitId);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_NAME);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_INITID);
 
         //"Extension"
         PutData(eventCtx->source->ext, MD, builder, dbuilder);
@@ -662,3 +667,4 @@ namespace ARIASDK_NS_BEGIN {
         return temp;
     }
 } ARIASDK_NS_END
+#endif

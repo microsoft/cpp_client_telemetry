@@ -1,7 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
+//
 // IEventFilter.hpp
 //
 // Interface for filtering specific events from the event stream
-
+//
 #ifndef ARIA_IEVENTFILTER_HPP
 #define ARIA_IEVENTFILTER_HPP
 

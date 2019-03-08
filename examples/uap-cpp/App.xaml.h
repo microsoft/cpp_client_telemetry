@@ -7,7 +7,7 @@
 
 #include "App.g.h"
 
-namespace uap_cpp
+namespace UAPCPP
 {
 	/// <summary>
 	/// Provides application-specific behavior to supplement the default Application class.
@@ -18,11 +18,12 @@ namespace uap_cpp
 		virtual void OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEventArgs^ e) override;
 
 	internal:
-		void SendTelemetry();
-		App();
+        void SendTelemetry();
+        App();
 
 	private:
 		void OnSuspending(Platform::Object^ sender, Windows::ApplicationModel::SuspendingEventArgs^ e);
+        void OnResuming(Platform::Object ^ sender, Platform::Object ^ e);
 		void OnNavigationFailed(Platform::Object ^sender, Windows::UI::Xaml::Navigation::NavigationFailedEventArgs ^e);
 	};
 }

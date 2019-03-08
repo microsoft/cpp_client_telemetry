@@ -1,11 +1,15 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
 #include "ECSClient.hpp"
 #include "ECSClientConfig.hpp"
 #include "ECSConfigCache.hpp"
 #include "ECSClientUtils.hpp"
+
 #include "json.hpp"
-#include "../../JsonHelper.hpp"
+
+#include "exp/JsonHelper.hpp"
 
 #include <iostream>
 #include <iterator>
@@ -1097,3 +1101,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

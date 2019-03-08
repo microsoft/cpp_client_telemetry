@@ -1,6 +1,8 @@
 #pragma once
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 
-#include "../../exp/EXPCommonClient.hpp"
+#include "exp/EXPCommonClient.hpp"
 
 #include "IAFDClient.hpp"
 #include "AFDConfigCache.hpp"
@@ -11,7 +13,6 @@
 #include <queue>
 #include <set>
 #include <map>
-
 
 const std::string Retry_Queue_Name = "AFDRetryQueue";
 /// max retry times, 
@@ -121,3 +122,4 @@ namespace Microsoft { namespace Applications { namespace Experimentation { names
     };
 
 }}}}
+#endif

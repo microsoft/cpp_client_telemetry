@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef SYSTEM_ROUTE_HPP
+#define SYSTEM_ROUTE_HPP
 
-#pragma once
-#include <pal/PAL.hpp>
+#include "pal/PAL.hpp"
+
 #include <assert.h>
 #include <vector>
 
@@ -185,3 +187,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 } ARIASDK_NS_END
+#endif

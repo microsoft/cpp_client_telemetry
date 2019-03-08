@@ -108,6 +108,7 @@
     <Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\pal\universal\universal.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\shared\Shared.vcxitems" Label="Shared" />
+    <Import Project="..\exp\exp.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -174,8 +175,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_CRTDBG_MAP_ALLOC;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;_CRTDBG_MAP_ALLOC;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <BrowseInformation>false</BrowseInformation>
@@ -202,6 +203,7 @@
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -211,8 +213,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -224,6 +226,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -237,14 +240,15 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAsManaged>false</CompileAsManaged>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -269,14 +273,15 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -288,6 +293,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -301,14 +307,15 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;_ARIA_UTC_SDK;USE_TIMERSHIM2;USE_SQLITE;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAsManaged>false</CompileAsManaged>
@@ -334,14 +341,15 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>true</AssemblyDebug>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;_ARIA_UTC_SDK;USE_SQLITE;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;USE_BOND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;ARIASDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
@@ -353,6 +361,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -366,15 +375,16 @@
       <GenerateMapFile>true</GenerateMapFile>
       <AssemblyDebug>false</AssemblyDebug>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -382,14 +392,16 @@
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\aria;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_PLATFORM_WINDOWS=1;ARIASDK_SHARED_LIB;_ARIA_UTC_SDK;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;USE_BOND;ARIASDK_VERSION_PREFIX="EVT";ENABLE_ECSCLIENT;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;ARIASDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -397,6 +409,7 @@
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <WindowsMetadataFile>$(OutDir)Microsoft.Applications.Telemetry.Windows.winmd</WindowsMetadataFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -405,6 +418,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sqliteUWP\sqlite-uwp.vcxproj">
+      <Project>{6883a688-89f5-424a-9bfa-50d42f691b29}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />

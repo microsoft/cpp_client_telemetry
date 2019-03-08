@@ -4,6 +4,8 @@
 #include "utils/Utils.hpp"
 #include "ILogManager.hpp"
 
+#include "mat/config.h"
+
 namespace ARIASDK_NS_BEGIN {
 
 /// <summary>
@@ -144,10 +146,15 @@ namespace ARIASDK_NS_BEGIN {
         storage.retrievalFailed >> tpm.nothingToUpload;
         packager.emptyPackage >> tpm.nothingToUpload;
 
-        packager.packagedEvents >> compression.compress >> httpEncoder.encode >> clockSkewDelta.encode >> stats.onUploadStarted >> hcm.sendRequest;
+        packager.packagedEvents >>
+#ifdef HAVE_MAT_ZLIB
+        compression.compress >>
+#endif
+        httpEncoder.encode >> clockSkewDelta.encode >> stats.onUploadStarted >> hcm.sendRequest;
 
+#ifdef HAVE_MAT_ZLIB
         compression.compressionFailed >> storage.releaseRecords >> stats.onPackagingFailed >> tpm.packagingFailed;
-
+#endif
 
         hcm.requestDone >> clockSkewDelta.decode >> httpDecoder.decode;
 

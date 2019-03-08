@@ -1,9 +1,11 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
 #define LOG_MODULE DBG_API
 
-#include "../../EXPCommonClient.hpp"
-#include "../../JsonHelper.hpp"
+#include "exp/EXPCommonClient.hpp"
+#include "exp/JsonHelper.hpp"
 #include "AFDConfigCache.hpp"
-#include "offline/FifoFileStorage.hpp"
+#include "exp/FifoFileStorage.hpp"
 #include "pal/PAL.hpp"
 #include "pal/UtcHelpers.hpp"
 #include "AFDClientUtils.hpp"
@@ -416,11 +418,11 @@ namespace Microsoft {
                 }
 
 
-                MAT::IStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
+                MAT::IDataStorage* AFDConfigCache::_CreateOfflineStorage(const string& storagePath)
                 {
                     std::lock_guard<std::mutex> lock(m_lock);
                     // create offline storage
-                    MAT::IStorage* pOfflineStorage = new FIFOFileStorage(); ;
+                    MAT::IDataStorage* pOfflineStorage = new FIFOFileStorage(); ;
 
                     if (!pOfflineStorage)
                     {
@@ -454,3 +456,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

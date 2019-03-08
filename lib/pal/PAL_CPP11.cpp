@@ -415,15 +415,12 @@ namespace PAL_NS_BEGIN {
 #define OS_NAME "Linux"
 #endif
 
-// FIXME: [MG] - we'd be rolling out SKU without ECS for 3r parties
-#define ECS_SUPP "ECS"
-
     //---
     // TODO: [MG] - make it portable...
     std::string getSdkVersion()
     {
         // TODO: [MG] - move this code to common PAL code
-        return std::string(ARIASDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-") + BUILD_VERSION_STR;
+        return std::string(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-") + BUILD_VERSION_STR;
     }
 
     //---

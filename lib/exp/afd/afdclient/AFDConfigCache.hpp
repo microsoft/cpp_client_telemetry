@@ -1,12 +1,16 @@
+#include "mat/config.h"
+#ifdef HAVE_MAT_EXP
+
 #pragma once
 
 #include "AFDClientConfig.hpp"
-#include "offline/IStorage.hpp"
+#include "exp/IDataStorage.hpp"
 #include "pal/PAL.hpp"
-#include <json.hpp>
+
+#include "json.hpp"
+
 #include <string>
 #include <map>
-
 
 namespace Microsoft {
     namespace Applications {
@@ -57,13 +61,13 @@ namespace Microsoft {
 
                 private:
 
-                    MAT::IStorage* _CreateOfflineStorage(const std::string& storagePath);
+                    MAT::IDataStorage* _CreateOfflineStorage(const std::string& storagePath);
                     bool _LoadConfig();
                     bool _SaveConfig(const AFDConfig& config);
 
                     std::string m_OfflineStoragePath;
 
-                    MAT::IStorage* m_pOfflineStorage;
+                    MAT::IDataStorage* m_pOfflineStorage;
 
 
                     std::map<std::string, AFDConfig> m_configs;
@@ -77,3 +81,4 @@ namespace Microsoft {
         }
     }
 }
+#endif

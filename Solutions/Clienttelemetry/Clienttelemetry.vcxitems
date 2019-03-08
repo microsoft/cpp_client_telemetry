@@ -31,24 +31,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp">
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <SDLCheck>true</SDLCheck>
-    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
@@ -63,12 +52,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
@@ -92,16 +81,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientConfig.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDClientUtils.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\afd\afdclient\AFDConfigCache.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientConfig.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSClientUtils.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\ecs\ecsclient\ECSConfigCache.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\EXPCommonClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exp\JsonHelper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.hpp" />
@@ -109,7 +88,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\Config.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IControlPlane.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp" />
@@ -119,8 +97,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\ISystemInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\json.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\TraceHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-dll.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-exp.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ctmacros.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CorrelationVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\DebugEvents.hpp" />
@@ -148,7 +130,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\VariantType.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ClockSkewManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\FifoFileStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\deprecated\FifoFileStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
@@ -181,6 +163,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
   </ItemGroup>

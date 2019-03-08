@@ -3,7 +3,7 @@
 
 #include "ContextFieldsProvider.hpp"
 #include "LogSessionData.hpp"
-#include "Config.hpp"
+
 #include "utils/Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {

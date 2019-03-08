@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef BASEDECORATOR_HPP
+#define BASEDECORATOR_HPP
 
-#pragma once
 #include "Version.hpp"
 
 #include "IDecorator.hpp"
+#include "Enums.hpp"
+#include "ILogManager.hpp"
 
-#include "Config.hpp"
-#include <Enums.hpp>
 #include <algorithm>
 
-#include "ILogManager.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -29,3 +29,5 @@ namespace ARIASDK_NS_BEGIN
     };
 
 } ARIASDK_NS_END
+
+#endif

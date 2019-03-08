@@ -1,5 +1,19 @@
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#endif
+
 #pragma warning( disable : 4996 )
-#pragma comment (lib, "Mincore.lib")
+
+// Windows 7.1 SDK module:
+#pragma comment (lib, "Version.Lib")
+
+/* Ref. https://docs.microsoft.com/en-us/windows/desktop/apiindex/windows-8-api-sets
+ *
+ * Compatibility with Windows 7, Windows Server 2008 R2 and older operating systems:
+ * Binaries that link to MinCore.lib or MinCore_Downlevel.lib are not designed to work 
+ * on Windows 7, Windows Server 2008 R2 or earlier. Binaries that need to run on earlier
+ * versions of Windows or Windows Server must not use either MinCore.lib or MinCore_Downlevel.lib.
+ */
 
 #include <pal/PAL.hpp>
 
@@ -11,6 +25,8 @@
 #include "WindowsEnvironmentInfo.h"
 
 #include <string>
+
+using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
