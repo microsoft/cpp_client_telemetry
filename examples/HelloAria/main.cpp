@@ -164,7 +164,9 @@ extern "C" void test_c_api();
 
 int main()
 {
+#if 0
     test_c_api();
+#endif
 
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
     OfficeTest();
@@ -195,7 +197,7 @@ int main()
 
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  // 0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
-    config[CFG_INT_SDK_MODE]          = SdkModeTypes::SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema; // SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
@@ -233,7 +235,7 @@ int main()
 
     // Api_v1_CompatChecks();
      
-    printf("LogManager::GetSemanticContext \n");
+    printf("LogManager::GetSemanticContext \n"); 
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
     semanticContext->SetAppId("MyAppName");     // caller must obtain this from app manifest, e.g. .plist on Mac OS X
@@ -259,13 +261,25 @@ int main()
         EventProperties event(eventName);
 
         std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
+        event.SetName("MyProduct.TaggedEvent");
         event.SetType(evtType);
         event.SetProperty("result", "Success");
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
-        event.SetProperty("seq", (uint64_t)i);
-        event.SetLatency(latency);
+        event.SetProperty("seq", (uint64_t)i); 
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, i+1);
+        event.SetLatency(latency); 
         logger->LogEvent(event);
+
+        EventProperties event2("MyProduct.TaggedEvent2",
+            {
+                { "result", "Success" },
+                { "random", rand() },
+                { "secret", 5.6872 },
+                { "seq", (uint64_t)i },
+                { COMMONFIELDS_EVENT_PRIVTAGS, i + 1 }
+            });
+        logger->LogEvent(event2);
     }
 
     // Default transmission timers:

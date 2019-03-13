@@ -436,6 +436,30 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     removeAllListeners(debugListener);
 }
 
+TEST(APITest, LogManager_UTCSingleEventSent) {
+    auto &configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+    configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
+
+    EventProperties event;
+
+    std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
+    event.SetName("MyProduct.TaggedEvent");
+    event.SetType(evtType);
+    event.SetProperty("result", "Success");
+    event.SetProperty("random", rand());
+    event.SetProperty("secret", 5.6872);
+    event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
+    event.SetLatency(EventLatency_Normal);
+
+    ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
+    logger->LogEvent(event);
+}
+
 TEST(APITest, LogManager_SemanticAPI)
 {
     bool failed = false;

@@ -506,6 +506,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-noutc.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-default.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-ikeys.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

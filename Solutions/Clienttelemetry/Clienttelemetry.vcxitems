@@ -98,7 +98,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-dll.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-exp.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-noutc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-default.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-ikeys.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.hpp" />

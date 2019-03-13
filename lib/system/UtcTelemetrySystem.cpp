@@ -285,6 +285,7 @@ namespace ARIASDK_NS_BEGIN {
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SOURCE);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ADVERTISINGID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
+        //eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
 
         //eventCtx->source->data[0].properties.erase(SESSION_ID);
         //eventCtx->source->data[0].properties.erase(SESSION_STATE);
@@ -303,6 +304,12 @@ namespace ARIASDK_NS_BEGIN {
             dbuilder.AddString(eventCtx->source->cV.c_str());
         }
 
+        if (eventCtx->source->data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS) != eventCtx->source->data[0].properties.end()) {
+            // UTC mode sends privacy tag in ext.metadata.privTags
+            builder.AddField("PartA_PrivTags", TypeUInt64);
+            int64_t value = eventCtx->source->data[0].properties[COMMONFIELDS_EVENT_PRIVTAGS].longValue;
+            dbuilder.AddValue(value);
+        }   
 
         //PartA_Exts_CommonFields
         builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
@@ -379,6 +386,7 @@ namespace ARIASDK_NS_BEGIN {
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_VERSION);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_NAME);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_INITID);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
 
         //"Extension"
         PutData(eventCtx->source->ext, MD, builder, dbuilder);

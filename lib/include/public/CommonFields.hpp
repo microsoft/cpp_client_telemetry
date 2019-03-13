@@ -3,7 +3,6 @@
 #define MAT_COMMONFIELDS_HPP
 
 #include "Version.hpp"
-
 namespace ARIASDK_NS_BEGIN
 {
     /* Aria-v1 legacy protocol common property names supported by 1DS SDK */
@@ -47,6 +46,7 @@ namespace ARIASDK_NS_BEGIN
     const char* const COMMONFIELDS_EVENT_NAME                         = "EventInfo.Name";
     const char* const COMMONFIELDS_EVENT_INITID                       = "EventInfo.InitId";
     const char* const COMMONFIELDS_EVENT_SEQ                          = "EventInfo.Sequence";
+    const char* const COMMONFIELDS_EVENT_PRIVTAGS                     = "EventInfo.PrivTags";
 
     const char* const SESSION_FIRST_TIME                              = "Session.FirstLaunchTime";
     const char* const SESSION_STATE                                   = "Session.State";
@@ -54,7 +54,6 @@ namespace ARIASDK_NS_BEGIN
     const char* const SESSION_DURATION                                = "Session.Duration";
     const char* const SESSION_DURATION_BUCKET                         = "Session.DurationBucket";
     const char* const SESSION_SDKUID                                  = "DeviceInfo.SDKUid";
-
 } ARIASDK_NS_END
 
 #endif
