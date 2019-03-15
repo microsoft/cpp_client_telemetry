@@ -57,6 +57,10 @@ namespace testing {
 
 #endif // end of network headers
 
+#ifndef _Out_cap_
+#define _Out_cap_(size)
+#endif
+
 // *INDENT-OFF*
 
 namespace testing {
@@ -268,7 +272,7 @@ namespace testing {
             m_sock = Invalid;
         }
 
-        int recv(void* buffer, unsigned size)
+        int recv(_Out_cap_(size) void* buffer, unsigned size)
         {
             assert(m_sock != Invalid);
             return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, 0);
