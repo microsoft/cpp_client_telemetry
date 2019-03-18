@@ -6,6 +6,8 @@
 
 #include "ctmacros.hpp"
 #include "Enums.hpp"
+#include "CommonFields.h"
+
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -24,6 +26,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+
     /// <summary>
     /// The number of ticks per second.
     /// </summary>

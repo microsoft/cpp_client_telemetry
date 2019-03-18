@@ -9,6 +9,23 @@
 #endif
 namespace ARIASDK_NS_BEGIN {
 
+    class NullContext : public ISemanticContext
+    {
+    public:
+
+        virtual void SetNetworkCost(NetworkCost networkCost) override {};
+
+        virtual void SetNetworkType(NetworkType networkType) override {};
+
+        virtual void SetUserId(const std::string & userId, PiiKind piiKind = PiiKind_Identity) override {};
+
+        virtual void SetTicket(TicketType, const std::string &) override {};
+
+        virtual void SetCommonField(const std::string &, const EventProperty &) override {};
+
+        virtual void SetCustomField(const std::string &, const EventProperty &) override {};
+    };
+
     class NullLogger : public ILogger
     {
 
@@ -17,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         // Inherited via ILogger
         virtual ISemanticContext * GetSemanticContext() const override
         {
-            static ISemanticContext nullContext;
+            static NullContext nullContext;
             return &nullContext;
         }
 
@@ -27,13 +44,13 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void SetContext(const std::string & name, double value, PiiKind piiKind = PiiKind_None) override {};
 
-        virtual void SetContext(const std::string & name, int64_t value, PiiKind piiKind = PiiKind_None) override {};
-
         virtual void SetContext(const std::string & name, int8_t value, PiiKind piiKind = PiiKind_None) override {};
 
         virtual void SetContext(const std::string & name, int16_t value, PiiKind piiKind = PiiKind_None) override {};
 
         virtual void SetContext(const std::string & name, int32_t value, PiiKind piiKind = PiiKind_None) override {};
+
+        virtual void SetContext(const std::string & name, int64_t value, PiiKind piiKind = PiiKind_None) override {};
 
         virtual void SetContext(const std::string & name, uint8_t value, PiiKind piiKind = PiiKind_None) override {};
 
@@ -48,6 +65,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual void SetContext(const std::string & name, time_ticks_t value, PiiKind piiKind = PiiKind_None) override {};
 
         virtual void SetContext(const std::string & name, GUID_t value, PiiKind piiKind = PiiKind_None) override {};
+
+        virtual void SetContext(const std::string & name, const EventProperty & prop) override {};
 
         virtual void LogAppLifecycle(AppLifecycleState state, EventProperties const & properties) override {};
 
@@ -80,6 +99,11 @@ namespace ARIASDK_NS_BEGIN {
         virtual void LogTrace(TraceLevel level, std::string const & message, EventProperties const & properties) override {};
 
         virtual void LogUserState(UserState state, long timeToLiveInMillis, EventProperties const & properties) override {};
+
+        virtual void SetParentContext(ISemanticContext * context) override {};
+
+        virtual void SetLevel(uint8_t level) override {};
+
     };
 
     class NullLogManager : public ILogManager
@@ -155,7 +179,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual ISemanticContext & GetSemanticContext() override
         {
-            static ISemanticContext nullContext;
+            static NullContext nullContext;
             return nullContext;
         }
 

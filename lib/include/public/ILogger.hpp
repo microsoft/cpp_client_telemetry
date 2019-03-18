@@ -365,6 +365,24 @@ namespace ARIASDK_NS_BEGIN
         virtual void SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) = 0;
 
         /// <summary>
+        /// Populate event property using EventProperty value object.
+        /// </summary>
+        /// <param name="name">Property name.</param>
+        /// <param name="prop">Property value object.</param>
+        virtual void SetContext(const std::string& name, const EventProperty& prop) = 0;
+
+        /// <summary>
+        /// Allows the logger to inherit the alternate parent context.
+        ///
+        /// Default context wiring rules:
+        /// * host loggers inherit their common host LogManager context.
+        /// * guest loggers do not inherit their host LogManager context due to privacy reasons.
+        /// 
+        /// </summary>
+        /// <param name="context">The context.</param>
+        virtual void SetParentContext(ISemanticContext* context) = 0;
+
+        /// <summary>
         /// Logs the state of the application lifecycle.
         /// </summary>
         /// <param name="state">The state in the application's lifecycle, specified by one of the 
@@ -561,6 +579,12 @@ namespace ARIASDK_NS_BEGIN
         virtual void LogUserState(UserState state,
             long timeToLiveInMillis,
             EventProperties const& properties) = 0;
+
+        /// <summary>
+        /// Set default diagnostic level of this logger instance.
+        /// </summary>
+        /// <param name="level">Diagnostic level.</param>
+        virtual void SetLevel(uint8_t level) = 0;
     };
 
 

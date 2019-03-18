@@ -30,6 +30,8 @@ namespace ARIASDK_NS_BEGIN {
         if (!m_isStarted) {
             return;
         }
+
+        m_intervalMs = m_config.GetMetaStatsSendIntervalSec() * 1000;
         if (m_intervalMs != 0)
         {
             if (!m_isScheduled.exchange(true))
@@ -55,7 +57,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             bool result = true;
             result &= m_baseDecorator.decorate(record);
-            result &= m_semanticContextDecorator.decorate(record);
+            // TODO: [MG] - at the moment we do not want to decorate stats events with global context
+            // variables, as it's a potential privacy issue...
+            // result &= m_semanticContextDecorator.decorate(record);
             if (result)
             {
                 IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_Normal, EventPersistence_Normal, &record);

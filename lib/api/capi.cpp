@@ -1,3 +1,4 @@
+/* Copyright (c) Microsoft. All rights reserved. */
 #ifdef _WIN32
 #define ARIASDK_DECLSPEC __declspec(dllexport)
 #endif
@@ -5,178 +6,226 @@
 #include "LogManagerProvider.hpp"
 #include "aria.h"
 #include "utils/Utils.hpp"
-#include <map>
 
 #include "PAL.hpp"
+
+#include "CommonFields.h"
+
+#include <mutex>
+#include <map>
+#include <cstdint>
 
 static const char * libSemver = TELEMETRY_EVENTS_VERSION;
 
 using namespace MAT;
 
+/**
+ * capi_client aggregates the two entities:
+ * - lm:  Ilogmanager pointer to SDK instance
+ * - cfg: preferred configuration supplied by the caller
+ */
 typedef struct
 {
-    ILogConfiguration cfg;
-    ILogManager * lm;
-} entry;
+    ILogManager*        logmanager = nullptr;
+    ILogConfiguration   config;
+    std::string         ctx_data;   // Copy of original JSON source config or token
+} capi_client;
 
-// FIXME: [MG] - add locking around lms
-std::map < evt_handle_t, entry > lms;
+static std::mutex mtx;
+static std::map<evt_handle_t, capi_client> clients;
 
 /**
  * Obtain log manager ptr using C API handle
  */
-ILogManager* GetLogManager(evt_handle_t handle)
+capi_client * get_client(evt_handle_t handle)
 {
-    auto it = lms.find(handle);
-    return (it != lms.end()) ?
-        it->second.lm :
-        nullptr;
+    LOCKGUARD(mtx);
+    const auto it = clients.find(handle);
+    return (it != clients.cend()) ? &(it->second) : nullptr;
 }
 
-evt_status_t aria_open(evt_context_t *ctx)
+#define VERIFY_CLIENT_HANDLE(client, ctx)                       \
+    if (ctx==nullptr)                                           \
+    {                                                           \
+        return EFAULT; /* bad address */                        \
+    };                                                          \
+    auto client = get_client(ctx->handle);                      \
+    if ((client == nullptr) || (client->logmanager == nullptr)) \
+    {                                                           \
+        return ENOENT;                                          \
+    };
+
+evt_status_t mat_open(evt_context_t *ctx)
 {
-    char* config = (char *)ctx->data;
-
-    evt_handle_t code = static_cast<evt_handle_t>(hashCode(config));
-    auto it = lms.find(code);
-    if (it != lms.end())
+    if (ctx == nullptr)
     {
-        // Already open?..
-        //
-        // FIXME: [MG] - check for hashCode collisions. If there's a collision - different tenant,
-        // but same hash code, then keep trying with a different seed until a good unused hash is
-        // found.
-        return EALREADY;
-    }
+        return EFAULT; /* bad address */
+    };
 
-    if (config == nullptr)
+    char* config = static_cast<char *>(ctx->data);
+    if ((config == nullptr) || (config[0] == 0))
     {
         // Invalid configuration
         return EFAULT;
     }
 
+    evt_handle_t code = static_cast<evt_handle_t>(hashCode(config));
+    bool isHashFound = false;
+    // Find the next available spare hashcode
+    do
+    {
+        auto client = get_client(code);
+        if (client != nullptr)
+        {
+            if (client->ctx_data == config)
+            {
+                // Guest instance with the same config is already open
+                return EALREADY;
+            }
+            // hash code is assigned to another client, increment and retry
+            // with the next empty slot
+            code++;
+            continue;
+        };
+        isHashFound = true;
+    } while (!isHashFound);
+
+    // JSON configuration must start with {
     if (config[0] == '{')
     {
         // Create new configuration object from JSON
-        lms[code].cfg = MAT::FromJSON(config);
+        clients[code].config = MAT::FromJSON(config);
     }
     else
     {
-        // Assume that config is a token string
+        // Assume that the config string is a token, not JSON.
+        // That approach allows to consume the lightweght C API without JSON parser compiled in.
         std::string moduleName = "CAPI-Client-";
         moduleName += std::to_string(code);
-        lms[code].cfg =
+        clients[code].config =
         {
             { "name", moduleName },
             { "version", "1.0.0" },
             { "config",
                 {
-                    { "host", "*" }
+                    { "host", "*" },
+                    { "scope", CONTEXT_SCOPE_NONE }
                 }
             },
             { CFG_STR_PRIMARY_TOKEN, config }
         };
     }
 
-    // Pass a reference to obtain or create new log manager instance
-    auto & cfg = lms[code].cfg;
-    status_t status;
-    ILogManager *lm = LogManagerProvider::CreateLogManager(cfg, status);
+    // Remember the original config string. Needed to avoid hash code collisions
+    clients[code].ctx_data = config;
+
+    status_t status = static_cast<status_t>(EFAULT);
+    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
 
     // Verify that the instance pointer is valid
-    if (lm == nullptr)
+    if (clients[code].logmanager == nullptr)
     {
         status = static_cast<status_t>(EFAULT);
     }
-    else
-    {
-        // Remember the pointer to current ILogManager instance
-        lms[code].lm = lm;
-    }
-
-    ctx->result = (evt_status_t)status;
+    ctx->result = static_cast<evt_status_t>(status);
     ctx->handle = code;
     return ctx->result;
 }
 
-//
-// Marashal C struct tro Aria C++ API
-//
-evt_status_t aria_log(evt_context_t *ctx)
+/**
+ * Marashal C struct tro Aria C++ API
+ */
+evt_status_t mat_log(evt_context_t *ctx)
 {
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
+    VERIFY_CLIENT_HANDLE(client, ctx);
 
-    evt_prop *evt = (evt_prop*)ctx->data;
+    ILogConfiguration & config = client->config;
+    evt_prop *evt = static_cast<evt_prop*>(ctx->data);
     EventProperties props;
     props.unpack(evt, ctx->size);
 
-    // TODO: should we remove the iKey from props?
     auto m = props.GetProperties();
-    EventProperty &prop = m["iKey"];
+    EventProperty &prop = m[COMMONFIELDS_IKEY];
     std::string token = prop.as_string;
+    props.erase(COMMONFIELDS_IKEY);
 
-    // TODO: should we support source passed in evt?
-    ILogger *logger = lm->GetLogger(token);
-    logger->LogEvent(props);
+    // Privacy feature for OTEL C API client:
+    //
+    // C API customer that does not explicitly pass down JSON
+    //   config["config]["scope"] = COMMONFIELDS_SCOPE_ALL;
+    //
+    // should not be able to capture the host's context vars.
+    std::string scope = CONTEXT_SCOPE_NONE;
+    {
+        MAT::VariantMap &config_map = config["config"];
+        const auto & it = config_map.find("scope");
+        if (it != config_map.cend())
+        {
+            scope = static_cast<const char *>(it->second);
+            // Specifying "*" in JSON config allows Guest C API logger to capture Host context variables
+            if (scope == CONTEXT_SCOPE_ALL)
+            {
+                scope = CONTEXT_SCOPE_EMPTY;
+            }
+        }
+    }
 
-    ctx->result = EOK;
-    return EOK;
+    const auto & it = m.find(COMMONFIELDS_EVENT_SOURCE);
+    std::string source = ((it != m.cend()) && (it->second.type == EventProperty::TYPE_STRING)) ? it->second.as_string : "";
+
+    ILogger *logger = client->logmanager->GetLogger(token, source, scope);
+    if (logger == nullptr)
+    {
+        ctx->result = EFAULT; /* invalid address */
+    }
+    else
+    {
+        // TODO: [MG] - verify guest configuration and decide if we need to overwrite
+        logger->SetParentContext(nullptr);
+        logger->LogEvent(props);
+        ctx->result = EOK;
+    }
+    return ctx->result;
 }
 
-evt_status_t aria_close(evt_context_t *ctx)
+evt_status_t mat_close(evt_context_t *ctx)
 {
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
-    auto & cfg = lm->GetLogConfiguration();
-    return (evt_status_t)LogManagerProvider::Release(cfg);
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
+    ctx->result = result;
+    return result;
 }
 
-evt_status_t aria_pause(evt_context_t *ctx)
+evt_status_t mat_pause(evt_context_t *ctx)
 {
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
-    return (evt_status_t)lm->PauseTransmission();
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(client->logmanager->PauseTransmission());
+    ctx->result = result;
+    return result;
 }
 
-evt_status_t aria_resume(evt_context_t *ctx)
+evt_status_t mat_resume(evt_context_t *ctx)
 {
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
-    return (evt_status_t)lm->ResumeTransmission();
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(client->logmanager->ResumeTransmission());
+    ctx->result = result;
+    return result;
 }
 
-evt_status_t aria_upload(evt_context_t *ctx)
+evt_status_t mat_upload(evt_context_t *ctx)
 {
-
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
-    return (evt_status_t)lm->UploadNow();
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(client->logmanager->UploadNow());
+    ctx->result = result;
+    return result;
 }
 
-evt_status_t aria_flush(evt_context_t *ctx)
+evt_status_t mat_flush(evt_context_t *ctx)
 {
-    ILogManager *lm = GetLogManager(ctx->handle);
-    if (lm == nullptr)
-    {
-        return ENOENT;
-    }
-    return (evt_status_t)lm->Flush();
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(client->logmanager->Flush());
+    ctx->result = result;
+    return result;
 }
 
 extern "C" {
@@ -201,11 +250,11 @@ extern "C" {
                 break;
 
             case EVT_OP_OPEN:
-                result = aria_open(ctx);
+                result = mat_open(ctx);
                 break;
 
             case EVT_OP_CLOSE:
-                result = aria_close(ctx);
+                result = mat_close(ctx);
                 break;
 
             case EVT_OP_CONFIG:
@@ -213,23 +262,23 @@ extern "C" {
                 break;
 
             case EVT_OP_LOG:
-                result = aria_log(ctx);
+                result = mat_log(ctx);
                 break;
 
             case EVT_OP_PAUSE:
-                result = aria_pause(ctx);
+                result = mat_pause(ctx);
                 break;
 
             case EVT_OP_RESUME:
-                result = aria_resume(ctx);
+                result = mat_resume(ctx);
                 break;
 
             case EVT_OP_UPLOAD:
-                result = aria_upload(ctx);
+                result = mat_upload(ctx);
                 break;
 
             case EVT_OP_FLUSH:
-                result = aria_flush(ctx);
+                result = mat_flush(ctx);
                 break;
 
             case EVT_OP_VERSION:

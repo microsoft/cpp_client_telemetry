@@ -5,9 +5,11 @@
 #include "IDecorator.hpp"
 #include "api/ContextFieldsProvider.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
-    class SemanticContextDecorator : public DecoratorBase {
+    class SemanticContextDecorator : public DecoratorBase
+    {
 
     protected:
         ContextFieldsProvider& provider;

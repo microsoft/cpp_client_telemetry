@@ -262,14 +262,14 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which you can log telemetry events.
-        /// It associates the ILogger interface with the specified experimentation project (e.g. ECS) for retrieving configuration context information.
+        /// It associates the ILogger interface with the specified scope/project set (reserved for future use).
         /// </summary>
         /// <param name="tenantToken">A string that contains the tenant token associated with this application.</param>
         /// <param name="source">A string that contains the name of the source of events.</param>
-        /// <param name="experimentationProject">A string that contains the name of the experimentation project  
-        /// whose configuration IDs are associated with events sent by this ILogger.</param>
+        /// <param name="scope">A string that contains the logger scope/project set (reserved for future use).</param>
+        /// 
         /// <returns>A pointer to the ILogger instance.</returns>
-        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) = 0;
+        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scope = std::string()) = 0;
 
         /// <summary>Retrieves the current LogManager instance configuration</summary>
         virtual ILogConfiguration& GetLogConfiguration() = 0;

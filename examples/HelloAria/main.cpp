@@ -164,10 +164,6 @@ extern "C" void test_c_api();
 
 int main()
 {
-#if 0
-    test_c_api();
-#endif
-
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
     OfficeTest();
     if (1)
@@ -182,12 +178,11 @@ int main()
     // Host SDK starts
     printf("Setting up configuration...\n");
     auto& config = LogManager::GetLogConfiguration();
+
     config["name"] = "HelloAria";
     config["version"] = "1.2.5";
     config["config"]["host"] = "HelloAria"; // host
     config["compat"]["dotType"] = false;    // Legacy v1 behaviour with respect to SetType using underscore instead of a dot
-
-    // config["stats"]["interval"] = 1;     // uncomment for accelerated stats sent every second
 
 #ifdef __APPLE__
     config[CFG_STR_CACHE_FILE_PATH]   = "/tmp/offlinestorage.db";
@@ -197,7 +192,7 @@ int main()
 
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  // 0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
-    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema; // SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
@@ -227,13 +222,8 @@ int main()
 
     printf("LogManager::Initialize\n");
     ILogger *logger = LogManager::Initialize(TOKEN);
-    
-#if 1
-    // LogManager::PauseTransmission();
-    logger->LogEvent("TestEvent");
-#endif
 
-    // Api_v1_CompatChecks();
+    Api_v1_CompatChecks();
      
     printf("LogManager::GetSemanticContext \n"); 
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
@@ -243,12 +233,20 @@ int main()
     semanticContext->SetAppLanguage("en-US");   // caller must obtain this from app manifest, e.g. .plist on Mac OS X
     semanticContext->SetUserLanguage("en-US");  // caller must obtain the user language from preferences
 
+    // This global context variable will not be seen by C API client
+    LogManager::SetContext("GlobalContext.Var", 12345);
+
+    // Run C API client test
+    test_c_api();
+ 
 #ifndef _WIN32
     // Platforms other than Windows currently do not have automatic network detection implemented,
-    // so the caller must populated these fields using semantic context API
+    // so the caller must populate these fields using semantic context API
     semanticContext->SetNetworkCost(MAT::NetworkCost::NetworkCost_Unmetered);
     semanticContext->SetNetworkType(MAT::NetworkType::NetworkType_Wired);
 #endif
+
+    LogManager::SetTransmitProfile(TransmitProfile::TransmitProfile_NearRealTime);
 
     // Ingest events of various latencies
     printf("Starting stress-test...\n");

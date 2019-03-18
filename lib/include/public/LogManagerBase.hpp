@@ -2,7 +2,7 @@
 #define ARIA_LOGMANAGER_HPP
 // Copyright (c) Microsoft. All rights reserved.
 
-#include "CommonFields.hpp"
+#include "CommonFields.h"
 
 // TODO: [MG] - temporary workaround for error: ISO C++ does not permit �XXX::foo� to be defined as �YYY::foo�
 // This error is benign and this syntax is allowed by MSVC and clang. We utilize this down there below to

@@ -16,7 +16,7 @@
 #include "utils/Utils.hpp"
 #include "MicrosoftTelemetry.h"
 
-#include "CommonFields.hpp"
+#include "CommonFields.h"
 
 using namespace tld;
 

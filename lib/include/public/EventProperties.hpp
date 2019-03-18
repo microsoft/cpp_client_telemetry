@@ -181,6 +181,17 @@ namespace ARIASDK_NS_BEGIN
         uint64_t GetPolicyBitFlags() const;
 
         /// <summary>
+        /// Sets the diagnostic level of an event. This is equivalent to:
+        ///  ...
+        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        ///  ...
+        /// </summary>
+        void SetLevel(uint8_t level)
+        {
+            SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        }
+
+        /// <summary>
         /// Specify a property for an event.
         /// It either creates a new property if none exists or overwrites the existing one.
         /// </summary>
@@ -302,6 +313,11 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns>Pii Properties bag of the event</returns>
         const std::map<std::string, std::pair<std::string, PiiKind> > GetPiiProperties(DataCategory category = DataCategory_PartC) const;
+
+        /// <summary>
+        /// Erase property from event.
+        /// </summary>
+        size_t erase(std::string key, DataCategory category = DataCategory_PartC);
 
         virtual ~EventProperties();
 

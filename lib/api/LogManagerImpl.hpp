@@ -35,6 +35,7 @@ namespace ARIASDK_NS_BEGIN {
         static std::set<ILogManager*>   managers;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
+        virtual bool isLevelEnabled(uint8_t level) = 0;
     };
 
     class Logger;
@@ -99,10 +100,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual ILogConfiguration & GetLogConfiguration() override;
 
-        /**
-         * GetLogger method
-         */
-        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& experimentationProject = std::string()) override;
+        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
 
@@ -162,6 +160,12 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="event">The event.</param>
         virtual void sendEvent(IncomingEventContextPtr const& event) override;
+
+        /// <summary>
+        /// Verify if logging is enabled for given level
+        /// </summary>
+        /// <param name="level">Diagnostic level.</param>
+        virtual bool isLevelEnabled(uint8_t level) override;
 
     protected:
 

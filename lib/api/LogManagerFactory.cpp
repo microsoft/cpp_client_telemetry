@@ -39,8 +39,13 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="instance">The instance.</param>
     /// <returns></returns>
-    status_t LogManagerFactory::Destroy(ILogManager *instance)
+    status_t LogManagerFactory::Destroy(ILogManager* instance)
     {
+        if (instance == nullptr)
+        {
+            return STATUS_EFAIL;
+        }
+
         LOCKGUARD(ILogManagerInternal::managers_lock);
         auto it = ILogManagerInternal::managers.find(instance);
         if (it != std::end(ILogManagerInternal::managers))
@@ -56,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
     void LogManagerFactory::rehome(const std::string& name, const std::string& host)
     {
         // copy all items from the ROOT set to their new host
-        shared[ANYHOST].first.insert(name);
+        shared[ANYHOST].names.insert(name);
         // shared[ANYHOST].second->SetKey(host);
         shared[host] = std::move(shared[ANYHOST]);
         shared.erase(ANYHOST);
@@ -67,8 +72,10 @@ namespace ARIASDK_NS_BEGIN {
         for (auto &pool : { shared, exclusive })
             for (auto &kv : pool)
             {
-                if (kv.second.first.count(name)) // check set for name
-                    return kv.second.second;     // found ILogManager
+                if (kv.second.names.count(name)) // check set for name
+                {
+                    return kv.second.instance;   // found ILogManager
+                }
             }
         return nullptr;
     }
@@ -102,9 +109,11 @@ namespace ARIASDK_NS_BEGIN {
         {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
+            {
                 exclusive[name] = { { name }, Create(c) };
+            }
             c["hostMode"] = true;
-            return exclusive[name].second;
+            return exclusive[name].instance;
         }
 
         // Shared mode
@@ -112,9 +121,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             // There are some items already. This guest doesn't care
             // where to go, so it goes to the first host's pool.
-            shared[shared.begin()->first].first.insert(name);
+            shared[shared.begin()->first].names.insert(name);
             c["hostMode"] = false;
-            return shared[shared.begin()->first].second;
+            return shared[shared.begin()->first].instance;
         }
 
         if (!shared.count(host))
@@ -132,16 +141,16 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
         else
-            if (!shared[host].first.count(name))
+            if (!shared[host].names.count(name))
             {
                 // Host already exists, so simply add the new item to it
-                shared[host].first.insert(name);
+                shared[host].names.insert(name);
             }
 
         // TODO: [MG] - if there was no module configuration supplied
         // explicitly, then do we treat the client as host or guest?
         c["hostMode"] = (name==host);
-        return shared[host].second;
+        return shared[host].instance;
     }
 
     bool LogManagerFactory::release(ILogConfiguration& c)
@@ -151,19 +160,18 @@ namespace ARIASDK_NS_BEGIN {
         return release(name, host);
     }
 
-    bool LogManagerFactory::release(const std::string &name)
+    bool LogManagerFactory::release(const std::string& name)
     {
         for (auto &kv : shared)
         {
             const std::string &host = kv.first;
-            if (kv.second.first.count(name))
+            if (kv.second.names.count(name))
             {
-                kv.second.first.erase(name);
-                if (kv.second.first.empty())
+                kv.second.names.erase(name);
+                if (kv.second.names.empty())
                 {
                     // Last owner is gone, destroy 
-                    if (shared[host].second)
-                        Destroy(shared[host].second);
+                    Destroy(shared[host].instance);
                     shared.erase(host);
                 }
                 return true;
@@ -180,8 +188,7 @@ namespace ARIASDK_NS_BEGIN {
             {
                 auto val = exclusive[name];
                 // destroy LM
-                if (val.second)
-                    Destroy(val.second);
+                Destroy(val.instance);
                 exclusive.erase(name);
                 return true;
             }
@@ -189,14 +196,13 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         if ((shared.find(host) != std::end(shared)) &&
-            (shared[host].first.count(name)))
+            (shared[host].names.count(name)))
         {
-            shared[host].first.erase(name);
-            if (shared[host].first.empty())
+            shared[host].names.erase(name);
+            if (shared[host].names.empty())
             {
                 // Last owner is gone, destroy LM
-                if (shared[host].second)
-                    Destroy(shared[host].second);
+                Destroy(shared[host].instance);
                 shared.erase(host);
             }
             return true;
@@ -215,7 +221,7 @@ namespace ARIASDK_NS_BEGIN {
             {
                 std::string csv;
                 bool first = true;
-                for (auto &name : kv.second.first)
+                for (const auto &name : kv.second.names)
                 {
                     if (!first)
                     {

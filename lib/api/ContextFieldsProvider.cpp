@@ -6,7 +6,8 @@
 
 #include "utils/Utils.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
     ContextFieldsProvider::ContextFieldsProvider()
         : ContextFieldsProvider(nullptr)
@@ -27,7 +28,6 @@ namespace ARIASDK_NS_BEGIN {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
-        m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
         m_ticketsMap = copy.m_ticketsMap;
     }
 
@@ -36,7 +36,6 @@ namespace ARIASDK_NS_BEGIN {
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
-        m_CommonFieldsAppExperimentIds = copy.m_CommonFieldsAppExperimentIds;
         m_ticketsMap = copy.m_ticketsMap;
         return *this;
     }
@@ -44,26 +43,15 @@ namespace ARIASDK_NS_BEGIN {
 
     ContextFieldsProvider::~ContextFieldsProvider()
     {
-        if (!m_parent) 
+        if (!m_parent)
         {
             PAL::unregisterSemanticContext(this);
         }
     }
 
-    void ContextFieldsProvider::setCommonField(std::string const& name, EventProperty const& value)
-    {
-        LOCKGUARD(m_lock);
-        m_commonContextFields[name] = value;
-    }
-
-    void ContextFieldsProvider::setCustomField(std::string const& name, EventProperty const& value)
-    {
-        LOCKGUARD(m_lock);
-        m_customContextFields[name] = value;
-    }
-
     void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record)
     {
+        // Append parent scope context variables if not detached from parent
         if (m_parent)
         {
             m_parent->writeToRecord(record);
@@ -126,9 +114,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOCKGUARD(m_lock);
 
-            if (!m_CommonFieldsAppExperimentIds.empty())
+            std::string value = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENTIDS].as_string;
+            if (!value.empty())
             {// for ECS set event specific config ids
-                std::string value = m_CommonFieldsAppExperimentIds;
                 std::string eventName = record.name;
                 if (!eventName.empty())
                 {
@@ -384,39 +372,21 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    //---
-
-    // Reference: https://aria.microsoft.com/developer/do-more/working-with-data/common-properties
-
-
-    void ContextFieldsProvider::SetAppExperimentETag(std::string const& appExperimentETag)
-    {
-        setCommonField(COMMONFIELDS_APP_EXPERIMENTETAG, appExperimentETag);
-        _ClearExperimentIds();
-    }
-
-    void ContextFieldsProvider::_ClearExperimentIds()
+    void ContextFieldsProvider::ClearExperimentIds()
     {
         // Clear the common ExperimentIds
-        m_CommonFieldsAppExperimentIds.clear();
+        SetCommonField(COMMONFIELDS_APP_EXPERIMENTIDS, "");
+
         // Clear the map of all ExperimentsIds (that's associated with event)
         m_commonContextEventToConfigIds.clear();
-    }
-
-    void ContextFieldsProvider::SetAppExperimentIds(std::string const& appExperimentIds)
-    {
-        m_CommonFieldsAppExperimentIds = appExperimentIds;
-    }
-
-    void ContextFieldsProvider::SetAppExperimentImpressionId(std::string const& appExperimentImpressionId)
-    {
-        setCommonField(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, appExperimentImpressionId);
     }
 
     void ContextFieldsProvider::SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds)
     {
         if (eventName.empty())
-          return;
+        {
+            return;
+        }
 
         std::string eventNameNormalized = toLower(eventName);
         if (!experimentIds.empty())
@@ -429,163 +399,30 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    void ContextFieldsProvider::SetAppId(std::string const& appId)
+    void ContextFieldsProvider::SetCommonField(const std::string& name, const EventProperty& value)
     {
-        setCommonField(COMMONFIELDS_APP_ID, appId);
+        LOCKGUARD(m_lock);
+        m_commonContextFields[name] = value;
     }
 
-    void ContextFieldsProvider::SetAppVersion(std::string const& appVersion)
+    void ContextFieldsProvider::SetCustomField(const std::string& name, const EventProperty& value)
     {
-        setCommonField(COMMONFIELDS_APP_VERSION, appVersion);
+        LOCKGUARD(m_lock);
+        m_customContextFields[name] = value;
     }
 
-    void ContextFieldsProvider::SetAppLanguage(std::string const& appLanguage)
+    void ContextFieldsProvider::SetTicket(TicketType type, const std::string& ticketValue)
     {
-        setCommonField(COMMONFIELDS_APP_LANGUAGE, appLanguage);
-    }
-
-    void ContextFieldsProvider::SetDeviceId(std::string const& deviceId)
-    {
-        setCommonField(COMMONFIELDS_DEVICE_ID, deviceId);
-    }
-
-    void ContextFieldsProvider::SetDeviceMake(std::string const& deviceMake)
-    {
-        setCommonField(COMMONFIELDS_DEVICE_MAKE, deviceMake);
-    }
-
-    void ContextFieldsProvider::SetDeviceModel(std::string const& deviceModel)
-    {
-        setCommonField(COMMONFIELDS_DEVICE_MODEL, deviceModel);
-    }
-
-    void ContextFieldsProvider::SetNetworkCost(NetworkCost networkCost)
-    {
-        char const* value;
-
-        switch (networkCost) {
-        case NetworkCost_Unknown:
-            value = "Unknown";
-            break;
-
-        case NetworkCost_Unmetered:
-            value = "Unmetered";
-            break;
-
-        case NetworkCost_Metered:
-            value = "Metered";
-            break;
-
-        case NetworkCost_OverDataLimit:
-            value = "OverDataLimit";
-            break;
-
-        default:
-            assert(!"Unknown NetworkCost enum value");
-            value = "";
-            break;
-        }
-
-        setCommonField(COMMONFIELDS_NETWORK_COST, value);
-    }
-
-    void ContextFieldsProvider::SetNetworkProvider(std::string const& networkProvider)
-    {
-        setCommonField(COMMONFIELDS_NETWORK_PROVIDER, networkProvider);
-    }
-
-    void ContextFieldsProvider::SetNetworkType(NetworkType networkType)
-    {
-        char const* value;
-
-        switch (networkType) {
-        case NetworkType_Unknown:
-            value = "Unknown";
-            break;
-
-        case NetworkType_Wired:
-            value = "Wired";
-            break;
-
-        case NetworkType_Wifi:
-            value = "Wifi";
-            break;
-
-        case NetworkType_WWAN:
-            value = "WWAN";
-            break;
-
-        default:
-            assert(!"Unknown NetworkType enum value");
-            value = "";
-            break;
-        }
-
-        setCommonField(COMMONFIELDS_NETWORK_TYPE, value);
-    }
-
-    void ContextFieldsProvider::SetOsName(std::string const& osName)
-    {
-        setCommonField(COMMONFIELDS_OS_NAME, osName);
-    }
-
-    void ContextFieldsProvider::SetOsVersion(std::string const& osVersion)
-    {
-        setCommonField(COMMONFIELDS_OS_VERSION, osVersion);
-    }
-
-    void ContextFieldsProvider::SetOsBuild(std::string const& osBuild)
-    {
-        setCommonField(COMMONFIELDS_OS_BUILD, osBuild);
-    }
-
-    void ContextFieldsProvider::SetUserId(std::string const& userId, PiiKind piiKind)
-    {
-        EventProperty prop(userId, piiKind);
-        setCommonField(COMMONFIELDS_USER_ID, prop);
-    }
-
-    void ContextFieldsProvider::SetUserMsaId(std::string const& userMsaId)
-    {
-        setCommonField(COMMONFIELDS_USER_MSAID, userMsaId);
-    }
-
-    void ContextFieldsProvider::SetUserANID(std::string const& userANID)
-    {
-        setCommonField(COMMONFIELDS_USER_ANID, userANID);
-    }
-
-    void ContextFieldsProvider::SetUserAdvertisingId(std::string const& userAdvertisingId)
-    {
-        setCommonField(COMMONFIELDS_USER_ADVERTISINGID, userAdvertisingId);
-    }
-
-    void ContextFieldsProvider::SetUserLanguage(std::string const& language)
-    {
-        setCommonField(COMMONFIELDS_USER_LANGUAGE, language);
-    }
-
-    void ContextFieldsProvider::SetUserTimeZone(std::string const& timeZone)
-    {
-        setCommonField(COMMONFIELDS_USER_TIMEZONE, timeZone);
-    }
-
-    void ContextFieldsProvider::SetCommercialId(std::string const& commercialId)
-    {
-        setCommonField(COMMONFIELDS_COMMERCIAL_ID, commercialId);
-    }
-
-    void ContextFieldsProvider::SetTicket(TicketType type, std::string const& ticketValue)
-    {
+        LOCKGUARD(m_lock);
         if (!ticketValue.empty())
         {
             m_ticketsMap[type] = ticketValue;
         }
     }
 
-    void ContextFieldsProvider::SetDeviceClass(std::string const& deviceCLass)
+    void ContextFieldsProvider::SetParentContext(ContextFieldsProvider* parent)
     {
-        setCommonField(COMMONFIELDS_DEVICE_CLASS, deviceCLass);
+        m_parent = parent;
     }
 
 } ARIASDK_NS_END

@@ -14,10 +14,14 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    constexpr const char * ANYHOST = "*";
+    constexpr const char* ANYHOST = "*";
 
     // set of modules assigned to this ILogManager pool
-    typedef std::pair<std::set<std::string>, ILogManager*> Pool;
+    typedef struct
+    {
+        std::set<std::string> names;
+        ILogManager*          instance;
+    } Pool;
 
     // registry of all hosts and guests
     typedef std::map<std::string, Pool> Registry;
@@ -45,9 +49,9 @@ namespace ARIASDK_NS_BEGIN {
 
         ILogManager* lease(ILogConfiguration& configuration);
 
-        bool release(const std::string & name, const std::string& host);
+        bool release(const std::string& name, const std::string& host);
 
-        bool release(const std::string & name);
+        bool release(const std::string& name);
 
         bool release(ILogConfiguration& configuration);
 
@@ -80,8 +84,8 @@ namespace ARIASDK_NS_BEGIN {
         static status_t Destroy(ILogManager*);
 
         static ILogManager * Get(
-            ILogConfiguration & logConfiguration,
-            status_t &status
+            ILogConfiguration& logConfiguration,
+            status_t& status
 #ifdef ANDROID
             , JNIEnv * env
             , jclass contextClass
@@ -89,7 +93,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
         )
         {
-            ILogManager * result = instance().lease(logConfiguration);
+            ILogManager* result = instance().lease(logConfiguration);
             status = (result != nullptr)?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
@@ -119,14 +123,14 @@ namespace ARIASDK_NS_BEGIN {
             return result;
         }
 
-        static status_t Release(const char * module)
+        static status_t Release(const char* module)
         {
             return (instance().release(module)) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
         }
 
-        static status_t Release(ILogConfiguration & config)
+        static status_t Release(ILogConfiguration& config)
         {
             return (instance().release(config)) ?
                 STATUS_SUCCESS :

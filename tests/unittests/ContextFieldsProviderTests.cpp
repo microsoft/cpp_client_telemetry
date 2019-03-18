@@ -12,18 +12,18 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ContextFieldsProvider ctx(nullptr);
     ContextFieldsProvider loggerCtx(&ctx);
 
-    ctx.setCustomField("shared", "willbeoverwritten");
-    ctx.setCustomField("parent", "willremain");
-    ctx.setCustomField("empty", "");
-    ctx.setCustomField("parentonly", "willberemoved");
+    ctx.SetCustomField("shared", "willbeoverwritten");
+    ctx.SetCustomField("parent", "willremain");
+    ctx.SetCustomField("empty", "");
+    ctx.SetCustomField("parentonly", "willberemoved");
     EventProperty prop("willbeoverwrittenpii", PiiKind_DistinguishedName);
-    ctx.setCustomField("sharedpii", prop);
+    ctx.SetCustomField("sharedpii", prop);
     EventProperty prop1("willremainpii", PiiKind_GenericData);
-    ctx.setCustomField("parentpii", prop1);
+    ctx.SetCustomField("parentpii", prop1);
     EventProperty prop2("", PiiKind_Identity);
-    ctx.setCustomField("emptypii", prop2);
+    ctx.SetCustomField("emptypii", prop2);
     EventProperty prop3("willberemoved", PiiKind_GenericData);
-    ctx.setCustomField("parentonlypii", prop3);
+    ctx.SetCustomField("parentonlypii", prop3);
 
     ctx.SetAppId("appId");
     ctx.SetAppExperimentIds("appExperimentIds");
@@ -63,15 +63,15 @@ TEST(ContextFieldsProviderTests, SetProperties)
     EXPECT_THAT(record.data[0].properties["parentonlypii"].stringValue, Eq("willberemoved"));
 
 
-    loggerCtx.setCustomField("shared", "latest");
-    loggerCtx.setCustomField("parentonly", "");
+    loggerCtx.SetCustomField("shared", "latest");
+    loggerCtx.SetCustomField("parentonly", "");
     EventProperty prop10("latestpii", PiiKind_MailSubject);
-    loggerCtx.setCustomField("sharedpii", prop10);
+    loggerCtx.SetCustomField("sharedpii", prop10);
     EventProperty prop11("", PiiKind_IPv4Address);
-    loggerCtx.setCustomField("parentonlypii", prop11);
-    loggerCtx.setCustomField("child", "specific");
+    loggerCtx.SetCustomField("parentonlypii", prop11);
+    loggerCtx.SetCustomField("child", "specific");
     EventProperty prop12("specificpii", PiiKind_QueryString);
-    loggerCtx.setCustomField("childpii", prop12);
+    loggerCtx.SetCustomField("childpii", prop12);
 
     ::AriaProtocol::Record record1;
     loggerCtx.writeToRecord(record1);

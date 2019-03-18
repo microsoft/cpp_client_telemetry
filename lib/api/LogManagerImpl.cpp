@@ -17,9 +17,8 @@
 #include "pal/UtcHelpers.hpp"
 #include "http/HttpClientFactory.hpp"
 
-
-
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
 #ifdef ANDROID
     extern ILogManager* g_jniLogManager;
@@ -138,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 
-        m_context.setCommonField("act_session_id", PAL::generateUuidString()); // GetLogSessionData()->getSessionSDKUid()
+        m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
 #ifdef HAVE_MAT_UTC
         // UTC functionality is only available on Windows 10 RS2+
@@ -352,7 +351,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_TRACE("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -366,7 +365,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -380,7 +379,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -394,7 +393,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -408,7 +407,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -422,7 +421,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
         return STATUS_SUCCESS;
     }
 
@@ -435,12 +434,11 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-    ILogger* LogManagerImpl::GetLogger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject)
+    ILogger* LogManagerImpl::GetLogger(const std::string & tenantToken, const std::string & source, const std::string & scope)
     {
         if (m_alive)
         {
-            LOG_TRACE("GetLogger(tenantId=\"%s\", source=\"%s\", experimentationProject=\"%s\")",
-                tenantTokenToId(tenantToken).c_str(), source.c_str(), experimentationProject.c_str());
+            LOG_TRACE("GetLogger(tenantId=\"%s\", source=\"%s\")", tenantTokenToId(tenantToken).c_str(), source.c_str());
 
             std::string normalizedTenantToken = toLower(tenantToken);
             std::string normalizedSource = toLower(source);
@@ -451,7 +449,7 @@ namespace ARIASDK_NS_BEGIN {
             if (it == std::end(m_loggers))
             {
                 m_loggers[hash] = new Logger(
-                    normalizedTenantToken, normalizedSource, experimentationProject,
+                    normalizedTenantToken, normalizedSource, scope,
                     *this, m_context, *m_config,
                     m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
             }
@@ -508,6 +506,12 @@ namespace ARIASDK_NS_BEGIN {
         {
             m_system->sendEvent(event);
         }
+    }
+
+    bool LogManagerImpl::isLevelEnabled(uint8_t /* level */)
+    {
+        // TODO: [MG] - diagnostic level implementation is coming in a separate commit
+        return true;
     }
 
     ILogController* LogManagerImpl::GetLogController()

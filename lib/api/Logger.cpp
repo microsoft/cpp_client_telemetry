@@ -2,7 +2,7 @@
 
 #include "Logger.hpp"
 #include "LogSessionData.hpp"
-#include "CommonFields.hpp"
+#include "CommonFields.h"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
@@ -10,19 +10,25 @@
 
 using namespace MAT;
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
-#if 0
-    // TODO: [MG] - expose it as internal JSON shadow post
-    void SendAsJSON(const EventProperties& props, const std::string& token);
-#endif
+    Logger::Logger(
+        const std::string & tenantToken,
+        const std::string & source,
+        const std::string & scope,
 
-    Logger::Logger(std::string const& tenantToken, std::string const& source, std::string const& /*experimentationProject*/,
-        ILogManagerInternal& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
-        IEventFilter& eventFilter)
+        ILogManagerInternal & logManager,
+        ContextFieldsProvider & parentContext,
+        IRuntimeConfig & runtimeConfig,
+        IEventFilter & eventFilter)
         :
         m_tenantToken(tenantToken),
         m_source(source),
+        // TODO: scope parameter can be used to rewire the logger to alternate context.
+        // Scope must uniquely identify the "shared context" instance id.
+        m_scope(scope),
+        m_level(DIAG_LEVEL_DEFAULT),
         m_logManager(logManager),
         m_context(&parentContext),
         m_config(runtimeConfig),
@@ -40,6 +46,14 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
         m_allowDotsInType = m_config["compat"]["dotType"];
+
+        // Special scope "-" - means opt-out from parent context variables auto-capture.
+        // It allows to detach the logger from its parent context.
+        // This is the default mode for C API guests.
+        if (m_scope == CONTEXT_SCOPE_NONE)
+        {
+            SetParentContext(nullptr);
+        }
     }
 
     Logger::~Logger()
@@ -80,7 +94,7 @@ namespace ARIASDK_NS_BEGIN {
         // Always overwrite the stored value. 
         // Empty string is alowed to remove the previously set value.
         // If the value is empty, the context will not be added to event.
-        m_context.setCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
     }
 
     void Logger::SetContext(const std::string& k, const char       v[], PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
@@ -96,6 +110,26 @@ namespace ARIASDK_NS_BEGIN {
     void Logger::SetContext(const std::string& k, GUID_t             v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
 
     void Logger::SetContext(const std::string& k, bool               v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+
+    // TODO: [MG] - the goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
+    // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
+    // rewire from the default parent (Host LogManager context) to guest's sandbox context, i.e. enabling scenario where
+    // several guests are attached to one host, but each guest has their own 'local' LogManager semantic context sandbox.
+    // ...
+    // LogManager<T>::SetContext(...); // issued by guests would also allow to set context variable on guest's sandbox.
+    // ...
+    // dynamic_cast is needed to avoid exposing ContextFieldsProvider at API layer. Guest LogManager customers may use
+    // SetParentContext(...) to attach their guest ILogger to semantic context obtained from a dedicated LogManagerG.
+    //
+    // C API does not expose shared context to the callers. Default option for C API 'guest' customers is to detach them
+    // from the parent logger via ILogger::SetParentContext(nullptr)
+    //
+    void Logger::SetParentContext(ISemanticContext * context)
+    {
+        // Allow to set context even if typecast failed or if the parameter is nullptr.
+        // That way the ILogger is detached from parent - doesn't auto-capture parent-level context vars.
+        m_context.SetParentContext(dynamic_cast<ContextFieldsProvider *>(context));
+    }
 
     /// <summary>
     /// Logs the application lifecycle.
@@ -120,7 +154,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
     }
 
@@ -153,7 +187,8 @@ namespace ARIASDK_NS_BEGIN {
 
         ::AriaProtocol::Record record;
 
-        if (!applyCommonDecorators(record, properties, latency)) {
+        if (!applyCommonDecorators(record, properties, latency))
+        {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
                 "custom",
                 tenantTokenToId(m_tenantToken).c_str(),
@@ -161,11 +196,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-#if 1 /* Send to shadow */
-        //   SendAsJSON(properties, m_tenantToken);
-#endif
-
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_EVENT);
     }
 
@@ -203,7 +234,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
     }
 
@@ -240,10 +271,9 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
     }
-
 
     void Logger::LogPageView(
         std::string const& id,
@@ -282,7 +312,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
     }
 
@@ -303,7 +333,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             record.baseType.append(".");
             if (!m_allowDotsInType)
+            {
                 std::replace(evtType.begin(), evtType.end(), '.', '_');
+            }
             record.baseType.append(evtType);
 
         }
@@ -323,11 +355,12 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
-    void Logger::submit(::AriaProtocol::Record& record,
-        EventLatency latency,
-        EventPersistence persistence,
-        std::uint64_t  const& policyBitFlags)
+    void Logger::submit(::AriaProtocol::Record& record, const EventProperties& props)
     {
+        auto policyBitFlags = props.GetPolicyBitFlags();
+        auto persistence = props.GetPersistence();
+        auto latency = props.GetLatency();
+
         if (latency == EventLatency_Off)
         {
             DispatchEvent(DebugEventType::EVT_DROPPED);
@@ -387,7 +420,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
     }
 
@@ -431,7 +464,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
     }
 
@@ -457,7 +490,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_TRACE);
     }
 
@@ -483,7 +516,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        submit(record, latency, properties.GetPersistence(), properties.GetPolicyBitFlags());
+        submit(record, properties);
         DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
     }
 
@@ -493,7 +526,7 @@ namespace ARIASDK_NS_BEGIN {
     * Log a user's Session.
     *
     ******************************************************************************/
-    void Logger::LogSession(SessionState state, const EventProperties& prop)
+    void Logger::LogSession(SessionState state, const EventProperties& props)
     {
         LogSessionData* logSessionData = m_logManager.GetLogSessionData();
         std::string sessionSDKUid = logSessionData->getSessionSDKUid();
@@ -505,7 +538,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        EventRejectedReason isValidEventName = validateEventName(prop.GetName());
+        EventRejectedReason isValidEventName = validateEventName(props.GetName());
         if (isValidEventName != REJECTED_REASON_OK)
         {
             LOG_ERROR("Invalid event properties!");
@@ -546,17 +579,17 @@ namespace ARIASDK_NS_BEGIN {
         EventLatency latency = EventLatency_RealTime;
         ::AriaProtocol::Record record;
 
-        bool decorated = applyCommonDecorators(record, prop, latency) &&
+        bool decorated = applyCommonDecorators(record, props, latency) &&
             m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration);
 
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "Trace", tenantTokenToId(m_tenantToken).c_str(), prop.GetName().empty() ? "<unnamed>" : prop.GetName().c_str());
+                "Trace", tenantTokenToId(m_tenantToken).c_str(), props.GetName().empty() ? "<unnamed>" : props.GetName().c_str());
             return;
         }
 
-        submit(record, latency, prop.GetPersistence(), prop.GetPolicyBitFlags());
+        submit(record, props);
         DispatchEvent(DebugEventType::EVT_LOG_SESSION);
     }
 
@@ -578,7 +611,7 @@ namespace ARIASDK_NS_BEGIN {
     bool Logger::DispatchEvent(DebugEvent evt)
     {
         return m_logManager.DispatchEvent(std::move(evt));
-    };
+    }
 
     std::string Logger::GetSource()
     {

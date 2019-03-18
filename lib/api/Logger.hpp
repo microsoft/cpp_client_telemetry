@@ -24,7 +24,6 @@
 namespace ARIASDK_NS_BEGIN {
 
     class BaseDecorator;
-
     class ILogManagerInternal;
 
     class Logger :
@@ -35,8 +34,13 @@ namespace ARIASDK_NS_BEGIN {
 
     public:
 
-        Logger(std::string const& tenantToken, std::string const& source, std::string const& experimentationProject,
-            ILogManagerInternal& logManager, ContextFieldsProvider& parentContext, IRuntimeConfig& runtimeConfig,
+        Logger(
+            const std::string& tenantToken,
+            const std::string& source,
+            const std::string& scope,
+            ILogManagerInternal& logManager,
+            ContextFieldsProvider& parentContext,
+            IRuntimeConfig& runtimeConfig,
             IEventFilter& eventFilter);
 
         ~Logger();
@@ -71,7 +75,16 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override { SetContext(name, (int64_t)value, piiKind); }
 
+        virtual void SetContext(const std::string& name, const EventProperty& prop) override;
+
+        virtual void SetLevel(uint8_t level) override
+        {
+            m_level = level;
+        }
+
         virtual ISemanticContext*   GetSemanticContext() const override;
+
+        virtual void SetParentContext(ISemanticContext* context) override;
 
         virtual void  LogAppLifecycle(AppLifecycleState state, EventProperties const& properties) override;
 
@@ -161,17 +174,21 @@ namespace ARIASDK_NS_BEGIN {
 
         bool applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, MAT::EventLatency& latency);
 
-        virtual void submit(::AriaProtocol::Record& record,
-            MAT::EventLatency latency,
-            MAT::EventPersistence persistence,
-            std::uint64_t  const& policyBitFlags);
-
-        void SetContext(const std::string& name, const EventProperty& prop);
+        virtual void submit(::AriaProtocol::Record& record, const EventProperties& props);
 
         std::mutex                m_lock;
+
         std::string               m_tenantToken;
         std::string               m_iKey;
         std::string               m_source;
+        
+        // Scope values:
+        // "-"      - allows C API caller to detach their guest ILogger from parent's Host global context (default)
+        // "*"      - allows C API caller to attach their guest ILogger to parent's Host global context
+        // "<id>"   - allows to rewire this ILogger to alternate semantic context
+        std::string               m_scope;
+        uint8_t                   m_level;
+
         int64_t                   m_sessionStartTime;
         std::string               m_sessionId;
 
