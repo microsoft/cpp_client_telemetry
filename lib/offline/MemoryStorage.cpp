@@ -36,8 +36,8 @@ namespace ARIASDK_NS_BEGIN {
     /// </remarks>
     void MemoryStorage::Shutdown()
     {
-        LOCKGUARD(m_records_lock);
         LOCKGUARD(m_reserved_lock);
+        LOCKGUARD(m_records_lock);
 
         for (unsigned latency = EventLatency_Off; (latency <= EventLatency_Max); latency++)
         {
@@ -128,6 +128,7 @@ namespace ARIASDK_NS_BEGIN {
         if (minLatency == EventLatency_Unspecified)
             minLatency = EventLatency_Off;
 
+        LOCKGUARD(m_reserved_lock);
         LOCKGUARD(m_records_lock);
         m_lastReadCount = 0;
         // Start processing events of critical latency first
@@ -142,7 +143,6 @@ namespace ARIASDK_NS_BEGIN {
                 // Reserve records only if asked
                 if (leaseTimeMs)
                 {
-                    LOCKGUARD(m_reserved_lock);
                     record.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
                     m_reserved_records[record.id] = record; // copy to reserved
                 }

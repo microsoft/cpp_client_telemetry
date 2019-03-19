@@ -49,6 +49,8 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+    // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
+    // The duration delayInMs passed to that function must be always >= 0 ms
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
@@ -71,8 +73,8 @@ namespace ARIASDK_NS_BEGIN {
                 m_runningLatency = latency;
             }
             uint64_t now = PAL::getMonotonicTimeMs();
-            auto delta = (m_scheduledUploadTime >= now) ? m_scheduledUploadTime - now : 0;
-            if (delta <= delayInMs)
+            uint64_t delta = (m_scheduledUploadTime >= now) ? m_scheduledUploadTime - now : 0;
+            if (delta <= static_cast<uint64_t>(delayInMs))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // m_isUploadScheduled check does not have to be strictly atomic because
