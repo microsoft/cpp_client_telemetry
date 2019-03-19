@@ -21,15 +21,12 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
 
 #ifdef _MSC_VER
 #pragma warning(suppress:4447) // 'main' signature found without threading model. Consider using 'int main(Platform::Array<Platform::String^>^ args)'.
-#ifndef CDECL
-#define CDECL _cdecl
-#endif
+#define MAIN_CDECL __cdecl
 #else
-#define CDECL
+#define MAIN_CDECL
 #endif
-
  
-int CDECL main(int argc, char** argv)
+int MAIN_CDECL main(int argc, char** argv)
 {
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
