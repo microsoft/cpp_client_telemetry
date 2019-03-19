@@ -783,7 +783,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 
     auto r1 = records();
-    ASSERT_EQ(r1.size(), 0);
+    ASSERT_EQ(r1.size(), size_t { 0 });
 
     // Check
     Initialize();
@@ -1019,7 +1019,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
-    EXPECT_EQ(100, listener.numDropped);
+    EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
     listener.printStats();
@@ -1103,7 +1103,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
         myLogger->LogEvent(event2);
     }
     // Expect to 0 events to be dropped
-    EXPECT_EQ(0, listener.numDropped);
+    EXPECT_EQ(uint32_t { 0 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
     listener.printStats();
