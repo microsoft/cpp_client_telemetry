@@ -72,8 +72,9 @@
 /* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
 #define SESSION_SDKUID                                  "DeviceInfo.SDKUid"
 
+#define SETTER_METHOD(NAME) Set ## NAME
 #define DECLARE_COMMONFIELD(name, placeholder)              \
-    virtual void Set##name##(const std::string & x)         \
+    virtual void SETTER_METHOD (name) (const std::string & x)         \
     {                                                       \
         SetCommonField(placeholder, x);                     \
     };
