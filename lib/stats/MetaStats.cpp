@@ -468,10 +468,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="durationMs">The duration ms.</param>
     /// <param name="latencyToSendMs">The latency to send ms.</param>
     /// <param name="metastatsOnly">if set to <c>true</c> [metastats only].</param>
-    void MetaStats::updateOnPackageSentSucceeded(std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& latencyToSendMs, bool metastatsOnly)
+    void MetaStats::updateOnPackageSentSucceeded(std::map<std::string, std::string> const& recordIdsAndTenantids, EventLatency eventLatency, unsigned retryFailedTimes, unsigned durationMs, std::vector<unsigned> const& /*latencyToSendMs*/, bool metastatsOnly)
     {
-        unsigned const recordsSentCount = static_cast<unsigned>(latencyToSendMs.size());
-
         // Package summary stats
         PackageStats& packageStats = m_telemetryStats.packageStats;
         packageStats.totalPkgsAcked++;
