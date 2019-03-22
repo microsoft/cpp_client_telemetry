@@ -49,7 +49,7 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record)
+    void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record, bool commonOnly)
     {
         // Append parent scope context variables if not detached from parent
         if (m_parent)
@@ -284,87 +284,90 @@ namespace ARIASDK_NS_BEGIN
                 record.extProtocol.push_back(temp);
             }
 
-            for (auto const& field : m_customContextFields)
+            if (!commonOnly)
             {
-                if (field.second.piiKind != PiiKind_None)
+                for (auto const& field : m_customContextFields)
                 {
-                    AriaProtocol::PII pii;
-                    pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-                    AriaProtocol::Value temp;
-                    AriaProtocol::Attributes attrib;
-                    attrib.pii.push_back(pii);
+                    if (field.second.piiKind != PiiKind_None)
+                    {
+                        AriaProtocol::PII pii;
+                        pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
+                        AriaProtocol::Value temp;
+                        AriaProtocol::Attributes attrib;
+                        attrib.pii.push_back(pii);
 
 
-                    temp.attributes.push_back(attrib);
+                        temp.attributes.push_back(attrib);
 
-                    temp.stringValue = field.second.to_string();
-                    record.data[0].properties[field.first] = temp;
-                }
-                else
-                {
-                    std::vector<uint8_t> guid;
-                    uint8_t guid_bytes[16] = { 0 };
-
-                    switch (field.second.type)
-                    {
-                    case EventProperty::TYPE_STRING:
-                    {
-                        AriaProtocol::Value temp;
-                        temp.stringValue = field.second.to_string();
-                        record.data[0].properties[field.first] = temp;
-                        break;
-                    }
-                    case EventProperty::TYPE_INT64:
-                    {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueInt64;
-                        temp.longValue = field.second.as_int64;
-                        record.data[0].properties[field.first] = temp;
-                        break;
-                    }
-                    case EventProperty::TYPE_DOUBLE:
-                    {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueDouble;
-                        temp.doubleValue = field.second.as_double;
-                        record.data[0].properties[field.first] = temp;
-                        break;
-                    }
-                    case EventProperty::TYPE_TIME:
-                    {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
-                        temp.longValue = field.second.as_time_ticks.ticks;
-                        record.data[0].properties[field.first] = temp;
-                        break;
-                    }
-                    case EventProperty::TYPE_BOOLEAN:
-                    {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueBool;
-                        temp.longValue = field.second.as_bool;
-                        record.data[0].properties[field.first] = temp;
-                        break;
-                    }
-                    case EventProperty::TYPE_GUID:
-                    {
-                        GUID_t temp = field.second.as_guid;
-                        temp.to_bytes(guid_bytes);
-                        guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
-
-                        AriaProtocol::Value tempValue;
-                        tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
-                        tempValue.guidValue.push_back(guid);
-                        record.data[0].properties[field.first] = tempValue;
-                        break;
-                    }
-                    default:
-                    {
-                        // Convert all unknown types to string
-                        AriaProtocol::Value temp;
                         temp.stringValue = field.second.to_string();
                         record.data[0].properties[field.first] = temp;
                     }
+                    else
+                    {
+                        std::vector<uint8_t> guid;
+                        uint8_t guid_bytes[16] = { 0 };
+
+                        switch (field.second.type)
+                        {
+                        case EventProperty::TYPE_STRING:
+                        {
+                            AriaProtocol::Value temp;
+                            temp.stringValue = field.second.to_string();
+                            record.data[0].properties[field.first] = temp;
+                            break;
+                        }
+                        case EventProperty::TYPE_INT64:
+                        {
+                            AriaProtocol::Value temp;
+                            temp.type = ::AriaProtocol::ValueKind::ValueInt64;
+                            temp.longValue = field.second.as_int64;
+                            record.data[0].properties[field.first] = temp;
+                            break;
+                        }
+                        case EventProperty::TYPE_DOUBLE:
+                        {
+                            AriaProtocol::Value temp;
+                            temp.type = ::AriaProtocol::ValueKind::ValueDouble;
+                            temp.doubleValue = field.second.as_double;
+                            record.data[0].properties[field.first] = temp;
+                            break;
+                        }
+                        case EventProperty::TYPE_TIME:
+                        {
+                            AriaProtocol::Value temp;
+                            temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
+                            temp.longValue = field.second.as_time_ticks.ticks;
+                            record.data[0].properties[field.first] = temp;
+                            break;
+                        }
+                        case EventProperty::TYPE_BOOLEAN:
+                        {
+                            AriaProtocol::Value temp;
+                            temp.type = ::AriaProtocol::ValueKind::ValueBool;
+                            temp.longValue = field.second.as_bool;
+                            record.data[0].properties[field.first] = temp;
+                            break;
+                        }
+                        case EventProperty::TYPE_GUID:
+                        {
+                            GUID_t temp = field.second.as_guid;
+                            temp.to_bytes(guid_bytes);
+                            guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
+
+                            AriaProtocol::Value tempValue;
+                            tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
+                            tempValue.guidValue.push_back(guid);
+                            record.data[0].properties[field.first] = tempValue;
+                            break;
+                        }
+                        default:
+                        {
+                            // Convert all unknown types to string
+                            AriaProtocol::Value temp;
+                            temp.stringValue = field.second.to_string();
+                            record.data[0].properties[field.first] = temp;
+                        }
+                        }
                     }
                 }
             }
@@ -423,6 +426,16 @@ namespace ARIASDK_NS_BEGIN
     void ContextFieldsProvider::SetParentContext(ContextFieldsProvider* parent)
     {
         m_parent = parent;
+    }
+
+    std::map<std::string, EventProperty>& ContextFieldsProvider::GetCommonFields()
+    {
+        return m_commonContextFields;
+    }
+
+    std::map<std::string, EventProperty>& ContextFieldsProvider::GetCustomFields()
+    {
+        return m_customContextFields;
     }
 
 } ARIASDK_NS_END

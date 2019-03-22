@@ -42,9 +42,20 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+     /// <summary>
+    /// Sends stats event of a specified rollup kind.
+    /// </summary>
+    /// <param name="rollupKind">Kind of the rollup.</param>
     void Statistics::send(RollUpKind rollupKind)
     {
         m_isScheduled = false;
+
+        m_intervalMs = m_config.GetMetaStatsSendIntervalSec() * 1000;
+        if (m_intervalMs == 0)
+        {
+            // cancel pending stats event if timer changed at runtime
+            return;
+        }
 
         std::vector< ::AriaProtocol::Record> records;
         {
@@ -57,9 +68,8 @@ namespace ARIASDK_NS_BEGIN {
         {
             bool result = true;
             result &= m_baseDecorator.decorate(record);
-            // TODO: [MG] - at the moment we do not want to decorate stats events with global context
-            // variables, as it's a potential privacy issue...
-            // result &= m_semanticContextDecorator.decorate(record);
+            // Allow stats to capture Part A common properties, but not the custom
+            result &= m_semanticContextDecorator.decorate(record, true);
             if (result)
             {
                 IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_Normal, EventPersistence_Normal, &record);

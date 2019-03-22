@@ -55,14 +55,14 @@ class TestObserver : public IOfflineStorageObserver
 };
 
 /// <summary>
-/// Default test configuration
-/// </summary>
-RuntimeConfig_Default       testConfig;
-
-/// <summary>
 /// No-op NULL object pattern log manager
 /// </summary>
 NullLogManager              testLogManager;
+
+/// <summary>
+/// Default test configuration
+/// </summary>
+RuntimeConfig_Default       testConfig(testLogManager.GetLogConfiguration());
 
 /// <summary>
 /// Storage observer

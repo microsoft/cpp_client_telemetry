@@ -49,6 +49,7 @@ namespace testing {
 
 class HttpDeflateCompressionTests : public StrictMock<Test> {
   protected:
+    ILogConfiguration                                                     logConfig;
     RuntimeConfig_Default                                                 config;
     HttpDeflateCompression                                                compression;
     RouteSource<EventsUploadContextPtr const&>                            input;
@@ -57,6 +58,7 @@ class HttpDeflateCompressionTests : public StrictMock<Test> {
 
   protected:
     HttpDeflateCompressionTests() :
+        config(logConfig),
         compression(config)
     {
         input                            >> compression.compress >> succeeded;

@@ -117,18 +117,20 @@ namespace ARIASDK_NS_BEGIN
     // several guests are attached to one host, but each guest has their own 'local' LogManager semantic context sandbox.
     // ...
     // LogManager<T>::SetContext(...); // issued by guests would also allow to set context variable on guest's sandbox.
-    // ...
-    // dynamic_cast is needed to avoid exposing ContextFieldsProvider at API layer. Guest LogManager customers may use
-    // SetParentContext(...) to attach their guest ILogger to semantic context obtained from a dedicated LogManagerG.
     //
     // C API does not expose shared context to the callers. Default option for C API 'guest' customers is to detach them
     // from the parent logger via ILogger::SetParentContext(nullptr)
     //
     void Logger::SetParentContext(ISemanticContext * context)
     {
-        // Allow to set context even if typecast failed or if the parameter is nullptr.
-        // That way the ILogger is detached from parent - doesn't auto-capture parent-level context vars.
-        m_context.SetParentContext(dynamic_cast<ContextFieldsProvider *>(context));
+        if (context == nullptr)
+        {
+            // Since common props would typically be populated by the root-level
+            // LogManager instance and we are detaching from that one, we need
+            // to populate this context with common props directly.
+            PAL::registerSemanticContext(&m_context);
+        }
+        m_context.SetParentContext(static_cast<ContextFieldsProvider *>(context));
     }
 
     /// <summary>

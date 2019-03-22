@@ -168,7 +168,6 @@ namespace ARIASDK_NS_BEGIN {
             std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
 
-            ////        OfflineStorage_SQLite *sqlite = dynamic_cast<OfflineStorage_SQLite *>(m_offlineStorageDisk.get());
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");

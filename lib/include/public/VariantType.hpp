@@ -39,7 +39,7 @@ class Variant {
     // with C++11 static initializer feature. The pointers get corrupted and calling
     // destructor via delete causes a crash with MSVC compiler (both 2015 and 2017).
     std::string     SV;
-    VariantMap      mV;	// map
+    mutable VariantMap      mV;	// map
     VariantArray    aV;	// vector
 
 public:
@@ -179,10 +179,7 @@ public:
     Variant(VariantMap& m) :
         type(TYPE_OBJ)
     {
-        for (const auto& kv : m)
-        {
-            mV[kv.first] = kv.second;
-        }
+        assign(m);
     };
 
     // C++11 initializer list support for maps
@@ -231,6 +228,12 @@ public:
         VARIANT_LOCKGUARD(lock_object);
         return mV;
     };
+
+    operator VariantMap&() const {
+        VARIANT_LOCKGUARD(lock_object);
+        return mV;
+    };
+
 
     /**
      *
@@ -393,6 +396,23 @@ public:
         for (const auto& v : l)
             arr.push_back(v);
         return Variant(arr);
+    }
+
+    static void merge_map(VariantMap& lhs, const VariantMap& rhs, bool overwrite = false)
+    {
+        for (const auto& rhs_item : rhs)
+        {
+            auto& lhs_item = lhs[rhs_item.first];
+            if (lhs_item.type == Variant::Type::TYPE_OBJ)
+            {
+                Variant::merge_map(lhs_item, (const VariantMap&)(rhs_item.second), overwrite);
+                continue;
+            }
+            if ((lhs_item.type == Variant::Type::TYPE_NULL) || (overwrite))
+            {
+                lhs_item = rhs_item.second;
+            }
+        }
     }
 
     template<class Map>

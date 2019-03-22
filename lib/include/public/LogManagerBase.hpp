@@ -579,6 +579,13 @@ namespace ARIASDK_NS_BEGIN
             return instance->GetLogController();
         }
 
+        /// <summary>
+        /// Reconfigure the log manager instance.
+        /// Reserved for future use to notify SDK about ILogConfiguration & contents change.
+        /// </summary>
+        static status_t Configure()
+            LM_SAFE_CALL(Configure);
+
     };
 
 // Implements LogManager<T> singleton template static  members

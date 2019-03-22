@@ -142,7 +142,7 @@ public:
 
     bool operator==(const StorageItemKey& rhs) const
     {
-        const StorageItemKey* ptr = dynamic_cast<const StorageItemKey*>(&rhs);
+        const StorageItemKey* ptr = static_cast<const StorageItemKey*>(&rhs);
         return (this==ptr);
     }
 

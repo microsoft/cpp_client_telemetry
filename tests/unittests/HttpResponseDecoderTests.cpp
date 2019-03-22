@@ -12,6 +12,7 @@ using namespace ARIASDK_NS;
 
 class HttpResponseDecoderTests : public StrictMock<Test> {
   protected:
+    ILogConfiguration                                                  logConfig;
     RuntimeConfig_Default                                              config;
     HttpResponseDecoder                                                decoder;
     RouteSink<HttpResponseDecoderTests, EventsUploadContextPtr const&> eventsAccepted{this, &HttpResponseDecoderTests::resultEventsAccepted};
@@ -23,7 +24,8 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
   protected:
     HttpResponseDecoderTests() :
         decoder(testing::getSystem()),
-        reqId(0)
+        reqId(0),
+        config(logConfig)
     {
         decoder.eventsAccepted          >> eventsAccepted;
         decoder.eventsRejected          >> eventsRejected;

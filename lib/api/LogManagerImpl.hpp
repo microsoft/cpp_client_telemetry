@@ -11,6 +11,7 @@
 #include "ILogManager.hpp"
 
 #include "api/Logger.hpp"
+#include "api/ContextFieldsProvider.hpp"
 
 #include "filter/EventFilterRegulator.hpp"
 
@@ -36,6 +37,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
         virtual bool isLevelEnabled(uint8_t level) = 0;
+        virtual ContextFieldsProvider& GetContext() = 0;
     };
 
     class Logger;
@@ -166,6 +168,15 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="level">Diagnostic level.</param>
         virtual bool isLevelEnabled(uint8_t level) override;
+
+        /// <summary>
+        /// Get a reference to this log manager instance ContextFieldsProvider
+        /// </summary>
+        /// <param name="level">Diagnostic level.</param>
+        virtual ContextFieldsProvider& GetContext() override
+        {
+            return m_context;
+        }
 
     protected:
 

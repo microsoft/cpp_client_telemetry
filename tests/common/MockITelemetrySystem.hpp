@@ -30,7 +30,8 @@ namespace testing {
         // MOCK_METHOD0(getConfig, IRuntimeConfig&());        
         IRuntimeConfig& getConfig()
         {
-            static RuntimeConfig_Default       testConfig;
+            static ILogConfiguration & config = getLogManager().GetLogConfiguration();
+            static RuntimeConfig_Default testConfig(config);
             return testConfig;
         }
 

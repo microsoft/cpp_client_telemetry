@@ -223,7 +223,8 @@ int main()
     printf("LogManager::Initialize\n");
     ILogger *logger = LogManager::Initialize(TOKEN);
 
-    Api_v1_CompatChecks();
+    // This global context variable will not be seen by C API client
+    LogManager::SetContext("GlobalContext.Var", 12345);
      
     printf("LogManager::GetSemanticContext \n"); 
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
@@ -233,8 +234,7 @@ int main()
     semanticContext->SetAppLanguage("en-US");   // caller must obtain this from app manifest, e.g. .plist on Mac OS X
     semanticContext->SetUserLanguage("en-US");  // caller must obtain the user language from preferences
 
-    // This global context variable will not be seen by C API client
-    LogManager::SetContext("GlobalContext.Var", 12345);
+    Api_v1_CompatChecks();
 
     // Run C API client test
     test_c_api();

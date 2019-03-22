@@ -11,16 +11,15 @@ namespace testing {
 
     protected:
 
-#if 0
-        ARIASDK_NS::IRuntimeConfig& GetDefaultConfig()
+        ARIASDK_NS::ILogConfiguration & GetDefaultConfig()
         {
-            static ARIASDK_NS::RuntimeConfig_Default defaultTestConfig;
-            return defaultTestConfig;
+            static ILogConfiguration nullConfig;
+            return nullConfig;
         }
-#endif
 
     public:
-        MockIRuntimeConfig();
+        MockIRuntimeConfig() : ARIASDK_NS::RuntimeConfig_Default(GetDefaultConfig()) {}
+        MockIRuntimeConfig(ILogConfiguration& customConfig) : ARIASDK_NS::RuntimeConfig_Default(customConfig) {}
         virtual ~MockIRuntimeConfig();
 
         MOCK_METHOD1(SetDefaultConfig, void(IRuntimeConfig &));

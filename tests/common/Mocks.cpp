@@ -29,7 +29,6 @@ namespace testing {
     MockIOfflineStorage::MockIOfflineStorage() {}
     MockIOfflineStorage::~MockIOfflineStorage() {}
 
-    MockIRuntimeConfig::MockIRuntimeConfig() : ARIASDK_NS::RuntimeConfig_Default() {}
     MockIRuntimeConfig::~MockIRuntimeConfig() {}
 
     MockISemanticContext::MockISemanticContext() {}

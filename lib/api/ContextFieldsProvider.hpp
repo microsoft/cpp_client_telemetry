@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN
         virtual ~ContextFieldsProvider();
 
         virtual void SetCommonField(const std::string&  name, const EventProperty&  value) override;
-        void writeToRecord(::AriaProtocol::Record& record);
+        void writeToRecord(::AriaProtocol::Record& record, bool commonOnly = false);
         virtual void SetCustomField(const std::string&  name, const EventProperty&  value) override;
 
         virtual void SetParentContext(ContextFieldsProvider* parent);
@@ -35,6 +35,9 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetEventExperimentIds(std::string const & eventName, std::string const & experimentIds) override;
         virtual void ClearExperimentIds() override;
+
+        virtual std::map<std::string, EventProperty>& GetCommonFields();
+        virtual std::map<std::string, EventProperty>& GetCustomFields();
 
     protected:
 

@@ -72,23 +72,15 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
 
-        ILogConfiguration config;
+        ILogConfiguration& config;
 
     public:
 
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
-            RuntimeConfig_Default()
+            config(customConfig)
         {
-            for (const auto &kv : customConfig)
-            {
-                config[kv.first] = kv.second;
-            }
+            Variant::merge_map(customConfig, defaultRuntimeConfig);
         };
-
-        RuntimeConfig_Default()
-        {
-            config.insert(defaultRuntimeConfig.begin(), defaultRuntimeConfig.end());
-        }
 
         virtual ~RuntimeConfig_Default()
         {

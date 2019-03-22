@@ -27,9 +27,9 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
-        bool decorate(::AriaProtocol::Record& record)
+        bool decorate(::AriaProtocol::Record& record, bool commonOnly = false)
         {
-            provider.writeToRecord(record);
+            provider.writeToRecord(record, commonOnly);
             return true;
         }
 
