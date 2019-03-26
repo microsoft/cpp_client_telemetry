@@ -334,6 +334,20 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
 
+        /// <summary>
+        /// Sets the diagnostic level for the LogManager
+        /// </summary>
+        /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
+        /// <param name="levelMin">Minimum level to be sent</param>
+        /// <param name="levelMin">Maximum level to be sent</param>
+        virtual void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) = 0;
+
+        /// <summary>
+        /// Sets the diagnostic level for the LogManager
+        /// </summary>
+        /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
+        /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
+        virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
     };
 
 } ARIASDK_NS_END

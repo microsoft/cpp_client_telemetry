@@ -453,6 +453,11 @@ namespace ARIASDK_NS_BEGIN
                     *this, m_context, *m_config,
                     m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
             }
+            uint8_t level = m_diagLevelFilter.GetDefaultLevel();
+            if (level != DIAG_LEVEL_DEFAULT) 
+            {
+                m_loggers[hash]->SetLevel(level);
+            }
             return m_loggers[hash];
         }
         return nullptr;
@@ -508,12 +513,6 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    bool LogManagerImpl::isLevelEnabled(uint8_t /* level */)
-    {
-        // TODO: [MG] - diagnostic level implementation is coming in a separate commit
-        return true;
-    }
-
     ILogController* LogManagerImpl::GetLogController()
     {
         return this;
@@ -537,6 +536,21 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
     {
         return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterRates, filterCount);
+    }
+
+    void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
+    {
+        m_diagLevelFilter.SetFilter(defaultLevel, levelMin, levelMax);
+    }
+
+    void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels)
+    {
+        m_diagLevelFilter.SetFilter(defaultLevel, allowedLevels);
+    }
+
+    const DiagLevelFilter& LogManagerImpl::GetLevelFilter()
+    {
+        return m_diagLevelFilter;
     }
 
 } ARIASDK_NS_END

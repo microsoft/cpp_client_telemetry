@@ -570,6 +570,23 @@ namespace ARIASDK_NS_BEGIN
         static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
             LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
 
+        /// <summary>
+        /// Sets the diagnostic level filter for the LogManager
+        /// </summary>
+        /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
+        /// <param name="levelMin">Minimum level to be sent</param>
+        /// <param name="levelMin">Maximum level to be sent</param>
+        static void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
+            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, levelMin, levelMax);
+
+        /// <summary>
+        /// Sets the diagnostic level filter for the LogManager
+        /// </summary>
+        /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
+        /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
+        static void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels)
+            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, allowedLevels);
+
         static ILogController* GetController()
         {
             // No-op LogManager is implemented as C++11 magic local static

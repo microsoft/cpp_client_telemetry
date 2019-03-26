@@ -35,6 +35,7 @@ public:
     std::atomic<unsigned>   numHttpError;
     std::atomic<unsigned>   numHttpOK;
     std::atomic<unsigned>   numCached;
+    std::atomic<unsigned>   numFiltered;
     std::atomic<unsigned>   logLatMin;
     std::atomic<unsigned>   logLatMax;
     std::atomic<unsigned>   storageFullPct;
@@ -50,6 +51,7 @@ public:
         numHttpError(0),
         numHttpOK(0),
         numCached(0),
+        numFiltered(0),
         logLatMin(100),
         logLatMax(0),
         storageFullPct(0)
@@ -109,6 +111,9 @@ public:
         case EVT_HTTP_OK:
             numHttpOK++;
             break;
+        case EVT_FILTERED:
+            numFiltered++;
+            break;
 
         case EVT_SEND_RETRY:
         case EVT_SEND_RETRY_DROPPED:
@@ -127,13 +132,14 @@ public:
 
     void printStats()
     {
-        std::cerr << "[          ] netChanged = " << netChanged << std::endl;
-        std::cerr << "[          ] numLogged0 = " << numLogged0 << std::endl;
-        std::cerr << "[          ] numLogged  = " << numLogged << std::endl;
-        std::cerr << "[          ] numSent    = " << numSent << std::endl;
-        std::cerr << "[          ] numDropped = " << numDropped << std::endl;
-        std::cerr << "[          ] numReject  = " << numReject << std::endl;
-        std::cerr << "[          ] numCached  = " << numCached << std::endl;
+        std::cerr << "[          ] netChanged   = " << netChanged << std::endl;
+        std::cerr << "[          ] numLogged0   = " << numLogged0 << std::endl;
+        std::cerr << "[          ] numLogged    = " << numLogged << std::endl;
+        std::cerr << "[          ] numSent      = " << numSent << std::endl;
+        std::cerr << "[          ] numDropped   = " << numDropped << std::endl;
+        std::cerr << "[          ] numReject    = " << numReject << std::endl;
+        std::cerr << "[          ] numCached    = " << numCached << std::endl;
+        std::cerr << "[          ] numFiltered  = " << numFiltered << std::endl;
     }
 };
 
@@ -242,6 +248,7 @@ void addAllListeners(DebugEventListener& listener)
     LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
     LogManager::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
     LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
 /// <summary>
@@ -263,6 +270,7 @@ void removeAllListeners(DebugEventListener& listener)
     LogManager::RemoveEventListener(DebugEventType::EVT_CACHED, listener);
     LogManager::RemoveEventListener(DebugEventType::EVT_NET_CHANGED, listener);
     LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
 /// <summary>
@@ -725,6 +733,63 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
     LogManager::FlushAndTeardown();
 
     LogManager::GetLogger();
+}
+
+TEST(APITest, LogManager_DiagLevels)
+{
+    TestDebugEventListener eventListener;
+
+    auto& config = LogManager::GetLogConfiguration();
+
+    // default
+    auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
+
+    // inherit diagnostic level from parent (basic)
+    auto logger1 = LogManager::GetLogger();
+
+    // set diagnostic level to enhanced
+    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
+    logger2->SetLevel(DIAG_LEVEL_ENHANCED);
+
+    // set diagnostic level to full
+    auto logger3 = LogManager::GetLogger("my_full_source");
+    logger3->SetLevel(DIAG_LEVEL_FULL);
+    
+    std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
+    std::set<uint8_t> logAll   = { };
+    std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+
+    auto filters = { logNone, logAll, logBasic };
+
+    size_t expectedCounts[] = { 12, 0, 8 };
+
+    addAllListeners(eventListener);
+
+    // Filter test
+    size_t i = 0;
+    for (auto filter : filters)
+    {
+        // Specify diagnostic level filter
+        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
+        for (auto logger : { logger0, logger1, logger2, logger3 })
+        {
+            EventProperties defLevelEvent("My.DefaultLevelEvent");
+            logger->LogEvent(defLevelEvent);   // inherit from logger
+
+            EventProperties basicEvent("My.BasicEvent");
+            basicEvent.SetLevel(DIAG_LEVEL_BASIC);
+            logger->LogEvent(basicEvent);   // basic
+
+            EventProperties fullEvent("My.FullEvent");
+            fullEvent.SetLevel(DIAG_LEVEL_FULL);
+            logger->LogEvent(fullEvent);
+        }
+        EXPECT_EQ(eventListener.numFiltered, expectedCounts[i]);
+        eventListener.numFiltered = 0;
+        i++;
+    }
+    removeAllListeners(eventListener);
+    LogManager::FlushAndTeardown();
 }
 
 TEST(APITest, Aria_Pii_Kind_E2E_Test)

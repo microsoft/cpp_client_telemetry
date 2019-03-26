@@ -362,11 +362,44 @@ namespace ARIASDK_NS_BEGIN
         auto policyBitFlags = props.GetPolicyBitFlags();
         auto persistence = props.GetPersistence();
         auto latency = props.GetLatency();
+        auto levelFilter = m_logManager.GetLevelFilter();
+        if (levelFilter.IsLevelFilterEnabled())
+        {
+            const auto & m_props = props.GetProperties();
+            const auto it = m_props.find(COMMONFIELDS_EVENT_LEVEL);
+            //
+            // Level policy:
+            // * get level from the COMMONFIELDS_EVENT_LEVEL property if set
+            // * if not set, then get level from the ILogger instance
+            // * if not set, then get level from the LogManager instance
+            // * if still not set (no default assigned at LogManager scope),
+            // then prefer to drop. This is user error: user set the range
+            // restrition, but didn't specify the defaults.
+            //
+            uint8_t level = (it != m_props.cend()) ? static_cast<uint8_t>(it->second.as_int64) : m_level;
+            if (level == DIAG_LEVEL_DEFAULT)
+            {
+                level = levelFilter.GetDefaultLevel();
+                if (level == DIAG_LEVEL_DEFAULT)
+                {
+                    // If no default level, but restrictions are in effect, then prefer to drop event
+                    LOG_INFO("Event %s/%s dropped: no diagnostic level assigned!",
+                        tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
+                    DispatchEvent(DebugEventType::EVT_FILTERED);
+                    return;
+                }
+            }
+            if (!levelFilter.IsLevelEnabled(level))
+            {
+                DispatchEvent(DebugEventType::EVT_FILTERED);
+                return;
+            }
+        }
 
         if (latency == EventLatency_Off)
         {
             DispatchEvent(DebugEventType::EVT_DROPPED);
-            LOG_INFO("Event %s/%s dropped because of calculated latency 0 (Off)",
+            LOG_INFO("Event %s/%s dropped: calculated latency 0 (Off)",
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
@@ -618,6 +651,10 @@ namespace ARIASDK_NS_BEGIN
     std::string Logger::GetSource()
     {
         return m_source;
+    }
+
+    void Logger::SetLevel(uint8_t level) {
+        m_level = level;
     }
 
 } ARIASDK_NS_END
