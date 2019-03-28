@@ -9,7 +9,7 @@
  */
 #define TELEMETRY_EVENTS_VERSION	"3.1.0"
 
-#include <ctmacros.hpp>
+#include "ctmacros.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>

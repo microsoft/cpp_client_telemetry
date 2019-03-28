@@ -14,7 +14,7 @@
 #include <map>
 
 #ifdef ARIA_C_API
-#include <aria.h>
+#include "aria.h"
 #endif
 
 namespace ARIASDK_NS_BEGIN

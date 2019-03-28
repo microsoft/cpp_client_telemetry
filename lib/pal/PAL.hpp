@@ -89,7 +89,7 @@ namespace PAL_NS_BEGIN {
 
 #ifdef ARIASDK_PAL_WIN32
 #include "PAL_Win32.hpp"
-#elif ARIASDK_PAL_CPP11
+#elif defined(ARIASDK_PAL_CPP11)
 #include "PAL_CPP11.hpp"
 #else
 #error No platform abstraction library configured. Set one of the ARIASDK_PAL_xxx macros.

@@ -178,6 +178,14 @@ namespace ARIASDK_NS_BEGIN
                     if (deviceId != nullptr)
                     {
                         size_t len = strlen(deviceId);
+                        if (len >= 2 && deviceId[1] == ':' && (
+                            deviceId[0] == 'a' || // a: Android ID
+                            deviceId[0] == 's' || // s: SQM ID
+                            deviceId[0] == 'x'))  // x: XBox One hardware ID
+                        {
+                            // Remove "c:" prefix
+                            temp = "";
+                        }
                         // Strip curly braces from GUID while populating localId.
                         // Otherwise 1DS collector would not strip the prefix.
                         if ((deviceId[0] == '{') && (deviceId[len - 1] == '}'))

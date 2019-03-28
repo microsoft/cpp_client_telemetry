@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Version.hpp"
-#include <Enums.hpp>
+#include "Enums.hpp"
 
 #include <algorithm>
 #include <map>

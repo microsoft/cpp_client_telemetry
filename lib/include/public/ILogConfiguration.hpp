@@ -9,7 +9,7 @@
 #include "stdint.h"
 
 #include <string>
-#include <Variant.hpp>
+#include "Variant.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
