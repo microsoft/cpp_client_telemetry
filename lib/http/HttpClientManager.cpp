@@ -21,7 +21,7 @@
 // Linux and Mac OS X with libcurl require an async handler for now
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class HttpClientManager::HttpCallback : public IHttpResponseCallback {
@@ -129,4 +129,4 @@ namespace ARIASDK_NS_BEGIN {
 
     // start async cancellation
 
-} ARIASDK_NS_END
+} MAT_NS_END

@@ -1,7 +1,9 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_VARIANT_HPP
+#define MAT_VARIANT_HPP
 
 #include "Version.hpp"
-#include <Enums.hpp>
+#include "Enums.hpp"
 
 #include <algorithm>
 #include <map>
@@ -33,7 +35,7 @@ public ref class VariantLockGuard { public: static Object ^ lock = gcnew Object(
 #endif
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class Variant;
 
@@ -52,9 +54,11 @@ namespace ARIASDK_NS_BEGIN
     typedef std::vector<Variant>                                            VariantArray;
 #endif
 
-// Generic variant type implementation added to SDK namespace
+    // Generic variant type implementation added to SDK namespace
 #include "VariantType.hpp"
 
     // Shortcut for VariantArray constructor
     // const auto ARR = Variant::from_array;
-} ARIASDK_NS_END
+} MAT_NS_END
+
+#endif

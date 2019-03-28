@@ -18,7 +18,7 @@
 //#include <AriaDecoderV3.hpp>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 // LOGMANAGER_INSTANCE
 
@@ -85,7 +85,7 @@ public:
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-        configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+        configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
@@ -953,7 +953,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
@@ -1035,7 +1035,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;

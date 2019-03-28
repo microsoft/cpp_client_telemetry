@@ -10,7 +10,7 @@
 using namespace testing;
 using namespace Microsoft::Applications::Events;
 
-class ShadowBondSplicer : protected ARIASDK_NS::BondSplicer
+class ShadowBondSplicer : protected MAT::BondSplicer
 {
   protected:
     std::map<size_t, std::string>            m_packageIdToTenantToken;
@@ -21,7 +21,7 @@ class ShadowBondSplicer : protected ARIASDK_NS::BondSplicer
     {
         m_TokenToDataPackagesMap[tenantToken] = dataPackage;
 
-        size_t index = ARIASDK_NS::BondSplicer::addDataPackage(tenantToken, dataPackage);
+        size_t index = MAT::BondSplicer::addDataPackage(tenantToken, dataPackage);
         assert(index == m_TokenToDataPackagesMap.size() - 1);
 
         m_packageIdToTenantToken[index] = tenantToken;
@@ -40,13 +40,13 @@ class ShadowBondSplicer : protected ARIASDK_NS::BondSplicer
             bond_lite::CompactBinaryProtocolWriter writer(recordBlob);
             bond_lite::Serialize(writer, record);
         }
-        ARIASDK_NS::BondSplicer::addRecord(dataPackageIndex, recordBlob);
+        MAT::BondSplicer::addRecord(dataPackageIndex, recordBlob);
     }
 
     FullDumpBinaryBlob splice() const
     {
         FullDumpBinaryBlob output;
-        static_cast<std::vector<uint8_t>&>(output) = ARIASDK_NS::BondSplicer::splice();
+        static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();
         return output;
     }
 

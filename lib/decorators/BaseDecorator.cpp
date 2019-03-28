@@ -1,6 +1,6 @@
 #include "BaseDecorator.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
@@ -16,11 +16,11 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="record">The record.</param>
     /// <returns>true if successful</returns>
-    bool BaseDecorator::decorate(::AriaProtocol::Record& record)
+    bool BaseDecorator::decorate(::CsProtocol::Record& record)
     {
         if (record.extSdk.size() == 0)
         {
-            ::AriaProtocol::Sdk sdk;
+            ::CsProtocol::Sdk sdk;
             record.extSdk.push_back(sdk);
         }
 
@@ -31,7 +31,6 @@ namespace ARIASDK_NS_BEGIN {
             record.baseType = record.name;
         }
 
-        //      record.RecordType = AriaProtocol::AriaRecordType::Event;
         record.extSdk[0].seq = ++m_sequenceId;
         record.extSdk[0].epoch = m_initId;
         std::string sdkVersion = PAL::getSdkVersion();
@@ -45,7 +44,7 @@ namespace ARIASDK_NS_BEGIN {
             auto tokensController = m_owner.GetAuthTokensController();
             if (record.extProtocol.size() == 0)
             {
-                ::AriaProtocol::Protocol temp;
+                ::CsProtocol::Protocol temp;
                 record.extProtocol.push_back(temp);
             }
             if (record.extProtocol[0].ticketKeys.size() == 0)
@@ -61,4 +60,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-
-#pragma once
+#ifndef CORRELATIONVECTOR_HPP
+#define CORRELATIONVECTOR_HPP
 
 #include "Version.hpp"
 #include "ctmacros.hpp"
@@ -8,7 +8,7 @@
 #include <mutex>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // Implementation of the Common Schema standard vector clock type.
     // See https://osgwiki.com/wiki/CorrelationVector for more details.
@@ -56,48 +56,48 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         // Constructs an uninitialized, not yet ready to use correlation vector
-        ARIASDK_LIBABI CorrelationVector();
+        MATSDK_LIBABI CorrelationVector();
 
         // Initializes CV with a random base value and a current vector count of 0.
         // Version could be 1 or 2, where version allows for the longer base and full
         // CorrelationVector length. Use version 2 only if you are sure that
         // the downstream consumers support it.
-        ARIASDK_LIBABI bool Initialize(int version);
+        MATSDK_LIBABI bool Initialize(int version);
 
         // Resets CV value to an uninitialized state.
         // When uninitialized the internal CV value is "" and all Extend/Increment calls are ignored.
-        ARIASDK_LIBABI void Uninitialize();
+        MATSDK_LIBABI void Uninitialize();
 
         // Returns the flag, specifying whether the CV has been initialized or not.
-        ARIASDK_LIBABI bool IsInitialized();
+        MATSDK_LIBABI bool IsInitialized();
 
         // Atomically reads the current CV string representation and increments it for the next use.
         // Returns the read value or empty string if CV is not initialized.
-        ARIASDK_LIBABI std::string GetNextValue();
+        MATSDK_LIBABI std::string GetNextValue();
 
         // Returns the current CV string representation or empty string if not initialized.
-        ARIASDK_LIBABI std::string GetValue();
+        MATSDK_LIBABI std::string GetValue();
 
         // Adds .0 to the end of the current correlation vector,
         // or does nothing if the maximum length was reached.
-        ARIASDK_LIBABI bool Extend();
+        MATSDK_LIBABI bool Extend();
 
         // Increments the last extension of the correlation vector,
         // or does nothing if the maximum length was reached.
-        ARIASDK_LIBABI bool Increment();
+        MATSDK_LIBABI bool Increment();
 
         // Checks to see if we can add an extra vector.
         // Returns false if the extension will put us over the maximum size of a correlation vector.
-        ARIASDK_LIBABI bool CanExtend();
+        MATSDK_LIBABI bool CanExtend();
 
         // Checks to see if we can increment the current vector.
         // Returns false if the extension will put us over the maximum size of a correlation vector.
-        ARIASDK_LIBABI bool CanIncrement();
+        MATSDK_LIBABI bool CanIncrement();
 
         // Attempts to set the base and current vector values given the string representation.
         // String could also contain just the base value.
         // Version of CV is auto-detected based on the length of the base value.
-        ARIASDK_LIBABI bool SetValue(const std::string& cv);
+        MATSDK_LIBABI bool SetValue(const std::string& cv);
 
     public:
 
@@ -143,4 +143,5 @@ namespace ARIASDK_NS_BEGIN
         size_t GetDigitCount(size_t value);
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
+#endif

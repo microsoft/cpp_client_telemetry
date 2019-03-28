@@ -1,14 +1,14 @@
 // EventFilterRegulator.hpp
 //
 
-#ifndef ARIA_EVENTFILTERREGULATOR_HPP
-#define ARIA_EVENTFILTERREGULATOR_HPP
+#ifndef MAT_EVENTFILTERREGULATOR_HPP
+#define MAT_EVENTFILTERREGULATOR_HPP
 
 #include "filter/EventFilter.hpp"
 #include <mutex>
 #include <map>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     typedef IEventFilter *PIEventFilter;
     typedef PIEventFilter (*EventFilterFactory)();
@@ -33,6 +33,6 @@ namespace ARIASDK_NS_BEGIN
         virtual void Reset() override;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
-#endif  // !ARIA_EVENTFILTERREGULATOR_HPP
+#endif  // !MAT_EVENTFILTERREGULATOR_HPP

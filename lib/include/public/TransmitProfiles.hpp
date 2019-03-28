@@ -1,6 +1,11 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef TRANSMITPROFILES_HPP
+#define TRANSMITPROFILES_HPP
+
 #include "Version.hpp"
-#include <Enums.hpp>
+
+#include "Enums.hpp"
+
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -8,7 +13,8 @@
 #include <algorithm>
 
 /// @cond INTERNAL_DOCS
-namespace ARIASDK_NS_BEGIN
+
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -33,17 +39,17 @@ namespace ARIASDK_NS_BEGIN
     typedef struct TransmitProfileRule {
 
         /// <summary>
-        /// The network cost, as one of the Microsoft::Applications::Events::NetworkCost enumeration values.
+        /// The network cost, as one of the MAT::NetworkCost enumeration values.
         /// </summary>
         NetworkCost      netCost;         // any|unknown|low|high|restricted
 
         /// <summary>
-        /// The power state, as one of the Microsoft::Applications::Events::PowerSource enumeration values.
+        /// The power state, as one of the MAT::PowerSource enumeration values.
         /// </summary>
         PowerSource      powerState;      // any|unknown|battery|charging
 
         /// <summary>
-        /// The type of network, as one of the Microsoft::Applications::Events::NetworkType enumeration values.
+        /// The type of network, as one of the MAT::NetworkType enumeration values.
         /// <b>Note:</b> This member is reserved for future use.
         /// </summary>
         NetworkType      netType;         // reserved for future use
@@ -110,12 +116,12 @@ namespace ARIASDK_NS_BEGIN
         static size_t           currRule;
 
         /// <summary>
-        /// The last reported network cost, as one of the Microsoft::Applications::Events::NetworkCost enumeration values.
+        /// The last reported network cost, as one of the MAT::NetworkCost enumeration values.
         /// </summary>
         static NetworkCost      currNetCost;
 
         /// <summary>
-        /// The last reported power state, as one of the Microsoft::Applications::Events::PowerSource enumeration values.
+        /// The last reported power state, as one of the MAT::PowerSource enumeration values.
         /// </summary>
         static PowerSource      currPowState;
 
@@ -205,8 +211,8 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Gets the current device's network cost and power state.
         /// </summary>
-        /// <param name="netCost">A reference to an instance of a Microsoft::Applications::Events::NetworkCost enumeration.</param>
-        /// <param name="powState">A reference to an instance of a Microsoft::Applications::Events::PowerSource enumeration.</param>
+        /// <param name="netCost">A reference to an instance of a MAT::NetworkCost enumeration.</param>
+        /// <param name="powState">A reference to an instance of a MAT::PowerSource enumeration.</param>
         static void getDeviceState(NetworkCost &netCost, PowerSource &powState);
 
         /// <summary>
@@ -224,13 +230,15 @@ namespace ARIASDK_NS_BEGIN
         /// Selects a transmit profile rule based on the current device state.
         /// </summary>
         /// <param name="netCost">The network cost, as one of the 
-        /// Microsoft::Applications::Events::NetworkCost enumeration values.</param>
+        /// MAT::NetworkCost enumeration values.</param>
         /// <param name="powState">The power state, as one of the 
-        /// Microsoft::Applications::Events::PowerSource enumeration values.</param>
+        /// MAT::PowerSource enumeration values.</param>
         /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
         static bool updateStates(NetworkCost netCost, PowerSource powState);
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
+
 /// @endcond
+#endif

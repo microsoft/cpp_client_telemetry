@@ -7,7 +7,7 @@
 #include <map>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 struct IHttpRequestCompare
 {
@@ -59,4 +59,4 @@ class HttpClient : public IHttpClient {
     friend class SimpleHttpRequest;
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END

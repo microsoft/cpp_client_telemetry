@@ -6,11 +6,11 @@
 using json = nlohmann::json;
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     static ILogConfiguration currentConfig {
         { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
-        { CFG_INT_SDK_MODE,                 SdkModeTypes::SdkModeTypes_Aria },
+        { CFG_INT_SDK_MODE,                 SdkModeTypes::SdkModeTypes_CS },
         { CFG_BOOL_ENABLE_ANALYTICS,        false },
         { CFG_INT_CACHE_FILE_SIZE,          3145728 },
         { CFG_INT_RAM_QUEUE_SIZE,           524288 },
@@ -109,4 +109,4 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

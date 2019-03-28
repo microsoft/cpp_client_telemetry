@@ -4,7 +4,7 @@
 
 #include <utils/Utils.hpp>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /// <summary>
     /// Lock metaStats counts when rejected events come in via a separate thread
@@ -104,11 +104,11 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     template<typename T>
-    static void insertNonZero(std::map<std::string, ::AriaProtocol::Value>& target, std::string const& key, T const& value)
+    static void insertNonZero(std::map<std::string, ::CsProtocol::Value>& target, std::string const& key, T const& value)
     {
         if (value != 0)
         {
-            ::AriaProtocol::Value temp;
+            ::CsProtocol::Value temp;
             temp.stringValue = toString(value);
             target[key] = temp;
         }
@@ -121,7 +121,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="distributionName">prefix of the key name in record extension map</param>
     /// <param name="distribution">map<unsigned int, unsigned int>, key is the http return code, value is the count</param>
     /* TODO: consider rewriting this function */
-    static void addCountsPerHttpReturnCodeToRecordFields(::AriaProtocol::Record& record, std::string const& prefix,
+    static void addCountsPerHttpReturnCodeToRecordFields(::CsProtocol::Record& record, std::string const& prefix,
         uint_uint_dict_t const& countsPerHttpReturnCodeMap)
     {
         if (countsPerHttpReturnCodeMap.empty()) {
@@ -130,7 +130,7 @@ namespace ARIASDK_NS_BEGIN {
 
         if (record.data.size() == 0)
         {
-            ::AriaProtocol::Data data;
+            ::CsProtocol::Data data;
             record.data.push_back(data);
         }
         for (auto const& item : countsPerHttpReturnCodeMap) {
@@ -199,18 +199,18 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="records">The records.</param>
     /// <param name="rollupKind">Kind of the rollup.</param>
     /// <param name="telemetryStats">The telemetry stats.</param>
-    void MetaStats::snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats)
+    void MetaStats::snapStatsToRecord(std::vector< ::CsProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats)
     {
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
         if (record.data.size() == 0)
         {
-            ::AriaProtocol::Data data;
+            ::CsProtocol::Data data;
             record.data.push_back(data);
         }
         record.baseType = "evt_stats";
         record.name = "evt_stats";
 
-        std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
+        std::map<std::string, ::CsProtocol::Value>& ext = record.data[0].properties;
 
         // Stats tenant ID
         std::string statTenantToken = m_config.GetMetaStatsTenantToken();
@@ -224,7 +224,7 @@ namespace ARIASDK_NS_BEGIN {
         insertNonZero(ext, "snap_time", PAL::getUtcSystemTimeMs());
 
         // Stats kind: start|ongoing|stop
-        ::AriaProtocol::Value rollupKindValue;
+        ::CsProtocol::Value rollupKindValue;
         rollupKindValue.stringValue = RollUpKindToString(rollupKind);
         ext["kind"] = rollupKindValue;
 
@@ -234,12 +234,12 @@ namespace ARIASDK_NS_BEGIN {
         // Offline storage info
         if (telemetryStats.offlineStorageEnabled) {
             OfflineStorageStats& storageStats = telemetryStats.offlineStorageStats;
-            ::AriaProtocol::Value storageFormatValue;
+            ::CsProtocol::Value storageFormatValue;
             storageFormatValue.stringValue = storageStats.storageFormat;
             ext["off_type"] = storageFormatValue;
             if (!storageStats.lastFailureReason.empty())
             {
-                ::AriaProtocol::Value lastFailureReasonValue;
+                ::CsProtocol::Value lastFailureReasonValue;
                 lastFailureReasonValue.stringValue = storageStats.lastFailureReason;
                 ext["off_fail"] = lastFailureReasonValue;
             }
@@ -317,7 +317,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="records">The records.</param>
     /// <param name="rollupKind">Kind of the rollup.</param>
-    void MetaStats::rollup(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind)
+    void MetaStats::rollup(std::vector< ::CsProtocol::Record>& records, RollUpKind rollupKind)
     {
         LOG_TRACE("snapStatsToRecord");
 
@@ -386,11 +386,11 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="rollupKind">Kind of the rollup.</param>
     /// <returns></returns>
-    std::vector< ::AriaProtocol::Record> MetaStats::generateStatsEvent(RollUpKind rollupKind)
+    std::vector< ::CsProtocol::Record> MetaStats::generateStatsEvent(RollUpKind rollupKind)
     {
         LOG_TRACE("generateStatsEvent");
 
-        std::vector< ::AriaProtocol::Record> records;
+        std::vector< ::CsProtocol::Record> records;
 
         if (hasStatsDataAvailable() || rollupKind != RollUpKind::ACT_STATS_ROLLUP_KIND_ONGOING) {
             rollup(records, rollupKind);
@@ -624,6 +624,6 @@ namespace ARIASDK_NS_BEGIN {
         m_telemetryStats.offlineStorageStats.lastFailureReason = reason;
     }
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
+    MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
 
-} ARIASDK_NS_END
+} MAT_NS_END

@@ -7,7 +7,7 @@
 namespace testing {
 
 
-class MockIBandwidthController : public ARIASDK_NS::IBandwidthController
+class MockIBandwidthController : public MAT::IBandwidthController
 {
   public:
     MOCK_METHOD0(GetProposedBandwidthBps, unsigned());

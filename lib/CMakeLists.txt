@@ -1,4 +1,4 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/exp /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -49,6 +49,8 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
   backoff/IBackoff.cpp
+  pal/PAL.cpp
+  pal/PAL.hpp
 )
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
@@ -56,8 +58,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     http/HttpClient_Curl.cpp
     http/HttpClient_Curl.hpp
     http/HttpClient.hpp
-    pal/PAL_CPP11.cpp
-    pal/PAL_CPP11.hpp
     pal/WorkerThread.cpp
     pal/WorkerThread.hpp
     pal/posix/DeviceInformationImpl.cpp
@@ -75,8 +75,6 @@ remove_definitions(-D_MBCS)
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
     http/HttpClient.hpp
-    pal/PAL_Win32.cpp
-    pal/PAL_Win32.hpp
     pal/WorkerThread.cpp
     pal/WorkerThread.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
@@ -84,8 +82,10 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
     pal/desktop/WindowsEnvironmentInfo.cpp
     pal/desktop/NetworkDetector.cpp
-    pal/desktop/UtcHelpers.cpp
-    system/UtcTelemetrySystem.cpp
+  )
+  list(APPEND SRCS
+    modules/utc/desktop/UtcHelpers.cpp
+    modules/utc/UtcTelemetrySystem.cpp
   )
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
@@ -98,37 +98,37 @@ create_source_files_groups_per_folder(${SRCS})
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   find_package(Threads REQUIRED)
   if(THREADS_HAVE_PTHREAD_ARG)
-   target_compile_options(aria PUBLIC "-pthread")
+   target_compile_options(mat PUBLIC "-pthread")
   endif()
 endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  add_library(aria SHARED ${SRCS})
+  add_library(mat SHARED ${SRCS})
   add_library(sqlite3 SHARED IMPORTED GLOBAL)
   add_library(z SHARED IMPORTED GLOBAL)
-  #target_link_libraries(aria PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
-  target_link_libraries(aria PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
-  # target_link_libraries(aria PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  install(TARGETS aria EXPORT aria LIBRARY DESTINATION ${INSTALL_LIB_DIR})
+  #target_link_libraries(mat PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
+  target_link_libraries(mat PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
+  # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
   message("-- Building static SDK library")
-  add_library(aria STATIC ${SRCS})
+  add_library(mat STATIC ${SRCS})
   if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-    target_link_libraries(aria ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
     add_library(sqlite3 STATIC IMPORTED GLOBAL)
     add_library(z STATIC IMPORTED GLOBAL)
-    #target_link_libraries(aria PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
-    target_link_libraries(aria PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    #target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
+    target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   endif()
-  install(TARGETS aria EXPORT aria ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
+  install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
 message("-- Library will be installed to ${INSTALL_LIB_DIR}")
 
 #if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-#  #target_link_libraries(aria PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#  #target_link_libraries(aria PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+#  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+#  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #endif()
 

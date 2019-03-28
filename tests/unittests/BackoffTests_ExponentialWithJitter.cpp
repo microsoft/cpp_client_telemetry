@@ -9,7 +9,7 @@ using namespace testing;
 class BackoffTests_ExponentialWithJitter : public Test
 {
   protected:
-    void checkValuesDistributedBetween(ARIASDK_NS::IBackoff& b, int lo, int hi)
+    void checkValuesDistributedBetween(MAT::IBackoff& b, int lo, int hi)
     {
         int const NumQueries = 1000;
         int const NumBuckets = 5;
@@ -29,25 +29,25 @@ class BackoffTests_ExponentialWithJitter : public Test
 
 TEST_F(BackoffTests_ExponentialWithJitter, ValidatesArguments)
 {
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(1000, 300000, 2.0,     1.0).good(), true);
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(0,         0, 1.0001,  0.0).good(), true);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(1000, 300000, 2.0,     1.0).good(), true);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(0,         0, 1.0001,  0.0).good(), true);
 
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(-1,   300000, 2.0,     1.0).good(), false);
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(1000,    999, 2.0,     1.0).good(), false);
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(1000, 300000, 0.9999,  1.0).good(), false);
-    EXPECT_THAT(ARIASDK_NS::Backoff_ExponentialWithJitter(1000, 300000, 2.0,    -0.1).good(), false);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(-1,   300000, 2.0,     1.0).good(), false);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(1000,    999, 2.0,     1.0).good(), false);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(1000, 300000, 0.9999,  1.0).good(), false);
+    EXPECT_THAT(MAT::Backoff_ExponentialWithJitter(1000, 300000, 2.0,    -0.1).good(), false);
 }
 
 TEST_F(BackoffTests_ExponentialWithJitter, StartsAtInitialValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
     ASSERT_THAT(eb.good(), true);
     EXPECT_THAT(eb.getValue(), 1000);
 }
 
 TEST_F(BackoffTests_ExponentialWithJitter, IncreasesExponentially)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
     ASSERT_THAT(eb.good(), true);
     EXPECT_THAT(eb.getValue(), 1000);
     EXPECT_THAT(eb.getValue(), 1000);
@@ -62,7 +62,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, IncreasesExponentially)
 
 TEST_F(BackoffTests_ExponentialWithJitter, StopsAtMaximumValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.0);
     ASSERT_THAT(eb.good(), true);
     for (int i = 0; i < 4; i++) {
         eb.increase();
@@ -75,7 +75,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, StopsAtMaximumValue)
 
 TEST_F(BackoffTests_ExponentialWithJitter, StopsAtUnevenMaximumValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 15432, 2.0, 0.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 15432, 2.0, 0.0);
     ASSERT_THAT(eb.good(), true);
     for (int i = 0; i < 4; i++) {
         eb.increase();
@@ -88,7 +88,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, StopsAtUnevenMaximumValue)
 
 TEST_F(BackoffTests_ExponentialWithJitter, SupportsArbitraryMultiplier)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 1900, 1.25, 0.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 1900, 1.25, 0.0);
     ASSERT_THAT(eb.good(), true);
     EXPECT_THAT(eb.getValue(), 1000);
     eb.increase();
@@ -101,7 +101,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, SupportsArbitraryMultiplier)
 
 TEST_F(BackoffTests_ExponentialWithJitter, AddsFullStepJitter)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 1.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 1.0);
     ASSERT_THAT(eb.good(), true);
     checkValuesDistributedBetween(eb, 1000, 2000);
     eb.increase();
@@ -113,7 +113,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, AddsFullStepJitter)
 
 TEST_F(BackoffTests_ExponentialWithJitter, JitterStopsAtMaximumValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 1.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 1.0);
     ASSERT_THAT(eb.good(), true);
     for (int i = 0; i < 3; i++) {
         eb.increase();
@@ -125,7 +125,7 @@ TEST_F(BackoffTests_ExponentialWithJitter, JitterStopsAtMaximumValue)
 
 TEST_F(BackoffTests_ExponentialWithJitter, JitterStopsAtUnevenMaximumValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 15432, 2.0, 1.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 15432, 2.0, 1.0);
     ASSERT_THAT(eb.good(), true);
     for (int i = 0; i < 3; i++) {
         eb.increase();
@@ -137,14 +137,14 @@ TEST_F(BackoffTests_ExponentialWithJitter, JitterStopsAtUnevenMaximumValue)
 
 TEST_F(BackoffTests_ExponentialWithJitter, JitterDoesNotGoBelowInitialValue)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 1543, 2.0, 1.0);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 1543, 2.0, 1.0);
     ASSERT_THAT(eb.good(), true);
     checkValuesDistributedBetween(eb, 1000, 1543);
 }
 
 TEST_F(BackoffTests_ExponentialWithJitter, AddsArbitrarySizedJitter)
 {
-    ARIASDK_NS::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.75);
+    MAT::Backoff_ExponentialWithJitter eb(1000, 16000, 2.0, 0.75);
     ASSERT_THAT(eb.good(), true);
     checkValuesDistributedBetween(eb, 1000, 1681);
     eb.increase();
@@ -160,32 +160,32 @@ TEST_F(BackoffTests_ExponentialWithJitter, AddsArbitrarySizedJitter)
 
 TEST_F(BackoffTests_ExponentialWithJitter, CanBeCreatedFromConfig)
 {
-    std::unique_ptr<ARIASDK_NS::IBackoff> b = ARIASDK_NS::IBackoff::createFromConfig("E,1000,16000,2.0,0.75");
+    std::unique_ptr<MAT::IBackoff> b = MAT::IBackoff::createFromConfig("E,1000,16000,2.0,0.75");
 
     // TODO: Move these three to some generic createFromConfig() test sometime.
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("x,1000,300000,2.0,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig(",1000,300000,2.0,1.0"),     IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E!1000,300000,2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("x,1000,300000,2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig(",1000,300000,2.0,1.0"),     IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E!1000,300000,2.0,1.0"),    IsNull());
 
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000!300000,2.0,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000!2.0,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0!1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0,1.0!"),   IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000!300000,2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000!2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0!1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0,1.0!"),   IsNull());
 
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,,300000,2.0,1.0"),        IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,,2.0,1.0"),          IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,,1.0"),       IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0,"),       IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,,300000,2.0,1.0"),        IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,,2.0,1.0"),          IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,,1.0"),       IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0,"),       IsNull());
 
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000!,300000,2.0,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000!,2.0,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0!,1.0"),    IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0,1.0!"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000!,300000,2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000!,2.0,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0!,1.0"),    IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0,1.0!"),    IsNull());
 
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,-1,300000,2.0,1.0"),      IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,999,2.0,1.0"),       IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,0.9999,1.0"), IsNull());
-    EXPECT_THAT(ARIASDK_NS::IBackoff::createFromConfig("E,1000,300000,2.0,-0.1"),   IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,-1,300000,2.0,1.0"),      IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,999,2.0,1.0"),       IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,0.9999,1.0"), IsNull());
+    EXPECT_THAT(MAT::IBackoff::createFromConfig("E,1000,300000,2.0,-0.1"),   IsNull());
 
     ASSERT_THAT(b, NotNull());
     checkValuesDistributedBetween(*b, 1000, 1681);

@@ -1,6 +1,6 @@
-#ifndef ARIA_EVENTPROPERTY_HPP
-#define ARIA_EVENTPROPERTY_HPP
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_EVENTPROPERTY_HPP
+#define MAT_EVENTPROPERTY_HPP
 
 #include "Version.hpp"
 
@@ -24,7 +24,7 @@
 #define LONG_IS_INT64_T
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -48,7 +48,7 @@ namespace ARIASDK_NS_BEGIN
     /// the Gregorian calendar), which represents DateTime.MinValue.
     /// <b>Note:</b> This does not include the number  of ticks that are attributable to leap seconds.
     /// </remarks>
-    struct ARIASDK_LIBABI time_ticks_t {
+    struct MATSDK_LIBABI time_ticks_t {
         /// <summary>
         /// A raw 64-bit unsigned integer that represents the number of .NET ticks.
         /// </summary>
@@ -77,7 +77,7 @@ namespace ARIASDK_NS_BEGIN
     };
 
     /// <summary>
-    /// The GUID_t structure represents the ARIA portable cross-platform implementation of a GUID (Globally Unique ID).
+    /// The GUID_t structure represents the portable cross-platform implementation of a GUID (Globally Unique ID).
     /// </summary>
     /// <remarks>
     /// GUIDs identify objects such as interfaces, manager entry-point vectors (EPVs), and class objects.
@@ -89,7 +89,7 @@ namespace ARIASDK_NS_BEGIN
     /// 
     /// <b>Note:</b> You must provide your own converter to convert from a <b>Windows RPC GUID</b> to a GUID_t.
     /// </remarks>
-    struct ARIASDK_LIBABI GUID_t {
+    struct MATSDK_LIBABI GUID_t {
         /// <summary>
         /// Specifies the first eight hexadecimal digits of the GUID.
         /// </summary>
@@ -224,7 +224,7 @@ namespace ARIASDK_NS_BEGIN
     /// The EventProperty structure represents a C++11 variant object that holds an event property type 
     /// and an event property value.
     /// </summary>
-    struct ARIASDK_LIBABI EventProperty
+    struct MATSDK_LIBABI EventProperty
     {
         // <remarks>
         // With the concept of EventProperty value object we allow users implementing their
@@ -235,7 +235,7 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>
         /// This anonymous enumeration contains a set of values that specify the types
-        /// that are supported by the Aria collector.
+        /// that are supported by events collector.
         /// </summary>
         enum
         {
@@ -514,6 +514,6 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

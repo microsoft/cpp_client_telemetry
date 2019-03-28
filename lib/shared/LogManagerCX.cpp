@@ -19,7 +19,7 @@
 
 #include "LogManager.hpp"
 
-namespace ARIASDK_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } ARIASDK_NS_END
+namespace MAT_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } MAT_NS_END
 
 namespace MATW_NS_BEGIN {
 

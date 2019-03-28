@@ -12,12 +12,12 @@
 #include <vector>
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class IncomingEventContext {
     public:
-        ::AriaProtocol::Record*  source;
+        ::CsProtocol::Record*  source;
         StorageRecord            record;
         std::uint64_t            policyBitFlags;
 
@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         {
         }
 
-        IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::AriaProtocol::Record* source)
+        IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
             : source(source),
             record{ id, tenantToken, latency, persistence },
 	    policyBitFlags(0)
@@ -138,4 +138,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

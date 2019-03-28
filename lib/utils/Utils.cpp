@@ -28,11 +28,11 @@
 #include <locale>
 #include <codecvt>
 
-namespace ARIASDK_NS_BEGIN {
-    ARIASDK_LOG_INST_COMPONENT_NS("AriaSDK", "Aria telemetry client");
-} ARIASDK_NS_END
+namespace MAT_NS_BEGIN {
+    MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client");
+} MAT_NS_END
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     void sleep(unsigned delayMs)
     {
@@ -122,19 +122,42 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+#endif
+    /**
+     * Convert various numeric types and bool to string in an uniform manner.
+     */
+    template<typename T>
+    std::string to_string(char const* format, T value)
+    {
+        static const int buf_size = 40;
+        char buf[buf_size] = { 0 };
+#ifdef _WIN32
+        ::_snprintf_s(buf, buf_size, format, value);
+#else
+        snprintf(buf, buf_size, format, value);
+#endif
+        return std::string(buf);
+    }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
     std::string toString(char const*        value) { return std::string(value); }
     std::string toString(bool               value) { return value ? "true" : "false"; }
-    std::string toString(char               value) { return PAL::to_string("%d", static_cast<signed char>(value)); }
-    std::string toString(int                value) { return PAL::to_string("%d", value); }
-    std::string toString(long               value) { return PAL::to_string("%ld", value); }
-    std::string toString(long long          value) { return PAL::to_string("%lld", value); }
-    std::string toString(unsigned char      value) { return PAL::to_string("%u", value); }
-    std::string toString(unsigned int       value) { return PAL::to_string("%u", value); }
-    std::string toString(unsigned long      value) { return PAL::to_string("%lu", value); }
-    std::string toString(unsigned long long value) { return PAL::to_string("%llu", value); }
-    std::string toString(float              value) { return PAL::to_string("%f", value); }
-    std::string toString(double             value) { return PAL::to_string("%f", value); }
-    std::string toString(long double        value) { return PAL::to_string("%Lf", value); }
+    std::string toString(char               value) { return to_string("%d", static_cast<signed char>(value)); }
+    std::string toString(int                value) { return to_string("%d", value); }
+    std::string toString(long               value) { return to_string("%ld", value); }
+    std::string toString(long long          value) { return to_string("%lld", value); }
+    std::string toString(unsigned char      value) { return to_string("%u", value); }
+    std::string toString(unsigned int       value) { return to_string("%u", value); }
+    std::string toString(unsigned long      value) { return to_string("%lu", value); }
+    std::string toString(unsigned long long value) { return to_string("%llu", value); }
+    std::string toString(float              value) { return to_string("%f", value); }
+    std::string toString(double             value) { return to_string("%f", value); }
+    std::string toString(long double        value) { return to_string("%Lf", value); }
 
     EventRejectedReason validateEventName(std::string const& name)
     {
@@ -301,4 +324,4 @@ namespace ARIASDK_NS_BEGIN {
         return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

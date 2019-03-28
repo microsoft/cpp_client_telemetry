@@ -20,7 +20,7 @@
 #include <atomic>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 /// <summary>
 /// Test observer. Currently the callbacks mechanism is not implemented at MemoryStorage abstraction level.

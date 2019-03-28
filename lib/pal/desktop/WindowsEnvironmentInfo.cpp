@@ -3,7 +3,7 @@
 #include "WindowsEnvironmentInfo.h"
 #include <Windows.h>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // Convert a bias in minutes to the ISO 8601 time zone representaiton.
     // ISO 8601 examples: +01:30, -08
@@ -55,4 +55,4 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

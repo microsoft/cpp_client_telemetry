@@ -9,7 +9,7 @@
 #pragma warning(push)
 #pragma warning(disable : 4100)
 #endif
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 #define RECORD_EXT      record.data[0].properties
 
@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     public:
         SemanticApiDecorators(ILogManager& owner) : DecoratorBase(owner) {};
 
-        bool decorateAggregatedMetricMessage(::AriaProtocol::Record& record, AggregatedMetricData const& metricData)
+        bool decorateAggregatedMetricMessage(::CsProtocol::Record& record, AggregatedMetricData const& metricData)
         {
             if (!checkNotEmpty(metricData.name, "name")) {
                 return false;
@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decorateAppLifecycleMessage(::AriaProtocol::Record& record, MAT::AppLifecycleState state)
+        bool decorateAppLifecycleMessage(::CsProtocol::Record& record, MAT::AppLifecycleState state)
         {
             static EnumValueName const names_AppLifecycleState[] = {
                 { "Unknown",    0 },
@@ -81,7 +81,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decorateFailureMessage(::AriaProtocol::Record& record, std::string const& signature, std::string const& detail,
+        bool decorateFailureMessage(::CsProtocol::Record& record, std::string const& signature, std::string const& detail,
             std::string const& category, std::string const& id)
         {
             if (!checkNotEmpty(signature, "signature") || !checkNotEmpty(detail, "detail")) {
@@ -97,7 +97,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decoratePageActionMessage(::AriaProtocol::Record& record, MAT::PageActionData const& pageActionData)
+        bool decoratePageActionMessage(::CsProtocol::Record& record, MAT::PageActionData const& pageActionData)
         {
             if (!checkNotEmpty(pageActionData.pageViewId, "pageViewId")) {
                 return false;
@@ -171,7 +171,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decoratePageViewMessage(::AriaProtocol::Record& record, std::string const& id, std::string const& pageName,
+        bool decoratePageViewMessage(::CsProtocol::Record& record, std::string const& id, std::string const& pageName,
             std::string const& category, std::string const& uri, std::string const& referrer)
         {
             if (!checkNotEmpty(id, "id")) {
@@ -188,7 +188,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decorateSampledMetricMessage(::AriaProtocol::Record& record, std::string const& name, double value, std::string const& units,
+        bool decorateSampledMetricMessage(::CsProtocol::Record& record, std::string const& name, double value, std::string const& units,
             std::string const& instanceName, std::string const& objectClass, std::string const& objectId)
         {
             if (!checkNotEmpty(name, "name") || !checkNotEmpty(units, "units")) {
@@ -206,7 +206,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decorateTraceMessage(::AriaProtocol::Record& record, TraceLevel const& level, std::string const& message)
+        bool decorateTraceMessage(::CsProtocol::Record& record, TraceLevel const& level, std::string const& message)
         {
             if (!checkNotEmpty(message, "message")) {
                 return false;
@@ -227,7 +227,7 @@ namespace ARIASDK_NS_BEGIN {
             return true;
         }
 
-        bool decorateUserStateMessage(::AriaProtocol::Record& record, UserState state, long expiry)
+        bool decorateUserStateMessage(::CsProtocol::Record& record, UserState state, long expiry)
         {
             static EnumValueName const names_UserState[] = {
                 { "Unknown",   0 },
@@ -268,7 +268,7 @@ namespace ARIASDK_NS_BEGIN {
             return "Above30Min";
         }
 
-        bool decorateSessionMessage(::AriaProtocol::Record& record,
+        bool decorateSessionMessage(::CsProtocol::Record& record,
             SessionState state,
             std::string const& id,
             std::string const& firstTime,
@@ -294,7 +294,7 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

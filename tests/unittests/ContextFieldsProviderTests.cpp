@@ -4,7 +4,7 @@
 #include "api/ContextFieldsProvider.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 // TODO: [MG] - this test would benefit from uncommenting a bunch of lines that have been commented by someone before..
 TEST(ContextFieldsProviderTests, SetProperties)

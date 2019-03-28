@@ -6,12 +6,12 @@
 #include "api/IRuntimeConfig.hpp"
 
 #include "Enums.hpp"
-#include "bond/generated/AriaProtocol_types.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
 
 #include <memory>
 #include <algorithm>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /** \brief The first positive spot for the frequency distribution of package consecutive failure duration.
         <20s, 20s~40s, 40s~80s, 80s~160s, 160s~320s, 320s~640s, >640s
@@ -266,7 +266,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
     protected:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
     /// <summary>
@@ -518,7 +518,7 @@ namespace ARIASDK_NS_BEGIN {
         MetaStats(IRuntimeConfig& config);
         ~MetaStats();
 
-        std::vector< ::AriaProtocol::Record> generateStatsEvent(RollUpKind rollupKind);
+        std::vector< ::CsProtocol::Record> generateStatsEvent(RollUpKind rollupKind);
 
         void updateOnEventIncoming(std::string const& tenanttoken, unsigned size, EventLatency latency, bool metastats);
         void updateOnPostData(unsigned postDataLength, bool metastatsOnly);
@@ -553,7 +553,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// stats records created
         /// </summary>
-        void rollup(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind);
+        void rollup(std::vector< ::CsProtocol::Record>& records, RollUpKind rollupKind);
 
     protected:
 
@@ -605,9 +605,9 @@ namespace ARIASDK_NS_BEGIN {
         };
 
     private:
-        void snapStatsToRecord(std::vector< ::AriaProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats);
+        void snapStatsToRecord(std::vector< ::CsProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats);
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class EventPropertiesDecorator : public DecoratorBase {
@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
         EventPropertiesDecorator(ILogManager& owner) :
             DecoratorBase(owner) {};
 
-        bool decorate(::AriaProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
+        bool decorate(::CsProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {
             if (latency == EventLatency_Unspecified)
                 latency = EventLatency_Normal;
@@ -43,7 +43,7 @@ namespace ARIASDK_NS_BEGIN {
 
             if (record.data.size() == 0)
             {
-                ::AriaProtocol::Data data;
+                ::CsProtocol::Data data;
                 record.data.push_back(data);
             }
 
@@ -73,8 +73,8 @@ namespace ARIASDK_NS_BEGIN {
             }
             record.flags = flags;
 
-            std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
-            std::map<std::string, ::AriaProtocol::Value> extPartB;
+            std::map<std::string, ::CsProtocol::Value>& ext = record.data[0].properties;
+            std::map<std::string, ::CsProtocol::Value> extPartB;
 
             for (auto &kv : eventProperties.GetProperties()) {
 
@@ -93,11 +93,11 @@ namespace ARIASDK_NS_BEGIN {
                 {
                     if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
                     {  //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                        AriaProtocol::CustomerContent cc;
-                        cc.Kind = AriaProtocol::CustomerContentKind::GenericContent;
-                        AriaProtocol::Value temp;
+                        CsProtocol::CustomerContent cc;
+                        cc.Kind = CsProtocol::CustomerContentKind::GenericContent;
+                        CsProtocol::Value temp;
 
-                        AriaProtocol::Attributes attrib;
+                        CsProtocol::Attributes attrib;
                         attrib.customerContent.push_back(cc);
 
                         temp.attributes.push_back(attrib);
@@ -114,11 +114,11 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     else
                     { //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                        AriaProtocol::PII pii;
-                        pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
-                        AriaProtocol::Value temp;
+                        CsProtocol::PII pii;
+                        pii.Kind = static_cast<CsProtocol::PIIKind>(v.piiKind);
+                        CsProtocol::Value temp;
 
-                        AriaProtocol::Attributes attrib;
+                        CsProtocol::Attributes attrib;
                         attrib.pii.push_back(pii);
 
 
@@ -136,20 +136,20 @@ namespace ARIASDK_NS_BEGIN {
                         if (v.piiKind != PiiKind_None)
                         {
                             //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                            AriaProtocol::PII pii;
-                            pii.Kind = static_cast<AriaProtocol::PIIKind>(v.piiKind);
+                            CsProtocol::PII pii;
+                            pii.Kind = static_cast<CsProtocol::PIIKind>(v.piiKind);
                             pii.RawContent = v.to_string();
                             // ScrubType = 1 is the O365 scrubber which is the default behavior.
                             // pii.ScrubType = static_cast<PIIScrubber>(O365);
-                            pii.ScrubType = AriaProtocol::O365;
+                            pii.ScrubType = CsProtocol::O365;
                             PIIExtensions[k] = pii;
                             // 4. Send event's Pii context fields as record.PIIExtensions
                         }
                         else
                         {
                             //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
-                            AriaProtocol::CustomerContent cc;
-                            cc.Kind = static_cast<AriaProtocol::CustomerContentKind>(v.ccKind);
+                            CsProtocol::CustomerContent cc;
+                            cc.Kind = static_cast<CsProtocol::CustomerContentKind>(v.ccKind);
                             cc.RawContent = v.to_string();
                             ccExtensions[k] = cc;
                             // 4. Send event's Pii context fields as record.PIIExtensions
@@ -164,7 +164,7 @@ namespace ARIASDK_NS_BEGIN {
                     {
                     case EventProperty::TYPE_STRING:
                     {
-                        AriaProtocol::Value temp;
+                        CsProtocol::Value temp;
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -178,8 +178,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_INT64:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueInt64;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueInt64;
                         temp.longValue = v.as_int64;
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -193,8 +193,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_DOUBLE:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueDouble;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueDouble;
                         temp.doubleValue = v.as_double;
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -208,8 +208,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_TIME:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueDateTime;
                         temp.longValue = v.as_time_ticks.ticks;
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -223,8 +223,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_BOOLEAN:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueBool;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueBool;
                         temp.longValue = v.as_bool;
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -242,8 +242,8 @@ namespace ARIASDK_NS_BEGIN {
                         temp.to_bytes(guid_bytes);
                         guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
 
-                        AriaProtocol::Value tempValue;
-                        tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
+                        CsProtocol::Value tempValue;
+                        tempValue.type = ::CsProtocol::ValueKind::ValueGuid;
                         tempValue.guidValue.push_back(guid);
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -257,8 +257,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_INT64_ARRAY:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueArrayInt64;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueArrayInt64;
                         temp.longArray.push_back(*v.as_longArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -272,8 +272,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_DOUBLE_ARRAY:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueArrayDouble;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueArrayDouble;
                         temp.doubleArray.push_back(*v.as_doubleArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -287,8 +287,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_STRING_ARRAY:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueArrayString;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueArrayString;
                         temp.stringArray.push_back(*v.as_stringArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -302,8 +302,8 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     case EventProperty::TYPE_GUID_ARRAY:
                     {
-                        AriaProtocol::Value temp;
-                        temp.type = ::AriaProtocol::ValueKind::ValueArrayGuid;
+                        CsProtocol::Value temp;
+                        temp.type = ::CsProtocol::ValueKind::ValueArrayGuid;
 
                         std::vector<std::vector<uint8_t>> values;
                         for (const auto& tempValue : *v.as_guidArray)
@@ -326,7 +326,7 @@ namespace ARIASDK_NS_BEGIN {
                     default:
                     {
                         // Convert all unknown types to string
-                        AriaProtocol::Value temp;
+                        CsProtocol::Value temp;
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
@@ -343,16 +343,16 @@ namespace ARIASDK_NS_BEGIN {
 
                 if (extPartB.size() > 0)
                 {
-                    ::AriaProtocol::Data partBdata;
+                    ::CsProtocol::Data partBdata;
                     partBdata.properties = extPartB;
                     record.baseData.push_back(partBdata);
                 }
                 // special case of CorrelationVector value
                 if (ext.count(CorrelationVector::PropertyName) > 0)
                 {
-                    AriaProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
+                    CsProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
 
-                    if (cvValue.type == ::AriaProtocol::ValueKind::ValueString)
+                    if (cvValue.type == ::CsProtocol::ValueKind::ValueString)
                     {
                         record.cV = cvValue.stringValue;
                     }
@@ -369,5 +369,5 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

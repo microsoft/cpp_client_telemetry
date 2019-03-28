@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifndef ARIA_ILOGGER_HPP
-#define ARIA_ILOGGER_HPP
+#ifndef MAT_ILOGGER_HPP
+#define MAT_ILOGGER_HPP
 
 #include "Version.hpp"
 
@@ -14,10 +14,10 @@
 #include <vector>
 #include <map>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
-// Data Type Flags
+    // Data Type Flags
 #define MICROSOFT_KEYWORD_CRITICAL_DATA         0x0000800000000000 // Bit 47
 #define MICROSOFT_KEYWORD_MEASURES              0x0000400000000000 // Bit 46
 #define MICROSOFT_KEYWORD_TELEMETRY             0x0000200000000000 // Bit 45
@@ -180,7 +180,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// ILogger interface for logging either semantic or custom event
     /// </summary>
-    class ARIASDK_LIBABI ILogger
+    class MATSDK_LIBABI ILogger
     {
 
     public:
@@ -588,6 +588,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

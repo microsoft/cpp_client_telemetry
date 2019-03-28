@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef ILOGMANAGER_HPP
 #define ILOGMANAGER_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 
@@ -13,12 +13,12 @@
 #include "IAuthTokensController.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
-#include <LogSessionData.hpp>
+#include "LogSessionData.hpp"
 
 #include "TransmitProfiles.hpp"
 #include "DebugEvents.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class IContextProvider {
@@ -40,7 +40,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// This class controls transmission and storage subsystems
     /// </summary>
-    class ARIASDK_LIBABI ILogController {
+    class MATSDK_LIBABI ILogController {
 
     public:
 
@@ -112,7 +112,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// This class is used to manage the Events logging system
     /// </summary>
-    class ARIASDK_LIBABI ILogManager :
+    class MATSDK_LIBABI ILogManager :
         public ILogController,
         public IContextProvider,
         public DebugEventDispatcher
@@ -336,6 +336,6 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

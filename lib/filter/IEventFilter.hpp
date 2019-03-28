@@ -4,8 +4,8 @@
 //
 // Interface for filtering specific events from the event stream
 //
-#ifndef ARIA_IEVENTFILTER_HPP
-#define ARIA_IEVENTFILTER_HPP
+#ifndef MAT_IEVENTFILTER_HPP
+#define MAT_IEVENTFILTER_HPP
 
 #include "pal/PAL.hpp"
 #include <cstdint>
@@ -13,7 +13,7 @@
 
 #include <Enums.hpp>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // Enum of return codes from SetExclusionFilter. For internal use only--not
     // part of public documentation. > 0 means success, < 0 means failure. Never
@@ -99,7 +99,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void Reset() = 0;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 
-#endif //!ARIA_IEVENTFILTER_HPP
+#endif //!MAT_IEVENTFILTER_HPP

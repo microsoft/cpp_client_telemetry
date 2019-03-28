@@ -56,7 +56,7 @@ using namespace ABI::Windows::Networking::Connectivity;
 
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
             namespace Windows {
 
@@ -266,7 +266,7 @@ namespace ARIASDK_NS_BEGIN
                 };
 
             }
-} ARIASDK_NS_END
+} MAT_NS_END
 
 namespace MATW = MAT::Windows;
 

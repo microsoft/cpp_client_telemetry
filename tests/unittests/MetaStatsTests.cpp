@@ -5,7 +5,7 @@
 #include "stats/MetaStats.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class MetaStatsTests : public ::testing::Test

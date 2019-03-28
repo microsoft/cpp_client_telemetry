@@ -5,7 +5,7 @@
 
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /// <summary>Add event listener for specific debug event type.</summary>
     void DebugEventSource::AddEventListener(DebugEventType type, DebugEventListener &listener)
@@ -22,7 +22,7 @@ namespace ARIASDK_NS_BEGIN {
         v.erase(it, v.end());
     }
 
-    /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>
+    /// <summary>Microsoft Telemetry SDK invokes this method to dispatch event to client callback</summary>
     bool DebugEventSource::DispatchEvent(DebugEvent evt)
     {
         seq++;
@@ -66,4 +66,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

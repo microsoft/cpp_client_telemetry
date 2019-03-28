@@ -4,7 +4,7 @@
 #include "CorrelationVector.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 using std::string;
 

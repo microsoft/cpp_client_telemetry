@@ -1,23 +1,22 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef EVENTSCLIENT_HPP
 #define EVENTSCLIENT_HPP
-#pragma once
-
 //
 // Header-only implementation of C++03 API on top of stable C ABI
 //
 
 #include "Version.hpp"
 
-#include "aria.h"
+#include "mat.h"
 
 /* This class is currently incompatible with Secure Template Overloads */
 #ifdef evt_log
 #undef evt_log
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN
+{
 
-    // TODO: [MG] - consider __fastcall for all methods here for best perf
     class CAPIClient
     {
 
@@ -90,6 +89,6 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

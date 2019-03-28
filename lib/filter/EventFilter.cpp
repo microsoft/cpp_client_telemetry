@@ -5,7 +5,7 @@
 #include "filter/EventFilter.hpp"
 #include <cassert>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     EventFilter::EventFilter()
     {
@@ -99,4 +99,4 @@ namespace ARIASDK_NS_BEGIN
         return STATUS_SUCCESS; // SetExclusionFilterResult::Success;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

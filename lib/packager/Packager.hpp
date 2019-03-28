@@ -10,7 +10,7 @@
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class Packager {
     public:
@@ -34,4 +34,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

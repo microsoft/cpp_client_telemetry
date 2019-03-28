@@ -11,7 +11,7 @@
 namespace testing {
 
 
-class MockISqlite3Proxy : public ARIASDK_NS::ISqlite3Proxy {
+class MockISqlite3Proxy : public MAT::ISqlite3Proxy {
   public:
     MockISqlite3Proxy();
     virtual ~MockISqlite3Proxy();

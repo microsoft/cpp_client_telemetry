@@ -4,7 +4,7 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
 class HttpClientFactory
@@ -13,8 +13,8 @@ public:
     static IHttpClient* Create();
 
 private:
-    ARIASDK_LOG_DECL_COMPONENT_CLASS();
+    MATSDK_LOG_DECL_COMPONENT_CLASS();
 };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

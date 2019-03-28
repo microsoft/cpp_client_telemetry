@@ -38,10 +38,10 @@
 #define EFAIL   -1
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     // TODO: [MG] - refactor this
-    extern const char* getAriaSdkLogComponent();
+    extern const char* getMATSDKLogComponent();
 
     typedef std::chrono::milliseconds ms;
 
@@ -189,6 +189,6 @@ namespace ARIASDK_NS_BEGIN {
 
     unsigned hashCode(const char* str, int h = 0);
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

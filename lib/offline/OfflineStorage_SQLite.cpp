@@ -13,7 +13,7 @@
 
 #define IF_CLOSED_RETURN      if (!isOpen()) return
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class DbTransaction {
         SqliteDB* m_db;
@@ -37,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
 
     static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"
@@ -671,12 +671,10 @@ namespace ARIASDK_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
-        // *INDENT-OFF* Uncrustify insists on adding a namespace closing comment after the closing curly brace
 #pragma warning(push)
 #pragma warning(disable:4296) // expression always false.
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
-// *INDENT-ON*
 
 #ifdef ENABLE_LOCKING
         PREPARE_SQL(m_stmtBeginTransaction,
@@ -868,5 +866,5 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

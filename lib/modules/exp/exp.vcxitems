@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{2bfafe9a-45b0-4c02-841e-03e47fd2e340}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDClientConfig.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDClientUtils.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDConfigCache.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSClientConfig.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSClientUtils.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSConfigCache.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)EXPCommonClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)FifoFileStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IDataStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)JsonHelper.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDClientUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)afd\afdclient\AFDConfigCache.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSClientUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ecs\ecsclient\ECSConfigCache.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)EXPCommonClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)FifoFileStorage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)JsonHelper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)README" />
+  </ItemGroup>
+</Project>

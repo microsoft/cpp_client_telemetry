@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 #ifndef ISEMANTICCONTEXT_HPP
 #define ISEMANTICCONTEXT_HPP
+
 #include "Version.hpp"
 
 #include "EventProperty.hpp"
 #include "CommonFields.h"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
+
 #include <string>
 #include <cassert>
 
@@ -14,10 +16,10 @@
 #pragma warning( push )
 #pragma warning( disable : 4100 ) // unreferenced formal parameter
 #endif
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
-    class  ARIASDK_LIBABI ISemanticContext
+    class  MATSDK_LIBABI ISemanticContext
     {
     public:
         virtual  ~ISemanticContext() {};
@@ -26,18 +28,18 @@ namespace ARIASDK_NS_BEGIN
         /// Set the application identifier context information of telemetry event.
         /// </summary>
         /// <param name="appId">Id that uniquely identifies the user-facing application from which this event originated</param>
-        DECLARE_COMMONFIELD(AppId,             COMMONFIELDS_APP_ID);
+        DECLARE_COMMONFIELD(AppId, COMMONFIELDS_APP_ID);
 
         /// <summary>
         /// Set the application version context information of telemetry event.
         /// </summary>
         /// <param name="appVersion">Version of the application, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(AppVersion,        COMMONFIELDS_APP_VERSION);
+        DECLARE_COMMONFIELD(AppVersion, COMMONFIELDS_APP_VERSION);
 
         /// <summary>
         /// Set the application language context information of telemetry event.
         /// </summary>
-        DECLARE_COMMONFIELD(AppLanguage,       COMMONFIELDS_APP_LANGUAGE);
+        DECLARE_COMMONFIELD(AppLanguage, COMMONFIELDS_APP_LANGUAGE);
 
         /// <summary>
         /// Set the application's experiment IDs information of telemetry event.
@@ -78,25 +80,25 @@ namespace ARIASDK_NS_BEGIN
         /// Set the device identifier context information of telemetry event.
         /// </summary>
         /// <param name="deviceId">A unique device identifier, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(DeviceId,          COMMONFIELDS_DEVICE_ID);
+        DECLARE_COMMONFIELD(DeviceId, COMMONFIELDS_DEVICE_ID);
 
         /// <summary>
         /// Set the device manufacturer context information of telemetry event.
         /// </summary>
         /// <param name="deviceMake">The manufacturer of the device, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(DeviceMake,        COMMONFIELDS_DEVICE_MAKE);
+        DECLARE_COMMONFIELD(DeviceMake, COMMONFIELDS_DEVICE_MAKE);
 
         /// <summary>
         /// Set the device model context information of telemetry event.
         /// </summary>
         /// <param name="deviceModel">The model of the device, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(DeviceModel,       COMMONFIELDS_DEVICE_MODEL);
+        DECLARE_COMMONFIELD(DeviceModel, COMMONFIELDS_DEVICE_MODEL);
 
         /// <summary>
         /// Set the device class context information of telemetry event.
         /// </summary>
         /// <param name="deviceClass">Device class.</param>
-        DECLARE_COMMONFIELD(DeviceClass,       COMMONFIELDS_DEVICE_CLASS);
+        DECLARE_COMMONFIELD(DeviceClass, COMMONFIELDS_DEVICE_CLASS);
 
         /// <summary>
         /// Set the network cost context information of telemetry event.
@@ -136,7 +138,7 @@ namespace ARIASDK_NS_BEGIN
         /// Set the network provider context information of telemetry event.
         /// </summary>
         /// <param name="networkProvider">The provider used to connect to the current network, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(NetworkProvider,   COMMONFIELDS_NETWORK_PROVIDER);
+        DECLARE_COMMONFIELD(NetworkProvider, COMMONFIELDS_NETWORK_PROVIDER);
 
         /// Set the network type context information of telemetry event.
         /// </summary>
@@ -175,19 +177,19 @@ namespace ARIASDK_NS_BEGIN
         /// Set the system name context information of telemetry event.
         /// </summary>
         /// <param name="osName">The system anme, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(OsName,            COMMONFIELDS_OS_NAME);
+        DECLARE_COMMONFIELD(OsName, COMMONFIELDS_OS_NAME);
 
         /// <summary>
         /// Set the system version context information of telemetry event.
         /// </summary>
         /// <param name="osVersion">The system version, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(OsVersion,         COMMONFIELDS_OS_VERSION);
+        DECLARE_COMMONFIELD(OsVersion, COMMONFIELDS_OS_VERSION);
 
         /// <summary>
         /// Set the system build number context information of telemetry event.
         /// </summary>
         /// <param name="osBuild">The system build, retrieved programmatically where possible and is app/platform specific</param>
-        DECLARE_COMMONFIELD(OsBuild,           COMMONFIELDS_OS_BUILD);
+        DECLARE_COMMONFIELD(OsBuild, COMMONFIELDS_OS_BUILD);
 
         /// <summary>
         /// Set the userId context information of telemetry event.
@@ -204,13 +206,13 @@ namespace ARIASDK_NS_BEGIN
         /// Set the user MsaId context information of telemetry event.
         /// </summary>
         /// <param name="userMsaId">Msa id that identifies a user in the application-specific user namespace</param>
-        DECLARE_COMMONFIELD(UserMsaId,         COMMONFIELDS_USER_MSAID);
+        DECLARE_COMMONFIELD(UserMsaId, COMMONFIELDS_USER_MSAID);
 
         /// <summary>
         /// Set the user ANID context information of telemetry event.
         /// </summary>
         /// <param name="userANID">ANID that identifies a user in in the application-specific user namespace</param>
-        DECLARE_COMMONFIELD(UserANID,          COMMONFIELDS_USER_ANID);
+        DECLARE_COMMONFIELD(UserANID, COMMONFIELDS_USER_ANID);
 
         /// <summary>
         /// Set the advertising Id context information of telemetry event.
@@ -222,19 +224,19 @@ namespace ARIASDK_NS_BEGIN
         /// Set the user language context information of telemetry event.
         /// </summary>
         /// <param name="locale">user's language in IETF language tag format, as described in RFC 4646.</param>
-        DECLARE_COMMONFIELD(UserLanguage,      COMMONFIELDS_USER_LANGUAGE);
+        DECLARE_COMMONFIELD(UserLanguage, COMMONFIELDS_USER_LANGUAGE);
 
         /// <summary>
         /// Set the user time zone context information of telemetry event.
         /// </summary>
         /// <param name="timeZone">user's time zone relative to UTC, in ISO 8601 time zone format</param>
-        DECLARE_COMMONFIELD(UserTimeZone,      COMMONFIELDS_USER_TIMEZONE);
+        DECLARE_COMMONFIELD(UserTimeZone, COMMONFIELDS_USER_TIMEZONE);
 
         /// <summary>
         /// Set the Commercial Id context information of telemetry event.
         /// </summary>
         /// <param name="commercialId">CommercialId of a machine</param>
-        DECLARE_COMMONFIELD(CommercialId,      COMMONFIELDS_COMMERCIAL_ID);
+        DECLARE_COMMONFIELD(CommercialId, COMMONFIELDS_COMMERCIAL_ID);
 
         /// <summary>
         /// Sets the common Part A/B field.
@@ -258,7 +260,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void SetTicket(TicketType type, std::string const& ticketValue) {};
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif

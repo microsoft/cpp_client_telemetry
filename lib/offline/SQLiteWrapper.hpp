@@ -13,7 +13,7 @@
 #include <vector>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     using SQLRecord = std::vector<std::string>;
     using SQLRecords = std::vector<SQLRecord>;
@@ -470,10 +470,10 @@ namespace ARIASDK_NS_BEGIN {
         bool                       m_skipInitAndShutdown;
 
     private:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
 
     //---
 
@@ -759,11 +759,11 @@ namespace ARIASDK_NS_BEGIN {
         sqlite3_stmt * handle() { return m_stmt; };
 
     private:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

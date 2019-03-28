@@ -16,7 +16,7 @@
 #include <set>
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class TransmissionPolicyManager
     {
@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
     protected:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
         void checkBackoffConfigUpdate();
 
         void uploadAsync(EventLatency priority);
@@ -160,4 +160,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

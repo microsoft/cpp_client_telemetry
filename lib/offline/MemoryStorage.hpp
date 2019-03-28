@@ -19,7 +19,7 @@
 #include <string>
 #include <unordered_set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class MemoryStorage : public IOfflineStorage
     {
@@ -84,12 +84,12 @@ namespace ARIASDK_NS_BEGIN {
 
         std::atomic<size_t>         m_size;
 
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
         std::atomic<size_t>         m_lastReadCount;
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

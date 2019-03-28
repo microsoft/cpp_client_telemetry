@@ -21,7 +21,7 @@
 #include "decorators/SemanticApiDecorators.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class BaseDecorator;
     class ILogManagerInternal;
@@ -172,9 +172,9 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
 
-        bool applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, MAT::EventLatency& latency);
+        bool applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, MAT::EventLatency& latency);
 
-        virtual void submit(::AriaProtocol::Record& record, const EventProperties& props);
+        virtual void submit(::CsProtocol::Record& record, const EventProperties& props);
 
         std::mutex                m_lock;
 
@@ -205,6 +205,6 @@ namespace ARIASDK_NS_BEGIN {
         bool                      m_allowDotsInType;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

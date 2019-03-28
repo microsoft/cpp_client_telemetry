@@ -1,12 +1,12 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef AGGREGATEDMETRIC_HPP
 #define AGGREGATEDMETRIC_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 
 #include "ILogger.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     namespace Models {
@@ -14,7 +14,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The AggregatedMetric class represents an aggregated metric event.
         /// </summary>
-        class ARIASDK_LIBABI AggregatedMetric
+        class MATSDK_LIBABI AggregatedMetric
         {
         public:
             /// <summary>
@@ -72,5 +72,5 @@ namespace ARIASDK_NS_BEGIN
 
     } // Models
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

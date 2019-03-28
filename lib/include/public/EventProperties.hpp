@@ -1,23 +1,24 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef EVENTPROPERTIES_HPP
 #define EVENTPROPERTIES_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
-#define ARIA_C_API
+#define MAT_C_API
 
 #include "Version.hpp"
 
 #include "EventProperty.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
+
 #include <stdint.h>
 #include <string>
 #include <map>
 
-#ifdef ARIA_C_API
-#include <aria.h>
+#ifdef MAT_C_API
+#include "mat.h"
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     struct EventPropertiesStorage; 
@@ -25,7 +26,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The EventProperties class encapsulates event properties.
     /// </summary>
-    class ARIASDK_LIBABI EventProperties
+    class MATSDK_LIBABI EventProperties
     {
     public:
         /// <summary>
@@ -321,7 +322,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual ~EventProperties();
 
-#ifdef ARIA_C_API
+#ifdef MAT_C_API
         /// Implementation of ABI-safe packing of EventProperties object
         evt_prop* pack();
         bool unpack(evt_prop *packed, size_t size);
@@ -331,6 +332,6 @@ namespace ARIASDK_NS_BEGIN
         EventPropertiesStorage* m_storage;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

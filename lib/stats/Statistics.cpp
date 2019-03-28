@@ -7,7 +7,7 @@
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     Statistics::Statistics(ITelemetrySystem& telemetrySystem) :
         m_iTelemetrySystem(telemetrySystem),
@@ -57,7 +57,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        std::vector< ::AriaProtocol::Record> records;
+        std::vector< ::CsProtocol::Record> records;
         {
             LOCKGUARD(m_metaStats_mtx);
             records = m_metaStats.generateStatsEvent(rollupKind);
@@ -268,4 +268,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

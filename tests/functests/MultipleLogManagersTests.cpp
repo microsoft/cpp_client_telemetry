@@ -14,7 +14,7 @@
 #include <api/LogManagerFactory.hpp>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class MultipleLogManagersTests : public ::testing::Test,

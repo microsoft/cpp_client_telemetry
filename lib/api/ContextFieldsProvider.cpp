@@ -6,7 +6,7 @@
 
 #include "utils/Utils.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     ContextFieldsProvider::ContextFieldsProvider()
@@ -43,13 +43,9 @@ namespace ARIASDK_NS_BEGIN
 
     ContextFieldsProvider::~ContextFieldsProvider()
     {
-        if (!m_parent)
-        {
-            PAL::unregisterSemanticContext(this);
-        }
     }
 
-    void ContextFieldsProvider::writeToRecord(::AriaProtocol::Record& record, bool commonOnly)
+    void ContextFieldsProvider::writeToRecord(::CsProtocol::Record& record, bool commonOnly)
     {
         // Append parent scope context variables if not detached from parent
         if (m_parent)
@@ -59,58 +55,58 @@ namespace ARIASDK_NS_BEGIN
 
         if (record.data.size() == 0)
         {
-            ::AriaProtocol::Data data;
+            ::CsProtocol::Data data;
             record.data.push_back(data);
         }
         if (record.extApp.size() == 0)
         {
-            ::AriaProtocol::App app;
+            ::CsProtocol::App app;
             record.extApp.push_back(app);
         }
 
         if (record.extDevice.size() == 0)
         {
-            ::AriaProtocol::Device device;
+            ::CsProtocol::Device device;
             record.extDevice.push_back(device);
         }
 
         if (record.extOs.size() == 0)
         {
-            ::AriaProtocol::Os os;
+            ::CsProtocol::Os os;
             record.extOs.push_back(os);
         }
 
         if (record.extUser.size() == 0)
         {
-            ::AriaProtocol::User user;
+            ::CsProtocol::User user;
             record.extUser.push_back(user);
         }
 
         if (record.extLoc.size() == 0)
         {
-            ::AriaProtocol::Loc loc;
+            ::CsProtocol::Loc loc;
             record.extLoc.push_back(loc);
         }
 
         if (record.extNet.size() == 0)
         {
-            ::AriaProtocol::Net net;
+            ::CsProtocol::Net net;
             record.extNet.push_back(net);
         }
 
         if (record.extProtocol.size() == 0)
         {
-            ::AriaProtocol::Protocol proto;
+            ::CsProtocol::Protocol proto;
             record.extProtocol.push_back(proto);
         }
 
         if (record.extM365a.size() == 0)
         {
-            ::AriaProtocol::M365a m365a;
+            ::CsProtocol::M365a m365a;
             record.extM365a.push_back(m365a);
         }
 
-        std::map<std::string, ::AriaProtocol::Value>& ext = record.data[0].properties;
+        std::map<std::string, ::CsProtocol::Value>& ext = record.data[0].properties;
         {
             LOCKGUARD(m_lock);
 
@@ -134,7 +130,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFields.end())
                 {
-                    AriaProtocol::Value temp;
+                    CsProtocol::Value temp;
                     EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
                     temp.stringValue = prop.as_string;
 
@@ -143,7 +139,7 @@ namespace ARIASDK_NS_BEGIN
 
                 if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFields.end())
                 {
-                    AriaProtocol::Value temp;
+                    CsProtocol::Value temp;
                     EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENTETAG];
                     temp.stringValue = prop.as_string;
 
@@ -279,7 +275,7 @@ namespace ARIASDK_NS_BEGIN
                 {
                     tickets.push_back(field.second);
                 }
-                AriaProtocol::Protocol temp;
+                CsProtocol::Protocol temp;
                 temp.ticketKeys.push_back(tickets);
                 record.extProtocol.push_back(temp);
             }
@@ -290,10 +286,10 @@ namespace ARIASDK_NS_BEGIN
                 {
                     if (field.second.piiKind != PiiKind_None)
                     {
-                        AriaProtocol::PII pii;
-                        pii.Kind = static_cast<AriaProtocol::PIIKind>(field.second.piiKind);
-                        AriaProtocol::Value temp;
-                        AriaProtocol::Attributes attrib;
+                        CsProtocol::PII pii;
+                        pii.Kind = static_cast<CsProtocol::PIIKind>(field.second.piiKind);
+                        CsProtocol::Value temp;
+                        CsProtocol::Attributes attrib;
                         attrib.pii.push_back(pii);
 
 
@@ -311,39 +307,39 @@ namespace ARIASDK_NS_BEGIN
                         {
                         case EventProperty::TYPE_STRING:
                         {
-                            AriaProtocol::Value temp;
+                            CsProtocol::Value temp;
                             temp.stringValue = field.second.to_string();
                             record.data[0].properties[field.first] = temp;
                             break;
                         }
                         case EventProperty::TYPE_INT64:
                         {
-                            AriaProtocol::Value temp;
-                            temp.type = ::AriaProtocol::ValueKind::ValueInt64;
+                            CsProtocol::Value temp;
+                            temp.type = ::CsProtocol::ValueKind::ValueInt64;
                             temp.longValue = field.second.as_int64;
                             record.data[0].properties[field.first] = temp;
                             break;
                         }
                         case EventProperty::TYPE_DOUBLE:
                         {
-                            AriaProtocol::Value temp;
-                            temp.type = ::AriaProtocol::ValueKind::ValueDouble;
+                            CsProtocol::Value temp;
+                            temp.type = ::CsProtocol::ValueKind::ValueDouble;
                             temp.doubleValue = field.second.as_double;
                             record.data[0].properties[field.first] = temp;
                             break;
                         }
                         case EventProperty::TYPE_TIME:
                         {
-                            AriaProtocol::Value temp;
-                            temp.type = ::AriaProtocol::ValueKind::ValueDateTime;
+                            CsProtocol::Value temp;
+                            temp.type = ::CsProtocol::ValueKind::ValueDateTime;
                             temp.longValue = field.second.as_time_ticks.ticks;
                             record.data[0].properties[field.first] = temp;
                             break;
                         }
                         case EventProperty::TYPE_BOOLEAN:
                         {
-                            AriaProtocol::Value temp;
-                            temp.type = ::AriaProtocol::ValueKind::ValueBool;
+                            CsProtocol::Value temp;
+                            temp.type = ::CsProtocol::ValueKind::ValueBool;
                             temp.longValue = field.second.as_bool;
                             record.data[0].properties[field.first] = temp;
                             break;
@@ -354,8 +350,8 @@ namespace ARIASDK_NS_BEGIN
                             temp.to_bytes(guid_bytes);
                             guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
 
-                            AriaProtocol::Value tempValue;
-                            tempValue.type = ::AriaProtocol::ValueKind::ValueGuid;
+                            CsProtocol::Value tempValue;
+                            tempValue.type = ::CsProtocol::ValueKind::ValueGuid;
                             tempValue.guidValue.push_back(guid);
                             record.data[0].properties[field.first] = tempValue;
                             break;
@@ -363,7 +359,7 @@ namespace ARIASDK_NS_BEGIN
                         default:
                         {
                             // Convert all unknown types to string
-                            AriaProtocol::Value temp;
+                            CsProtocol::Value temp;
                             temp.stringValue = field.second.to_string();
                             record.data[0].properties[field.first] = temp;
                         }
@@ -438,4 +434,4 @@ namespace ARIASDK_NS_BEGIN
         return m_customContextFields;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

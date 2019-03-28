@@ -1,6 +1,6 @@
 #include "pal/PAL.hpp"
 
-#include "bond/generated/AriaProtocol_types.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
 #include "EventProperty.hpp"
 #include "EventProperties.hpp"
 #include "EventPropertiesStorage.hpp"
@@ -17,7 +17,7 @@
 using namespace std;
 using namespace MAT;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     const char* const DefaultEventName = "undefined";
 
@@ -371,7 +371,7 @@ namespace ARIASDK_NS_BEGIN {
         return pIIExtensions;
     }
 
-#ifdef ARIA_C_API
+#ifdef MAT_C_API
     static inline void cppprop_to_cprop(EventProperty &rhs, evt_prop &lhs)
     {
         switch (rhs.type)
@@ -507,7 +507,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         return true;
     }
-#endif /* end of ARIA_C_API */
+#endif /* end of MAT_C_API */
 
-} ARIASDK_NS_END
+} MAT_NS_END
 

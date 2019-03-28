@@ -11,7 +11,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// This class is used to manage the Auth Tokens
@@ -70,7 +70,7 @@ namespace ARIASDK_NS_BEGIN
         virtual std::map<TicketType, std::string>&  GetUserTokens() override;
 
     private:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
         std::map<TicketType, std::string> m_deviceTokens;
         std::map<TicketType, std::string> m_userTokens;
         std::vector<std::string> m_tickets;
@@ -78,6 +78,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

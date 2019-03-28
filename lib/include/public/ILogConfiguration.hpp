@@ -1,6 +1,6 @@
-#ifndef ARIA_ILOGCONFIGURATION_HPP
-#define ARIA_ILOGCONFIGURATION_HPP
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_ILOGCONFIGURATION_HPP
+#define MAT_ILOGCONFIGURATION_HPP
 
 #include "Version.hpp"
 
@@ -11,7 +11,7 @@
 #include <string>
 #include <Variant.hpp>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class IHttpClient;
@@ -181,5 +181,5 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     typedef VariantMap ILogConfiguration;
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif 

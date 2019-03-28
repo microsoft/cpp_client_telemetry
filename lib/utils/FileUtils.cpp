@@ -6,7 +6,7 @@
 #include <fstream>
 #include <streambuf>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -98,4 +98,4 @@ namespace ARIASDK_NS_BEGIN
         return t.good();
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

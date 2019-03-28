@@ -11,7 +11,7 @@
 #include <algorithm>
 
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class BaseDecorator : public DecoratorBase
@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
     public:
         BaseDecorator(ILogManager& owner);
         virtual ~BaseDecorator() {};
-        bool decorate(::AriaProtocol::Record& record);
+        bool decorate(::CsProtocol::Record& record);
 
     protected:
         std::string             m_source;
@@ -28,6 +28,6 @@ namespace ARIASDK_NS_BEGIN
         uint64_t                m_sequenceId;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

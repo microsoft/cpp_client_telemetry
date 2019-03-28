@@ -9,7 +9,7 @@
 #include "bond/generated/AriaProtocol_readers.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class PackagerTests : public StrictMock<Test> {

@@ -6,7 +6,7 @@
 namespace testing {
 
 
-    ARIASDK_LOG_INST_COMPONENT_NS("Testing", "Unit testing helpers");
+    MATSDK_LOG_INST_COMPONENT_NS("Testing", "Unit testing helpers");
 
     AriaProtocol::Value toAriaProtocolValue(const std::string& val)
     {

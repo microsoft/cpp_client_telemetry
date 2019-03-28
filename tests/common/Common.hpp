@@ -17,7 +17,7 @@
 
 namespace testing {
 
-    extern const char *getAriaSdkLogComponent();
+    extern const char *getMATSDKLogComponent();
 
     extern MAT::ITelemetrySystem & getSystem();
 
@@ -33,12 +33,12 @@ namespace testing {
         testing::Sequence* sequence = nullptr;
     };
 
-    AriaProtocol::Value toAriaProtocolValue(const std::string& val);
-    AriaProtocol::Value toAriaProtocolValue(bool val);
-    AriaProtocol::Value toAriaProtocolValue(double val);
-    AriaProtocol::Value toAriaProtocolValue(int64_t val);
-    AriaProtocol::Value toAriaProtocolValue(uint64_t val);
-    AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Events::EventLatency val);
+    CsProtocol::Value toCsProtocolValue(const std::string& val);
+    CsProtocol::Value toCsProtocolValue(bool val);
+    CsProtocol::Value toCsProtocolValue(double val);
+    CsProtocol::Value toCsProtocolValue(int64_t val);
+    CsProtocol::Value toCsProtocolValue(uint64_t val);
+    CsProtocol::Value toCsProtocolValue(Microsoft::Applications::Events::EventLatency val);
 
 
     MATCHER_P(BinaryHasSubstr, str, "")

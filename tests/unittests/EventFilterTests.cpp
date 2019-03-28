@@ -6,7 +6,7 @@
 #include <vector>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 static const char* event1 = "MyNamespace.MyEvent1";
 static const char* event2 = "MyNamespace.MyEvent2";

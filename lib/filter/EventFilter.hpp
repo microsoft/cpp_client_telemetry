@@ -1,8 +1,8 @@
 // EventFilter.hpp
 // Definition of the EventFilter class
 
-#ifndef ARIA_EVENTFILTER_HPP
-#define ARIA_EVENTFILTER_HPP
+#ifndef MAT_EVENTFILTER_HPP
+#define MAT_EVENTFILTER_HPP
 
 #include "filter/IEventFilter.hpp"
 /*
@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class EventFilter : public IEventFilter
     {
@@ -40,6 +40,6 @@ namespace ARIASDK_NS_BEGIN
         virtual status_t SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
         
     };
-} ARIASDK_NS_END
+} MAT_NS_END
 
-#endif // !ARIA_EVENTFILTER_HPP
+#endif // !MAT_EVENTFILTER_HPP

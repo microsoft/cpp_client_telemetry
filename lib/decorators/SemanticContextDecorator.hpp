@@ -5,7 +5,7 @@
 #include "IDecorator.hpp"
 #include "api/ContextFieldsProvider.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class SemanticContextDecorator : public DecoratorBase
@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
-        bool decorate(::AriaProtocol::Record& record, bool commonOnly = false)
+        bool decorate(::CsProtocol::Record& record, bool commonOnly = false)
         {
             provider.writeToRecord(record, commonOnly);
             return true;
@@ -36,5 +36,5 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

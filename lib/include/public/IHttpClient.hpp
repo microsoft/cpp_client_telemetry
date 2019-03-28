@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef IHTTPCLIENT_HPP
 #define IHTTPCLIENT_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 
@@ -10,10 +10,8 @@
 #include <vector>
 
 ///@cond INTERNAL_DOCS
-
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
-
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
     /// </summary>
@@ -505,6 +503,6 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

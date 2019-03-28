@@ -1,25 +1,27 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
+
 #include "HttpClientFactory.hpp"
 
 #include "pal/PAL.hpp"
 
-#if ARIASDK_PAL_WIN32
-#  ifdef _WINRT_DLL
-#include "http/HttpClient_WinRt.hpp"
-#  else
-#include "http/HttpClient_WinInet.hpp"
-#  endif
-#elif ARIASDK_PAL_CPP11
-#include "http/HttpClient.hpp"
+#if defined(MATSDK_PAL_WIN32)
+  #ifdef _WINRT_DLL
+    #include "http/HttpClient_WinRt.hpp"
+  #else
+    #include "http/HttpClient_WinInet.hpp"
+  #endif
+#elif defined(MATSDK_PAL_CPP11)
+  #include "http/HttpClient.hpp"
 #else
-#error The library cannot work without an HTTP client implementation.
+  #error The library cannot work without an HTTP client implementation.
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(HttpClientFactory, "EventsSDK.HttpClientFactory", "Events telemetry client - HttpClientFactory class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(HttpClientFactory, "EventsSDK.HttpClientFactory", "Events telemetry client - HttpClientFactory class");
 
-#if ARIASDK_PAL_WIN32
+#if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL
     IHttpClient* HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinRt");
@@ -33,7 +35,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 #endif
-#elif ARIASDK_PAL_CPP11
+#elif defined(MATSDK_PAL_CPP11)
     IHttpClient* HttpClientFactory::Create() {
         LOG_TRACE("Creating generic HttpClient");
         return new HttpClient();
@@ -43,4 +45,4 @@ namespace ARIASDK_NS_BEGIN {
 #error The library cannot work without an HTTP client implementation.
 #endif
 
-} ARIASDK_NS_END
+} MAT_NS_END
