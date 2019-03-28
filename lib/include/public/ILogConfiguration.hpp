@@ -130,6 +130,16 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_INT_SDK_MODE = "sdkmode";
 
     /// <summary>
+    /// UTC lives at the root of all UTC-specific configuration.
+    /// </summary>
+    static constexpr const char* const CFG_STR_UTC = "utc";
+
+    /// <summary>
+    /// Set the provider group directly with a string (which will be converted to a GUID).
+    /// </summary>
+    static constexpr const char* const CFG_STR_PROVIDER_GROUP_ID = "providerGroupId";
+
+    /// <summary>
     /// The maximum teardown time.
     /// </summary>
     static constexpr const char* const CFG_INT_MAX_TEARDOWN_TIME = "maxTeardownUploadTimeInSec";

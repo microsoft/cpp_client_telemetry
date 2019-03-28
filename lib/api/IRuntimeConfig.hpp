@@ -176,6 +176,8 @@ namespace ARIASDK_NS_BEGIN
         virtual bool IsClockSkewEnabled() = 0;
 
         virtual uint32_t GetTeardownTime() = 0;
+
+        virtual const char* GetProviderGroupId() = 0;
     };
 
     /// @endcond

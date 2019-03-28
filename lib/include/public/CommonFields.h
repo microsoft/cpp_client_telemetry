@@ -55,6 +55,13 @@
 #define SESSION_DURATION_BUCKET                         "Session.DurationBucket"
 #define SESSION_ID_LEGACY                               "act_session_id"
 
+#define COMMONFIELDS_METADATA_VIEWINGPRODUCERID         "MetaData.ViewingProducerID"
+#define COMMONFIELDS_METADATA_VIEWINGCATEGORY           "MetaData.ViewingCategory"
+#define COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH "MetaData.ViewingPayloadDecoderPath"
+#define COMMONFIELDS_METADATA_VIEWINGEXTRA1             "MetaData.ViewingExtra1"
+#define COMMONFIELDS_METADATA_VIEWINGEXTRA2             "MetaData.ViewingExtra2"
+#define COMMONFIELDS_METADATA_VIEWINGEXTRA3             "MetaData.ViewingExtra3"
+
 /* Scope configuration parameter defines the context fields inheritance rules */
 #define CONTEXT_SCOPE_EMPTY                             ""   /* Default rule for environment        */
 #define CONTEXT_SCOPE_ALL                               "*"  /* Inherit all parent context props    */
