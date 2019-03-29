@@ -265,7 +265,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(push)
 #pragma warning(disable:6031)
 #endif
-    std::string inline generateUuidString()
+    std::string generateUuidString()
     {
 #ifdef _WIN32
         GUID uuid;

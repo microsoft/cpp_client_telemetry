@@ -28,15 +28,6 @@ set(SRCS decorators/BaseDecorator.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
-  exp/afd/afdclient/AFDClientUtils.cpp
-  exp/afd/afdclient/AFDClient.cpp
-  exp/afd/afdclient/AFDConfigCache.cpp
-  exp/ecs/ecsclient/ECSClient.cpp
-  exp/ecs/ecsclient/ECSClientUtils.cpp
-  exp/ecs/ecsclient/ECSConfigCache.cpp
-  exp/JsonHelper.cpp
-  exp/EXPCommonClient.cpp
-  exp/FifoFileStorage.cpp
   pal/InformationProviderImpl.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
@@ -52,6 +43,20 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/PAL.cpp
   pal/PAL.hpp
 )
+
+if(EXISTS "modules/exp/")
+  list(APPEND SRCS
+    modules/exp/afd/afdclient/AFDClientUtils.cpp
+    modules/exp/afd/afdclient/AFDClient.cpp
+    modules/exp/afd/afdclient/AFDConfigCache.cpp
+    modules/exp/ecs/ecsclient/ECSClient.cpp
+    modules/exp/ecs/ecsclient/ECSClientUtils.cpp
+    modules/exp/ecs/ecsclient/ECSConfigCache.cpp
+    modules/exp/JsonHelper.cpp
+    modules/exp/EXPCommonClient.cpp
+    modules/exp/FifoFileStorage.cpp    
+  )
+endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   list(APPEND SRCS

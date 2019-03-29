@@ -17,7 +17,7 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute(L"Retail")];
 [assembly:AssemblyCompanyAttribute(L"Microsoft")];
 [assembly:AssemblyProductAttribute(L"Microsoft Telemetry SDK for Windows")];
-[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2017")];
+[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2019")];
 [assembly:AssemblyTrademarkAttribute(L"Microsoft Telemetry SDK for Windows")];
 [assembly:AssemblyCultureAttribute(L"")];
 [assembly:AssemblyKeyFile("Test.snk")];

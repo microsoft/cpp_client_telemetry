@@ -21,9 +21,8 @@
 // Definitions needed for Bond protocol decoder
 #include <bond_lite/All.hpp>
 
-// FIXME: [MG] - two files have been renamed here
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
 #include <fstream>
 
 #ifndef MAX_GUID_LEN
@@ -44,7 +43,7 @@ using namespace Microsoft::Applications::Events::PlatformAbstraction;
 
 using nlohmann::json;
 
-using namespace AriaProtocol;
+using namespace CsProtocol;
 
 namespace clienttelemetry {
     namespace data {
@@ -122,58 +121,58 @@ fail:
                     const auto v = kv.second;
                     switch (kv.second.type)
                     {
-                    case ::AriaProtocol::ValueKind::ValueInt64:
+                    case ::CsProtocol::ValueKind::ValueInt64:
                         j[k] = (int64_t)v.longValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueUInt64:
+                    case ::CsProtocol::ValueKind::ValueUInt64:
                         j[k] = (uint64_t)v.longValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueInt32:
+                    case ::CsProtocol::ValueKind::ValueInt32:
                         j[k] = (int32_t)v.longValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueUInt32:
+                    case ::CsProtocol::ValueKind::ValueUInt32:
                         j[k] = (uint32_t)v.longValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueDouble:
+                    case ::CsProtocol::ValueKind::ValueDouble:
                         j[k] = v.doubleValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueString:
+                    case ::CsProtocol::ValueKind::ValueString:
                         j[k] = v.stringValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueBool:
+                    case ::CsProtocol::ValueKind::ValueBool:
                         j[k] = (v.longValue > 0) ? true : false;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueDateTime:
+                    case ::CsProtocol::ValueKind::ValueDateTime:
                         j[k] = (int64_t)kv.second.longValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueGuid:
+                    case ::CsProtocol::ValueKind::ValueGuid:
                         j[k] = kv.second.guidValue;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayInt64:
+                    case ::CsProtocol::ValueKind::ValueArrayInt64:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayUInt64:
+                    case ::CsProtocol::ValueKind::ValueArrayUInt64:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayInt32:
+                    case ::CsProtocol::ValueKind::ValueArrayInt32:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayUInt32:
+                    case ::CsProtocol::ValueKind::ValueArrayUInt32:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayDouble:
+                    case ::CsProtocol::ValueKind::ValueArrayDouble:
                         j[k] = kv.second.doubleArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayString:
+                    case ::CsProtocol::ValueKind::ValueArrayString:
                         j[k] = kv.second.stringArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayBool:
+                    case ::CsProtocol::ValueKind::ValueArrayBool:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayDateTime:
+                    case ::CsProtocol::ValueKind::ValueArrayDateTime:
                         j[k] = kv.second.longArray;
                         break;
-                    case ::AriaProtocol::ValueKind::ValueArrayGuid:
+                    case ::CsProtocol::ValueKind::ValueArrayGuid:
                         j[k] = kv.second.guidArray;
                         break;
                     default:
