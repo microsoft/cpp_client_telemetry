@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Applications.Telemetry.Windows;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,14 +15,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using Microsoft.Applications.Telemetry.Windows;
 
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-
-// The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=402347&clcid=0x409
-
-namespace UAPCS
+namespace SampleCsUWP
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
@@ -69,7 +64,7 @@ namespace UAPCS
                 // LogManager.SetTransmitProfile("HIGH_PRI_ONLY");
                 // LogManager.SetTransmitProfile("Offline");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Can't do anything about it... Profiles can't be loaded.
                 // Sorry :(
@@ -191,15 +186,18 @@ namespace UAPCS
                 Window.Current.Content = rootFrame;
             }
 
-            if (rootFrame.Content == null)
+            if (e.PrelaunchActivated == false)
             {
-                // When the navigation stack isn't restored navigate to the first page,
-                // configuring the new page by passing required information as a navigation
-                // parameter
-                rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                if (rootFrame.Content == null)
+                {
+                    // When the navigation stack isn't restored navigate to the first page,
+                    // configuring the new page by passing required information as a navigation
+                    // parameter
+                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                }
+                // Ensure the current window is active
+                Window.Current.Activate();
             }
-            // Ensure the current window is active
-            Window.Current.Activate();
         }
 
         /// <summary>
@@ -219,7 +217,7 @@ namespace UAPCS
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private async void OnSuspending(object sender, SuspendingEventArgs e)
+        private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
 

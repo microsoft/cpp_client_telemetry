@@ -76,11 +76,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{86AC752C-5687-4377-841E-943D9BEEF360}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>HelloAria</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+    <ProjectGuid>{C947B185-2B00-4073-A19D-483ED5C7EDC2}</ProjectGuid>
+    <RootNamespace>SampleCppUTC</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -390,6 +388,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -410,7 +409,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -431,6 +430,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -451,7 +451,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -473,6 +473,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -494,7 +495,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -516,6 +517,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -536,7 +538,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -558,6 +560,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -579,7 +582,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -601,6 +604,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -621,7 +625,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -641,6 +645,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>false</StringPooling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -659,7 +664,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -680,6 +685,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>false</StringPooling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -699,7 +705,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -721,6 +727,7 @@
       <StringPooling>false</StringPooling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -739,7 +746,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -757,6 +764,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -775,7 +783,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -794,6 +802,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -812,7 +821,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -832,6 +841,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -851,7 +861,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -871,6 +881,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -889,7 +900,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -908,6 +919,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -927,7 +939,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -947,6 +959,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -965,7 +978,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -984,6 +997,7 @@
       <PrecompiledHeaderFile />
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1004,7 +1018,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -1025,6 +1039,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CallingConvention>StdCall</CallingConvention>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1046,7 +1061,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
@@ -1068,6 +1083,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CallingConvention>StdCall</CallingConvention>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\examples\HelloAria</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -1088,29 +1104,17 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
+      <Command>$(MSBuildProjectDirectory)\deploy-dll.cmd $(Configuration) $(Platform) $(OutDir)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Deploy DLLs</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="LogManagerA.hpp" />
-    <ClInclude Include="LogManagerB.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DebugCallback.cpp" />
-    <ClCompile Include="demo.c" />
-    <ClCompile Include="guest.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="OfficeTest.cpp" />
-  </ItemGroup>
-  <ItemGroup Condition="!$(Configuration.Contains('static'))">
-    <ProjectReference Include="..\..\Solutions\win32-dll\win32-dll.vcxproj">
-      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
-    </ProjectReference>
-    <None Include="deploy-dll.cmd" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration.Contains('static'))">
     <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
@@ -1121,6 +1125,11 @@
     </ProjectReference>
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Solutions\win32-dll\win32-dll.vcxproj">
+      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />

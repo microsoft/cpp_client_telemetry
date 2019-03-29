@@ -105,7 +105,7 @@ public:
         case EVT_LOG_SESSION:
             // printf("OnEventLogged:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
             numLogged++;
-            ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+            ms = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
             {
                 eps = (1000 * numLogged) / (ms - testStartMs);
                 if ((numLogged % 500) == 0)
@@ -136,7 +136,7 @@ public:
         case EVT_STORAGE_FULL:
             printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%u, p2=%u\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
             if (evt.param1 >= 75) {
-                // UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
+                // UploadNow must NEVER EVER be called from Telemetry callback thread, so either use this structure below
                 // or notify the main app that it has to do the profile timers housekeeping / force the upload...
                 std::thread([]() { LogManager::UploadNow(); }).detach();
             }
@@ -209,7 +209,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
     win_guid.Data3 = 2;
     for (size_t i = 0; i < 8; i++)
     {
-        win_guid.Data4[i] = i;
+        win_guid.Data4[i] = static_cast<unsigned char>(i);
     }
 
     // GUID constructor from byte[16]
@@ -498,7 +498,7 @@ void done() {
     printf("[DONE]");
 }
 
-class AriaEventListener : public DebugEventListener {
+class TelemetryEventListener : public DebugEventListener {
 public:
 
 };
@@ -548,7 +548,7 @@ int testRun()
 #endif
 
     // Run multi-threaded stress for multi-tenant
-    testStartMs = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    testStartMs = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     for (int i = 0; i < MAX_STRESS_THREADS; i++) {
         workers.push_back(std::thread([i, logger, logger2]()
         {
@@ -568,9 +568,9 @@ int testRun()
         }
     });
 
-all_done:
+// all_done:
 
-    unsigned long ms = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    unsigned long ms = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     unsigned long shutdownTimeMs = 0;
 
     eps = (1000 * numLogged) / (ms - testStartMs);
@@ -583,11 +583,11 @@ all_done:
     printf("Dropped:    %u\n", numDropped.load());
     printf("Rejected:   %u\n", numReject.load());
 
-    shutdownTimeMs = (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
+    shutdownTimeMs = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     done();
     auto shutdownTimeMsDelta = (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1)) - shutdownTimeMs;
 
-    shutdownTimeMs = (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
+    shutdownTimeMs = static_cast<unsigned long>(std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1));
     auto totalTimeDelta = shutdownTimeMs - testStartMs;
     printf("***************** AFTER TEARDOWN ************\n");
     printf("Stop dur:   %u ms\n", shutdownTimeMsDelta);
@@ -610,7 +610,4 @@ void PerformanceTest()
     {
         testRun();
     }
-
-    int a = 0;
-    if (a);
 }

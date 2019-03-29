@@ -3,9 +3,9 @@
 #include "common/Common.hpp"
 #include "Enums.hpp"
 #include "packager/BondSplicer.hpp"
-#include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_writers.hpp"
-#include "../bondlite/tests/FullDumpBinaryBlob.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
+#include "bond/FullDumpBinaryBlob.hpp"
 
 using namespace testing;
 using namespace Microsoft::Applications::Events;
@@ -29,7 +29,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
         return index;
     }
 
-    void addRecord(size_t dataPackageIndex, ::AriaProtocol::Record& record)
+    void addRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
     {
         assert(dataPackageIndex < m_TokenToDataPackagesMap.size());
 
@@ -89,8 +89,8 @@ TEST_F(BondSplicerTests, OneDataPackageWithOneEmptyRecord)
     dp.SchemaVersion = 31;
     size_t dpIndex = bs.addDataPackage("tenant1", dp);
 
-    ::AriaProtocol::Record r; 
-    ::AriaProtocol::Data d; 
+    ::CsProtocol::Record r; 
+    ::CsProtocol::Data d; 
     r.data.push_back(d);
     bs.addRecord(dpIndex, r);
 
@@ -108,7 +108,7 @@ TEST_F(BondSplicerTests, MultipleDataPackagesWithRecords)
     dp1.SchemaVersion = 31;
     size_t dp1Index = bs.addDataPackage("tenant1", dp1);
 
-    ::AriaProtocol::Record r1a;
+    ::CsProtocol::Record r1a;
     r1a.name = "r1a";
     bs.addRecord(dp1Index, r1a);
 
@@ -120,15 +120,15 @@ TEST_F(BondSplicerTests, MultipleDataPackagesWithRecords)
     dp1.SchemaVersion = 32;
     size_t dp2Index = bs.addDataPackage("tenant2", dp2);
 
-    ::AriaProtocol::Record r2a;
+    ::CsProtocol::Record r2a;
     r2a.name = "r2a";
     bs.addRecord(dp2Index, r2a);
 
-    ::AriaProtocol::Record r1b;
+    ::CsProtocol::Record r1b;
     r1b.name = "r1b";
     bs.addRecord(dp1Index, r1b);
 
-    ::AriaProtocol::Record r2b;
+    ::CsProtocol::Record r2b;
     r2b.name = "r2b";
     bs.addRecord(dp2Index, r2b);
 
@@ -147,19 +147,19 @@ TEST_F(BondSplicerTests, MultipleEverything)
     size_t dp1index = bs.addDataPackage("tenant1", dp1);
 
     {
-        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
         r.name = "r1a";
         r.time = 111111;
-        ::AriaProtocol::Value temp;
+        ::CsProtocol::Value temp;
         temp.stringValue = "b";
         r.data[0].properties["a"] = temp;
 
-        ::AriaProtocol::Value temp1;
+        ::CsProtocol::Value temp1;
         temp1.stringValue = "a@b.c";
 
-        ::AriaProtocol::PII pii;
-        pii.Kind = ::AriaProtocol::PIIKind::Identity;
-        ::AriaProtocol::Attributes att;
+        ::CsProtocol::PII pii;
+        pii.Kind = ::CsProtocol::PIIKind::Identity;
+        ::CsProtocol::Attributes att;
         att.pii.push_back(pii);
 
 
@@ -169,19 +169,19 @@ TEST_F(BondSplicerTests, MultipleEverything)
     }
 
     {
-        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
         r.name = "r1b";
         r.time = 222222;
-        ::AriaProtocol::Value temp;
+        ::CsProtocol::Value temp;
         temp.stringValue = "d";
         r.data[0].properties["c"] = temp;
 
-        ::AriaProtocol::Value temp1;
+        ::CsProtocol::Value temp1;
         temp1.stringValue = "c@d.e";
 
-        ::AriaProtocol::PII pii;
-        pii.Kind = ::AriaProtocol::PIIKind::Identity;
-        ::AriaProtocol::Attributes att;
+        ::CsProtocol::PII pii;
+        pii.Kind = ::CsProtocol::PIIKind::Identity;
+        ::CsProtocol::Attributes att;
         att.pii.push_back(pii);
 
         temp1.attributes.push_back(att);
@@ -199,34 +199,34 @@ TEST_F(BondSplicerTests, MultipleEverything)
     size_t dp2index = bs.addDataPackage("tenant2", dp2);
 
     {
-        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d); 
+        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d); 
 
         r.name = "r2a";
         r.time = 333333;
-        ::AriaProtocol::Value temp2;
+        ::CsProtocol::Value temp2;
         temp2.stringValue = "h.g.f";
         r.data[0].properties["f.g.h"] = temp2;
         bs.addRecord(dp2index, r);
     }
 
     {
-        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
         r.name = "r2b";
         r.time = 444444;
-        ::AriaProtocol::Value temp3;
+        ::CsProtocol::Value temp3;
         temp3.stringValue = "k_j_i";
         r.data[0].properties["i_j_k"] = temp3;
         bs.addRecord(dp2index, r);
     }
 
     {
-        ::AriaProtocol::Record r; ::AriaProtocol::Data d; r.data.push_back(d);
+        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
         r.name = "r2c";
-        ::AriaProtocol::Value temp5;
+        ::CsProtocol::Value temp5;
 
-        ::AriaProtocol::PII pii;
-        pii.Kind = ::AriaProtocol::PIIKind::Identity;
-        ::AriaProtocol::Attributes att;
+        ::CsProtocol::PII pii;
+        pii.Kind = ::CsProtocol::PIIKind::Identity;
+        ::CsProtocol::Attributes att;
         att.pii.push_back(pii);
         temp5.stringValue = "z@z.z";
         temp5.attributes.push_back(att);

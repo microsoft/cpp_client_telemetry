@@ -4,4 +4,4 @@ cd out
 cmake ..
 make
 # Strip for release
-# strip HelloAria
+# strip SampleCpp

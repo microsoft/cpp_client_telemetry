@@ -31,6 +31,11 @@ namespace MAT_NS_BEGIN {
                 { "tokenInt",            STATS_TOKEN_INT }
             }
         },
+        {"utc",
+            {
+                { "providerGroupId",     "780dddc8-18a1-5781-895a-a690464fa89c" }
+            }
+        },
         { "http",
             {
 #ifdef HAVE_MAT_ZLIB
@@ -171,6 +176,11 @@ namespace MAT_NS_BEGIN {
         uint32_t GetTeardownTime() override
         {
             return config[CFG_INT_MAX_TEARDOWN_TIME];
+        }
+
+        virtual const char* GetProviderGroupId() override
+        {
+            return config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID];
         }
 
         virtual Variant & operator[](const char* key) override

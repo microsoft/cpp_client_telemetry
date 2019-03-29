@@ -301,6 +301,10 @@ namespace MAT_NS_BEGIN
             return STATUS_ENOSYS;
         }
 
+        virtual void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) override {};
+
+        virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
+
     };
 
 } MAT_NS_END

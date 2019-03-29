@@ -7,7 +7,7 @@
     <ClCompile Include="App.xaml.cpp" />
     <ClCompile Include="MainPage.xaml.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="AriaInstance.cpp" />
+    <ClCompile Include="TelemetryInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />

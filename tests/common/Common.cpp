@@ -8,52 +8,52 @@ namespace testing {
 
     MATSDK_LOG_INST_COMPONENT_NS("Testing", "Unit testing helpers");
 
-    AriaProtocol::Value toAriaProtocolValue(const std::string& val)
+    CsProtocol::Value toCsProtocolValue(const std::string& val)
     {
-        AriaProtocol::Value temp;
+        CsProtocol::Value temp;
         temp.stringValue = val;
         return temp;
     }
 
-    AriaProtocol::Value toAriaProtocolValue(bool val)
+    CsProtocol::Value toCsProtocolValue(bool val)
     {
-        AriaProtocol::Value temp;
-        temp.type = AriaProtocol::ValueBool;
+        CsProtocol::Value temp;
+        temp.type = CsProtocol::ValueBool;
         temp.longValue = val;
         return temp;
     }
 
 
-    AriaProtocol::Value toAriaProtocolValue(double val)
+    CsProtocol::Value toCsProtocolValue(double val)
     {
-        AriaProtocol::Value temp;
-        temp.type = AriaProtocol::ValueDouble;
+        CsProtocol::Value temp;
+        temp.type = CsProtocol::ValueDouble;
         temp.doubleValue = val;
         return temp;
     }
 
 
-    AriaProtocol::Value toAriaProtocolValue(int64_t val)
+    CsProtocol::Value toCsProtocolValue(int64_t val)
     {
-        AriaProtocol::Value temp;
-        temp.type = AriaProtocol::ValueInt64;
+        CsProtocol::Value temp;
+        temp.type = CsProtocol::ValueInt64;
         temp.longValue = val;
         return temp;
     }
 
-    AriaProtocol::Value toAriaProtocolValue(uint64_t val)
+    CsProtocol::Value toCsProtocolValue(uint64_t val)
     {
-        AriaProtocol::Value temp;
-        temp.type = AriaProtocol::ValueArrayUInt64;
+        CsProtocol::Value temp;
+        temp.type = CsProtocol::ValueArrayUInt64;
         temp.longValue = val;
         return temp;
     }
 
 
-    AriaProtocol::Value toAriaProtocolValue(Microsoft::Applications::Events::EventLatency val)
+    CsProtocol::Value toCsProtocolValue(Microsoft::Applications::Events::EventLatency val)
     {
-        AriaProtocol::Value temp;
-        temp.type = AriaProtocol::ValueArrayInt32;
+        CsProtocol::Value temp;
+        temp.type = CsProtocol::ValueArrayInt32;
         temp.longValue = (int)val;
         return temp;
     }

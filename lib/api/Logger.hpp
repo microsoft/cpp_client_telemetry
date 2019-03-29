@@ -77,10 +77,7 @@ namespace MAT_NS_BEGIN {
 
         virtual void SetContext(const std::string& name, const EventProperty& prop) override;
 
-        virtual void SetLevel(uint8_t level) override
-        {
-            m_level = level;
-        }
+        virtual void SetLevel(uint8_t level) override;
 
         virtual ISemanticContext*   GetSemanticContext() const override;
 

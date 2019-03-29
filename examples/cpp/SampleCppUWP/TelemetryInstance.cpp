@@ -23,7 +23,7 @@ const std::string tenantToken = TOKEN;
 
 static ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 
-void AriaInitialize()
+void TelemetryInitialize()
 {
     configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db";
     configuration[CFG_INT_CACHE_FILE_SIZE] = 50000000;
@@ -34,12 +34,12 @@ void AriaInitialize()
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS; /* or UTC mode: SdkModeTypes_UTCBackCompat; */
 
     ILogger *logger = LogManager::Initialize(TOKEN);
-    LogManager::GetSemanticContext()->SetAppId("UAPCPP");
+    LogManager::GetSemanticContext()->SetAppId("SampleCppUWP");
     logger->LogSession(Session_Started, EventProperties("AppSession"));
     logger->LogEvent("Event_Simple");
 }
 
-void AriaTeardown()
+void TelemetryTeardown()
 {
 
     ILogger *logger = LogManager::GetLogger("shutdown");
@@ -53,19 +53,19 @@ void AriaTeardown()
  * Start on process start
  * Stop on process shutdown
  */
-struct AriaInstance {
+struct TelemetryInstance {
 
 
-    AriaInstance()
+    TelemetryInstance()
     {
-        AriaInitialize();
+        TelemetryInitialize();
     }
 
-    ~AriaInstance()
+    ~TelemetryInstance()
     {
-        AriaTeardown();
+        TelemetryTeardown();
     };
 
 };
 
-static AriaInstance aria;
+static TelemetryInstance aria;

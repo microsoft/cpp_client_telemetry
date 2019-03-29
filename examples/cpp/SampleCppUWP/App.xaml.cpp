@@ -15,7 +15,7 @@
 
 using namespace MAT;
 
-using namespace UAPCPP;
+using namespace SampleCppUWP;
 
 using namespace Platform;
 using namespace Windows::ApplicationModel;

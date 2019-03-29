@@ -11,7 +11,7 @@
 #include <thread>
 #include <algorithm>
 
-namespace UAPCPP
+namespace SampleCppUWP
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.

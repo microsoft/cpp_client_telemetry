@@ -9,7 +9,7 @@
 #sudo rm offline*
 #sudo rm -f heap*
 
-BIN=./out/HelloAria
+BIN=./out/SampleCpp
 
 case $1 in
 

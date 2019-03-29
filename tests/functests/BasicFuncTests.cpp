@@ -6,13 +6,14 @@
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "utils/Utils.hpp"
-#include <api/LogManagerImpl.hpp>
-#include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
-#include <fstream>
+#include "api/LogManagerImpl.hpp"
 
-#include <LogManager.hpp>
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
+#include "LogManager.hpp"
+
+#include <fstream>
 #include <atomic>
 
 //#include <AriaDecoderV3.hpp>
@@ -187,18 +188,18 @@ public:
         }
     }
 
-    std::vector<AriaProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
+    std::vector<CsProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
     {
         UNREFERENCED_PARAMETER(decompress);
         // TODO: [MG] - implement decompression
 
-        std::vector<AriaProtocol::Record> vector;
+        std::vector<CsProtocol::Record> vector;
 
         size_t data = 0;
         size_t length = 0;
         while (data < request.content.size())
         {
-            AriaProtocol::Record result;
+            CsProtocol::Record result;
             length = request.content.size() - data;
             std::vector<uint8_t> test(request.content.data() + data, request.content.data() + data + length);
             size_t index = 3;
@@ -239,7 +240,7 @@ public:
         return vector;
     }
 
-    void verifyEvent(EventProperties const& expected, ::AriaProtocol::Record const& actual)
+    void verifyEvent(EventProperties const& expected, ::CsProtocol::Record const& actual)
     {
         EXPECT_THAT(actual.name, Not(IsEmpty()));
         int64_t now = PAL::getUtcSystemTimeinTicks();
@@ -258,33 +259,33 @@ public:
         {
             if (prop.second.piiKind == PiiKind_None)
             {
-                std::map<std::string, AriaProtocol::Value>::const_iterator iter = actual.data[0].properties.find(prop.first);
+                std::map<std::string, CsProtocol::Value>::const_iterator iter = actual.data[0].properties.find(prop.first);
                 if (iter != actual.data[0].properties.end())
                 {
-                    AriaProtocol::Value temp = iter->second;
+                    CsProtocol::Value temp = iter->second;
                     switch (temp.type)
                     {
-                    case ::AriaProtocol::ValueInt64:
-                    case ::AriaProtocol::ValueUInt64:
-                    case ::AriaProtocol::ValueInt32:
-                    case ::AriaProtocol::ValueUInt32:
-                    case ::AriaProtocol::ValueBool:
-                    case ::AriaProtocol::ValueDateTime:
+                    case ::CsProtocol::ValueInt64:
+                    case ::CsProtocol::ValueUInt64:
+                    case ::CsProtocol::ValueInt32:
+                    case ::CsProtocol::ValueUInt32:
+                    case ::CsProtocol::ValueBool:
+                    case ::CsProtocol::ValueDateTime:
                     {
                         EXPECT_THAT(temp.longValue, prop.second.as_int64);
                         break;
                     }
-                    case ::AriaProtocol::ValueDouble:
+                    case ::CsProtocol::ValueDouble:
                     {
                         EXPECT_THAT(temp.doubleValue, prop.second.as_double);
                         break;
                     }
-                    case ::AriaProtocol::ValueString:
+                    case ::CsProtocol::ValueString:
                     {
                         EXPECT_THAT(temp.stringValue, prop.second.as_string);
                         break;
                     }
-                    case ::AriaProtocol::ValueGuid:
+                    case ::CsProtocol::ValueGuid:
                     {
                         uint8_t guid_bytes[16] = { 0 };
                         prop.second.as_guid.to_bytes(guid_bytes);
@@ -299,12 +300,12 @@ public:
                         }
                         break;
                     }
-                    case ::AriaProtocol::ValueArrayInt64:
-                    case ::AriaProtocol::ValueArrayUInt64:
-                    case ::AriaProtocol::ValueArrayInt32:
-                    case ::AriaProtocol::ValueArrayUInt32:
-                    case ::AriaProtocol::ValueArrayBool:
-                    case ::AriaProtocol::ValueArrayDateTime:
+                    case ::CsProtocol::ValueArrayInt64:
+                    case ::CsProtocol::ValueArrayUInt64:
+                    case ::CsProtocol::ValueArrayInt32:
+                    case ::CsProtocol::ValueArrayUInt32:
+                    case ::CsProtocol::ValueArrayBool:
+                    case ::CsProtocol::ValueArrayDateTime:
                     {
                         std::vector<int64_t>& vectror = temp.longArray.at(0);
                         EXPECT_THAT(vectror.size(), prop.second.as_longArray->size());
@@ -317,7 +318,7 @@ public:
 
                         break;
                     }
-                    case ::AriaProtocol::ValueArrayDouble:
+                    case ::CsProtocol::ValueArrayDouble:
                     {
                         std::vector<double>& vectror = temp.doubleArray.at(0);
                         EXPECT_THAT(vectror.size(), prop.second.as_doubleArray->size());
@@ -330,7 +331,7 @@ public:
 
                         break;
                     }
-                    case ::AriaProtocol::ValueArrayString:
+                    case ::CsProtocol::ValueArrayString:
                     {
                         std::vector<std::string>& vectror = temp.stringArray.at(0);
                         EXPECT_THAT(vectror.size(), prop.second.as_stringArray->size());
@@ -342,7 +343,7 @@ public:
                         }
                         break;
                     }
-                    case ::AriaProtocol::ValueArrayGuid:
+                    case ::CsProtocol::ValueArrayGuid:
                     {
                         // EXPECT_THAT(temp.guidArray, prop.second.as_guidArray);
                         std::vector<std::vector<uint8_t>>& vectror = temp.guidArray.at(0);
@@ -374,15 +375,15 @@ public:
         }
         for (auto const& property : expected.GetPiiProperties())
         {
-            ::AriaProtocol::PII pii;
-            pii.Kind = static_cast<::AriaProtocol::PIIKind>(property.second.second);
+            ::CsProtocol::PII pii;
+            pii.Kind = static_cast<::CsProtocol::PIIKind>(property.second.second);
             // EXPECT_THAT(actual.PIIExtensions, Contains(Pair(property.first, pii)));
         }
 
         /*       for (auto const& property : expected.GetCustomerContentProperties())
                {
-                   ::AriaProtocol::CustomerContent cc;
-                   cc.Kind = static_cast< ::AriaProtocol::CustomerContentKind>(property.second.second);
+                   ::CsProtocol::CustomerContent cc;
+                   cc.Kind = static_cast< ::CsProtocol::CustomerContentKind>(property.second.second);
                    //EXPECT_THAT(actual.CustomerContentExtensions, Contains(Pair(property.first, cc)));
                }
        */
@@ -395,9 +396,9 @@ public:
         return ifile.tellg();
     }
 
-    std::vector<AriaProtocol::Record> records()
+    std::vector<CsProtocol::Record> records()
     {
-        std::vector<AriaProtocol::Record> result;
+        std::vector<CsProtocol::Record> result;
         if (receivedRequests.size())
         {
             for (auto &request : receivedRequests)
@@ -414,9 +415,9 @@ public:
     }
 
     // Find first matching event
-    AriaProtocol::Record find(const std::string& name)
+    CsProtocol::Record find(const std::string& name)
     {
-        AriaProtocol::Record result;
+        CsProtocol::Record result;
         result.name = "";
         if (receivedRequests.size())
         {

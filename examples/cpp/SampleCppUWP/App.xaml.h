@@ -7,7 +7,7 @@
 
 #include "App.g.h"
 
-namespace UAPCPP
+namespace SampleCppUWP
 {
 	/// <summary>
 	/// Provides application-specific behavior to supplement the default Application class.

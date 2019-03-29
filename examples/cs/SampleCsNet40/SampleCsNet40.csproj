@@ -10,13 +10,14 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CLI</RootNamespace>
-    <AssemblyName>HelloAriaCS</AssemblyName>
+    <AssemblyName>SampleCsNet40</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <OutputPath>bin\</OutputPath>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -31,9 +32,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <OutputPath>bin\</OutputPath>
   </PropertyGroup>
-  <Import Project="$(SolutionDir)\build.csharp.props" Condition="Exists('$(SolutionDir)\build.csharp.props')" />
+  <!-- Import Project="$(SolutionDir)\build.csharp.props" Condition="Exists('$(SolutionDir)\build.csharp.props')" / -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -46,7 +46,7 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <OutputPath>Debug\x86\bin\</OutputPath>
+    <OutputPath>.\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <DefineConstants>TRACE</DefineConstants>
@@ -57,7 +57,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>Release\x86\bin\</OutputPath>
+    <OutputPath>.\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -68,7 +68,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>Debug\x64\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
@@ -80,7 +80,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>Release\x64\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>CLI.Program</StartupObject>
@@ -138,7 +138,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup Condition="Exists('$(SolutionDir)\net40\net40.vcxproj')">
-    <ProjectReference Include="..\..\Solutions\net40\net40.vcxproj">
+    <ProjectReference Include="..\..\..\Solutions\net40\net40.vcxproj">
       <Project>{dc91621e-a203-42df-8e03-3a23dd0602b1}</Project>
       <Name>net40</Name>
     </ProjectReference>

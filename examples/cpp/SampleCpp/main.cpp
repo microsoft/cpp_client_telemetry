@@ -216,9 +216,9 @@ int main()
     printf("Setting up configuration...\n");
     auto& config = LogManager::GetLogConfiguration();
 
-    config["name"] = "HelloAria";
+    config["name"] = "SampleCpp";
     config["version"] = "1.2.5";
-    config["config"]["host"] = "HelloAria"; // host
+    config["config"]["host"] = "SampleCpp"; // host
     config["compat"]["dotType"] = false;    // Legacy v1 behaviour with respect to SetType using underscore instead of a dot
 
 #ifdef __APPLE__
@@ -292,7 +292,7 @@ int main()
     for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
     {
         EventLatency latency = (i % 2) ? EventLatency_Normal : EventLatency_CostDeferred;
-        std::string eventName("Microsoft.Applications.Telemetry.HelloAria.sample_event_lat");
+        std::string eventName("Microsoft.Applications.Telemetry.SampleCpp.sample_event_lat");
         eventName += std::to_string((unsigned)latency);
 
         EventProperties event(eventName);

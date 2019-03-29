@@ -175,6 +175,12 @@ namespace MAT_NS_BEGIN
         virtual bool IsClockSkewEnabled() = 0;
 
         virtual uint32_t GetTeardownTime() = 0;
+
+        /// <summary>
+        /// Get UTC channel provider group ID
+        /// </summary>
+        /// <returns>Provider Group Id</returns>
+        virtual const char* GetProviderGroupId() = 0;
     };
 
     /// @endcond

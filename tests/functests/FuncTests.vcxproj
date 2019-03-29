@@ -414,7 +414,6 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(ProjectDir)\BasicAfdFuncTests.cpp" />
     <ClCompile Include="APITest.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
@@ -426,7 +425,6 @@
     <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
     <ClCompile Include="$(ProjectDir)\BasicFuncTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\LoadTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MultipleLogManagersTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />

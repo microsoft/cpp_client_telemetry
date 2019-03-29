@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(GuestCAPI)
+project(SampleC-Guest)
 
 # Uncomment for building i386 binary on x86_64 system
 #set(CMAKE_SYSTEM_PROCESSOR i386)
@@ -27,7 +27,7 @@ set(MATSDK_INCLUDE	/usr/local/include/mat)
 include_directories( . ${MATSDK_INCLUDE} )
 
 # Link main.cpp to executable
-add_executable(GuestCAPI main.cpp demo.c)
+add_executable(SampleC-Guest main.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
 # Prefer linking to more recent local sqlite3
@@ -43,4 +43,4 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
 endif()
 
-target_link_libraries(GuestCAPI ${MATSDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
+target_link_libraries(SampleC-Guest ${MATSDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)

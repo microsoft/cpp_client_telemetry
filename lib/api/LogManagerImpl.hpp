@@ -26,9 +26,80 @@
 #include <mutex>
 #include <set>
 
-namespace MAT_NS_BEGIN {
+namespace MAT_NS_BEGIN
+{
 
     class ITelemetrySystem;
+
+    class DiagLevelFilter final {
+    public:
+        DiagLevelFilter():
+            m_level(DIAG_LEVEL_DEFAULT),
+            m_levelMin(DIAG_LEVEL_DEFAULT_MIN),
+            m_levelMax(DIAG_LEVEL_DEFAULT_MAX),
+            m_levelSet({})
+        {
+        }
+
+        /// <summary>
+        /// Internal method that allows to obtain the default level
+        /// </summary>
+        uint8_t GetDefaultLevel() const
+        {
+            return m_level;
+        }
+
+        /// <summary>
+        /// Verify if logging is enabled for given level
+        /// </summary>
+        /// <param name="level">Diagnostic level.</param>
+        bool IsLevelEnabled(uint8_t level) const
+        {
+            if (!m_levelSet.empty())
+            {
+                return m_levelSet.find(level) != m_levelSet.end();
+            }
+            return m_levelMin <= m_levelMax && m_levelMin <= level && level <= m_levelMax;
+        }
+
+        /// <summary>
+        /// Method that checks if the filtering has been enabled
+        /// </summary>
+        bool IsLevelFilterEnabled() const
+        {
+            return !m_levelSet.empty() || m_levelMin != DIAG_LEVEL_DEFAULT_MIN || m_levelMax != DIAG_LEVEL_DEFAULT_MAX || m_level != DIAG_LEVEL_DEFAULT;
+        }
+
+        /// <summary>
+        /// Method that allows to set the filter for the LogManager
+        /// <param name="defaultLevel">Diag level for the LogManager</param>
+        /// <param name="levelMin">Min level to enable</param>
+        /// <param name="levelMax">Max level to enable</param>
+        /// </summary>
+        void SetFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
+        {
+            m_level    = defaultLevel;
+            m_levelMin = levelMin;
+            m_levelMax = levelMax;
+        }
+
+        /// <summary>
+        /// Method that allows to set the filter for the LogManager
+        /// <param name="defaultLevel">Diag level for the LogManager</param>
+        /// <param name="allowedLevels">Set with the enabled levels</param>
+        /// </summary>
+        void SetFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels)
+        {
+            m_level    = defaultLevel;
+            m_levelSet = allowedLevels;
+        }
+
+    private:
+        uint8_t                                m_levelMin;
+        uint8_t                                m_levelMax;
+        uint8_t                                m_level;
+        std::set<uint8_t>                      m_levelSet;
+    };
 
     class ILogManagerInternal : public ILogManager {
     public:
@@ -36,8 +107,8 @@ namespace MAT_NS_BEGIN {
         static std::set<ILogManager*>   managers;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
-        virtual bool isLevelEnabled(uint8_t level) = 0;
-        virtual ContextFieldsProvider& GetContext() = 0;
+        virtual const ContextFieldsProvider& GetContext() = 0;
+        virtual const DiagLevelFilter& GetLevelFilter() = 0;
     };
 
     class Logger;
@@ -163,22 +234,25 @@ namespace MAT_NS_BEGIN {
         /// <param name="event">The event.</param>
         virtual void sendEvent(IncomingEventContextPtr const& event) override;
 
+        void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) override;
+
+        void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override;
+
         /// <summary>
-        /// Verify if logging is enabled for given level
+        /// Get a reference to this log manager diagnostic level filter
         /// </summary>
-        /// <param name="level">Diagnostic level.</param>
-        virtual bool isLevelEnabled(uint8_t level) override;
+        virtual const DiagLevelFilter& GetLevelFilter() override;
 
         /// <summary>
         /// Get a reference to this log manager instance ContextFieldsProvider
         /// </summary>
         /// <param name="level">Diagnostic level.</param>
-        virtual ContextFieldsProvider& GetContext() override
+        virtual const ContextFieldsProvider& GetContext() override
         {
             return m_context;
         }
 
-    protected:
+protected:
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
@@ -206,6 +280,7 @@ namespace MAT_NS_BEGIN {
         bool                                   m_alive;
 
         DebugEventSource                       m_debugEventSource;
+        DiagLevelFilter                        m_diagLevelFilter;
     };
 
 

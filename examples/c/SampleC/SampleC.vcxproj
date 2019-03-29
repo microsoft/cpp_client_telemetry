@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{277AEB2C-E995-4A40-B63A-B16B8A3A4550}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>HelloCAPI</RootNamespace>
+    <RootNamespace>SampleC</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -102,6 +102,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="deploy-dll.cmd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Solutions\win32-lib\win32-lib.vcxproj">
+      <Project>{1dc6b38a-b390-34ce-907f-4958807a3d42}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

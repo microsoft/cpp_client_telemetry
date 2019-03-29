@@ -3,7 +3,7 @@
   <Identity Name="25df8949-58b5-491c-929b-d1e99ae0040b" Publisher="CN=ARIA SDK Team" Version="1.0.12.0" />
   <mp:PhoneIdentity PhoneProductId="25df8949-58b5-491c-929b-d1e99ae0040b" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>UAPCPP</DisplayName>
+    <DisplayName>SampleCppUWP</DisplayName>
     <PublisherDisplayName>votrubac</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -14,8 +14,8 @@
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
-    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="UAPCPP.App">
-      <uap:VisualElements DisplayName="UAPCPP" Square150x150Logo="Assets\Logo.png" Square44x44Logo="Assets\SmallLogo.png" Description="UAPCPP" BackgroundColor="#464646">
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="SampleCppUWP.App">
+      <uap:VisualElements DisplayName="SampleCppUWP" Square150x150Logo="Assets\Logo.png" Square44x44Logo="Assets\SmallLogo.png" Description="SampleCppUWP" BackgroundColor="#464646">
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
     </Application>

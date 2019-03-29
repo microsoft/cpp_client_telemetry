@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.Applications.Telemetry.Windows;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -13,13 +16,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-using Microsoft.Applications.Telemetry.Windows;
-using Windows.UI.Popups;
-using System.Threading.Tasks;
+// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
-namespace UAPCS
+namespace SampleCsUWP
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
@@ -69,9 +68,9 @@ namespace UAPCS
             });
 
             App.Logger.LogFailure(
-                "Failure_Calling_CallDropped", 
+                "Failure_Calling_CallDropped",
                 "Call dropped due to bandwidth constraint",
-                "TelephonyFailure", 
+                "TelephonyFailure",
                 "F-C5960B99-FF8F-47E0-8E48-E1284432DC8C", null);
         }
 
@@ -128,13 +127,12 @@ namespace UAPCS
             App.Logger.LogSampledMetric("Sample Metric", 0.1, "Seconds", "", "", "", null);
         }
 
-        private async void button_Click_TimedEvent(object sender, RoutedEventArgs e)
+        private void button_Click_TimedEvent(object sender, RoutedEventArgs e)
         {
             // Timed event automatically captures the duration of the operation within the using block.
             using (var timedEvent = App.Logger.StartTimedEvent("TimedEvent"))
             {
                 var message = new MessageDialog("Measuring time till you click Close...");
-                // await message.ShowAsync();
             }
         }
 

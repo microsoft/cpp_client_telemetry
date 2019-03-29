@@ -377,6 +377,44 @@ namespace MAT_NS_BEGIN
             dbuilder.AddString(userInfoLanguage.c_str());
         }
 
+        // Rename generic viewing MetaData fields into DDV-specific names UTC understands
+        if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGPRODUCERID) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVProducerID", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGPRODUCERID].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGCATEGORY) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVViewingCategory", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGCATEGORY].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVPayloadDecoderPath", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA1) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVExtra1", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA1].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA2) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVExtra2", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA2].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA3) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_DDVExtra3", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA3].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_MSAID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_ID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_OS_NAME);
@@ -388,6 +426,12 @@ namespace MAT_NS_BEGIN
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_NAME);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_INITID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPRODUCERID);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGCATEGORY);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA1);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA2);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA3);
 
         //"Extension"
         PutData(eventCtx->source->ext, MD, builder, dbuilder);
@@ -637,19 +681,14 @@ namespace MAT_NS_BEGIN
                     myGuid.Data4[7] = 0x06;
                 }
 
-                //aria Group Guid   780dddc8-18a1-5781-895a-a690464fa89c telemetryt group Guid 4f50731a - 89cf - 4782 - b3e0 - dce8c90476ba
-                GUID myGroupGuid;
-                myGroupGuid.Data1 = 0x780dddc8;
-                myGroupGuid.Data2 = 0x18a1;
-                myGroupGuid.Data3 = 0x5781;
-                myGroupGuid.Data4[0] = 0x89;
-                myGroupGuid.Data4[1] = 0x5a;
-                myGroupGuid.Data4[2] = 0xa6;
-                myGroupGuid.Data4[3] = 0x90;
-                myGroupGuid.Data4[4] = 0x46;
-                myGroupGuid.Data4[5] = 0x4f;
-                myGroupGuid.Data4[6] = 0xa8;
-                myGroupGuid.Data4[7] = 0x9c;
+                std::string guidStr = m_config.GetProviderGroupId();
+                guidStr.erase(std::remove(guidStr.begin(), guidStr.end(), '-'), guidStr.end());
+                error = false;
+                GUID guid = ConvertGuidStringToGUID(guidStr, error);
+                if (!error)
+                {
+                    myGuid = guid;
+                }
 
                 tld::ProviderMetadataBuilder<std::vector<BYTE>> providerMetaBuilder(temp.providerMetaVector);
 
@@ -658,7 +697,8 @@ namespace MAT_NS_BEGIN
                 name.append(tenantId);
 
                 providerMetaBuilder.Begin(name.c_str());
-                providerMetaBuilder.AddTrait(ProviderTraitType::ProviderTraitGroupGuid, (void*)&myGroupGuid, sizeof(GUID));
+
+                providerMetaBuilder.AddTrait(ProviderTraitType::ProviderTraitGroupGuid, (void*)&myGuid, sizeof(GUID));
                 providerMetaBuilder.End();
 
                 REGHANDLE hProvider;

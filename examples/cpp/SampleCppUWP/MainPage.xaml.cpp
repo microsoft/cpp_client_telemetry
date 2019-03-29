@@ -5,7 +5,7 @@
 
 #include "MainPage.xaml.h"
 
-using namespace UAPCPP;
+using namespace SampleCppUWP;
 
 using namespace Platform;
 using namespace Windows::Foundation;
@@ -18,7 +18,7 @@ using namespace Windows::UI::Xaml::Input;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
-// Use Aria SDK header and namespace
+// Use Telemetry SDK header and namespace
 #include <LogManager.hpp>
 using namespace MAT;
 
@@ -73,7 +73,7 @@ MainPage::MainPage()
 void MainPage::PerfTestClick(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
     // FlushAndTeardown the other instance since perf test would start its own
-    AriaTeardown();
+    TelemetryTeardown();
 
     btnPerfTest->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
     btnSimpleTest->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
@@ -91,7 +91,7 @@ void MainPage::PerfTestClick(Platform::Object^ sender, Windows::UI::Xaml::Routed
             this->btnPerfTest->Visibility = Windows::UI::Xaml::Visibility::Visible;
             this->btnSimpleTest->Visibility = Windows::UI::Xaml::Visibility::Visible;
             // Reinitialize
-            AriaInitialize();
+            TelemetryInitialize();
         }));
 
     });
@@ -105,11 +105,11 @@ void MainPage::SimpleTestClick(Platform::Object^ sender, Windows::UI::Xaml::Rout
     btnPerfTest->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
     btnSimpleTest->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 
-    // LogManager::Initialize is called from AriaInitialize on app start
+    // LogManager::Initialize is called from TelemetryInitialize on app start
 
     ILogger *logger = LogManager::GetLogger("myModuleLogger");
 
-    EventProperties props("HelloAriaSample",
+    EventProperties props("HelloTelemetrySample",
     {
         { "_MSC_VER", _MSC_VER },
 
@@ -139,7 +139,7 @@ void MainPage::SimpleTestClick(Platform::Object^ sender, Windows::UI::Xaml::Rout
     });
     props.SetPriority(EventPriority_Immediate);
     logger->LogEvent(props);
-    Print("HelloAriaSample event logged.\n");
+    Print("HelloTelemetrySample event logged.\n");
 
     btnPerfTest->Visibility = Windows::UI::Xaml::Visibility::Visible;
     btnSimpleTest->Visibility = Windows::UI::Xaml::Visibility::Visible;

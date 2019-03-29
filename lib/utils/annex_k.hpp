@@ -9,7 +9,7 @@
 /* WARNING: this routine works only for simple arguments */
 #define sscanf_s    sscanf
 
-#define memcpy_s(dest, destsz, src, count)  memcpy(dest, src, (destsz<=count)?destsz:count)
+#define memcpy_s(dest, destsz, src, count)  (memcpy(dest, src, (destsz<=count)?destsz:count)!=nullptr?0:EINVAL)
 
 #define strncpy_s(dest, destsz, src, count) strncpy(dest, src, (destsz<=count)?destsz:count)
 

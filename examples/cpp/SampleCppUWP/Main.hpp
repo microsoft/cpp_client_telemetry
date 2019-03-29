@@ -13,6 +13,6 @@ extern void PerformanceTest();
 // Debug logger that would convert varargs to PrintLine(buffer)
 extern void DebugPrintf(const char *fmt, ...);
 
-extern void AriaInitialize();
+extern void TelemetryInitialize();
 
-extern void AriaTeardown();
+extern void TelemetryTeardown();

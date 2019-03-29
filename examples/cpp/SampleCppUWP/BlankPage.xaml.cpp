@@ -6,7 +6,7 @@
 #include "pch.h"
 #include "BlankPage.xaml.h"
 
-using namespace UAPCPP;
+using namespace SampleCppUWP;
 
 using namespace Platform;
 using namespace Windows::Foundation;
@@ -27,7 +27,7 @@ BlankPage::BlankPage()
 }
 
 
-void UAPCPP::BlankPage::button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+void SampleCppUWP::BlankPage::button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 
 }

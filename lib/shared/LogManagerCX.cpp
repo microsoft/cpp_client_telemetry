@@ -101,11 +101,23 @@ namespace MATW_NS_BEGIN {
         isInited = true;
 
         // Pass down transmit profiles and initial profile name to core
+        if (startProfileName == nullptr)
+        {
+            startProfileName = "";
+        }
         if (!startProfileName->Equals(""))
+        {
             configuration->StartProfileName = startProfileName;
+        }
+        if (transmitProfiles == nullptr)
+        {
+            transmitProfiles = "";
+        }
         if (!transmitProfiles->Equals(""))
+        {
             configuration->TransmitProfiles = transmitProfiles;
-        configuration->ToLogConfigurationCore();
+            configuration->ToLogConfigurationCore();
+        }
         return platform_new Logger(MAT::LogManager::Initialize(token));
     }
 
@@ -223,6 +235,7 @@ namespace MATW_NS_BEGIN {
 
     LogManager::LogManager()
     {
+        reset();
     }
 
     LogManager::~LogManager()
