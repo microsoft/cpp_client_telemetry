@@ -15,34 +15,19 @@
 
 #include <algorithm>
 #include <chrono>
-
-#include "pal/PAL.hpp"
-
-// Definitions needed for Bond protocol decoder
-#include <bond_lite/All.hpp>
-
-#include "bond/generated/CsProtocol_types.hpp"
-#include "bond/generated/CsProtocol_readers.hpp"
 #include <fstream>
 
-#ifndef MAX_GUID_LEN
-#define MAX_GUID_LEN    36  /* maximum GUIDv4 length with hyphens, but without curly braces */
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
+
+#ifndef TEST_LOG_ERROR
+#define TEST_LOG_ERROR(arg0, ...)     fprintf(stderr, arg0 "\n", ##__VA_ARGS__)
 #endif
 
-#ifndef SNPRINTF
-#define SNPRINTF        snprintf
-#endif
-
-#ifndef LOG_ERROR
-#include <nlohmann/json.hpp>
-#define LOG_ERROR       printf
-#else
-#include "include/aria/json.hpp"
-using namespace Microsoft::Applications::Events::PlatformAbstraction;
-#endif
+#include "json.hpp"
 
 using nlohmann::json;
-
 using namespace CsProtocol;
 
 namespace clienttelemetry {
@@ -91,13 +76,13 @@ namespace clienttelemetry {
 
                     if (!Deserialize(reader, result, false))
                     {
-                        LOG_ERROR("Deserialization failed!");
+                        TEST_LOG_ERROR("Deserialization failed!");
                         goto fail;
                     }
                     i += j - 1;
                     v.push_back(result);
                 }
-fail:
+            fail:
                 return v;
             }
 
@@ -192,83 +177,83 @@ fail:
                     { "flags",      r.flags },      // 6: optional int64 flags
                     { "cV",         r.cV },         // 7: optional string cV
                     { "ext", {
-/*
-                            { "ingest", r.extIngest },                           // 20: optional vector<Ingest> extIngest
- */
-                            { "protocol",                                        // 21: optional vector<Protocol> extProtocol
-                                {
-                                    { "metadataCrc", r.extProtocol[0].metadataCrc },
-                                    { "ticketKeys",  r.extProtocol[0].ticketKeys },
-                                    { "devMake",     r.extProtocol[0].devMake },
-                                    { "devModel",    r.extProtocol[0].devModel }
-                                }
-                            },
-                            { "user" ,                                           // 22: optional vector<User> extUser
-                                {
-                                    { "id",      r.extUser[0].id },
-                                    { "localId", r.extUser[0].localId },
-                                    { "authId",  r.extUser[0].authId },
-                                    { "locale",  r.extUser[0].locale }
-                                }
-                            },
-                            { "device",                                          // 23: optional vector<Device> extDevice
-                                 {
-                                    { "authId",      r.extDevice[0].authId },
-                                    { "authSecId",   r.extDevice[0].authSecId },
-                                    { "deviceClass", r.extDevice[0].deviceClass },
-                                    { "id",          r.extDevice[0].id },
-                                    { "localId",     r.extDevice[0].localId },
-                                    { "make",        r.extDevice[0].make },
-                                    { "model",       r.extDevice[0].model },
-                                 }
-                            },
-                            { "os",                                              // 24: optional vector<Os> extOs
-                                 {
-                                    { "bootId",  r.extOs[0].bootId },
-                                    { "expId",   r.extOs[0].expId },
-                                    { "locale",  r.extOs[0].locale },
-                                    { "name",    r.extOs[0].name },
-                                    { "ver",     r.extOs[0].ver }
-                                 }
-                            },
-                            { "app",                                             // 25: optional vector<App> extApp
-                                 {
-                                    { "expId",   r.extApp[0].expId },
-                                    { "userId",  r.extApp[0].userId },
-                                    { "env",     r.extApp[0].env },
-                                    { "asId",    r.extApp[0].asId },
-                                    { "id",      r.extApp[0].id },
-                                    { "ver",     r.extApp[0].ver },
-                                    { "locale",  r.extApp[0].locale },
-                                    { "name",    r.extApp[0].name }
-                                 }
-                            },
-/*
-                            { "utc",      r.extUtc },       // 26: optional vector<Utc> extUtc
-                            { "xbl",      r.extXbl },       // 27: optional vector<Xbl> extXbl
-                            { "js",       r.extJavascript },// 28: optional vector<Javascript> extJavascript
-                            { "receipts", r.extReceipts },  // 29: optional vector<Receipts> extReceipts
- */
-                            { "net",
-                                 {
-                                    { "cost",     r.extNet[0].cost },
-                                    { "provider", r.extNet[0].provider },
-                                    { "type",     r.extNet[0].type }
-                                 }
-                            },
-                            { "sdk",
-                                 {
-                                    { "epoch",     r.extSdk[0].epoch },
-                                    { "installId", r.extSdk[0].installId },
-                                    { "libVer",    r.extSdk[0].libVer}
-                                 }
-                            }
-/*
-                            { "loc",      r.extLoc },       // 33: optional vector<Loc> extLoc
-                            { "cloud",    r.extCloud }      // 34: optional vector<Cloud> extCloud
- */
-                        }
-                    }
+                    /*
+                                                { "ingest", r.extIngest },                           // 20: optional vector<Ingest> extIngest
+                     */
+                                                { "protocol",                                        // 21: optional vector<Protocol> extProtocol
+                                                    {
+                                                        { "metadataCrc", r.extProtocol[0].metadataCrc },
+                                                        { "ticketKeys",  r.extProtocol[0].ticketKeys },
+                                                        { "devMake",     r.extProtocol[0].devMake },
+                                                        { "devModel",    r.extProtocol[0].devModel }
+                                                    }
+                                                },
+                                                { "user" ,                                           // 22: optional vector<User> extUser
+                                                    {
+                                                        { "id",      r.extUser[0].id },
+                                                        { "localId", r.extUser[0].localId },
+                                                        { "authId",  r.extUser[0].authId },
+                                                        { "locale",  r.extUser[0].locale }
+                                                    }
+                                                },
+                                                { "device",                                          // 23: optional vector<Device> extDevice
+                                                     {
+                                                        { "authId",      r.extDevice[0].authId },
+                                                        { "authSecId",   r.extDevice[0].authSecId },
+                                                        { "deviceClass", r.extDevice[0].deviceClass },
+                                                        { "id",          r.extDevice[0].id },
+                                                        { "localId",     r.extDevice[0].localId },
+                                                        { "make",        r.extDevice[0].make },
+                                                        { "model",       r.extDevice[0].model },
+                                                     }
+                                                },
+                                                { "os",                                              // 24: optional vector<Os> extOs
+                                                     {
+                                                        { "bootId",  r.extOs[0].bootId },
+                                                        { "expId",   r.extOs[0].expId },
+                                                        { "locale",  r.extOs[0].locale },
+                                                        { "name",    r.extOs[0].name },
+                                                        { "ver",     r.extOs[0].ver }
+                                                     }
+                                                },
+                                                { "app",                                             // 25: optional vector<App> extApp
+                                                     {
+                                                        { "expId",   r.extApp[0].expId },
+                                                        { "userId",  r.extApp[0].userId },
+                                                        { "env",     r.extApp[0].env },
+                                                        { "asId",    r.extApp[0].asId },
+                                                        { "id",      r.extApp[0].id },
+                                                        { "ver",     r.extApp[0].ver },
+                                                        { "locale",  r.extApp[0].locale },
+                                                        { "name",    r.extApp[0].name }
+                                                     }
+                                                },
+                    /*
+                                                { "utc",      r.extUtc },       // 26: optional vector<Utc> extUtc
+                                                { "xbl",      r.extXbl },       // 27: optional vector<Xbl> extXbl
+                                                { "js",       r.extJavascript },// 28: optional vector<Javascript> extJavascript
+                                                { "receipts", r.extReceipts },  // 29: optional vector<Receipts> extReceipts
+                     */
+                                                { "net",
+                                                     {
+                                                        { "cost",     r.extNet[0].cost },
+                                                        { "provider", r.extNet[0].provider },
+                                                        { "type",     r.extNet[0].type }
+                                                     }
+                                                },
+                                                { "sdk",
+                                                     {
+                                                        { "epoch",     r.extSdk[0].epoch },
+                                                        { "installId", r.extSdk[0].installId },
+                                                        { "libVer",    r.extSdk[0].libVer}
+                                                     }
+                                                }
+                    /*
+                                                { "loc",      r.extLoc },       // 33: optional vector<Loc> extLoc
+                                                { "cloud",    r.extCloud }      // 34: optional vector<Cloud> extCloud
+                     */
+                                            }
+                                        }
                 };
 
                 if (r.ext.size())
@@ -276,8 +261,8 @@ fail:
                     j["extData"] = json({});
                     to_json(j["extData"], r.ext[0]);
                 }
-                
-                j["tags"]     = r.tags;
+
+                j["tags"] = r.tags;
                 j["baseType"] = r.baseType;
 
                 if (r.baseData.size())
@@ -296,6 +281,16 @@ fail:
         }
     }
 }
+
+#if 0   /* These routines should exist in scope of FuncTests and UnitTests project provided by SDK utils */
+
+#ifndef MAX_GUID_LEN
+#define MAX_GUID_LEN    36  /* maximum GUIDv4 length with hyphens, but without curly braces */
+#endif
+
+#ifndef SNPRINTF
+#define SNPRINTF        snprintf
+#endif
 
 namespace common
 {
@@ -322,7 +317,7 @@ namespace common
             guid->Data4[4], guid->Data4[5], guid->Data4[6], guid->Data4[7]);
         if (rc < 0)
         {
-            LOG_ERROR("SNPRINTF failed!");
+            TEST_LOG_ERROR("SNPRINTF failed!");
             return "00000000-0000-0000-0000-000000000000";
         }
         return std::string((const char*)(buff));
@@ -346,8 +341,9 @@ namespace common
         return CreateGUIDv4();
     }
 #endif
-
 }
+#endif
+
 /// <summary>
 /// Compress buffer from source to dest.
 /// </summary>
@@ -383,7 +379,7 @@ bool Compress(const char* source, size_t sourceLen, char** dest, size_t& destLen
         int res = compress2((Bytef *)(compBody + reserved), &compSize, (Bytef *)source, (uLong)sourceLen, Z_BEST_SPEED);
         if (res != Z_OK)
         {
-            LOG_ERROR("Compression failed, error=%u", res);
+            TEST_LOG_ERROR("Compression failed, error=%u", res);
             delete[] compBody;
             compBody = NULL;
             return false;
@@ -440,7 +436,7 @@ bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, 
                 int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
                 if ((res != Z_OK) || (len != destLen))
                 {
-                    LOG_ERROR("Decompression failed, error=%d, len=%zu, destLen=%u", res, len, (unsigned int)destLen);
+                    TEST_LOG_ERROR("Decompression failed, error=%d, len=%zu, destLen=%u", res, (uint64_t)len, (unsigned int)destLen);
                     delete[] decompBody;
                     return false;
                 }
@@ -450,7 +446,7 @@ bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, 
             }
         }
         catch (std::bad_alloc&) {
-            LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
+            TEST_LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
             dest = NULL;
             destLen = 0;
         }
@@ -499,7 +495,7 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     if (ret != Z_STREAM_END)
     {
         /* TODO: return error if buffer is corrupt */;
-        LOG_ERROR("Corrupt buffer");
+        TEST_LOG_ERROR("Corrupt buffer");
     }
     inflateEnd(&zs);
 }

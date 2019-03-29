@@ -91,6 +91,7 @@
   <ImportGroup Label="Shared">
     <Import Project="..\..\Solutions\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\decoder\decoder.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -415,6 +416,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="APITest.cpp" />
+    <ClCompile Include="BondDecoderTests.cpp" />
+    <ClCompile Include="EventDecoderListener.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
@@ -434,6 +437,7 @@
     <ClInclude Include="..\common\MockILocalStorageReader.hpp" />
     <ClInclude Include="..\common\MockITelemetrySystem.hpp" />
     <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
+    <ClInclude Include="EventDecoderListener.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

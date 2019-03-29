@@ -11,6 +11,8 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="APITest.cpp" />
+    <ClCompile Include="BondDecoderTests.cpp" />
+    <ClCompile Include="EventDecoderListener.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
@@ -55,6 +57,7 @@
     <ClInclude Include="..\common\MockITelemetrySystem.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
+    <ClInclude Include="EventDecoderListener.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include=" ">
