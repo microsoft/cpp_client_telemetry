@@ -9,7 +9,7 @@
 #include <list>
 #include <mutex>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 class HttpClientManager {
@@ -45,4 +45,4 @@ class HttpClientManager {
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

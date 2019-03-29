@@ -4,7 +4,7 @@
 #include <string>
 #include <stdint.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class WindowsEnvironmentInfo
     {
@@ -13,4 +13,4 @@ namespace MAT_NS_BEGIN {
         static std::string GetTimeZone();
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END

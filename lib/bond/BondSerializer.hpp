@@ -4,7 +4,7 @@
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 class BondSerializer {
@@ -16,4 +16,4 @@ class BondSerializer {
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

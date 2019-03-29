@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     inline void remove_eol(string& result)
     {
@@ -75,5 +75,5 @@ namespace MAT_NS_BEGIN {
 
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END
 

@@ -12,7 +12,7 @@
 #include <sys/errno.h>
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     /// <summary>
@@ -560,6 +560,6 @@ namespace MAT_NS_BEGIN
 
     constexpr const static unsigned gc_NumDroppedReasons = DROPPED_REASON_COUNT;
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif //EVENTPRIORITY_H

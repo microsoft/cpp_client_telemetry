@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 using namespace std;
 using namespace PAL;
@@ -169,5 +169,5 @@ void DeviceStateHandler::OnChanged(
      return result;
  }
  
-} MAT_NS_END
+} ARIASDK_NS_END
 

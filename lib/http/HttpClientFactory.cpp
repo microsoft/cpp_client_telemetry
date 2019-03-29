@@ -17,7 +17,7 @@
   #error The library cannot work without an HTTP client implementation.
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(HttpClientFactory, "EventsSDK.HttpClientFactory", "Events telemetry client - HttpClientFactory class");
 
@@ -45,4 +45,4 @@ namespace MAT_NS_BEGIN {
 #error The library cannot work without an HTTP client implementation.
 #endif
 
-} MAT_NS_END
+} ARIASDK_NS_END

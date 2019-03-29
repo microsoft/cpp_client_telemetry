@@ -10,13 +10,13 @@
 #include <stdint.h>
 
 #ifdef HAVE_MAT_SHORT_NS
-#define MAT_NS_BEGIN  MAT
-#define MAT_NS_END
+#define ARIASDK_NS_BEGIN  MAT
+#define ARIASDK_NS_END
 #define PAL_NS_BEGIN  PAL
 #define PAL_NS_END
 #else
-#define MAT_NS_BEGIN  Microsoft { namespace Applications { namespace Events
-#define MAT_NS_END    }}
+#define ARIASDK_NS_BEGIN  Microsoft { namespace Applications { namespace Events
+#define ARIASDK_NS_END    }}
 #define MAT           ::Microsoft::Applications::Events
 #define PAL_NS_BEGIN  Microsoft { namespace Applications { namespace Events { namespace PlatformAbstraction
 #define PAL_NS_END    }}}
@@ -25,7 +25,7 @@
 
 #define MAT_v1        ::Microsoft::Applications::Telemetry
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 uint64_t const Version =
     ((uint64_t)3 << 48) |
@@ -33,7 +33,7 @@ uint64_t const Version =
     ((uint64_t)87 << 16) |
     ((uint64_t)1);
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 namespace PAL_NS_BEGIN { } PAL_NS_END
 

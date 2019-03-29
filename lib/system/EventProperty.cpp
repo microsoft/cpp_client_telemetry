@@ -20,7 +20,7 @@ using namespace MAT;
 #define _strdup strdup
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     // TODO: [MG] - time_ticks_t would benefit from an extra method:
     // time_ticks_t::time_ticks_t(const std::time_t time)
@@ -886,4 +886,4 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

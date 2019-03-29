@@ -82,7 +82,7 @@ void SetThreadName(const char* threadName)
 
 
 using namespace Microsoft::Applications::Events ;
-//using namespace MAT_NS_BEGIN;
+//using namespace ARIASDK_NS_BEGIN;
 using namespace std;
 
 #define USE_INT

@@ -18,7 +18,7 @@ namespace CLI
             // Specify this API token in the SDK initialization call to send data for this application.
             // Please keep this token secure if it is for production services.
             // https://aria.microsoft.com/developer/start-now/using-aria/send-events
-            String tenantToken = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
+            String tenantToken = "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999";
             Console.WriteLine("Initializing logger...");
 
             LogManager.SetTransmitProfile(TransmitProfile.NearRealTime);

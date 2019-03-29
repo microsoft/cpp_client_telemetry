@@ -8,7 +8,7 @@
 #include "FifoFileStorage.hpp"
 
 #define AssertAbort(a) assert(a)
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 	
     FIFOFileStorage::FIFOFileStorage()
         : m_FileHandle(nullptr)
@@ -1343,6 +1343,6 @@ LOAD_OK:
             
         return contentsSize;
     }
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

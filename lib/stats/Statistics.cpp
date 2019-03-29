@@ -7,7 +7,7 @@
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     Statistics::Statistics(ITelemetrySystem& telemetrySystem) :
         m_iTelemetrySystem(telemetrySystem),
@@ -268,4 +268,4 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

@@ -3,7 +3,7 @@
 using std::string;
 using std::vector;
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     void StringUtils::SplitString(const string& s, const char separator, vector<string>& parts)
     {
@@ -32,4 +32,4 @@ namespace MAT_NS_BEGIN
         return (stringToTest.find_first_not_of(whitelist) == string::npos);
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

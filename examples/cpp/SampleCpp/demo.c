@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <CommonFields.h>
 
-#define API_KEY "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385" /* Windows SDK Test 2 */
+#define API_KEY "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999" /* Windows SDK Test 2 */
 
 void test_c_api()
 {

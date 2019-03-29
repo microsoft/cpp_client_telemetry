@@ -65,14 +65,14 @@ typedef IDictionary<String^, double> EditableMeasurementMap;
 
 using namespace std;
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
     class EventProperties;
     class ILogger;
     class LogManager;
     class ISemanticContext;
     class LogConfiguration;
     struct EventProperty;
-} MAT_NS_END;
+} ARIASDK_NS_END;
 
 namespace Microsoft {
     namespace Applications {

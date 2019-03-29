@@ -10,7 +10,7 @@
 //
 // XXX: [MG] - This is pneumonoultramicroscopicsilicovolcanoconiosis..
 //
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     //! Interface for generic route sink (incoming data handler)
     template<typename... TArgs>
@@ -186,5 +186,5 @@ namespace MAT_NS_BEGIN {
         std::vector<IRoutePassThrough<TArgs...>*> m_passthroughs;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

@@ -3,7 +3,7 @@
 #include "utils/Utils.hpp"
 #include <climits>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(MemoryStorage, "EventsSDK.MemoryStorage", "Events telemetry client - MemoryStorage class");
 
@@ -474,4 +474,4 @@ namespace MAT_NS_BEGIN {
         return m_reserved_records.size();
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

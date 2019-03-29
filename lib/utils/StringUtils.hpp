@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     class StringUtils
     {
@@ -23,5 +23,5 @@ namespace MAT_NS_BEGIN
         StringUtils& operator=(const StringUtils&) = delete;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

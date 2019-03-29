@@ -6,7 +6,7 @@
 
 #include "ILogger.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     namespace Models {
@@ -72,5 +72,5 @@ namespace MAT_NS_BEGIN
 
     } // Models
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

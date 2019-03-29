@@ -16,7 +16,7 @@
 
 #define ENABLE_LOCKING      // Enable DB locking for flush
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class SqliteDB;
 
@@ -106,5 +106,5 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

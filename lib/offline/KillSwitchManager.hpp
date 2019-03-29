@@ -10,7 +10,7 @@
 
 #include <atomic>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class KillSwitchManager
     {
@@ -159,5 +159,5 @@ namespace MAT_NS_BEGIN {
         int64_t         m_retryAfterExpiryTime;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

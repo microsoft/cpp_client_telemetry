@@ -10,7 +10,7 @@
 
 using namespace MAT;
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     Logger::Logger(
@@ -658,4 +658,4 @@ namespace MAT_NS_BEGIN
         m_level = level;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

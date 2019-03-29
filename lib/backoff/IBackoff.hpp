@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 /// <summary>
@@ -43,5 +43,5 @@ class IBackoff {
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

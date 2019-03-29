@@ -11,7 +11,7 @@
 #include <string>
 
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 static const std::string NetworkCostNames[] = {
     "Unknown",
@@ -75,5 +75,5 @@ private:
 
 };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 

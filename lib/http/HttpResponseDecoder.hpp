@@ -8,7 +8,7 @@
 #include "system/Contexts.hpp"
 #include "system/ITelemetrySystem.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     typedef enum
     {
@@ -41,5 +41,5 @@ namespace MAT_NS_BEGIN {
         virtual bool DispatchEvent(DebugEvent evt) override;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

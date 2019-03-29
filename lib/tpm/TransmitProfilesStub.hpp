@@ -1,4 +1,4 @@
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::load(const std::string&) { return false; };
 
@@ -19,4 +19,4 @@ namespace MAT_NS_BEGIN {
 
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }
 
-} MAT_NS_END
+} ARIASDK_NS_END

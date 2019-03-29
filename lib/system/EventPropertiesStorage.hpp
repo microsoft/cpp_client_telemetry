@@ -5,7 +5,7 @@
 #include "EventProperty.hpp"
 #include "Version.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     struct EventPropertiesStorage
     {
@@ -64,4 +64,4 @@ namespace MAT_NS_BEGIN {
        }
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END

@@ -6,7 +6,7 @@
 
 #include <limits>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 
@@ -314,4 +314,4 @@ namespace MAT_NS_BEGIN {
     }
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

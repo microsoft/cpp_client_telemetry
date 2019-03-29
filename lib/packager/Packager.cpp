@@ -5,7 +5,7 @@
 #include "utils/Utils.hpp"
 #include <algorithm>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     Packager::Packager(IRuntimeConfig& runtimeConfig)
         : m_config(runtimeConfig)
@@ -88,4 +88,4 @@ namespace MAT_NS_BEGIN {
     }
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

@@ -97,7 +97,7 @@ namespace Microsoft {
     }
 }
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LIBABI const ILogConfiguration& GetDefaultConfiguration();
 
@@ -105,6 +105,6 @@ namespace MAT_NS_BEGIN {
 
     MATSDK_LIBABI ILogConfiguration FromJSON(const char* json);
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

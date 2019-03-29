@@ -6,7 +6,7 @@
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     const char* const TICKETS_PREPEND_STRING = "1000";
 
@@ -66,6 +66,6 @@ namespace MAT_NS_BEGIN
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif //MAT_IAUTHTOKENS_HPP

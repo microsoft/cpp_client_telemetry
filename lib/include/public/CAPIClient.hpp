@@ -14,7 +14,7 @@
 #undef evt_log
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class CAPIClient
@@ -89,6 +89,6 @@ namespace MAT_NS_BEGIN
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

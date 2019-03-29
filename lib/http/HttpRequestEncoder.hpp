@@ -11,7 +11,7 @@
 
 #include "IAuthTokensController.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class HttpRequestEncoder {
     public:
@@ -36,4 +36,4 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

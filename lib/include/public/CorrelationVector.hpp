@@ -8,7 +8,7 @@
 #include <mutex>
 #include <string>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     // Implementation of the Common Schema standard vector clock type.
     // See https://osgwiki.com/wiki/CorrelationVector for more details.
@@ -143,5 +143,5 @@ namespace MAT_NS_BEGIN
         size_t GetDigitCount(size_t value);
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

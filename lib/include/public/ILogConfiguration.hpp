@@ -11,7 +11,7 @@
 #include <string>
 #include "Variant.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class IHttpClient;
@@ -191,5 +191,5 @@ namespace MAT_NS_BEGIN
     /// </summary>
     typedef VariantMap ILogConfiguration;
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif 

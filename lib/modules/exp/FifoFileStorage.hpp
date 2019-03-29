@@ -21,7 +21,7 @@
 #include "linux/sal.h"
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     /** \brief An enum to define the flag of the block.
     */
@@ -401,5 +401,5 @@ namespace MAT_NS_BEGIN {
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

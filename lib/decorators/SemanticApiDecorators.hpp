@@ -9,7 +9,7 @@
 #pragma warning(push)
 #pragma warning(disable : 4100)
 #endif
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 #define RECORD_EXT      record.data[0].properties
 
@@ -294,7 +294,7 @@ namespace MAT_NS_BEGIN {
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

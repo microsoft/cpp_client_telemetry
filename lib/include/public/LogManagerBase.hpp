@@ -82,7 +82,7 @@ public:
     std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
     /// This configuration flag is populated by SDK to indicate if this singleton instance
@@ -616,7 +616,7 @@ namespace MAT_NS_BEGIN
     template<> ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};
 #endif
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #pragma clang diagnostic pop
 

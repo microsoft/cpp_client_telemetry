@@ -4,7 +4,7 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 #ifndef _WININET_
@@ -35,4 +35,4 @@ class HttpClient_WinInet : public IHttpClient {
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

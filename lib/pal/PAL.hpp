@@ -55,10 +55,10 @@
 #include "typename.hpp"
 #include "WorkerThread.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     extern void print_backtrace();
-} MAT_NS_END
+} ARIASDK_NS_END
 
 namespace PAL_NS_BEGIN
 {

@@ -4,7 +4,7 @@
 #include "aria/IBandwidthController.hpp"
 #include "ResourceManager/ResourceManagerPublic.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 class BandwidthController_ResourceManager : public IBandwidthController
@@ -21,4 +21,4 @@ class BandwidthController_ResourceManager : public IBandwidthController
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

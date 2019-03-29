@@ -104,7 +104,7 @@ static void initTransmitProfileFields()
 
 #define LOCK_PROFILES       std::lock_guard<std::mutex> lock(profiles_mtx)
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
     static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
@@ -561,7 +561,7 @@ namespace MAT_NS_BEGIN {
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #else
 #include "TransmitProfilesStub.hpp"

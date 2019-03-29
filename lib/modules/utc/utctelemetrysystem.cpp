@@ -20,7 +20,7 @@
 
 using namespace tld;
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     static const unsigned char InvalidHexDigit = 0xFF;
@@ -715,5 +715,5 @@ namespace MAT_NS_BEGIN
         }
         return temp;
     }
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

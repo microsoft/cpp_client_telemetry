@@ -8,7 +8,7 @@
 #include <list>
 #include <vector>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 class BondSplicer
@@ -45,5 +45,5 @@ class BondSplicer
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

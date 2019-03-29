@@ -24,7 +24,7 @@
 #define LONG_IS_INT64_T
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     /// <summary>
@@ -514,6 +514,6 @@ namespace MAT_NS_BEGIN
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

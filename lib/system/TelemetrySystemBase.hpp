@@ -6,7 +6,7 @@
 #include "stats/Statistics.hpp"
 #include <functional>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     // typedef std::function<bool(void)>                       StateHandler;
 
@@ -174,6 +174,6 @@ namespace MAT_NS_BEGIN {
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

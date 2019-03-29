@@ -26,7 +26,7 @@
 #include <mutex>
 #include <set>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class ITelemetrySystem;
@@ -284,6 +284,6 @@ protected:
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

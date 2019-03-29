@@ -11,7 +11,7 @@
 #include "json.hpp"
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     HttpResponseDecoder::HttpResponseDecoder(ITelemetrySystem& system)
         :
@@ -231,4 +231,4 @@ namespace MAT_NS_BEGIN {
 #endif
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

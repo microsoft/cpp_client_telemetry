@@ -19,7 +19,7 @@ using namespace std;
 using namespace MAT;
 using namespace EXP;
 
-namespace MAT_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } MAT_NS_END;
+namespace ARIASDK_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } ARIASDK_NS_END;
 
 const std::string tenantToken = TOKEN;
 

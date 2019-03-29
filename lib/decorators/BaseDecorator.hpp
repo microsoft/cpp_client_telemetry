@@ -11,7 +11,7 @@
 #include <algorithm>
 
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class BaseDecorator : public DecoratorBase
@@ -28,6 +28,6 @@ namespace MAT_NS_BEGIN
         uint64_t                m_sequenceId;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

@@ -5,7 +5,7 @@
 #include "api/IRuntimeConfig.hpp"
 
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     static ILogConfiguration defaultRuntimeConfig
     {
@@ -190,4 +190,4 @@ namespace MAT_NS_BEGIN {
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END

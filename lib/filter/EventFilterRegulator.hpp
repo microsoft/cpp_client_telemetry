@@ -8,7 +8,7 @@
 #include <mutex>
 #include <map>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     typedef IEventFilter *PIEventFilter;
     typedef PIEventFilter (*EventFilterFactory)();
@@ -33,6 +33,6 @@ namespace MAT_NS_BEGIN
         virtual void Reset() override;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif  // !MAT_EVENTFILTERREGULATOR_HPP

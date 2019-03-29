@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     class EventFilter : public IEventFilter
     {
@@ -40,6 +40,6 @@ namespace MAT_NS_BEGIN
         virtual status_t SetExclusionFilter(const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
         
     };
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif // !MAT_EVENTFILTER_HPP

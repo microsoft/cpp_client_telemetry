@@ -9,10 +9,10 @@
 #include <thread>
 
 // Windows SDK Test - Prod: Default Ingestion Token.
-#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
 
 // Windows SDK Test 2 - Int: Default Ingestion Token.
-#define TOKEN2  "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
+#define TOKEN2  "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9990"
 
 using namespace std;
 using namespace MAT;

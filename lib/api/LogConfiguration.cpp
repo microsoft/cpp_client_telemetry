@@ -6,7 +6,7 @@
 using json = nlohmann::json;
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     static ILogConfiguration currentConfig {
         { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
@@ -109,4 +109,4 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

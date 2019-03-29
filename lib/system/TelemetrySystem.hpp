@@ -24,7 +24,7 @@
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "ClockSkewDelta.h"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class NullCompression
     {
@@ -73,4 +73,4 @@ namespace MAT_NS_BEGIN {
         RouteSink<TelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &TelemetrySystem::handleIncomingEventPrepared };
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END

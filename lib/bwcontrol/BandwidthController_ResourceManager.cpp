@@ -3,7 +3,7 @@
 #include "BandwidthController_ResourceManager.hpp"
 #include "ResourceManager/RMPublic_BitStream.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 BandwidthController_ResourceManager::BandwidthController_ResourceManager(::resource_manager2::ResourceManagerPtr const& rm)
@@ -55,4 +55,4 @@ unsigned BandwidthController_ResourceManager::GetProposedBandwidthBps()
 }
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

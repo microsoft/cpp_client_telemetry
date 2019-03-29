@@ -18,7 +18,7 @@
 #include "TransmitProfiles.hpp"
 #include "DebugEvents.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class IContextProvider {
@@ -350,6 +350,6 @@ namespace MAT_NS_BEGIN
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

@@ -13,7 +13,7 @@
 
 #include <Enums.hpp>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     // Enum of return codes from SetExclusionFilter. For internal use only--not
     // part of public documentation. > 0 means success, < 0 means failure. Never
@@ -99,7 +99,7 @@ namespace MAT_NS_BEGIN
         virtual void Reset() = 0;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 
 #endif //!MAT_IEVENTFILTER_HPP

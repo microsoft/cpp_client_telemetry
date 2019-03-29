@@ -35,7 +35,7 @@ public ref class VariantLockGuard { public: static Object ^ lock = gcnew Object(
 #endif
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     class Variant;
 
@@ -59,6 +59,6 @@ namespace MAT_NS_BEGIN
 
     // Shortcut for VariantArray constructor
     // const auto ARR = Variant::from_array;
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

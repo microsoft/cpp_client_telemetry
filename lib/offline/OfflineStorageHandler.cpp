@@ -13,7 +13,7 @@
 #include <numeric>
 #include <set>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
@@ -505,4 +505,4 @@ namespace MAT_NS_BEGIN {
         m_observer->OnStorageRecordsSaved(numRecords);
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

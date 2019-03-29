@@ -17,7 +17,7 @@
 #include <mutex>
 #include <atomic>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class ITelemetrySystem;
     class DebugEventListener;
@@ -121,6 +121,6 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

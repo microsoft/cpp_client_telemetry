@@ -4,7 +4,7 @@
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
 
@@ -73,4 +73,4 @@ namespace MAT_NS_BEGIN {
         return m_userTokens;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

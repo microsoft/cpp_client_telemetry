@@ -11,7 +11,7 @@
 
 #include "system/ITelemetrySystem.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     // Not an interface per se, rather a collection of static utility methods.
     class DecoratorBase {
@@ -124,5 +124,5 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

@@ -16,7 +16,7 @@
 #include <set>
 #include <atomic>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class TransmissionPolicyManager
     {
@@ -160,4 +160,4 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

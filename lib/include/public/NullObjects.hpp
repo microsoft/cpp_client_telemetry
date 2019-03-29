@@ -9,7 +9,7 @@
 #pragma warning( push )
 #pragma warning( disable : 4100 ) // unreferenced formal parameter
 #endif
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     class NullContext : public ISemanticContext
@@ -307,7 +307,7 @@ namespace MAT_NS_BEGIN
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif

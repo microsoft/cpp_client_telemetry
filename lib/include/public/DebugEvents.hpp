@@ -22,7 +22,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     /// <summary>
@@ -196,6 +196,6 @@ namespace MAT_NS_BEGIN
 #pragma warning( pop )
 #endif
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

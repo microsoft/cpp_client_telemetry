@@ -15,7 +15,7 @@
 
 #include "traceloggingdynamic.h"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     const char* const ARIA_METADATA_COMMON_TEXT = "n:";
@@ -100,7 +100,7 @@ namespace MAT_NS_BEGIN
 
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif
 #endif

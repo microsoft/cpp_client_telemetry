@@ -21,7 +21,7 @@
 #include "decorators/SemanticApiDecorators.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class BaseDecorator;
     class ILogManagerInternal;
@@ -202,6 +202,6 @@ namespace MAT_NS_BEGIN {
         bool                      m_allowDotsInType;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

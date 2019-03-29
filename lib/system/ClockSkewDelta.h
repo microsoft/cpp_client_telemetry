@@ -4,7 +4,7 @@
 #include <mutex>
 
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 	class ClockSkewDelta
@@ -89,5 +89,5 @@ namespace MAT_NS_BEGIN {
 		}
 	};
 
-} MAT_NS_END
+} ARIASDK_NS_END
 

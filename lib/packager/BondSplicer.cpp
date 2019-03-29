@@ -5,7 +5,7 @@
 #include "bond/generated/CsProtocol_writers.hpp"
 #include <assert.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 BondSplicer::BondSplicer()
@@ -116,4 +116,4 @@ void BondSplicer::clear()
 }
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

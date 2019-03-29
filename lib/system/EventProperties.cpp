@@ -17,7 +17,7 @@
 using namespace std;
 using namespace MAT;
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     const char* const DefaultEventName = "undefined";
 
@@ -509,5 +509,5 @@ namespace MAT_NS_BEGIN {
     }
 #endif /* end of MAT_C_API */
 
-} MAT_NS_END
+} ARIASDK_NS_END
 

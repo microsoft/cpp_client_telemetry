@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <math.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
 /// <summary>
@@ -99,5 +99,5 @@ private:
 };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

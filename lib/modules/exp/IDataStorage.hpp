@@ -10,7 +10,7 @@
 
 #define MAX_EVENT_PRIORITY      4
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     enum DATARV_ERROR
     {
@@ -371,5 +371,5 @@ namespace MAT_NS_BEGIN {
         static const StorageType STORAGE_FORMAT = STORAGE_TYPE_FIFO;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif

@@ -19,7 +19,7 @@
 #include "modules/utc/UtcTelemetrySystem.hpp"
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
 #ifdef ANDROID
@@ -555,4 +555,4 @@ namespace MAT_NS_BEGIN
         return m_diagLevelFilter;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

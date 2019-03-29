@@ -12,7 +12,7 @@
 #include "bond/generated/CsProtocol_writers.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 
     HttpRequestEncoder::HttpRequestEncoder(ITelemetrySystem& system, IHttpClient& httpClient)
@@ -154,4 +154,4 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

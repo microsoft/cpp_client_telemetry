@@ -26,7 +26,7 @@ DEFINE_GUID(IID_INetworkCostManager2, 0xdcb00008, 0x570f, 0x4a9b, 0x8d, 0x69, 0x
 
 #define NETDETECTOR_COM_SETTLE_MS   1000
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     namespace Windows {
 
@@ -800,6 +800,6 @@ namespace MAT_NS_BEGIN
 
     } // ::Windows
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

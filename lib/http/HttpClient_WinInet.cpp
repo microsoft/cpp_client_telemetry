@@ -12,7 +12,7 @@
 #include <vector>
 #include <oacr.h>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
 class WinInetRequestWrapper
 {
@@ -371,4 +371,4 @@ void HttpClient_WinInet::CancelAllRequests()
     }
 };
 
-} MAT_NS_END
+} ARIASDK_NS_END

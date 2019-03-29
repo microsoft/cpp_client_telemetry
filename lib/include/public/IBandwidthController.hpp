@@ -4,7 +4,7 @@
 
 #include "Version.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     class IBandwidthController {
     public:
@@ -23,6 +23,6 @@ namespace MAT_NS_BEGIN
         /// <returns>Proposed bandwidth in bytes per second</returns>
         virtual unsigned GetProposedBandwidthBps() = 0;
     };
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

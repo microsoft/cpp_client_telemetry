@@ -4,7 +4,7 @@
 #include "filter/EventFilterRegulator.hpp"
 #include "utils/Utils.hpp"
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
     // This is the production 
     static PIEventFilter DefaultEventFilterFactory()
@@ -76,4 +76,4 @@ namespace MAT_NS_BEGIN
         _tenantFilters.clear();
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

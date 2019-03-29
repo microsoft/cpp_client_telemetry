@@ -13,7 +13,7 @@
 
 #include <ctime>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     // This mutex has to be recursive because we allow both
     // Destroy and destrutor to lock it. destructor could be
@@ -244,4 +244,4 @@ namespace MAT_NS_BEGIN {
     {
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

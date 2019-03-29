@@ -3,7 +3,7 @@
 #pragma once
 #include "bond/generated/CsProtocol_types.hpp"
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     struct DataPackage
     {
@@ -43,4 +43,4 @@ namespace MAT_NS_BEGIN {
     };
 
 
-} MAT_NS_END
+} ARIASDK_NS_END

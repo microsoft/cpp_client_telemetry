@@ -4,7 +4,7 @@
 
 #include <utils/Utils.hpp>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     /// <summary>
     /// Lock metaStats counts when rejected events come in via a separate thread
@@ -626,4 +626,4 @@ namespace MAT_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
 
-} MAT_NS_END
+} ARIASDK_NS_END

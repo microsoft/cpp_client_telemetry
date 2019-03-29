@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class ModuleConfig : ILogConfiguration
     {
@@ -20,6 +20,6 @@ namespace MAT_NS_BEGIN {
     
 DEFINE_LOGMANAGER(LogManager, ModuleConfig);
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

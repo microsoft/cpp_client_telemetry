@@ -38,7 +38,7 @@
 #define EFAIL   -1
 #endif
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     // TODO: [MG] - refactor this
     extern const char* getMATSDKLogComponent();
@@ -189,6 +189,6 @@ namespace MAT_NS_BEGIN {
 
     unsigned hashCode(const char* str, int h = 0);
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

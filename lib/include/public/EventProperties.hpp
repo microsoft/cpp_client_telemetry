@@ -18,7 +18,7 @@
 #include "mat.h"
 #endif
 
-namespace MAT_NS_BEGIN
+namespace ARIASDK_NS_BEGIN
 {
 
     struct EventPropertiesStorage; 
@@ -332,6 +332,6 @@ namespace MAT_NS_BEGIN
         EventPropertiesStorage* m_storage;
     };
 
-} MAT_NS_END
+} ARIASDK_NS_END
 
 #endif

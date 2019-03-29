@@ -28,11 +28,11 @@
 #include <locale>
 #include <codecvt>
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client");
-} MAT_NS_END
+} ARIASDK_NS_END
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     void sleep(unsigned delayMs)
     {
@@ -324,4 +324,4 @@ namespace MAT_NS_BEGIN {
         return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
     }
 
-} MAT_NS_END
+} ARIASDK_NS_END

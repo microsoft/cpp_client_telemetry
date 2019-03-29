@@ -13,7 +13,7 @@
 
 #define IF_CLOSED_RETURN      if (!isOpen()) return
 
-namespace MAT_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN {
 
     class DbTransaction {
         SqliteDB* m_db;
@@ -866,5 +866,5 @@ namespace MAT_NS_BEGIN {
     }
 
 
-} MAT_NS_END
+} ARIASDK_NS_END
 #endif
