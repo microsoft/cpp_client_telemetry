@@ -49,7 +49,7 @@ void EventDecoderListener::DecodeBuffer(void *data, size_t size)
         in.assign((uint8_t*)data, (uint8_t*)data + size);
         AriaDecoderV3::decode(in, out, true);       
         std::string s(out.begin(), out.end());
-        printf("%s\n", s.c_str());
+        // printf("%s\n", s.c_str());
     }
 }
 

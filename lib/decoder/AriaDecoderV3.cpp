@@ -98,12 +98,43 @@ namespace clienttelemetry {
 
             void to_json(json& j, const Data& d)
             {
-                // TODO: handle Value.Attributes, e.g. show what PiiKind this value is.
-                // This is extra metadata information.
                 for (const auto &kv : d.properties)
                 {
                     const auto k = kv.first;
                     const auto v = kv.second;
+
+                    if (kv.second.attributes.size())
+                    {
+                        /* C# bond decoder uses more complex notation:
+                        ...
+                        "piiKind.DistinguishedName",
+                        {
+                            "attributes": [{
+                                "pii": [{
+                                    "Kind": 1
+                                }]
+                            }],
+                            "stringValue": "/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM"
+                        }
+                        ...
+
+                        While C++ decoder uses simple compact notation as follows:
+                        ...
+                        "piiKind.DistinguishedName",
+                        {
+                            "pii": 1,
+                            "stringValue": "/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM"
+                        }
+                        */
+
+                        auto kind = kv.second.attributes[0].pii[0].Kind;
+                        j[k] = {
+                            { "stringValue", v.stringValue },
+                            { "pii", (unsigned)kind }
+                        };
+                        continue;
+                    };
+
                     switch (kv.second.type)
                     {
                     case ::CsProtocol::ValueKind::ValueInt64:
