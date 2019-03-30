@@ -34,15 +34,16 @@ using namespace MAT;
 namespace PAL_NS_BEGIN {
 
     /* Value returned on computers with no network adapter available */
-    static const char *netIfGuid = "{deadbeef-fade-dead-c0de-cafebabefeed}";
+    static const char *devIdDefault = "{deadbeef-fade-dead-c0de-cafebabefeed}";
     static const char *manufacturer = "Unknown Manufacturer";
     static const char *model = "Unknown Model";
 
     /**
      * Returns the GUID of the 1st network adapter.
      */
-    const char * getDeviceId()
+    std::string getDeviceId()
     {
+        std::string devId = devIdDefault;
         ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
         PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
         if (pAdapterInfo != NULL)
@@ -65,13 +66,13 @@ namespace PAL_NS_BEGIN {
                 {
                     std::string adapterName { pAdapterInfo->AdapterName };
                     std::transform(adapterName.begin(), adapterName.end(), adapterName.begin(), ::tolower);
-                    netIfGuid = _strdup(adapterName.c_str());
+                    devId = adapterName;
                 }
                 FREE(pAdapterInfo);
             }
         }
         _exit:
-        return netIfGuid;
+        return devId;
     }
 
     // Helper functions.
