@@ -50,7 +50,10 @@ namespace PAL_NS_BEGIN {
         {
             DWORD result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
             if (result == ERROR_NO_DATA)
+            {
+                FREE(pAdapterInfo);
                 goto _exit;
+            }
             if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
             {
                 FREE(pAdapterInfo);
