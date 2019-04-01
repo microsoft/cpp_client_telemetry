@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void sleep(unsigned delayMs)
     {
-        std::this_thread::sleep_for(ms(delayMs));
+        PAL::sleep(delayMs);
     }
 
     void print_backtrace(void)

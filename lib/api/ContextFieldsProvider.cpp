@@ -167,7 +167,6 @@ namespace ARIASDK_NS_BEGIN
                 iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ID);
                 if (iter != m_commonContextFields.end())
                 {
-                    // Ref: https://osgwiki.com/wiki/CommonSchema/device_id
                     // Use "c:" prefix
                     std::string temp("c:");
                     const char *deviceId = iter->second.as_string;

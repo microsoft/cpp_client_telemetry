@@ -30,7 +30,7 @@ namespace PAL_NS_BEGIN
 #endif
 
     // Declare/define log component for a namespace
-#define MATSDK_LOG_DECL_COMPONENT_NS()                        extern const char* getMATSDKLogComponent()
+#define MATSDK_LOG_DECL_COMPONENT_NS()                        const char* getMATSDKLogComponent()
 #define MATSDK_LOG_INST_COMPONENT_NS(_name, _desc)            char const* getMATSDKLogComponent() { return _name; }
 
 // Declare/define log component for a class

@@ -37,7 +37,6 @@ namespace ARIASDK_NS_BEGIN {
         ctx->httpRequest->SetUrl(m_config.GetCollectorUrl());
 
         ctx->httpRequest->GetHeaders().set("Expect", "100-continue");
-        // ctx->httpRequest->GetHeaders().set("Client-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("SDK-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("Client-Id", "NO_AUTH");
         ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");

@@ -11,7 +11,6 @@
 namespace ARIASDK_NS_BEGIN
 {
     // Implementation of the Common Schema standard vector clock type.
-    // See https://osgwiki.com/wiki/CorrelationVector for more details.
     // Class methods are thread-safe.
     // Boolean-value methods return false to indicate failures.
 

@@ -22,10 +22,9 @@ class MockISemanticContext : public MAT::ContextFieldsProvider {
     MOCK_METHOD1(SetCommercialId,      void(std::string const & commercialId));
     MOCK_METHOD1(SetUserLanguage,      void(std::string const & locale));
     MOCK_METHOD1(SetUserTimeZone,      void(std::string const & timeZone));
-	MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));
-	MOCK_METHOD1(SetAppExperimentImpressionId, void(std::string const& appExperimentImpressionId));
-	MOCK_METHOD2(SetEventExperimentIds, void(std::string const& eventName, std::string const& experimentIds));
-//    MOCK_METHOD2(SetTicket, void(MAT::TicketType type, std::string const& ticketValue));
+    MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));
+    MOCK_METHOD1(SetAppExperimentImpressionId, void(std::string const& appExperimentImpressionId));
+    MOCK_METHOD2(SetEventExperimentIds, void(std::string const& eventName, std::string const& experimentIds));
 };
 
 

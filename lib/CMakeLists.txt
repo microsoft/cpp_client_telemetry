@@ -88,10 +88,12 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsEnvironmentInfo.cpp
     pal/desktop/NetworkDetector.cpp
   )
-  list(APPEND SRCS
-    modules/utc/desktop/UtcHelpers.cpp
-    modules/utc/UtcTelemetrySystem.cpp
-  )
+  if(EXISTS "modules/utc/")
+    list(APPEND SRCS
+      modules/utc/desktop/UtcHelpers.cpp
+      modules/utc/UtcTelemetrySystem.cpp
+    )
+  endif()
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()

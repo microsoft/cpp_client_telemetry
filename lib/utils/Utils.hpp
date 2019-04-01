@@ -40,8 +40,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    // TODO: [MG] - refactor this
-    extern const char* getMATSDKLogComponent();
+    const char* getMATSDKLogComponent();
 
     typedef std::chrono::milliseconds ms;
 

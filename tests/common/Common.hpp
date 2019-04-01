@@ -17,7 +17,7 @@
 
 namespace testing {
 
-    extern const char *getMATSDKLogComponent();
+    const char *getMATSDKLogComponent();
 
     extern MAT::ITelemetrySystem & getSystem();
 

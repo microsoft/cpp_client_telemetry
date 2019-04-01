@@ -10,7 +10,7 @@
 - MinGW (experimental, source only)
 
 ---
-## Version 3.2.87.1 (03/29/2019)
+## Version 3.2.91.1 (04/01/2019)
 
 ### Design Changes
 

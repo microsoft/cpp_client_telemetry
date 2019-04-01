@@ -268,7 +268,7 @@ namespace PAL_NS_BEGIN {
     std::string generateUuidString()
     {
 #ifdef _WIN32
-        GUID uuid;
+        GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
         CoCreateGuid(&uuid);
         return MAT::to_string(uuid);
 #else
@@ -465,14 +465,12 @@ namespace PAL_NS_BEGIN {
     #define OS_NAME     "Unknown"
 #endif
 
-    //---
-    // TODO: [MG] - make it portable...
-    std::string getSdkVersion()
-    {
-        return std::string(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-") + BUILD_VERSION_STR;
-    }
+    static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
 
-    //---
+    const std::string& getSdkVersion()
+    {
+        return sdkVersion;
+    }
 
     static volatile std::atomic<long> g_palStarted(0);
 

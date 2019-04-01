@@ -57,7 +57,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    extern void print_backtrace();
+    void print_backtrace();
 } ARIASDK_NS_END
 
 namespace PAL_NS_BEGIN
@@ -75,30 +75,30 @@ namespace PAL_NS_BEGIN
 #endif
     }
 
-    extern const char * getMATSDKLogComponent();
+    const char * getMATSDKLogComponent();
 
     /**
      * Return SDK version in format "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
      */
-    extern std::string getSdkVersion();
+    const std::string& getSdkVersion();
 
     /**
      * Returns a new random UUID in a lowercase hexadecimal format with dashes,
      * but without curly braces, e.g. "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
      */
-    extern std::string generateUuidString();
+    std::string generateUuidString();
 
     /**
      * Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
      */
-    extern int64_t getUtcSystemTimeMs();
+    int64_t getUtcSystemTimeMs();
 
     /**
      * Return the current system time in .NET ticks
      */
-    extern int64_t getUtcSystemTimeinTicks();
+    int64_t getUtcSystemTimeinTicks();
 
-    extern int64_t getUtcSystemTime();
+    int64_t getUtcSystemTime();
 
     /**
      * Convert given system timestamp in milliseconds to a string in ISO 8601 format
@@ -147,9 +147,9 @@ namespace PAL_NS_BEGIN
     };
 
     /* Optional UTC channel mode for Windows 10 */
-    extern bool IsUtcRegistrationEnabledinWindows();
+    bool IsUtcRegistrationEnabledinWindows();
 
-    extern bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
+    bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
 
 } PAL_NS_END
 

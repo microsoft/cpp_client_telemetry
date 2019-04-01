@@ -33,8 +33,7 @@ namespace ARIASDK_NS_BEGIN {
 
         record.extSdk[0].seq = ++m_sequenceId;
         record.extSdk[0].epoch = m_initId;
-        std::string sdkVersion = PAL::getSdkVersion();
-        record.extSdk[0].libVer = sdkVersion;
+        record.extSdk[0].libVer = PAL::getSdkVersion();
         record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
 
         //set Tickets
