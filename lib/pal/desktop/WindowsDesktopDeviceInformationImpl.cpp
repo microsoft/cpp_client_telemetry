@@ -45,39 +45,34 @@ namespace PAL_NS_BEGIN {
     {
         std::string devId = devIdDefault;
         ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+
+    retry_bigger_buffer:
         PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
         if (pAdapterInfo != NULL)
         {
             DWORD result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
-            if (result == ERROR_NO_DATA)
+            if (result == ERROR_BUFFER_OVERFLOW)
             {
-                FREE(pAdapterInfo);
-                goto _exit;
-            }
-            if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
-            {
-                FREE(pAdapterInfo);
-                // redo the alloc with a bigger buffer size
-                pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
-                result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
-                if (result == ERROR_NO_DATA)
+                /* The buffer to receive the adapter information is too small.
+                 * This value is returned if the buffer size indicated by the ulOutBufLen parameter
+                 * is too small to hold the adapter information... When this error code is returned,
+                 * the ulOutBufLen parameter contains the required buffer size, so we retry with
+                 * suggested value of ulOutBufLen, assuming it is bigger than the default.
+                 */
+                if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
                 {
                     FREE(pAdapterInfo);
-                    goto _exit;
+                    goto retry_bigger_buffer;
                 }
             }
-            if (pAdapterInfo != NULL)
+            if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName != NULL))
             {
-                if (pAdapterInfo->AdapterName != NULL)
-                {
-                    std::string adapterName { pAdapterInfo->AdapterName };
-                    std::transform(adapterName.begin(), adapterName.end(), adapterName.begin(), ::tolower);
-                    devId = adapterName;
-                }
-                FREE(pAdapterInfo);
+                std::string adapterName{ pAdapterInfo->AdapterName };
+                std::transform(adapterName.begin(), adapterName.end(), adapterName.begin(), ::tolower);
+                devId = adapterName;
             }
+            FREE(pAdapterInfo);
         }
-        _exit:
         return devId;
     }
 
