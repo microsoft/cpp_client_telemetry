@@ -219,12 +219,10 @@ namespace ARIASDK_NS_BEGIN
                 m_system.reset();
             }
 
-#if 0
             for (auto& record : m_loggers) {
                 delete record.second;
             }
             m_loggers.clear();
-#endif
 
             m_offlineStorage.reset();
             m_ownBandwidthController.reset();
