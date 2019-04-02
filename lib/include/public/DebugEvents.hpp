@@ -182,8 +182,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
         virtual bool DetachEventSource(DebugEventSource & other);
 
-    protected:
-
+    protected: 
         /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
 
