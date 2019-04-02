@@ -1,4 +1,6 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_VARIANT_HPP
+#define MAT_VARIANT_HPP
 
 #include "Version.hpp"
 #include "Enums.hpp"
@@ -52,9 +54,11 @@ namespace ARIASDK_NS_BEGIN
     typedef std::vector<Variant>                                            VariantArray;
 #endif
 
-// Generic variant type implementation added to SDK namespace
+    // Generic variant type implementation added to SDK namespace
 #include "VariantType.hpp"
 
     // Shortcut for VariantArray constructor
     // const auto ARR = Variant::from_array;
 } ARIASDK_NS_END
+
+#endif

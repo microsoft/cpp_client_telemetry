@@ -8,9 +8,9 @@
 #include <string>
 
 #include "utils/Utils.hpp"
-#include "bond_lite/All.hpp"
-#include "bond/generated/AriaProtocol_writers.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -37,7 +37,6 @@ namespace ARIASDK_NS_BEGIN {
         ctx->httpRequest->SetUrl(m_config.GetCollectorUrl());
 
         ctx->httpRequest->GetHeaders().set("Expect", "100-continue");
-        // ctx->httpRequest->GetHeaders().set("Client-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("SDK-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("Client-Id", "NO_AUTH");
         ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
@@ -140,7 +139,7 @@ namespace ARIASDK_NS_BEGIN {
 
 #if 0
         // XXX: [MG] - debug only
-        AriaProtocol::Record result;
+        CsProtocol::Record result;
         bond_lite::CompactBinaryProtocolReader reader(ctx->body);
         bond_lite::Deserialize(reader, result);
 #endif

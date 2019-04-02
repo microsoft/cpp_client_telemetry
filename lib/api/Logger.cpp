@@ -144,7 +144,7 @@ namespace ARIASDK_NS_BEGIN
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -187,7 +187,7 @@ namespace ARIASDK_NS_BEGIN
             latency = properties.GetLatency();
         }
 
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         if (!applyCommonDecorators(record, properties, latency))
         {
@@ -222,7 +222,7 @@ namespace ARIASDK_NS_BEGIN
             this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -260,7 +260,7 @@ namespace ARIASDK_NS_BEGIN
             this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -302,7 +302,7 @@ namespace ARIASDK_NS_BEGIN
             this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -325,7 +325,7 @@ namespace ARIASDK_NS_BEGIN
     /// <param name="properties">The properties.</param>
     /// <param name="latency">The latency.</param>
     /// <returns></returns>
-    bool Logger::applyCommonDecorators(::AriaProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
+    bool Logger::applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
     {
         record.name = properties.GetName();
         record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
@@ -357,7 +357,7 @@ namespace ARIASDK_NS_BEGIN
 
     }
 
-    void Logger::submit(::AriaProtocol::Record& record, const EventProperties& props)
+    void Logger::submit(::CsProtocol::Record& record, const EventProperties& props)
     {
         auto policyBitFlags = props.GetPolicyBitFlags();
         auto persistence = props.GetPersistence();
@@ -442,7 +442,7 @@ namespace ARIASDK_NS_BEGIN
             this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -486,7 +486,7 @@ namespace ARIASDK_NS_BEGIN
             this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -512,7 +512,7 @@ namespace ARIASDK_NS_BEGIN
             this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -538,7 +538,7 @@ namespace ARIASDK_NS_BEGIN
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         EventLatency latency = EventLatency_Normal;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated =
             applyCommonDecorators(record, properties, latency) &&
@@ -612,7 +612,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         EventLatency latency = EventLatency_RealTime;
-        ::AriaProtocol::Record record;
+        ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, props, latency) &&
             m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration);
@@ -653,7 +653,8 @@ namespace ARIASDK_NS_BEGIN
         return m_source;
     }
 
-    void Logger::SetLevel(uint8_t level) {
+    void Logger::SetLevel(uint8_t level)
+    {
         m_level = level;
     }
 

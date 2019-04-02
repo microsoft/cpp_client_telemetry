@@ -10,7 +10,7 @@ namespace ARIASDK_NS_BEGIN {
 
     int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
     TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController)
         : m_lock(),

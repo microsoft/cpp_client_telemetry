@@ -84,7 +84,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::atomic<size_t>         m_size;
 
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
         std::atomic<size_t>         m_lastReadCount;

@@ -6,7 +6,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
 
     AuthTokensController::AuthTokensController()
         :m_IsStrictModeEnabled(false)

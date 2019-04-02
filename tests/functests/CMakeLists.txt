@@ -1,13 +1,11 @@
-include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/aria ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
+include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
 
 
 message("--- functests")
 
 set(SRCS
   APITest.cpp
-  BasicAfdFuncTests.cpp
   BasicFuncTests.cpp
-  LoadTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
 )
@@ -27,7 +25,7 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(FuncTests
-  	aria
+  	mat
 	wininet.lib
 	${CMAKE_BINARY_DIR}/gtest/gtest.lib
 	${CMAKE_BINARY_DIR}/gmock/gmock.lib
@@ -62,7 +60,7 @@ else()
   target_link_libraries(FuncTests 
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
-    aria
+    mat
     curl
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}

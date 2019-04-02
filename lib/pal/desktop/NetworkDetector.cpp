@@ -178,109 +178,8 @@ namespace ARIASDK_NS_BEGIN
                 }
             }
 
-#if 0               /* This code below uses GetInternetConnectionProfile API. But it's broken by Malwarebytes 3.0 antivirus... (sigh)
-                     * App crashes on boot if MalwareBytes Anti-Exploit 3.0 is installed and Microsoft.Office.Telemetry.AriaEventSink
-                     * feature gate is enabled: https://office.visualstudio.com/DefaultCollection/OE/_workitems/edit/1384293
-                     */
-#ifdef WIN32        // Workaround for Malwarebytes crash that reports network cost 'Unknown' because calling into API would crash us.
-#ifdef _WIN64
-            LPWSTR mbae_dll = L"mbae64.dll";
-#else
-            LPWSTR mbae_dll = L"mbae.dll";
-#endif
-            if (GetModuleHandle(mbae_dll) != NULL)
-            {
-                mbDetected = true;
-                LOG_WARN("Malwarebytes have been detected!");
-                return result;
-            }
-#endif
-            // Function below may throw "The binding handle is invalid." on Debug builds with debugger attached,
-            // but it is benign. Possible explanation of this behavior is available here:
-            // *** Explaining ‘The Binding Handle Is Invalid’ ***
-            // https://blogs.msdn.microsoft.com/greggm/2006/01/04/explaining-the-binding-handle-is-invalid/
-            // This call is always surrounded by SEH handler implemented in GetCurrentNetworkCost .
-            // If you are running debug bits, exclude this exception in Debugger settings and hit [Continue]
-            HRESULT hr = networkInfoStats->GetInternetConnectionProfile(&m_connection_profile);
-            if (FAILED(hr) || (m_connection_profile == NULL) || (m_connection_profile.Get() == NULL))
-            {
-                LOG_ERROR("Unable to get GetInternetConnectionProfile");
-                return NetworkCost_Unknown;
-            }
-
-            // FIXME: it crashes here if network goes down!!!
-            ComPtr<IConnectionCost> cost;
-            hr = m_connection_profile->GetConnectionCost(&cost);
-            if (hr)
-            {
-                LOG_WARN("Cost unavailable!");
-            }
-
-            boolean isApproachingDataLimit;
-            hr = cost->get_ApproachingDataLimit(&isApproachingDataLimit);
-            if (!hr)
-            {
-                TRACE("isApproachingDataLimit      = %d", isApproachingDataLimit);
-            }
-
-            NetworkCostType type;
-            hr = cost->get_NetworkCostType(&type);
-            if (!hr)
-            {
-                TRACE("NetworkCostType             = %d [%s]", type, GetNetworkCostName(type));
-            }
-
-            boolean isOverDataLimit;
-            hr = cost->get_OverDataLimit(&isOverDataLimit);
-            if (!hr)
-            {
-                TRACE("isOverDataLimit             = %d", isOverDataLimit);
-            }
-
-            boolean isRoaming;
-            hr = cost->get_Roaming(&isRoaming);
-            if (!hr)
-            {
-                TRACE("isRoaming                   = %d", isRoaming);
-            }
-
-            // Decide what NetworkCost we are here
-            if (isOverDataLimit || isRoaming || isApproachingDataLimit)
-            {
-                result = NetworkCost_Roaming;
-            }
-            else
-                if (type == NetworkCostType_Unrestricted)
-                {
-                    result = NetworkCost_Unmetered;
-                }
-                else
-                    if (type == NetworkCostType_Fixed || type == NetworkCostType_Variable)
-                    {
-                        result = NetworkCost_Metered;
-                    }
-#endif
-            // Obtain network type to the best of our knowledge using WinInet.dll
-            // This logic may need further improvements to detect WiFi properly.
-#if 0				// This code is temporarily disabled because it does not bring enough
-                    // value to Office team.
-            DWORD flags = 0;
-            DWORD reserved = 0;
-            if (::InternetGetConnectedState(&flags, reserved)) {
-                switch (flags) {
-                case INTERNET_CONNECTION_MODEM:
-                case INTERNET_CONNECTION_LAN:
-                    m_currentNetworkType = NetworkType_Wired;
-                    break;
-                default:
-                    m_currentNetworkType = NetworkType_Unknown;
-                    break;
-                }
-            }
-#endif
-
             return result;
-        }
+}
 
         /// <summary>
         /// Get adapter id for IConnectionProfile
@@ -301,7 +200,7 @@ namespace ARIASDK_NS_BEGIN
             if (connectivityLevel != NetworkConnectivityLevel_None)
             {
 
-            }
+        }
 #endif
 
             ComPtr<INetworkAdapter> adapter;

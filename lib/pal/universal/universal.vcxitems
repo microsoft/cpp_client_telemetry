@@ -18,7 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeDeviceInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeNetworkInformationImpl.cpp" />
@@ -27,5 +26,17 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemGroup>
 </Project>

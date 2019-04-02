@@ -4,12 +4,12 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include "packager/Packager.hpp"
-#include "bond_lite/All.hpp"
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class PackagerTests : public StrictMock<Test> {

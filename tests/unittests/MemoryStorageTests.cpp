@@ -10,9 +10,7 @@
 #include <stdio.h>
 #include <regex>
 
-#ifdef _WIN32
-#include "pal/PAL_Win32.hpp"
-#endif
+#include "pal/PAL.hpp"
 
 #include <set>
 #include <memory>
@@ -20,7 +18,7 @@
 #include <atomic>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 /// <summary>
 /// Test observer. Currently the callbacks mechanism is not implemented at MemoryStorage abstraction level.

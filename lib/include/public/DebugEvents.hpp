@@ -1,6 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef DEBUGEVENTS_HPP
 #define DEBUGEVENTS_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
 
@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN
 {
 
     /// <summary>
-    /// The DebugEventType enumeration contains a set of values that specify the types debug events supported by the Aria C++ SDK.
+    /// DebugEventType enumeration contains a set of event types supported by SDK
     /// </summary>
     typedef enum DebugEventType
     {
@@ -126,14 +126,14 @@ namespace ARIASDK_NS_BEGIN
     };
 
     /// <summary>
-    /// The DebugEventListener class allows applications to register ARIA SDK debug callbacks
+    /// The DebugEventListener class allows applications to register Microsoft Telemetry SDK debug callbacks
     /// for debugging and unit testing (not recommended for use in a production environment).
     /// 
     /// Customers can implement this abstract class to track when certain events
-    /// happen under the hood in the ARIA SDK. The callback is synchronously executed
-    /// within the context of the ARIA worker thread.
+    /// happen under the hood in the Microsoft Telemetry SDK. The callback is synchronously executed
+    /// within the context of the Microsoft Telemetry worker thread.
     /// </summary>
-    class ARIASDK_LIBABI DebugEventListener
+    class MATSDK_LIBABI DebugEventListener
     {
 
     public:
@@ -144,7 +144,7 @@ namespace ARIASDK_NS_BEGIN
         virtual ~DebugEventListener() {};
     };
 
-    class ARIASDK_LIBABI DebugEventDispatcher
+    class MATSDK_LIBABI DebugEventDispatcher
     {
     public:
 
@@ -158,7 +158,7 @@ namespace ARIASDK_NS_BEGIN
 #pragma warning( disable: 4251 )
 #endif
     /// <summary>The DebugEventSource class represents a debug event source.</summary>
-    class ARIASDK_LIBABI DebugEventSource: public DebugEventDispatcher
+    class MATSDK_LIBABI DebugEventSource: public DebugEventDispatcher
     {
     public:
         /// <summary>The DebugEventSource constructor.</summary>

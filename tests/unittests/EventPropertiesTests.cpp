@@ -4,7 +4,7 @@
 #include "api/ContextFieldsProvider.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 TEST(EventPropertiesTests, Construction)

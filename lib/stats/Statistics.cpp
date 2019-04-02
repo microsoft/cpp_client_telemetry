@@ -57,7 +57,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        std::vector< ::AriaProtocol::Record> records;
+        std::vector< ::CsProtocol::Record> records;
         {
             LOCKGUARD(m_metaStats_mtx);
             records = m_metaStats.generateStatsEvent(rollupKind);

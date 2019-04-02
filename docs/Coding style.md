@@ -55,45 +55,6 @@ this order:
 C++ code
 --------
 
-#### Uncrustify
-
-After a tedious evaluation process,
-[Uncrustify](http://uncrustify.sourceforge.net/) has been chosen as the
-tool to use for C++ source code processing and validation, because it is
-free, open source and highly customizable.
-
-There are two related files stored in project's root directory -
-`uncrustify.cfg` contains the settings for Uncrustify itself,
-`uncrustify.ignore` contains partial path patterns to ignore while
-performing the formatting validation.
-
-#### Recommended process
-
-1.  Modify files and commit: `git add ...`, `git commit`.
-2.  Format in place:
-    `uncrustify -c uncrustify.cfg --no-backup <modified-file1> <modified-file2> ...`
-3.  Verify: `git diff`
-4.  If changed, edit if necessary and amend the commit: `git add ...`,
-    `git commit --amend --no-edit`.
-
-#### Exceptions
-
-It is possible to turn off formatting temporarily for a block of code by
-comments containing `*INDENT-OFF*` and `*INDENT-ON*`, respectively. This
-should be used only sparingly, if really necessary. Additional
-explanatory comment should be written after `*INDENT-OFF*` to describe
-why the suppression was necessary.
-
-Good usage:
-
--   Avoid chained namespaces indenting their whole content by 50 spaces.
--   Angle brackets in `std::min<int>(...)` misunderstood as comparison
-    operators and adding extra space.
-
-Bad usage:
-
--   I don't like a blank line between functions etc.
-
 #### Rules (non-exhaustive list)
 
 -   Indentation
@@ -198,7 +159,7 @@ CMake scripts
 Markdown documentation
 ----------------------
 
--   Non-GFM (Github Flavored Markdown), hard wrapped at 80 characters.
+-   GitHub Flavored Markdown
 -   Trailing white space (two spaces at end of line) is allowed as an
     official means to insert a hard line break.
 -   Everything in English, with clear full sentences, without colloquial

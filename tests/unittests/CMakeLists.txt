@@ -12,7 +12,6 @@ set(SRCS
   EventFilterTests.cpp
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
-  FIFOOfflineStorageTests.cpp
   GuidTests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
@@ -20,20 +19,16 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
-  LoggerTests.cpp
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
   OfflineStorageTests_SQLite.cpp
-  OfflineStorageTests_SQLiteWithMock.cpp
   PackagerTests.cpp
   PalTests.cpp
   RouteTests.cpp
-  SingleControlPlaneTests.cpp
   StringUtilsTests.cpp
-  TenantDataSerializerTests.cpp
   TransmissionPolicyManagerTests.cpp
   UtilsTests.cpp
 )
@@ -53,7 +48,7 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(UnitTests
-  aria
+        mat
 	wininet.lib
 	${CMAKE_BINARY_DIR}/gtest/gtest.lib
 	${CMAKE_BINARY_DIR}/gmock/gmock.lib
@@ -91,7 +86,7 @@ else()
   target_link_libraries(UnitTests 
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
-    aria
+    mat
     curl
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}

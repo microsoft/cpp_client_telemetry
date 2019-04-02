@@ -1,0 +1,322 @@
+1DS OneSDK Client Library API
+=============================
+
+### Requirements
+
+-   Allows writing correct programs (no memory leaks, clear
+    memory/resources ownership etc.).
+-   Allows writing correct tests (supports proper mocking/stubbing).
+-   Easy and enjoyable to use for library users.
+-   Respects the unified 1DS OneSDK API documented at
+    <https://aria.microsoft.com/developer/api/aria-sdks/>
+    -   The various icons above the topic list on that page switch
+        between different platforms - cloud (.NET), Android, Apple
+        and Windows.
+    -   C++ API is documented under Apple icon (because C++ is exposed
+        witout any projection on iOS, unlike Android and Windows).
+-   Capable of working in all of the following configurations in one
+    process:
+    -   Application linked with Microsoft Telemetry CL static library.
+    -   Application linked with Microsoft Telemetry CL DLL.
+    -   Application linked with Microsoft Telemetry CL static library and another
+        static library, which also uses Microsoft Telemetry CL, with shared instance
+        and shared initialization/configuration.
+    -   Application linked with Microsoft Telemetry CL DLL and another DLL, which also
+        uses Microsoft Telemetry CL, which shared instance and
+        shared initialization/configuration.
+    -   Application with no link to Microsoft Telemetry CL which loads two other DLLs,
+        which are both linked with Microsoft Telemetry CL static library, with separate
+        instances and separate initializations/configurations.
+    -   Application with no link to Microsoft Telemetry CL which loads two other DLLs,
+        which are both linked with Microsoft Telemetry CL DLL, with separate instances
+        and separate initializations/configurations.
+-   Capable of working in all of the following configurations on one
+    machine:
+    -   Running one application which uses Microsoft Telemetry CL.
+    -   Running two different applications which both use Microsoft Telemetry CL.
+    -   Running two instances of the same application which uses
+        Microsoft Telemetry CL.
+
+------------------------------------------------------------------------
+
+### Files
+
+The published API files are all C++ header files with file extension
+`.hpp`.
+
+All header files are packaged inside a directory called `aria`, so that
+library users can refer to them clearly as `<aria/HeaderName.hpp>`.
+
+All header files will start with `#pragma once` to avoid multiple
+inclusion.
+
+All header files will `#include` any other header files as required, so
+that the user does not need to understand any internal dependencies.
+
+Each class/structure is in a separate file named as the class/structure
+itself. Exceptions are allowed for small auxiliary classes, collection
+of utilities etc.
+
+### Namespace
+
+API uses namespace `Microsoft::Applications::Events`, as the rest of
+the SDKs.
+
+The public headers contain this boilerplate:
+
+``` cpp
+namespace Microsoft { namespace Applications { namespace Events {
+  
+...
+
+}}} // namespace Microsoft::Applications::Events
+```
+
+### Versioning
+
+Changes which break backward compatibility result in increasing the
+major version of the library.
+
+Sufficient amount of new functionality implemented in a backward
+compatible manner result in increasing the minor version of the library.
+What is the exact level of "sufficient amount" is determined on a
+case-by-case basis.
+
+##### Version.hpp
+
+There is a dynamically generated file `Version.hpp`, which contains
+information about the library version (in the correct namespace as the
+rest of the symbols).
+
+It contains these items:
+
+-   A preprocessor define `Telemetry`, which is defined to
+    `Telemetry_vX`, where `X` is the major version number of
+    the library. This affects the latest part `Telemetry` in the
+    namespace `Microsoft::Applications::Events` everywhere.
+
+-   An `uint64_t` constant `Version`, which contains a full version
+    number encoded as four 16-bit values for major/minor/patch/build
+    version, in this order from MSB. For all-source builds (e.g. Skype
+    Orient), patch and build version are set to 0 as it doesn't make
+    sense to specify them.
+
+-   A preprocessor define `EVENTS_PAL_xxx`, where `xxx` is the name of
+    the selected PAL variant while building the library. This is needed
+    for customizing `LogConfiguration` - see below.
+
+-   A mechanism for detecting mismatch between the headers and linked
+    library with the following characteristics:
+    -   It is not possible to compile or link a program where some
+        modules are using headers from the same major version but higher
+        minor version of the library than the version being statically
+        linked in.
+    -   It is possible to compile and link a program where different
+        modules are using headers and code from a different major
+        versions of the library as long as the constraints for minor
+        versions are correct.
+    -   There is no active or dead code or data generated by this
+        detection in release builds.
+
+### Exceptions
+
+The C++ client library does not throw any exceptions from any of its
+methods during normal operation. Error conditions like invalid input
+arguments are always explained in the debug/trace log and additionally,
+in debug builds, stop execution in a platform dependent manner (fatal
+exception, assert, ...).
+
+### Configuration
+
+The library configuration is commonly stored in a structure of type
+`LogConfiguration` in other SDKs and this implementation uses the same.
+
+``` cpp
+struct LogConfiguration
+{
+```
+
+It contains some common settings available on almost all platforms:
+
+``` cpp
+    std::string eventCollectorUri;
+    std::string blobCollectorUri;
+    std::string cacheFilePath;
+    unsigned    cacheFileSizeLimitInBytes;
+    unsigned    cacheMemorySizeLimitInBytes;
+```
+
+It also needs to contain references to other external components, which
+are a bit of a specialty of the C++ SDK. It needs to be very flexible in
+what platform dependent routines it uses, needs some parts to be plugged
+in from the outside (e.g. for Skype) and so on.
+
+These parts are behind `#ifdef` blocks, because of possible external
+type references. An example:
+
+``` cpp
+    #ifdef EVENTS_PAL_SKYPE
+        ::http_stack::IHttpStackPtr httpStack;
+        ::ecsclient::IEcsClientPtr  ecsClient;
+        ::rm::IResourceManagerPtr   resourceManager;
+    #elif EVENTS_PAL_WIN32
+        ...
+    #endif
+    };
+```
+
+### Enumerations
+
+Enumerations of values used in events values or library interface are
+stored in `aria/Enums.hpp`.
+
+Identifiers of the individual enum values are in the form
+`EnumName_Value`, where `EnumValue` is the name of the enumeration.
+
+### Classes
+
+##### LogManager
+
+The class `LogManager` is used in SDKs documentation as an entry point
+for accessing the library. The same applies for the new C++ library as
+well. A few changes have been made though:
+
+-   There is an `ILogManager` interface created based on the
+    `LogManager` methods except for `Initialize()`, where all of the
+    methods are virtual.
+
+``` cpp
+    static ILogger* Initialize(const std::string& tenantToken);
+    static ILogger* Initialize(const std::string& tenantToken, const LogConfiguration& configuration);
+```
+
+-   This is kept for backward compatibility and simple applications.
+
+``` cpp
+    static ILogManager* Initialize(const LogConfiguration& configuration);
+```
+
+-   New method: Returns `ILogManager*` interface to invoke other
+    methods on. Preferred for complex applications and mock testing.
+
+-   Other static methods on `LogManager` work on the default
+    `ILogManager` instance created by the previous call to
+    `LogManager::Initialize()`.
+
+``` cpp
+    ISemanticContext* GetSemanticContext();
+```
+
+-   `GetSemanticContext()` has been changed to return `ISemanticContext`
+    by reference to show clearly that it's owned by the library.
+
+``` cpp
+    ILogger* GetLogger();
+    ILogger* GetLogger(const std::string& source);
+    ILogger* GetLogger(const std::string& tenantToken, const std::string& source);
+    ILogger* GetLoggerWithEcs(const std::string& source, const std::string& ecsProject);
+    ILogger* GetLoggerWithEcs(const std::string& tenantToken, const std::string& source, const std::string& ecsProject);
+```
+
+-   Kept in the static `LogManager` for backward compatibility and
+    simple applications.
+
+-   Only a new explicit `GetLogger()` method is available on the
+    `ILogManager` interface:
+
+``` cpp
+    ILogger* GetLogger(
+        const std::string& tenantToken,
+        const std::string& sourceName      = std::string(),
+        const std::string& configProjectId = std::string());
+```
+
+##### ILogger
+
+A pure interface for sending events to one tenant. A few changes:
+
+``` cpp
+    ISemanticContext* GetSemanticContext();
+```
+
+-   `GetSemanticContext()` returns `ISemanticContext` by reference to
+    show clearly that it's owned by the library.
+
+-   Two new methods will be introduced for creating `IAggregatedMetric`
+    instances - see below:
+
+``` cpp
+    ResultCode CollectAggregatedMetric(const std::string& name, const std::string& units,
+        const unsigned intervalInSec, const EventProperties& eventProperties, IAggregatedMetric*& metric) = 0;
+    ResultCode CollectAggregatedMetric(const std::string& name, const std::string& units,
+        const unsigned intervalInSec, const std::string& instanceName, const std::string& objectClass,
+        const std::string& objectId, const EventProperties& eventProperties, IAggregatedMetric*& metric) = 0;
+```
+
+##### EventProperties
+
+Details about a custom event with its name, extension fields, PII fields
+etc.
+
+Contrary to the previous implementation, this class has been implemented
+fully inline, so that linking to the library is not needed to create
+events and send them to a mock `ILogger`.
+
+This means that field name validation has to be postponed till the
+`ILogger::LogEvent()` call. This seems like a reasonable drawback, it is
+a centralized place where to check all input values and library state.
+
+##### ISemanticContext
+
+A pure interface for configuring the semantic context. No changes.
+
+##### AggregatedMetricData, PageActionData
+
+Plain structures with no methods. No changes.
+
+##### AggregatedMetric (IAggregatedMetric)
+
+This class was problematic because of its unclear optional link to
+`ILogger` instance and other structures. It was a false interface using
+pimpl-idiom, where the implementation class actually ran in background
+and periodically submitted data until destroyed.
+
+It has been changed to a pure interface `IAggregatedMetric` with virtual
+destructor and virtual method `PushMetric(double)`. An instance of
+`IAggregatedMetric` is created through
+`ILogger::CollectAggregatedMetric()` - see above.
+
+### Lifetime
+
+The library's lifetime is bound by the `LogManager::Initialize()` and
+`LogManager::FlushAndTearDown()` calls. All further operations are
+performed on the returned `ILogManager` or `ILogger` interfaces.
+
+The first `ILogManager` instance created by `LogManager::Initialize()`
+is stored as the *default instance* and can be accessed through static
+compatibility methods like `LogManager::PauseTransmission()` (without
+having an `ILogManager` pointer around).
+
+The first `ILogger` instance created by `ILogManager::GetLogger()` is
+stored as the *default logger* and can be accessed through static
+compatibility methods like `LogManager::GetLogger()` (without any tenant
+token argument).
+
+### Testing and mocking
+
+The only entry point for library users is `LogManager::Initialize()`.
+All other features are accessed through `ILogManager`, `ILogger` or
+other interfaces. These interfaces allow easy mocking inside client's
+code.
+
+### Documentation
+
+All public classes, structures, enumerations, their methods, fields and
+arguments are documented in comments formatted according to the MS
+Visual Studio style (XML), like it has been already done in the previous
+Microsoft Telemetry SDK.
+
+### Coding style
+
+All files in the public API use the same coding style as set up and
+enforced for the rest of the library.

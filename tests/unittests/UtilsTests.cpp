@@ -5,7 +5,7 @@
 #include "CorrelationVector.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 using std::string;
 
@@ -65,11 +65,11 @@ TEST(UtilsTests, TestValidatePropertyName)
 		string curString(1, curChar);
 
 		if (!isalnum(i)
-#if ARIASDK_PAL_SKYPE
-			// if ARIASDK_PAL_SKYPE is defined ':' and '-' are also allowed
+#if MATSDK_PAL_LEGACY
+			// if MATSDK_PAL_LEGACY is defined ':' and '-' are also allowed
 			// for backward compatibility.
 			&& curChar != ':' && curChar != '-'
-#endif // ARIASDK_PAL_SKYPE
+#endif
 		)
 		{
            // or as part of the bigger string

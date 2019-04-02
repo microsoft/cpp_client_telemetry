@@ -1,35 +1,35 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef CTMACROS_HPP
 #define CTMACROS_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #ifdef _WIN32       // Windows platforms
 
-#ifndef ARIASDK_SPEC // we use __cdecl by default
-#define ARIASDK_SPEC __cdecl
-#define ARIASDK_LIBABI_CDECL __cdecl
-#  if defined(ARIASDK_SHARED_LIB)
-#    define ARIASDK_LIBABI __declspec(dllexport)
-#  elif defined(ARIASDK_STATIC_LIB)
-#    define ARIASDK_LIBABI
+#ifndef MATSDK_SPEC // we use __cdecl by default
+#define MATSDK_SPEC __cdecl
+#define MATSDK_LIBABI_CDECL __cdecl
+#  if defined(MATSDK_SHARED_LIB)
+#    define MATSDK_LIBABI __declspec(dllexport)
+#  elif defined(MATSDK_STATIC_LIB)
+#    define MATSDK_LIBABI
 #  else // Header file included by client
-#    ifndef ARIASDK_LIBABI
-#    define ARIASDK_LIBABI
+#    ifndef MATSDK_LIBABI
+#    define MATSDK_LIBABI
 #    endif
 #  endif
 #endif
 
 #else               // Non-windows platforms
 
-#ifndef ARIASDK_SPEC 
-#define ARIASDK_SPEC
+#ifndef MATSDK_SPEC 
+#define MATSDK_SPEC
 #endif
 
-#ifndef ARIASDK_LIBABI_CDECL
-#define ARIASDK_LIBABI_CDECL
+#ifndef MATSDK_LIBABI_CDECL
+#define MATSDK_LIBABI_CDECL
 #endif
 
-#ifndef ARIASDK_LIBABI 
-#define ARIASDK_LIBABI
+#ifndef MATSDK_LIBABI 
+#define MATSDK_LIBABI
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
@@ -37,6 +37,17 @@
 #define OACR_USE_PTR(...)
 #define _Out_writes_bytes_(...)
 
+#endif
+
+#ifdef MATSDK_UNUSED
+#elif defined(__GNUC__) || defined(__clang__)
+# define MATSDK_UNUSED(x) (x) /* __attribute__((unused)) */
+#elif defined(__LCLINT__)
+# define MATSDK_UNUSED(x) /*@unused@*/ x
+#elif defined(__cplusplus)
+# define MATSDK_UNUSED(x)
+#else
+# define MATSDK_UNUSED(x) x
 #endif
 
 #define STRINGIZE_DETAIL(x)         #x
@@ -69,8 +80,8 @@
 #define ARCH_ARM
 #endif
 
-#define EVTSDK_LIBABI       ARIASDK_LIBABI
-#define EVTSDK_LIBABI_CDECL ARIASDK_LIBABI_CDECL
-#define EVTSDK_SPEC         ARIASDK_SPEC
+#define EVTSDK_LIBABI       MATSDK_LIBABI
+#define EVTSDK_LIBABI_CDECL MATSDK_LIBABI_CDECL
+#define EVTSDK_SPEC         MATSDK_SPEC
 
 #endif

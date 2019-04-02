@@ -13,7 +13,7 @@ public:
     static IHttpClient* Create();
 
 private:
-    ARIASDK_LOG_DECL_COMPONENT_CLASS();
+    MATSDK_LOG_DECL_COMPONENT_CLASS();
 };
 
 

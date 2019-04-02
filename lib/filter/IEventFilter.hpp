@@ -4,8 +4,8 @@
 //
 // Interface for filtering specific events from the event stream
 //
-#ifndef ARIA_IEVENTFILTER_HPP
-#define ARIA_IEVENTFILTER_HPP
+#ifndef MAT_IEVENTFILTER_HPP
+#define MAT_IEVENTFILTER_HPP
 
 #include "pal/PAL.hpp"
 #include <cstdint>
@@ -102,4 +102,4 @@ namespace ARIASDK_NS_BEGIN
 } ARIASDK_NS_END
 
 
-#endif //!ARIA_IEVENTFILTER_HPP
+#endif //!MAT_IEVENTFILTER_HPP

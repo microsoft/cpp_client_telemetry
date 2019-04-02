@@ -1,12 +1,14 @@
-#ifndef ARIA_LOGMANAGER_PROVIDER_HPP
-#define ARIA_LOGMANAGER_PROVIDER_HPP
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_LOGMANAGER_PROVIDER_HPP
+#define MAT_LOGMANAGER_PROVIDER_HPP
 
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
 #include "NullObjects.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
     /// <summary>
     /// Public interface to LogManagerFactory.
@@ -16,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     /// That way early compat checks can be run prior to returning an instance.
     ///
     /// </summary>
-    class ARIASDK_LIBABI LogManagerProvider
+    class MATSDK_LIBABI LogManagerProvider
     {
     public:
 
@@ -32,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="status">Status.</param> 
         /// <param name="wantController">WantController.</param> 
         /// </summary> 
-        static ILogManager* ARIASDK_SPEC CreateLogManager(
+        static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
             ILogConfiguration& cfg,
@@ -42,7 +44,7 @@ namespace ARIASDK_NS_BEGIN {
             jclass contextClass,
             jobject  contextObject,
 #endif
-            uint64_t targetVersion = ARIASDK_NS::Version)
+            uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
@@ -62,14 +64,14 @@ namespace ARIASDK_NS_BEGIN {
 
          */
 
-        /// <summary> 
-        /// Creates the LogManager with the current configuration. 
-        /// The same ILogManager is returned for the same apiKey specified. 
-        /// <param name="id">Instance Id.</param> 
-        /// <param name="status">Status.</param> 
-        /// <param name="wantController">WantController.</param> 
-        /// </summary> 
-        static ILogManager* ARIASDK_SPEC CreateLogManager(
+         /// <summary> 
+         /// Creates the LogManager with the current configuration. 
+         /// The same ILogManager is returned for the same apiKey specified. 
+         /// <param name="id">Instance Id.</param> 
+         /// <param name="status">Status.</param> 
+         /// <param name="wantController">WantController.</param> 
+         /// </summary> 
+        static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
             status_t& status,
@@ -78,7 +80,7 @@ namespace ARIASDK_NS_BEGIN {
             jclass contextClass,
             jobject  contextObject,
 #endif
-            uint64_t targetVersion = ARIASDK_NS::Version)
+            uint64_t targetVersion = MAT::Version)
         {
             UNREFERENCED_PARAMETER(targetVersion);
             UNREFERENCED_PARAMETER(wantController);
@@ -102,14 +104,14 @@ namespace ARIASDK_NS_BEGIN {
         /// <param name="id">Instance Id.</param> 
         /// <param name="status">Status.</param> 
         /// </summary> 
-        static ILogManager* ARIASDK_SPEC CreateLogManager(char const* id,
+        static ILogManager* MATSDK_SPEC CreateLogManager(char const* id,
             status_t& status,
 #ifdef ANDROID
             JNIEnv *env,
             jclass contextClass,
             jobject  contextObject,
 #endif
-            uint64_t targetVersion = ARIASDK_NS::Version)
+            uint64_t targetVersion = MAT::Version)
         {
             UNREFERENCED_PARAMETER(targetVersion);
 
@@ -125,7 +127,7 @@ namespace ARIASDK_NS_BEGIN {
             );
         }
 
-        static ILogManager* ARIASDK_SPEC CreateLogManager(
+        static ILogManager* MATSDK_SPEC CreateLogManager(
             ILogConfiguration& cfg,
             status_t& status)
         {
@@ -136,7 +138,7 @@ namespace ARIASDK_NS_BEGIN {
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id.</param> 
         /// </summary> 
-        static status_t ARIASDK_SPEC DestroyLogManager(char const* id)
+        static status_t MATSDK_SPEC DestroyLogManager(char const* id)
         {
             return Release(id);
         }
@@ -145,9 +147,9 @@ namespace ARIASDK_NS_BEGIN {
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id</param> 
         /// </summary> 
-        static status_t ARIASDK_SPEC Release(const char * id);
+        static status_t MATSDK_SPEC Release(const char * id);
 
-        static status_t ARIASDK_SPEC Release(ILogConfiguration & cfg);
+        static status_t MATSDK_SPEC Release(ILogConfiguration & cfg);
 
     private:
 
@@ -159,7 +161,7 @@ namespace ARIASDK_NS_BEGIN {
         // methods deprecated.
         //
 
-        static ILogManager * ARIASDK_SPEC Get(
+        static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
             status_t &status
 #ifdef ANDROID
@@ -169,7 +171,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
         );
 
-        static ILogManager* ARIASDK_SPEC Get(
+        static ILogManager* MATSDK_SPEC Get(
             const char * id,
             status_t& status
 #ifdef ANDROID
@@ -183,4 +185,4 @@ namespace ARIASDK_NS_BEGIN {
 
 } ARIASDK_NS_END
 
-#endif //ARIA_LOGMANAGER_PROVIDER_HPP
+#endif //MAT_LOGMANAGER_PROVIDER_HPP

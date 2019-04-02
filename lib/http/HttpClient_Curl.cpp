@@ -2,7 +2,7 @@
 
 // Assume that if we are compiling with MSVC, then we prefer to use Windows HTTP stack,
 // e.g. WinInet.dll or Win 10 HTTP client instead
-#if defined(ARIASDK_PAL_CPP11) && !defined(_MSC_VER)
+#if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER)
 
 // Copyright (c) Microsoft. All rights reserved.
 
@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     /**
-     * curl request wrapper compatible with Aria SDK
+     * curl request wrapper compatible with telemetry SDK
      */
     class CurlHttpRequest : public SimpleHttpRequest {
 

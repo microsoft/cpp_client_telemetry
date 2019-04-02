@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(AriaSDK)
+project(MSTelemetry)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -54,7 +54,7 @@ set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
 
 message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
-add_definitions(-DARIASDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
+add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
 
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
@@ -70,25 +70,25 @@ endif()
 ################################################################################################
 
 set(SDK_VERSION_PREFIX "EVT")
-add_definitions("-DARIASDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
+add_definitions("-DMATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
 
-set(ARIASDK_API_VERSION "3.1")
+set(MATSDK_API_VERSION "3.1")
 string(TIMESTAMP DAYNUMBER "%j")
 string(REGEX REPLACE "^00" "" DAYNUMBER ${DAYNUMBER})
 string(REGEX REPLACE "^0"  "" DAYNUMBER ${DAYNUMBER})
 
 if(DEFINED BUILD_VERSION AND NOT BUILD_VERSION STREQUAL "0.0.0.0")
   message(STATUS "Using externally set build version: ${BUILD_VERSION}")
-  string(REPLACE "." "\\." ARIASDK_API_VERSION_ESCAPED ${ARIASDK_API_VERSION})
-  if(NOT BUILD_VERSION MATCHES "^${ARIASDK_API_VERSION_ESCAPED}\\.")
-    message(WARNING "BUILD_VERSION (${BUILD_VERSION}) does not start with the current API version prefix (${ARIASDK_API_VERSION}).")
+  string(REPLACE "." "\\." MATSDK_API_VERSION_ESCAPED ${MATSDK_API_VERSION})
+  if(NOT BUILD_VERSION MATCHES "^${MATSDK_API_VERSION_ESCAPED}\\.")
+    message(WARNING "BUILD_VERSION (${BUILD_VERSION}) does not start with the current API version prefix (${MATSDK_API_VERSION}).")
   endif()
-  set(ARIASDK_BUILD_VERSION ${BUILD_VERSION})
+  set(MATSDK_BUILD_VERSION ${BUILD_VERSION})
 else()
-  set(ARIASDK_BUILD_VERSION ${ARIASDK_API_VERSION}.${DAYNUMBER}.0)
+  set(MATSDK_BUILD_VERSION ${MATSDK_API_VERSION}.${DAYNUMBER}.0)
 endif()
 
-message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${ARIASDK_BUILD_VERSION}")
+message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 ################################################################################################
 # HTTP stack section
@@ -173,7 +173,7 @@ if (BUILD_PACKAGE)
   endif()
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
-    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/AriaSDK/* - what should we use instead?
+    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)
   endif()
 endif()

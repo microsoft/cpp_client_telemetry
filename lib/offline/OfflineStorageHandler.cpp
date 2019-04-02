@@ -16,7 +16,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager & logManager, IRuntimeConfig& runtimeConfig)
         : m_logManager(logManager),

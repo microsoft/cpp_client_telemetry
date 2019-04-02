@@ -28,9 +28,9 @@ namespace Microsoft {
 
                 public enum class SdkModeTypes {
                     /// <summary>The default transmission mode.</summary>
-                    SdkModeTypes_Aria = MAT::SdkModeTypes::SdkModeTypes_Aria,
+                    SdkModeTypes_CS = MAT::SdkModeTypes::SdkModeTypes_CS,
                     /// <summary>Backward compatibility transmission mode.</summary>
-                    SdkModeTypes_UTCAriaBackCompat = MAT::SdkModeTypes::SdkModeTypes_UTCAriaBackCompat,
+                    SdkModeTypes_UTCBackCompat = MAT::SdkModeTypes::SdkModeTypes_UTCBackCompat,
                     /// <summary>Common schema transmission mode.</summary>
                     SdkModeTypes_UTCCommonSchema = MAT::SdkModeTypes::SdkModeTypes_UTCCommonSchema
                 };
@@ -59,7 +59,7 @@ namespace Microsoft {
                         AutoLogAppSuspend = true;
                         AutoLogAppResume = true;
                         AutoLogUnhandledException = true;
-                        SdkMode = SdkModeTypes::SdkModeTypes_Aria;
+                        SdkMode = SdkModeTypes::SdkModeTypes_CS;
                         MaxTeardownUploadTimeInSec = 0;
                         MaxPendingHTTPRequests = 16;
                         MaxDBFlushQueues = 3;
