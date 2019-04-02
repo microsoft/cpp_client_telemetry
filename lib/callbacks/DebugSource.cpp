@@ -24,9 +24,6 @@ namespace ARIASDK_NS_BEGIN {
         auto &registeredListeners = (*registeredTypes).second;
         auto it = std::remove(registeredListeners.begin(), registeredListeners.end(), &listener);
         registeredListeners.erase(it, registeredListeners.end());
-
-        if (registeredListeners.size() == 0)
-           std::vector<DebugEventListener*>{}.swap(registeredListeners);
     }
 
     /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>

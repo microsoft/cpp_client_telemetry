@@ -91,7 +91,6 @@ TEST(DebugEventSourceTests, RemoveEventListener_OneRegisteredListener_RemovesLis
 	source.AddEventListener(EVT_LOG_EVENT, listener);
 	source.RemoveEventListener(EVT_LOG_EVENT, listener);
 	ASSERT_EQ(source.listeners[EVT_LOG_EVENT].size(), size_t { 0 });
-	ASSERT_EQ(source.listeners[EVT_LOG_EVENT].capacity(), size_t { 0 });
 }
 
 TEST(DebugEventSourceTests, RemoveEventListener_TwoListenersOfTheSameTypeRemoveFirst_OneListenerLeft)
