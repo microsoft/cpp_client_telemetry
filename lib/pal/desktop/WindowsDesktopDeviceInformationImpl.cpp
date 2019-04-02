@@ -61,7 +61,10 @@ namespace PAL_NS_BEGIN {
                 pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
                 result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
                 if (result == ERROR_NO_DATA)
+                {
+                    FREE(pAdapterInfo);
                     goto _exit;
+                }
             }
             if (pAdapterInfo != NULL)
             {
