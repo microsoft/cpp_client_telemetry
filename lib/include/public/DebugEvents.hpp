@@ -141,7 +141,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void OnDebugEvent(DebugEvent &evt) = 0;
 
         /// <summary>The DebugEventListener destructor.</summary>
-        virtual ~DebugEventListener() {};
+        virtual ~DebugEventListener() noexcept = default;
     };
 
     class ARIASDK_LIBABI DebugEventDispatcher
@@ -151,6 +151,8 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Dispatches the specified event to a client callback.</summary>
         virtual bool DispatchEvent(DebugEvent evt) = 0;
 
+		  /// <summary>The DebugEventDispatcher destructor.</summary>
+		  virtual ~DebugEventDispatcher() noexcept = default;
     };
 
 #ifdef _MSC_VER
@@ -163,9 +165,6 @@ namespace ARIASDK_NS_BEGIN
     public:
         /// <summary>The DebugEventSource constructor.</summary>
         DebugEventSource() : seq(0) {}
-
-        /// <summary>The DebugEventSource destructor.</summary>        
-        virtual ~DebugEventSource() {};
 
         /// <summary>Adds an event listener for the specified debug event type.</summary>
         virtual void AddEventListener(DebugEventType type, DebugEventListener &listener);
