@@ -151,8 +151,8 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Dispatches the specified event to a client callback.</summary>
         virtual bool DispatchEvent(DebugEvent evt) = 0;
 
-		  /// <summary>The DebugEventDispatcher destructor.</summary>
-		  virtual ~DebugEventDispatcher() noexcept = default;
+        /// <summary>The DebugEventDispatcher destructor.</summary>
+        virtual ~DebugEventDispatcher() noexcept = default;
     };
 
 #ifdef _MSC_VER
