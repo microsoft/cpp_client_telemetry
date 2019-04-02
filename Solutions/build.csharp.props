@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<PropertyGroup>
+    <OutDir>$(SolutionDir)\out\$(Configuration)\$(Platform)\$(AssemblyName)\bin\</OutDir>
+    <IntDir>$(SolutionDir)\out\$(Configuration)\$(Platform)\$(AssemblyName)\obj\</IntDir>
+    <OutputPath>$(OutDir)</OutputPath>
+    <TargetPath>$(OutDir)$(TargetName)$(TargetExt)</TargetPath>
+</PropertyGroup>
+
+</Project>

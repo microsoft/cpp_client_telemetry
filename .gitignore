@@ -328,3 +328,65 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+*.VC.db
+*.ipch
+*.opendb
+*.suo
+*.user
+.buildtools
+.cproject
+.project
+.settings
+/.metadata/
+/Default/
+/Makefile
+/Sample/Debug/
+/Sample/Release/
+/Sample/x64/
+/Solutions/.vs/
+/Solutions/Testing/Temporary
+/Solutions/out/
+/cmake_install.cmake
+/dist/
+/docs/out
+/examples/.vs/samples/v15/Server/sqlite3
+/lib/Makefile
+/lib/cmake_install.cmake
+/lib/include/Makefile
+/lib/include/cmake_install.cmake
+/lib/libmat.a
+/linktest/out/*
+/out/
+/tests/curltests/HttpClient_Curl.hpp
+/tests/curltests/out/*
+/tests/ecs/node_modules
+3.5.1
+CMakeCache.txt
+CMakeFiles
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Debug/
+Generated\ Files
+Release/
+Solutions/afdclient-cpp/Generated\ Files/*
+Solutions/ecsclient-cpp/Generated\ Files/*
+Version.hpp
+bondlite/external/bond/
+bondlite/generated/bond/
+lib/include/public/Version.hpp
+lib/jni/gen/
+linktest/Makefile
+linktest/cmake_install.cmake
+linktest/linktest
+offlinestorage.db*
+sqlite-autoconf*
+wrappers/go/example
+wrappers/go/offlinestorage.*
+zlib/contrib/**/*.obj
+zlib/contrib/masmx64/*.lst
+zlib/contrib/masmx86/*.lst
+zlib/contrib/vstudio/vc14/ARM/
+zlib/contrib/vstudio/vc14/Release/
+zlib/contrib/vstudio/vc14/ReleaseWithoutAsm/
+zlib/contrib/vstudio/vc14/x64/

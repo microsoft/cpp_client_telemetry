@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{10E9165B-49D1-4D1C-8248-334B9905B9CD}</ItemsProjectGuid>
+    <ItemsProjectName>desktop</ItemsProjectName>
+    <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp">
+      <AdditionalIncludeDirectories>..\..;..\..\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopDeviceInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopNetworkInformationImpl.cpp">
+      <AdditionalIncludeDirectories>..\..;..\..\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopSystemInformationImpl.cpp" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,476 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\googletest\googlemock\msvc\2015\gmock.vcxproj">
+      <Project>{34681f0d-ce45-415d-b5f2-5c662dfe3bd5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\googletest\googletest\msvc\gtest.vcxproj">
+      <Project>{c8f6c172-56f2-4e76-b5fa-c3b423b31be7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
+      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{434C594F-CDE0-3690-AC0A-9ED854B74092}</ProjectGUID>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>UnitTests</ProjectName>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\..\Solutions\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">UnitTests</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">UnitTests</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UnitTests</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">UnitTests</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</GenerateManifest>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UnitTests</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">UnitTests</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);$(VC_LibraryPath_x64);</ExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;_DEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X64 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:ARM64 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X64 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\googletest\googletest\include;$(ProjectDir)..\..\googletest\googlemock\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING;ZLIB_WINAPI;WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib\bond\generated;$(ProjectDir)..\..\lib\http;$(ProjectDir)..\..\lib\api;$(ProjectDir)..\..\lib\backoff;$(ProjectDir)..\..\lib\callbacks;$(ProjectDir)..\..\lib\config;$(ProjectDir)..\..\lib\compression;$(ProjectDir)..\..\lib\decorators;$(ProjectDir)..\..\lib\offline;$(ProjectDir)..\..\lib\packager;$(ProjectDir)..\..\lib\pal;$(ProjectDir)..\..\lib\stats;$(ProjectDir)..\..\lib\system;$(ProjectDir)..\..\lib\tpm;$(ProjectDir)..\..\lib\utils;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\lib\bond;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\.;$(ProjectDir)..\..\lib;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:ARM64 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>pdh.lib;runtimeobject.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;version.lib;rpcrt4.lib;wininet.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="MemoryStorageTests.cpp" />
+    <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIRuntimeConfig.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockISemanticContext.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
+    <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
+    <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpClientManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpDeflateCompressionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpRequestEncoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpServerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OacrTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
+    <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
+    <ClInclude Include="..\common\MockIBandwidthController.hpp" />
+    <ClInclude Include="..\common\MockIEcsClient.hpp" />
+    <ClInclude Include="..\common\MockITelemetrySystem.hpp" />
+    <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets" Condition="Exists('$(SolutionDir)\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets'))" />
+  </Target>
+</Project>

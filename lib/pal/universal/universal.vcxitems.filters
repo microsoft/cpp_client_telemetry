@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeDeviceInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeNetworkInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+  </ItemGroup>
+</Project>

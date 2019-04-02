@@ -1,0 +1,3 @@
+CreateRequestVersion=3
+RequestType=Indexing
+RequestFilePath=\\symbols\Projects\ARIA\add_requests\ARIA_3.0.248.1_release.ssi

@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
+    <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpClientManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpDeflateCompressionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpRequestEncoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OacrTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OfflineStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
+    <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(ProjectDir)\HttpServerTests.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
+      <Filter>mocks</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStorageTests.cpp" />
+    <ClCompile Include="EventPropertiesStorageTests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockIRuntimeConfig.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockISemanticContext.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\Common.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIBandwidthController.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIEcsClient.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockITelemetrySystem.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="mocks">
+      <UniqueIdentifier>{1ee41be5-aab8-484c-b10d-9d77c3daea98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{44049a53-32db-4e10-87ad-3d42a4fcac17}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

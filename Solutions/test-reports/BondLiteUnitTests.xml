@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="33" failures="0" disabled="0" errors="0" timestamp="2017-04-05T15:17:56" time="0.034" name="AllTests">
+  <testsuite name="CompactBinaryProtocolTests" tests="13" failures="0" disabled="0" errors="0" time="0.007">
+    <testcase name="Blob" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="Bool" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="UInt8" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="Int8" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="VarUInt" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="VarInt" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="Float" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="Double" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="String" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="ContainerBegin" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="MapContainerBegin" status="run" time="0.001" classname="CompactBinaryProtocolTests" />
+    <testcase name="FieldBegin" status="run" time="0" classname="CompactBinaryProtocolTests" />
+    <testcase name="Noops" status="run" time="0" classname="CompactBinaryProtocolTests" />
+  </testsuite>
+  <testsuite name="BondSerialization_Basic/BondSerializerTests" tests="4" failures="0" disabled="0" errors="0" time="0.024">
+    <testcase name="Check/0" value_param="&quot;All empty&quot;" status="run" time="0" classname="BondSerialization_Basic/BondSerializerTests" />
+    <testcase name="Check/1" value_param="&quot;All fields set&quot;" status="run" time="0.014" classname="BondSerialization_Basic/BondSerializerTests" />
+    <testcase name="Check/2" value_param="&quot;Containers with multiple items&quot;" status="run" time="0.008" classname="BondSerialization_Basic/BondSerializerTests" />
+    <testcase name="Check/3" value_param="&quot;Empty substructs&quot;" status="run" time="0.002" classname="BondSerialization_Basic/BondSerializerTests" />
+  </testsuite>
+  <testsuite name="BondSerialization_Varint/BondSerializerTests" tests="16" failures="0" disabled="0" errors="0" time="0.003">
+    <testcase name="Check/0" value_param="&quot;RequestRetryCount 1, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/1" value_param="&quot;RequestRetryCount -1, otherwise empty&quot;" status="run" time="0.001" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/2" value_param="&quot;RequestRetryCount 63, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/3" value_param="&quot;RequestRetryCount 64, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/4" value_param="&quot;RequestRetryCount -64, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/5" value_param="&quot;RequestRetryCount -65, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/6" value_param="&quot;RequestRetryCount 127, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/7" value_param="&quot;RequestRetryCount 128, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/8" value_param="&quot;RequestRetryCount -128, otherwise empty&quot;" status="run" time="0.001" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/9" value_param="&quot;RequestRetryCount -129, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/10" value_param="&quot;RequestRetryCount 8191, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/11" value_param="&quot;RequestRetryCount 8192, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/12" value_param="&quot;RequestRetryCount -8192, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/13" value_param="&quot;RequestRetryCount -8193, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/14" value_param="&quot;RequestRetryCount -2^31, otherwise empty&quot;" status="run" time="0" classname="BondSerialization_Varint/BondSerializerTests" />
+    <testcase name="Check/15" value_param="&quot;RequestRetryCount 2^31-1, otherwise empty&quot;" status="run" time="0.001" classname="BondSerialization_Varint/BondSerializerTests" />
+  </testsuite>
+</testsuites>

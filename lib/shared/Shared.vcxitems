@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{ef859326-2a11-481c-ae8c-03d754f1c412}</ItemsProjectGuid>
+    <ItemsRootNamespace>Microsoft.Applications.Telemetry</ItemsRootNamespace>
+    <ItemsProjectName>managed</ItemsProjectName>
+    <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions />
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AggregatedMetricData.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ECSClientCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)EventPropertiesCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IPlatformEventReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ITestCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogConfigurationCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LoggerCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerEventReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerV1.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PageActionData.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PlatformHelpers.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SchemaStub.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SemanticContextCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)TimedEvent.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WindowsRTPlatformEventHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ECSClientCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)EventPropertiesCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LogConfigurationCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LoggerCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LogManagerCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)SemanticContextCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)TimedEvent.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTPlatformEventHandler.cpp" />
+  </ItemGroup>
+</Project>

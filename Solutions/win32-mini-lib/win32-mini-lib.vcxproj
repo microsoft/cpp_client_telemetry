@@ -1,0 +1,686 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|ARM64">
+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|Win32">
+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|x64">
+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|ARM64">
+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|Win32">
+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|x64">
+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{1DC6B38A-B390-34CE-907F-4958807A3D43}</ProjectGUID>
+    <Keyword>Win32LibProj</Keyword>
+    <RootNamespace>ClientTelemetry</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <ProjectName>win32-mini-lib</ProjectName>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
+    <OacrPath>OACR</OacrPath>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <QBConfigId>win-x64_vs2015-crtdynamic-release</QBConfigId>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <AdditionalIncludeDirectories Condition="'$(RunOACR)'=='Yes'">$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>ClientTelemetry3ms</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MinSpace</Optimization>
+      <PreprocessorDefinitions>CONFIG_CUSTOM_H="config-compact-noutc.h";ZLIB_WINAPI;WIN32;MATSDK_STATIC_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Guard</ControlFlowGuard>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</SupportJustMyCode>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>uuid.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</LinkTimeCodeGeneration>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreAllDefaultLibraries>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug.vs2015.MT-sqlite'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MinSpace</Optimization>
+      <PreprocessorDefinitions>CONFIG_CUSTOM_H="config-compact-noutc.h";ZLIB_WINAPI;WIN32;MATSDK_STATIC_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">Guard</ControlFlowGuard>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</SupportJustMyCode>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</SupportJustMyCode>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Size</FavorSizeOrSpeed>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</ExceptionHandling>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</FunctionLevelLinking>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" />
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">Default</BasicRuntimeChecks>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>uuid.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</LinkTimeCodeGeneration>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">true</IgnoreAllDefaultLibraries>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <!-- FIXME: x64 bit - no optimizations -->
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <!-- x86: optimize for size -->
+      <Optimization Condition="'$(Platform)'=='x64'">MinSpace</Optimization>
+      <Optimization Condition="'$(Platform)'=='ARM64'">MinSpace</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>CONFIG_CUSTOM_H="config-compact-noutc.h";ZLIB_WINAPI;WIN32;MATSDK_STATIC_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Size</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Size</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</WholeProgramOptimization>
+      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Guard</ControlFlowGuard>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>uuid.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</LinkTimeCodeGeneration>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release.vs2015.MT-sqlite'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <Optimization Condition="'$(Platform)'=='x64'">MinSpace</Optimization>
+      <Optimization Condition="'$(Platform)'=='ARM64'">MinSpace</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>CONFIG_CUSTOM_H="config-compact-noutc.h";ZLIB_WINAPI;WIN32;MATSDK_STATIC_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Size</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Size</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</WholeProgramOptimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</WholeProgramOptimization>
+      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Guard</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Guard</ControlFlowGuard>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Async</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Async</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" />
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Disabled</InlineFunctionExpansion>
+      <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</OmitFramePointers>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Async</ExceptionHandling>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Fast</FloatingPointModel>
+      <CreateHotpatchableImage Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</CreateHotpatchableImage>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" />
+      <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</BufferSecurityCheck>
+      <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</BufferSecurityCheck>
+      <BufferSecurityCheck Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</BufferSecurityCheck>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">mat/config-compact-noutc.h</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>uuid.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries>user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <MapExports>true</MapExports>
+      <Profile>true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</LinkTimeCodeGeneration>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

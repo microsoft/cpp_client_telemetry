@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{10E9165B-49D1-4D1C-8248-334B9905B9CC}</ItemsProjectGuid>
+    <ItemsRootNamespace>win81-pal</ItemsRootNamespace>
+    <ItemsProjectName>universal</ItemsProjectName>
+    <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeDeviceInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeNetworkInformationImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile
+        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')"
+        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemGroup>
+</Project>

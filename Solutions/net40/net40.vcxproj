@@ -1,0 +1,301 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DC91621E-A203-42DF-8E03-3A23DD0602B1}</ProjectGuid>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <Keyword>ManagedCProj</Keyword>
+    <RootNamespace>Microsoft.Applications.Telemetry.Windows</RootNamespace>
+    <ProjectName>net40</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <CLRSupport>true</CLRSupport>
+    <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\..\lib\shared\Shared.vcxitems" Label="Shared" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>Microsoft.Applications.Telemetry.Windows-net40</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x64);$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(AriaDepsLibPath);$(UniversalCRT_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+    <LibraryWPath />
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <LinkKeyFile>$(ProjectDir)Test.snk</LinkKeyFile>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged>true</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">All</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">All</AssemblerOutput>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</BrowseInformation>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebugDLL</RuntimeLibrary>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Async</ExceptionHandling>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</MinimalRebuild>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</MinimalRebuild>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Async</ExceptionHandling>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4503;4244</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatWarningAsError>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ShowIncludes>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ShowIncludes>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ControlFlowGuard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>uuid.lib;runtimeobject.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</OptimizeReferences>
+      <OptimizeReferences Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</OptimizeReferences>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TurnOffAssemblyGeneration>
+      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</MapExports>
+      <MapExports Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MapExports>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</Profile>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">wininet.lib;openssl.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+    <Bscmake>
+      <PreserveSbr Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <!-- FIXME: x64 bit - no optimizations -->
+      <Optimization Condition="'$(Platform)'!='x64'">MinSpace</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Platform)'!='x64'">Size</FavorSizeOrSpeed>
+      <!-- x86: optimize for size -->
+      <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>true</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <AssemblerOutput>All</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Async</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Async</ExceptionHandling>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4503;4244</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ControlFlowGuard>
+      <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ControlFlowGuard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>uuid.lib;runtimeobject.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <ForceFileOutput>
+      </ForceFileOutput>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <LinkStatus>false</LinkStatus>
+      <GenerateMapFile>true</GenerateMapFile>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">user32.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">user32.lib</IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Default</LinkTimeCodeGeneration>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateWindowsMetadata>
+      <GenerateWindowsMetadata Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateWindowsMetadata>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</TurnOffAssemblyGeneration>
+      <TurnOffAssemblyGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TurnOffAssemblyGeneration>
+      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MapExports>
+      <MapExports Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MapExports>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</Profile>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</Profile>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">wininet.lib;openssl.lib;user32.lib;shell32.lib;Advapi32.lib;Ole32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
+    </ClCompile>
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
+      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\win32-lib\win32-lib.vcxproj">
+      <Project>{1dc6b38a-b390-34ce-907f-4958807a3d42}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
+  <Import Project="$(SolutionDir)\build.net40.props" Condition="Exists('$(SolutionDir)\build.net40.props')" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

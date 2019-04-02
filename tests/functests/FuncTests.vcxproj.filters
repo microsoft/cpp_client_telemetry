@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(ProjectDir)\BasicFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)\MultipleLogManagersTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
+      <Filter>mocks</Filter>
+    </ClCompile>
+    <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="APITest.cpp" />
+    <ClCompile Include="BondDecoderTests.cpp" />
+    <ClCompile Include="EventDecoderListener.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockISemanticContext.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\Common.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIBandwidthController.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockIEcsClient.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockILocalStorageReader.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MockITelemetrySystem.hpp">
+      <Filter>mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="EventDecoderListener.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include=" ">
+      <UniqueIdentifier>{785D8461-1CA4-30CA-9A64-692B8A3A06A7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{F910581B-17A7-3DD0-AEFD-1B8C0A922D49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mocks">
+      <UniqueIdentifier>{5f02135a-4d1e-496a-900a-e5ea8cfb222d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

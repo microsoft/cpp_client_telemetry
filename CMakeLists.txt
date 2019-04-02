@@ -1,0 +1,179 @@
+cmake_minimum_required(VERSION 3.1.0)
+project(MSTelemetry)
+
+set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
+set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
+set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
+
+# Begin Uncomment for i386 build
+#set(CMAKE_SYSTEM_PROCESSOR i386)
+#set(CMAKE_C_FLAGS -m32)
+#set(CMAKE_CXX_FLAGS -m32)
+# End of i386 build
+
+if (NOT TARGET_ARCH)
+  set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
+message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
+message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+message("-- CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
+message("-- CMAKE_SYSTEM_VERSION:   ${CMAKE_SYSTEM_VERSION}")
+message("-- CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE}")
+message("-- TARGET_ARCH:            ${TARGET_ARCH}")
+
+include(tools/ParseOsRelease.cmake)
+
+set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wall -Wextra -pedantic -Wl,--gc-sections -fmerge-all-constants -ffast-math")
+
+# Use libtcmalloc for Debug builds memory leaks detection
+set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  -Wall -Wextra -pedantic -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  #TODO: -fno-rtti
+  message("Building Release ...")
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
+else()
+  set(USE_TCMALLOC 1)
+  message("Building Debug ...")
+  include(tools/FindTcmalloc.cmake)
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=c11 ${DEB_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${DEB_FLAGS}")
+endif()
+
+include(tools/Utils.cmake)
+
+if (NOT DEFAULT_PAL_IMPLEMENTATION)
+# Linux, Mac OS X, MinGW, etc.
+  set(DEFAULT_PAL_IMPLEMENTATION CPP11)
+endif()
+
+set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
+
+message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
+string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
+add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
+
+option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
+if(GCC5_CXX11_ABI_WORKAROUND)
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+endif()
+
+if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+ add_definitions(-DZLIB_WINAPI)
+endif()
+
+################################################################################################
+# Build prefix and version
+################################################################################################
+
+set(SDK_VERSION_PREFIX "EVT")
+add_definitions("-DMATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
+
+set(MATSDK_API_VERSION "3.1")
+string(TIMESTAMP DAYNUMBER "%j")
+string(REGEX REPLACE "^00" "" DAYNUMBER ${DAYNUMBER})
+string(REGEX REPLACE "^0"  "" DAYNUMBER ${DAYNUMBER})
+
+if(DEFINED BUILD_VERSION AND NOT BUILD_VERSION STREQUAL "0.0.0.0")
+  message(STATUS "Using externally set build version: ${BUILD_VERSION}")
+  string(REPLACE "." "\\." MATSDK_API_VERSION_ESCAPED ${MATSDK_API_VERSION})
+  if(NOT BUILD_VERSION MATCHES "^${MATSDK_API_VERSION_ESCAPED}\\.")
+    message(WARNING "BUILD_VERSION (${BUILD_VERSION}) does not start with the current API version prefix (${MATSDK_API_VERSION}).")
+  endif()
+  set(MATSDK_BUILD_VERSION ${BUILD_VERSION})
+else()
+  set(MATSDK_BUILD_VERSION ${MATSDK_API_VERSION}.${DAYNUMBER}.0)
+endif()
+
+message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
+
+################################################################################################
+# HTTP stack section
+################################################################################################
+
+# Only use custom curl if compiling with CPP11 PAL
+if (PAL_IMPLEMENTATION STREQUAL "CPP11")
+  include(FindCURL)
+  find_package(CURL REQUIRED)
+  if (NOT CURL_FOUND)
+    message (FATAL_ERROR "libcurl not found! Have you installed deps?")
+  endif (NOT CURL_FOUND)
+  include_directories(CURL_INCLUDE_DIRS)
+  set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+  list(APPEND LIBS "${CURL_LIBRARIES}")
+endif()
+
+################################################################################################
+# User options
+################################################################################################
+option(BUILD_HEADERS      "Build API headers"       YES)
+option(BUILD_LIBRARY      "Build library"           YES)
+option(BUILD_TEST_TOOL    "Build console test tool" YES)
+option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
+option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
+option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
+option(BUILD_PACKAGE      "Build package"           YES)
+
+if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+    message("Adding gtest")
+    add_library(gtest STATIC IMPORTED GLOBAL)
+    message("Adding gmock")
+    add_library(gmock STATIC IMPORTED GLOBAL)
+    
+#    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
+#    message("Building gtest")
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
+#    message("Building gmock")
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
+endif()
+
+# Bond Lite subdirectories
+include_directories(bondlite/include)
+
+include_directories(lib/pal)
+
+#if(BUILD_UNIT_TESTS)
+#  message("Adding bondlite tests")
+#  enable_testing()
+#  add_subdirectory(bondlite/tests)
+#endif()
+
+if(BUILD_HEADERS)
+  add_subdirectory(lib/include)
+endif()
+include_directories(lib/include)
+
+if(BUILD_LIBRARY)
+  add_subdirectory(lib)
+endif()
+
+if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+  message("Building tests")
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
+################################################################################################
+# Packaging
+################################################################################################
+
+if (BUILD_PACKAGE)
+  if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
+    # FIXME: hardcode it for 64-bit Linux for now
+    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
+    include(tools/MakeDeb.cmake)
+  endif()
+  if (${CMAKE_PACKAGE_TYPE} STREQUAL "rpm")
+    # TODO: [MG] - fix path
+    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+    include(tools/MakeRpm.cmake)
+  endif()
+  if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
+    # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
+    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
+    include(tools/MakeTgz.cmake)
+  endif()
+endif()

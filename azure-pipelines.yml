@@ -1,0 +1,18 @@
+resources:
+- repo: self
+queue:
+  name: aria-sdk-cpp
+steps:
+
+- task: CmdLine@1
+  displayName: 'Build Release (x86) and Run Tests'
+  inputs:
+    filename: build-Win32Release.bat
+    workingFolder: .
+
+- task: CmdLine@1
+  displayName: 'Build Release (x64) and Run Tests'
+  inputs:
+    filename: build-x64Release.bat
+    workingFolder: .
+

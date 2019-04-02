@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerV1.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AggregatedMetricData.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ECSClientCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)EventPropertiesCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IPlatformEventReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ITestCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogConfigurationCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LoggerCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerEventReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PageActionData.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PlatformHelpers.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SchemaStub.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SemanticContextCX.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)TimedEvent.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WindowsRTPlatformEventHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ECSClientCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)EventPropertiesCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LogConfigurationCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LoggerCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LogManagerCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)SemanticContextCX.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)TimedEvent.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTPlatformEventHandler.cpp" />
+  </ItemGroup>
+</Project>

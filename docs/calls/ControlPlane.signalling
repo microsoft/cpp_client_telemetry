@@ -1,0 +1,33 @@
+SDK,ConfigService
+main->LogManager->LogManagerBase:GetLogConfiguration;
+LogManagerBase->LogManager->main:&currentConfig;
+
+main->LogManager->currentConfig:set moduleName;
+main->LogManager->currentConfig:set hostName;
+main->LogManager->currentConfig:set other params...;
+
+main->LogManager->LogManagerBase:AddEventListener;
+main->LogManager->LogManagerBase:Initialize(primaryToken,config);
+
+LogManagerBase->currentConfig:append config;
+LogManager->LogManagerBase->LogManagerProvider:GetLogManager(currentConfig,status);
+LogManagerProvider->LogManagerFactory:Get(moduleName, status);
+                                      
+LogManagerImpl->LogManagerFactory->LogManagerProvider->LogManagerBase->LogManager:ILogManager* instance;
+
+LogManagerImpl->LoggerCache:GetLogger;
+LoggerCache->Logger:create or get logger;
+Logger->LoggerCache->LogManagerImpl->LogManagerProvider->LogManagerBase->LogManager->main:ILogger* primaryLogger;
+
+main->LogManager->LogManagerBase->LogManagerImpl:GetSemanticContext;
+LogManagerImpl->LogManagerBase->LogManager->main:ISemanticContext*;
+main->LogManagerImpl:set context values...;
+
+main->Logger:LogEvent(...);
+main->Logger:LogEvent(...);
+main->Logger:LogEvent(...);
+
+main->LogManager->LogManagerBase:FlushAndTeardown;
+LogManagerBase->LogManagerProvider:Release(&currentConfig);
+LogManagerProvider->LogManagerFactory:Release(moduleName);
+LogManagerFactory->LogManagerImpl:release ILogManager* instance;
