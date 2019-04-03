@@ -5,7 +5,7 @@
 #include <functional>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 class TestDebugEventSource : public DebugEventSource
 {
