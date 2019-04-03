@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifndef ARIA_IAUTHTOKENS_HPP
-#define ARIA_IAUTHTOKENS_HPP
+#ifndef MAT_IAUTHTOKENS_HPP
+#define MAT_IAUTHTOKENS_HPP
 
 #include "Version.hpp"
 #include "ctmacros.hpp"
@@ -13,7 +13,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
-    class ARIASDK_LIBABI IAuthTokensController
+    class MATSDK_LIBABI IAuthTokensController
     {
     public:
         /// <summary>
@@ -68,4 +68,4 @@ namespace ARIASDK_NS_BEGIN
 
 } ARIASDK_NS_END
 
-#endif //ARIA_IAUTHTOKENS_HPP
+#endif //MAT_IAUTHTOKENS_HPP

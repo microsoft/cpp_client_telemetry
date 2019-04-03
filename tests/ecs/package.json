@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "azure-storage": "^2.8.1",
-    "express": "^4.16.3",
-    "logging": "^3.2.0"
-  }
-}

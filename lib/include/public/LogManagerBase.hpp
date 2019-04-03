@@ -1,12 +1,8 @@
-#ifndef ARIA_LOGMANAGER_HPP
-#define ARIA_LOGMANAGER_HPP
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_LOGMANAGER_HPP
+#define MAT_LOGMANAGER_HPP
 
 #include "CommonFields.h"
-
-// TODO: [MG] - temporary workaround for error: ISO C++ does not permit �XXX::foo� to be defined as �YYY::foo�
-// This error is benign and this syntax is allowed by MSVC and clang. We utilize this down there below to
-// instantiate a private singleton using a macro and a template.
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -248,13 +244,13 @@ namespace ARIASDK_NS_BEGIN
 #endif
         }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-// SDK_GUEST_MODE is a special flag that enforces all the restrictions of a Guest API set.   //
-// Library module that has no control of event flow functionality should define this at      //
-// compile time. If there is a piece of code logic that requires the LogController API set,  //
-// then the module should call GetController() method, which will return an instance that    //
-// allows to control all the aspects of the log flow.                                        //
-///////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // SDK_GUEST_MODE is a special flag that enforces all the restrictions of a Guest API set.   //
+        // Library module that has no control of event flow functionality should define this at      //
+        // compile time. If there is a piece of code logic that requires the LogController API set,  //
+        // then the module should call GetController() method, which will return an instance that    //
+        // allows to control all the aspects of the log flow.                                        //
+        ///////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef SDK_GUEST_MODE
 
         /// <summary>
@@ -276,7 +272,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t Flush()
         {
             if (isHost())
-                LM_SAFE_CALL(GetLogController()->Flush );
+                LM_SAFE_CALL(GetLogController()->Flush);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -287,7 +283,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t PauseTransmission()
         {
             if (isHost())
-                LM_SAFE_CALL(GetLogController()->PauseTransmission );
+                LM_SAFE_CALL(GetLogController()->PauseTransmission);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -297,7 +293,7 @@ namespace ARIASDK_NS_BEGIN
         static status_t ResumeTransmission()
         {
             if (isHost())
-                LM_SAFE_CALL( GetLogController()->ResumeTransmission );
+                LM_SAFE_CALL(GetLogController()->ResumeTransmission);
             return STATUS_EPERM; // Permission denied
         }
 
@@ -605,7 +601,7 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-// Implements LogManager<T> singleton template static  members
+    // Implements LogManager<T> singleton template static  members
 #if (defined(_MANAGED) || defined(_MSC_VER)) && (!defined(__clang__))
 // Definition that is compatible with managed and native code compiled with MSVC.
 // Unfortuantey we can't use ISO C++11 template definitions because of compiler bug

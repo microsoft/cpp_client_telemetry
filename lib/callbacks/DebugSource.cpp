@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
         registeredListeners.erase(it, registeredListeners.end());
     }
 
-    /// <summary>ARIA SDK invokes this method to dispatch event to client callback</summary>
+    /// <summary>Microsoft Telemetry SDK invokes this method to dispatch event to client callback</summary>
     bool DebugEventSource::DispatchEvent(DebugEvent evt)
     {
         seq++;

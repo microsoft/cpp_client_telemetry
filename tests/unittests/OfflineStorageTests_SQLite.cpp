@@ -10,7 +10,7 @@
 #include "NullObjects.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 using namespace PAL;
 
 char const* const TEST_STORAGE_FILENAME = "OfflineStorageTests_SQLite.db";

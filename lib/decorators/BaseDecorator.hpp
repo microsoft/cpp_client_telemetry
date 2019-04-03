@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
     public:
         BaseDecorator(ILogManager& owner);
         virtual ~BaseDecorator() {};
-        bool decorate(::AriaProtocol::Record& record);
+        bool decorate(::CsProtocol::Record& record);
 
     protected:
         std::string             m_source;

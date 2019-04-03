@@ -8,7 +8,7 @@
 #include "tpm/TransmissionPolicyManager.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {

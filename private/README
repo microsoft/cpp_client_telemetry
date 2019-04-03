@@ -1,0 +1,8 @@
+This directory contains:
+* legacy code
+* code due for removal
+* tests that were intentionally disabled or removed
+* any other content that is in need of a refactor
+
+This content is NOT to be published on GitHub.
+

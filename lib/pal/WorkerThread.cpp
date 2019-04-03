@@ -1,7 +1,7 @@
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
 
-#if defined(ARIASDK_PAL_CPP11) || defined(ARIASDK_PAL_WIN32)
+#if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
 namespace PAL_NS_BEGIN {
 

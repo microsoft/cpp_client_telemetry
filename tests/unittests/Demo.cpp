@@ -3,7 +3,7 @@
 #include "filter/EventFilterRegulator.hpp"
 #include <vector>
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 PIEventFilter newEventFilter()
 {

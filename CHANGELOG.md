@@ -10,6 +10,16 @@
 - MinGW (experimental, source only)
 
 ---
+## Version 3.2.91.1 (04/01/2019)
+
+### Design Changes
+
+Code refactor:
+- use new namespace alias MAT (Microsoft Applications Telemetry)
+- move private proprietary extension modules to /lib/modules
+- move private scripts and legacy code to /private
+- unify PAL for Win32 and CPP11 into one cross-platform PAL
+
 
 ## Version 3.1.18.1 (01/18/2019)
 

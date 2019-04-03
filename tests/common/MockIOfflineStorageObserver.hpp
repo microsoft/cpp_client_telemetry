@@ -6,7 +6,7 @@
 namespace testing {
 
 
-class MockIOfflineStorageObserver : public ARIASDK_NS::IOfflineStorageObserver {
+class MockIOfflineStorageObserver : public MAT::IOfflineStorageObserver {
   public:
     MockIOfflineStorageObserver();
     virtual ~MockIOfflineStorageObserver();

@@ -1,9 +1,10 @@
+// Copyright (c) Microsoft. All rights reserved.
 #ifndef LOGSESSIONDATA_HPP
 #define LOGSESSIONDATA_HPP
-// Copyright (c) Microsoft. All rights reserved.
 
 #include "Version.hpp"
-#include "string"
+
+#include <string>
 
 namespace ARIASDK_NS_BEGIN
 {

@@ -48,4 +48,4 @@ namespace testing {
         MOCK_METHOD1(preparedIncomingEventAsync, void(IncomingEventContextPtr const& event));
     };
 
-}  // namespace ARIASDK_NS_BEGIN
+}  // namespace MAT_NS_BEGIN

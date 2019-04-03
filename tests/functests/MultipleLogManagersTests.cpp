@@ -5,16 +5,18 @@
 #endif
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
-#include <api/LogManagerImpl.hpp>
-#include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_types.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+
+#include "api/LogManagerImpl.hpp"
+#include "api/LogManagerFactory.hpp"
+
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
+
 #include "sqlite3.h"
 
-#include <api/LogManagerFactory.hpp>
-
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class MultipleLogManagersTests : public ::testing::Test,
@@ -91,12 +93,12 @@ class MultipleLogManagersTests : public ::testing::Test,
         }
     }
 
-/*    AriaProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request)
+/*    CsProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request)
     {
         std::vector<uint8_t> input(request.content.data(), request.content.data() + request.content.size());
         bond_lite::CompactBinaryProtocolReader reader(input);
 
-        AriaProtocol::ClientToCollectorRequest result;
+        CsProtocol::ClientToCollectorRequest result;
         EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
 
         return result;

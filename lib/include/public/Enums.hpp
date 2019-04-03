@@ -1,6 +1,6 @@
-#ifndef ARIA_ENUMS_HPP
-#define ARIA_ENUMS_HPP
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_ENUMS_HPP
+#define MAT_ENUMS_HPP
 
 #include "Version.hpp"
 
@@ -12,7 +12,8 @@
 #include <sys/errno.h>
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
     /// <summary>
     /// The status_t enumeration contains a set of status code.
@@ -58,14 +59,14 @@ namespace ARIASDK_NS_BEGIN {
     };
 
     /// <summary>
-    /// The SdkModeTypes enumeration contains a set of values that specify Aria SDK transmission modes.
+    /// The SdkModeTypes enumeration contains a set of values that specify transmission modes.
     /// </summary>
     enum SdkModeTypes
     {
         /// <summary>The default transmission mode.</summary>
-        SdkModeTypes_Aria = 0,
+        SdkModeTypes_CS = 0,
         /// <summary>Backward compatibility transmission mode.</summary>
-        SdkModeTypes_UTCAriaBackCompat = 1,
+        SdkModeTypes_UTCBackCompat = 1,
         /// <summary>Common schema transmission mode.</summary>
         SdkModeTypes_UTCCommonSchema = 2
     };

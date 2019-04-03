@@ -192,17 +192,17 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     #ifdef _MSC_VER
             { "_MSC_VER", _MSC_VER },
     #endif
-            { "piiKind.None",               EventProperty("maxgolov",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Max Golovanov,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-            { "piiKind.GenericData",        EventProperty("maxgolov",  PiiKind_GenericData) },
+            { "piiKind.None",               EventProperty("jackfrost",  PiiKind_None) },
+            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+            { "piiKind.GenericData",        EventProperty("jackfrost",  PiiKind_GenericData) },
             { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
             { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
             { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
             { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
             { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-            { "piiKind.SipAddress",         EventProperty("sip:maxgolov@microsoft.com", PiiKind_SipAddress) },
-            { "piiKind.SmtpAddress",        EventProperty("Max Golovanov <maxgolov@microsoft.com>", PiiKind_SmtpAddress) },
-            { "piiKind.Identity",           EventProperty("Max Golovanov", PiiKind_Identity) },
+            { "piiKind.SipAddress",         EventProperty("sip:jackfrost@microsoft.com", PiiKind_SipAddress) },
+            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@microsoft.com>", PiiKind_SmtpAddress) },
+            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
             { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
             { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
 
@@ -582,7 +582,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
         config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
         config[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         logBenchMark("config ");
 
@@ -676,7 +676,7 @@ TEST(APITest, LogManager_BadNetwork_Test)
         config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
         config[CFG_INT_TRACE_LEVEL_MASK] = 0;
         config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
         config[CFG_STR_COLLECTOR_URL] = url;
         size_t numIterations = 5;
@@ -792,7 +792,7 @@ TEST(APITest, LogManager_DiagLevels)
     LogManager::FlushAndTeardown();
 }
 
-TEST(APITest, Aria_Pii_Kind_E2E_Test)
+TEST(APITest, Pii_Kind_E2E_Test)
 {
     auto& config = LogManager::GetLogConfiguration();
     LogManager::Initialize(TEST_TOKEN, config);
@@ -805,7 +805,7 @@ TEST(APITest, Aria_Pii_Kind_E2E_Test)
 #endif
             // Pii-typed fields
             { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
             { "piiKind.GenericData",        EventProperty("generic_data",  PiiKind_GenericData) },
             { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
             { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
@@ -834,118 +834,6 @@ TEST(APITest, Aria_Pii_Kind_E2E_Test)
     LogManager::FlushAndTeardown();
     // Verify that contents get hashed by server
 }
-
-#if 0
-// FIXME: [MG] - enable tracing API
-
-bool TracingAPI_File(const char *filename, ACTTraceLevel verbosity = ACTTraceLevel_Trace, size_t traceFileSize = 30000000, size_t evtCount = 1)
-{
-    bool result = false;
-    // Remove old logging file
-    std::remove(filename);
-    LogConfiguration config;
-    // Log something
-    config.traceLevelMask = 0xFFFFFFFF;
-    config.minimumTraceLevel = verbosity;
-    config.SetProperty(CFG_INT_DBG_TRACE_PROVIDER, "1");
-
-    // Property const char* must remain constant for the duration of the run.
-    // Most common pitfall is to pass a const char * to temporary that goes
-    // out of scope ... what happens next is that the parser would attempt
-    // to parse an invalid memory block!
-    std::string size = std::to_string(traceFileSize);
-    config.SetProperty(CFG_INT_DBG_TRACE_SIZE, size.c_str());
-
-    if (strlen(filename))
-        config.SetProperty(CFG_STR_DBG_TRACE_PATH, filename);
-    LogManager::Initialize(TEST_TOKEN, config);
-    while (evtCount--)
-        LogManager::GetLogger()->LogEvent("TracingAPI");
-    LogManager::FlushAndTeardown();
-    // Check if default log file has been created
-    if (strlen(filename))
-        result = common::FileExists(filename);
-    else
-        result = common::FileExists(PAL::GetDefaultTracePath().c_str());
-    return result;
-}
-
-TEST(APITest, TracingAPI_DefaultFile)
-{
-    EXPECT_EQ(TracingAPI_File(""), true);
-}
-
-TEST(APITest, TracingAPI_CustomFile)
-{
-    EXPECT_EQ(TracingAPI_File("mydebug.log"), true);
-}
-
-/// <summary>
-/// Usage example for EVT_TRACE
-/// </summary>
-class MyTraceListener : public DebugEventListener {
-    std::atomic<unsigned> evtCount;
-
-public:
-    MyTraceListener() :
-        DebugEventListener(),
-        evtCount(0) {};
-
-    // Inherited via DebugEventListener
-    virtual void OnDebugEvent(DebugEvent & evt) override
-    {
-        evtCount++;
-        printf("[%d] %s:%d\n", evt.param1, (const char *)evt.data, evt.param2);
-    }
-
-    virtual unsigned getEvtCount()
-    {
-        return evtCount.load();
-    }
-};
-
-MyTraceListener traceListener;
-
-TEST(APITest, TracingAPI_Callback)
-{
-    LogConfiguration config;
-    config.traceLevelMask = 0xFFFFFFFF;
-    config.minimumTraceLevel = ACTTraceLevel_Trace;
-    config.SetProperty(CFG_INT_DBG_TRACE_PROVIDER, "1");
-    config.SetProperty(CFG_INT_DBG_TRACE_SIZE, "30000000");
-
-    // This event listener is goign to print an error (filename:linenumber) whenever
-    // SDK internally experiences any error, warning or fatal event
-    LogManager::AddEventListener(EVT_TRACE, traceListener);
-    LogManager::Initialize("invalid-token", config);    // We don't check tokens for validity at init ...
-    LogManager::GetLogger()->LogEvent("going-nowhere"); // ... but we do check event names.
-    LogManager::FlushAndTeardown();
-    LogManager::RemoveEventListener(EVT_TRACE, traceListener);
-
-    // Expecting at least one error notification.
-    // Invalid event name may trigger several errors at various stages of the pipeline.
-    EXPECT_GE(traceListener.getEvtCount(), 1);
-}
-
-TEST(APITest, TracingAPI_Verbosity)
-{
-    // Nothing should be logged - filesize must remain zero
-    TracingAPI_File("", ACTTraceLevel_Fatal);
-    EXPECT_EQ(common::GetFileSize(PAL::GetDefaultTracePath().c_str()), 0);
-    // Default file gets deleted on Release bits on shutdown
-}
-
-TEST(APITest, TracingAPI_FileSizeLimit)
-{
-    // Log file size must remain within 1MB range + 512K contingency buffer
-    size_t maxFileSize = 1024000;
-    size_t maxContingency = 512000;
-    size_t maxEventCount = 50000; // 50K events is sufficient to attempt an overflow on file size
-    TracingAPI_File("", ACTTraceLevel_Debug, maxFileSize, maxEventCount);
-    EXPECT_LE(common::GetFileSize(PAL::GetDefaultTracePath().c_str()), maxFileSize + maxContingency);
-}
-
-#endif
 
 // #endif
 

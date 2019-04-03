@@ -5,7 +5,7 @@
 #include "offline/StorageObserver.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 class OfflineStorageTests : public StrictMock<Test> {
 protected:

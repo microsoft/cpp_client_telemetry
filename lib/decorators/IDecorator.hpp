@@ -5,7 +5,7 @@
 #include "pal/PAL.hpp"
 
 #include "utils/Utils.hpp"
-#include "bond/generated/AriaProtocol_types.hpp"
+#include "bond/generated/CsProtocol_types.hpp"
 
 #include <cstddef>
 
@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
         DecoratorBase(ILogManager& owner) :
             m_owner(owner) {};
 
-        // bool decorate(::AriaProtocol::Record& record, ...)
+        // bool decorate(::CsProtocol::Record& record, ...)
         // {
         //     ...
         // }
@@ -40,23 +40,23 @@ namespace ARIASDK_NS_BEGIN {
             return false;
         }
 
-        static void setIfNotEmpty(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, std::string const& value)
+        static void setIfNotEmpty(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, std::string const& value)
         {
             if (!value.empty())
             {
-                AriaProtocol::Value temp;
-                temp.type = AriaProtocol::ValueKind::ValueString;
+                CsProtocol::Value temp;
+                temp.type = CsProtocol::ValueKind::ValueString;
                 temp.stringValue = value;
                 dest[key] = temp;
             }
         }
 
-        static void setOrErase(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, std::string const& value)
+        static void setOrErase(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, std::string const& value)
         {
             if (!value.empty())
             {
-                AriaProtocol::Value temp;
-                temp.type = AriaProtocol::ValueKind::ValueString;
+                CsProtocol::Value temp;
+                temp.type = CsProtocol::ValueKind::ValueString;
                 temp.stringValue = value;
                 dest[key] = temp;
             }
@@ -66,10 +66,10 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        static void setBoolValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, bool const& value)
+        static void setBoolValue(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, bool const& value)
         {
-            AriaProtocol::Value temp;
-            temp.type = AriaProtocol::ValueKind::ValueBool;
+            CsProtocol::Value temp;
+            temp.type = CsProtocol::ValueKind::ValueBool;
             if (true == value)
             {
                 temp.longValue = 1;
@@ -81,26 +81,26 @@ namespace ARIASDK_NS_BEGIN {
             dest[key] = temp;
         }
 
-        static void setDateTimeValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, int64_t const& value)
+        static void setDateTimeValue(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, int64_t const& value)
         {
-            AriaProtocol::Value temp;
-            temp.type = AriaProtocol::ValueKind::ValueDateTime;
+            CsProtocol::Value temp;
+            temp.type = CsProtocol::ValueKind::ValueDateTime;
             temp.longValue = value;
             dest[key] = temp;
         }
 
-        static void setInt64Value(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, int64_t const& value)
+        static void setInt64Value(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, int64_t const& value)
         {
-            AriaProtocol::Value temp;
-            temp.type = AriaProtocol::ValueKind::ValueInt64;
+            CsProtocol::Value temp;
+            temp.type = CsProtocol::ValueKind::ValueInt64;
             temp.longValue = value;
             dest[key] = temp;
         }
 
-        static void setDoubleValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, double const& value)
+        static void setDoubleValue(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, double const& value)
         {
-            AriaProtocol::Value temp;
-            temp.type = AriaProtocol::ValueKind::ValueDouble;
+            CsProtocol::Value temp;
+            temp.type = CsProtocol::ValueKind::ValueDouble;
             temp.doubleValue = value;
             dest[key] = temp;
         }
@@ -111,7 +111,7 @@ namespace ARIASDK_NS_BEGIN {
         };
 
         template<size_t N>
-        static void setEnumValue(std::map<std::string, AriaProtocol::Value>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
+        static void setEnumValue(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
         {
             for (EnumValueName const& item : names) {
                 if (item.value == value) {

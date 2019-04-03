@@ -16,11 +16,11 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="record">The record.</param>
     /// <returns>true if successful</returns>
-    bool BaseDecorator::decorate(::AriaProtocol::Record& record)
+    bool BaseDecorator::decorate(::CsProtocol::Record& record)
     {
         if (record.extSdk.size() == 0)
         {
-            ::AriaProtocol::Sdk sdk;
+            ::CsProtocol::Sdk sdk;
             record.extSdk.push_back(sdk);
         }
 
@@ -31,11 +31,9 @@ namespace ARIASDK_NS_BEGIN {
             record.baseType = record.name;
         }
 
-        //      record.RecordType = AriaProtocol::AriaRecordType::Event;
         record.extSdk[0].seq = ++m_sequenceId;
         record.extSdk[0].epoch = m_initId;
-        std::string sdkVersion = PAL::getSdkVersion();
-        record.extSdk[0].libVer = sdkVersion;
+        record.extSdk[0].libVer = PAL::getSdkVersion();
         record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
 
         //set Tickets
@@ -45,7 +43,7 @@ namespace ARIASDK_NS_BEGIN {
             auto tokensController = m_owner.GetAuthTokensController();
             if (record.extProtocol.size() == 0)
             {
-                ::AriaProtocol::Protocol temp;
+                ::CsProtocol::Protocol temp;
                 record.extProtocol.push_back(temp);
             }
             if (record.extProtocol[0].ticketKeys.size() == 0)

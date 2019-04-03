@@ -1,6 +1,6 @@
-#ifndef ARIA_ILOGCONFIGURATION_HPP
-#define ARIA_ILOGCONFIGURATION_HPP
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_ILOGCONFIGURATION_HPP
+#define MAT_ILOGCONFIGURATION_HPP
 
 #include "Version.hpp"
 

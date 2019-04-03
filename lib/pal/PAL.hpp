@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
-#pragma once
+#ifndef PAL_HPP
+#define PAL_HPP
+
 #include "mat/config.h"
 #include "Version.hpp"
-
-#include "typename.hpp"
-
-#include "ctmacros.hpp"
+#include "DebugTrace.hpp"
 
 #ifdef HAVE_MAT_EXP
 #define ECS_SUPP "ECS"
@@ -13,84 +12,145 @@
 #define ECS_SUPP "No"
 #endif
 
-namespace PAL_NS_BEGIN {
+#include "SystemInformationImpl.hpp"
+#include "NetworkInformationImpl.hpp"
+#include "DeviceInformationImpl.hpp"
 
-    void sleep(unsigned delayMs);
+#include "ISemanticContext.hpp"
+
+#include "api/ContextFieldsProvider.hpp"
+
+#if defined(_WIN32) || defined(_WIN64)
+/* Windows */
+#define PATH_SEPARATOR_CHAR '\\'
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+#include <Rpc.h>
+#else
+/* POSIX */
+#define PATH_SEPARATOR_CHAR '/'
+#endif
+
+#undef max
+#undef min
+
+#include <assert.h>
+#include <stdint.h>
+
+#include <functional>
+#include <list>
+#include <map>
+#include <random>
+#include <string>
+#include <type_traits>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <climits>
+#include <chrono>
+#include <thread>
+
+#include "typename.hpp"
+#include "WorkerThread.hpp"
+
+namespace ARIASDK_NS_BEGIN
+{
+    void print_backtrace();
+} ARIASDK_NS_END
+
+namespace PAL_NS_BEGIN
+{
+
+    /**
+     * Sleep for certain duration of milliseconds
+     */
+    inline void sleep(unsigned delayMs)
+    {
+#ifdef _WIN32
+        ::Sleep(delayMs);
+#else
+        std::this_thread::sleep_for(ms(delayMs));
+#endif
+    }
+
+    const char * getMATSDKLogComponent();
+
+    /**
+     * Return SDK version in format "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
+     */
+    const std::string& getSdkVersion();
+
+    /**
+     * Returns a new random UUID in a lowercase hexadecimal format with dashes,
+     * but without curly braces, e.g. "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+     */
+    std::string generateUuidString();
+
+    /**
+     * Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
+     */
+    int64_t getUtcSystemTimeMs();
+
+    /**
+     * Return the current system time in .NET ticks
+     */
+    int64_t getUtcSystemTimeinTicks();
+
+    int64_t getUtcSystemTime();
+
+    /**
+     * Convert given system timestamp in milliseconds to a string in ISO 8601 format
+     */
+    std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
+
+    /**
+     * Populate per-platform fields in ISemanticContext and keep them updated during runtime.
+     */
+    void registerSemanticContext(MAT::ISemanticContext * context);
+
+
+    class INetworkInformation;
+    class IDeviceInformation;
+    class ISystemInformation;
 
     //
-    // Debug logging
-    // TODO: [MG] - re-route logging to universal (ETW,File,syslog,etc.) tracing API from v1
+    // Startup/shutdown
+    //
+    void initialize();
+    void shutdown();
 
-    // *INDENT-OFF*
+    INetworkInformation* GetNetworkInformation();
+    IDeviceInformation* GetDeviceInformation();
 
-    // Declare/define log component for a namespace
-#define ARIASDK_LOG_DECL_COMPONENT_NS()                        extern const char* getAriaSdkLogComponent()
-#define ARIASDK_LOG_INST_COMPONENT_NS(_name, _desc)            char const* getAriaSdkLogComponent() { return _name; }
+    // Pseudo-random number generator (not for cryptographic usage).
+    // The instances are not thread-safe, serialize access externally if needed.
+    class PseudoRandomGenerator {
+#ifdef _WIN32
+    public:
+        double getRandomDouble()
+        {
+            return m_distribution(m_engine);
+        }
 
-// Declare/define log component for a class
-#define ARIASDK_LOG_DECL_COMPONENT_CLASS()                     static char const* getAriaSdkLogComponent()
-#define ARIASDK_LOG_INST_COMPONENT_CLASS(_class, _name, _desc) char const* _class::getAriaSdkLogComponent() { return _name; }
-
-    // Declare log component for the PAL namespace
-    ARIASDK_LOG_DECL_COMPONENT_NS();
-
-// *INDENT-ON*
-
-    enum LogLevel {
-        Error = 1,
-        Warning = 2,
-        Info = 3,
-        Detail = 4
+    protected:
+        std::default_random_engine m_engine{ std::random_device()() };
+        std::uniform_real_distribution<double> m_distribution{ 0.0, 1.0 };
+#else   /* Unfortunately the functionality above fails memory checker on Linux with gcc-5 */
+    public:
+        double getRandomDouble()
+        {
+            return ((double)rand() / RAND_MAX);
+        }
+#endif
     };
 
-    namespace detail {
-        extern LogLevel g_logLevel;
-        extern void log(LogLevel level, char const* component, char const* fmt, ...);
-    } // namespace detail
+    /* Optional UTC channel mode for Windows 10 */
+    bool IsUtcRegistrationEnabledinWindows();
 
-#define ARIASDK_SET_LOG_LEVEL_(level_) (PAL::detail::g_logLevel = (level_))
+    bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
 
-// Check if logging is enabled on a specific level
-#define ARIASDK_LOG_ENABLED_(level_)   (PAL::detail::g_logLevel >= (level_))
+} PAL_NS_END
 
-#define ARIASDK_LOG_ENABLED_DETAIL()   ARIASDK_LOG_ENABLED_(PAL::Detail)
-#define ARIASDK_LOG_ENABLED_INFO()     ARIASDK_LOG_ENABLED_(PAL::Info)
-#define ARIASDK_LOG_ENABLED_WARNING()  ARIASDK_LOG_ENABLED_(PAL::Warning)
-#define ARIASDK_LOG_ENABLED_ERROR()    ARIASDK_LOG_ENABLED_(PAL::Error)
-
-// Log a message on a specific level, which is checked efficiently before evaluating arguments
-#define ARIASDK_LOG_(level_, comp_, fmt_, ...)                                    \
-    if (ARIASDK_LOG_ENABLED_(level_)) {                                           \
-        PAL::detail::log((level_), (comp_), (fmt_), ##__VA_ARGS__); \
-    } else static_cast<void>(0)
-
-#ifndef HAVE_MAT_LOGGING
-/* No logging */
-#define LOG_DEBUG(fmt, ...)
-#define LOG_TRACE(fmt, ...)
-#define LOG_INFO(fmt,  ...)
-#define LOG_WARN(fmt,  ...)
-#define LOG_ERROR(fmt, ...)
-#else
-#ifdef NDEBUG
-#define LOG_DEBUG(fmt_, ...)
-#else
-#define LOG_DEBUG(fmt_, ...)    ARIASDK_LOG_(PAL::Detail,  getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
-#endif
-#define LOG_TRACE(fmt_, ...)    ARIASDK_LOG_(PAL::Detail,  getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
-#define LOG_INFO(fmt_, ...)     ARIASDK_LOG_(PAL::Info,    getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
-#define LOG_WARN(fmt_, ...)     ARIASDK_LOG_(PAL::Warning, getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
-#define LOG_ERROR(fmt_, ...)    ARIASDK_LOG_(PAL::Error,   getAriaSdkLogComponent(), fmt_, ##__VA_ARGS__)
-#endif
-
-} PAL_NS_END // namespace PAL
-
-// See docs/PAL.md for details about the classes, functions and macros a PAL implementation must support.
-
-#ifdef ARIASDK_PAL_WIN32
-#include "PAL_Win32.hpp"
-#elif defined(ARIASDK_PAL_CPP11)
-#include "PAL_CPP11.hpp"
-#else
-#error No platform abstraction library configured. Set one of the ARIASDK_PAL_xxx macros.
 #endif

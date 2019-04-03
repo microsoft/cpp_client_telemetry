@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "BondSplicer.hpp"
-#include <bond_lite/All.hpp>
-#include "bond/generated/AriaProtocol_writers.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
 #include <assert.h>
 
 namespace ARIASDK_NS_BEGIN {

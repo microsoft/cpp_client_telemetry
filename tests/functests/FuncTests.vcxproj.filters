@@ -2,10 +2,8 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(ProjectDir)\BasicFuncTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\LoadTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MultipleLogManagersTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\BasicAfdFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
       <Filter>mocks</Filter>
     </ClCompile>
@@ -13,6 +11,8 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="APITest.cpp" />
+    <ClCompile Include="BondDecoderTests.cpp" />
+    <ClCompile Include="EventDecoderListener.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
@@ -57,6 +57,7 @@
     <ClInclude Include="..\common\MockITelemetrySystem.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
+    <ClInclude Include="EventDecoderListener.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include=" ">

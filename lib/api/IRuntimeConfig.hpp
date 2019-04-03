@@ -59,14 +59,13 @@ namespace ARIASDK_NS_BEGIN
         virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) = 0;
 
         /// <summary>
-        /// Gets the tenant token for the Aria SDK itself.
+        /// Retrieve usage stats tenant token.
         /// </summary>
         /// <returns>A string that contains the tenant token.</returns>
         virtual std::string GetMetaStatsTenantToken() = 0;
 
         /// <summary>
-        /// Gets the interval for sending meta-statistics (about the operation of
-        /// the Aria SDK itself).
+        /// Get the interval for sending internal usage stats.
         /// </summary>
         /// <returns>An unsigned integer that contains the interval (measured in seconds).</returns>
         virtual unsigned GetMetaStatsSendIntervalSec() = 0;
@@ -177,6 +176,10 @@ namespace ARIASDK_NS_BEGIN
 
         virtual uint32_t GetTeardownTime() = 0;
 
+        /// <summary>
+        /// Get UTC channel provider group ID
+        /// </summary>
+        /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
     };
 

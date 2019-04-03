@@ -1,5 +1,6 @@
-#ifndef ARIA_LOGCONFIGURATION_HPP
-#define ARIA_LOGCONFIGURATION_HPP
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_LOGCONFIGURATION_HPP
+#define MAT_LOGCONFIGURATION_HPP
 
 #include "Version.hpp"
 
@@ -10,7 +11,6 @@
 
 #include <string>
 
-// TODO: [MG] - consider moving this header to a separate file such as LogConfiguration-v1.hpp
 namespace Microsoft {
     namespace Applications {
         namespace Telemetry {
@@ -18,7 +18,7 @@ namespace Microsoft {
 #pragma warning( push )
 #pragma warning( disable : 4251 ) // std::string container is safe to expose without DLL export attribute on Windows
 #endif
-            struct ARIASDK_LIBABI LogConfiguration
+            struct MATSDK_LIBABI LogConfiguration
             {
                 /// <summary>[optional] Enable lifecycle session.
                 /// default will be false
@@ -66,7 +66,7 @@ namespace Microsoft {
                 /// default is ACTTraceLevel_Error</summary>
                 unsigned int minimumTraceLevel;
 
-                /// <summary>Api to set Aria SDK mode with Non UTC, UTC with common Schema or UTC with Aria Schema.<br>
+                /// <summary>Api to set SDK mode with Non UTC, UTC with common Schema or UTC with legacy Schema.<br>
                 /// default is Non UTC</summary>
                 unsigned int sdkmode;
 
@@ -99,11 +99,11 @@ namespace Microsoft {
 
 namespace ARIASDK_NS_BEGIN {
 
-    ARIASDK_LIBABI const ILogConfiguration& GetDefaultConfiguration();
+    MATSDK_LIBABI const ILogConfiguration& GetDefaultConfiguration();
 
-    ARIASDK_LIBABI ILogConfiguration FromLogConfiguration(MAT_v1::LogConfiguration &src);
+    MATSDK_LIBABI ILogConfiguration FromLogConfiguration(MAT_v1::LogConfiguration &src);
 
-    ARIASDK_LIBABI ILogConfiguration FromJSON(const char* json);
+    MATSDK_LIBABI ILogConfiguration FromJSON(const char* json);
 
 } ARIASDK_NS_END
 

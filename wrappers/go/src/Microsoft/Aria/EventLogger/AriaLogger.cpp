@@ -16,7 +16,7 @@ void AriaLogger::Init(std::string token)
     configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db"; // ":memory:";
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_Aria;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_RAM_QUEUE_SIZE]  = 32 * 1024 * 1024; // 32 MB heap limit for sqlite3
     configuration[CFG_INT_CACHE_FILE_SIZE] = 16 * 1024 * 1024; // 16 MB storage file limit

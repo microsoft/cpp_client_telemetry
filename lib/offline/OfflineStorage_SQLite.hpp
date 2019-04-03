@@ -102,7 +102,7 @@ namespace ARIASDK_NS_BEGIN {
         uint64_t                    m_isStorageFullNotificationSendTime;
 
     protected:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
 

@@ -1,109 +1,61 @@
-# Build artifacts
-.buildtools
-Debug/
-Release/
 *.VC.db
-
-# Test artifacts
-
-offlinestorage.db*
-bondlite/external/bond/
-bondlite/external/rapidjson/
-bondlite/generated/bond/
-bondlite/generated/bond-aria/
-
-dev_buildtools/
-ivy.dependency.report/
-skype-ant/
-staging.d/
-sysroot/
-skype-ant.zip
-Debug/
-
-# Ignore auto-generated Version.hpp
-lib/include/public/Version.hpp
-lib/jni/gen/
-
-# Eclipse
+*.ipch
+*.opendb
+*.suo
+*.user
+.buildtools
 .cproject
 .project
 .settings
-
-# Visual Studio files
-*.suo
-*.opendb
-
-# Zlib generated files
-zlib/contrib/masmx86/*.lst
-zlib/contrib/masmx64/*.lst
 /.metadata/
-
-# UWP generated files
-Solutions/afdclient-cpp/Generated\ Files/*
-Solutions/ecsclient-cpp/Generated\ Files/*
-/Solutions/AriaSDK.VC.VC.opendb
-
-# Visual Studio user files
-*.user
-
-# Build artifacts
-CMakeCache.txt
-3.5.1
-CMakeFiles
+/Default/
 /Makefile
+/Sample/Debug/
+/Sample/Release/
+/Sample/x64/
+/Solutions/.vs/
+/Solutions/Testing/Temporary
+/Solutions/out/
 /cmake_install.cmake
+/dist/
+/docs/out
+/examples/.vs/samples/v15/Server/sqlite3
 /lib/Makefile
 /lib/cmake_install.cmake
 /lib/include/Makefile
 /lib/include/cmake_install.cmake
-/lib/libaria.a
+/lib/libmat.a
 /linktest/out/*
-/tests/curltests/out/*
+/out/
 /tests/curltests/HttpClient_Curl.hpp
-/examples/HelloAria/out/*
-linktest/linktest
-
-# Ignore pack configs
+/tests/curltests/out/*
+/tests/ecs/node_modules
+3.5.1
+CMakeCache.txt
+CMakeFiles
 CPackConfig.cmake
 CPackSourceConfig.cmake
-
-# Ignore out dir
-/Solutions/out/
-/out/
-
-#Remove generated files
-Generated Files
-/Sample/Release/*
-/Sample/Debug/*
-/Sample/x64/*
-
-# zlib build artifacts
+Debug/
+Generated\ Files
+Release/
+Solutions/afdclient-cpp/Generated\ Files/*
+Solutions/ecsclient-cpp/Generated\ Files/*
+Version.hpp
+bondlite/external/bond/
+bondlite/generated/bond/
+lib/include/public/Version.hpp
+lib/jni/gen/
+linktest/Makefile
+linktest/cmake_install.cmake
+linktest/linktest
+offlinestorage.db*
+sqlite-autoconf*
+wrappers/go/example
+wrappers/go/offlinestorage.*
 zlib/contrib/**/*.obj
-zlib/contrib/**/*.obj
+zlib/contrib/masmx64/*.lst
+zlib/contrib/masmx86/*.lst
 zlib/contrib/vstudio/vc14/ARM/
 zlib/contrib/vstudio/vc14/Release/
 zlib/contrib/vstudio/vc14/ReleaseWithoutAsm/
 zlib/contrib/vstudio/vc14/x64/
-
-# Ignore temp files created by Linux build / tests
-linktest/Makefile
-linktest/cmake_install.cmake
-
-# Ignore temp files created by GoLang projection wrapper
-wrappers/go/example
-wrappers/go/offlinestorage.db
-wrappers/go/offlinestorage.db-shm
-wrappers/go/offlinestorage.db-wal
-wrappers/go/offlinestorage.db.session64
-
-/Solutions/AriaSDK.VC.db
-/Solutions/.vs/AriaSDK/v15
-/tests/ecs/node_modules
-*.ipch
-/Solutions/Testing/Temporary
-/Default/
-/dist/
-/docs/out
-
-Version.hpp
-sqlite-autoconf*
