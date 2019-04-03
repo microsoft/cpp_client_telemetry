@@ -358,6 +358,7 @@ ASALocalRun/
 /lib/libmat.a
 /linktest/out/*
 /out/
+/private/
 /tests/curltests/HttpClient_Curl.hpp
 /tests/curltests/out/*
 /tests/ecs/node_modules

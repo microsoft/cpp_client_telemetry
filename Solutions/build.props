@@ -1,7 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <AriaDepsLibPath>$(SolutionDir)\out\$(Configuration)\$(Platform)</AriaDepsLibPath>
-    <PreprocessorDefinitions Condition="exists('$(SolutionDir)\..\lib\modules\')">HAVE_PRIVATE_MODULES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="exists('$(SolutionDir)\..\lib\modules\')">
+    <PreprocessorDefinitions>HAVE_PRIVATE_MODULES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
