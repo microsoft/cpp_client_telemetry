@@ -153,6 +153,7 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
+                    delete item;
                     break; // TODO: [MG] - delete item
                 }
                 
