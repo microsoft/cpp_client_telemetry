@@ -263,17 +263,8 @@ namespace PAL_NS_BEGIN {
     {
         // TODO: [MG] - port Linux implementation in here
         GUID uuid;
-        if (S_OK == CoCreateGuid(&uuid))
-        {
-            //UUID uuid;
-            //::UuidCreate(&uuid);
-            return MAT::to_string(uuid);
-        }
-        else
-        {
-            // XXX: [MG] - apparently this code is identical to the branch above???
-            return MAT::to_string(uuid);
-        }
+        ::CoCreateGuid(&uuid);
+        return MAT::to_string(uuid);
     }
 #ifdef _MSC_VER
 #pragma warning(pop)
