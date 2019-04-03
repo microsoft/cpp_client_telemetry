@@ -467,7 +467,7 @@ bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, 
                 int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
                 if ((res != Z_OK) || (len != destLen))
                 {
-                    TEST_LOG_ERROR("Decompression failed, error=%d, len=%zu, destLen=%u", res, (uint64_t)len, (unsigned int)destLen);
+                    TEST_LOG_ERROR("Decompression failed, error=%d, len=%u, destLen=%u", res, static_cast<unsigned int>(len), static_cast<unsigned int>(destLen));
                     delete[] decompBody;
                     return false;
                 }
