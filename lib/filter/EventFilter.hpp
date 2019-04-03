@@ -1,8 +1,8 @@
 // EventFilter.hpp
 // Definition of the EventFilter class
 
-#ifndef ARIA_EVENTFILTER_HPP
-#define ARIA_EVENTFILTER_HPP
+#ifndef MAT_EVENTFILTER_HPP
+#define MAT_EVENTFILTER_HPP
 
 #include "filter/IEventFilter.hpp"
 /*
@@ -42,4 +42,4 @@ namespace ARIASDK_NS_BEGIN
     };
 } ARIASDK_NS_END
 
-#endif // !ARIA_EVENTFILTER_HPP
+#endif // !MAT_EVENTFILTER_HPP

@@ -12,9 +12,9 @@
 #include "http/HttpClientFactory.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
-#define getAriaSdkLogComponent  ::testing::getAriaSdkLogComponent
+#define getMATSDKLogComponent  ::testing::getMATSDKLogComponent
 
 class HttpClientTests : public ::testing::Test,
                         public HttpServer::Callback,

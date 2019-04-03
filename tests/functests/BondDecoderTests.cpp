@@ -1,0 +1,99 @@
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif 
+
+#ifdef _MSC_VER
+#pragma warning (disable : 4389)
+#endif
+
+#include "common/Common.hpp"
+#include "LogManager.hpp"
+
+#include <atomic>
+#include <cassert>
+
+#include "EventDecoderListener.hpp"
+
+using namespace MAT;
+using namespace std;
+
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+
+EventDecoderListener listener;
+
+void Configure(ILogConfiguration& config)
+{
+    config[CFG_STR_CACHE_FILE_PATH] = "streamer.db";
+    config[CFG_INT_CACHE_FILE_SIZE] = 10 * 1024 * 1024;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 2 * 1024 * 1024;
+    config[CFG_INT_RAM_QUEUE_BUFFERS] = 10;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel::ACTTraceLevel_Trace;
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 20;
+    config[CFG_INT_MAX_PENDING_REQ] = 4;
+}
+
+void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds sleepTime)
+{
+    for (auto i = 0; i < eventCount; ++i)
+    {
+        pLogger->LogEvent("Streamer.Basic");
+
+        EventProperties event2("Streamer.Detailed",
+            {
+                // Key-values
+                { "strKey",  "hello" },
+                { "int64Key", 1L },
+                { "dblKey",   3.14 },
+                { "boolKey",  false },
+                { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
+                { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+                { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
+                // Key-values with Pii tags
+                { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
+                { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=ARIA,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+                { "piiKind.GenericData",        EventProperty("generic_data",  PiiKind_GenericData) },
+                { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
+                { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
+                { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
+                { "piiKind.PhoneNumber",        EventProperty("+1-425-829-5875", PiiKind_PhoneNumber) },
+                { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
+                { "piiKind.SipAddress",         EventProperty("sip:info@microsoft.com", PiiKind_SipAddress) },
+                { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@fabrikam.com>", PiiKind_SmtpAddress) },
+                { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
+                { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
+                { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) }
+            });
+        pLogger->LogEvent(event2);
+
+        if (sleepTime >= std::chrono::milliseconds(0)) std::this_thread::sleep_for(sleepTime);
+    }
+}
+
+TEST(BondDecoderTests, BasicTest)
+{
+    // Register listeners for HTTP OK and ERROR
+    auto dbgEvents = { EVT_HTTP_OK, EVT_HTTP_ERROR };
+    for (auto dbgEvt : dbgEvents)
+    {
+        LogManager::AddEventListener(dbgEvt, listener);
+    }
+
+    // Set config settings
+    Configure(LogManager::GetLogConfiguration());
+
+    // Obtains default primary logger
+    auto pLogger = LogManager::Initialize(TOKEN);
+
+    // Send 10 events with 50ms delay
+    SendEvents(pLogger, 10, std::chrono::milliseconds(50));
+
+    // Trigger upload on shutdown
+    LogManager::FlushAndTeardown();
+
+    // Unregister listeners
+    for (auto dbgEvt : dbgEvents)
+    {
+        LogManager::RemoveEventListener(dbgEvt, listener);
+    }
+}

@@ -4,7 +4,7 @@
 #include "api/ContextFieldsProvider.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 // TODO: [MG] - this test would benefit from uncommenting a bunch of lines that have been commented by someone before..
 TEST(ContextFieldsProviderTests, SetProperties)
@@ -49,17 +49,17 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.SetUserLanguage("language");
     ctx.SetUserTimeZone("timeZone");
 
-    ::AriaProtocol::Record record;
+    ::CsProtocol::Record record;
     loggerCtx.writeToRecord(record);
 
     EXPECT_THAT(record.data[0].properties.size(), 8);
     EXPECT_THAT(record.data[0].properties["shared"].stringValue, Eq("willbeoverwritten"));
     EXPECT_THAT(record.data[0].properties["empty"].stringValue, Eq(""));
     EXPECT_THAT(record.data[0].properties["parentonly"].stringValue, Eq("willberemoved"));
-    EXPECT_THAT(record.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::DistinguishedName);
+    EXPECT_THAT(record.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::CsProtocol::PIIKind::DistinguishedName);
     EXPECT_THAT(record.data[0].properties["sharedpii"].stringValue, Eq("willbeoverwrittenpii"));
     EXPECT_THAT(record.data[0].properties["emptypii"].stringValue, Eq(""));
-    EXPECT_THAT(record.data[0].properties["parentonlypii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::GenericData);
+    EXPECT_THAT(record.data[0].properties["parentonlypii"].attributes[0].pii[0].Kind, ::CsProtocol::PIIKind::GenericData);
     EXPECT_THAT(record.data[0].properties["parentonlypii"].stringValue, Eq("willberemoved"));
 
 
@@ -73,17 +73,17 @@ TEST(ContextFieldsProviderTests, SetProperties)
     EventProperty prop12("specificpii", PiiKind_QueryString);
     loggerCtx.SetCustomField("childpii", prop12);
 
-    ::AriaProtocol::Record record1;
+    ::CsProtocol::Record record1;
     loggerCtx.writeToRecord(record1);
     EXPECT_THAT(record1.data[0].properties.size(), 10);
 
     EXPECT_THAT(record1.extUser[0].localId, Eq("userId"));
 
-    EXPECT_THAT(record1.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::MailSubject);
+    EXPECT_THAT(record1.data[0].properties["sharedpii"].attributes[0].pii[0].Kind, ::CsProtocol::PIIKind::MailSubject);
     EXPECT_THAT(record1.data[0].properties["sharedpii"].stringValue, Eq("latestpii"));
-    EXPECT_THAT(record1.data[0].properties["parentpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::GenericData);
+    EXPECT_THAT(record1.data[0].properties["parentpii"].attributes[0].pii[0].Kind, ::CsProtocol::PIIKind::GenericData);
     EXPECT_THAT(record1.data[0].properties["parentpii"].stringValue, Eq("willremainpii"));
-    EXPECT_THAT(record1.data[0].properties["childpii"].attributes[0].pii[0].Kind, ::AriaProtocol::PIIKind::QueryString);
+    EXPECT_THAT(record1.data[0].properties["childpii"].attributes[0].pii[0].Kind, ::CsProtocol::PIIKind::QueryString);
     EXPECT_THAT(record1.data[0].properties["childpii"].stringValue, Eq("specificpii"));
 
     EXPECT_THAT(record1.data[0].properties["shared"].stringValue, Eq("latest"));
@@ -119,7 +119,7 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
 {
     ContextFieldsProvider ctx(nullptr);
 
-    ::AriaProtocol::Record record;
+    ::CsProtocol::Record record;
     ctx.writeToRecord(record);
 
     EXPECT_THAT(record.extDevice[0].localId, Not(IsEmpty()));

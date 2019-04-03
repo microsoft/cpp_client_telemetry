@@ -5,7 +5,7 @@
 #include "http/HttpClientManager.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 
 class HttpClientManager4Test : public HttpClientManager {

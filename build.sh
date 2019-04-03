@@ -87,14 +87,14 @@ fi
 # Install SDK headers and lib to /usr/local
 #
 ## TODO: [MG] - fix this section for shared library
-## strip --strip-unneeded out/lib/libaria.so
-## strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag out/lib/libaria.so
+## strip --strip-unneeded out/lib/libmat.so
+## strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag out/lib/libmat.so
 
 if [ "$CMAKE_PACKAGE_TYPE" == "tgz" ]; then
 cd ..
-ARIA_SDK_INSTALL_DIR="${ARIA_SDK_INSTALL_DIR:-/usr/local}"
+MATSDK_INSTALL_DIR="${MATSDK_INSTALL_DIR:-/usr/local}"
 echo "+-----------------------------------------------------------------------------------+"
-echo " This step may prompt for your sudo password to deploy SDK to $ARIA_SDK_INSTALL_DIR  "
+echo " This step may prompt for your sudo password to deploy SDK to $MATSDK_INSTALL_DIR  "
 echo "+-----------------------------------------------------------------------------------+"
-sudo ./install.sh $ARIA_SDK_INSTALL_DIR
+sudo ./install.sh $MATSDK_INSTALL_DIR
 fi

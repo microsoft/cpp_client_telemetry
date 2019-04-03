@@ -40,7 +40,7 @@
     <Filter Include="include">
       <UniqueIdentifier>{a7bd03bb-b918-4c22-b5c8-8ae8357de1a4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\aria">
+    <Filter Include="include\mat">
       <UniqueIdentifier>{e1dbfa07-6cc7-4f31-b0b3-f594e2c6f25b}</UniqueIdentifier>
     </Filter>
     <Filter Include="offline">
@@ -58,7 +58,7 @@
     <Filter Include="include\public">
       <UniqueIdentifier>{745547c2-8b4f-47bf-bb27-aa23eeb6303f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\aria">
+    <Filter Include="include\mat">
       <UniqueIdentifier>{80621d23-c9e9-41fe-9d54-e930b5f04a15}</UniqueIdentifier>
     </Filter>
     <Filter Include="filter">
@@ -66,6 +66,9 @@
     </Filter>
     <Filter Include="include\mat">
       <UniqueIdentifier>{f0264a27-35fe-4529-946f-9583e4624255}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pal\desktop">
+      <UniqueIdentifier>{0741500d-ddf5-493d-bbad-ce8905ee0c91}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -132,9 +135,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.cpp">
       <Filter>packager</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.cpp">
-      <Filter>pal</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp">
       <Filter>pal</Filter>
     </ClCompile>
@@ -143,9 +143,6 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
       <Filter>tpm</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp">
-      <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp">
       <Filter>callbacks</Filter>
@@ -195,9 +192,17 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp">
       <Filter>offline</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.cpp">
+      <Filter>pal</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.cpp">
+      <Filter>pal</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp">
+      <Filter>pal\desktop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -300,9 +305,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.hpp">
       <Filter>pal</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.hpp">
-      <Filter>pal</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp">
       <Filter>pal</Filter>
     </ClInclude>
@@ -329,12 +331,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp">
       <Filter>system</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp">
-      <Filter>system</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp">
-      <Filter>pal</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp">
       <Filter>utils</Filter>
@@ -405,30 +401,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp">
       <Filter>api</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\INetworkInformation.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IOfflineStorage.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IPropertyChangedCallback.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\ISystemInformation.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\json.hpp">
-      <Filter>include\aria</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h">
-      <Filter>include\aria</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
@@ -471,9 +443,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\NullObjects.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h">
-      <Filter>include\public</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerProvider.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
@@ -486,7 +455,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CAPIClient.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp">
       <Filter>utils</Filter>
     </ClInclude>
@@ -529,10 +497,73 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h">
       <Filter>include\mat</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.hpp">
+      <Filter>pal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IBandwidthController.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IDeviceInformation.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IInformationProvider.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\INetworkInformation.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IOfflineStorage.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IPropertyChangedCallback.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\ISystemInformation.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\oacr.h">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp">
+      <Filter>include\mat</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h">
+      <Filter>pal\desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\typename.hpp">
+      <Filter>pal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\All.hpp">
+      <Filter>bond</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\Common.hpp">
+      <Filter>bond</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolReader.hpp">
+      <Filter>bond</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolWriter.hpp">
+      <Filter>bond</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_readers.hpp">
+      <Filter>bond\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_types.hpp">
+      <Filter>bond\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_writers.hpp">
+      <Filter>bond\generated</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">
       <Filter>include\public</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\README">
+      <Filter>include\mat</Filter>
     </None>
   </ItemGroup>
 </Project>

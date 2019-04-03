@@ -5,8 +5,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeNetworkInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)UtcHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />

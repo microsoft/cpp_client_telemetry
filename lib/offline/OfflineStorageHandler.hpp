@@ -84,7 +84,7 @@ namespace ARIASDK_NS_BEGIN {
         bool                                   m_isStorageFullNotificationSend;
 
     protected:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
 

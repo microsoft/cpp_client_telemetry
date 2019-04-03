@@ -18,7 +18,7 @@ HRESULT __stdcall DllCanUnloadNow(void)
 }
 
 /// <summary>
-/// Lock ARIA DLL in memory until process shutdown
+/// Lock Microsoft Telemetry DLL in memory until process shutdown
 /// </summary>
 void LockInMemory()
 {

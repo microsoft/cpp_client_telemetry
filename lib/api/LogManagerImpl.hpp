@@ -26,7 +26,8 @@
 #include <mutex>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
     class ITelemetrySystem;
 
@@ -253,7 +254,7 @@ namespace ARIASDK_NS_BEGIN {
 
 protected:
 
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
 
         std::mutex                             m_lock;
         std::map<std::string, Logger*>         m_loggers;

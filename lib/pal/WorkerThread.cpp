@@ -1,7 +1,7 @@
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
 
-#if defined(ARIASDK_PAL_CPP11) || defined(ARIASDK_PAL_WIN32)
+#if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
 namespace PAL_NS_BEGIN {
 
@@ -154,7 +154,7 @@ namespace PAL_NS_BEGIN {
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
                     delete item;
-                    break; // TODO: [MG] - delete item
+                    break;
                 }
                 
                 LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item, item->typeName.c_str() );

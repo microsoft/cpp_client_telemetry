@@ -1,4 +1,6 @@
-#pragma once
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_NULLOBJECTS_HPP
+#define MAT_NULLOBJECTS_HPP
 
 #include "ILogManager.hpp"
 #include "ILogger.hpp"
@@ -7,7 +9,8 @@
 #pragma warning( push )
 #pragma warning( disable : 4100 ) // unreferenced formal parameter
 #endif
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
     class NullContext : public ISemanticContext
     {
@@ -307,4 +310,6 @@ namespace ARIASDK_NS_BEGIN {
 } ARIASDK_NS_END
 #ifdef _MSC_VER
 #pragma warning( pop )
+#endif
+
 #endif

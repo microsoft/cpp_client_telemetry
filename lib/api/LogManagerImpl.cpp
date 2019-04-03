@@ -9,13 +9,15 @@
 #include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
-#include "system/UtcTelemetrySystem.hpp"
 
 #include "utils/Utils.hpp"
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
-#include "pal/UtcHelpers.hpp"
 #include "http/HttpClientFactory.hpp"
+
+#ifdef HAVE_MAT_UTC
+#include "modules/utc/UtcTelemetrySystem.hpp"
+#endif
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -34,7 +36,7 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
-    ARIASDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Events telemetry client - LogManager class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class");
 
 #if 1
     // TODO: integrate Tracing API from v1
@@ -144,7 +146,7 @@ namespace ARIASDK_NS_BEGIN
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
 
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
-        if ((sdkMode > SdkModeTypes::SdkModeTypes_Aria) && isWindowsUtcClientRegistrationEnable)
+        if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
         {
             LOG_TRACE("Initializing UTC physical layer...");
             m_system.reset(new UtcTelemetrySystem(*this, *m_config));

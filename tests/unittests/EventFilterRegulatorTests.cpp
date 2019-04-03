@@ -8,7 +8,7 @@
 #include <mutex>
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 // This abomination is only here because I couldn't get a lambda to return a useful mock!
 class MockableFactory

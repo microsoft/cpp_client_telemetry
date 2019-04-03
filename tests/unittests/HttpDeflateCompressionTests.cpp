@@ -8,7 +8,7 @@
 #undef compress
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 namespace testing {
 

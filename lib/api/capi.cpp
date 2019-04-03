@@ -1,10 +1,10 @@
 /* Copyright (c) Microsoft. All rights reserved. */
 #ifdef _WIN32
-#define ARIASDK_DECLSPEC __declspec(dllexport)
+#define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
 #include "LogManagerProvider.hpp"
-#include "aria.h"
+#include "mat.h"
 #include "utils/Utils.hpp"
 
 #include "PAL.hpp"
@@ -133,7 +133,7 @@ evt_status_t mat_open(evt_context_t *ctx)
 }
 
 /**
- * Marashal C struct tro Aria C++ API
+ * Marashal C struct to C++ API
  */
 evt_status_t mat_log(evt_context_t *ctx)
 {

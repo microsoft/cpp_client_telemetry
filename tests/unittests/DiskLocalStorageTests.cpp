@@ -8,9 +8,9 @@
 #include "common/MockITenantDataSerializer.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
-//using namespace ARIASDK_NS::ControlPlane;
+//using namespace MAT::ControlPlane;
 
 // Class to allow unit tests to test DiskLocalStorage without needing to use the file system
 class TestableDiskLocalStorage : public DiskLocalStorage

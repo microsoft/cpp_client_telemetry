@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
     protected:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
         void checkBackoffConfigUpdate();
 
         void uploadAsync(EventLatency priority);

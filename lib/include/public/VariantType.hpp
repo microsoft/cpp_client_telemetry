@@ -1,5 +1,6 @@
-#ifndef VARIANTTYPE_HPP
-#define VARIANTTYPE_HPP
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef MAT_VARIANTTYPE_HPP
+#define MAT_VARIANTTYPE_HPP
 
 // Default implementation doesn't provide locking
 #ifndef VARIANT_LOCKGUARD
@@ -26,9 +27,11 @@
 /**
  * Variant type for containers
  */
-class Variant {
+class Variant
+{
 
-    union {
+    union
+    {
         int64_t     iV;
         double      dV;
         const char* sV;
@@ -47,7 +50,8 @@ public:
     // Thread-safe variants
     VARIANT_LOCK(lock_object);
 
-    enum Type {
+    enum Type
+    {
         TYPE_NULL,
         TYPE_INT,
         TYPE_DOUBLE,
@@ -60,7 +64,8 @@ public:
 
     Type type;
 
-    Variant& ConstNull() {
+    Variant& ConstNull()
+    {
         static Variant nullVariant;
         return nullVariant;
     }
@@ -83,7 +88,8 @@ public:
 
     Variant(const char* v) : sV(v), type(TYPE_STRING) {};
 
-    operator const char*() {
+    operator const char*()
+    {
         if (type == TYPE_STRING)
             return sV;
         if (type == TYPE_STRING2)
@@ -183,9 +189,10 @@ public:
     };
 
     // C++11 initializer list support for maps
-    Variant(const std::initializer_list<std::pair<std::string, Variant> >& l) :
-        type(TYPE_OBJ) {
-        for (const auto& kv : l) {
+    Variant(const std::initializer_list<std::pair<std::string, Variant> >& l) : type(TYPE_OBJ)
+    {
+        for (const auto& kv : l)
+        {
             mV[kv.first] = kv.second;
             // mV.insert(kv);
         }
@@ -198,13 +205,15 @@ public:
 
     // Destroy all elements
     virtual ~Variant() {
-        if (type == TYPE_OBJ) {
+        if (type == TYPE_OBJ)
+        {
             mV.clear();
         }
         else
-            if (type == TYPE_ARR) {
-                aV.clear();
-            }
+        if (type == TYPE_ARR)
+        {
+            aV.clear();
+        }
     }
 
     operator std::string&()
@@ -224,12 +233,14 @@ public:
     /**
      *
      */
-    operator VariantMap&() {
+    operator VariantMap&()
+    {
         VARIANT_LOCKGUARD(lock_object);
         return mV;
     };
 
-    operator VariantMap&() const {
+    operator VariantMap&() const
+    {
         VARIANT_LOCKGUARD(lock_object);
         return mV;
     };
@@ -238,7 +249,8 @@ public:
     /**
      *
      */
-    operator VariantArray&() {
+    operator VariantArray&()
+    {
         VARIANT_LOCKGUARD(lock_object);
         return aV;
     };
@@ -246,7 +258,8 @@ public:
     /**
      *
      */
-    Variant& operator [](const char* k) {
+    Variant& operator [](const char* k)
+    {
         VARIANT_LOCKGUARD(lock_object);
         if (type == TYPE_OBJ)
             return mV[k];
@@ -270,10 +283,13 @@ public:
     /**
      *
      */
-    Variant& operator ()(size_t idx) {
+    Variant& operator ()(size_t idx)
+    {
         VARIANT_LOCKGUARD(lock_object);
         if (type == TYPE_ARR)
+        {
             return aV[idx];
+        }
         // Accessing index of something that is not an array returns a null const variant.
         // We may consider adding an assert here for debug builds.
         return ConstNull();      // return const NULL Variant
@@ -282,10 +298,13 @@ public:
     /**
      *
      */
-    static std::string escape(const std::string &s) {
+    static std::string escape(const std::string &s)
+    {
         std::ostringstream o;
-        for (auto c = s.cbegin(); c != s.cend(); c++) {
-            switch (*c) {
+        for (auto c = s.cbegin(); c != s.cend(); c++)
+        {
+            switch (*c)
+            {
             case '"': o << "\\\""; break;
             case '\\': o << "\\\\"; break;
             case '\b': o << "\\b"; break;
@@ -391,7 +410,8 @@ public:
     /**
      * C++11 initializer list support for vectors
      */
-    static Variant from_array(std::initializer_list<Variant> l) {
+    static Variant from_array(std::initializer_list<Variant> l)
+    {
         VariantArray arr;
         for (const auto& v : l)
             arr.push_back(v);

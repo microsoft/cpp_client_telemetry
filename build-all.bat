@@ -7,7 +7,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Too
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
-set SOLUTION=Solutions\AriaSDK.sln
+set SOLUTION=Solutions\MSTelemetrySDK.sln
 
 set CUSTOM_PROPS=
 if ("%1"=="") goto skip

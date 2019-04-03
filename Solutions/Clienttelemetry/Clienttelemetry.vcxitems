@@ -43,8 +43,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp" />
@@ -52,7 +53,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfiles.cpp" />
@@ -69,11 +69,18 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\Backoff_ExponentialWithJitter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\All.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\Common.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolReader.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolWriter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_readers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_types.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_writers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\BondConstTypes.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_readers.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_types.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_writers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.hpp" />
@@ -87,14 +94,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IDeviceInformation.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IInformationProvider.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\INetworkInformation.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IOfflineStorage.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\IPropertyChangedCallback.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\ISystemInformation.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\json.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\aria\oacr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-dll.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-exp.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact-noutc.h" />
@@ -103,7 +102,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-ikeys.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\aria.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IBandwidthController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IDeviceInformation.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IInformationProvider.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\INetworkInformation.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IOfflineStorage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IPropertyChangedCallback.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\ISystemInformation.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\oacr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ctmacros.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CorrelationVector.hpp" />
@@ -143,13 +151,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL_Win32.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\UtcHelpers.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\typename.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp" />
@@ -161,7 +169,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Route.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystemBase.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\UtcTelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
@@ -169,6 +176,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\README" />
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template" />
   </ItemGroup>
 </Project>

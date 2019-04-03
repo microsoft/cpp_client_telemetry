@@ -6,7 +6,7 @@
 namespace testing {
 
 
-class MockISemanticContext : public ARIASDK_NS::ContextFieldsProvider {
+class MockISemanticContext : public MAT::ContextFieldsProvider {
   public:
     MockISemanticContext();
     virtual ~MockISemanticContext();
@@ -15,17 +15,16 @@ class MockISemanticContext : public ARIASDK_NS::ContextFieldsProvider {
     MOCK_METHOD1(SetAppVersion,        void(std::string const & appVersion));
     MOCK_METHOD1(SetAppLanguage,       void(std::string const & appLanguage));
     MOCK_METHOD1(SetAppExperimentIds,  void(std::string const & appExperimentIds));
-    MOCK_METHOD2(SetUserId,            void(std::string const & userId, ARIASDK_NS::PiiKind piiKind));
+    MOCK_METHOD2(SetUserId,            void(std::string const & userId, MAT::PiiKind piiKind));
     MOCK_METHOD1(SetUserMsaId,         void(std::string const & userMsaId));
     MOCK_METHOD1(SetUserANID,          void(std::string const & userANID));
     MOCK_METHOD1(SetUserAdvertisingId, void(std::string const & userAdvertingId));
     MOCK_METHOD1(SetCommercialId,      void(std::string const & commercialId));
     MOCK_METHOD1(SetUserLanguage,      void(std::string const & locale));
     MOCK_METHOD1(SetUserTimeZone,      void(std::string const & timeZone));
-	MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));
-	MOCK_METHOD1(SetAppExperimentImpressionId, void(std::string const& appExperimentImpressionId));
-	MOCK_METHOD2(SetEventExperimentIds, void(std::string const& eventName, std::string const& experimentIds));
-//    MOCK_METHOD2(SetTicket, void(ARIASDK_NS::TicketType type, std::string const& ticketValue));
+    MOCK_METHOD1(SetAppExperimentETag, void(std::string const& appExperimentETag));
+    MOCK_METHOD1(SetAppExperimentImpressionId, void(std::string const& appExperimentImpressionId));
+    MOCK_METHOD2(SetEventExperimentIds, void(std::string const& eventName, std::string const& experimentIds));
 };
 
 

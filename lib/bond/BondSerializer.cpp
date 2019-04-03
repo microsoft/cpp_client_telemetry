@@ -2,9 +2,9 @@
 
 #include "BondSerializer.hpp"
 #include "utils/Utils.hpp"
-#include "bond_lite/All.hpp"
-#include "bond/generated/AriaProtocol_writers.hpp"
-#include "bond/generated/AriaProtocol_readers.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
 #include "oacr.h"
 
 namespace ARIASDK_NS_BEGIN {

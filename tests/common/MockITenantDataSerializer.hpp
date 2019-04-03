@@ -5,8 +5,8 @@
 #include <ControlPlane/ILocalStorage.hpp>
 #include "gmock/gmock.h"
 
-using namespace ARIASDK_NS;
-using namespace ARIASDK_NS::ControlPlane;
+using namespace MAT;
+using namespace MAT::ControlPlane;
 
 namespace testing
 {

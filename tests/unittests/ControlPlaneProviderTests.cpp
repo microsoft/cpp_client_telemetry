@@ -5,7 +5,7 @@
 #include "IControlPlane.hpp"
 
 using namespace testing;
-using namespace ARIASDK_NS;
+using namespace MAT;
 
 static const size_t ConfigV0Size = sizeof(size_t) + sizeof(LPCSTR);
 

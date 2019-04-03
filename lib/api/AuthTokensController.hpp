@@ -70,7 +70,7 @@ namespace ARIASDK_NS_BEGIN
         virtual std::map<TicketType, std::string>&  GetUserTokens() override;
 
     private:
-        ARIASDK_LOG_DECL_COMPONENT_CLASS();
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
         std::map<TicketType, std::string> m_deviceTokens;
         std::map<TicketType, std::string> m_userTokens;
         std::vector<std::string> m_tickets;
