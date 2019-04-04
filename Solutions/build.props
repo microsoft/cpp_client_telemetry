@@ -2,6 +2,9 @@
   <PropertyGroup Label="Globals">
     <AriaDepsLibPath>$(SolutionDir)\out\$(Configuration)\$(Platform)</AriaDepsLibPath>
   </PropertyGroup>
+  <PropertyGroup Condition="exists('$(SolutionDir)\..\lib\modules\')">
+    <PreprocessorDefinitions>HAVE_PRIVATE_MODULES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+  </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)\$(ProjectName)\</OutDir>
     <TargetDir>$(SolutionDir)out\$(Configuration)\$(Platform)\$(ProjectName)\</TargetDir>

@@ -1,9 +1,11 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(HAVE_PRIVATE_MODULES)
 #define HAVE_MAT_UTC
 #endif
+#if defined(HAVE_PRIVATE_MODULES)
 #define HAVE_MAT_EXP
 #define HAVE_MAT_FIFOSTORAGE
+#endif
 #define HAVE_MAT_JSONHPP
 #define HAVE_MAT_ZLIB
 #define HAVE_MAT_LOGGING

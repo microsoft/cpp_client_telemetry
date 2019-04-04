@@ -38,7 +38,4 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)FifoFileStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JsonHelper.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="$(MSBuildThisFileDirectory)README" />
-  </ItemGroup>
 </Project>

@@ -5,19 +5,33 @@ Language: C, C++, C++11, GoLang
 Platform: Windows, UWP, Mac OS X, Linux
 Stackoverflow: N/A
 Tags: 1DS,telemetry,C,C++,data ingestion,events
-ms.reviewedAt: 02/20/2019
+ms.reviewedAt: 04/04/2019
 ms.reviewedBy: maxgolov
 ---
 
 # Microsoft Applications Telemetry C/C++ SDK
 
-Microsoft Applications Telemetry C/C++ SDK enables cross-platform telemetry collection from various Microsoft products.
-It enables data / telemetry upload to 1DS Collector++. 
+Microsoft Applications Telemetry C/C++ SDK enables cross-platform telemetry collection from various Microsoft products. It enables data / telemetry upload to 1DS Collector++. 
 
 # Data/Telemetry
 
-This project collects usage data and sends it to Microsoft to help improve our products and services.
-Read our privacy statement to learn more.
+This project collects usage data and sends it to Microsoft to help improve our products and services. Read our privacy statement to learn more.
+
+# Contributing
+
+This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit https://cla.microsoft.com.
+
+When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) which outlines all of our policies, procedures, and requirements for contributing to this project.
 
 ## What is 1DS and Collector++?
 
@@ -27,31 +41,12 @@ Insights, and Visual Studio App Center. We aim to create a unified data producti
 scenarios for the entire company. Collector++ is the externally-facing destination end-point where data/telemetry is
 uploaded to that subsequently routes the data to Microsoft internal data pipeline.
 
-
 ```
  We need a data culture where every engineer, every day, is looking at the usage data, learning from that usage data,
  questioning what new things to test out with our products, and being on that improvement cycle which is the lifeblood
  of Microsoft...
          -- Satya Nadella
 ```
-
-# Contributing
-
-This project welcomes contributions and suggestions. Most contributions require you to agree to a Contributor License
-Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution.
-For details, visit [https://cla.microsoft.com] (https://cla.microsoft.com). When you submit a pull request, a CLA-bot
-will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., label, comment).
-Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.
-This project has adopted the Microsoft Open Source Code of Conduct. For more information see the Code of Conduct FAQ
-or contact opencode@microsoft.com with any additional questions or comments.
-
-Please read our [CONTRIBUTING.md](CONTRIBUTING.md) which outlines all of our policies, procedures, and requirements for
-contributing to this project.
-
-## Getting Started
-
-Please follow instructions published at our [Team SharePoint site](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/SitePages/Home.aspx)
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ## Running the tests
 
@@ -75,8 +70,6 @@ Launch 'functests' and 'unittests' binary executables to capture the test result
 SDK is integrated as a static or dynamic library runing in-proc within your executable on Windows, Linux and Mac.
 
 ## Built With
-
-Please follow [Getting started](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/SitePages/Home.aspx) instructions to learn how to build.
 
 We support building SDK on:
 * Windows with Visual Studio 2017
@@ -105,14 +98,9 @@ Project authors and contributors:
 * Trevor Lacey <tlacey@microsoft.com> - Micorosft Information Protection
 * Jason Bray <Jason.Bray@microsoft.com> - Microsoft Edge (Anaheim)
 
-
 Please refer to [owners.txt](owners.txt) file.
 
 ## License
-
-This project has adopted the internal open source model. (c) Microsoft - All Rights Reserved.
-We are currently working on contributing this project to open source under MIT license by April 2019.
-Please DO NOT SHARE THIS PROJECT SOURCE CODE EXTERNALLY until we satisfy all the legal requirements.
 
 Please see the [LICENSE](LICENSE) file for details.
 
