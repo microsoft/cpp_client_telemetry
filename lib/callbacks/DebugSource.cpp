@@ -17,9 +17,13 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>Remove previously added debug event listener for specific type.</summary>
     void DebugEventSource::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
     {
-        auto &v = listeners[type];
-        auto it = std::remove(v.begin(), v.end(), &listener);
-        v.erase(it, v.end());
+        auto registeredTypes = listeners.find(type);
+        if (registeredTypes == listeners.end())
+           return;
+
+        auto &registeredListeners = (*registeredTypes).second;
+        auto it = std::remove(registeredListeners.begin(), registeredListeners.end(), &listener);
+        registeredListeners.erase(it, registeredListeners.end());
     }
 
     /// <summary>Microsoft Telemetry SDK invokes this method to dispatch event to client callback</summary>
@@ -55,6 +59,9 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
     bool DebugEventSource::AttachEventSource(DebugEventSource & other)
     {
+        if (&other == this)
+           return false;
+
         cascaded.insert(&other);
         return true;
     }
