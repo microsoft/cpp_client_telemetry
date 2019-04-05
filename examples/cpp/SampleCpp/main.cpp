@@ -23,7 +23,7 @@
  
 LOGMANAGER_INSTANCE
 
-#define TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 
 extern "C" void guestTest();    // see guest.cpp 
 
@@ -169,8 +169,10 @@ void logPiiEvent()
     // Log detailed event with various properties
     EventProperties detailed_event("detailed_event",
         {
+#ifdef _MSC_VER
             // Log compiler version
             { "_MSC_VER", _MSC_VER },
+#endif
             // Pii-typed fields
             { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
             { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
@@ -188,7 +190,7 @@ void logPiiEvent()
             // Various typed key-values
             { "strKey1",  "hello1" },
             { "strKey2",  "hello2" },
-            { "int64Key", 1L },
+            { "int64Key", (int64_t)1L },
             { "dblKey",   3.14 },
             { "boolKey",  false },
             { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
@@ -304,7 +306,7 @@ int main()
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i); 
-        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, i+1);
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i+1) );
         event.SetLatency(latency); 
         logger->LogEvent(event);
 
@@ -314,7 +316,7 @@ int main()
                 { "random", rand() },
                 { "secret", 5.6872 },
                 { "seq", (uint64_t)i },
-                { COMMONFIELDS_EVENT_PRIVTAGS, i + 1 }
+                { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
             });
         logger->LogEvent(event2);
     }
