@@ -106,7 +106,7 @@ namespace PAL_NS_BEGIN {
 #ifdef HAVE_MAT_NETDETECT
         networkDetector->Stop();
         networkDetector->Release();
-        // delete networkDetector; // TODO: [MG] - doublecheck on this!
+        delete networkDetector;
 #endif
     }
 
