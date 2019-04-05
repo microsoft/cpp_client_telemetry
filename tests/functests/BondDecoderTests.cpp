@@ -19,8 +19,6 @@ using namespace std;
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 
-EventDecoderListener eventDecoderListener;
-
 void Configure(ILogConfiguration& config)
 {
     config[CFG_STR_CACHE_FILE_PATH] = "streamer.db";
@@ -72,6 +70,7 @@ void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds 
 
 TEST(BondDecoderTests, BasicTest)
 {
+    EventDecoderListener eventDecoderListener;
     // Register listeners for HTTP OK and ERROR
     const auto dbgEvents = { EVT_HTTP_OK, EVT_HTTP_ERROR };
     for (const auto& dbgEvt : dbgEvents)
