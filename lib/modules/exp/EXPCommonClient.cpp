@@ -72,6 +72,7 @@ namespace Microsoft {
                 PAL::initialize();
 
                 m_ownHttpClient.reset(HttpClientFactory::Create());
+                m_httpClient = m_ownHttpClient.get();
             }
 
             /******************************************************************************
