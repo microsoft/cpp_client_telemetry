@@ -174,6 +174,7 @@ namespace PAL_NS_BEGIN {
 #endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
+#ifdef HAVE_MAT_LOGGING
             if (!isLoggingInited)
                 return;
 
@@ -238,6 +239,11 @@ namespace PAL_NS_BEGIN {
             }
             va_end(ap);
 #endif
+#else       /* Avoid unused parameter warning */
+            (void)(level);
+            (void)(component);
+            (void)(fmt);
+#endif /* of #ifdef HAVE_MAT_LOGGING */
         }
 #ifdef _MSC_VER
 #pragma warning(pop)
