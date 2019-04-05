@@ -19,7 +19,7 @@ using namespace std;
 
 #define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 
-EventDecoderListener listener;
+EventDecoderListener eventDecoderListener;
 
 void Configure(ILogConfiguration& config)
 {
@@ -73,10 +73,10 @@ void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds 
 TEST(BondDecoderTests, BasicTest)
 {
     // Register listeners for HTTP OK and ERROR
-    auto dbgEvents = { EVT_HTTP_OK, EVT_HTTP_ERROR };
-    for (auto dbgEvt : dbgEvents)
+    const auto dbgEvents = { EVT_HTTP_OK, EVT_HTTP_ERROR };
+    for (const auto& dbgEvt : dbgEvents)
     {
-        LogManager::AddEventListener(dbgEvt, listener);
+        LogManager::AddEventListener(dbgEvt, eventDecoderListener);
     }
 
     // Set config settings
@@ -92,8 +92,8 @@ TEST(BondDecoderTests, BasicTest)
     LogManager::FlushAndTeardown();
 
     // Unregister listeners
-    for (auto dbgEvt : dbgEvents)
+    for (const auto& dbgEvt : dbgEvents)
     {
-        LogManager::RemoveEventListener(dbgEvt, listener);
+        LogManager::RemoveEventListener(dbgEvt, eventDecoderListener);
     }
 }
