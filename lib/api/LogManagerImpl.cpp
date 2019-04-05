@@ -221,12 +221,7 @@ namespace ARIASDK_NS_BEGIN
                 m_system.reset();
             }
 
-#if 0
-            for (auto& record : m_loggers) {
-                delete record.second;
-            }
             m_loggers.clear();
-#endif
 
             m_offlineStorage.reset();
             m_ownBandwidthController.reset();
@@ -450,17 +445,18 @@ namespace ARIASDK_NS_BEGIN
             auto it = m_loggers.find(hash);
             if (it == std::end(m_loggers))
             {
-                m_loggers[hash] = new Logger(
+                Logger* newLogger = new Logger(
                     normalizedTenantToken, normalizedSource, scope,
                     *this, m_context, *m_config,
                     m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
+                m_loggers[hash] = std::unique_ptr<Logger>(newLogger);
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
             if (level != DIAG_LEVEL_DEFAULT) 
             {
                 m_loggers[hash]->SetLevel(level);
             }
-            return m_loggers[hash];
+            return m_loggers[hash].get();
         }
         return nullptr;
     }
