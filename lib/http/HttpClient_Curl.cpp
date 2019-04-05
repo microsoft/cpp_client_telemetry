@@ -1,15 +1,17 @@
-#include <Version.hpp>
+// Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
+
+#include "Version.hpp"
 
 // Assume that if we are compiling with MSVC, then we prefer to use Windows HTTP stack,
 // e.g. WinInet.dll or Win 10 HTTP client instead
 #if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER)
 
-// Copyright (c) Microsoft. All rights reserved.
-
 #include "HttpClient.hpp"
-#include <memory>
-#include <utils/Utils.hpp>
 
+#include <memory>
+
+#include "utils/Utils.hpp"
 #include "HttpClient_Curl.hpp"
 
 namespace ARIASDK_NS_BEGIN {
