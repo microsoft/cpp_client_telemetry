@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
 
 find_package (Threads)
 
-set(MAT_SDK_INCLUDE	/usr/local/include/aria)
+set(MAT_SDK_INCLUDE	/usr/local/include/mat)
 
 # Aria SDK to include dirs
 include_directories( . ${MAT_SDK_INCLUDE} )
