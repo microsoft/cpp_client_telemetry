@@ -33,14 +33,6 @@
     <ClInclude Include="..\net40\targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
-      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
-      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -50,6 +42,9 @@
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>win32-dll</ProjectName>
     <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
+  </PropertyGroup>
+  <PropertyGroup Label="ExcludeSqlite" Condition="'$(NOSQLITE)'=='TRUE'">
+    <NoSqlite>TRUE</NoSqlite>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
     <OacrPath>OACR</OacrPath>
@@ -327,6 +322,16 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(NoSqlite)'!='TRUE'">
+    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
+      <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
