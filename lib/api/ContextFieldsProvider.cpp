@@ -25,6 +25,7 @@ namespace ARIASDK_NS_BEGIN
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     {
+        m_parent = copy.m_parent;
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
@@ -33,16 +34,12 @@ namespace ARIASDK_NS_BEGIN
 
     ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
     {
+        m_parent = copy.m_parent;
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_ticketsMap = copy.m_ticketsMap;
         return *this;
-    }
-
-
-    ContextFieldsProvider::~ContextFieldsProvider()
-    {
     }
 
     void ContextFieldsProvider::writeToRecord(::CsProtocol::Record& record, bool commonOnly)
