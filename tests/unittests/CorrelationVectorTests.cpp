@@ -81,22 +81,22 @@ void TestCorrelationVectorVersion(int version, size_t baseLength, int maxLength,
 
 TEST(CorrelationVectorTests, IsInitialized_NotInitialized_ReturnsFalse)
 {
-	CorrelationVector correlationVector;
-	EXPECT_FALSE(correlationVector.IsInitialized());
+   CorrelationVector correlationVector;
+   EXPECT_FALSE(correlationVector.IsInitialized());
 }
 
 TEST(CorrelationVectorTests, Initialize_InvalidVersionNumber_ReturnsFalse)
 {
-	CorrelationVector correlationVector;
-	EXPECT_FALSE(correlationVector.Initialize(0));
+   CorrelationVector correlationVector;
+   EXPECT_FALSE(correlationVector.Initialize(0));
 }
 
 TEST(CorrelationVectorTests, Initialize_Version1OrTwo_ReturnsTrue)
 {
-	CorrelationVector versionOne;
-	CorrelationVector versionTwo;
-	EXPECT_TRUE(versionOne.Initialize(1));
-	EXPECT_TRUE(versionTwo.Initialize(2));
+   CorrelationVector versionOne;
+   CorrelationVector versionTwo;
+   EXPECT_TRUE(versionOne.Initialize(1));
+   EXPECT_TRUE(versionTwo.Initialize(2));
 }
 
 TEST(CorrelationVectorTests, TestCorrelationVector_Version1)
