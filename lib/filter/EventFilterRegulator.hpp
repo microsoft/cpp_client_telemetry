@@ -5,13 +5,13 @@
 #define MAT_EVENTFILTERREGULATOR_HPP
 
 #include "filter/EventFilter.hpp"
-#include <mutex>
 #include <map>
+#include <memory>
+#include <mutex>
 
 namespace ARIASDK_NS_BEGIN
 {
-    typedef IEventFilter *PIEventFilter;
-    typedef PIEventFilter (*EventFilterFactory)();
+    using EventFilterFactory = std::unique_ptr<IEventFilter> (*)();
 
     /// <summary>
     /// Class to implement IEventFilterRegulator
@@ -19,9 +19,9 @@ namespace ARIASDK_NS_BEGIN
     class EventFilterRegulator : public IEventFilterRegulator
     {
     private:
-        const EventFilterFactory                    _eventFilterFactory;
-        std::map<const std::string, IEventFilter*>  _tenantFilters;
-        std::mutex                                  _mutex;
+        const EventFilterFactory                                    _eventFilterFactory;
+        std::map<const std::string, std::unique_ptr<IEventFilter>>  _tenantFilters;
+        std::mutex                                                  _mutex;
 
     public:
         EventFilterRegulator(EventFilterFactory eventFilterFactory = nullptr);
