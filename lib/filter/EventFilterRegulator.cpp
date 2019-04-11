@@ -16,11 +16,6 @@ namespace ARIASDK_NS_BEGIN
         : _eventFilterFactory(eventFilterFactory ? eventFilterFactory : DefaultEventFilterFactory)
     {}
 
-    EventFilterRegulator::~EventFilterRegulator()
-    {
-        Reset();
-    }
-
     status_t EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
     {
         if (tenantToken == nullptr)

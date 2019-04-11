@@ -25,7 +25,6 @@ namespace ARIASDK_NS_BEGIN
 
     public:
         EventFilterRegulator(EventFilterFactory eventFilterFactory = nullptr);
-        virtual ~EventFilterRegulator();
 
         virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
         virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
