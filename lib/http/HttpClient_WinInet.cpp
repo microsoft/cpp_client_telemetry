@@ -188,6 +188,7 @@ class WinInetRequestWrapper
                         // must stay valid and writable until the next
                         // INTERNET_STATUS_REQUEST_COMPLETE callback comes
                         // (that's why those are member variables).
+                        delete response.release();
                         return;
                     }
                     LOG_WARN("InternetReadFile() failed: %d", dwError);
@@ -291,7 +292,7 @@ class WinInetRequestWrapper
 
         // response gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
-
+        response.reset();
         m_parent.erase(m_id);
     }
 };

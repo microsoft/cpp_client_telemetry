@@ -41,6 +41,11 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
+        virtual ~HttpHeaders()
+        {
+            clear();
+        }
+
         /// <summary>
         /// Inserts a name/value pair, and removes elements with the same name.
         /// </summary>
@@ -383,6 +388,8 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual ~SimpleHttpResponse()
         {
+            m_headers.clear();
+            m_body.clear();
         }
 
         /// <summary>
