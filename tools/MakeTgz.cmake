@@ -1,4 +1,4 @@
-set(CMAKE_PROJECT_NAME "aria-sdk")
+set(CMAKE_PROJECT_NAME "mat-sdk")
 
 set(ONEDS_SDK_INC_DIR "${PROJECT_SOURCE_DIR}/lib/include/public")
 set(CPACK_SYSTEM_NAME "${OS_RELEASE_ID}-${OS_RELEASE_VERSION_ID}")
@@ -7,20 +7,20 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 set(CPACK_GENERATOR "TGZ")
 
 set(MAJOR_VERSION "3")
-set(MINOR_VERSION "1")
+set(MINOR_VERSION "2")
 string(TIMESTAMP DAYNUMBER "%j")
 set(PATCH_VERSION "${DAYNUMBER}")
 
-set(CPACK_PACKAGE_DESCRIPTION "Microsoft Events 1DS C/C++ SDK for Unix")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Aria SDK for events ingestion from Unix hosts")
+set(CPACK_PACKAGE_DESCRIPTION "Microsoft Applications Telemetry C/C++ SDK for Unix")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Microsoft Applications Telemetry SDK for events ingestion from Unix hosts")
 set(CPACK_PACKAGE_VENDOR "Microsoft")
-set(CPACK_PACKAGE_CONTACT "ariaesdks@microsoft.com")
+set(CPACK_PACKAGE_CONTACT "1ds.sdk.cpp@service.microsoft.com")
 set(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libaria.a DESTINATION lib COMPONENT libraries)
-#install(FILES ${ARIA_SDK_INC_DIR}/*.* DESTINATION include/aria COMPONENT libraries)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libmat.a DESTINATION lib COMPONENT libraries)
+#install(FILES ${MAT_SDK_INC_DIR}/*.* DESTINATION include/mat COMPONENT libraries)
 
 # FIXME: add architecture name in file name
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-${CPACK_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")

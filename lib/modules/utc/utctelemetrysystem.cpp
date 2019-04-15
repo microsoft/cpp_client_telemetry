@@ -380,37 +380,43 @@ namespace ARIASDK_NS_BEGIN
         // Rename generic viewing MetaData fields into DDV-specific names UTC understands
         if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGPRODUCERID) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVProducerID", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingProducerId", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGPRODUCERID].stringValue;
             dbuilder.AddString(value.c_str());
         }
         else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGCATEGORY) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVViewingCategory", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingCategory", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGCATEGORY].stringValue;
             dbuilder.AddString(value.c_str());
         }
         else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVPayloadDecoderPath", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingPayloadDecoderPath", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH].stringValue;
+            dbuilder.AddString(value.c_str());
+        }
+        else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGPAYLOADENCODEDFIELDNAME) != eventCtx->source->data[0].properties.end())
+        {
+            builder.AddField("UTCMetadata_ViewingPayloadEncodedFieldName", TypeMbcsString);
+            std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGPAYLOADENCODEDFIELDNAME].stringValue;
             dbuilder.AddString(value.c_str());
         }
         else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA1) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVExtra1", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingExtra1", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA1].stringValue;
             dbuilder.AddString(value.c_str());
         }
         else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA2) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVExtra2", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingExtra2", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA2].stringValue;
             dbuilder.AddString(value.c_str());
         }
         else if (eventCtx->source->data[0].properties.find(COMMONFIELDS_METADATA_VIEWINGEXTRA3) != eventCtx->source->data[0].properties.end())
         {
-            builder.AddField("UTCMetadata_DDVExtra3", TypeMbcsString);
+            builder.AddField("UTCMetadata_ViewingExtra3", TypeMbcsString);
             std::string value = eventCtx->source->data[0].properties[COMMONFIELDS_METADATA_VIEWINGEXTRA3].stringValue;
             dbuilder.AddString(value.c_str());
         }
@@ -429,6 +435,7 @@ namespace ARIASDK_NS_BEGIN
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPRODUCERID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGCATEGORY);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH);
+        eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPAYLOADENCODEDFIELDNAME);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA1);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA2);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGEXTRA3);

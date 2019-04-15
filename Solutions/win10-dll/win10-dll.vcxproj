@@ -50,6 +50,9 @@
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
     <OacrPath>OACR</OacrPath>
   </PropertyGroup>
+  <PropertyGroup Label="ExcludeSqlite" Condition="'$(NOSQLITE)'=='TRUE'">
+    <NoSqlite>TRUE</NoSqlite>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -411,6 +414,8 @@
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(NoSqlite)'!='TRUE'">
     <ProjectReference Include="..\..\sqliteUWP\sqlite-uwp.vcxproj">
       <Project>{6883a688-89f5-424a-9bfa-50d42f691b29}</Project>
     </ProjectReference>

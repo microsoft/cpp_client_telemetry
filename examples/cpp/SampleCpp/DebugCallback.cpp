@@ -93,8 +93,8 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
         break;
     case EVT_DROPPED:
         numDropped += evt.param1;
-        if ((numDropped % 10) == 0)
-            printf("D10\n");
+        if ((numDropped % 1000) == 0)
+            printf("D1000\n");
         // printf("OnEventDropped:     seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
     case EVT_SENT:

@@ -61,7 +61,4 @@
       <UniqueIdentifier>{a2dce1c3-c4b8-488d-ba6c-0f23f7bf436f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="$(MSBuildThisFileDirectory)README" />
-  </ItemGroup>
 </Project>
