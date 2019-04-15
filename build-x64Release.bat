@@ -10,5 +10,8 @@ set platform=
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
 msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=Release /p:Platform=x64
+if errorLevel 1 goto end
 Solutions\out\Release\x64\UnitTests\UnitTests.exe
+if errorLevel 1 goto end
 Solutions\out\Release\x64\FuncTests\FuncTests.exe
+:end

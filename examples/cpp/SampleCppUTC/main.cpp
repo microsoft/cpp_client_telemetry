@@ -53,6 +53,7 @@ void forwardEventToUTC()
 
         // Any extra DDV related information
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH,"EnterPathOrRegistryKey");
+        event.SetProperty(COMMONFIELDS_METADATA_VIEWINGPAYLOADENCODEDFIELDNAME,"EnterEncodedFieldName");
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA1, "ExtraDataField1");
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA2, "ExtraDataField2");
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA3, "ExtraDataField3");

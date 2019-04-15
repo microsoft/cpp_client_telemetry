@@ -7,19 +7,14 @@
 namespace ARIASDK_NS_BEGIN
 {
     // This is the production 
-    static PIEventFilter DefaultEventFilterFactory()
+    static std::unique_ptr<IEventFilter> DefaultEventFilterFactory()
     {
-        return new EventFilter();
+        return std::make_unique<EventFilter>();
     }
 
     EventFilterRegulator::EventFilterRegulator(EventFilterFactory eventFilterFactory)
         : _eventFilterFactory(eventFilterFactory ? eventFilterFactory : DefaultEventFilterFactory)
     {}
-
-    EventFilterRegulator::~EventFilterRegulator()
-    {
-        Reset();
-    }
 
     status_t EventFilterRegulator::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
     {
@@ -49,30 +44,21 @@ namespace ARIASDK_NS_BEGIN
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        IEventFilter* filter;
         auto match = _tenantFilters.find(normalizedTenantToken);
-
         if (match == end(_tenantFilters))
         {
-            filter = _eventFilterFactory();
-            _tenantFilters[normalizedTenantToken] = filter;
+            auto insertPair = _tenantFilters.insert(std::make_pair(normalizedTenantToken, _eventFilterFactory()));
+            return (*(*insertPair.first).second);
         }
         else
         {
-            filter = match->second;
+            return *(match->second);
         }
-
-        return *filter;
     }
 
     void EventFilterRegulator::Reset()
     {
         std::lock_guard<std::mutex> lock(_mutex);
-
-        for (const auto& tenantFilter : _tenantFilters)
-        {
-            delete tenantFilter.second;
-        }
         _tenantFilters.clear();
     }
 
