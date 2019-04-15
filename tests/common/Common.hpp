@@ -38,7 +38,7 @@ namespace testing {
     CsProtocol::Value toCsProtocolValue(double val);
     CsProtocol::Value toCsProtocolValue(int64_t val);
     CsProtocol::Value toCsProtocolValue(uint64_t val);
-    CsProtocol::Value toCsProtocolValue(Microsoft::Applications::Events::EventLatency val);
+    CsProtocol::Value toCsProtocolValue(MAT::EventLatency val);
 
 
     MATCHER_P(BinaryHasSubstr, str, "")
