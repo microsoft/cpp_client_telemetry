@@ -64,7 +64,7 @@ namespace ARIASDK_NS_BEGIN {
                     }
                     catch (const std::out_of_range& outOfRangeException)
                     {
-                       LOG_ERROR("Value passed to std::stoull was larger than unsinged long long could represent");
+                       LOG_ERROR("Value passed to std::stoull was larger than unsigned long long could represent");
                        recreate = true;
                     }
                 }
