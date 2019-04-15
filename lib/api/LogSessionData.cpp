@@ -47,13 +47,26 @@ namespace ARIASDK_NS_BEGIN {
                 StringUtils::SplitString(contents, '\n', v);
                 if (v.size() == 2)
                 {
-                    // First launch time
                     remove_eol(v[0]);
-                    m_sessionFirstTimeLaunch = std::stoull(v[0]);
-                    // SDK UUID
                     remove_eol(v[1]);
-                    m_sessionSDKUid = v[1];
-                    recreate = false;
+                    try
+                    {
+                       // First launch time
+                       m_sessionFirstTimeLaunch = std::stoull(v[0]);
+                       // SDK UUID
+                       m_sessionSDKUid = v[1];
+                       recreate = false;
+                    }
+                    catch (const std::invalid_argument& invalidArgumentException)
+                    {
+                       LOG_ERROR("Non-integer data passed to std::stoull");
+                       recreate = true;
+                    }
+                    catch (const std::out_of_range& outOfRangeException)
+                    {
+                       LOG_ERROR("Value passed to std::stoull was larger than unsinged long long could represent");
+                       recreate = true;
+                    }
                 }
             }
         }
