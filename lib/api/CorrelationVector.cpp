@@ -98,9 +98,9 @@ namespace ARIASDK_NS_BEGIN
     {
         if (m_isInitialized)
         {
-            return std::string { m_baseVector + "." + std::to_string(m_currentVector) };
+            return  m_baseVector + "." + std::to_string(m_currentVector);
         }
-        return std::string { };
+        return string { };
     }
 
     bool CorrelationVector::Extend()
