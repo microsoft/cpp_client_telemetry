@@ -15,7 +15,7 @@ public:
    using LogSessionData::parse;
 };
 
-const char* const PathToTestSesFile = "%TEMP%\test";
+const char* const PathToTestSesFile = "";
 
 TEST(LogSessionDataTests, parse_EmptyString_ReturnsFalse)
 {

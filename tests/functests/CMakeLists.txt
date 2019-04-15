@@ -6,6 +6,7 @@ message("--- functests")
 set(SRCS
   APITest.cpp
   BasicFuncTests.cpp
+  LogSessionDataFuncTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
 )
