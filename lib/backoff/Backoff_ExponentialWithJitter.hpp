@@ -65,7 +65,7 @@ class Backoff_ExponentialWithJitter : public IBackoff {
     }
 
   protected:
-    double m_initialValue, m_maximumValue, m_multiplier, m_jitter;
+    double m_initialValue {}, m_maximumValue {}, m_multiplier {}, m_jitter {};
     double m_currentBase {}, m_currentRange {}, m_step {};
     PAL::PseudoRandomGenerator m_rand;
 
