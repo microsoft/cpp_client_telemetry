@@ -56,9 +56,6 @@ message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
 add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
 
-# Uncomment for 'compact' SDK build
-add_definitions(-DCONFIG_CUSTOM_H="config-compact.h")
-
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)

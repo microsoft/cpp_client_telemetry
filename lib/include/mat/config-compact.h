@@ -10,5 +10,3 @@
 /* #define HAVE_MAT_STORAGE     */
 /* #define HAVE_MAT_NETDETECT   */
 #define HAVE_MAT_SHORT_NS
-
-
