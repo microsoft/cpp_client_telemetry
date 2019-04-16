@@ -13,6 +13,7 @@
     <ClCompile Include="APITest.cpp" />
     <ClCompile Include="BondDecoderTests.cpp" />
     <ClCompile Include="EventDecoderListener.cpp" />
+    <ClCompile Include="LogSessionDataFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
