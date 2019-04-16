@@ -25,10 +25,12 @@ message("-- TARGET_ARCH:            ${TARGET_ARCH}")
 
 include(tools/ParseOsRelease.cmake)
 
-set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wall -Wextra -pedantic -Wl,--gc-sections -fmerge-all-constants -ffast-math")
+# No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
+set(WARN_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections ${WARN_FLAGS} -Wl,--gc-sections -fmerge-all-constants -ffast-math")
 
 # Use libtcmalloc for Debug builds memory leaks detection
-set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  -Wall -Wextra -pedantic -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
+set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
   #TODO: -fno-rtti
