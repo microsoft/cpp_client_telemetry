@@ -54,6 +54,10 @@ if [ -f /usr/bin/rpmbuild ]; then
 export CMAKE_PACKAGE_TYPE=rpm
 fi
 
+
+# Fail on error
+set -e
+
 if [ "$2" == "release" ]; then
 # TODO: pass custom build flags?
   cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
@@ -66,6 +70,9 @@ fi
 # TODO: what are the pros and cons of using 'make' vs 'cmake --build' ?
 #make
 cmake --build .
+
+# No fail on error
+set +e
 
 # Remove old package
 rm -f *.deb *.rpm

@@ -153,7 +153,8 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
-                    break; // TODO: [MG] - delete item
+                    delete item;
+                    break;
                 }
                 
                 LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item, item->typeName.c_str() );

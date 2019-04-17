@@ -508,7 +508,8 @@ TEST(APITest, LogManager_SemanticAPI)
         failed = true;
     }
 
-    EXPECT_EQ(false, failed);
+    /* gtest on Linux internally casts boolean to int, which results in a compiler warning with gcc */
+    EXPECT_EQ(0, static_cast<int>(failed));
 }
 
 constexpr static unsigned MAX_ITERATIONS = 2000;

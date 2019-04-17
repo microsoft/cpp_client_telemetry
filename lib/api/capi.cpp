@@ -1,4 +1,5 @@
 /* Copyright (c) Microsoft. All rights reserved. */
+#include "mat/config.h"
 #ifdef _WIN32
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif

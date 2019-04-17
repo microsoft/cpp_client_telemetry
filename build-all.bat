@@ -11,7 +11,7 @@ set SOLUTION=Solutions\MSTelemetrySDK.sln
 
 set CUSTOM_PROPS=
 if ("%1"=="") goto skip
-set CUSTOM_PROPS=/p:ForceImportBeforeCppTargets=%1
+set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%1"
 echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
 :skip

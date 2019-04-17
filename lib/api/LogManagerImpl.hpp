@@ -256,31 +256,31 @@ protected:
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        std::mutex                             m_lock;
-        std::map<std::string, Logger*>         m_loggers;
-        ContextFieldsProvider                  m_context;
+        std::mutex                                             m_lock;
+        std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
+        ContextFieldsProvider                                  m_context;
 
-        IHttpClient*                           m_httpClient;
-        std::unique_ptr<IHttpClient>           m_ownHttpClient;
+        IHttpClient*                                           m_httpClient;
+        std::unique_ptr<IHttpClient>                           m_ownHttpClient;
 
-        IRuntimeConfig*                        m_config;
-        ILogConfiguration&                     m_logConfiguration;
+        IRuntimeConfig*                                        m_config;
+        ILogConfiguration&                                     m_logConfiguration;
 
-        IBandwidthController*                  m_bandwidthController;
-        std::unique_ptr<IBandwidthController>  m_ownBandwidthController;
+        IBandwidthController*                                  m_bandwidthController;
+        std::unique_ptr<IBandwidthController>                  m_ownBandwidthController;
 
-        AuthTokensController                   m_authTokensController;
+        AuthTokensController                                   m_authTokensController;
 
-        std::unique_ptr<IOfflineStorage>       m_offlineStorage;
-        std::unique_ptr<LogSessionData>        m_logSessionData;
-        std::unique_ptr<ITelemetrySystem>      m_system;
+        std::unique_ptr<IOfflineStorage>                       m_offlineStorage;
+        std::unique_ptr<LogSessionData>                        m_logSessionData;
+        std::unique_ptr<ITelemetrySystem>                      m_system;
 
-        EventFilterRegulator                   m_eventFilterRegulator;
+        EventFilterRegulator                                   m_eventFilterRegulator;
 
-        bool                                   m_alive;
+        bool                                                   m_alive;
 
-        DebugEventSource                       m_debugEventSource;
-        DiagLevelFilter                        m_diagLevelFilter;
+        DebugEventSource                                       m_debugEventSource;
+        DiagLevelFilter                                        m_diagLevelFilter;
     };
 
 

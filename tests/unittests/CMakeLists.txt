@@ -6,7 +6,7 @@ set(SRCS
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
-  Demo.cpp
+  DebugEventSourceTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterRegulatorTests.cpp
   EventFilterTests.cpp
@@ -19,6 +19,7 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
+  LogSessionDataTests.cpp
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp

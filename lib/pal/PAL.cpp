@@ -174,6 +174,7 @@ namespace PAL_NS_BEGIN {
 #endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
+#ifdef HAVE_MAT_LOGGING
             if (!isLoggingInited)
                 return;
 
@@ -238,6 +239,11 @@ namespace PAL_NS_BEGIN {
             }
             va_end(ap);
 #endif
+#else       /* Avoid unused parameter warning */
+            (void)(level);
+            (void)(component);
+            (void)(fmt);
+#endif /* of #ifdef HAVE_MAT_LOGGING */
         }
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -358,10 +364,9 @@ namespace PAL_NS_BEGIN {
         }
 
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-        int rc = snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+        (void) snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
             1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
             tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
-        (rc);
 #endif
         return buf;
     }

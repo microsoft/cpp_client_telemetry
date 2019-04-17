@@ -414,7 +414,9 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DebugEventSourceTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="MemoryStorageTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />

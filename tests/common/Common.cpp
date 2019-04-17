@@ -50,7 +50,7 @@ namespace testing {
     }
 
 
-    CsProtocol::Value toCsProtocolValue(Microsoft::Applications::Events::EventLatency val)
+    CsProtocol::Value toCsProtocolValue(MAT::EventLatency val)
     {
         CsProtocol::Value temp;
         temp.type = CsProtocol::ValueArrayInt32;
