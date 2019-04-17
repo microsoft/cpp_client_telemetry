@@ -19,6 +19,15 @@
 /* Lean implementation of SLDC "Annex K" for non-Windows OS */
 #include "annex_k.hpp"
 
+#if (__cplusplus < 201402L) && !defined(_MSC_VER)
+/* Workaround for lack of std::make_unique in C++11 (gcc-5). N3936 for C++14 support mentions 201402L */
+#include <memory>
+namespace std
+{
+    template <typename T, typename... Args> std::unique_ptr<T> make_unique(Args&&... args) { return std::unique_ptr<T>(new T(std::forward<Args>(args)...)); }
+}
+#endif
+
 #ifdef __unix__
 #include <execinfo.h>
 #include <stdio.h>

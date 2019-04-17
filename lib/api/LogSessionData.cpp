@@ -41,21 +41,7 @@ namespace ARIASDK_NS_BEGIN {
         if (MAT::FileExists(path.c_str()))
         {
             auto contents = MAT::FileGetContents(path.c_str());
-            if (!contents.empty())
-            {
-                vector<string> v;
-                StringUtils::SplitString(contents, '\n', v);
-                if (v.size() == 2)
-                {
-                    // First launch time
-                    remove_eol(v[0]);
-                    m_sessionFirstTimeLaunch = std::stoull(v[0]);
-                    // SDK UUID
-                    remove_eol(v[1]);
-                    m_sessionSDKUid = v[1];
-                    recreate = false;
-                }
-            }
+            recreate = !parse(contents);
         }
 
         if (recreate)
@@ -73,6 +59,42 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
+    }
+
+    bool LogSessionData::parse(const string& cacheContents)
+    {
+       if (cacheContents.empty())
+       {
+          return false;
+       }
+
+       vector<string> v;
+       StringUtils::SplitString(cacheContents, '\n', v);
+       if (v.size() != 2)
+       {
+          return false;
+       }
+
+       remove_eol(v[0]);
+       remove_eol(v[1]);
+       try
+       {
+          // First launch time
+          m_sessionFirstTimeLaunch = std::stoull(v[0]);
+          // SDK UUID
+          m_sessionSDKUid = v[1];
+          return true;
+       }
+       catch (const std::invalid_argument&)
+       {
+          LOG_ERROR("Non-integer data passed to std::stoull");
+       }
+       catch (const std::out_of_range&)
+       {
+          LOG_ERROR("Value passed to std::stoull was larger than unsigned long long could represent");
+       }
+
+       return false;
     }
 
 } ARIASDK_NS_END

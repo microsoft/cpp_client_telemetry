@@ -41,6 +41,8 @@ namespace ARIASDK_NS_BEGIN
 
         void open(const std::string& path);
 
+        bool parse(const std::string& cacheContents);
+
         std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch;
     };

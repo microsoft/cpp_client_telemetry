@@ -9,7 +9,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Too
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
-set SOLUTION=%ROOT%\Solutions\MATSDK.sln
+set SOLUTION=%ROOT%\Solutions\MSTelemetrySDK.sln
 
 
 REM Build gmock and gtest

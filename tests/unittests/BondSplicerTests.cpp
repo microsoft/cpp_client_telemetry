@@ -8,7 +8,7 @@
 #include "bond/FullDumpBinaryBlob.hpp"
 
 using namespace testing;
-using namespace Microsoft::Applications::Events;
+using namespace MAT;
 
 class ShadowBondSplicer : protected MAT::BondSplicer
 {
