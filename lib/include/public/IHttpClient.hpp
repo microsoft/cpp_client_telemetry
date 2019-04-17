@@ -41,7 +41,7 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
-        virtual ~HttpHeaders()
+        ~HttpHeaders() noexcept
         {
             clear();
         }
@@ -386,7 +386,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The SimpleHttpResponse class destructor.
         /// </summary>
-        virtual ~SimpleHttpResponse()
+        ~SimpleHttpResponse() noexcept
         {
             m_headers.clear();
             m_body.clear();
