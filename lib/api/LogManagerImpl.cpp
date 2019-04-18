@@ -207,6 +207,7 @@ namespace ARIASDK_NS_BEGIN
         FlushAndTeardown();
         LOCKGUARD(ILogManagerInternal::managers_lock);
         ILogManagerInternal::managers.erase(this);
+        delete m_config;
     }
 
     void LogManagerImpl::FlushAndTeardown()

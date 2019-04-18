@@ -188,7 +188,8 @@ class WinInetRequestWrapper
                         // must stay valid and writable until the next
                         // INTERNET_STATUS_REQUEST_COMPLETE callback comes
                         // (that's why those are member variables).
-                        delete response.release();
+                        response.release();
+                        response.reset();
                         return;
                     }
                     LOG_WARN("InternetReadFile() failed: %d", dwError);
