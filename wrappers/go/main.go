@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"Microsoft/Aria/EventLogger"
+	"Microsoft/Telemetry/EventLogger"
 	"runtime"
 	"os"
 	"os/signal"
@@ -48,9 +48,10 @@ func main() {
 	// trap SIGABRT and SIGTERM
 	registerSignalHandler()
 
-	token  := "4bd39c465b534cad9c1da2ae998b549a-6e15bcfd-4743-4ee8-a3f2-d9708afb783e-7102"
-	fmt.Println("Hello from Aria-Go!\n")
-	logger := EventLogger.NewAriaLogger()
+	token  := "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+
+	fmt.Println("Hello from Microsoft Telemetry-Go!\n")
+	logger := EventLogger.NewEventLogger()
 	logger.Init(token)
 	done := false
         seq := 0
