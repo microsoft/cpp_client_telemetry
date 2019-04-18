@@ -1,16 +1,19 @@
-#include "AriaLogger.h"
+#include "EventLogger.h"
+
+#include "LogManager.hpp"
+
 #include <cstdio>
-#include <LogManager.hpp>
 #include <exception>
 #include <thread>
 
 using namespace std;
+using namespace MAT;
 
-using namespace Microsoft::Applications::Events;
+LOGMANAGER_INSTANCE
 
 static ILogger *logger;
 
-void AriaLogger::Init(std::string token)
+void EventLogger::Init(std::string token)
 {
     auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db"; // ":memory:";
@@ -21,29 +24,23 @@ void AriaLogger::Init(std::string token)
     configuration[CFG_INT_RAM_QUEUE_SIZE]  = 32 * 1024 * 1024; // 32 MB heap limit for sqlite3
     configuration[CFG_INT_CACHE_FILE_SIZE] = 16 * 1024 * 1024; // 16 MB storage file limit
 
-    printf("LogConfiguration:\n");
-    printf("%s=%s\n", CFG_STR_CACHE_FILE_PATH, configuration.GetProperty(CFG_STR_CACHE_FILE_PATH));
-    printf("%s=%x\n", CFG_INT_TRACE_LEVEL_MASK, configuration.GetIntProperty(CFG_INT_TRACE_LEVEL_MASK));
-    printf("%s=%d\n", CFG_INT_TRACE_LEVEL_MIN, configuration.GetIntProperty(CFG_INT_TRACE_LEVEL_MIN));
-    printf("%s=%d\n", CFG_INT_SDK_MODE, configuration.GetIntProperty(CFG_INT_SDK_MODE));
-    printf("%s=%d\n", CFG_INT_MAX_TEARDOWN_TIME, configuration.GetIntProperty(CFG_INT_MAX_TEARDOWN_TIME));
-
     // TODO: move logger from static to private class member
     logger = LogManager::Initialize(token);
+
     // LogManager::SetTransmitProfile(TRANSMITPROFILE_REALTIME);
 }
 
-void AriaLogger::Pause()
+void EventLogger::Pause()
 {
     LogManager::PauseTransmission();
 }
 
-void AriaLogger::Resume()
+void EventLogger::Resume()
 {
     LogManager::ResumeTransmission();
 }
 
-void AriaLogger::LogEvent(std::map<std::string, std::string>& event)
+void EventLogger::LogEvent(std::map<std::string, std::string>& event)
 {
     static long eventCount = 0;
     EventProperties props(event["name"]);
@@ -68,13 +65,13 @@ void AriaLogger::LogEvent(std::map<std::string, std::string>& event)
     event.clear();
 }
 
-void AriaLogger::Upload()
+void EventLogger::Upload()
 {
     printf("LogManager::UploadNow\n");
     LogManager::UploadNow();
 }
 
-void AriaLogger::Done()
+void EventLogger::Done()
 {
     printf("LogManager::FlushAndTeardown\n");
     LogManager::FlushAndTeardown();
