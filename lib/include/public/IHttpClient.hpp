@@ -41,7 +41,7 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
-        virtual ~HttpHeaders()
+        ~HttpHeaders() noexcept
         {
             clear();
         }
@@ -109,7 +109,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IHttpRequest class destructor.
         /// </summary>
-        virtual ~IHttpRequest() {}
+        virtual ~IHttpRequest() noexcept {}
 
         /// <summary>
         /// Gets the request ID.
@@ -173,7 +173,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IHttpResponse class destructor.
         /// </summary>
-        virtual ~IHttpResponse() {}
+        virtual ~IHttpResponse() noexcept {}
 
         /// <summary>
         /// Gets the response ID.
@@ -262,7 +262,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The SimpleHttpRequest destructor.
         /// </summary>
-        virtual ~SimpleHttpRequest()
+        virtual ~SimpleHttpRequest() noexcept
         {
         }
 
@@ -386,11 +386,9 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The SimpleHttpResponse class destructor.
         /// </summary>
-       virtual ~SimpleHttpResponse()
-        {
-            m_headers.clear();
-            m_body.clear();
-        }
+       virtual ~SimpleHttpResponse() noexcept
+       {
+       }
 
         /// <summary>
         /// Gets the HTTP response message Id.
@@ -466,7 +464,7 @@ namespace ARIASDK_NS_BEGIN
     class IHttpClient
     {
     public:
-        virtual ~IHttpClient() {}
+        virtual ~IHttpClient() noexcept {}
 
         /// <summary>
         /// Creates an empty HTTP request object.

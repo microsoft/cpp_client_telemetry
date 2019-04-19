@@ -134,7 +134,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        m_config = new RuntimeConfig_Default(m_logConfiguration);
+        m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
@@ -207,7 +207,6 @@ namespace ARIASDK_NS_BEGIN
         FlushAndTeardown();
         LOCKGUARD(ILogManagerInternal::managers_lock);
         ILogManagerInternal::managers.erase(this);
-        delete m_config;
     }
 
     void LogManagerImpl::FlushAndTeardown()
