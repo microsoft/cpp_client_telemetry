@@ -72,8 +72,8 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration)
-        : m_httpClient(nullptr),
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient)
+        : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
         m_system(nullptr),

@@ -117,7 +117,7 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
-        LogManagerImpl(ILogConfiguration& configuration);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
 
         virtual ~LogManagerImpl() override;
 
