@@ -105,7 +105,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
         )
         {
-            ILogManager* result = instance().lease(logConfiguration, httpClient);
+            auto result = instance().lease(logConfiguration, httpClient);
             status = (result != nullptr)?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
@@ -141,7 +141,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "version", "0.0.0" },
                 { "config", {  } }
             };
-            ILogManager * result = instance().lease(config, nullptr);
+            auto result = instance().lease(config, nullptr);
             status = (result != nullptr) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;

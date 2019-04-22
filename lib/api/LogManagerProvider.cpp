@@ -7,7 +7,7 @@ namespace ARIASDK_NS_BEGIN {
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
         status_t &status,
-		  IHttpClient* httpClient
+        IHttpClient* httpClient
 #ifdef ANDROID
         , JNIEnv * env
         , jclass contextClass

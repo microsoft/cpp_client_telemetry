@@ -25,6 +25,7 @@ namespace ARIASDK_NS_BEGIN {
     /// Creates an instance of ILogManager using specified configuration.
     /// </summary>
     /// <param name="configuration">The configuration.</param>
+    /// <param name="httpClient">IHTTPClient implementation for the LogManager to use.</param>
     /// <returns>ILogManager instance</returns>
     ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration, IHttpClient* httpClient)
     {
