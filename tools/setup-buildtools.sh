@@ -68,3 +68,6 @@ cd ..
 
 ## Build Google Test framework
 ./build-gtest.sh
+
+## Change owner from root to current dir owner
+chown -R `stat . -c %u:%g` *
