@@ -124,7 +124,7 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            detail::WorkerThreadItemPtr item = nullptr;
+            std::unique_ptr<detail::WorkerThreadItem> item = nullptr;
             for (;;) {
                 wakeupCount++;
                 unsigned nextTimerInMs = UINT_MAX;
@@ -133,7 +133,7 @@ namespace PAL_NS_BEGIN {
 
                     int64_t now = getMonotonicTimeMs();
                     if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
-                        item = self->m_timerQueue.front();
+                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_timerQueue.front());
                         self->m_timerQueue.pop_front();
                     }
                     if (!self->m_timerQueue.empty()) {
@@ -141,7 +141,7 @@ namespace PAL_NS_BEGIN {
                     }
 
                     if (!self->m_queue.empty() && !item) {
-                        item = self->m_queue.front();
+                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_queue.front());
                         self->m_queue.pop_front();
                     }
                 }
@@ -153,19 +153,18 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->type == detail::WorkerThreadItem::Shutdown) {
-                    delete item;
+                    item.reset();
                     break;
                 }
                 
-                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item, item->typeName.c_str() );
-                self->m_itemInProgress = item;
+                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->typeName.c_str() );
+                self->m_itemInProgress = item.get();
                 (*item)();
                 self->m_itemInProgress = nullptr;
 
-                if (item) {
+                if (item.get()) {
                     item->type = detail::WorkerThreadItem::Done;
-                    delete item;
-                    item = nullptr;
+                    item.reset();
                 }
             }
         }

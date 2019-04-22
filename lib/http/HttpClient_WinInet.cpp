@@ -291,7 +291,6 @@ class WinInetRequestWrapper
 
         // response gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
-
         m_parent.erase(m_id);
     }
 };

@@ -41,7 +41,7 @@ namespace ARIASDK_NS_BEGIN
     }
 
 
-    ContextFieldsProvider::~ContextFieldsProvider()
+    ContextFieldsProvider::~ContextFieldsProvider() noexcept
     {
     }
 
