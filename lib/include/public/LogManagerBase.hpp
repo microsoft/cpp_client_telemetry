@@ -173,18 +173,61 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Initializes the telemetry logging system with default configuration.
+        /// Initializes the telemetry logging system with default configuraiton and HTTPClient.
+        /// </summary>
+        /// <returns>A logger instance instantiated with the default tenantToken.</returns>
+        static ILogger* Initialize()
+        {
+           return Initialize(std::string {});
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with the specified tenantToken.
         /// </summary>
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <returns>A logger instance instantiated with the tenantToken</returns>
+        /// <returns>A logger instance instantiated with the tenantToken.</returns>
+        inline static ILogger* Initialize(const std::string& tenantToken)
+        {
+           return Initialize(tenantToken, GetLogConfiguration());
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with the specified ILogConfiguration.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <param name="configuration">ILogConfiguration to be used.</param>
+        /// <returns>A logger instance instantiated with the tenantToken.</returns>
+        inline static ILogger* Initialize(const std::string& tenantToken, ILogConfiguration& configuration)
+        {
+           return Initialize(tenantToken, configuration, nullptr);
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with the specified ILogConfiguration.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <returns>A logger instance instantiated with the tenantToken.</returns>
+        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient)
+        {
+           return Initialize(tenantToken, GetLogConfiguration(), httpClient);
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with the specified ILogConfiguration and IHttpClient.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <param name="configuration">ILogConfiguration to be used.</param>
+        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
-            std::string tenantToken = "",
-            ILogConfiguration& configuration = GetLogConfiguration()
+            const std::string& tenantToken,
+            ILogConfiguration& configuration,
+            IHttpClient* httpClient
         )
         {
             LM_LOCKGUARD(stateLock());
             ILogConfiguration& currentConfig = GetLogConfiguration();
-
             if (nullptr == instance)
             {
                 // Copy alternate configuration into currentConfig
@@ -196,18 +239,16 @@ namespace ARIASDK_NS_BEGIN
                     }
                 }
 
+                // Assume that if token isn't provided, then it's part of config
                 if (!tenantToken.empty())
                 {
-                    currentConfig[CFG_STR_PRIMARY_TOKEN] = tenantToken.c_str();
-                }
-                else {
-                    // Assume that if token isn't provided, then it's part of config
-                    tenantToken = (const char *)currentConfig[CFG_STR_PRIMARY_TOKEN];
+                    currentConfig[CFG_STR_PRIMARY_TOKEN] = tenantToken;
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::CreateLogManager(currentConfig, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, status);
                 instance->AttachEventSource(GetDebugEventSource());
+                return instance->GetLogger(currentConfig[CFG_STR_PRIMARY_TOKEN]);
             }
             else {
                 // TODO: [MG] - decide what to do if someone's doing re-Initialize.

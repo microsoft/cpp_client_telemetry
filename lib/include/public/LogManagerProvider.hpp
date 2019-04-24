@@ -135,6 +135,14 @@ namespace ARIASDK_NS_BEGIN
             return Get(cfg, status, nullptr);
         }
 
+        static ILogManager* MATSDK_SPEC CreateLogManager(
+           ILogConfiguration& cfg,
+           IHttpClient* httpClient,
+           status_t& status)
+        {
+           return Get(cfg, status, httpClient);
+        }
+
         /// <summary> 
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id.</param> 
