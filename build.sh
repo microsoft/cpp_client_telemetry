@@ -35,7 +35,7 @@ echo "clang version: `clang --version`"
 fi
 
 # Skip Version.hpp changes
-git update-index --skip-worktree lib/include/public/Version.hpp
+# git update-index --skip-worktree lib/include/public/Version.hpp
 
 #rm -rf out
 mkdir -p out
