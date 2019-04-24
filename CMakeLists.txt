@@ -25,22 +25,24 @@ message("-- TARGET_ARCH:            ${TARGET_ARCH}")
 
 include(tools/ParseOsRelease.cmake)
 
-set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections -Wall -Wextra -pedantic -Wl,--gc-sections -fmerge-all-constants -ffast-math")
+# No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
+set(WARN_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections ${WARN_FLAGS} -Wl,--gc-sections -fmerge-all-constants -ffast-math")
 
 # Use libtcmalloc for Debug builds memory leaks detection
-set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  -Wall -Wextra -pedantic -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
+set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
   #TODO: -fno-rtti
   message("Building Release ...")
-  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
+  set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
 else()
   set(USE_TCMALLOC 1)
   message("Building Debug ...")
   include(tools/FindTcmalloc.cmake)
-  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=c11 ${DEB_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${DEB_FLAGS}")
+  set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS}")
 endif()
 
 include(tools/Utils.cmake)

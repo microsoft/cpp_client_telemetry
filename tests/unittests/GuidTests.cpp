@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
-#include <utils/Utils.hpp>
+#include "utils/Utils.hpp"
 #include "EventProperties.hpp"
 
 using namespace testing;
-using namespace Microsoft::Applications::Events;
+using namespace MAT;
 
 TEST(GuidTests, BuildWithUpperCaseAndBraces_ToString_ReturnsUpperCaseWithNoBraces)
 {

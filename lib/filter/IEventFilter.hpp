@@ -65,7 +65,7 @@ namespace ARIASDK_NS_BEGIN
     class IEventFilterRegulator
     {
     public:
-        virtual ~IEventFilterRegulator() {}
+        virtual ~IEventFilterRegulator() noexcept = default;
 
         /// <summary>
         /// Set tenant-specific event exclusion filter

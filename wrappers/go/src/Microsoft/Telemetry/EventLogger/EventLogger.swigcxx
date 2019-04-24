@@ -4,7 +4,7 @@
 %include "std_string.i"
 %include "std_map.i"
 %{
-    #include "AriaLogger.h"
+    #include "EventLogger.h"
 %}
 
 namespace std {
@@ -13,4 +13,4 @@ namespace std {
 
 }
 
-%include AriaLogger.h
+%include EventLogger.h

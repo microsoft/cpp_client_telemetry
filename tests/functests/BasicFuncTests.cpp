@@ -663,10 +663,10 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
         event2.SetProperty("property2", "value2");
-        event1.SetLatency(Microsoft::Applications::Events::EventLatency::EventLatency_RealTime);
-        event1.SetPersistence(Microsoft::Applications::Events::EventPersistence::EventPersistence_Critical);
-        event2.SetLatency(Microsoft::Applications::Events::EventLatency::EventLatency_RealTime);
-        event2.SetPersistence(Microsoft::Applications::Events::EventPersistence::EventPersistence_Critical);
+        event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+        event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
+        event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+        event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         logger->LogEvent(event1);
         logger->LogEvent(event2);
         FlushAndTeardown();

@@ -50,8 +50,8 @@ for %%a in ( m32 m64 ) do (
     )
     @mkdir %OUTDIR%\%%c\!ARCH!
     cd %OUTDIR%\%%c\!ARCH!
-    set CFLAGS=-%%a
-    set CXXFLAGS=-%%a
+    set "CFLAGS=-%%a"
+    set "CXXFLAGS=-%%a -Wc++11-compat-pedantic -Wno-c++98-compat -Wno-everything"
     cmake -G"Visual Studio 15 2017!ARCH_GEN!" ^
       -T"%LLVM_VER%" ^
       -DTARGET_ARCH=!ARCH! ^

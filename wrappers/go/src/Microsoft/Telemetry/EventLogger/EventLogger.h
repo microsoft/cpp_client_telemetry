@@ -1,14 +1,13 @@
-#ifndef AriaLogger_H
-#define AriaLogger_H
+#ifndef EventLogger_H
+#define EventLogger_H
 
 #include <map>
 #include <string>
 
-
-class AriaLogger
+class EventLogger
 {
 public:
-	AriaLogger(){};
+	EventLogger(){};
 	void Init(std::string token);
 	void LogEvent(std::map<std::string, std::string>& event);
 	void Pause();
