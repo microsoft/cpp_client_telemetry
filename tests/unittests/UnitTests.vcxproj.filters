@@ -38,6 +38,7 @@
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
     <ClCompile Include="DebugEventSourceTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
+    <ClCompile Include="LogManagerImplTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
