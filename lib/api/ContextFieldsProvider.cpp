@@ -174,6 +174,7 @@ namespace ARIASDK_NS_BEGIN
                     {
                         size_t len = strlen(deviceId);
                         if (len >= 2 && deviceId[1] == ':' && (
+                            deviceId[0] == 'u' || // u: Mac OS X UUID
                             deviceId[0] == 'a' || // a: Android ID
                             deviceId[0] == 's' || // s: SQM ID
                             deviceId[0] == 'x'))  // x: XBox One hardware ID
