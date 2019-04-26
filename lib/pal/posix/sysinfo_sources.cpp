@@ -259,10 +259,11 @@ public:
         if (!get("devId").compare(""))
         {
 #ifdef __APPLE__
-        	// std::string contents = Exec("ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}'");
-        	char deviceId[512] = { 0 };
-        	get_platform_uuid(deviceId, sizeof(deviceId));
-        	cache["devId"] = MAT::GUID_t(deviceId).to_string(); // TODO: [MG] - do we need to prepend i:{...} here?
+            // std::string contents = Exec("ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}'");
+            char deviceId[512] = { 0 };
+            get_platform_uuid(deviceId, sizeof(deviceId));
+            cache["devId"] = "u:";
+            cache["devId"] += MAT::GUID_t(deviceId).to_string();
 #else
             // We were unable to obtain Device Id using standard means.
             // Try to use hash of blkid + hostname instead. Both blkid
