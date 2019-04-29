@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorageObserver*    m_observer {};
         IRuntimeConfig&             m_config;
         ILogManager&                m_logManager;
-        std::unique_ptr<SqliteDB>   m_db {};
+        std::unique_ptr<SqliteDB>   m_db;
 
         bool                        isOpen();
 
