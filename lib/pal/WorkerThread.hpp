@@ -1,6 +1,7 @@
 #ifndef WORKER_THREAD_HPP
 #define WORKER_THREAD_HPP
 
+#include <functional>
 #include <list>
 #include <mutex>
 #include <stdint.h>
