@@ -414,6 +414,7 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="DebugEventSourceTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
