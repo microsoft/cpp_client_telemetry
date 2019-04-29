@@ -70,13 +70,33 @@ void TestCorrelationVectorVersion(int version, size_t baseLength, int maxLength,
     // test init with an invalid value
     string savedValue = cv.GetValue();
     EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".-1"));
-	EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".4294967296"));
-	EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".429496729699999999999999999999"));
-	EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".0."));
-	EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + "..0"));
+    EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".4294967296"));
+    EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".429496729699999999999999999999"));
+    EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + ".0."));
+    EXPECT_FALSE(cv.SetValue(string("01234567890123456789AB").substr(0, baseLength) + "..0"));
 
     // test that even though we failed the old initialized value was not changed
     ASSERT_EQ(savedValue, cv.GetValue()) << "Value changed after failed attempts to set it.";
+}
+
+TEST(CorrelationVectorTests, IsInitialized_NotInitialized_ReturnsFalse)
+{
+   CorrelationVector correlationVector;
+   EXPECT_FALSE(correlationVector.IsInitialized());
+}
+
+TEST(CorrelationVectorTests, Initialize_InvalidVersionNumber_ReturnsFalse)
+{
+   CorrelationVector correlationVector;
+   EXPECT_FALSE(correlationVector.Initialize(0));
+}
+
+TEST(CorrelationVectorTests, Initialize_Version1OrTwo_ReturnsTrue)
+{
+   CorrelationVector versionOne;
+   CorrelationVector versionTwo;
+   EXPECT_TRUE(versionOne.Initialize(1));
+   EXPECT_TRUE(versionTwo.Initialize(2));
 }
 
 TEST(CorrelationVectorTests, TestCorrelationVector_Version1)
@@ -86,5 +106,5 @@ TEST(CorrelationVectorTests, TestCorrelationVector_Version1)
 
 TEST(CorrelationVectorTests, TestCorrelationVector_Version2)
 {
-	TestCorrelationVectorVersion(2, 22, 127, "01234567890123456789ab.4294967295.4294967294");
+   TestCorrelationVectorVersion(2, 22, 127, "01234567890123456789ab.4294967295.4294967294");
 }

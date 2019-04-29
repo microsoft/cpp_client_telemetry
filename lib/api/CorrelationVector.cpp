@@ -27,8 +27,6 @@ namespace ARIASDK_NS_BEGIN
     
     CorrelationVector::CorrelationVector()
     {
-        // by default correlation vector is not initialized
-        Uninitialize();
     }
     
     bool CorrelationVector::Initialize(int version)
@@ -98,14 +96,11 @@ namespace ARIASDK_NS_BEGIN
     
     string CorrelationVector::GetValueInternal()
     {
-        string value = "";
-        
         if (m_isInitialized)
         {
-            value = m_baseVector + "." + std::to_string(m_currentVector);
+            return  m_baseVector + "." + std::to_string(m_currentVector);
         }
-        
-        return value;
+        return string { };
     }
 
     bool CorrelationVector::Extend()

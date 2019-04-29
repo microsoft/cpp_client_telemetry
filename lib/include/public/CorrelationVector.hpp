@@ -123,10 +123,10 @@ namespace ARIASDK_NS_BEGIN
 
         // Internal state variables.
         std::mutex m_lock;
-        bool m_isInitialized;
+        bool m_isInitialized {};
         std::string m_baseVector;
-        size_t m_currentVector;
-        size_t m_maxLength;
+        size_t m_currentVector {};
+        size_t m_maxLength {};
 
         // Randomly generates a string for the base vector.
         static std::string InitializeInternal(size_t baseLength);
