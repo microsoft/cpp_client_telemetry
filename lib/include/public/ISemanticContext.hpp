@@ -33,7 +33,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Set the application name context information of telemetry event.
         /// </summary>
-        /// <param name="appId">Application Name</param>
+        /// <param name="appName">Application Name</param>
         DECLARE_COMMONFIELD(AppName, COMMONFIELDS_APP_NAME);
 
         /// <summary>
