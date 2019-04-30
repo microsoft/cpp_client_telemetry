@@ -24,7 +24,6 @@ namespace ARIASDK_NS_BEGIN
         ContextFieldsProvider(ContextFieldsProvider* parent);
         ContextFieldsProvider(ContextFieldsProvider const& copy);
         ContextFieldsProvider& operator=(ContextFieldsProvider const& copy);
-        virtual ~ContextFieldsProvider();
 
         virtual void SetCommonField(const std::string&  name, const EventProperty&  value) override;
         void writeToRecord(::CsProtocol::Record& record, bool commonOnly = false);

@@ -181,6 +181,8 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
+
+        virtual ~IRuntimeConfig() {};
     };
 
     /// @endcond
