@@ -152,6 +152,20 @@ namespace ARIASDK_NS_BEGIN
                     record.extApp[0].id = iter->second.as_string;
                 }
 
+                iter = m_commonContextFields.find(COMMONFIELDS_APP_NAME);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extApp[0].name = iter->second.as_string;
+                }
+                else
+                {
+                    // Backwards-compat: legacy Aria exporter maps CS3.0 ext.app.name to AppInfo.Id
+                    // TODO:
+                    // - consider resolving that protocol "wrinkle" backend-side
+                    // - consider parsing ext.app.id if it contains app hash!name:ver information
+                    record.extApp[0].name = record.extApp[0].id;
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_APP_VERSION);
                 if (iter != m_commonContextFields.end())
                 {

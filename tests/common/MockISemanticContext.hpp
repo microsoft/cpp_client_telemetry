@@ -12,6 +12,7 @@ class MockISemanticContext : public MAT::ContextFieldsProvider {
     virtual ~MockISemanticContext();
 
     MOCK_METHOD1(SetAppId,             void(std::string const & appId));
+    MOCK_METHOD1(SetAppName,           void(std::string const & appName));
     MOCK_METHOD1(SetAppVersion,        void(std::string const & appVersion));
     MOCK_METHOD1(SetAppLanguage,       void(std::string const & appLanguage));
     MOCK_METHOD1(SetAppExperimentIds,  void(std::string const & appExperimentIds));

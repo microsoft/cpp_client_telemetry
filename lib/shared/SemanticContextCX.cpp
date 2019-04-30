@@ -20,6 +20,11 @@ namespace Microsoft {
                     m_semanticContextCore->SetAppId(FromPlatformString(appId));
                 }
 
+                void SemanticContextImpl::AppName::set(String^ appName)
+                {
+                    m_semanticContextCore->SetAppName(FromPlatformString(appName));
+                }
+
                 void SemanticContextImpl::AppVersion::set(String^ appVersion)
                 {
                     m_semanticContextCore->SetAppVersion(FromPlatformString(appVersion));

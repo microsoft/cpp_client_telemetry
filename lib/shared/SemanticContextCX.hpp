@@ -15,6 +15,11 @@ namespace Microsoft {
                         virtual void set(String^ appId) = 0;
                     }
 
+                    property String^ AppName
+                    {
+                        virtual void set(String^ appName) = 0;
+                    }
+
                     property String^ AppVersion
                     {
                         virtual void set(String^ appVersion) = 0;
@@ -98,6 +103,12 @@ namespace Microsoft {
                     property String^ AppId
                     {
                         virtual void set(String^ appId);
+                    }
+
+                    // Inherited via ISemanticContext
+                    property String^ AppName
+                    {
+                        virtual void set(String^ appName);
                     }
 
                     property String^ AppVersion
