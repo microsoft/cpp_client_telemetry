@@ -39,6 +39,7 @@ namespace ARIASDK_NS_BEGIN
             bool wantController,
             ILogConfiguration& cfg,
             status_t& status,
+            IHttpClient* httpClient,
 #ifdef ANDROID
             JNIEnv *env,
             jclass contextClass,
@@ -49,7 +50,7 @@ namespace ARIASDK_NS_BEGIN
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg["config"]["host"] = (wantController) ? id : "*";
-            return Get(cfg, status);
+            return Get(cfg, status, httpClient);
         };
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
@@ -131,7 +132,15 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status)
         {
-            return Get(cfg, status);
+            return Get(cfg, status, nullptr);
+        }
+
+        static ILogManager* MATSDK_SPEC CreateLogManager(
+           ILogConfiguration& cfg,
+           IHttpClient* httpClient,
+           status_t& status)
+        {
+           return Get(cfg, status, httpClient);
         }
 
         /// <summary> 
@@ -163,7 +172,8 @@ namespace ARIASDK_NS_BEGIN
 
         static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
-            status_t &status
+            status_t &status,
+            IHttpClient* httpClient
 #ifdef ANDROID
             , JNIEnv * env
             , jclass contextClass
