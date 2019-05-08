@@ -223,12 +223,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutting down...");
         {
             LOCKGUARD(m_lock);
-            if (m_isSystemStarted && GetSystem())
+            if (m_isSystemStarted && m_system)
             {
-                GetSystem()->stop();
+                m_system->stop();
                 LOG_TRACE("Telemetry system stopped");
             }
-            GetSystem() = nullptr;
+            m_system = nullptr;
 
             m_loggers.clear();
 
