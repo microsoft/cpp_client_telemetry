@@ -72,11 +72,15 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration)
-        : m_httpClient(nullptr),
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient)
+       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/)
+    {
+    }
+
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
+        : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
-        m_system(nullptr),
         m_logConfiguration(configuration)
     {
         setLogLevel(configuration);
@@ -134,7 +138,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        m_config = new RuntimeConfig_Default(m_logConfiguration);
+        m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
@@ -150,7 +154,11 @@ namespace ARIASDK_NS_BEGIN
         {
             LOG_TRACE("Initializing UTC physical layer...");
             m_system.reset(new UtcTelemetrySystem(*this, *m_config));
-            m_system->start();
+            if (!deferSystemStart)
+            {
+               m_system->start();
+               m_isSystemStarted = true;
+            }
             m_alive = true;
             LOG_INFO("Started up and running in UTC mode");
             return;
@@ -179,9 +187,10 @@ namespace ARIASDK_NS_BEGIN
 
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
-        if (m_system)
+        if (m_system && !deferSystemStart)
         {
             m_system->start();
+            m_isSystemStarted = true;
         }
 
         LOG_INFO("Started up and running");
@@ -214,12 +223,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutting down...");
         {
             LOCKGUARD(m_lock);
-            if (m_system)
+            if (m_isSystemStarted && m_system)
             {
                 m_system->stop();
                 LOG_TRACE("Telemetry system stopped");
-                m_system.reset();
             }
+            m_system = nullptr;
 
             m_loggers.clear();
 
@@ -257,9 +266,9 @@ namespace ARIASDK_NS_BEGIN
 
     status_t LogManagerImpl::UploadNow()
     {
-        if (m_system)
+        if (GetSystem())
         {
-            m_system->upload();
+           GetSystem()->upload();
         }
         // FIXME: [MG] - make sure m_system->upload returns a status
         return STATUS_SUCCESS;
@@ -268,9 +277,9 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
-        if (m_system)
+        if (GetSystem())
         {
-            m_system->pause();
+           GetSystem()->pause();
         }
         // FIXME: [MG] - make sure m_system->pause returns a status
         return STATUS_SUCCESS;
@@ -279,9 +288,9 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::ResumeTransmission()
     {
         LOG_INFO("Resuming transmission...");
-        if (m_system)
+        if (GetSystem())
         {
-            m_system->resume();
+           GetSystem()->resume();
         }
         // FIXME: [MG] - make sure m_system->resume returns a status
         return STATUS_SUCCESS;
@@ -505,9 +514,9 @@ namespace ARIASDK_NS_BEGIN
 
     void LogManagerImpl::sendEvent(IncomingEventContextPtr const& event)
     {
-        if (m_system)
+        if (GetSystem())
         {
-            m_system->sendEvent(event);
+           GetSystem()->sendEvent(event);
         }
     }
 
@@ -549,6 +558,17 @@ namespace ARIASDK_NS_BEGIN
     const DiagLevelFilter& LogManagerImpl::GetLevelFilter()
     {
         return m_diagLevelFilter;
+    }
+
+    std::unique_ptr<ITelemetrySystem>& LogManagerImpl::GetSystem()
+    {
+        LOCKGUARD(m_lock);
+        if (m_system == nullptr || m_isSystemStarted)
+           return m_system;
+
+        m_system->start();
+        m_isSystemStarted = true;
+        return m_system;
     }
 
 } ARIASDK_NS_END

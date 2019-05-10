@@ -19,19 +19,17 @@ class WinInetRequestWrapper
   protected:
     HttpClient_WinInet&    m_parent;
     std::string            m_id;
-    IHttpResponseCallback* m_appCallback;
-    HINTERNET              m_hWinInetSession;
-    HINTERNET              m_hWinInetRequest;
+    IHttpResponseCallback* m_appCallback {};
+    HINTERNET              m_hWinInetSession {};
+    HINTERNET              m_hWinInetRequest {};
     std::unique_ptr<SimpleHttpRequest> m_request;
-    BYTE                   m_buffer[1024];
+    BYTE                   m_buffer[1024] {};
 
   public:
     WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
         m_request(request),
-        m_id(request->GetId()),
-        m_hWinInetSession(NULL),
-        m_hWinInetRequest(NULL)
+        m_id(request->GetId())
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -39,7 +37,7 @@ class WinInetRequestWrapper
     WinInetRequestWrapper(WinInetRequestWrapper const&) = delete;
     WinInetRequestWrapper& operator=(WinInetRequestWrapper const&) = delete;
 
-    ~WinInetRequestWrapper()
+    ~WinInetRequestWrapper() noexcept
     {
         LOG_TRACE("%p ~WinInetRequestWrapper()", this);
         if (m_hWinInetRequest != nullptr)
@@ -291,7 +289,6 @@ class WinInetRequestWrapper
 
         // response gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
-
         m_parent.erase(m_id);
     }
 };
@@ -313,7 +310,7 @@ HttpClient_WinInet::~HttpClient_WinInet()
 
 void HttpClient_WinInet::erase(std::string const& id)
 {
-	std::lock_guard<std::mutex> lock(m_requestsMutex);
+    std::lock_guard<std::mutex> lock(m_requestsMutex);
     auto it = m_requests.find(id);
     if (it != m_requests.end()) {
         auto req = it->second;

@@ -414,8 +414,10 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="DebugEventSourceTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="LogManagerImplTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="MemoryStorageTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />

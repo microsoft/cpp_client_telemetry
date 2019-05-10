@@ -3,6 +3,7 @@ message("--- unittests")
 set(SRCS
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
+  ClockSkewManagerTests.cpp
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
@@ -19,6 +20,7 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
+  LogManagerImplTests.cpp
   LogSessionDataTests.cpp
   Main.cpp
   MemoryStorageTests.cpp

@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<sdk>
-  <description>ARIA SDK for Windows 10 UAP (C++)</description>
-  <keywords>ARIA, Telemetry, Desktop, Signed, Windows 10, UAP, UWP, C++</keywords>
-  <cert>253</cert>
-  <files>
-    <file path="files\" displayName="ARIA SDK for Windows 10 UAP (C++)" displayUrl="https://aria.microsoft.com"/>
-  </files>
-</sdk>

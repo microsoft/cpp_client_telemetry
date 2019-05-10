@@ -31,6 +31,12 @@ namespace ARIASDK_NS_BEGIN
         DECLARE_COMMONFIELD(AppId, COMMONFIELDS_APP_ID);
 
         /// <summary>
+        /// Set the application name context information of telemetry event.
+        /// </summary>
+        /// <param name="appName">Application Name</param>
+        DECLARE_COMMONFIELD(AppName, COMMONFIELDS_APP_NAME);
+
+        /// <summary>
         /// Set the application version context information of telemetry event.
         /// </summary>
         /// <param name="appVersion">Version of the application, retrieved programmatically where possible and is app/platform specific</param>

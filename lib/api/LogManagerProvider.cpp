@@ -6,7 +6,8 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
-        status_t &status
+        status_t &status,
+        IHttpClient* httpClient
 #ifdef ANDROID
         , JNIEnv * env
         , jclass contextClass
@@ -14,7 +15,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     )
     {
-        return LogManagerFactory::Get(config, status);
+        return LogManagerFactory::Get(config, status, httpClient);
     }
 
     // TODO: consider utilizing a default reference

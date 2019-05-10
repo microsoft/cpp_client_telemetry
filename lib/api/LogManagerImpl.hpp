@@ -117,7 +117,8 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
-        LogManagerImpl(ILogConfiguration& configuration);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
 
         virtual ~LogManagerImpl() override;
 
@@ -253,17 +254,18 @@ namespace ARIASDK_NS_BEGIN
         }
 
 protected:
+        std::unique_ptr<ITelemetrySystem>& GetSystem();
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        std::mutex                                             m_lock;
+        std::recursive_mutex                                   m_lock;
         std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
         ContextFieldsProvider                                  m_context;
 
         IHttpClient*                                           m_httpClient;
         std::unique_ptr<IHttpClient>                           m_ownHttpClient;
 
-        IRuntimeConfig*                                        m_config;
+        std::unique_ptr<IRuntimeConfig>                        m_config;
         ILogConfiguration&                                     m_logConfiguration;
 
         IBandwidthController*                                  m_bandwidthController;
@@ -273,6 +275,7 @@ protected:
 
         std::unique_ptr<IOfflineStorage>                       m_offlineStorage;
         std::unique_ptr<LogSessionData>                        m_logSessionData;
+        bool                                                   m_isSystemStarted {};
         std::unique_ptr<ITelemetrySystem>                      m_system;
 
         EventFilterRegulator                                   m_eventFilterRegulator;

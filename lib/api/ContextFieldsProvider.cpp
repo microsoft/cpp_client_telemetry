@@ -25,6 +25,7 @@ namespace ARIASDK_NS_BEGIN
 
     ContextFieldsProvider::ContextFieldsProvider(ContextFieldsProvider const& copy)
     {
+        m_parent = copy.m_parent;
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
@@ -33,16 +34,12 @@ namespace ARIASDK_NS_BEGIN
 
     ContextFieldsProvider& ContextFieldsProvider::operator=(ContextFieldsProvider const& copy)
     {
+        m_parent = copy.m_parent;
         m_commonContextFields = copy.m_commonContextFields;
         m_customContextFields = copy.m_customContextFields;
         m_commonContextEventToConfigIds = copy.m_commonContextEventToConfigIds;
         m_ticketsMap = copy.m_ticketsMap;
         return *this;
-    }
-
-
-    ContextFieldsProvider::~ContextFieldsProvider()
-    {
     }
 
     void ContextFieldsProvider::writeToRecord(::CsProtocol::Record& record, bool commonOnly)
@@ -152,6 +149,20 @@ namespace ARIASDK_NS_BEGIN
                     record.extApp[0].id = iter->second.as_string;
                 }
 
+                iter = m_commonContextFields.find(COMMONFIELDS_APP_NAME);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extApp[0].name = iter->second.as_string;
+                }
+                else
+                {
+                    // Backwards-compat: legacy Aria exporter maps CS3.0 ext.app.name to AppInfo.Id
+                    // TODO:
+                    // - consider resolving that protocol "wrinkle" backend-side
+                    // - consider parsing ext.app.id if it contains app hash!name:ver information
+                    record.extApp[0].name = record.extApp[0].id;
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_APP_VERSION);
                 if (iter != m_commonContextFields.end())
                 {
@@ -174,6 +185,7 @@ namespace ARIASDK_NS_BEGIN
                     {
                         size_t len = strlen(deviceId);
                         if (len >= 2 && deviceId[1] == ':' && (
+                            deviceId[0] == 'u' || // u: Mac OS X UUID
                             deviceId[0] == 'a' || // a: Android ID
                             deviceId[0] == 's' || // s: SQM ID
                             deviceId[0] == 'x'))  // x: XBox One hardware ID

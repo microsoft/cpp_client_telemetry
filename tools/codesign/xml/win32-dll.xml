@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<sdk>
-  <description>ARIA Client Telemetry Desktop SDK (win32)</description>
-  <keywords>ARIA, Telemetry, Desktop, Signed, C++</keywords>
-  <cert>401</cert>
-  <files>
-    <file path="files\" displayName="ARIA Client Telemetry Desktop SDK" displayUrl="https://aria.microsoft.com"/>
-  </files>
-</sdk>

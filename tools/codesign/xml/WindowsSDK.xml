@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<sdk>
-  <description>ARIA SDK for Windows</description>
-  <keywords>ARIA Client Telemetry SDK for Windows</keywords>
-  <cert>401</cert>
-  <files>
-    <file path="C:\build\dev2_buildtools\buildscript\codesign\x64\Microsoft.Applications.Telemetry.Windows.dll" displayName="CodeSign" displayUrl="http://CodeSignInfo"/>
-  </files>
-</sdk>

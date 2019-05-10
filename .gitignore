@@ -372,10 +372,8 @@ Generated\ Files
 Release/
 Solutions/afdclient-cpp/Generated\ Files/*
 Solutions/ecsclient-cpp/Generated\ Files/*
-Version.hpp
 bondlite/external/bond/
 bondlite/generated/bond/
-lib/include/public/Version.hpp
 lib/jni/gen/
 linktest/Makefile
 linktest/cmake_install.cmake

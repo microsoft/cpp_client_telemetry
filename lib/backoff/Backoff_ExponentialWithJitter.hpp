@@ -35,7 +35,7 @@ class Backoff_ExponentialWithJitter : public IBackoff {
         m_multiplier(multiplier),
         m_jitter(jitter)
     {
-        reset_private();
+        increase_private();
     }
 
     bool good() const
@@ -65,8 +65,8 @@ class Backoff_ExponentialWithJitter : public IBackoff {
     }
 
   protected:
-    double m_initialValue, m_maximumValue, m_multiplier, m_jitter;
-    double m_currentBase, m_currentRange, m_step;
+    double m_initialValue {}, m_maximumValue {}, m_multiplier {}, m_jitter {};
+    double m_currentBase {}, m_currentRange {}, m_step {};
     PAL::PseudoRandomGenerator m_rand;
 
 private:
