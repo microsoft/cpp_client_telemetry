@@ -71,7 +71,7 @@ void setupConfigs()
 
     // Specify Provider-Group for event
     // NB: Defaults to ARIA
-    config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID] = "5ECB0BAC-B930-47F5-A8A4-E8253529EDB7";
+    // config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID] = "5ECB0BAC-B930-47F5-A8A4-E8253529EDB7";
 
     // Set Telemetry System to UTC.
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;

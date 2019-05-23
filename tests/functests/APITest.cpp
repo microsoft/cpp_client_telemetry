@@ -466,6 +466,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
 
     ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
+    LogManager::FlushAndTeardown();
 }
 
 TEST(APITest, LogManager_SemanticAPI)

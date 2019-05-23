@@ -1,0 +1,7 @@
+include
+lib
+offlinestorage*
+Release
+x64
+ClientTelemetry.*
+SampleCppLogManagers.exe
