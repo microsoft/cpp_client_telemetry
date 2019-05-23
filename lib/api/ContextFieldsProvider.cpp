@@ -144,7 +144,8 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 auto iter = m_commonContextFields.find(COMMONFIELDS_APP_ID);
-                if (iter != m_commonContextFields.end())
+                bool hasAppId = (iter != m_commonContextFields.end());
+                if (hasAppId)
                 {
                     record.extApp[0].id = iter->second.as_string;
                 }
@@ -154,7 +155,7 @@ namespace ARIASDK_NS_BEGIN
                 {
                     record.extApp[0].name = iter->second.as_string;
                 }
-                else
+                else if (hasAppId)
                 {
                     // Backwards-compat: legacy Aria exporter maps CS3.0 ext.app.name to AppInfo.Id
                     // TODO:
