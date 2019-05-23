@@ -1,5 +1,5 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
-#if defined(_WIN32) && defined(HAVE_PRIVATE_MODULES)
+#if defined(_WIN32) /* && defined(HAVE_PRIVATE_MODULES) */
 #define HAVE_MAT_UTC
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
