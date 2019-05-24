@@ -43,7 +43,7 @@ namespace SampleCsUWP
             AutoLogUnhandledException = false,
             MaxTeardownUploadTimeInSec = 5,
             MinTraceLevel = ACTTraceLevel.ACTTraceLevel_Debug,
-//          SdkMode = SdkModeTypes.SdkModeTypes_UTCCommonSchema, /* Uncomment this for UTC mode /*
+            // SdkMode = SdkModeTypes.SdkModeTypes_UTCCommonSchema, /* Uncomment this for UTC mode */
             TraceLevelMask = 0xFFFFFFFF // API calls + Global mask for general messages
         };
 
@@ -79,12 +79,12 @@ namespace SampleCsUWP
             Logger = LogManager.Initialize(token, configuration);
 
             // This one should not get thru because we disabled it via transmit profiles
-            EventProperties propLo = new EventProperties("MyLowPriEvent");
+            EventProperties propLo = new EventProperties("MyApp.MyLowPriEvent");
             propLo.Priority = EventPriority.Low;
             Logger.LogEvent(propLo);
 
             // This one gets thru
-            EventProperties propHi = new EventProperties("MyHighPriEvent");
+            EventProperties propHi = new EventProperties("MyApp.MyHighPriEvent");
             propHi.Priority = EventPriority.High;
             Logger.LogEvent(propHi);
 
