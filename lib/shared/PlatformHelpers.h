@@ -237,7 +237,7 @@ namespace Microsoft {
 
                 inline IPlatformVector^ ToPlatformVector(const std::vector<std::string>& v) {
                     PlatformVector^ result = platform_new PlatformVector();
-                    for (std::string key : v) {
+                    for (const auto& key : v) {
                         String ^k = ToPlatformString(key);
 #ifdef _WINRT_DLL
                         result->Append(k);

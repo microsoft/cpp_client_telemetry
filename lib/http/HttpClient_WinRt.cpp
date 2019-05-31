@@ -41,6 +41,7 @@ namespace ARIASDK_NS_BEGIN {
             : m_parent(parent),
             m_request(request),
             m_id(request->GetId()),
+            m_appCallback(nullptr),
             m_httpRequestMessage(nullptr)
         {
             LOG_TRACE("%p WinRtRequestWrapper()", this);
