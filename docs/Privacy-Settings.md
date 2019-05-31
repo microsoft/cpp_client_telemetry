@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Getting started with the 1DS SDK (Beta) for Linux (C++)
+title: Privacy Settings on 1DS C++ SDK
 sub_title:
 
 ---

@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Getting started with the 1DS SDK (Beta) for Linux (C++)
+title: Using Fiddler inspector on Mac OS X
 sub_title:
 
 ---
