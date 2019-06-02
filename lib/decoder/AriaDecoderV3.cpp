@@ -514,9 +514,10 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     zs.avail_in = (uInt)in.size();
     int ret;
     // The problem with 32K is that it's too small and causes corruption
-    // in zlib inflate. Allocate a buffer enough to hold an output with
-    // Zlib max compression ratio 5:1.
-    uInt outbufferSize = zs.avail_in * 5;
+    // in zlib inflate. 128KB seems to be fine.
+    // Allocate a buffer enough to hold an output with Zlib max compression
+    // ratio 5:1 in case it is larger than 128KB.
+    uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
     auto outbuffer = std::make_unique<char[]>(outbufferSize);
     do {
         zs.next_out = reinterpret_cast<Bytef*>(outbuffer.get());
