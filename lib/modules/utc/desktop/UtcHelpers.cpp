@@ -8,8 +8,8 @@
 #include <windows.system.diagnostics.telemetry.h>
 
 #include <wrl.h>
-#include <wrl\client.h>
-#include <wrl\implements.h>
+#include <wrl/client.h>
+#include <wrl/implements.h>
 
 const int WINDOWS_MAJOR_VERSION = 10;
 const int WINDOWS_BUILD_WITH_UTC_CHANGES = 15005;
