@@ -528,7 +528,7 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     if (ret != Z_STREAM_END)
     {
         /* TODO: return error if buffer is corrupt */;
-        TEST_LOG_ERROR("Corrupt buffer");
+        TEST_LOG_ERROR("Unable to successfully decompress into buffer");
     }
     inflateEnd(&zs);
 }
