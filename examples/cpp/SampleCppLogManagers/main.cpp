@@ -3,7 +3,7 @@
 #include "CommonFields.h"
 #include <cstdio>
 
-#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
 
 using namespace MAT;
 
