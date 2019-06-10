@@ -69,20 +69,26 @@ target_link_libraries(sample1 ${MSEVENTS_SDK_LIB}/libmsevents.a curl z ${CMAKE_T
 
 1. Include the main 1DS SDK (Beta) header file in your main.cpp by adding the following statement to the top of your app's implementation file.
 
-    ```cpp
+	```
     #include "LogManager.hpp"
+	```
+    
+2. Introduce the 1DS SDK (Beta) namespace by adding the following statement after your include statements at the top of your app's implementation file.
+
+    ```
+    using namespace Microsoft::Applications::Events; 
     ```
 
-1. Introduce the 1DS SDK (Beta) namespace by adding the following statement after your include statements at the top of your app's implementation file.
+3. Create the default LogManager instance for your project using the following macro in your main file:
 
-    ```cpp
-    using namespace Microsoft::Applications::Events;
+	```
+    LOGMANAGER_INSTANCE
     ```
 
-1. Initialize the 1DS SDK (Beta) events system, create and send a telemetry event, and then flush the event queue and shut down the telemetry
+4. Initialize the 1DS SDK (Beta) events system, create and send a telemetry event, and then flush the event queue and shut down the telemetry
 logging system by adding the following statements to your main() function.
 
-    ```cpp
+    ```
     ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
     logger->LogEvent("My Telemetry Event");
     ...

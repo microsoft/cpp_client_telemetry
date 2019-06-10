@@ -513,20 +513,22 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     zs.next_in = (Bytef *)in.data();
     zs.avail_in = (uInt)in.size();
     int ret;
-    // FIXME: [MG] - ideally we should allocate the decompression buffer on heap,
-    // not on stack. The problem with 32K is that it's too small and causes corruption
+    // The problem with 32K is that it's too small and causes corruption
     // in zlib inflate. 128KB seems to be fine.
-    char outbuffer[131072] = { 0 };
+    // Allocate a buffer enough to hold an output with Zlib max compression
+    // ratio 5:1 in case it is larger than 128KB.
+    uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
+    auto outbuffer = std::make_unique<char[]>(outbufferSize);
     do {
-        zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
-        zs.avail_out = sizeof(outbuffer);
+        zs.next_out = reinterpret_cast<Bytef*>(outbuffer.get());
+        zs.avail_out = outbufferSize;
         ret = inflate(&zs, Z_NO_FLUSH);
-        out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
+        out.insert(out.end(), outbuffer.get(), outbuffer.get() + zs.total_out);
     } while (ret == Z_OK);
     if (ret != Z_STREAM_END)
     {
         /* TODO: return error if buffer is corrupt */;
-        TEST_LOG_ERROR("Corrupt buffer");
+        TEST_LOG_ERROR("Unable to successfully decompress into buffer");
     }
     inflateEnd(&zs);
 }

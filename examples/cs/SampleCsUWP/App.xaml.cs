@@ -1,5 +1,4 @@
-﻿using Microsoft.Applications.Telemetry.Windows;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,12 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.Applications.Telemetry.Windows;
 
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+// The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=402347&clcid=0x409
 namespace SampleCsUWP
 {
     /// <summary>
@@ -28,7 +32,7 @@ namespace SampleCsUWP
         // Please keep this token secure if it is for production services.
         // https://aria.microsoft.com/developer/start-now/using-aria/send-events
 
-        public static String token = "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"; // PROD
+        public static String token = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"; // PROD
 
         public static bool useCustomLifecycleCallbacks = true;
 
@@ -39,6 +43,7 @@ namespace SampleCsUWP
             AutoLogUnhandledException = false,
             MaxTeardownUploadTimeInSec = 5,
             MinTraceLevel = ACTTraceLevel.ACTTraceLevel_Debug,
+            // SdkMode = SdkModeTypes.SdkModeTypes_UTCCommonSchema, /* Uncomment this for UTC mode */
             TraceLevelMask = 0xFFFFFFFF // API calls + Global mask for general messages
         };
 
@@ -74,12 +79,12 @@ namespace SampleCsUWP
             Logger = LogManager.Initialize(token, configuration);
 
             // This one should not get thru because we disabled it via transmit profiles
-            EventProperties propLo = new EventProperties("MyLowPriEvent");
+            EventProperties propLo = new EventProperties("MyApp.MyLowPriEvent");
             propLo.Priority = EventPriority.Low;
             Logger.LogEvent(propLo);
 
             // This one gets thru
-            EventProperties propHi = new EventProperties("MyHighPriEvent");
+            EventProperties propHi = new EventProperties("MyApp.MyHighPriEvent");
             propHi.Priority = EventPriority.High;
             Logger.LogEvent(propHi);
 

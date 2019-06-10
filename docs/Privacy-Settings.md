@@ -1,0 +1,137 @@
+---
+layout: page
+title: Privacy Settings on 1DS C++ SDK
+sub_title:
+
+---
+# **1. Using privacy tags on UTC mode **
+
+In order to set privacy tags to an event on UTC mode, the C++ SDK exposes the functionality on it's API.
+
+To be able to send an event on UTC mode you need to set CFG_INT_SDK_MODE flag on the LogManager configuration:
+
+```cpp
+config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+```
+
+To set a tag in code you can use the following syntax using the SetProperty method:
+
+```cpp
+EventProperties event(eventName);
+
+std::string evtType = "My.Record.BaseType"; 
+event.SetName("MyProduct.TaggedEvent");
+event.SetType(evtType);
+event.SetProperty("result", "Success");
+event.SetProperty("random", rand());
+event.SetProperty("secret", 5.6872);
+event.SetProperty("seq", (uint64_t)i); 
+event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
+event.SetLatency(latency); 
+logger->LogEvent(event);
+```
+
+You can also use the syntax to fill a collection:
+
+```cpp
+EventProperties event2("MyProduct.TaggedEvent2",
+    {
+        { "result", "Success" },
+        { "random", rand() },
+        { "secret", 5.6872 },
+        { "seq", (uint64_t)i },
+        { COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory }
+    });
+logger->LogEvent(event2);
+```
+
+Here is a list of the privacy flags available on UTC default behavior:
+
+```cpp
+PDT_BrowsingHistory                     0x0000000000000002u
+PDT_DeviceConnectivityAndConfiguration  0x0000000000000800u
+PDT_InkingTypingAndSpeechUtterance      0x0000000000020000u
+PDT_ProductAndServicePerformance        0x0000000001000000u
+PDT_ProductAndServiceUsage              0x0000000002000000u
+PDT_SoftwareSetupAndInventory           0x0000000080000000u
+```
+
+The tag set on your event will show it the field ext.metadata.privTags. You can validate that using Telemetry Real Time Tool **[TRTT](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT)**
+
+![UTC Privacy Tags example](/images/14154-utc.png)
+
+
+# **2. Diagnostic level filtering**
+
+The C++ SDK has an API feature to filter events using the diagnostic level associated with it.
+
+There are different ways you can make your diagnostic levels filtering work:
+
+
+You can set a filter for the default LogManager in your application using the _SetLevel()_ API to allow events to be sent.
+An event inherits the Logger level when sent. If you set the **COMMONFIELDS_EVENT_LEVEL** property for your event this will override the default level.
+When no level is specified neither at event nor logger, the LogManager level is used for filtering.
+
+Here's an example on how to achieve Diagnostic Level filtering:
+
+```cpp
+
+auto& config = LogManager::GetLogConfiguration();
+//Setup your custom config
+//...
+
+// Default diagnostic level for this Logger
+auto logger0 = LogManager::Initialize(TENANT_TOKEN, config);
+
+// Inherit diagnostic level from parent (LogManager level)
+auto logger1 = LogManager::GetLogger();
+
+// Set diagnostic level to ENHANCED for logger2
+auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
+logger2->SetLevel(DIAG_LEVEL_ENHANCED);
+
+// Set diagnostic level to FULL
+auto logger3 = LogManager::GetLogger("my_full_source");
+logger3->SetLevel(DIAG_LEVEL_FULL);
+
+// A set that specifies that nothing passes through level filter
+std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
+// Everything goes through
+std::set<uint8_t> logAll   = { };
+// Only allow BASIC level filtering
+std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+
+auto filters = { logNone, logAll, logBasic };
+
+// Example of how level filtering works
+size_t i = 0;
+// For each filter defined
+for (auto filter : filters)
+{
+	// Specify diagnostic level filter for the default LogManager
+	LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
+	// For every logger
+	for (auto logger : { logger0, logger1, logger2, logger3 })
+	{
+		// Create an event without diagnostic level 
+		EventProperties defLevelEvent("My.DefaultLevelEvent");
+		// Behavior is inherited from the current logger
+		logger->LogEvent(defLevelEvent);
+
+		// Create an event and set level to BASIC 
+		// This overrides the logger level for filtering
+		EventProperties basicEvent("My.BasicEvent");
+		basicEvent.SetLevel(DIAG_LEVEL_BASIC);
+		logger->LogEvent(basicEvent);
+
+		// Create an event and set level to FULL 
+		// This overrides the logger level for filtering
+		EventProperties fullEvent("My.FullEvent");
+		fullEvent.SetLevel(DIAG_LEVEL_FULL);
+		logger->LogEvent(fullEvent);
+	}
+}
+
+LogManager::FlushAndTeardown();
+
+```

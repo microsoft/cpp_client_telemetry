@@ -42,8 +42,20 @@
       </uap:VisualElements>
     </Application>
   </Applications>
-
   <Capabilities>
     <Capability Name="internetClient" />
   </Capabilities>
+  <Extensions>
+    <Extension Category="windows.activatableClass.inProcessServer">
+      <InProcessServer>
+        <Path>Microsoft.Applications.Telemetry.Windows-managed.dll</Path>
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.EventProperties" ThreadingModel="both" />
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.LogConfiguration" ThreadingModel="both" />
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.ECSClient" ThreadingModel="both" />
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.AggregatedMetricData" ThreadingModel="both" />
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.LogManager" ThreadingModel="both" />
+        <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.PageActionData" ThreadingModel="both" />
+      </InProcessServer>
+    </Extension>
+  </Extensions>
 </Package>

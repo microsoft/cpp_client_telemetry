@@ -71,9 +71,11 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     {
-        LOCKGUARD(m_httpCallbacksMtx);
         HttpCallback *callback = new HttpCallback(*this, ctx);
-        m_httpCallbacks.push_back(callback);
+        {
+            LOCKGUARD(m_httpCallbacksMtx);
+            m_httpCallbacks.push_back(callback);
+        }
 
         LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
             static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
@@ -89,27 +91,28 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
-        LOCKGUARD(m_httpCallbacksMtx);
-
         EventsUploadContextPtr &ctx = callback->m_ctx;
 
-        assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
+        {
+            LOCKGUARD(m_httpCallbacksMtx);
+            assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
 
 #if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
-        // Response may be null if request got aborted
-        if (ctx->httpResponse != nullptr)
-        {
-            IHttpResponse const& response = (*ctx->httpResponse);
-            LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
-                response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
-        }
+            // Response may be null if request got aborted
+            if (ctx->httpResponse != nullptr)
+            {
+                IHttpResponse const& response = (*ctx->httpResponse);
+                LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
+                    response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
+            }
 #endif
 
-        requestDone(ctx);
-        // request done should be handled by now
+            requestDone(ctx);
+            // request done should be handled by now
 
-        LOG_TRACE("HTTP remove callback=%p", callback);
-        m_httpCallbacks.remove(callback);
+            LOG_TRACE("HTTP remove callback=%p", callback);
+            m_httpCallbacks.remove(callback);
+        }
 
         delete callback;
     }

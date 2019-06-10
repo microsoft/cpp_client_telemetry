@@ -116,8 +116,9 @@ namespace MATW_NS_BEGIN {
         if (!transmitProfiles->Equals(""))
         {
             configuration->TransmitProfiles = transmitProfiles;
-            configuration->ToLogConfigurationCore();
         }
+
+        configuration->ToLogConfigurationCore();
         return platform_new Logger(MAT::LogManager::Initialize(token));
     }
 
