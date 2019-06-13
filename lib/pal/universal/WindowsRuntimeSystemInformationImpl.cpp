@@ -4,7 +4,7 @@
 
 #include "ISystemInformation.hpp"
 #include "pal/SystemInformationImpl.hpp"
-#include "pal/desktop/WindowsEnvironmentInfo.h"
+#include "pal/desktop/WindowsEnvironmentInfo.hpp"
 #include "PlatformHelpers.h"
 
 using namespace std;
