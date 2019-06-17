@@ -25,6 +25,8 @@ namespace ARIASDK_NS_BEGIN
 
     static const unsigned char InvalidHexDigit = 0xFF;
 
+    static const unsigned int LargeEventSizeKB = 62;
+
     unsigned char getHexToInt(char ch)
     {
         unsigned char temp = 0;
@@ -187,6 +189,27 @@ namespace ARIASDK_NS_BEGIN
         return temp;
     }
 
+    HRESULT RPCWriteEvent(
+        REGHANDLE hProvider,
+        EVENT_DESCRIPTOR const& eventDescriptor,
+        UINT8 const* pProviderMetadata,
+        UINT8 const* pEventMetadata,
+        ULONG cDataDescriptors,
+        EVENT_DATA_DESCRIPTOR* pDataDescriptors,
+        LPCGUID pActivityId = 0,
+        LPCGUID pRelatedActivityId = 0)
+    {
+        (void)cDataDescriptors;
+        (void)eventDescriptor;
+        (void)hProvider;
+        (void)pActivityId;
+        (void)pRelatedActivityId;
+        (void)pDataDescriptors;
+        (void)pEventMetadata;
+        (void)pProviderMetadata;
+        return -1;
+    }
+
     UtcTelemetrySystem::UtcTelemetrySystem(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
         :
         TelemetrySystemBase(logManager, runtimeConfig)
@@ -196,7 +219,7 @@ namespace ARIASDK_NS_BEGIN
         //
 
         onStart = stats.onStart;
-        onStop  = stats.onStop;
+        onStop = stats.onStop;
 
 #if 0 /* XXX: [MG] - don't use RouteSink for that. It's an overkill */
         this->started >> stats.onStart;
@@ -286,7 +309,6 @@ namespace ARIASDK_NS_BEGIN
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_SOURCE);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_ADVERTISINGID);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_APP_EXPERIMENTETAG);
-        //eventCtx->source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
 
         //eventCtx->source->data[0].properties.erase(SESSION_ID);
         //eventCtx->source->data[0].properties.erase(SESSION_STATE);
@@ -307,10 +329,10 @@ namespace ARIASDK_NS_BEGIN
 
         if (eventCtx->source->data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS) != eventCtx->source->data[0].properties.end()) {
             // UTC mode sends privacy tag in ext.metadata.privTags
-            builder.AddField("PartA_PrivTags", TypeUInt64);
+            builder.AddField(UTC_PARTA_METADATA_PRIVTAGS, TypeUInt64);
             int64_t value = eventCtx->source->data[0].properties[COMMONFIELDS_EVENT_PRIVTAGS].longValue;
             dbuilder.AddValue(value);
-        }   
+        }
 
         //PartA_Exts_CommonFields
         builder.AddField(UTC_PARTA_IKEY, TypeMbcsString);
@@ -352,15 +374,15 @@ namespace ARIASDK_NS_BEGIN
             dbuilder.AddString(deviceInfoNetworkType.c_str());
         }
 
-/*
-        std::string eventInfoSequence = eventCtx->source->Extension[EventInfo_Sequence];
-          eventCtx->source->Extension.erase(EventInfo_Sequence);
-          if (!eventInfoSequence.empty())
-          {
-              builder.AddField(UTC_PARTA_APP_SEQ_NUM, TypeMbcsString);
-              dbuilder.AddString(eventInfoSequence.c_str());
-          }
-*/
+        /*
+                std::string eventInfoSequence = eventCtx->source->Extension[EventInfo_Sequence];
+                  eventCtx->source->Extension.erase(EventInfo_Sequence);
+                  if (!eventInfoSequence.empty())
+                  {
+                      builder.AddField(UTC_PARTA_APP_SEQ_NUM, TypeMbcsString);
+                      dbuilder.AddString(eventInfoSequence.c_str());
+                  }
+        */
         std::string sdkUserId(eventCtx->source->extUser[0].localId);
         if (!sdkUserId.empty())
         {
@@ -487,8 +509,39 @@ namespace ARIASDK_NS_BEGIN
         EVENT_DATA_DESCRIPTOR pDataDescriptors[3];
         EventDataDescCreate(&pDataDescriptors[2], byteDataVector.data(), static_cast<ULONG>(byteDataVector.size()));
 
+
+        // if the event does not come from a logger that sends large events
+        // auto size detection is needed
+        if (!eventCtx->isLargeEvent)
         {
-            if (0 != tld::WriteEvent(
+            int64_t eventByteSize = byteDataVector.size() + byteVector.size()
+                + providerdata.providerMetaVector.size();
+            int64_t eventKBSize = (eventByteSize + 1024 - 1) / 1024;
+            eventCtx->isLargeEvent = eventKBSize >= LargeEventSizeKB;
+        }
+
+        if (!eventCtx->isLargeEvent)
+        {
+            HRESULT writeResponse = tld::WriteEvent(
+                providerdata.providerHandle,
+                eventDescriptor,
+                providerdata.providerMetaVector.data(),
+                byteVector.data(),
+                3,
+                pDataDescriptors);
+            if (writeResponse == 0)
+                return 0;
+            else if (writeResponse == HRESULT_FROM_WIN32(ERROR_ARITHMETIC_OVERFLOW))
+                eventCtx->isLargeEvent = true;
+            else 
+                return -1;
+        }
+        // if event comes from a tagged logger, or size is larger than LargeEventSizeKB
+        // or was sent to ETW and the response was STATUS_INTEGER_OVERFLOW
+        if(eventCtx->isLargeEvent)
+        {
+            // Use RPC path for 64KB+ events
+            if (0 != RPCWriteEvent(
                 providerdata.providerHandle,
                 eventDescriptor,
                 providerdata.providerMetaVector.data(),

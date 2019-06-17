@@ -40,7 +40,8 @@ namespace ARIASDK_NS_BEGIN
         m_semanticApiDecorators(logManager),
 
         m_sessionStartTime(0),
-        m_allowDotsInType(false)
+        m_allowDotsInType(false),
+        m_sendLargeEvents(false)
     {
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
@@ -348,12 +349,8 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        // TODO: [MG] - optimize this code
-        bool result = true;
-        result &= m_baseDecorator.decorate(record);
-        result &= m_semanticContextDecorator.decorate(record);
-        result &= m_eventPropertiesDecorator.decorate(record, latency, properties);
-        return result;
+        return m_baseDecorator.decorate(record) && m_semanticContextDecorator.decorate(record)
+                && m_eventPropertiesDecorator.decorate(record, latency, properties);
 
     }
 
@@ -421,6 +418,11 @@ namespace ARIASDK_NS_BEGIN
         // TODO: [MG] - check if optimization is possible in generateUuidString
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
         event.policyBitFlags = policyBitFlags;
+
+        // TODO: [MC] - maybe UTC_MODE validation is necessary
+        if (m_sendLargeEvents) 
+            event.isLargeEvent = true;
+
         m_logManager.sendEvent(&event);
     }
 
@@ -656,6 +658,11 @@ namespace ARIASDK_NS_BEGIN
     void Logger::SetLevel(uint8_t level)
     {
         m_level = level;
+    }
+
+    void Logger::AllowLargeEvents(bool flag)
+    {
+        m_sendLargeEvents = flag;
     }
 
 } ARIASDK_NS_END

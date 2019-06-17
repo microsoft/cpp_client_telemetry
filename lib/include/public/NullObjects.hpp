@@ -107,6 +107,8 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetLevel(uint8_t level) override {};
 
+        virtual void AllowLargeEvents(bool flag) override {};
+
     };
 
     class NullLogManager : public ILogManager

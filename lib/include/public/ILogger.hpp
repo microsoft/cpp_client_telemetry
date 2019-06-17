@@ -585,6 +585,13 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="level">Diagnostic level.</param>
         virtual void SetLevel(uint8_t level) = 0;
+
+        /// <summary>
+        /// Set the boolean flag for allowing events with payload 
+        /// larger than 64K to be sent to UTC
+        /// </summary>
+        /// <param name="level">Diagnostic level.</param>
+        virtual void AllowLargeEvents(bool flag) = 0;
     };
 
 

@@ -15,6 +15,17 @@ using namespace MAT;
 
 #define TENANT_TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
 
+std::string getRandomStringWithSize(int size)
+{
+    std::string alpha = "abcdefghijklmnopqrstuvwxyz";
+    std::string ans;
+    for (size_t i = 0; i < size; i++)
+    {
+        ans += alpha[rand() % 26];
+    }
+    return ans;
+}
+
 void forwardEventToUTC()
 {
     printf("LogManager init\n");
@@ -57,6 +68,7 @@ void forwardEventToUTC()
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA1, "ExtraDataField1");
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA2, "ExtraDataField2");
         event.SetProperty(COMMONFIELDS_METADATA_VIEWINGEXTRA3, "ExtraDataField3");
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
 
         logger->LogEvent(event);
     }

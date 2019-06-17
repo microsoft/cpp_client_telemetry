@@ -79,6 +79,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void SetLevel(uint8_t level) override;
 
+        virtual void AllowLargeEvents(bool flag) override;
+
         virtual ISemanticContext*   GetSemanticContext() const override;
 
         virtual void SetParentContext(ISemanticContext* context) override;
@@ -200,6 +202,7 @@ namespace ARIASDK_NS_BEGIN {
         SemanticApiDecorators     m_semanticApiDecorators;
 
         bool                      m_allowDotsInType;
+        bool                      m_sendLargeEvents;
     };
 
 } ARIASDK_NS_END

@@ -51,6 +51,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventProperty.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Contexts.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\EventPropertiesStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ITelemetrySystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\Route.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystemBase.hpp" />
