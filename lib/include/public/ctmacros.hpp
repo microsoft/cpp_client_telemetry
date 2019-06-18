@@ -68,7 +68,7 @@
 #endif
 
 #if __GNUC__
-#if __x86_64__ || __ppc64__
+#if defined(__x86_64__) || defined(__ppc64__)
 #define ARCH_64BIT
 #else
 #define ARCH_32BIT
