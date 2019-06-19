@@ -98,11 +98,6 @@ namespace ARIASDK_NS_BEGIN {
             ILogConfiguration& logConfiguration,
             status_t& status,
             IHttpClient* httpClient
-#ifdef ANDROID
-            , JNIEnv * env
-            , jclass contextClass
-            , jobject contextObject
-#endif
         )
         {
             auto result = instance().lease(logConfiguration, httpClient);
@@ -115,11 +110,6 @@ namespace ARIASDK_NS_BEGIN {
         static ILogManager * Get(
            ILogConfiguration& logConfiguration,
            status_t& status
-#ifdef ANDROID
-           , JNIEnv * env
-           , jclass contextClass
-           , jobject contextObject
-#endif
         )
         {
            return Get(logConfiguration, status, nullptr);
@@ -128,11 +118,6 @@ namespace ARIASDK_NS_BEGIN {
         static ILogManager* Get(
             const char * module,
             status_t& status
-#ifdef ANDROID
-            JNIEnv *env,
-            jclass contextClass,
-            jobject  contextObject,
-#endif
         )
         {
             ILogConfiguration config = 
