@@ -40,11 +40,6 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status,
             IHttpClient* httpClient,
-#ifdef ANDROID
-            JNIEnv *env,
-            jclass contextClass,
-            jobject  contextObject,
-#endif
             uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
@@ -76,11 +71,6 @@ namespace ARIASDK_NS_BEGIN
             char const* id,
             bool wantController,
             status_t& status,
-#ifdef ANDROID
-            JNIEnv *env,
-            jclass contextClass,
-            jobject  contextObject,
-#endif
             uint64_t targetVersion = MAT::Version)
         {
             UNREFERENCED_PARAMETER(targetVersion);
@@ -89,12 +79,6 @@ namespace ARIASDK_NS_BEGIN
             return Get(
                 id,
                 status
-#ifdef ANDROID  
-                ,
-                env,
-                contextClass,
-                contextObject
-#endif
             );
         };
 #endif
@@ -107,11 +91,6 @@ namespace ARIASDK_NS_BEGIN
         /// </summary> 
         static ILogManager* MATSDK_SPEC CreateLogManager(char const* id,
             status_t& status,
-#ifdef ANDROID
-            JNIEnv *env,
-            jclass contextClass,
-            jobject  contextObject,
-#endif
             uint64_t targetVersion = MAT::Version)
         {
             UNREFERENCED_PARAMETER(targetVersion);
@@ -119,12 +98,6 @@ namespace ARIASDK_NS_BEGIN
             return Get(
                 id,
                 status
-#ifdef ANDROID  
-                ,
-                env,
-                contextClass,
-                contextObject
-#endif
             );
         }
 
@@ -174,21 +147,11 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration & cfg,
             status_t &status,
             IHttpClient* httpClient
-#ifdef ANDROID
-            , JNIEnv * env
-            , jclass contextClass
-            , jobject contextObject
-#endif
         );
 
         static ILogManager* MATSDK_SPEC Get(
             const char * id,
             status_t& status
-#ifdef ANDROID
-            JNIEnv *env,
-            jclass contextClass,
-            jobject  contextObject,
-#endif
         );
 
     };
