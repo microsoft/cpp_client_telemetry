@@ -6,11 +6,17 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
 
+export NOROOT=$NOROOT
+
 if [ "$1" == "clean" ]; then
  rm -f CMakeCache.txt *.cmake
  rm -rf out
  rm -rf .buildtools
 # make clean
+fi
+
+if [ "$1" == "noroot" ] || [ "$2" == "noroot" ]; then
+export NOROOT=true
 fi
 
 # Install build tools and recent sqlite3
@@ -19,7 +25,7 @@ OS_NAME=`uname -a`
 if [ ! -f $FILE ]; then
 case "$OS_NAME" in
  *Darwin*) tools/setup-buildtools-mac.sh ;;
- *Linux*)  sudo tools/setup-buildtools.sh ;;
+ *Linux*)  [[ -z "$NOROOT" ]] && sudo tools/setup-buildtools.sh || echo "No root: skipping build tools installation." ;;
  *)        echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation.."
 esac
 # Assume that the build tools have been successfully installed
@@ -83,12 +89,12 @@ make package
 # Debian / Ubuntu / Raspbian
 if [ -f /usr/bin/dpkg ]; then
 # Install new package
-sudo dpkg -i *.deb
+[[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
 fi
 
 # RedHat / CentOS
 if [ -f /usr/bin/rpmbuild ]; then
-sudo rpm -i --force -v *.rpm
+[[ -z "$NOROOT" ]] && sudo rpm -i --force -v *.rpm || echo "No root: skipping package deployment."
 fi
 
 # Install SDK headers and lib to /usr/local

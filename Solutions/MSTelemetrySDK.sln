@@ -119,6 +119,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "decoder", "..\lib\decoder\d
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCppLogManagers", "..\examples\cpp\SampleCppLogManagers\SampleCppLogManagers.vcxproj", "{77053F92-F003-4D1C-A489-1DEB7CFEA4EC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCppMini", "..\examples\cpp\SampleCppMini\SampleCppMini.vcxproj", "{86AC752C-5687-4377-841E-943D9BEEF361}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\universal\universal.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
@@ -1095,6 +1097,48 @@ Global
 		{77053F92-F003-4D1C-A489-1DEB7CFEA4EC}.Release|Win32.Build.0 = Release|Win32
 		{77053F92-F003-4D1C-A489-1DEB7CFEA4EC}.Release|x64.ActiveCfg = Release|x64
 		{77053F92-F003-4D1C-A489-1DEB7CFEA4EC}.Release|x64.Build.0 = Release|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|ARM.ActiveCfg = Debug.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|ARM64.ActiveCfg = Debug.static|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|ARM64.Build.0 = Debug.static|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|Win32.ActiveCfg = Debug.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|Win32.Build.0 = Debug.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|x64.ActiveCfg = Debug.static|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.static|x64.Build.0 = Debug.static|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|ARM.ActiveCfg = Debug.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|ARM64.ActiveCfg = Debug.vs2015.MT-sqlite|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|ARM64.Build.0 = Debug.vs2015.MT-sqlite|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|Win32.ActiveCfg = Debug.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|Win32.Build.0 = Debug.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|x64.ActiveCfg = Debug.vs2015.MT-sqlite|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug.vs2015.MT-sqlite|x64.Build.0 = Debug.vs2015.MT-sqlite|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|ARM.ActiveCfg = Debug|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|ARM64.Build.0 = Debug|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|Win32.ActiveCfg = Debug|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|Win32.Build.0 = Debug|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|x64.ActiveCfg = Debug|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Debug|x64.Build.0 = Debug|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|ARM.ActiveCfg = Release.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|ARM64.ActiveCfg = Release.static|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|ARM64.Build.0 = Release.static|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|Win32.ActiveCfg = Release.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|Win32.Build.0 = Release.static|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|x64.ActiveCfg = Release.static|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.static|x64.Build.0 = Release.static|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|ARM.ActiveCfg = Release.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|ARM64.ActiveCfg = Release.vs2015.MT-sqlite|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|ARM64.Build.0 = Release.vs2015.MT-sqlite|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|Win32.ActiveCfg = Release.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|Win32.Build.0 = Release.vs2015.MT-sqlite|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|x64.ActiveCfg = Release.vs2015.MT-sqlite|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release.vs2015.MT-sqlite|x64.Build.0 = Release.vs2015.MT-sqlite|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|ARM.ActiveCfg = Release|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|ARM64.ActiveCfg = Release|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|ARM64.Build.0 = Release|ARM64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|Win32.ActiveCfg = Release|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|Win32.Build.0 = Release|Win32
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|x64.ActiveCfg = Release|x64
+		{86AC752C-5687-4377-841E-943D9BEEF361}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1121,6 +1165,7 @@ Global
 		{65AFA0E2-F9A2-4309-87E7-E419D59583C1} = {11A3C4B2-1800-4A80-9771-E92E98B9485B}
 		{F797B22C-A1C4-4136-9DCC-0682A183A4DA} = {11A3C4B2-1800-4A80-9771-E92E98B9485B}
 		{77053F92-F003-4D1C-A489-1DEB7CFEA4EC} = {D31B3404-AE47-4D0A-9A59-C321164F945C}
+		{86AC752C-5687-4377-841E-943D9BEEF361} = {D31B3404-AE47-4D0A-9A59-C321164F945C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}
