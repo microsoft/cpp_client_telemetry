@@ -509,18 +509,13 @@ namespace ARIASDK_NS_BEGIN
         EVENT_DATA_DESCRIPTOR pDataDescriptors[3];
         EventDataDescCreate(&pDataDescriptors[2], byteDataVector.data(), static_cast<ULONG>(byteDataVector.size()));
 
+        // Event size detection is needed
+        int64_t eventByteSize = byteDataVector.size() + byteVector.size()
+            + providerdata.providerMetaVector.size();
+        int64_t eventKBSize = (eventByteSize + 1024 - 1) / 1024;
+        bool isLargeEvent = eventKBSize >= LargeEventSizeKB;
 
-        // if the event does not come from a logger that sends large events
-        // auto size detection is needed
-        if (!eventCtx->isLargeEvent)
-        {
-            int64_t eventByteSize = byteDataVector.size() + byteVector.size()
-                + providerdata.providerMetaVector.size();
-            int64_t eventKBSize = (eventByteSize + 1024 - 1) / 1024;
-            eventCtx->isLargeEvent = eventKBSize >= LargeEventSizeKB;
-        }
-
-        if (!eventCtx->isLargeEvent)
+        if (!isLargeEvent)
         {
             HRESULT writeResponse = tld::WriteEvent(
                 providerdata.providerHandle,
@@ -532,13 +527,13 @@ namespace ARIASDK_NS_BEGIN
             if (writeResponse == 0)
                 return 0;
             else if (writeResponse == HRESULT_FROM_WIN32(ERROR_ARITHMETIC_OVERFLOW))
-                eventCtx->isLargeEvent = true;
+                isLargeEvent = true;
             else 
                 return -1;
         }
-        // if event comes from a tagged logger, or size is larger than LargeEventSizeKB
+        // if event size is larger than LargeEventSizeKB
         // or was sent to ETW and the response was STATUS_INTEGER_OVERFLOW
-        if(eventCtx->isLargeEvent)
+        if(isLargeEvent)
         {
             // Use RPC path for 64KB+ events
             if (0 != RPCWriteEvent(
