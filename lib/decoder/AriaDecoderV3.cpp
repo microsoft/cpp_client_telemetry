@@ -28,7 +28,6 @@
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
 using nlohmann::json;
-
 using namespace CsProtocol;
 
 namespace clienttelemetry {
@@ -557,10 +556,10 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
 
 #else
 
-	(void) (in);
-	(void) (out);
-	(void) (compressed);
-	assert(false /* json.hpp support is not enabled! */);
+    (void) (in);
+    (void) (out);
+    (void) (compressed);
+    assert(false /* json.hpp support is not enabled! */);
 
 #endif // HAVE_MAT_JSONHPP
 }
