@@ -101,6 +101,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-default.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-ikeys.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-versionPrefix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IBandwidthController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IDeviceInformation.hpp" />
