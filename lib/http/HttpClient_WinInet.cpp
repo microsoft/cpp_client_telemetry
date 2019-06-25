@@ -1,5 +1,7 @@
-#include "HttpClient_WinInet.hpp"
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
+
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #include "HttpClient_WinInet.hpp"
 #include "utils/Utils.hpp"
@@ -369,3 +371,5 @@ void HttpClient_WinInet::CancelAllRequests()
 };
 
 } ARIASDK_NS_END
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

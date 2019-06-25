@@ -2,6 +2,8 @@
 #ifndef HTTPCLIENT_WINRT_HPP
 #define HTTPCLIENT_WINRT_HPP
 
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 #pragma comment(lib, "windowsapp")
 #pragma comment(lib, "runtimeobject")
 
@@ -46,5 +48,7 @@ class HttpClient_WinRt : public IHttpClient {
 };
 
 } ARIASDK_NS_END
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WINRT_HPP
