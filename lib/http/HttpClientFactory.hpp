@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef HTTPCLIENTFACTORY_HPP
+#define HTTPCLIENTFACTORY_HPP
 
-#pragma once
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
@@ -18,3 +19,5 @@ private:
 
 
 } ARIASDK_NS_END
+
+#endif // HTTPCLIENTFACTORY_HPP
