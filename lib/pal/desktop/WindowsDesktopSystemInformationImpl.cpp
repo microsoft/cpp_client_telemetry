@@ -22,7 +22,7 @@
 #include "ISystemInformation.hpp"
 #include "pal/SystemInformationImpl.hpp"
 
-#include "WindowsEnvironmentInfo.h"
+#include "WindowsEnvironmentInfo.hpp"
 
 #include <string>
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")"
+cd `dirname $0`
 cd googletest
 set -evx
 env | sort
+rm -rf build
 mkdir -p build || true
 cd build
 cmake -Dgtest_build_samples=ON \

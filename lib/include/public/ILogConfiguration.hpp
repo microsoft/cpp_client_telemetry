@@ -90,6 +90,21 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_WAL_JOURNAL = "enableWALJournal";
 
     /// <summary>
+    /// Parameter that allows to check if the SDK is running on UTC mode
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_UTC_ENABLED = "UTC_enabled";
+
+    /// <summary>
+    /// Parameter that allows to check if the SDK is running on UTC mode
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_UTC_ACTIVE = "UTC_active";
+
+    /// <summary>
+    /// Parameter that allows to check if the Windows 10 version SDK is using supports large payloads on UTC
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_UTC_LARGE_PAYLOADS = "UTC_largePayloadsEnabled";
+
+    /// <summary>
     /// The event collection URI.
     /// </summary>
     static constexpr const char* const CFG_STR_COLLECTOR_URL = "eventCollectorUri";

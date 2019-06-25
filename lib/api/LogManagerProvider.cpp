@@ -8,11 +8,6 @@ namespace ARIASDK_NS_BEGIN {
         ILogConfiguration & config,
         status_t &status,
         IHttpClient* httpClient
-#ifdef ANDROID
-        , JNIEnv * env
-        , jclass contextClass
-        , jobject contextObject
-#endif
     )
     {
         return LogManagerFactory::Get(config, status, httpClient);
@@ -22,11 +17,6 @@ namespace ARIASDK_NS_BEGIN {
     ILogManager* LogManagerProvider::Get(
         const char * moduleName,
         status_t& status
-#ifdef ANDROID
-        JNIEnv *env,
-        jclass contextClass,
-        jobject  contextObject,
-#endif
     )
     {
         return LogManagerFactory::Get(moduleName, status);

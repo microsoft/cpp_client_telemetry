@@ -4,7 +4,7 @@
 #endif
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
-#include "WindowsEnvironmentInfo.h"
+#include "WindowsEnvironmentInfo.hpp"
 
 MATSDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 

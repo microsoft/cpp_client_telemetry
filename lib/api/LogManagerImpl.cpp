@@ -146,12 +146,18 @@ namespace ARIASDK_NS_BEGIN
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
 #ifdef HAVE_MAT_UTC
+        // UTC is not active
+        configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
+
         // UTC functionality is only available on Windows 10 RS2+
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
+        configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
 
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
         if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
         {
+            // UTC is active
+            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
             LOG_TRACE("Initializing UTC physical layer...");
             m_system.reset(new UtcTelemetrySystem(*this, *m_config));
             if (!deferSystemStart)

@@ -348,12 +348,8 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        // TODO: [MG] - optimize this code
-        bool result = true;
-        result &= m_baseDecorator.decorate(record);
-        result &= m_semanticContextDecorator.decorate(record);
-        result &= m_eventPropertiesDecorator.decorate(record, latency, properties);
-        return result;
+        return m_baseDecorator.decorate(record) && m_semanticContextDecorator.decorate(record)
+                && m_eventPropertiesDecorator.decorate(record, latency, properties);
 
     }
 
@@ -421,6 +417,7 @@ namespace ARIASDK_NS_BEGIN
         // TODO: [MG] - check if optimization is possible in generateUuidString
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
         event.policyBitFlags = policyBitFlags;
+
         m_logManager.sendEvent(&event);
     }
 

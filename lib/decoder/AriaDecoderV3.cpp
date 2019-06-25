@@ -25,15 +25,14 @@
 #define TEST_LOG_ERROR(arg0, ...)     fprintf(stderr, arg0 "\n", ##__VA_ARGS__)
 #endif
 
+#ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
-
 using nlohmann::json;
 using namespace CsProtocol;
 
 namespace clienttelemetry {
     namespace data {
         namespace v3 {
-
             void to_json(json& j, const Record& r);
 
             std::vector<Record> decodeRequest(const std::vector<uint8_t>& request)
@@ -312,6 +311,7 @@ namespace clienttelemetry {
         }
     }
 }
+#endif // HAVE_MAT_JSONHPP
 
 #if 0   /* These routines should exist in scope of FuncTests and UnitTests project provided by SDK utils */
 
@@ -533,10 +533,12 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     inflateEnd(&zs);
 }
 
-using namespace clienttelemetry::data::v3;
-
 void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)
 {
+#ifdef HAVE_MAT_JSONHPP
+
+    using namespace clienttelemetry::data::v3;
+
     if (compressed)
     {
         InflateVector(in, out);
@@ -551,4 +553,13 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
     std::string s = j.dump(2);
     out.clear();
     std::copy(s.begin(), s.end(), std::back_inserter(out));
+
+#else
+
+    (void) (in);
+    (void) (out);
+    (void) (compressed);
+    assert(false /* json.hpp support is not enabled! */);
+
+#endif // HAVE_MAT_JSONHPP
 }
