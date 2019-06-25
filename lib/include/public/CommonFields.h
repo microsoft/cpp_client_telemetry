@@ -48,6 +48,10 @@
 #define COMMONFIELDS_EVENT_SEQ                               "EventInfo.Sequence"
 #define COMMONFIELDS_EVENT_PRIVTAGS                          "EventInfo.PrivTags"
 #define COMMONFIELDS_EVENT_LEVEL                             "EventInfo.Level"
+#define COMMONFIELDS_EVENT_PRIORITY                          "EventInfo.Priority"
+#define COMMONFIELDS_EVENT_LATENCY                           "EventInfo.Latency"
+#define COMMONFIELDS_EVENT_PERSISTENCE                       "EventInfo.Persistence"
+#define COMMONFIELDS_EVENT_POLICYFLAGS                       "EventInfo.PolicyFlags"
 
 #define SESSION_FIRST_TIME                                   "Session.FirstLaunchTime"
 #define SESSION_STATE                                        "Session.State"
