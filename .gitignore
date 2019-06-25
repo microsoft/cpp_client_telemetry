@@ -389,3 +389,6 @@ zlib/contrib/vstudio/vc14/ARM/
 zlib/contrib/vstudio/vc14/Release/
 zlib/contrib/vstudio/vc14/ReleaseWithoutAsm/
 zlib/contrib/vstudio/vc14/x64/
+
+# Ignore lib/modules git submodule
+lib/modules

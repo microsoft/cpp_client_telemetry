@@ -1,0 +1,1 @@
+#define EVTSDK_VERSION_PREFIX "EVT"

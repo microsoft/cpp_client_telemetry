@@ -18,13 +18,13 @@ namespace ARIASDK_NS_BEGIN {
     class IncomingEventContext {
     public:
         ::CsProtocol::Record*  source;
-        StorageRecord            record;
-        std::uint64_t            policyBitFlags;
+        StorageRecord          record;
+        std::uint64_t          policyBitFlags;
 
     public:
         IncomingEventContext() :
-          policyBitFlags(0),
-	  source(nullptr)
+            policyBitFlags(0),
+            source(nullptr)
         {
         }
 

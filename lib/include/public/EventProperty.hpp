@@ -21,7 +21,9 @@
 #include <ObjBase.h>
 #else
 #include <string.h>
+#ifndef LONG_IS_INT64_T
 #define LONG_IS_INT64_T
+#endif
 #endif
 
 namespace ARIASDK_NS_BEGIN

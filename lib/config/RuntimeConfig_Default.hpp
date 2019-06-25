@@ -33,7 +33,14 @@ namespace ARIASDK_NS_BEGIN {
         },
         {"utc",
             {
-                { "providerGroupId",     "780dddc8-18a1-5781-895a-a690464fa89c" }
+#ifdef HAVE_MAT_UTC
+                { "providerGroupId",            "780dddc8-18a1-5781-895a-a690464fa89c" },
+                {CFG_BOOL_UTC_ENABLED,          true},
+                {CFG_BOOL_UTC_ACTIVE,           false},
+                {CFG_BOOL_UTC_LARGE_PAYLOADS,   false}
+#else
+                {CFG_BOOL_UTC_ENABLED,          false}
+#endif
             }
         },
         { "http",

@@ -59,8 +59,8 @@
 // Macro for mutex issues debugging. Supports both std::mutex and std::recursive_mutex
 #define LOCKGUARD(macro_mutex)      LOG_DEBUG("LOCKGUARD   lockin at %s:%d", __FILE__, __LINE__); std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex); LOG_DEBUG("LOCKGUARD   locked at %s:%d", __FILE__, __LINE__);
 
-#if _WIN32 || _WIN64
-#if _WIN64
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN64
 #define ARCH_64BIT
 #else
 #define ARCH_32BIT
@@ -68,7 +68,7 @@
 #endif
 
 #if __GNUC__
-#if __x86_64__ || __ppc64__
+#if defined(__x86_64__) || defined(__ppc64__)
 #define ARCH_64BIT
 #else
 #define ARCH_32BIT
