@@ -1,12 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 
-#include "Version.hpp"
-
 // Assume that if we are compiling with MSVC, then we prefer to use Windows HTTP stack,
 // e.g. WinInet.dll or Win 10 HTTP client instead
-#if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER)
+#if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 
+#include "Version.hpp"
 #include "HttpClient.hpp"
 
 #include <memory>
