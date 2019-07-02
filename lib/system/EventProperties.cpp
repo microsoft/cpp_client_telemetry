@@ -435,12 +435,12 @@ namespace ARIASDK_NS_BEGIN {
 
     // List of attributes going into envelope section. Construct string objects once, reuse for comparison.
 
-    // Short names for event field keys passed via from C API
+    // Short names for event field keys passed via C API
     static const std::string KEY_NAME = "name";
     static const std::string KEY_TIME = "time";
     static const std::string KEY_POPSAMPLE = "popSample";
 
-    // Long names for event field keys passed via from C API
+    // Long names for event field keys passed via C API
     static const std::string KEY_EVENTNAME = COMMONFIELDS_EVENT_NAME;
     static const std::string KEY_EVENTTIME = COMMONFIELDS_EVENT_TIME;
     static const std::string KEY_PRIORITY  = COMMONFIELDS_EVENT_PRIORITY;
@@ -515,6 +515,7 @@ namespace ARIASDK_NS_BEGIN {
                 SetProperty(curr->name, curr->value.as_string, (PiiKind)curr->piiKind);
                 break;
             case TYPE_INT64:
+
                 SetProperty(curr->name, curr->value.as_int64,  (PiiKind)curr->piiKind);
                 break;
             case TYPE_DOUBLE:
@@ -527,7 +528,10 @@ namespace ARIASDK_NS_BEGIN {
                 SetProperty(curr->name, curr->value.as_bool, (PiiKind)curr->piiKind);
                 break;
             case TYPE_GUID:
-                SetProperty(curr->name, curr->value.as_guid, (PiiKind)curr->piiKind);
+                {
+                    GUID_t guid(curr->value.as_string);
+                    SetProperty(curr->name, guid, (PiiKind)curr->piiKind);
+                }
                 break;
 
             /* TODO: add support for arrays passing across C API

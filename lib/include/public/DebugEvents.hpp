@@ -123,6 +123,9 @@ namespace ARIASDK_NS_BEGIN
         DebugEvent() : seq(0), ts(0), type(EVT_UNKNOWN), param1(0), param2(0), data(NULL), size(0) {};
 
         DebugEvent(DebugEventType type) : seq(0), ts(0), type(type), param1(0), param2(0), data(NULL), size(0) {};
+
+        DebugEvent(DebugEventType type, size_t param1, size_t param2 = 0, void* data = nullptr, size_t size = 0) :
+            seq(0), ts(0), type(type), param1(param1), param2(param2), data(data), size(size) {};
     };
 
     /// <summary>

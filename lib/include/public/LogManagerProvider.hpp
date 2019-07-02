@@ -156,6 +156,38 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
+
+    /// <summary>
+    /// LogManager instance handle for C API client
+    /// </summary>
+    typedef int64_t  evt_handle_t;
+
+    /// <summary>
+    /// C API client struct
+    /// logmanager  - ILogManager pointer to SDK instance
+    /// config      - ILogConfiguration
+    /// ctx_data    - original JSON configuration or token passed to mat_open
+    /// </summary>
+    typedef struct
+    {
+        ILogManager*        logmanager = nullptr;
+        ILogConfiguration   config;
+        std::string         ctx_data;
+    } capi_client;
+
+    /// <summary>
+    /// Convert from C API handle to internal C API client struct.
+    ///
+    /// This method may be used for C API flow debugging, i.e. to obtain the
+    /// underlying instance of ILogManager and attach a debug event callback.
+    ///
+    /// NOTE: method is not guaranteed to be ABI-stable and should not be used
+    /// across dynamic / shared library boundary. Underlying ILogManager /
+    /// ILogConfiguration are implemented in C++ and do not provide ABI-stable
+    /// guarantee from one SDK version to another.
+    /// </summary>
+    capi_client * capi_get_client(evt_handle_t handle);
+
 } ARIASDK_NS_END
 
 #endif //MAT_LOGMANAGER_PROVIDER_HPP

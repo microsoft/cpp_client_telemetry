@@ -122,50 +122,75 @@ extern "C" {
         uint32_t        size;       /* In / Out */
     } evt_context_t;
 
+    typedef union
+    {
+        /* Basic types */
+        uint64_t            as_uint64;
+        const char*         as_string;
+        int64_t             as_int64;
+        double              as_double;
+        bool                as_bool;
+        evt_guid_t*         as_guid;
+        uint64_t            as_time;
+        /* Array types are nullptr-terminated array of pointers */
+        char**              as_arr_string;
+        int64_t**           as_arr_int64;
+        bool**              as_arr_bool;
+        double**            as_arr_double;
+        evt_guid_t**        as_arr_guid;
+        uint64_t**          as_arr_time;
+    } evt_prop_v;
+
     typedef struct
     {
         const char*             name;
         evt_prop_t              type;
-        union
-        {
-            /* Basic types */
-            const char*         as_string;
-            int64_t             as_int64;
-            double              as_double;
-            bool                as_bool;
-            evt_guid_t*         as_guid;
-            uint64_t            as_time;
-            /* Array types are nullptr-terminated array of pointers */
-            char**              as_arr_string;
-            int64_t**           as_arr_int64;
-            bool**              as_arr_bool;
-            double**            as_arr_double;
-            evt_guid_t**        as_arr_guid;
-            uint64_t**          as_arr_time;
-        } value;
+        evt_prop_v              value;
         uint32_t                piiKind;
     } evt_prop;
 
-#if (_MSC_VER == 1500) || (_MSC_VER == 1600)
+#if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */
 #define TELEMETRY_EVENT(...)    { __VA_ARGS__ , { NULL, TYPE_NULL } }
 /* With C89-style initializers, structure members must be initialized in the order declared.
    ...and (!) - only the first member of a union can be initialized.
    Which means that we have to do the hack of C-style casting from value to char* ...
  */
-#define _STR(key, val)           { key, TYPE_STRING,    { (char *)val } }
-#define _INT(key, val)           { key, TYPE_INT64,     { (char *)val } }
-#define _DBL(key, val)           { key, TYPE_DOUBLE,    { (char *)val } }
-#define _BOOL(key, val)          { key, TYPE_BOOLEAN,   { (char *)val } }
-#define _GUID(key, val)          { key, TYPE_GUID,      { (char *)val } }
-#define _TIME(key, val)          { key, TYPE_TIME,      { (char *)val } }
 
-#define PII_STR(key, val, kind)  { key, TYPE_STRING,    { (char *)val }, kind }
-#define PII_INT(key, val, kind)  { key, TYPE_INT64,     { (char *)val }, kind }
-#define PII_DBL(key, val, kind)  { key, TYPE_DOUBLE,    { (char *)val }, kind }
-#define PII_BOOL(key, val, kind) { key, TYPE_BOOLEAN,   { (char *)val }, kind }
-#define PII_GUID(key, val, kind) { key, TYPE_GUID,      { (char *)val }, kind }
-#define PII_TIME(key, val, kind) { key, TYPE_TIME,      { (char *)val }, kind }
+#if defined(__cplusplus)
+    /* Helper functions needed while compiling in C++ module */
+    static inline evt_prop_v _DBL2(evt_prop_v pv, double val)
+    {
+        pv.as_double = val;
+        return pv;
+    };
+#define _DBL(key, val)           { key, TYPE_DOUBLE,    _DBL2({ NULL }, val) }
+#define PII_DBL(key, val, kind)  { key, TYPE_DOUBLE,    _DBL2({ NULL }, val), kind }
+
+/*
+    static inline evt_prop_v _TIME2(evt_prop_v pv, uint64_t val)
+    {
+        pv.as_time = val;
+        return pv;
+    }
+#define _TIME(key, val)          { key, TYPE_TIME,      _TIME2({ NULL }, val) }
+#define PII_TIME(key, val, kind) { key, TYPE_TIME,      _TIME2({ NULL }, val), kind }
+*/
+#else
+#pragma message "C89 compiler does not support passing DOUBLE and TIME values via C API"
+#endif
+
+#define _STR(key, val)           { key, TYPE_STRING,    { (uint64_t)((char *)val) } }
+#define _INT(key, val)           { key, TYPE_INT64,     { (uint64_t)val } }
+#define _BOOL(key, val)          { key, TYPE_BOOLEAN,   { (uint64_t)val } }
+#define _GUID(key, val)          { key, TYPE_GUID,      { (uint64_t)((char *)val) } }
+#define _TIME(key, val)          { key, TYPE_TIME,      { (uint64_t)val } }
+
+#define PII_STR(key, val, kind)  { key, TYPE_STRING,    { (uint64_t)((char *)val) }, kind }
+#define PII_INT(key, val, kind)  { key, TYPE_INT64,     { (uint64_t)val }, kind }
+#define PII_BOOL(key, val, kind) { key, TYPE_BOOLEAN,   { (uint64_t)val }, kind }
+#define PII_GUID(key, val, kind) { key, TYPE_GUID,      { (uint64_t)((char *)val) }, kind }
+#define PII_TIME(key, val, kind) { key, TYPE_TIME,      { (uint64_t)val }, kind }
 
 #else
     /* Code to support any modern C99 compiler */

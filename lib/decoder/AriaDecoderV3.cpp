@@ -2,37 +2,22 @@
 
 // TODO: move Compress and Expand into separate utilities module
 
-#include <vector>
-
-#ifdef _WIN32
-#include <Windows.h>
-// XXX: sometimes Windows.h defines max as a macro in some Windows SDKs
-#ifdef max
-#undef max
-#undef min
-#endif
-#endif
-
 #include <algorithm>
 #include <chrono>
 #include <fstream>
-
-#include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
-#include "bond/generated/CsProtocol_readers.hpp"
 
 #ifndef TEST_LOG_ERROR
 #define TEST_LOG_ERROR(arg0, ...)     fprintf(stderr, arg0 "\n", ##__VA_ARGS__)
 #endif
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
-using nlohmann::json;
 using namespace CsProtocol;
+using json = nlohmann::json;
 
 namespace clienttelemetry {
     namespace data {
         namespace v3 {
+
             void to_json(json& j, const Record& r);
 
             std::vector<Record> decodeRequest(const std::vector<uint8_t>& request)
@@ -549,7 +534,7 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
     }
 
     json j = json::array();
-    to_json(j, out);
+    clienttelemetry::data::v3::to_json(j, out);
     std::string s = j.dump(2);
     out.clear();
     std::copy(s.begin(), s.end(), std::back_inserter(out));
@@ -563,3 +548,10 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
 
 #endif // HAVE_MAT_JSONHPP
 }
+
+#ifdef HAVE_MAT_JSONHPP
+void AriaDecoderV3::to_json(nlohmann::json& j, const CsProtocol::Record& r)
+{
+    clienttelemetry::data::v3::to_json(j, r);
+}
+#endif
