@@ -503,12 +503,13 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     // Allocate a buffer enough to hold an output with Zlib max compression
     // ratio 5:1 in case it is larger than 128KB.
     uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
-    auto outbuffer = std::make_unique<char[]>(outbufferSize);
+
+    char* outbuffer = new char[outbufferSize];
     do {
-        zs.next_out = reinterpret_cast<Bytef*>(outbuffer.get());
+        zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
         zs.avail_out = outbufferSize;
         ret = inflate(&zs, Z_NO_FLUSH);
-        out.insert(out.end(), outbuffer.get(), outbuffer.get() + zs.total_out);
+        out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
     } while (ret == Z_OK);
     if (ret != Z_STREAM_END)
     {
@@ -516,6 +517,7 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
         TEST_LOG_ERROR("Unable to successfully decompress into buffer");
     }
     inflateEnd(&zs);
+    delete[] outbuffer;
 }
 
 void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)

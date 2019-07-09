@@ -194,20 +194,20 @@ extern "C" {
 
 #else
     /* Code to support any modern C99 compiler */
-#define TELEMETRY_EVENT(...)    { __VA_ARGS__ , { .name = NULL, .type = TYPE_NULL } }
+#define TELEMETRY_EVENT(...)     { __VA_ARGS__ , { .name = NULL, .type = TYPE_NULL, .value = { .as_int64 = 0 }, .piiKind = 0 } }
 
 #define _STR(key, val)           { .name = key, .type = TYPE_STRING,  .value = { .as_string = val }, .piiKind = 0 }
 #define _INT(key, val)           { .name = key, .type = TYPE_INT64,   .value = { .as_int64  = val }, .piiKind = 0 }
 #define _DBL(key, val)           { .name = key, .type = TYPE_DOUBLE,  .value = { .as_double = val }, .piiKind = 0 }
 #define _BOOL(key, val)          { .name = key, .type = TYPE_BOOLEAN, .value = { .as_bool   = val }, .piiKind = 0 }
-#define _GUID(key, val)          { .name = key, .type = TYPE_GUID,    .value = { .as_guid   = val }, .piiKind = 0 }
+#define _GUID(key, val)          { .name = key, .type = TYPE_GUID,    .value = { .as_string = val }, .piiKind = 0 }
 #define _TIME(key, val)          { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = 0 }
 
 #define PII_STR(key,  val, kind) { .name = key, .type = TYPE_STRING,  .value = { .as_string = val }, .piiKind = kind }
 #define PII_INT(key,  val, kind) { .name = key, .type = TYPE_INT64,   .value = { .as_int64  = val }, .piiKind = kind }
 #define PII_DBL(key,  val, kind) { .name = key, .type = TYPE_DOUBLE,  .value = { .as_double = val }, .piiKind = kind }
 #define PII_BOOL(key, val, kind) { .name = key, .type = TYPE_BOOLEAN, .value = { .as_bool   = val }, .piiKind = kind }
-#define PII_GUID(key, val, kind) { .name = key, .type = TYPE_GUID,    .value = { .as_guid   = val }, .piiKind = kind }
+#define PII_GUID(key, val, kind) { .name = key, .type = TYPE_GUID,    .value = { .as_string = val }, .piiKind = kind }
 #define PII_TIME(key, val, kind) { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = kind }
 
 #endif

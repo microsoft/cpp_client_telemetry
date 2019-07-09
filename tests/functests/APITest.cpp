@@ -1,7 +1,9 @@
-﻿// #ifdef _WIN32
+// #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#endif 
+#endif
+
+#include "mat/config.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4389)

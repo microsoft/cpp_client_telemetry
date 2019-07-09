@@ -1,6 +1,8 @@
 #ifndef AriaDecoderV3_HPP
 #define AriaDecoderV3_HPP
 
+#include "mat/config.h"
+
 #include <vector>
 #include <cinttypes>
 #include <iostream>
