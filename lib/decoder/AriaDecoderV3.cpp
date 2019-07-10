@@ -2,37 +2,22 @@
 
 // TODO: move Compress and Expand into separate utilities module
 
-#include <vector>
-
-#ifdef _WIN32
-#include <Windows.h>
-// XXX: sometimes Windows.h defines max as a macro in some Windows SDKs
-#ifdef max
-#undef max
-#undef min
-#endif
-#endif
-
 #include <algorithm>
 #include <chrono>
 #include <fstream>
-
-#include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
-#include "bond/generated/CsProtocol_readers.hpp"
 
 #ifndef TEST_LOG_ERROR
 #define TEST_LOG_ERROR(arg0, ...)     fprintf(stderr, arg0 "\n", ##__VA_ARGS__)
 #endif
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
-using nlohmann::json;
 using namespace CsProtocol;
+using json = nlohmann::json;
 
 namespace clienttelemetry {
     namespace data {
         namespace v3 {
+
             void to_json(json& j, const Record& r);
 
             std::vector<Record> decodeRequest(const std::vector<uint8_t>& request)
@@ -518,12 +503,13 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     // Allocate a buffer enough to hold an output with Zlib max compression
     // ratio 5:1 in case it is larger than 128KB.
     uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
-    auto outbuffer = std::make_unique<char[]>(outbufferSize);
+
+    char* outbuffer = new char[outbufferSize];
     do {
-        zs.next_out = reinterpret_cast<Bytef*>(outbuffer.get());
+        zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
         zs.avail_out = outbufferSize;
         ret = inflate(&zs, Z_NO_FLUSH);
-        out.insert(out.end(), outbuffer.get(), outbuffer.get() + zs.total_out);
+        out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
     } while (ret == Z_OK);
     if (ret != Z_STREAM_END)
     {
@@ -531,6 +517,7 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
         TEST_LOG_ERROR("Unable to successfully decompress into buffer");
     }
     inflateEnd(&zs);
+    delete[] outbuffer;
 }
 
 void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)
@@ -549,7 +536,7 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
     }
 
     json j = json::array();
-    to_json(j, out);
+    clienttelemetry::data::v3::to_json(j, out);
     std::string s = j.dump(2);
     out.clear();
     std::copy(s.begin(), s.end(), std::back_inserter(out));
@@ -563,3 +550,10 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
 
 #endif // HAVE_MAT_JSONHPP
 }
+
+#ifdef HAVE_MAT_JSONHPP
+void AriaDecoderV3::to_json(nlohmann::json& j, const CsProtocol::Record& r)
+{
+    clienttelemetry::data::v3::to_json(j, r);
+}
+#endif
