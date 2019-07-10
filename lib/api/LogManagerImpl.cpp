@@ -180,6 +180,7 @@ namespace ARIASDK_NS_BEGIN
         }
 #endif
 
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr) {
             m_ownHttpClient.reset(HttpClientFactory::Create());
             m_httpClient = m_ownHttpClient.get();
@@ -187,6 +188,13 @@ namespace ARIASDK_NS_BEGIN
         else {
             LOG_TRACE("HttpClient: External %p", m_httpClient);
         }
+#else
+        if (m_httpClient == nullptr)
+        {
+           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's c'tor.");
+           throw std::invalid_argument("httpClient");
+        }
+#endif
 
         if (m_bandwidthController == nullptr) {
             m_bandwidthController = m_ownBandwidthController.get();

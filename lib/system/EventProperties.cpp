@@ -433,13 +433,23 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
+    // List of attributes going into envelope section. Construct string objects once, reuse for comparison.
+
+    // Short names for event field keys passed via C API
+    static const std::string KEY_NAME = "name";
+    static const std::string KEY_TIME = "time";
+    static const std::string KEY_POPSAMPLE = "popSample";
+
+    // Long names for event field keys passed via C API
+    static const std::string KEY_EVENTNAME = COMMONFIELDS_EVENT_NAME;
+    static const std::string KEY_EVENTTIME = COMMONFIELDS_EVENT_TIME;
+    static const std::string KEY_PRIORITY  = COMMONFIELDS_EVENT_PRIORITY;
+    static const std::string KEY_LATENCY   = COMMONFIELDS_EVENT_LATENCY;
+    static const std::string KEY_PRSIST    = COMMONFIELDS_EVENT_PERSISTENCE;
+    static const std::string KEY_POLICY    = COMMONFIELDS_EVENT_POLICYFLAGS;
+
     bool EventProperties::unpack(evt_prop *packed, size_t size)
     {
-        // List of attributes going into envelope section
-        static const std::string keyName = "name";
-        static const std::string keyTime = "time";
-        static const std::string keyPopSample = "popSample";
-
         evt_prop *curr = packed;
 
         // Verify size using size_t size parameter passed down by evt_log_s API call
@@ -450,26 +460,54 @@ namespace ARIASDK_NS_BEGIN {
 
         for (size_t i = 0; (i<size)&&(curr->type != TYPE_NULL); i++, curr++)
         {
+            // Event priority
+            if (KEY_PRIORITY == curr->name)
+            {
+                SetPriority(static_cast<MAT::EventPriority>(curr->value.as_int64));
+                continue;
+            }
+
+            // Event latency
+            if (KEY_LATENCY == curr->name)
+            {
+                SetLatency(static_cast<MAT::EventLatency>(curr->value.as_int64));
+                continue;
+            }
+
+            // Event persistence
+            if (KEY_PRSIST == curr->name)
+            {
+                SetPersistence(static_cast<MAT::EventPersistence>(curr->value.as_int64));
+                continue;
+            }
+
             // Event name
-            if (keyName == curr->name)
+            if ((KEY_NAME == curr->name) || (KEY_EVENTNAME == curr->name))
             {
                 SetName(curr->value.as_string);
                 continue;
             }
 
             // Event time
-            if (keyTime == curr->name)
+            if ((KEY_EVENTTIME == curr->name) || (KEY_TIME == curr->name))
             {
-                // TODO: set custom event time
-                // NOT IMPLEMENTED!
+                SetTimestamp(curr->value.as_int64);
                 continue;
             }
 
-            // Pop sample
-            // TODO:
-            // * popSample
-            // * flags for UTC
-            // * cV
+            // Event popSample attribute
+            if (KEY_POPSAMPLE == curr->name)
+            {
+                SetPopsample(curr->value.as_double);
+                continue;
+            }
+
+            // Event policy for  UTC mode
+            if (KEY_POLICY == curr->name)
+            {
+                SetPolicyBitFlags(static_cast<uint64_t>(curr->value.as_int64));
+                continue;
+            }
 
             switch (curr->type)
             {
@@ -477,6 +515,7 @@ namespace ARIASDK_NS_BEGIN {
                 SetProperty(curr->name, curr->value.as_string, (PiiKind)curr->piiKind);
                 break;
             case TYPE_INT64:
+
                 SetProperty(curr->name, curr->value.as_int64,  (PiiKind)curr->piiKind);
                 break;
             case TYPE_DOUBLE:
@@ -489,7 +528,10 @@ namespace ARIASDK_NS_BEGIN {
                 SetProperty(curr->name, curr->value.as_bool, (PiiKind)curr->piiKind);
                 break;
             case TYPE_GUID:
-                SetProperty(curr->name, curr->value.as_guid, (PiiKind)curr->piiKind);
+                {
+                    GUID_t guid(curr->value.as_string);
+                    SetProperty(curr->name, guid, (PiiKind)curr->piiKind);
+                }
                 break;
 
             /* TODO: add support for arrays passing across C API
