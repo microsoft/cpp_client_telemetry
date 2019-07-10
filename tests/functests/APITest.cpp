@@ -1,7 +1,9 @@
-﻿// #ifdef _WIN32
+// #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#endif 
+#endif
+
+#include "mat/config.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4389)
@@ -10,17 +12,23 @@
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
+#include "bond/generated/CsProtocol_types.hpp"
+
 #include <atomic>
 #include <cassert>
 #include <LogManager.hpp>
+
+#include "AriaDecoderV3.hpp"
+
+#include "mat.h"
 
 using namespace MAT;
 
 LOGMANAGER_INSTANCE
 
-constexpr static const char* TEST_TOKEN = "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
-constexpr static const char* KILLED_TOKEN = "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
-constexpr static const char* TEST_TOKEN2 = "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385";
+#define TEST_TOKEN      "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define TEST_TOKEN2     "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
 
 class TestDebugEventListener : public DebugEventListener {
 
@@ -40,6 +48,8 @@ public:
     std::atomic<unsigned>   logLatMax;
     std::atomic<unsigned>   storageFullPct;
 
+    std::function<void(::CsProtocol::Record &)> OnLogX;
+
     TestDebugEventListener() :
         netChanged(false),
         eps(0),
@@ -56,6 +66,20 @@ public:
         logLatMax(0),
         storageFullPct(0)
     {
+        resetOnLogX();
+    }
+
+    virtual void OnLogXDefault(::CsProtocol::Record &)
+    {
+
+    };
+
+    void resetOnLogX()
+    {
+        OnLogX = [this](::CsProtocol::Record & record)
+        {
+            OnLogXDefault(record);
+        };
     }
 
     virtual void OnDebugEvent(DebugEvent &evt)
@@ -71,7 +95,12 @@ public:
         case EVT_LOG_TRACE:
         case EVT_LOG_USERSTATE:
         case EVT_LOG_SESSION:
-            numLogged++;
+            {
+                /* Test-only code */
+                ::CsProtocol::Record & record = *static_cast<::CsProtocol::Record *>(evt.data);
+                numLogged++;
+                OnLogX(record);
+            }
             break;
 
         case EVT_REJECTED:
@@ -552,6 +581,190 @@ TEST(APITest, LogManager_Reinitialize_Test)
         LogManager::FlushAndTeardown();
     }
 }
+
+#define EVENT_NAME_PURE_C   "Event.Name.Pure.C"
+#define JSON_CONFIG(...)    #__VA_ARGS__
+TEST(APITest, C_API_Test)
+{
+    TestDebugEventListener debugListener;
+
+    // Using some cool macro-magic trick to populate well-formed JSON in a neat way.
+    // Unfortunately that trick does not allow to use variables or other macros in
+    // config, but generally well-suited for illustrative purposes, to create easy-
+    // to-read JSON config file. Note __VA_ARGS__ substitution is a C++11 feature
+    // that isn't avail in C99
+    char* config = JSON_CONFIG(
+        {
+            "cacheFilePath": "MyOfflineStorage.db",
+            "config" : {
+                "host": "*"
+            },
+            "stats" : {
+                "interval": 0
+            },
+            "name" : "C-API-Client-0",
+            "version" : "1.0.0",
+            "primaryToken" : "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322",
+            "maxTeardownUploadTimeInSec" : 5,
+            "hostMode" : false,
+            "minimumTraceLevel" : 0,
+            "sdkmode" : 0
+        }
+    );
+
+    std::time_t now = time(0);
+    MAT::time_ticks_t ticks(&now);
+
+    evt_prop event[] = TELEMETRY_EVENT
+    (
+        // Part A/B fields
+        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),       // Event name
+        _INT(COMMONFIELDS_EVENT_TIME, (int64_t)(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
+        _DBL("popSample", 100.0),                               // Effective sample rate
+        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                    // iKey to send this event to
+        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),       // UTC policy bitflags (optional)
+        _INT(COMMONFIELDS_EVENT_PRIORITY, (int64_t)EventPriority_Immediate),
+        _INT(COMMONFIELDS_EVENT_LATENCY, (int64_t)EventLatency_Max),
+        // Customer Data fields go as part of userdata
+        _STR("strKey", "value1"),
+        _INT("intKey", 12345),
+        _DBL("dblKey", 3.14),
+        _BOOL("boolKey", true),
+        _GUID("guidKey", "{01020304-0506-0708-090a-0b0c0d0e0f00}" ),
+        _TIME("timeKey", ticks.ticks),                          // .NET ticks
+        // All Pii types get treated as strings by the backend
+        PII_STR("piiKey", "secret", (int)PiiKind_Identity)
+    );
+    // event[2].value.as_double = 100.0f;
+
+    unsigned totalEvents = 0;
+    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    {
+        totalEvents++;
+        // Verify event name
+        EXPECT_EQ(record.name,  EVENT_NAME_PURE_C);
+        // Verify event time
+        auto recordTimeTicks = MAT::time_ticks_t(record.time);
+        EXPECT_EQ(record.time, int64_t(recordTimeTicks.ticks) );
+        // Verify event iKey
+        std::string iToken_o = "o:";
+        iToken_o += TEST_TOKEN;
+        EXPECT_THAT(iToken_o, testing::HasSubstr(record.iKey));
+        // Verify string
+        ASSERT_STREQ(record.data[0].properties["strKey"].stringValue.c_str(), "value1");
+        // Verify integer
+        ASSERT_EQ(record.data[0].properties["intKey"].longValue, 12345);
+        // Verify double
+        ASSERT_EQ(record.data[0].properties["dblKey"].doubleValue, 3.14);
+        // Verify boolean
+        ASSERT_EQ(record.data[0].properties["boolKey"].longValue, 1);
+        // Verify GUID
+        auto guid = record.data[0].properties["guidKey"].guidValue[0].data();
+        auto guidStr = GUID_t(guid).to_string();
+        std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
+        ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
+        // Verify time
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+    };
+
+    evt_handle_t handle = evt_open(config);
+
+    capi_client *client = capi_get_client(handle);
+    ASSERT_NE(client, nullptr);
+    ASSERT_NE(client->logmanager, nullptr);
+
+    // Bind from C API LogManager instance to C++ DebugEventListener
+    // to verify event contents. Currently we do not support registering
+    // debug callbacks via C API, so we obtain the ILogManager first,
+    // then register event listener on it.
+    client->logmanager->AddEventListener(EVT_LOG_EVENT, debugListener);
+
+    // Ingest 5 events via C API
+    for (size_t i = 0; i < 5; i++)
+    {
+        evt_log(handle, event);
+    }
+    EXPECT_EQ(totalEvents, 5);
+
+    evt_flush(handle);
+    evt_upload(handle);
+
+    // Must remove event listener befor closing the handle!
+    client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    evt_close(handle);
+}
+
+#ifdef HAVE_MAT_JSONHPP
+TEST(APITest, UTC_Callback_Test)
+{
+    TestDebugEventListener debugListener;
+
+    auto configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+
+    std::time_t now = time(0);
+    MAT::time_ticks_t ticks(&now);
+
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logger = LogManager::Initialize(TEST_TOKEN);
+    unsigned totalEvents = 0;
+    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    {
+        totalEvents++;
+        // Verify event name
+        EXPECT_EQ(record.name, "MyProduct.UtcEvent");
+        // Verify event time
+        auto recordTimeTicks = MAT::time_ticks_t(record.time);
+        EXPECT_EQ(record.time, int64_t(recordTimeTicks.ticks));
+        // Verify event iKey
+        std::string iToken_o = "o:";
+        iToken_o += TEST_TOKEN;
+        EXPECT_THAT(iToken_o, testing::HasSubstr(record.iKey));
+        // Verify string
+        ASSERT_STREQ(record.data[0].properties["strKey"].stringValue.c_str(), "value1");
+        // Verify integer
+        ASSERT_EQ(record.data[0].properties["intKey"].longValue, 12345);
+        // Verify double
+        ASSERT_EQ(record.data[0].properties["dblKey"].doubleValue, 3.14);
+        // Verify boolean
+        ASSERT_EQ(record.data[0].properties["boolKey"].longValue, 1);
+        // Verify GUID
+        auto guid = record.data[0].properties["guidKey"].guidValue[0].data();
+        auto guidStr = GUID_t(guid).to_string();
+        std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
+        ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
+        // Verify time
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        // Transform to JSON and print
+        nlohmann::json j;
+        AriaDecoderV3::to_json(j, record);
+        printf(
+            "*************************************** Event %u ***************************************\n%s\n",
+            totalEvents,
+            j.dump(4).c_str()
+        );
+    };
+
+    // Ingest 3 events via C++ API in UTC mode. Callback function above intercepts
+    // these events as CsRecord, then invokes AriaDecoderV3 to represent as JSON.
+    for (size_t i = 0; i < 3; i++)
+    {
+        EventProperties event("MyProduct.UtcEvent",
+        {
+            { "strKey", "value1" },
+            { "intKey", 12345 },
+            { "dblKey", 3.14 },
+            { "boolKey", true },
+            { "guidKey", GUID_t("{01020304-0506-0708-090a-0b0c0d0e0f00}") },
+            { "timeKey", ticks }
+        });
+        event.SetTimestamp((int64_t)(now * 1000L));
+        logger->LogEvent(event);
+    }
+    LogManager::FlushAndTeardown();
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+}
+#endif
 
 static void logBenchMark(const char * label)
 {

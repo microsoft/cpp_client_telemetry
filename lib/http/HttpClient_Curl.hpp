@@ -1,6 +1,8 @@
 #ifndef HTTPCLIENTCURL_HPP
 #define HTTPCLIENTCURL_HPP
 
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
@@ -474,4 +476,6 @@ protected:
 
 };
 
-#endif
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+
+#endif // HTTPCLIENTCURL_HPP

@@ -85,7 +85,7 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
-    pal/desktop/WindowsEnvironmentInfo.cpp
+    pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
   )
   if(EXISTS "modules/utc/")
