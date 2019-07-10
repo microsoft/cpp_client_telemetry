@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef HTTPCLIENT_WININET_HPP
+#define HTTPCLIENT_WININET_HPP
 
-#pragma once
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
 namespace ARIASDK_NS_BEGIN {
-
 
 #ifndef _WININET_
 typedef void* HINTERNET;
@@ -34,5 +36,8 @@ class HttpClient_WinInet : public IHttpClient {
     friend class WinInetRequestWrapper;
 };
 
-
 } ARIASDK_NS_END
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+
+#endif // HTTPCLIENT_WININET_HPP

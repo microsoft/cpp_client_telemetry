@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef HTTPCLIENT_WINRT_HPP
+#define HTTPCLIENT_WINRT_HPP
 
-#pragma once
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 #pragma comment(lib, "windowsapp")
 #pragma comment(lib, "runtimeobject")
 
@@ -30,13 +33,13 @@ class HttpClient_WinRt : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
     virtual void CancelAllRequests() override;
-	HttpClient^ getHttpClient() { return m_httpClient; }
+    HttpClient^ getHttpClient() { return m_httpClient; }
 
   protected:
     void erase(std::string const& id);
-	
+   
   protected:
-	HttpClient^                                                      m_httpClient;
+    HttpClient^                                                      m_httpClient;
     std::mutex                                                       m_requestsMutex;
     std::map<std::string, WinRtRequestWrapper*>                      m_requests;
     static unsigned                                                  s_nextRequestId;
@@ -44,5 +47,8 @@ class HttpClient_WinRt : public IHttpClient {
     friend class WinRtRequestWrapper;
 };
 
-
 } ARIASDK_NS_END
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+
+#endif // HTTPCLIENT_WINRT_HPP

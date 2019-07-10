@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 
-#include "HttpClientFactory.hpp"
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
+#include "HttpClientFactory.hpp"
 #include "pal/PAL.hpp"
 
 #if defined(MATSDK_PAL_WIN32)
@@ -46,3 +47,5 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 
 } ARIASDK_NS_END
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

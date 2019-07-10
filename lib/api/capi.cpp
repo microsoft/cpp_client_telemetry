@@ -20,25 +20,21 @@ static const char * libSemver = TELEMETRY_EVENTS_VERSION;
 
 using namespace MAT;
 
-/**
- * capi_client aggregates the two entities:
- * - lm:  Ilogmanager pointer to SDK instance
- * - cfg: preferred configuration supplied by the caller
- */
-typedef struct
-{
-    ILogManager*        logmanager = nullptr;
-    ILogConfiguration   config;
-    std::string         ctx_data;   // Copy of original JSON source config or token
-} capi_client;
-
 static std::mutex mtx;
 static std::map<evt_handle_t, capi_client> clients;
 
-/**
- * Obtain log manager ptr using C API handle
- */
-capi_client * get_client(evt_handle_t handle)
+/// <summary>
+/// Convert from C API handle to internal C API client struct.
+///
+/// This method may be used for C API flow debugging, i.e. to obtain the
+/// underlying instance of ILogManager and attach a debug event callback.
+///
+/// NOTE: method is not guaranteed to be ABI-stable and should not be used
+/// across dynamic / shared library boundary. Underlying ILogManager /
+/// ILogConfiguration are implemented in C++ and do not provide ABI-stable
+/// guarantee from one SDK version to another.
+/// </summary>
+capi_client * MAT::capi_get_client(evt_handle_t handle)
 {
     LOCKGUARD(mtx);
     const auto it = clients.find(handle);
@@ -50,7 +46,7 @@ capi_client * get_client(evt_handle_t handle)
     {                                                           \
         return EFAULT; /* bad address */                        \
     };                                                          \
-    auto client = get_client(ctx->handle);                      \
+    auto client = MAT::capi_get_client(ctx->handle);            \
     if ((client == nullptr) || (client->logmanager == nullptr)) \
     {                                                           \
         return ENOENT;                                          \
@@ -75,7 +71,7 @@ evt_status_t mat_open(evt_context_t *ctx)
     // Find the next available spare hashcode
     do
     {
-        auto client = get_client(code);
+        auto client = MAT::capi_get_client(code);
         if (client != nullptr)
         {
             if (client->ctx_data == config)

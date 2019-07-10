@@ -157,7 +157,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_LIFECYCLE);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -199,7 +199,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_EVENT);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -237,7 +237,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_FAILURE);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     void Logger::LogFailure(
@@ -274,7 +274,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_PAGEVIEW);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEVIEW, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     void Logger::LogPageView(
@@ -315,7 +315,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_PAGEACTION);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEACTION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -453,7 +453,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_SAMPLEMETR);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SAMPLEMETR, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     void Logger::LogSampledMetric(
@@ -497,7 +497,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_AGGRMETR);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_AGGRMETR, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     void Logger::LogTrace(
@@ -523,7 +523,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_TRACE);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_TRACE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     void Logger::LogUserState(
@@ -549,7 +549,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEventType::EVT_LOG_USERSTATE);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_USERSTATE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     /******************************************************************************
@@ -622,7 +622,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         submit(record, props);
-        DispatchEvent(DebugEventType::EVT_LOG_SESSION);
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
     ILogManager& Logger::GetParent()
