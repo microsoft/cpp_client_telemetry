@@ -27,7 +27,14 @@ include(tools/ParseOsRelease.cmake)
 
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
 set(WARN_FLAGS "-Wall -Wextra -Wno-unused-parameter")
-set(REL_FLAGS "-s -Os -ffunction-sections -fdata-sections ${WARN_FLAGS} -Wl,--gc-sections -fmerge-all-constants -ffast-math")
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # Using GCC with -s and -Wl linker flags
+  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
+else()
+  # Using clang - strip unsupported GCC options
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
+endif()
 
 # Use libtcmalloc for Debug builds memory leaks detection
 set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
