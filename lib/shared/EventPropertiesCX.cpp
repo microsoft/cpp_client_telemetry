@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "EventPropertiesCX.hpp"
 #include "LogManager.hpp"
-#include <Windows.h>
 
 #pragma warning( push )
 #pragma warning( disable : 4454 )
