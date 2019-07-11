@@ -30,9 +30,7 @@ namespace CLI
                 OfflineStorage = "offline.storage",
                 MinTraceLevel = ACTTraceLevel.ACTTraceLevel_Trace,
                 TraceLevelMask = 0xFFFFFFFF, // API calls + Global mask for general messages                
-                MaxTeardownUploadTimeInSec = 5,
-                StartProfileName = "",
-                TransmitProfiles = ""
+                MaxTeardownUploadTimeInSec = 5
             });
 
             // Verify that the customer may override the build version
