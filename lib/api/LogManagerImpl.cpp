@@ -16,7 +16,16 @@
 #include "http/HttpClientFactory.hpp"
 
 #ifdef HAVE_MAT_UTC
+#if defined __has_include
+#  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
+#    include "modules/utc/UtcTelemetrySystem.hpp"
+#  else
+   /* Compiling without UTC support because UTC private header is unavailable */
+#  undef HAVE_MAT_UTC
+#  endif
+#  else
 #include "modules/utc/UtcTelemetrySystem.hpp"
+#endif
 #endif
 
 namespace ARIASDK_NS_BEGIN
