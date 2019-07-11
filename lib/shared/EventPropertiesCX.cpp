@@ -1,13 +1,17 @@
 #include "pch.h"
 #include "EventPropertiesCX.hpp"
 #include "LogManager.hpp"
+#include <Windows.h>
+
+#pragma warning( push )
+#pragma warning( disable : 4454 )
 
 #define WINDOWS_TICK_MILLISEC 10000LL
 #define MILLISEC_TO_UNIVERSAL_EPOCH 11644473600000LL
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry {
+        namespace Telemetry  {
             namespace Windows
             {
                 template <typename T>
@@ -87,6 +91,38 @@ namespace Microsoft {
                     StoreEventProperties(propertiesCore, this->IntProperties);
                     StoreEventProperties(propertiesCore, this->DoubleProperties);
                     StoreEventProperties(propertiesCore, this->BoolProperties);
+
+                    map<string, string> guidProperties;
+
+                    {
+#ifdef _WINRT_DLL
+                        auto it = this->GuidProperties->First();
+                        while (it->HasCurrent)
+                        {
+                            guidProperties.insert(std::make_pair(FromPlatformString(it->Current->Key), FromPlatformString(it->Current->Value.ToString())));
+                            it->MoveNext();
+                        }
+#else
+                        auto it = this->GuidProperties->GetEnumerator();
+                        while (it->MoveNext())
+                        {
+                            guidProperties.insert(std::make_pair(FromPlatformString(it->Current.Key), FromPlatformString(it->Current.Value.ToString())));
+                        }
+#endif
+                    }
+
+                    for (auto it = guidProperties.begin(); it != guidProperties.end(); ++it)
+                    {
+                        auto piiType = MAT::PiiKind_None;
+                        auto tag = piiTags.find(it->first);
+
+                        if (tag != piiTags.end())
+                        {
+                            piiType = tag->second;
+                        }
+
+                        propertiesCore.SetProperty(it->first, it->second, piiType);
+                    }
 
                     for (auto it = measurements.begin(); it != measurements.end(); ++it)
                     {
@@ -326,3 +362,4 @@ namespace Microsoft {
         }
     }
 }
+#pragma warning( pop )

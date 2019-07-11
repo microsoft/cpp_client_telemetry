@@ -74,6 +74,7 @@ namespace CLI
             eventData2.SetProperty("myDoubleKey2", 56.23, PiiKind.GenericData);
             eventData2.SetProperty("myBoolKey", false);
             eventData2.SetProperty("myBoolKey2", true, PiiKind.GenericData);
+            eventData2.SetProperty("myGuid", Guid.Parse("{81a130d2-502f-4cf1-a376-63edeb000e9f}"));
             LogManager.GetLogger().LogEvent(eventData2);
 
             Console.WriteLine("LogPageView...");
