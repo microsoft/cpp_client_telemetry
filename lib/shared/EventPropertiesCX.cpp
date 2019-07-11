@@ -7,9 +7,32 @@
 
 namespace Microsoft {
     namespace Applications {
-        namespace Telemetry  {
+        namespace Telemetry {
             namespace Windows
             {
+                template <typename T>
+                void EventProperties::StoreEventProperties(MAT::EventProperties& propertiesCore, PlatfromEditableMap<String^, T>^ propertiesMap)
+                {
+                    map<string, T> properties;
+                    map<string, MAT::PiiKind> piiTags;
+
+                    FromPlatformMap(propertiesMap, properties);
+                    FromPlatformMap(this->PIITags, piiTags);
+
+                    for (map<string, T>::iterator it = properties.begin(); it != properties.end(); ++it)
+                    {
+                        MAT::PiiKind piiType = MAT::PiiKind_None;
+                        auto tag = piiTags.find(it->first);
+
+                        if (tag != piiTags.end())
+                        {
+                            piiType = tag->second;
+                        }
+
+                        propertiesCore.SetProperty(it->first, (T)(it->second), piiType);
+                    }
+                }
+
                 void EventProperties::PopulateEventProperties(MAT::EventProperties& propertiesCore)
                 {
                     if (!IsPlatformStringEmpty(this->Name))
@@ -40,13 +63,13 @@ namespace Microsoft {
 
                     // Not supported in VS2010: for (auto tag : piiTags) 
                     // Not supported in C++/CLI: std::for_each(properties.begin(), properties.end(), [&](pair<string, string> p)
-                    for (auto it = piiTags.begin(); it != piiTags.end(); ++it)
+                    /*for (auto it = piiTags.begin(); it != piiTags.end(); ++it)
                     {
                         if (properties.find(it->first) == properties.end())
                         {
                             ThrowPlatformInvalidArgumentException(ToPlatformString("PII tag '" + it->first + "' does not match any property."));
                         }
-                    }
+                    }*/
 
                     for (auto it = properties.begin(); it != properties.end(); ++it)
                     {
@@ -60,6 +83,10 @@ namespace Microsoft {
 
                         propertiesCore.SetProperty(it->first, it->second, piiType);
                     }
+
+                    StoreEventProperties(propertiesCore, this->IntProperties);
+                    StoreEventProperties(propertiesCore, this->DoubleProperties);
+                    StoreEventProperties(propertiesCore, this->BoolProperties);
 
                     for (auto it = measurements.begin(); it != measurements.end(); ++it)
                     {
@@ -113,6 +140,10 @@ namespace Microsoft {
                     this->Properties = CreateEditablePropertyMap(properties);
                     this->Measurements = CreateEditableMeasurementMap(measurements);
                     this->PIITags = platform_new PlatfromMap_Underline<String^, PiiKind>();
+                    this->IntProperties = platform_new PlatfromMap_Underline<String^, uint64_t>();
+                    this->DoubleProperties = platform_new PlatfromMap_Underline<String^, double>();
+                    this->BoolProperties = platform_new PlatfromMap_Underline<String^, bool>();
+                    this->GuidProperties = platform_new PlatfromMap_Underline<String^, Guid>();
                 }
 
                 EventProperties::EventProperties()
@@ -135,6 +166,10 @@ namespace Microsoft {
                     this->Properties = CreateEditablePropertyMap();
                     this->Measurements = CreateEditableMeasurementMap();
                     this->PIITags = platform_new PlatfromMap_Underline<String^, PiiKind>();
+                    this->IntProperties = platform_new PlatfromMap_Underline<String^, uint64_t>();
+                    this->DoubleProperties = platform_new PlatfromMap_Underline<String^, double>();
+                    this->BoolProperties = platform_new PlatfromMap_Underline<String^, bool>();
+                    this->GuidProperties = platform_new PlatfromMap_Underline<String^, Guid>();
                 }
 
                 bool EventProperties::SetProperty(String^ key, String^ value)
@@ -154,6 +189,118 @@ namespace Microsoft {
                     if (Properties->HasKey(key))
                         Properties->Remove(key);
                     Properties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, uint64_t value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, uint64_t value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    IntProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (IntProperties->HasKey(key))
+                        IntProperties->Remove(key);
+                    IntProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, double value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, double value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    DoubleProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (DoubleProperties->HasKey(key))
+                        DoubleProperties->Remove(key);
+                    DoubleProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, bool value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, bool value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    BoolProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (BoolProperties->HasKey(key))
+                        BoolProperties->Remove(key);
+                    BoolProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, Guid value)
+                {
+                    return this->SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, Guid value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    GuidProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (GuidProperties->HasKey(key))
+                        GuidProperties->Remove(key);
+                    GuidProperties->Insert(key, value);
 
                     if (piiKind != MATW::PiiKind::None)
                     {

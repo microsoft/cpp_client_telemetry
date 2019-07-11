@@ -30,7 +30,9 @@ namespace CLI
                 OfflineStorage = "offline.storage",
                 MinTraceLevel = ACTTraceLevel.ACTTraceLevel_Trace,
                 TraceLevelMask = 0xFFFFFFFF, // API calls + Global mask for general messages                
-                MaxTeardownUploadTimeInSec = 5
+                MaxTeardownUploadTimeInSec = 5,
+                StartProfileName = "",
+                TransmitProfiles = ""
             });
 
             // Verify that the customer may override the build version
@@ -66,6 +68,12 @@ namespace CLI
             eventData2.SetProperty("testSetProperty", "12345");
             eventData2.SetProperty("myKey", "myValue", PiiKind.GenericData);
             eventData2.Properties.Add("SkippedQuery", "1");
+            eventData2.SetProperty("myIntKey", 3);
+            eventData2.SetProperty("myIntKey2", 12, PiiKind.GenericData);
+            eventData2.SetProperty("myDoubleKey", 3.14);
+            eventData2.SetProperty("myDoubleKey2", 56.23, PiiKind.GenericData);
+            eventData2.SetProperty("myBoolKey", false);
+            eventData2.SetProperty("myBoolKey2", true, PiiKind.GenericData);
             LogManager.GetLogger().LogEvent(eventData2);
 
             Console.WriteLine("LogPageView...");
