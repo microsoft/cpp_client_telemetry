@@ -113,6 +113,7 @@ namespace SampleCsUWP
             strongTypesEvent.SetProperty("myBoolKey", true);
             strongTypesEvent.SetProperty("myBoolKey2", false, PiiKind.GenericData);
             strongTypesEvent.SetProperty("myGuid", Guid.Parse("{81a130d2-502f-4cf1-a376-63edeb000e9f}"));
+            strongTypesEvent.SetProperty("myGuid2", Guid.Parse("{32a940d2-502f-4cf1-a376-23babb000a6f}"), PiiKind.GenericData);
             Logger.LogEvent(strongTypesEvent);
 
             var noMissingProps = new EventProperties("NoMissingProps")

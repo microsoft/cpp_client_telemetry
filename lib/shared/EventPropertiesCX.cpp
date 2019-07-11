@@ -33,7 +33,7 @@ namespace Microsoft {
                             piiType = tag->second;
                         }
 
-                        propertiesCore.SetProperty(it->first, (T)(it->second), piiType);
+                        propertiesCore.SetProperty(it->first, static_cast<T>(it->second), piiType);
                     }
                 }
 
@@ -64,16 +64,6 @@ namespace Microsoft {
                     FromPlatformMap(this->Properties, properties);
                     FromPlatformMap(this->Measurements, measurements);
                     FromPlatformMap(this->PIITags, piiTags);
-
-                    // Not supported in VS2010: for (auto tag : piiTags) 
-                    // Not supported in C++/CLI: std::for_each(properties.begin(), properties.end(), [&](pair<string, string> p)
-                    /*for (auto it = piiTags.begin(); it != piiTags.end(); ++it)
-                    {
-                        if (properties.find(it->first) == properties.end())
-                        {
-                            ThrowPlatformInvalidArgumentException(ToPlatformString("PII tag '" + it->first + "' does not match any property."));
-                        }
-                    }*/
 
                     for (auto it = properties.begin(); it != properties.end(); ++it)
                     {
