@@ -201,6 +201,50 @@ void logPiiEvent()
     logger->LogEvent(detailed_event);
 }
 
+void logPiiMark()
+{
+    auto logger = LogManager::GetLogger();
+
+    // Log event with Pii properties with no Pii mark
+    EventProperties event1("MyEvent.Pii",
+        {
+#ifdef _MSC_VER
+            // Log compiler version
+            { "_MSC_VER", _MSC_VER },
+#endif
+            // Pii-typed fields
+            { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
+            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
+            { "piiKind.GenericData",        EventProperty("generic_data",  PiiKind_GenericData) },
+            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
+            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
+            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
+            { "piiKind.PhoneNumber",        EventProperty("+1-425-829-5875", PiiKind_PhoneNumber) },
+            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
+            { "piiKind.SipAddress",         EventProperty("sip:info@microsoft.com", PiiKind_SipAddress) },
+            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@fabrikam.com>", PiiKind_SmtpAddress) },
+            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
+            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
+            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
+            // Various typed key-values
+            { "strKey1",  "hello1" },
+            { "strKey2",  "hello2" },
+            { "int64Key", (int64_t)1L },
+            { "dblKey",   3.14 },
+            { "boolKey",  false },
+            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
+            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
+            { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
+        });
+    logger->LogEvent(event1);
+
+    // Log event with Pii properties AND Pii mark flag at event level
+    event1.SetName("MyEvent.Pii.PiiMarked");
+    event1.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
+    logger->LogEvent(event1);
+}
+ 
 int main()
 {
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
@@ -259,8 +303,19 @@ int main()
     for (auto evt : eventsList)
         LogManager::AddEventListener(evt, listener);
 
-    printf("LogManager::Initialize\n");
+#ifdef _WIN32
+    printf("LogManager::Initialize in UTC\n");
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     ILogger *logger = LogManager::Initialize(TOKEN);
+    logPiiMark();   // UTC upload
+    LogManager::FlushAndTeardown();
+#endif
+
+    printf("LogManager::Initialize in direct\n");
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    logger = LogManager::Initialize(TOKEN);
+    
+    logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
     LogManager::SetContext("GlobalContext.Var", 12345);

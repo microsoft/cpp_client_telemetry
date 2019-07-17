@@ -262,37 +262,18 @@ namespace ARIASDK_NS_BEGIN
             return -1;
         }
 
-        UINT32 eventTags = MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE;//   MICROSOFT_KEYWORD_TELEMETRY  
-
+        UINT32 eventTags = MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE;
         if (eventCtx->record.persistence > EventPersistence::EventPersistence_Normal)
         {
             eventTags = MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE;
         }
-
-        if (eventCtx->policyBitFlags & MICROSOFT_EVENTTAG_CORE_DATA)
-        {
-            eventTags = eventTags | MICROSOFT_EVENTTAG_CORE_DATA;
-        }
-
-        if (eventCtx->policyBitFlags & MICROSOFT_EVENTTAG_REALTIME_LATENCY)
-        {
-            eventTags = eventTags | MICROSOFT_EVENTTAG_REALTIME_LATENCY;
-        }
-        else if (eventCtx->policyBitFlags & MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY)
-        {
-            eventTags = eventTags | MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY;
-        }
-        else
-        {
-            eventTags = eventTags | MICROSOFT_EVENTTAG_NORMAL_LATENCY;
-        }
+        eventTags |= static_cast<UINT32>(eventCtx->policyBitFlags);
 
         std::vector<std::string> MD;
         std::vector<BYTE> byteVector;
         std::vector<BYTE> byteDataVector;
         tld::EventMetadataBuilder<std::vector<BYTE>> builder(byteVector);
         tld::EventDataBuilder<std::vector<BYTE>> dbuilder(byteDataVector);
-
 
         std::string eventName = eventCtx->source->name;
         if (eventName.empty())

@@ -49,7 +49,10 @@ namespace ARIASDK_NS_BEGIN {
 
             record.popSample = eventProperties.GetPopSample();
 
-            int64_t flags = 0;
+            int64_t flags = eventProperties.GetPolicyBitFlags();
+            // Pack flags the same way as Win 10 UTC is doing this
+            flags = (flags & 0xffff) | ((flags & 0xffffffffffff0000) >> 8);
+
             if (EventPersistence_Critical == eventProperties.GetPersistence())
             {
                 flags = flags | 0x02;

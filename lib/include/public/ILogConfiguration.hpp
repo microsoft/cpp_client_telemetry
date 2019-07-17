@@ -92,17 +92,17 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
-    static constexpr const char* const CFG_BOOL_UTC_ENABLED = "UTC_enabled";
+    static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
 
     /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
-    static constexpr const char* const CFG_BOOL_UTC_ACTIVE = "UTC_active";
+    static constexpr const char* const CFG_BOOL_UTC_ACTIVE = "active";
 
     /// <summary>
     /// Parameter that allows to check if the Windows 10 version SDK is using supports large payloads on UTC
     /// </summary>
-    static constexpr const char* const CFG_BOOL_UTC_LARGE_PAYLOADS = "UTC_largePayloadsEnabled";
+    static constexpr const char* const CFG_BOOL_UTC_LARGE_PAYLOADS = "largePayloadsEnabled";
 
     /// <summary>
     /// The event collection URI.
