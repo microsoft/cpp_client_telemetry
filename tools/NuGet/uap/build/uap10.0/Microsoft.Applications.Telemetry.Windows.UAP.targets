@@ -10,7 +10,7 @@
     <Reference Include="$(MSBuildThisFileDirectory)..\..\lib\uap10.0\Microsoft.Applications.Telemetry.Windows.winmd">
       <Name>Microsoft.Applications.Telemetry.Windows.UAP</Name>
       <HintPath>$(MSBuildThisFileDirectory)..\..\lib\uap10.0\Microsoft.Applications.Telemetry.Windows.winmd</HintPath>
-      <Implementation>Microsoft.Applications.Telemetry.Windows-managed.dll</Implementation>
+      <Implementation>Microsoft.Applications.Telemetry.Windows.UWP.dll</Implementation>
     </Reference>
   </ItemGroup>
 
@@ -19,8 +19,8 @@
       <SDKReference Include="Microsoft.VCLibs, Version=14.0" />
     </ItemGroup>
     <ItemGroup>
-      <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\uap10.0\$(Platform)\Microsoft.Applications.Telemetry.Windows-managed.dll" />
-      <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\uap10.0\$(Platform)\Microsoft.Applications.Telemetry.Windows-managed.pdb" />
+      <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\uap10.0\$(Platform)\Microsoft.Applications.Telemetry.Windows.UWP.dll" />
+      <ReferenceCopyLocalPaths Include="$(MSBuildThisFileDirectory)..\..\lib\uap10.0\$(Platform)\Microsoft.Applications.Telemetry.Windows.UWP.pdb" />
     </ItemGroup>
   </Target>
 
