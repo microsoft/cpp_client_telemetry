@@ -22,7 +22,7 @@
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)../../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows-native.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows.native.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 
@@ -38,7 +38,7 @@
   <ItemGroup Condition="!Exists('project.json') AND !Exists('$(MSBuildProjectName).project.json') AND '$(TargetPlatformIdentifier)' == 'UAP'">
     <Reference Include="$(AriaWinmd)">
       <HintPath>$(AriaWinmd)</HintPath>
-      <Implementation>Microsoft.Applications.Telemetry.Windows-native.dll</Implementation>
+      <Implementation>Microsoft.Applications.Telemetry.Windows.native.dll</Implementation>
     </Reference>
     <ReferenceCopyLocalPaths Include="$(AriaDll)" />
   </ItemGroup>
@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <NativeBinary Include="$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows-native.dll" />
+    <NativeBinary Include="$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows.native.dll" />
   </ItemGroup>
 
   <PropertyGroup>

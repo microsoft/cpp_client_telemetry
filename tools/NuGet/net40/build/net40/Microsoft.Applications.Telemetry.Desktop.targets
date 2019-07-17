@@ -7,7 +7,7 @@
   </Target>
 
   <ItemGroup>
-      <Reference Include="$(MSBuildThisFileDirectory)..\..\lib\net40\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows-net40.dll" />
+      <Reference Include="$(MSBuildThisFileDirectory)..\..\lib\net40\$(Configuration)\$(Platform)\Microsoft.Applications.Telemetry.Windows.NET.dll" />
   </ItemGroup>
 
   <Target Name="InjectReference" BeforeTargets="ResolveAssemblyReferences">

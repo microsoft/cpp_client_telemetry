@@ -64,6 +64,8 @@ namespace Microsoft {
                         MaxPendingHTTPRequests = 16;
                         MaxDBFlushQueues = 3;
                         CollectorURL = CollectorUrlDefault;
+                        StartProfileName = "";
+                        TransmitProfiles = "";
                     }
 
                     property String^ CollectorURL;

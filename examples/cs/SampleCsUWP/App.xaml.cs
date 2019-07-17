@@ -105,6 +105,20 @@ namespace SampleCsUWP
             missingProps.SetProperty("MyMissingProp", "12345");
             Logger.LogEvent(missingProps);
 
+            var strongTypesEvent = new EventProperties("SomeEventWithStronTypes");
+            strongTypesEvent.SetProperty("myIntKey", 45);
+            strongTypesEvent.SetProperty("myIntKey2", 37, PiiKind.GenericData);
+            strongTypesEvent.SetProperty("myDoubleKey", 6.75);
+            strongTypesEvent.SetProperty("myDoubleKey2", 41.024, PiiKind.GenericData);
+            strongTypesEvent.SetProperty("myBoolKey", true);
+            strongTypesEvent.SetProperty("myBoolKey2", false, PiiKind.GenericData);
+            strongTypesEvent.SetProperty("myGuid", Guid.Parse("{81a130d2-502f-4cf1-a376-63edeb000e9f}"));
+            strongTypesEvent.SetProperty("myGuid2", Guid.Parse("{32a940d2-502f-4cf1-a376-23babb000a6f}"), PiiKind.GenericData);
+            DateTime myDateTime = DateTime.UtcNow;
+            strongTypesEvent.SetProperty("myDate", myDateTime);
+            strongTypesEvent.SetProperty("myDate2", myDateTime, PiiKind.GenericData);
+            Logger.LogEvent(strongTypesEvent);
+
             var noMissingProps = new EventProperties("NoMissingProps")
             {
                 Properties = new Dictionary<string, string>() {

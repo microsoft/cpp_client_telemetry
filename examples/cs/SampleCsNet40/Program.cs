@@ -66,6 +66,17 @@ namespace CLI
             eventData2.SetProperty("testSetProperty", "12345");
             eventData2.SetProperty("myKey", "myValue", PiiKind.GenericData);
             eventData2.Properties.Add("SkippedQuery", "1");
+            eventData2.SetProperty("myIntKey", 3);
+            eventData2.SetProperty("myIntKey2", 12, PiiKind.GenericData);
+            eventData2.SetProperty("myDoubleKey", 3.14);
+            eventData2.SetProperty("myDoubleKey2", 56.23, PiiKind.GenericData);
+            eventData2.SetProperty("myBoolKey", false);
+            eventData2.SetProperty("myBoolKey2", true, PiiKind.GenericData);
+            eventData2.SetProperty("myGuid", Guid.Parse("{81a130d2-502f-4cf1-a376-63edeb000e9f}"));
+            eventData2.SetProperty("myGuid2", Guid.Parse("{32a940d2-502f-4cf1-a376-23babb000a6f}"), PiiKind.GenericData);
+            DateTime myDateTime = DateTime.UtcNow;
+            eventData2.SetProperty("myDate", myDateTime);
+            eventData2.SetProperty("myDate2", myDateTime, PiiKind.GenericData);
             LogManager.GetLogger().LogEvent(eventData2);
 
             Console.WriteLine("LogPageView...");

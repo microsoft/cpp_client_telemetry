@@ -17,18 +17,48 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-    // Data Type Flags
+/* Data Type Flags */
 #define MICROSOFT_KEYWORD_CRITICAL_DATA         0x0000800000000000 // Bit 47
 #define MICROSOFT_KEYWORD_MEASURES              0x0000400000000000 // Bit 46
 #define MICROSOFT_KEYWORD_TELEMETRY             0x0000200000000000 // Bit 45
 
-// Core data Flags
-#define MICROSOFT_EVENTTAG_CORE_DATA            0x00080000
+/*
+Event tags that can be assigned to influence how the telemetry client handles events:
 
-// Latency Flags
+    MICROSOFT_EVENTTAG_CORE_DATA:            This event contains high-priority "core data".
+
+    MICROSOFT_EVENTTAG_INJECT_XTOKEN:        Inject an Xbox identity token into this event.
+
+    MICROSOFT_EVENTTAG_REALTIME_LATENCY:     Send these events in real time.
+    MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY: Treat these events like NORMAL_LATENCY until they've been stuck on the device for too long,
+                                             then allow them to upload over costed networks.
+    MICROSOFT_EVENTTAG_NORMAL_LATENCY:       Send these events via the preferred connection based on device policy.
+    
+    MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE: Delete these events last when low on spool space.
+    MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE:   Delete these events first when low on spool space.
+    
+    MICROSOFT_EVENTTAG_DROP_PII:             The event's Part A will be reduced.
+    MICROSOFT_EVENTTAG_HASH_PII:             The event's Part A will be obscured.
+    MICROSOFT_EVENTTAG_MARK_PII:             The event's Part A will be kept as-is and routed to a private stream in the backend.
+
+Some tags require formal approval before they can be used.
+Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on the requirements and how to start the approval process.
+*/
+
 #define MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY 0x00040000
+
+#define MICROSOFT_EVENTTAG_CORE_DATA            0x00080000
+#define MICROSOFT_EVENTTAG_INJECT_XTOKEN        0x00100000
+
 #define MICROSOFT_EVENTTAG_REALTIME_LATENCY     0x00200000
 #define MICROSOFT_EVENTTAG_NORMAL_LATENCY       0x00400000
+
+#define MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE 0x00800000
+#define MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE   0x01000000
+
+#define MICROSOFT_EVENTTAG_DROP_PII             0x02000000
+#define MICROSOFT_EVENTTAG_HASH_PII             0x04000000
+#define MICROSOFT_EVENTTAG_MARK_PII             0x08000000
 
 // Privacy Tags
 #define PDT_BrowsingHistory                     0x0000000000000002u

@@ -48,7 +48,7 @@
   <Extensions>
     <Extension Category="windows.activatableClass.inProcessServer">
       <InProcessServer>
-        <Path>Microsoft.Applications.Telemetry.Windows-managed.dll</Path>
+        <Path>Microsoft.Applications.Telemetry.Windows.UWP.dll</Path>
         <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.EventProperties" ThreadingModel="both" />
         <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.LogConfiguration" ThreadingModel="both" />
         <ActivatableClass ActivatableClassId="Microsoft.Applications.Telemetry.Windows.ECSClient" ThreadingModel="both" />
