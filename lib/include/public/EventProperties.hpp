@@ -131,10 +131,9 @@ namespace ARIASDK_NS_BEGIN
         EventPriority GetPriority() const;
 
         /// <summary>
-        /// [optional] Sets the policy bit flags for UTC (Universal Telemetry Client) usage of an event.
-        /// <b>Note:</b> If you don't specify a value, then the default value is used.
+        /// [optional] Sets the transmit Latency of the event.
         /// </summary>
-        /// <param name="policyBitFlags">The policy bit flags.</param>
+        /// <param name="latency">Event latency.</param>
         void SetLatency(EventLatency latency);
 
         /// <summary>

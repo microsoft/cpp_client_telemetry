@@ -2,6 +2,9 @@
 #include "EventPropertiesCX.hpp"
 #include "LogManager.hpp"
 
+#pragma warning( push )
+#pragma warning( disable : 4454 )
+
 #define WINDOWS_TICK_MILLISEC 10000LL
 #define MILLISEC_TO_UNIVERSAL_EPOCH 11644473600000LL
 
@@ -10,6 +13,101 @@ namespace Microsoft {
         namespace Telemetry  {
             namespace Windows
             {
+                template <typename T>
+                void EventProperties::StoreEventProperties(MAT::EventProperties& propertiesCore, PlatfromEditableMap<String^, T>^ propertiesMap)
+                {
+                    map<string, T> properties;
+                    map<string, MAT::PiiKind> piiTags;
+
+                    FromPlatformMap(propertiesMap, properties);
+                    FromPlatformMap(this->PIITags, piiTags);
+
+                    for (map<string, T>::iterator it = properties.begin(); it != properties.end(); ++it)
+                    {
+                        MAT::PiiKind piiType = MAT::PiiKind_None;
+                        auto tag = piiTags.find(it->first);
+
+                        if (tag != piiTags.end())
+                        {
+                            piiType = tag->second;
+                        }
+
+                        propertiesCore.SetProperty(it->first, static_cast<T>(it->second), piiType);
+                    }
+                }
+
+                void EventProperties::StoreGuidProperties(MAT::EventProperties& propertiesCore, map<string, MAT::PiiKind>& piiTags)
+                {
+                    map<string, string> guidProperties;
+                    {
+#ifdef _WINRT_DLL
+                        auto it = this->GuidProperties->First();
+                        while (it->HasCurrent)
+                        {
+                            guidProperties.insert(std::make_pair(FromPlatformString(it->Current->Key), FromPlatformString(it->Current->Value.ToString())));
+                            it->MoveNext();
+                        }
+#else
+                        auto it = this->GuidProperties->GetEnumerator();
+                        while (it->MoveNext())
+                        {
+                            guidProperties.insert(std::make_pair(FromPlatformString(it->Current.Key), FromPlatformString(it->Current.Value.ToString())));
+                        }
+#endif
+                    }
+
+                    for (auto it = guidProperties.begin(); it != guidProperties.end(); ++it)
+                    {
+                        auto piiType = MAT::PiiKind_None;
+                        auto tag = piiTags.find(it->first);
+
+                        if (tag != piiTags.end())
+                        {
+                            piiType = tag->second;
+                        }
+
+                        propertiesCore.SetProperty(it->first, it->second, piiType);
+                    }
+                }
+
+                void EventProperties::StoreDateTimeProperties(MAT::EventProperties& propertiesCore, map<string, MAT::PiiKind>& piiTags)
+                {
+                    map<string, MAT::time_ticks_t> timeProperties;
+                    {
+#ifdef _WINRT_DLL
+                        auto it = this->DateTimeProperties->First();
+                        while (it->HasCurrent)
+                        {
+                            int64_t ticks = it->Current->Value.UniversalTime;
+                            MAT::time_ticks_t dateTime(ticks);
+                            timeProperties.insert(std::make_pair(FromPlatformString(it->Current->Key), dateTime));
+                            it->MoveNext();
+                        }
+#else
+                        auto it = this->DateTimeProperties->GetEnumerator();
+                        while (it->MoveNext())
+                        {
+                            int64_t ticks = it->Current.Value.Ticks;
+                            MAT::time_ticks_t dateTime(ticks);
+                            timeProperties.insert(std::make_pair(FromPlatformString(it->Current.Key), dateTime));
+                        }
+#endif
+                    }
+
+                    for (auto it = timeProperties.begin(); it != timeProperties.end(); ++it)
+                    {
+                        auto piiType = MAT::PiiKind_None;
+                        auto tag = piiTags.find(it->first);
+
+                        if (tag != piiTags.end())
+                        {
+                            piiType = tag->second;
+                        }
+
+                        propertiesCore.SetProperty(it->first, it->second, piiType);
+                    }
+                }
+
                 void EventProperties::PopulateEventProperties(MAT::EventProperties& propertiesCore)
                 {
                     if (!IsPlatformStringEmpty(this->Name))
@@ -38,16 +136,6 @@ namespace Microsoft {
                     FromPlatformMap(this->Measurements, measurements);
                     FromPlatformMap(this->PIITags, piiTags);
 
-                    // Not supported in VS2010: for (auto tag : piiTags) 
-                    // Not supported in C++/CLI: std::for_each(properties.begin(), properties.end(), [&](pair<string, string> p)
-                    for (auto it = piiTags.begin(); it != piiTags.end(); ++it)
-                    {
-                        if (properties.find(it->first) == properties.end())
-                        {
-                            ThrowPlatformInvalidArgumentException(ToPlatformString("PII tag '" + it->first + "' does not match any property."));
-                        }
-                    }
-
                     for (auto it = properties.begin(); it != properties.end(); ++it)
                     {
                         auto piiType = MAT::PiiKind_None;
@@ -60,6 +148,14 @@ namespace Microsoft {
 
                         propertiesCore.SetProperty(it->first, it->second, piiType);
                     }
+
+                    StoreEventProperties(propertiesCore, this->IntProperties);
+                    StoreEventProperties(propertiesCore, this->DoubleProperties);
+                    StoreEventProperties(propertiesCore, this->BoolProperties);
+
+                    StoreGuidProperties(propertiesCore, piiTags);
+                    StoreDateTimeProperties(propertiesCore, piiTags);
+
 
                     for (auto it = measurements.begin(); it != measurements.end(); ++it)
                     {
@@ -113,6 +209,11 @@ namespace Microsoft {
                     this->Properties = CreateEditablePropertyMap(properties);
                     this->Measurements = CreateEditableMeasurementMap(measurements);
                     this->PIITags = platform_new PlatfromMap_Underline<String^, PiiKind>();
+                    this->IntProperties = platform_new PlatfromMap_Underline<String^, int64_t>();
+                    this->DoubleProperties = platform_new PlatfromMap_Underline<String^, double>();
+                    this->BoolProperties = platform_new PlatfromMap_Underline<String^, bool>();
+                    this->GuidProperties = platform_new PlatfromMap_Underline<String^, Guid>();
+                    this->DateTimeProperties = platform_new PlatfromMap_Underline<String^, DateTime>();
                 }
 
                 EventProperties::EventProperties()
@@ -135,6 +236,11 @@ namespace Microsoft {
                     this->Properties = CreateEditablePropertyMap();
                     this->Measurements = CreateEditableMeasurementMap();
                     this->PIITags = platform_new PlatfromMap_Underline<String^, PiiKind>();
+                    this->IntProperties = platform_new PlatfromMap_Underline<String^, int64_t>();
+                    this->DoubleProperties = platform_new PlatfromMap_Underline<String^, double>();
+                    this->BoolProperties = platform_new PlatfromMap_Underline<String^, bool>();
+                    this->GuidProperties = platform_new PlatfromMap_Underline<String^, Guid>();
+                    this->DateTimeProperties = platform_new PlatfromMap_Underline<String^, DateTime>();
                 }
 
                 bool EventProperties::SetProperty(String^ key, String^ value)
@@ -165,6 +271,146 @@ namespace Microsoft {
                     return true;
                 }
 
+                bool EventProperties::SetProperty(String^ key, int64_t value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, int64_t value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    IntProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (IntProperties->HasKey(key))
+                        IntProperties->Remove(key);
+                    IntProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, double value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, double value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    DoubleProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (DoubleProperties->HasKey(key))
+                        DoubleProperties->Remove(key);
+                    DoubleProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, bool value)
+                {
+                    return SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, bool value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    BoolProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (BoolProperties->HasKey(key))
+                        BoolProperties->Remove(key);
+                    BoolProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, Guid value)
+                {
+                    return this->SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, Guid value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    GuidProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (GuidProperties->HasKey(key))
+                        GuidProperties->Remove(key);
+                    GuidProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
+                bool EventProperties::SetProperty(String^ key, DateTime value)
+                {
+                    return this->SetProperty(key, value, PiiKind::None);
+                }
+
+                bool EventProperties::SetProperty(String^ key, DateTime value, PiiKind piiKind)
+                {
+#ifdef __cplusplus_cli
+                    DateTimeProperties[key] = value;
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        this->PIITags[key] = piiKind;
+                    }
+#else
+                    if (DateTimeProperties->HasKey(key))
+                        DateTimeProperties->Remove(key);
+                    DateTimeProperties->Insert(key, value);
+
+                    if (piiKind != MATW::PiiKind::None)
+                    {
+                        if (PIITags->HasKey(key))
+                            PIITags->Remove(key);
+                        PIITags->Insert(key, piiKind);
+                    }
+#endif
+                    return true;
+                }
+
                 bool EventProperties::SetType(String^ type) {
                     // TODO: [MG] - add validation / consistency check for string
                     this->Type = type;
@@ -179,3 +425,4 @@ namespace Microsoft {
         }
     }
 }
+#pragma warning( pop )

@@ -6,7 +6,7 @@
     <AriaPlatform Condition="'$(Platform)' != 'Win32'">$(Platform)</AriaPlatform>
     <ConfigurationName Condition="'$(Configuration)' != ''">$(Configuration)</ConfigurationName>
     <AriaWinmd>$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows.winmd</AriaWinmd>
-    <AriaDll Condition="'$(TargetPlatformIdentifier)' == 'UAP'">$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows-native.dll</AriaDll>
+    <AriaDll Condition="'$(TargetPlatformIdentifier)' == 'UAP'">$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/Microsoft.Applications.Telemetry.Windows.native.dll</AriaDll>
     <AriaDll Condition="'$(TargetPlatformIdentifier)' != 'UAP' AND '$(WindowsAppContainer)' != 'true'">$(MSBuildThisFileDirectory)../../lib/native/win32-dll-vs2015/$(AriaPlatform)/$(ConfigurationName)/ClientTelemetry.dll</AriaDll>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)../../lib/uap10.0/$(ConfigurationName)/$(AriaPlatform)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Microsoft.Applications.Telemetry.Windows-native.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Microsoft.Applications.Telemetry.Windows.native.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 
@@ -39,7 +39,7 @@
   <ItemGroup Condition="!Exists('project.json') AND !Exists('$(MSBuildProjectName).project.json') AND '$(TargetPlatformIdentifier)' == 'UAP'">
     <Reference Include="$(AriaWinmd)">
       <HintPath>$(AriaWinmd)</HintPath>
-      <Implementation>Microsoft.Applications.Telemetry.Windows-native.dll</Implementation>
+      <Implementation>Microsoft.Applications.Telemetry.Windows.native.dll</Implementation>
     </Reference>
     <ReferenceCopyLocalPaths Include="$(AriaDll)" />
   </ItemGroup>
