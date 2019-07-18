@@ -252,8 +252,6 @@ public:
             // We were unable to use get_platform_uuid to obtain Device Id
             // in render processes.
             std::string contents = Exec(R"(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')");
-            // char deviceId[512] = { 0 };
-            // get_platform_uuid(deviceId, sizeof(deviceId));
             cache["devId"] = "u:";
             cache["devId"] += MAT::GUID_t(contents.c_str()).to_string();
 #else
