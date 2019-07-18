@@ -42,6 +42,30 @@
 #include <mach-o/dyld.h>
 #include <sys/syslimits.h>
 #include <libgen.h>
+#include "TargetConditionals.h"
+
+#ifdef TARGET_MAC_OS 
+
+#include <IOKit/IOKitLib.h>
+
+// This would be better than  int gethostuuid(uuid_t id, const struct timespec *wait);
+
+void get_platform_uuid(char * buf, int bufSize)
+
+{
+    io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+
+    CFStringRef uuidCf = (CFStringRef) IORegistryEntryCreateCFProperty(ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+
+    IOObjectRelease(ioRegistryRoot);
+
+    CFStringGetCString(uuidCf, buf, bufSize, kCFStringEncodingMacRoman);
+
+    CFRelease(uuidCf);
+
+}
+
+#endif // TARGET_MAC_OS
 
 std::string get_app_name()
 {
