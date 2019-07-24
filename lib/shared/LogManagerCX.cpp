@@ -184,10 +184,29 @@ namespace MATW_NS_BEGIN {
         const std::string profiles = FromPlatformString(json);
         return MAT::LogManager::LoadTransmitProfiles(profiles);
     }
+
     void LogManager::SetTransmitProfile(TransmitProfile profile)
     {
         //LOG_TRACE("LogManager::SetTransmitProfile()");
         MAT::LogManager::SetTransmitProfile((Events::TransmitProfile)profile);
+    }
+
+    void Microsoft::Applications::Telemetry::Windows::LogManager::SetTicketToken(TicketType type, String ^ ticket)
+    {
+        auto authTokensController = MAT::LogManager::GetAuthTokensController();
+        if (authTokensController)
+        {
+            authTokensController->SetTicketToken((Events::TicketType)type, FromPlatformString(ticket).data());
+        }
+    }
+
+    void Microsoft::Applications::Telemetry::Windows::LogManager::SetStrictMode(bool value)
+    {
+        auto authTokensController = MAT::LogManager::GetAuthTokensController();
+        if (authTokensController)
+        {
+            authTokensController->SetStrictMode(value);
+        }
     }
 
     void LogManager::SetTransmitProfile(String^ profileName)
