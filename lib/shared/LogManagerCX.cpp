@@ -196,7 +196,7 @@ namespace MATW_NS_BEGIN {
         auto authTokensController = MAT::LogManager::GetAuthTokensController();
         if (authTokensController)
         {
-            authTokensController->SetTicketToken((Events::TicketType)type, FromPlatformString(ticket).data());
+            authTokensController->SetTicketToken((Events::TicketType)type, FromPlatformString(ticket).c_str());
         }
     }
 
