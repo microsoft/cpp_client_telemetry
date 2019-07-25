@@ -18,7 +18,7 @@
 #include <cassert>
 #include <LogManager.hpp>
 
-#include "AriaDecoderV3.hpp"
+#include "AriaDecoderV3Internal.hpp"
 
 #include "mat.h"
 

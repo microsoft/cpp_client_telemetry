@@ -18,5 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)AriaDecoderV3.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AriaDecoderV3Internal.hpp" />
   </ItemGroup>
 </Project>
