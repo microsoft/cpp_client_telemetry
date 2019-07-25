@@ -1,4 +1,4 @@
-#include "AriaDecoderV3.hpp"
+#include "AriaDecoderV3Internal.hpp"
 
 // TODO: move Compress and Expand into separate utilities module
 
@@ -472,8 +472,9 @@ bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, 
     return false;
 }
 
+namespace AriaDecoderV3 {
 
-void AriaDecoderV3::ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+void ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
 {
     size_t destLen = out.size();
     std::cout << "size=" << destLen << std::endl;
@@ -485,7 +486,7 @@ void AriaDecoderV3::ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> 
 
 }
 
-void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
 {
     z_stream zs;
     memset(&zs, 0, sizeof(zs));
@@ -520,7 +521,7 @@ void AriaDecoderV3::InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t>
     delete[] outbuffer;
 }
 
-void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)
+void decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)
 {
 #ifdef HAVE_MAT_JSONHPP
 
@@ -552,8 +553,10 @@ void AriaDecoderV3::decode(std::vector<uint8_t> &in, std::vector<uint8_t> &out, 
 }
 
 #ifdef HAVE_MAT_JSONHPP
-void AriaDecoderV3::to_json(nlohmann::json& j, const CsProtocol::Record& r)
+void to_json(nlohmann::json& j, const CsProtocol::Record& r)
 {
     clienttelemetry::data::v3::to_json(j, r);
 }
 #endif
+
+}  // namespace AriaDecoderV3
