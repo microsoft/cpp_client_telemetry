@@ -14,7 +14,9 @@ namespace Microsoft {
                 class WindowsEnvironmentInfo;
                 
                 interface class ILogger;
+#ifdef _WINRT_DLL
                 ref class PlatformEventHandler;
+#endif
                 ref struct LogConfiguration;
 
                 public delegate void SendEventTestCallback(EventProperties^ telemetryevent);

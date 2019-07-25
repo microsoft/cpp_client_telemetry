@@ -56,9 +56,12 @@ namespace Microsoft {
                     LogConfiguration()
                     {
                         // Default configuration options.
-                        AutoLogAppSuspend = true;
-                        AutoLogAppResume = true;
-                        AutoLogUnhandledException = true;
+#ifdef _WINRT_DLL
+                        AutoHandleLifecycle = false;
+                        AutoLogAppSuspend = false;
+                        AutoLogAppResume = false;
+                        AutoLogUnhandledException = false;
+#endif
                         SdkMode = SdkModeTypes::SdkModeTypes_CS;
                         MaxTeardownUploadTimeInSec = 0;
                         MaxPendingHTTPRequests = 16;
@@ -69,9 +72,12 @@ namespace Microsoft {
                     }
 
                     property String^ CollectorURL;
+#ifdef _WINRT_DLL
+                    property bool AutoHandleLifecycle;
                     property bool AutoLogAppSuspend;
                     property bool AutoLogAppResume;
                     property bool AutoLogUnhandledException;
+#endif
                     property String^ OfflineStorage;
                     property SdkModeTypes SdkMode;
                     property unsigned int TraceLevelMask;

@@ -76,11 +76,14 @@ namespace MATW_NS_BEGIN {
         auto token = FromPlatformString(tenantToken);
 
 #ifdef _WINRT_DLL
-        //LOG_TRACE("running as _WINRT_DLL");	
+        //LOG_TRACE("running as _WINRT_DLL");
         using namespace ::Windows::Storage;
-        m_eventReceiver = new LogManagerEventReceiver(configuration);
-        m_platformEventHandler = ref new PlatformEventHandler();
-        m_platformEventHandler->RegisterReceiver(m_eventReceiver);
+        if (configuration->AutoHandleLifecycle)
+        {
+            m_eventReceiver = new LogManagerEventReceiver(configuration);
+            m_platformEventHandler = ref new PlatformEventHandler();
+            m_platformEventHandler->RegisterReceiver(m_eventReceiver);
+        }
 
         // If consumer doesn't specify the offline storage path, enable the default one for WinRT
         if (IsPlatformStringEmpty(configuration->OfflineStorage))
