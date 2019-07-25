@@ -302,7 +302,7 @@
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Size</FavorSizeOrSpeed>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</WholeProgramOptimization>
-      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503;4530</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
