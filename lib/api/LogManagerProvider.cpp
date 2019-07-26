@@ -2,6 +2,8 @@
 
 #include "LogManagerFactory.hpp"
 
+#include <WerApi.h>
+
 namespace ARIASDK_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
@@ -39,6 +41,11 @@ namespace ARIASDK_NS_BEGIN {
     status_t LogManagerProvider::Release(ILogConfiguration & config)
     {
         return LogManagerFactory::Release(config);
+    }
+
+    int LogManagerProvider::WerRegisterCustomMetadata(wchar_t const* key, wchar_t const* value)
+    {
+        return ::WerRegisterCustomMetadata(key, value);
     }
 
 } ARIASDK_NS_END

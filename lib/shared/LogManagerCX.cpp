@@ -212,6 +212,17 @@ namespace MATW_NS_BEGIN {
         }
     }
 
+    int Microsoft::Applications::Telemetry::Windows::LogManager::WerRegisterCustomMetadata(String ^ key, String ^ value)
+    {
+        return MAT::LogManagerProvider::WerRegisterCustomMetadata(
+#ifdef _WINRT_DLL
+            WstringFromPlatformString(key), WstringFromPlatformString(value)
+#else
+            WstringFromPlatformString(key).c_str(), WstringFromPlatformString(value).c_str()
+#endif
+        );
+    }
+
     void LogManager::SetTransmitProfile(String^ profileName)
     {
         if (!isInited)

@@ -50,6 +50,8 @@ namespace Microsoft {
                     // TODO: Expose IAuthTokensController itself instead
                     static void SetTicketToken(TicketType type, String^ ticket);
                     static void SetStrictMode(bool value);
+
+                    static int WerRegisterCustomMetadata(String^ key, String^ value);
 #ifdef WIN10_CS
                     [::Windows::Foundation::Metadata::DefaultOverloadAttribute]
 #endif

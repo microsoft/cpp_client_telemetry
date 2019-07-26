@@ -133,6 +133,8 @@ namespace ARIASDK_NS_BEGIN
 
         static status_t MATSDK_SPEC Release(ILogConfiguration & cfg);
 
+        static int WerRegisterCustomMetadata(wchar_t const* key, wchar_t const* value);
+
     private:
 
         // TODO: [MG] - consider refactoring CreateLogManager and DestroyLogManager
