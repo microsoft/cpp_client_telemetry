@@ -19,20 +19,28 @@ echo Debug   = %DBG_SRC%
 
 if exist "%REL_SRC%\Win32\%SRC_NAME%" (
   robocopy %REL_SRC%\Win32\%SRC_NAME%   "%OUTDIR%\lib\%DST_NAME%\x86\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+)
+if exist "%DBG_SRC%\Win32\%SRC_NAME%" (
   robocopy %DBG_SRC%\Win32\%SRC_NAME%   "%OUTDIR%\lib\%DST_NAME%\x86\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
 )
 
 if exist "%REL_SRC%\x64\%SRC_NAME%" (
   robocopy %REL_SRC%\x64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\x64\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+)
+if exist "%DBG_SRC%\x64\%SRC_NAME%" (
   robocopy %DBG_SRC%\x64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\x64\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
 )
 
 if exist "%REL_SRC%\ARM\%SRC_NAME%" (
   robocopy %REL_SRC%\ARM\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+)
+if exist "%DBG_SRC%\ARM\%SRC_NAME%" (
   robocopy %DBG_SRC%\ARM\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
 )
 
 if exist "%REL_SRC%\ARM64\%SRC_NAME%" (
   robocopy %REL_SRC%\ARM64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM64\Release" *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
+)
+if exist "%DBG_SRC%\ARM64\%SRC_NAME%" (
   robocopy %DBG_SRC%\ARM64\%SRC_NAME%     "%OUTDIR%\lib\%DST_NAME%\ARM64\Debug"   *.pri *.winmd *.dll *.pdb *.lib *.map *.exp
 )

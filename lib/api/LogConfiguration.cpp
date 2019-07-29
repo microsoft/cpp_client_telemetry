@@ -92,8 +92,12 @@ namespace ARIASDK_NS_BEGIN {
                     dst[it.key()] = (uint64_t)(it.value());
                     break;
                 case json::value_t::object:
-                    parse(it.value(), dst[it.key()]);
+                {
+                    VariantMap sub;
+                    parse(it.value(), sub);
+                    dst[it.key()] = sub;
                     break;
+                }
                 case json::value_t::string:
                     std::string val = it.value();
                     dst[it.key()] = std::move(val);
