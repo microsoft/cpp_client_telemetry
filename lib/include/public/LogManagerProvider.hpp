@@ -22,18 +22,18 @@ namespace ARIASDK_NS_BEGIN
     {
     public:
 
-        /// <summary> 
-        /// Creates the LogManager.  The passed in configuration is used to 
-        /// initialize the telemetry system, if it hasn't been initialized. 
+        /// <summary>ï¿½
+        /// Creates the LogManager.ï¿½ The passed in configuration is used toï¿½
+        /// initialize the telemetry system, if it hasn't been initialized.ï¿½
         ///
         /// If system is already initialized, customer (guest) configuration
         /// is reconciled with host confugration.
         ///
-        /// <param name="cfg">Configuration settings.</param> 
-        /// <param name="id">Instance Id.</param> 
-        /// <param name="status">Status.</param> 
-        /// <param name="wantController">WantController.</param> 
-        /// </summary> 
+        /// <param name="cfg">Configuration settings.</param>ï¿½
+        /// <param name="id">Instance Id.</param>ï¿½
+        /// <param name="status">Status.</param>ï¿½
+        /// <param name="wantController">WantController.</param>ï¿½
+        /// </summary>ï¿½
         static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
@@ -60,13 +60,13 @@ namespace ARIASDK_NS_BEGIN
 
          */
 
-         /// <summary> 
-         /// Creates the LogManager with the current configuration. 
-         /// The same ILogManager is returned for the same apiKey specified. 
-         /// <param name="id">Instance Id.</param> 
-         /// <param name="status">Status.</param> 
-         /// <param name="wantController">WantController.</param> 
-         /// </summary> 
+         /// <summary>ï¿½
+         /// Creates the LogManager with the current configuration.ï¿½
+         /// The same ILogManager is returned for the same apiKey specified.ï¿½
+         /// <param name="id">Instance Id.</param>ï¿½
+         /// <param name="status">Status.</param>ï¿½
+         /// <param name="wantController">WantController.</param>ï¿½
+         /// </summary>ï¿½
         static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
@@ -83,12 +83,12 @@ namespace ARIASDK_NS_BEGIN
         };
 #endif
 
-        /// <summary> 
-        /// Creates the LogManager with the current configuration. 
+        /// <summary>ï¿½
+        /// Creates the LogManager with the current configuration.ï¿½
         ///
-        /// <param name="id">Instance Id.</param> 
-        /// <param name="status">Status.</param> 
-        /// </summary> 
+        /// <param name="id">Instance Id.</param>ï¿½
+        /// <param name="status">Status.</param>ï¿½
+        /// </summary>ï¿½
         static ILogManager* MATSDK_SPEC CreateLogManager(char const* id,
             status_t& status,
             uint64_t targetVersion = MAT::Version)
@@ -116,19 +116,19 @@ namespace ARIASDK_NS_BEGIN
            return Get(cfg, status, httpClient);
         }
 
-        /// <summary> 
-        /// Releases a guest or host LogManager by its instance id.
-        /// <param name="id">Instance Id.</param> 
-        /// </summary> 
+        /// <summary>ï¿½
+        /// Releases a guest or host LogManagerï¿½by its instance id.
+        /// <param name="id">Instance Id.</param>ï¿½
+        /// </summary>ï¿½
         static status_t MATSDK_SPEC DestroyLogManager(char const* id)
         {
             return Release(id);
         }
 
-        /// <summary> 
-        /// Releases a guest or host LogManager by its instance id.
-        /// <param name="id">Instance Id</param> 
-        /// </summary> 
+        /// <summary>ï¿½
+        /// Releases a guest or host LogManagerï¿½by its instance id.
+        /// <param name="id">Instance Id</param>ï¿½
+        /// </summary>ï¿½
         static status_t MATSDK_SPEC Release(const char * id);
 
         static status_t MATSDK_SPEC Release(ILogConfiguration & cfg);
@@ -173,6 +173,7 @@ namespace ARIASDK_NS_BEGIN
         ILogManager*        logmanager = nullptr;
         ILogConfiguration   config;
         std::string         ctx_data;
+        IHttpClient*        http = nullptr;
     } capi_client;
 
     /// <summary>
