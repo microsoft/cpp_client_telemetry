@@ -117,7 +117,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Releases a guest or host LogManagerby its instance id.
+        /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id.</param>
         /// </summary>
         static status_t MATSDK_SPEC DestroyLogManager(char const* id)
@@ -126,7 +126,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Releases a guest or host LogManagerby its instance id.
+        /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id</param>
         /// </summary>
         static status_t MATSDK_SPEC Release(const char * id);

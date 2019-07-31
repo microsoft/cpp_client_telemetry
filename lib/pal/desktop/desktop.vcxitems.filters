@@ -12,4 +12,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_CAPI.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />
   </ItemGroup>
+  <ItemGroup Condition="exists('$(MSBuildThisFileDirectory)..\..\modules\')">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp" />
+  </ItemGroup>
 </Project>

@@ -324,7 +324,7 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-    
+        
     /**
      * <summary>
      * Create or open existing SDK instance.
@@ -398,7 +398,7 @@ extern "C" {
         ctx.data = (void *)config;
         return evt_api_call(&ctx);
     }
-
+    
     /** 
      * <summary>
      * Logs a telemetry event (security-enhanced _s function)
