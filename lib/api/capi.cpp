@@ -4,6 +4,7 @@
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
+#include "http/HttpClient_CAPI.hpp"
 #include "LogManagerProvider.hpp"
 #include "mat.h"
 #include "utils/Utils.hpp"
@@ -52,20 +53,12 @@ capi_client * MAT::capi_get_client(evt_handle_t handle)
         return ENOENT;                                          \
     };
 
-evt_status_t mat_open(evt_context_t *ctx)
+evt_status_t mat_open_core(
+    evt_context_t *ctx,
+    const char* config,
+    http_send_fn_t httpSendFn,
+    http_cancel_fn_t httpCancelFn)
 {
-    if (ctx == nullptr)
-    {
-        return EFAULT; /* bad address */
-    };
-
-    char* config = static_cast<char *>(ctx->data);
-    if ((config == nullptr) || (config[0] == 0))
-    {
-        // Invalid configuration
-        return EFAULT;
-    }
-
     evt_handle_t code = static_cast<evt_handle_t>(hashCode(config));
     bool isHashFound = false;
     // Find the next available spare hashcode
@@ -116,8 +109,14 @@ evt_status_t mat_open(evt_context_t *ctx)
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
+    // Create custom HttpClient
+    if (httpSendFn != nullptr && httpCancelFn != nullptr)
+    {
+        clients[code].http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+    }
+
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
+    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, clients[code].http, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)
@@ -127,6 +126,40 @@ evt_status_t mat_open(evt_context_t *ctx)
     ctx->result = static_cast<evt_status_t>(status);
     ctx->handle = code;
     return ctx->result;
+}
+
+evt_status_t mat_open(evt_context_t *ctx)
+{
+	if (ctx == nullptr)
+	{
+		return EFAULT; /* bad address */
+	};
+
+	char* config = static_cast<char *>(ctx->data);
+	if ((config == nullptr) || (config[0] == 0))
+	{
+		// Invalid configuration
+		return EFAULT;
+	}
+
+	return mat_open_core(ctx, config, nullptr, nullptr);
+}
+
+evt_status_t mat_open_ex(evt_context_t *ctx)
+{
+	if (ctx == nullptr)
+	{
+		return EFAULT; /* bad address */
+	};
+
+	open_ex_data_t* data = static_cast<open_ex_data_t*>(ctx->data);
+	if ((data == nullptr) || (data->config == nullptr) || (data->config[0] == 0))
+	{
+		// Invalid configuration
+		return EFAULT;
+	}
+
+	return mat_open_core(ctx, data->config, data->httpSendFn, data->httpCancelFn);
 }
 
 /**
@@ -190,6 +223,13 @@ evt_status_t mat_close(evt_context_t *ctx)
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
     ctx->result = result;
+
+    if (client->http != nullptr)
+    {
+        delete client->http;
+        client->http = nullptr;
+    }
+
     return result;
 }
 
@@ -248,6 +288,10 @@ extern "C" {
 
             case EVT_OP_OPEN:
                 result = mat_open(ctx);
+                break;
+
+            case EVT_OP_OPEN_EX:
+                result = mat_open_ex(ctx);
                 break;
 
             case EVT_OP_CLOSE:

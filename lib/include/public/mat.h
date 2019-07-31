@@ -55,7 +55,8 @@ extern "C" {
         EVT_OP_UPLOAD = 0x00000009,
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
-        EVT_OP_MAX = EVT_OP_VERSION + 1
+        EVT_OP_OPEN_EX = 0x0000000C,
+        EVT_OP_MAX = EVT_OP_OPEN_EX + 1
     } evt_call_t;
 
     typedef enum
@@ -148,6 +149,58 @@ extern "C" {
         evt_prop_v              value;
         uint32_t                piiKind;
     } evt_prop;
+    
+    typedef enum
+    {
+        HTTP_REQUEST_TYPE_GET = 0,
+        HTTP_REQUEST_TYPE_POST = 1,
+    } http_request_type_t;
+
+    typedef enum
+    {
+        HTTP_RESULT_OK = 0,
+        HTTP_RESULT_CANCELLED = 1,
+        HTTP_RESULT_LOCAL_FAILURE = 2,
+        HTTP_RESULT_NETWORK_FAILURE = 3,
+    } http_result_t;
+
+    typedef struct
+    {
+        const char*             name;
+        const char*             value;
+    } http_header_t;
+
+    typedef struct
+    {
+        const char*             id;
+        http_request_type_t     type;
+        const char*             url;
+        size_t                  bodySize;
+        const uint8_t*          body;
+        size_t                  headersCount;
+        const http_header_t*    headers;
+    } http_request_t;
+
+    typedef struct
+    {
+        int32_t                 statusCode;
+        size_t                  bodySize;
+        const uint8_t*          body;
+        size_t                  headersCount;
+        const http_header_t*    headers;
+    } http_response_t;
+
+    /* HTTP callback function signatures */
+    typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
+    typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
+    typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
+
+    typedef struct
+    {
+        const char*             config;
+        http_send_fn_t          httpSendFn;
+        http_cancel_fn_t        httpCancelFn;
+    } open_ex_data_t;
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */
@@ -271,7 +324,7 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-        
+    
     /**
      * <summary>
      * Create or open existing SDK instance.
@@ -287,7 +340,33 @@ extern "C" {
         evt_api_call(&ctx);
         return ctx.handle;
     }
-    
+
+    /**
+     * <summary>
+     * Create or open existing SDK instance.
+     * </summary>
+     * <param name="config">SDK configuration.</param>
+     * <param name="httpSendFn">HTTP send callback.</param>
+     * <param name="httpCancelFn">HTTP cancel callback.</param>
+     * <returns>SDK instance handle.</returns>
+     */
+    static inline evt_handle_t evt_open_ex(
+        const char* config,
+        http_send_fn_t httpSendFn,
+        http_cancel_fn_t httpCancelFn)
+    {
+        open_ex_data_t data;
+        data.config = config;
+        data.httpSendFn = httpSendFn;
+		data.httpCancelFn = httpCancelFn;
+
+        evt_context_t ctx;
+        ctx.call = EVT_OP_OPEN_EX;
+        ctx.data = (void *)(&data);
+        evt_api_call(&ctx);
+        return ctx.handle;
+    }
+
     /**
      * <summary>
      * Destroy or close SDK instance by handle
@@ -319,7 +398,7 @@ extern "C" {
         ctx.data = (void *)config;
         return evt_api_call(&ctx);
     }
-    
+
     /** 
      * <summary>
      * Logs a telemetry event (security-enhanced _s function)
