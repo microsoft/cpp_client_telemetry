@@ -59,6 +59,12 @@ evt_status_t mat_open_core(
     http_send_fn_t httpSendFn,
     http_cancel_fn_t httpCancelFn)
 {
+    if ((config == nullptr) || (config[0] == 0))
+    {
+        // Invalid configuration
+        return EFAULT;
+    }
+
     evt_handle_t code = static_cast<evt_handle_t>(hashCode(config));
     bool isHashFound = false;
     // Find the next available spare hashcode
@@ -130,36 +136,45 @@ evt_status_t mat_open_core(
 
 evt_status_t mat_open(evt_context_t *ctx)
 {
-	if (ctx == nullptr)
-	{
-		return EFAULT; /* bad address */
-	};
+    if (ctx == nullptr)
+    {
+        return EFAULT; /* bad address */
+    };
 
-	char* config = static_cast<char *>(ctx->data);
-	if ((config == nullptr) || (config[0] == 0))
-	{
-		// Invalid configuration
-		return EFAULT;
-	}
-
-	return mat_open_core(ctx, config, nullptr, nullptr);
+    char* config = static_cast<char *>(ctx->data);
+    return mat_open_core(ctx, config, nullptr, nullptr);
 }
 
-evt_status_t mat_open_ex(evt_context_t *ctx)
+evt_status_t mat_open_with_params(evt_context_t *ctx)
 {
-	if (ctx == nullptr)
-	{
-		return EFAULT; /* bad address */
-	};
+    if (ctx == nullptr)
+    {
+        return EFAULT; /* bad address */
+    };
 
-	open_ex_data_t* data = static_cast<open_ex_data_t*>(ctx->data);
-	if ((data == nullptr) || (data->config == nullptr) || (data->config[0] == 0))
-	{
-		// Invalid configuration
-		return EFAULT;
-	}
+    evt_open_with_params_data_t* data = static_cast<evt_open_with_params_data_t*>(ctx->data);
+    if ((data == nullptr) || (data->params == nullptr))
+    {
+        // Invalid param data
+        return EFAULT;
+    }
 
-	return mat_open_core(ctx, data->config, data->httpSendFn, data->httpCancelFn);
+    http_send_fn_t httpSendFn = nullptr;
+    http_cancel_fn_t httpCancelFn = nullptr;
+
+    for (int32_t i = 0; i < data->paramsCount; ++i) {
+        const evt_open_param_t& param = data->params[i];
+        switch (param.type) {
+            case OPEN_PARAM_TYPE_HTTP_HANDLER_SEND:
+                httpSendFn = reinterpret_cast<http_send_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
+                httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
+                break;
+        }
+    }
+
+    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn);
 }
 
 /**
@@ -290,8 +305,8 @@ extern "C" {
                 result = mat_open(ctx);
                 break;
 
-            case EVT_OP_OPEN_EX:
-                result = mat_open_ex(ctx);
+            case EVT_OP_OPEN_WITH_PARAMS:
+                result = mat_open_with_params(ctx);
                 break;
 
             case EVT_OP_CLOSE:

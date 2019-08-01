@@ -138,7 +138,7 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.id = simpleRequest->m_id.c_str();
         capiRequest.type = equalsIgnoreCase(simpleRequest->m_method, "post") ? HTTP_REQUEST_TYPE_POST : HTTP_REQUEST_TYPE_GET;
         capiRequest.url = simpleRequest->m_url.c_str();
-        capiRequest.bodySize = simpleRequest->m_body.size();
+        capiRequest.bodySize = static_cast<int32_t>(simpleRequest->m_body.size());
         capiRequest.body = simpleRequest->m_body.data();
 
         // Build headers
@@ -150,7 +150,7 @@ namespace ARIASDK_NS_BEGIN {
             capiHeader.value = header.second.c_str();
             capiHeaders.push_back(capiHeader);
         }
-        capiRequest.headersCount = capiHeaders.size();
+        capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
         auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
