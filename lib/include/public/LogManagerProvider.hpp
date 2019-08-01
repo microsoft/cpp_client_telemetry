@@ -167,6 +167,7 @@ namespace ARIASDK_NS_BEGIN
     /// logmanager  - ILogManager pointer to SDK instance
     /// config      - ILogConfiguration
     /// ctx_data    - original JSON configuration or token passed to mat_open
+    /// http        - optional IHttpClient override instance
     /// </summary>
     typedef struct
     {
