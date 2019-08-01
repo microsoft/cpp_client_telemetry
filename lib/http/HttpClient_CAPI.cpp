@@ -15,20 +15,36 @@ namespace ARIASDK_NS_BEGIN {
         HttpClient_Operation(SimpleHttpRequest* request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
           : m_request(request),
             m_callback(callback),
-            m_cancelFn(cancelFn) {}
+            m_cancelFn(cancelFn)
+        {
+            // It is the responsibility of HttpClient_Operation to delete 'request' after the operation is complete
+            // It is *not* the responsibility of HttpClient_Operation to ever delete 'callback'
+            if ((request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
+            {
+                LOG_ERROR("Created HttpClient_Operation with invalid parameters");
+            }
+        }
 
         void Cancel()
         {
-            m_cancelFn(m_request->m_id.c_str());
+            if ((m_cancelFn != nullptr) && (m_request != nullptr))
+            {
+                m_cancelFn(m_request->m_id.c_str());
+            }
         }
 
         void OnResponse(IHttpResponse* response)
         {
-            m_callback->OnHttpResponse(response);
+            if (m_callback != nullptr)
+            {
+                m_callback->OnHttpResponse(response);
+            }
         }
 
     private:
+        // Ownership of 'SimpleHttpRequest' is managed by HttpClient_Operation (See WinInetRequestWrapper::m_request for comparison)
         std::unique_ptr<SimpleHttpRequest>  m_request;
+
         IHttpResponseCallback*              m_callback;
         http_cancel_fn_t                    m_cancelFn;
     };
@@ -36,13 +52,18 @@ namespace ARIASDK_NS_BEGIN {
 
     // Manage tracking of in-flight operations
     static std::mutex s_operationsLock;
-    static std::map<std::string, std::shared_ptr<HttpClient_Operation>> s_operations;
+
+    std::map<std::string, std::shared_ptr<HttpClient_Operation>>& GetPendingOperations()
+    {
+        static std::map<std::string, std::shared_ptr<HttpClient_Operation>> s_operations;
+        return s_operations;
+    }
 
     // Track pending http requests for the sake of handling associated responses or cancellations
     void AddPendingOperation(const std::string& requestId, const std::shared_ptr<HttpClient_Operation>& operation)
     {
         LOCKGUARD(s_operationsLock);
-        s_operations[requestId] = operation;
+        GetPendingOperations()[requestId] = operation;
     }
 
     // An operation is removed when a response has been received or the operation has been cancelled
@@ -50,11 +71,11 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOCKGUARD(s_operationsLock);
         std::shared_ptr<HttpClient_Operation> operation;
-        auto itOperation = s_operations.find(requestId);
-        if (itOperation != s_operations.end())
+        auto itOperation = GetPendingOperations().find(requestId);
+        if (itOperation != GetPendingOperations().end())
         {
             operation = itOperation->second;
-            s_operations.erase(itOperation);
+            GetPendingOperations().erase(itOperation);
         }
 
         return operation;
@@ -103,8 +124,8 @@ namespace ARIASDK_NS_BEGIN {
                     response->m_headers.emplace(capiHeader->name, capiHeader->value);
                 }
             }
-            
-            // 'response' gets deleted in EventsUpdateContext.clear()
+
+            // 'response' is no longer owned by IHttpClient and gets deleted in EventsUpdateContext.clear()
             operation->OnResponse(response.release());
         }
     }
@@ -112,7 +133,13 @@ namespace ARIASDK_NS_BEGIN {
 
     HttpClient_CAPI::HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn)
       : m_sendFn(sendFn),
-        m_cancelFn(cancelFn) {}
+        m_cancelFn(cancelFn)
+    {
+        if ((sendFn == nullptr) || (cancelFn == nullptr))
+        {
+            LOG_ERROR("Created HttpClient_CAPI with invalid parameters");
+        }
+    }
 
     IHttpRequest* HttpClient_CAPI::CreateRequest()
     {
@@ -127,6 +154,9 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
+        // It is the responsibility of IHttpClient implementation to delete 'request' when operation is complete
+        // It is *not* the responsibility of IHttpClient to ever delete 'callback'
+
         SimpleHttpRequest* simpleRequest = static_cast<SimpleHttpRequest*>(request);
         LOG_TRACE("Sending CAPI HTTP request '%s'", simpleRequest->m_id.c_str());
 
@@ -156,7 +186,10 @@ namespace ARIASDK_NS_BEGIN {
         auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
         AddPendingOperation(simpleRequest->m_id, operation);
 
-        m_sendFn(&capiRequest, &OnHttpResponse);
+        if (m_sendFn != nullptr)
+        {
+            m_sendFn(&capiRequest, &OnHttpResponse);
+        }
     }
 
     void HttpClient_CAPI::CancelRequestAsync(const std::string& id)
@@ -164,9 +197,10 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("Cancelling CAPI HTTP request '%s'", id.c_str());
         std::shared_ptr<HttpClient_Operation> operation;
         {
+            // Only lock mutex while actually reading/writing pending operations collection to prevent potential recursive deadlock
             LOCKGUARD(s_operationsLock);
-            auto itOperation = s_operations.find(id);
-            if (itOperation != s_operations.end())
+            auto itOperation = GetPendingOperations().find(id);
+            if (itOperation != GetPendingOperations().end())
             {
                 operation = itOperation->second;
             }
@@ -183,10 +217,11 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("Cancelling all CAPI HTTP requests");
         std::vector<std::shared_ptr<HttpClient_Operation>> operations;
         {
+            // Only lock mutex while actually reading/writing pending operations collection to prevent potential recursive deadlock
             LOCKGUARD(s_operationsLock);
-            for (const auto& operation : s_operations)
+            for (const auto& operation : GetPendingOperations())
             {
-              operations.push_back(operation.second);
+                operations.push_back(operation.second);
             }
         }
 
