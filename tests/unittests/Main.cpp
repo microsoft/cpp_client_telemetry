@@ -31,7 +31,7 @@ int MAIN_CDECL main(int argc, char** argv)
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
 
-    PAL::initialize();
+    PAL::initialize(true /*isNetDetectEnabled*/);
     int result = RUN_ALL_TESTS();
     PAL::shutdown();
 

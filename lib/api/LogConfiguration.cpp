@@ -21,7 +21,8 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_TRACE_LEVEL_MASK,         0 },
         { CFG_STR_COLLECTOR_URL,            COLLECTOR_URL_PROD },
         { CFG_INT_STORAGE_FULL_PCT,         75 },
-        { CFG_INT_RAMCACHE_FULL_PCT,        75 }
+        { CFG_INT_RAMCACHE_FULL_PCT,        75 },
+        { CFG_BOOL_ENABLE_NET_DETECT,       true },
     };
 
     const ILogConfiguration& GetDefaultConfiguration()

@@ -18,7 +18,7 @@ namespace PAL_NS_BEGIN {
     class NetworkInformationImpl : public INetworkInformation
     {
     public:
-        static INetworkInformation* Create();
+        static INetworkInformation* Create(bool isNetDetectEnabled);
 
         // IInformationProvider API
         virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
@@ -33,7 +33,7 @@ namespace PAL_NS_BEGIN {
         virtual bool IsWifiAvailable() { return false; }
         virtual bool IsWwanAvailable() { return false; }
 
-        NetworkInformationImpl();
+        NetworkInformationImpl(bool isNetDetectEnabled);
         virtual ~NetworkInformationImpl();
 
     protected:
@@ -43,6 +43,7 @@ namespace PAL_NS_BEGIN {
 
         InformatonProviderImpl m_info_helper;
         int m_registredCount;
+        bool m_isNetDetectEnabled;
 
         // Disable copy constructor and assignment operator.
         NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
