@@ -118,7 +118,7 @@ namespace PAL_NS_BEGIN
     //
     // Startup/shutdown
     //
-    void initialize();
+    void initialize(bool isNetDetectEnabled);
     void shutdown();
 
     INetworkInformation* GetNetworkInformation();

@@ -479,7 +479,7 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize()
+    void initialize(bool isNetDetectEnabled)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
@@ -488,7 +488,7 @@ namespace PAL_NS_BEGIN {
             g_workerThread = WorkerThreadFactory::Create();
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
-            g_NetworkInformation = NetworkInformationImpl::Create();
+            g_NetworkInformation = NetworkInformationImpl::Create(isNetDetectEnabled);
             LOG_INFO("Initialized");
         }
         else

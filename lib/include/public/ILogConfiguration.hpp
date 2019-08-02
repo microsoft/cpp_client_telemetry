@@ -90,6 +90,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_WAL_JOURNAL = "enableWALJournal";
 
     /// <summary>
+    /// Enable network detector.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
+
+    /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
