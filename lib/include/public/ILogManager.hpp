@@ -370,7 +370,7 @@ namespace ARIASDK_NS_BEGIN
         /// 0 if unregisteration succeeded, negative value if unregisteration failed,
         /// STATUS_EALREADY if dataViewer is already unregistered.
         /// </returns>
-        virtual status_t UnregisterViewer(const std::string& viewerName) noexcept = 0;
+        virtual status_t UnregisterViewer(const char* viewerName) noexcept = 0;
 
         /// <summary>
         /// Check if the given viewer (name) is registered as a data viewer.
@@ -378,7 +378,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="viewerName">
         /// Unique Name to identify the viewer being checked.
         /// </param>
-        virtual bool IsViewerEnabled(const std::string& viewerName) noexcept = 0;
+        virtual bool IsViewerEnabled(const char* viewerName) noexcept = 0;
 
         /// <summary>
         /// Check if any viewers are registered.
