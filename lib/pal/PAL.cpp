@@ -115,15 +115,7 @@ namespace PAL_NS_BEGIN {
             }
 
             debugLogMutex.lock();
-            if (!traceFolderPath.empty())
-            {
-                debugLogPath = traceFolderPath;
-            }
-            else
-            {
-                debugLogPath = MAT::GetTempDirectory();
-            }
-            
+            debugLogPath = traceFolderPath;
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
@@ -496,7 +488,8 @@ namespace PAL_NS_BEGIN {
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
-            detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], configuration[CFG_STR_TRACE_FOLDER_PATH]);
+            std::string traceFolderPath = configuration.count(CFG_STR_TRACE_FOLDER_PATH) ? configuration[CFG_STR_TRACE_FOLDER_PATH] : MAT::GetTempDirectory();
+            detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
             g_workerThread = WorkerThreadFactory::Create();
             g_SystemInformation = SystemInformationImpl::Create();
