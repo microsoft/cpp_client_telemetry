@@ -11,6 +11,7 @@
 #include "Enums.hpp"
 #include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
+#include "IDataViewer.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -348,6 +349,41 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
         /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
+
+        /// <summary>
+        /// Register an IDataViewer with LogManager.
+        /// </summary>
+        /// <param name="dataViewer">dataViewer to register with LogManager</param>
+        /// <returns>
+        /// 0 if registeration succeeded, negative value if registeration failed,
+        /// STATUS_EALREADY if dataViewer is already registered.
+        /// </returns>
+        virtual status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) noexcept = 0;
+
+        /// <summary>
+        /// Unregister a IDataViewer from LogManager.
+        /// </summary>
+        /// <param name="viewerName">
+        /// Unique Name to identify the viewer that should be unregistered from the LogManager.
+        /// </param>
+        /// <returns>
+        /// 0 if unregisteration succeeded, negative value if unregisteration failed,
+        /// STATUS_EALREADY if dataViewer is already unregistered.
+        /// </returns>
+        virtual status_t UnregisterViewer(const std::string& viewerName) noexcept = 0;
+
+        /// <summary>
+        /// Check if the given viewer (name) is registered as a data viewer.
+        /// </summary>
+        /// <param name="viewerName">
+        /// Unique Name to identify the viewer being checked.
+        /// </param>
+        virtual bool IsViewerEnabled(const std::string& viewerName) noexcept = 0;
+
+        /// <summary>
+        /// Check if any viewers are registered.
+        /// </summary>
+        virtual bool AreAnyViewersEnabled() noexcept = 0;
     };
 
 } ARIASDK_NS_END
