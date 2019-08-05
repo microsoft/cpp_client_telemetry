@@ -145,6 +145,16 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_INT_TRACE_LEVEL_MIN = "minimumTraceLevel";
 
     /// <summary>
+    /// Enable trace logs.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_TRACE = "enableTrace";
+
+    /// <summary>
+    /// The trace filepath.
+    /// </summary>
+    static constexpr const char* const CFG_STR_TRACE_FOLDER_PATH = "traceFolderPath";
+
+    /// <summary>
     /// The SDK mode.
     /// </summary>
     static constexpr const char* const CFG_INT_SDK_MODE = "sdkmode";
