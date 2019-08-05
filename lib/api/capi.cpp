@@ -189,6 +189,7 @@ evt_status_t mat_close(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
+    clients.erase(ctx->handle);
     ctx->result = result;
     return result;
 }
