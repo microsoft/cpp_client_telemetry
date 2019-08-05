@@ -95,7 +95,7 @@ namespace ARIASDK_NS_BEGIN
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
-        PAL::initialize(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
+        PAL::initialize(configuration);
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
