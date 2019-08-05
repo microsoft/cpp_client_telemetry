@@ -13,8 +13,6 @@
 
 #include "ContextFieldsProvider.hpp"
 
-#include "filter/IEventFilter.hpp"
-
 // Decorators
 #include "decorators/BaseDecorator.hpp"
 #include "decorators/EventPropertiesDecorator.hpp"
@@ -40,8 +38,7 @@ namespace ARIASDK_NS_BEGIN {
             const std::string& scope,
             ILogManagerInternal& logManager,
             ContextFieldsProvider& parentContext,
-            IRuntimeConfig& runtimeConfig,
-            IEventFilter& eventFilter);
+            IRuntimeConfig& runtimeConfig);
 
         ~Logger();
 
@@ -192,7 +189,6 @@ namespace ARIASDK_NS_BEGIN {
         ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;
         IRuntimeConfig&           m_config;
-        IEventFilter&             m_eventFilter;
 
         BaseDecorator             m_baseDecorator;
         EventPropertiesDecorator  m_eventPropertiesDecorator;

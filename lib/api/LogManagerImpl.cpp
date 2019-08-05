@@ -261,9 +261,6 @@ namespace ARIASDK_NS_BEGIN
 
             m_ownHttpClient.reset();
             m_httpClient = nullptr;
-
-            // Reset the contents of m_eventFilterRegulator, but keep the object
-            m_eventFilterRegulator.Reset();
         }
 
         auto shutTime = GetUptimeMs();
@@ -477,11 +474,9 @@ namespace ARIASDK_NS_BEGIN
             auto it = m_loggers.find(hash);
             if (it == std::end(m_loggers))
             {
-                Logger* newLogger = new Logger(
-                    normalizedTenantToken, normalizedSource, scope,
-                    *this, m_context, *m_config,
-                    m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
-                m_loggers[hash] = std::unique_ptr<Logger>(newLogger);
+                m_loggers[hash] = std::unique_ptr<Logger>(new Logger(
+					normalizedTenantToken, normalizedSource, scope,
+					*this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
             if (level != DIAG_LEVEL_DEFAULT) 
@@ -556,16 +551,6 @@ namespace ARIASDK_NS_BEGIN
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterCount);
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterRates, filterCount);
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)

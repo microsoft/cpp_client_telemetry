@@ -31,8 +31,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
@@ -87,9 +85,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\IEventFilter.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilter.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterRegulator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientFactory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.hpp" />

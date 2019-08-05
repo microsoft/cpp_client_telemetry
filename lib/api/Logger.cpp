@@ -20,8 +20,7 @@ namespace ARIASDK_NS_BEGIN
 
         ILogManagerInternal & logManager,
         ContextFieldsProvider & parentContext,
-        IRuntimeConfig & runtimeConfig,
-        IEventFilter & eventFilter)
+        IRuntimeConfig & runtimeConfig)
         :
         m_tenantToken(tenantToken),
         m_source(source),
@@ -32,7 +31,6 @@ namespace ARIASDK_NS_BEGIN
         m_logManager(logManager),
         m_context(&parentContext),
         m_config(runtimeConfig),
-        m_eventFilter(eventFilter),
 
         m_baseDecorator(logManager),
         m_semanticContextDecorator(logManager, m_context),

@@ -291,16 +291,6 @@ namespace ARIASDK_NS_BEGIN
             return nullptr;
         }
 
-        virtual status_t SetExclusionFilter(const char * tenantToken, const char ** filterStrings, uint32_t filterCount) override
-        {
-            return STATUS_ENOSYS;
-        }
-
-        virtual status_t SetExclusionFilter(const char * tenantToken, const char ** filterStrings, const uint32_t * filterRates, uint32_t filterCount) override
-        {
-            return STATUS_ENOSYS;
-        }
-
         virtual void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) override {};
 
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
