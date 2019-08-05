@@ -101,8 +101,13 @@ namespace PAL_NS_BEGIN {
         std::string          debugLogPath;
         std::ostream*        debugLogStream = nullptr;
         
-        bool log_init()
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
+            if (!isTraceEnabled)
+            {
+                return false;
+            }
+
             bool result = true;
             if (debugLogStream != nullptr)
             {
@@ -110,7 +115,15 @@ namespace PAL_NS_BEGIN {
             }
 
             debugLogMutex.lock();
-            debugLogPath = MAT::GetTempDirectory();
+            if (!traceFolderPath.empty())
+            {
+                debugLogPath = traceFolderPath;
+            }
+            else
+            {
+                debugLogPath = MAT::GetTempDirectory();
+            }
+            
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
@@ -483,7 +496,7 @@ namespace PAL_NS_BEGIN {
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
-            detail::isLoggingInited = detail::log_init();
+            detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], configuration[CFG_STR_TRACE_FOLDER_PATH]);
             LOG_TRACE("Initializing...");
             g_workerThread = WorkerThreadFactory::Create();
             g_SystemInformation = SystemInformationImpl::Create();
