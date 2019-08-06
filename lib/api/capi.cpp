@@ -41,6 +41,15 @@ capi_client * MAT::capi_get_client(evt_handle_t handle)
     return (it != clients.cend()) ? &(it->second) : nullptr;
 }
 
+/// <summary>
+/// Remove C API handle from active client tracking struct.
+/// </summary>
+void remove_client(evt_handle_t handle)
+{
+    LOCKGUARD(mtx);
+    clients.erase(handle);
+}
+
 #define VERIFY_CLIENT_HANDLE(client, ctx)                       \
     if (ctx==nullptr)                                           \
     {                                                           \
@@ -189,6 +198,7 @@ evt_status_t mat_close(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
+    remove_client(ctx->handle);
     ctx->result = result;
     return result;
 }
