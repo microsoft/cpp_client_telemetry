@@ -198,6 +198,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.cpp">
       <Filter>system</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp">
+      <Filter>filter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -553,6 +556,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.hpp">
+      <Filter>filter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
