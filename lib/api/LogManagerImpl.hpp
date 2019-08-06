@@ -229,7 +229,7 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
 
-        status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) noexcept override;
+        status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) override;
 
         /// <summary>
         /// Unregister a IDataViewer from LogManager.
@@ -241,7 +241,7 @@ namespace ARIASDK_NS_BEGIN
         /// 0 if unregisteration succeeded, negative value if unregisteration failed,
         /// STATUS_EALREADY if dataViewer is already unregistered.
         /// </returns>
-        status_t UnregisterViewer(const char* viewerName) noexcept override;
+        status_t UnregisterViewer(const char* viewerName) override;
 
         /// <summary>
         /// Check if the given viewer (name) is registered as a data viewer.
@@ -249,7 +249,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="viewerName">
         /// Unique Name to identify the viewer being checked.
         /// </param>
-        bool IsViewerEnabled(const char* viewerName) noexcept override;
+        bool IsViewerEnabled(const char* viewerName) override;
 
         /// <summary>
         /// Check if any viewers are registered.
@@ -311,6 +311,8 @@ protected:
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
+
+        std::map<const char*, std::shared_ptr<IDataViewer>>    m_dataViewers;
     };
 
 

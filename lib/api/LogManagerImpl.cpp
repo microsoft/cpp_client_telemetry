@@ -594,9 +594,15 @@ namespace ARIASDK_NS_BEGIN
         return m_system;
     }
 
-    status_t LogManagerImpl::RegisterViewer(const std::shared_ptr<IDataViewer>& /*dataViewer*/) noexcept
+    status_t LogManagerImpl::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
     {
-        return status_t::STATUS_SUCCESS;
+        if (m_dataViewers.find(dataViewer->GetName()) == m_dataViewers.end())
+        {
+            m_dataViewers.emplace(dataViewer->GetName(), dataViewer);
+            return status_t::STATUS_SUCCESS;
+        }
+
+        return status_t::STATUS_EALREADY;
     }
 
     /// <summary>
@@ -609,8 +615,14 @@ namespace ARIASDK_NS_BEGIN
     /// 0 if unregisteration succeeded, negative value if unregisteration failed,
     /// STATUS_EALREADY if dataViewer is already unregistered.
     /// </returns>
-    status_t LogManagerImpl::UnregisterViewer(const char* /*viewerName*/) noexcept
+    status_t LogManagerImpl::UnregisterViewer(const char* viewerName)
     {
+        if (m_dataViewers.find(viewerName) == m_dataViewers.end())
+        {
+            return status_t::STATUS_EALREADY;
+        }
+
+        m_dataViewers.erase(viewerName);
         return status_t::STATUS_SUCCESS;
     }
 
@@ -620,9 +632,9 @@ namespace ARIASDK_NS_BEGIN
     /// <param name="viewerName">
     /// Unique Name to identify the viewer being checked.
     /// </param>
-    bool LogManagerImpl::IsViewerEnabled(const char* /*viewerName*/) noexcept
+    bool LogManagerImpl::IsViewerEnabled(const char* viewerName)
     {
-        return false;
+        return m_dataViewers.find(viewerName) != m_dataViewers.end();
     }
 
     /// <summary>
@@ -630,7 +642,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     bool LogManagerImpl::AreAnyViewersEnabled() noexcept
     {
-        return false;
+        return m_dataViewers.empty() == false;
     }
 
 } ARIASDK_NS_END
