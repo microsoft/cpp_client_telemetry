@@ -21,14 +21,14 @@ namespace ARIASDK_NS_BEGIN
         /// Throws std::invalid_argument if filter == nullptr.
         /// </sumamry>
         /// <param="filter">A unique_ptr passing ownership of the IEventFilter to the IEventFilterCollection.</param>
-        virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&& filter) noexcept = 0;
+        virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&& filter) = 0;
 
         /// <summary>
         /// Unregisters an IEventFilter by the name returned by IEventFilter::GetName().
         /// If there is no registered IEventFilter with the provided name, emits an error log.
         /// Throws std::invalid_argument if filterName == nullptr.
         /// </summary>
-        virtual void UnregisterEventFilter(const char* filterName) noexcept = 0;
+        virtual void UnregisterEventFilter(const char* filterName) = 0;
 
         /// <summary>
         /// Unregisters all registered IEventFilters.
