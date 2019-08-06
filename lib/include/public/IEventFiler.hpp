@@ -16,7 +16,8 @@ namespace ARIASDK_NS_BEGIN
         virtual ~IEventFilter() noexcept = default;
 
         /// <summary>
-        /// Log and DebugEvent friendly name for the implementation.
+        /// Friendly name for the implementation. Used by IEventFilterCollection::UnregisterEventFilter
+        /// to unregister a single IEventFilter, implementations are encouraged to make this unique.
         /// <summary>
         /// <returns>Returns the Log and DebugEvent friendly name for the implementation.</returns>
         virtual const char* GetName() const noexcept = 0;
