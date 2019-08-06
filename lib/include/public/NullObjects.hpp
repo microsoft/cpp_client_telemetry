@@ -305,6 +305,25 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
 
+        virtual status_t RegisterViewer(const std::shared_ptr<IDataViewer>& /*dataViewer*/) noexcept override
+        {
+            return status_t::STATUS_SUCCESS;
+        }
+
+        virtual status_t UnregisterViewer(const char* /*viewerName*/) noexcept override
+        {
+            return status_t::STATUS_SUCCESS;
+        }
+
+        virtual bool IsViewerEnabled(const char* /*viewerName*/) noexcept override
+        {
+            return false;
+        }
+
+        virtual bool AreAnyViewersEnabled() noexcept override
+        {
+            return false;
+        }
     };
 
 } ARIASDK_NS_END
