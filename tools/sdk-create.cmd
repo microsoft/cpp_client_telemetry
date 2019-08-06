@@ -8,7 +8,7 @@ set PATH=%CD%;%PATH%
 cd ..
 
 set ROOT=%CD%
-set /p PackageVersion=<%ROOT%\Solutions\version.txt
+set /p PackageVersion=<%ROOT%\Solutions\out\version.txt
 set SRCDIR=%ROOT%\Solutions\out
 set OUTDIR=%ROOT%\dist\aria-windows-sdk\%PackageVersion%
 set ProjectName=Microsoft.Applications.Telemetry.Windows
