@@ -67,4 +67,18 @@ function generateVersionHpp() {
   console.log("Version.hpp "+ver1+" generated (clean build)\n");
 }
 
+function generateVersionTxt() {
+  // Read base version and replace '999' with nightly build number
+  var version = readAll("..\\Solutions\\version.txt").replace("999", dayNumber());
+
+  // Write version.txt with updated build number
+  var versionTxt = "..\\Solutions\\out\\version.txt";
+  var f = fso.OpenTextFile(versionTxt, 8, true);
+  f.WriteLine(version);
+  f.Close();
+
+  console.log("version.txt " + version + " generated\n");
+}
+
 generateVersionHpp();
+generateVersionTxt();
