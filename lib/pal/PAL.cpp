@@ -484,11 +484,11 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize(ILogConfiguration& configuration)
+    void initialize(IRuntimeConfig& configuration)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
-            std::string traceFolderPath = configuration.count(CFG_STR_TRACE_FOLDER_PATH) ? configuration[CFG_STR_TRACE_FOLDER_PATH] : MAT::GetTempDirectory();
+            std::string traceFolderPath = configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH) ? configuration[CFG_STR_TRACE_FOLDER_PATH] : MAT::GetTempDirectory();
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
             g_workerThread = WorkerThreadFactory::Create();
