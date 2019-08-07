@@ -27,6 +27,11 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
+    bool HttpRequestEncoder::DispatchDataViewerEvent(StorageBlob dataPacket)
+    {
+        return m_system.getLogManager().DispatchDataViewerEvent(dataPacket);
+    }
+
     bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     {
         ctx->httpRequest = m_httpClient.CreateRequest();
@@ -149,6 +154,8 @@ namespace ARIASDK_NS_BEGIN {
         ctx->body.clear();
 
         ctx->httpRequest->SetLatency(ctx->latency);
+
+        DispatchDataViewerEvent(ctx->body);
 
         return true;
     }
