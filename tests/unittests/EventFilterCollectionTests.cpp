@@ -139,6 +139,12 @@ TEST(EventFilterCollectionTests, UnregisterAllFilters_TwoRegistered_RemovesBoth)
     EXPECT_EQ(collection.m_filters.size(), 0);
 }
 
+TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_ZeroRegisteredFilters_ReturnsTrue)
+{
+    TestEventFilterCollection collection;
+    EXPECT_TRUE(collection.CanEventPropertiesBeSent(EventProperties{}));
+}
+
 TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_OneRegisteredThatReturnsTrue_ReturnsTrue)
 {
     TestEventFilterCollection collection;
