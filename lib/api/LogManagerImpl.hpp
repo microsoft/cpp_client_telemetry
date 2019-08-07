@@ -203,6 +203,8 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         virtual bool DispatchEvent(DebugEvent evt) override;
 
+        virtual bool DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const override;
+
         ///
         virtual bool AttachEventSource(DebugEventSource & other) override;
 

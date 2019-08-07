@@ -128,11 +128,25 @@ namespace ARIASDK_NS_BEGIN
         virtual bool DispatchEvent(DebugEvent evt) override = 0;
 
         /// <summary>
+        /// Dispatches data viewer event to this ILogManager instance.
+        /// </summary>
+        /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
+        /// <returns></returns>
+        virtual bool DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const = 0;
+
+        /// <summary>
         /// Dispatches broadcast event to all active ILogManager instances.
         /// </summary>
         /// <param name="evt">DebugEvent</param>
         /// <returns></returns>
         static bool DispatchEventBroadcast(DebugEvent evt);
+
+        /// <summary>
+        /// Dispatches data viewer event to all active ILogManager instances.
+        /// </summary>
+        /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
+        /// <returns></returns>
+        static bool DispatchDataViewerEventBroadcast(std::vector<std::uint8_t> dataPacket);
 
         /// <summary>
         /// Destroy the telemetry logging system instance. Calls `FlushAndTeardown()` implicitly.

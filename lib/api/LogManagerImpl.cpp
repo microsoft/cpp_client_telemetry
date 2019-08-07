@@ -45,6 +45,15 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
+    bool ILogManager::DispatchDataViewerEventBroadcast(std::vector<std::uint8_t> dataPacket)
+    {
+        for (auto instance : ILogManagerInternal::managers)
+        {
+            instance->DispatchDataViewerEvent(dataPacket);
+        }
+        return true;
+    }
+
     MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class");
 
 #if 1
@@ -521,6 +530,23 @@ namespace ARIASDK_NS_BEGIN
     bool LogManagerImpl::DispatchEvent(DebugEvent evt)
     {
         return m_debugEventSource.DispatchEvent(std::move(evt));
+    };
+
+    /// <summary>
+    /// Dispatches data viewer event to this ILogManager instance.
+    /// </summary>
+    /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
+    /// <returns></returns>
+    bool LogManagerImpl::DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const
+    {
+        if (AreAnyViewersEnabled() == false)
+            return;
+
+        auto dataViewerIterator = m_dataViewers.cbegin();
+        while (dataViewerIterator != m_dataViewers.cend())
+        {
+            dataViewerIterator->second->RecieveData(dataPacket);
+        }
     };
 
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>

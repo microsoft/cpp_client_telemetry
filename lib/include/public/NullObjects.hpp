@@ -121,6 +121,11 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
+        virtual bool DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const override
+        {
+            return false;
+        }
+
         virtual void Configure() override {};
 
         virtual void FlushAndTeardown() override {};
@@ -315,12 +320,12 @@ namespace ARIASDK_NS_BEGIN
             return status_t::STATUS_SUCCESS;
         }
 
-        virtual bool IsViewerEnabled(const char* /*viewerName*/) noexcept override
+        virtual bool IsViewerEnabled(const char* /*viewerName*/) const noexcept override
         {
             return false;
         }
 
-        virtual bool AreAnyViewersEnabled() noexcept override
+        virtual bool AreAnyViewersEnabled() const noexcept override
         {
             return false;
         }
