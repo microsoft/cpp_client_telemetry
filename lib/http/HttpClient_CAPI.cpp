@@ -12,37 +12,28 @@ namespace ARIASDK_NS_BEGIN {
     class HttpClient_Operation
     {
     public:
-        HttpClient_Operation(SimpleHttpRequest* request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
-          : m_request(request),
+        HttpClient_Operation(std::unique_ptr<SimpleHttpRequest> request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
+          : m_request(std::move(request)),
             m_callback(callback),
             m_cancelFn(cancelFn)
         {
-            // It is the responsibility of HttpClient_Operation to delete 'request' after the operation is complete
-            // It is *not* the responsibility of HttpClient_Operation to ever delete 'callback'
             if ((request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
             {
-                LOG_ERROR("Created HttpClient_Operation with invalid parameters");
+                throw std::invalid_argument("Created HttpClient_Operation with invalid parameters");
             }
         }
 
         void Cancel()
         {
-            if ((m_cancelFn != nullptr) && (m_request != nullptr))
-            {
-                m_cancelFn(m_request->m_id.c_str());
-            }
+            m_cancelFn(m_request->m_id.c_str());
         }
 
         void OnResponse(IHttpResponse* response)
         {
-            if (m_callback != nullptr)
-            {
-                m_callback->OnHttpResponse(response);
-            }
+            m_callback->OnHttpResponse(response);
         }
 
     private:
-        // Ownership of 'SimpleHttpRequest' is managed by HttpClient_Operation (See WinInetRequestWrapper::m_request for comparison)
         std::unique_ptr<SimpleHttpRequest>  m_request;
 
         IHttpResponseCallback*              m_callback;
@@ -137,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if ((sendFn == nullptr) || (cancelFn == nullptr))
         {
-            LOG_ERROR("Created HttpClient_CAPI with invalid parameters");
+            throw std::invalid_argument("Created HttpClient_CAPI with invalid parameters");
         }
     }
 
@@ -155,17 +146,17 @@ namespace ARIASDK_NS_BEGIN {
     void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
         // It is the responsibility of IHttpClient implementation to delete 'request' when operation is complete
-        // It is *not* the responsibility of IHttpClient to ever delete 'callback'
+        auto simpleRequest = std::unique_ptr<SimpleHttpRequest>(static_cast<SimpleHttpRequest*>(request));
+        auto requestId = simpleRequest->m_id;
 
-        SimpleHttpRequest* simpleRequest = static_cast<SimpleHttpRequest*>(request);
-        LOG_TRACE("Sending CAPI HTTP request '%s'", simpleRequest->m_id.c_str());
+        LOG_TRACE("Sending CAPI HTTP request '%s'", requestId.c_str());
 
         // Convert IHttpRequest to http_request_t
         // Note that the lifetime of capiRequest's members expires after this method is terminated. It is the
         // responsibility of the external functions to copy any data that must live beyond the initial call to SendHttpRequest.
         http_request_t capiRequest;
 
-        capiRequest.id = simpleRequest->m_id.c_str();
+        capiRequest.id = requestId.c_str();
         capiRequest.type = equalsIgnoreCase(simpleRequest->m_method, "post") ? HTTP_REQUEST_TYPE_POST : HTTP_REQUEST_TYPE_GET;
         capiRequest.url = simpleRequest->m_url.c_str();
         capiRequest.bodySize = static_cast<int32_t>(simpleRequest->m_body.size());
@@ -183,13 +174,10 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
-        auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
-        AddPendingOperation(simpleRequest->m_id, operation);
+        auto operation = std::make_shared<HttpClient_Operation>(std::move(simpleRequest), callback, m_cancelFn);
+        AddPendingOperation(requestId, operation);
 
-        if (m_sendFn != nullptr)
-        {
-            m_sendFn(&capiRequest, &OnHttpResponse);
-        }
+        m_sendFn(&capiRequest, &OnHttpResponse);
     }
 
     void HttpClient_CAPI::CancelRequestAsync(const std::string& id)
