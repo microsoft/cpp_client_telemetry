@@ -54,7 +54,7 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    Logger::~Logger()
+    Logger::~Logger() noexcept
     {
         LOG_TRACE("%p: Destroyed", this);
     }
@@ -621,6 +621,16 @@ namespace ARIASDK_NS_BEGIN
 
         submit(record, props);
         DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+    }
+
+    IEventFilterCollection& Logger::GetEventFilters() noexcept
+    {
+        return m_filters;
+    }
+
+    const IEventFilterCollection& Logger::GetEventFilters() const noexcept
+    {
+        return m_filters;
     }
 
     ILogManager& Logger::GetParent()

@@ -19,6 +19,8 @@
 #include "decorators/SemanticApiDecorators.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
 
+#include "filter/EventFilterCollection.hpp"
+
 namespace ARIASDK_NS_BEGIN {
 
     class BaseDecorator;
@@ -40,7 +42,7 @@ namespace ARIASDK_NS_BEGIN {
             ContextFieldsProvider& parentContext,
             IRuntimeConfig& runtimeConfig);
 
-        ~Logger();
+        ~Logger() noexcept;
 
     public:
 
@@ -145,6 +147,10 @@ namespace ARIASDK_NS_BEGIN {
             long timeToLiveInMillis,
             EventProperties const& properties) override;
 
+        virtual IEventFilterCollection& GetEventFilters() noexcept override;
+
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept override;
+
         virtual std::string GetSource();
 
         virtual ILogManager& GetParent();
@@ -196,6 +202,7 @@ namespace ARIASDK_NS_BEGIN {
         SemanticApiDecorators     m_semanticApiDecorators;
 
         bool                      m_allowDotsInType;
+        EventFilterCollection     m_filters;
     };
 
 } ARIASDK_NS_END
