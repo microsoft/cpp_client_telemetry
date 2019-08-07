@@ -11,10 +11,11 @@ using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl() :
+    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
         m_info_helper(),
         m_registredCount(0),
-        m_cost(NetworkCost_Unmetered)
+        m_cost(NetworkCost_Unmetered),
+        m_isNetDetectEnabled(isNetDetectEnabled)
     { };
     NetworkInformationImpl::~NetworkInformationImpl() { };
 
@@ -29,8 +30,8 @@ namespace PAL_NS_BEGIN {
         /// <summary>
         ///
         /// </summary>
-        /// <param name="pal"></param>
-        Win32NetworkInformation();
+        /// <param name="isNetDetectEnabled"></param>
+        Win32NetworkInformation(bool isNetDetectEnabled);
 
         /// <summary>
         ///
@@ -79,24 +80,27 @@ namespace PAL_NS_BEGIN {
         /// <returns>The current network cost for the device</returns>
         virtual NetworkCost GetNetworkCost() override
         {
-#ifdef HAVE_MAT_NETDETECT
-            m_cost = networkDetector->GetNetworkCost();
-#else
             m_cost = NetworkCost_Unmetered;
+#ifdef HAVE_MAT_NETDETECT
+            if (m_isNetDetectEnabled) {
+                m_cost = networkDetector->GetNetworkCost();
+            }
 #endif
             return m_cost;
         }
     };
 
-    Win32NetworkInformation::Win32NetworkInformation() :
-                            NetworkInformationImpl()
+    Win32NetworkInformation::Win32NetworkInformation(bool isNetDetectEnabled) :
+                            NetworkInformationImpl(isNetDetectEnabled)
     {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
-        networkDetector = new MATW::NetworkDetector(); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
-        networkDetector->AddRef();
-        networkDetector->Start();
+        if (isNetDetectEnabled) {
+            networkDetector = new MATW::NetworkDetector(); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
+            networkDetector->AddRef();
+            networkDetector->Start();
+        }
 #endif
     }
 
@@ -104,15 +108,17 @@ namespace PAL_NS_BEGIN {
     {
         //LOG_TRACE("Win32NetworkInformation::~Win32NetworkInformation dtor");
 #ifdef HAVE_MAT_NETDETECT
-        networkDetector->Stop();
-        networkDetector->Release();
-        delete networkDetector;
+        if (m_isNetDetectEnabled) {
+            networkDetector->Stop();
+            networkDetector->Release();
+            delete networkDetector;
+        }
 #endif
     }
 
-    INetworkInformation* NetworkInformationImpl::Create()
+    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new Win32NetworkInformation();
+        return new Win32NetworkInformation(isNetDetectEnabled);
     }
 } PAL_NS_END
 #endif

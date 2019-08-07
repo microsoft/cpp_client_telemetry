@@ -19,9 +19,11 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_MAX_PENDING_REQ,       4 },
         { CFG_INT_RAM_QUEUE_BUFFERS,     3 },
         { CFG_INT_TRACE_LEVEL_MASK,      0 },
+        { CFG_BOOL_ENABLE_TRACE,         true },
         { CFG_STR_COLLECTOR_URL,         COLLECTOR_URL_PROD },
         { CFG_INT_STORAGE_FULL_PCT,      75 },
         { CFG_INT_RAMCACHE_FULL_PCT,     75 },
+        { CFG_BOOL_ENABLE_NET_DETECT,    true },
         { "stats",
             {
                 /* Parameter that allows to split stats events by tenant */

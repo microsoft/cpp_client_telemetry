@@ -5,7 +5,9 @@
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl(): m_info_helper() {};
+    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+        m_info_helper(),
+        m_isNetDetectEnabled(isNetDetectEnabled) {};
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
@@ -17,8 +19,8 @@ namespace PAL_NS_BEGIN {
         /// <summary>
         ///
         /// </summary>
-        /// <param name="pal"></param>
-        NetworkInformation();
+        /// <param name="isNetDetectEnabled"></param>
+        NetworkInformation(bool isNetDetectEnabled);
 
         /// <summary>
         ///
@@ -59,8 +61,8 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    NetworkInformation::NetworkInformation() :
-        NetworkInformationImpl()
+    NetworkInformation::NetworkInformation(bool isNetDetectEnabled) :
+        NetworkInformationImpl(isNetDetectEnabled)
     {
         m_type = NetworkType_Wired;
         m_cost = NetworkCost_Unmetered;
@@ -70,9 +72,9 @@ namespace PAL_NS_BEGIN {
     {
     }
 
-    INetworkInformation* NetworkInformationImpl::Create()
+    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new NetworkInformation();
+        return new NetworkInformation(isNetDetectEnabled);
     }
 
 } PAL_NS_END

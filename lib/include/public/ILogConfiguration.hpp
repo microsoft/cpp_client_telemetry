@@ -90,6 +90,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_WAL_JOURNAL = "enableWALJournal";
 
     /// <summary>
+    /// Enable network detector.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
+
+    /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
@@ -138,6 +143,16 @@ namespace ARIASDK_NS_BEGIN
     /// The minimum trace level.
     /// </summary>
     static constexpr const char* const CFG_INT_TRACE_LEVEL_MIN = "minimumTraceLevel";
+
+    /// <summary>
+    /// Enable trace logs.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_TRACE = "enableTrace";
+
+    /// <summary>
+    /// The trace filepath.
+    /// </summary>
+    static constexpr const char* const CFG_STR_TRACE_FOLDER_PATH = "traceFolderPath";
 
     /// <summary>
     /// The SDK mode.
