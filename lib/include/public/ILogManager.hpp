@@ -132,7 +132,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
         /// <returns></returns>
-        virtual bool DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const = 0;
+        virtual bool DispatchDataViewerEvent(const std::shared_ptr<std::vector<std::uint8_t>>& dataPacket) const = 0;
 
         /// <summary>
         /// Dispatches broadcast event to all active ILogManager instances.

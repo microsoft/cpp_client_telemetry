@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN
         /// This method allows SDK to pass the uploaded packet to the data viewer.
         /// </summary>
 
-        virtual void RecieveData(std::vector<std::uint8_t> packetData) noexcept = 0;
+        virtual void RecieveData(const std::shared_ptr<std::vector<std::uint8_t>>& packetData) noexcept = 0;
         /// <summary>
         /// Get the name of the current viewer.
         /// </summary>

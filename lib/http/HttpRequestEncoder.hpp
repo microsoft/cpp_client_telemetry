@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
             return m_system.getLogManager().GetAuthTokensController();
         }
 
-        virtual bool DispatchDataViewerEvent(StorageBlob dataPacket);
+        virtual bool DispatchDataViewerEvent(const std::shared_ptr<StorageBlob>& dataPacket);
     };
 
 

@@ -528,16 +528,18 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
     /// <returns></returns>
-    bool LogManagerImpl::DispatchDataViewerEvent(StorageBlob dataPacket) const
+    bool LogManagerImpl::DispatchDataViewerEvent(const std::shared_ptr<StorageBlob>& dataPacket) const
     {
         if (AreAnyViewersEnabled() == false)
-            return;
+            return false;
 
         auto dataViewerIterator = m_dataViewers.cbegin();
         while (dataViewerIterator != m_dataViewers.cend())
         {
             dataViewerIterator->second->RecieveData(dataPacket);
         }
+
+        return true;
     };
 
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>

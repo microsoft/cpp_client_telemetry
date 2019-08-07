@@ -121,7 +121,7 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
-        virtual bool DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const override
+        virtual bool DispatchDataViewerEvent(const std::shared_ptr<std::vector<std::uint8_t>>&) const override
         {
             return false;
         }
