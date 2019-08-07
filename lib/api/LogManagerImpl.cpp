@@ -45,15 +45,6 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
-    bool ILogManager::DispatchDataViewerEventBroadcast(std::vector<std::uint8_t> dataPacket)
-    {
-        for (auto instance : ILogManagerInternal::managers)
-        {
-            instance->DispatchDataViewerEvent(dataPacket);
-        }
-        return true;
-    }
-
     MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class");
 
 #if 1
@@ -537,7 +528,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
     /// <returns></returns>
-    bool LogManagerImpl::DispatchDataViewerEvent(std::vector<std::uint8_t> dataPacket) const
+    bool LogManagerImpl::DispatchDataViewerEvent(StorageBlob dataPacket) const
     {
         if (AreAnyViewersEnabled() == false)
             return;
