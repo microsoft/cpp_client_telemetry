@@ -60,7 +60,10 @@ namespace PAL_NS_BEGIN {
                     return NetworkCost_Unknown;
                 }
 
-                NetworkInformationImpl::NetworkInformationImpl() : m_info_helper(), m_registredCount(0)
+                NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+                    m_info_helper(),
+                    m_registredCount(0),
+                    m_isNetDetectEnabled(isNetDetectEnabled)
                 {
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
                     // some unknown scenarios on some Windows versions (Windows API bug),
@@ -121,12 +124,12 @@ namespace PAL_NS_BEGIN {
 
                 NetworkInformationImpl::~NetworkInformationImpl() 
                 {
-                    NetworkInformation::NetworkStatusChanged -= token;                
+                    NetworkInformation::NetworkStatusChanged -= token;
                 };
-				               
-				INetworkInformation* NetworkInformationImpl::Create()
+
+                INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
                 {
-                    return new NetworkInformationImpl();
+                    return new NetworkInformationImpl(isNetDetectEnabled);
                 }
 
 } PAL_NS_END

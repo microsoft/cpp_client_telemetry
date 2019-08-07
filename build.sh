@@ -19,6 +19,12 @@ if [ "$1" == "noroot" ] || [ "$2" == "noroot" ]; then
 export NOROOT=true
 fi
 
+if [ "$1" == "release" ] || [ "$2" == "release" ]; then
+BUILD_TYPE="Release"
+else
+BUILD_TYPE="Debug"
+fi
+
 # Install build tools and recent sqlite3
 FILE=.buildtools
 OS_NAME=`uname -a`
@@ -64,13 +70,10 @@ fi
 # Fail on error
 set -e
 
-if [ "$2" == "release" ]; then
+
 # TODO: pass custom build flags?
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
-# TODO: strip symbols to minimize
-else
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
-fi
+cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
+# TODO: strip symbols to minimize (release-only)
 
 # Build all
 # TODO: what are the pros and cons of using 'make' vs 'cmake --build' ?

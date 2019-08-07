@@ -52,6 +52,7 @@
 #include <chrono>
 #include <thread>
 
+#include "ILogConfiguration.hpp"
 #include "typename.hpp"
 #include "WorkerThread.hpp"
 
@@ -118,7 +119,7 @@ namespace PAL_NS_BEGIN
     //
     // Startup/shutdown
     //
-    void initialize();
+    void initialize(ILogConfiguration& configuration);
     void shutdown();
 
     INetworkInformation* GetNetworkInformation();
