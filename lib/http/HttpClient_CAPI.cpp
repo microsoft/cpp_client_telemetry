@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN {
             m_callback(callback),
             m_cancelFn(cancelFn)
         {
-            if ((request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
+            if ((m_request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
             {
                 throw std::invalid_argument("Created HttpClient_Operation with invalid parameters");
             }
