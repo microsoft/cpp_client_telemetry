@@ -127,7 +127,14 @@ evt_status_t mat_open_core(
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
-        clients[code].http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+        try
+        {
+            clients[code].http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+        }
+        catch (...)
+        {
+            return EFAULT;
+        }
     }
 
     status_t status = static_cast<status_t>(EFAULT);
