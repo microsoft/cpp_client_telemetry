@@ -9,8 +9,9 @@
 #include <string>
 
 #include "Enums.hpp"
-#include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
+#include "ILogger.hpp"
+#include "IEventFilterCollection.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -314,6 +315,10 @@ namespace ARIASDK_NS_BEGIN
         /// Set the Auth ticket controller
         /// </summary>
         virtual IAuthTokensController*  GetAuthTokensController() override = 0;
+
+        virtual IEventFilterCollection& GetEventFilters() noexcept = 0;
+
+        virtual const IEventFilterCollection& GetEventFilters() const noexcept = 0;
 
         /// <summary>
         /// Sets the diagnostic level for the LogManager

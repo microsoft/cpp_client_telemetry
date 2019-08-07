@@ -18,6 +18,7 @@
 
 #include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
+#include "filter/EventFilterCollection.hpp"
 
 #include "LogSessionData.hpp"
 
@@ -180,6 +181,10 @@ namespace ARIASDK_NS_BEGIN
 
         IAuthTokensController* GetAuthTokensController() override;
 
+        IEventFilterCollection& GetEventFilters() noexcept override;
+        
+        const IEventFilterCollection& GetEventFilters() const noexcept override;
+
         /// <summary>
         /// Adds the event listener.
         /// </summary>
@@ -260,6 +265,8 @@ protected:
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
+
+        EventFilterCollection                                  m_filters;
     };
 
 

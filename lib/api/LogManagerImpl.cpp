@@ -548,6 +548,16 @@ namespace ARIASDK_NS_BEGIN
         return &m_authTokensController;
     }
 
+    IEventFilterCollection& LogManagerImpl::GetEventFilters() noexcept
+    {
+        return m_filters;
+    }
+
+    const IEventFilterCollection& LogManagerImpl::GetEventFilters() const noexcept
+    {
+        return m_filters;
+    }
+
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
