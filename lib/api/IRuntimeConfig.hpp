@@ -19,6 +19,7 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         virtual Variant & operator[](const char* key) = 0;
+        virtual bool HasConfig(const char* key) = 0;
 
         /// <summary>
         /// Gets the URI of the collector (where telemetry events are sent).
