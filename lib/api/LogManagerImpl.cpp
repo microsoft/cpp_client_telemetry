@@ -605,16 +605,6 @@ namespace ARIASDK_NS_BEGIN
         return status_t::STATUS_EALREADY;
     }
 
-    /// <summary>
-    /// Unregister a IDataViewer from LogManager.
-    /// </summary>
-    /// <param name="viewerName">
-    /// Unique Name to identify the viewer that should be unregistered from the LogManager.
-    /// </param>
-    /// <returns>
-    /// 0 if unregisteration succeeded, negative value if unregisteration failed,
-    /// STATUS_EALREADY if dataViewer is already unregistered.
-    /// </returns>
     status_t LogManagerImpl::UnregisterViewer(const char* viewerName)
     {
         if (m_dataViewers.find(viewerName) == m_dataViewers.end())
@@ -626,21 +616,12 @@ namespace ARIASDK_NS_BEGIN
         return status_t::STATUS_SUCCESS;
     }
 
-    /// <summary>
-    /// Check if the given viewer (name) is registered as a data viewer.
-    /// </summary>
-    /// <param name="viewerName">
-    /// Unique Name to identify the viewer being checked.
-    /// </param>
-    bool LogManagerImpl::IsViewerEnabled(const char* viewerName)
+    bool LogManagerImpl::IsViewerEnabled(const char* viewerName) const
     {
         return m_dataViewers.find(viewerName) != m_dataViewers.end();
     }
 
-    /// <summary>
-    /// Check if any viewers are registered.
-    /// </summary>
-    bool LogManagerImpl::AreAnyViewersEnabled() noexcept
+    bool LogManagerImpl::AreAnyViewersEnabled() const noexcept
     {
         return m_dataViewers.empty() == false;
     }

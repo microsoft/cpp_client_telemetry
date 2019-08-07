@@ -378,12 +378,12 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="viewerName">
         /// Unique Name to identify the viewer being checked.
         /// </param>
-        virtual bool IsViewerEnabled(const char* viewerName) = 0;
+        virtual bool IsViewerEnabled(const char* viewerName) const = 0;
 
         /// <summary>
         /// Check if any viewers are registered.
         /// </summary>
-        virtual bool AreAnyViewersEnabled() noexcept = 0;
+        virtual bool AreAnyViewersEnabled() const noexcept = 0;
     };
 
 } ARIASDK_NS_END

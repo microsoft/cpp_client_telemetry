@@ -231,30 +231,11 @@ namespace ARIASDK_NS_BEGIN
 
         status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) override;
 
-        /// <summary>
-        /// Unregister a IDataViewer from LogManager.
-        /// </summary>
-        /// <param name="viewerName">
-        /// Unique Name to identify the viewer that should be unregistered from the LogManager.
-        /// </param>
-        /// <returns>
-        /// 0 if unregisteration succeeded, negative value if unregisteration failed,
-        /// STATUS_EALREADY if dataViewer is already unregistered.
-        /// </returns>
         status_t UnregisterViewer(const char* viewerName) override;
 
-        /// <summary>
-        /// Check if the given viewer (name) is registered as a data viewer.
-        /// </summary>
-        /// <param name="viewerName">
-        /// Unique Name to identify the viewer being checked.
-        /// </param>
-        bool IsViewerEnabled(const char* viewerName) override;
+        bool IsViewerEnabled(const char* viewerName) const override;
 
-        /// <summary>
-        /// Check if any viewers are registered.
-        /// </summary>
-        bool AreAnyViewersEnabled() noexcept override;
+        bool AreAnyViewersEnabled() const noexcept override;
 
         /// <summary>
         /// Adds the incoming event.
