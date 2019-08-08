@@ -141,6 +141,11 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogAppLifecycle(state=%u, properties.name=\"%s\", ...)",
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -178,6 +183,11 @@ namespace ARIASDK_NS_BEGIN
 
         LOG_TRACE("%p: LogEvent(properties.name=\"%s\", ...)",
             this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         if (properties.GetLatency() > EventLatency_Unspecified)
@@ -219,6 +229,11 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogFailure(signature=\"%s\", properties.name=\"%s\", ...)",
             this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -256,6 +271,11 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogPageView(id=\"%s\", properties.name=\"%s\", ...)",
             this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -298,6 +318,11 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogPageAction(pageActionData.actionType=%u, properties.name=\"%s\", ...)",
             this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -436,6 +461,11 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogSampledMetric(name=\"%s\", properties.name=\"%s\", ...)",
             this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -480,6 +510,11 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogAggregatedMetric(name=\"%s\", properties.name=\"%s\", ...)",
             this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -505,6 +540,11 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogTrace(level=%u, properties.name=\"%s\", ...)",
             this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -532,6 +572,11 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogUserState(state=%u, properties.name=\"%s\", ...)",
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -558,6 +603,11 @@ namespace ARIASDK_NS_BEGIN
     ******************************************************************************/
     void Logger::LogSession(SessionState state, const EventProperties& props)
     {
+        if (!CanEventPropertiesBeSent(props))
+        {
+            return;
+        }
+
         LogSessionData* logSessionData = m_logManager.GetLogSessionData();
         std::string sessionSDKUid = logSessionData->getSessionSDKUid();
         unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
