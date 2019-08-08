@@ -18,12 +18,14 @@ namespace ARIASDK_NS_BEGIN {
         auto dataViewerIterator = m_dataViewerCollection.cbegin();
         while (dataViewerIterator != m_dataViewerCollection.cend())
         {
+            //ToDo: Send data asynchronously to individual viewers
             dataViewerIterator->second->RecieveData(packetData);
         }
     };
 
     void DataViewerCollectionImpl::RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer)
     {
+        LOCKGUARD(m_dataViewerMapLock);
         if (m_dataViewerCollection.find(dataViewer->GetName()) == m_dataViewerCollection.end())
         {
             m_dataViewerCollection.emplace(dataViewer->GetName(), std::move(dataViewer));
@@ -36,6 +38,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::UnregisterViewer(const char* viewerName)
     {
+        LOCKGUARD(m_dataViewerMapLock);
         if (m_dataViewerCollection.find(viewerName) == m_dataViewerCollection.end())
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName });
@@ -46,16 +49,19 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::UnregisterAllViewers()
     {
+        LOCKGUARD(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
     bool DataViewerCollectionImpl::IsViewerEnabled(const char* viewerName) const
     {
+        LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
     bool DataViewerCollectionImpl::AreAnyViewersEnabled() const noexcept
     {
+        LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;
     }
 } ARIASDK_NS_END
