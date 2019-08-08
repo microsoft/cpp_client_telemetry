@@ -1,4 +1,3 @@
-#if 0 // TODO: [MG] - this test is currently broken and needs to be debugged.
 // Copyright (c) Microsoft. All rights reserved .
 
 #include "common/Common.hpp"
@@ -49,9 +48,9 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
 
     EXPECT_THAT(req->m_id, Eq("HttpRequestEncoderTests"));
     EXPECT_THAT(req->m_method, Eq("POST"));
-    EXPECT_THAT(req->m_url, Eq("http://collector/"));
+    EXPECT_THAT(req->m_url, Eq("https://self.events.data.microsoft.com/OneCollector/1.0/"));
     EXPECT_THAT(req->m_headers, Contains(Pair("Expect", "100-continue")));
-    EXPECT_THAT(req->m_headers, Contains(Pair("Client-Version", PAL::getSdkVersion())));
+    EXPECT_THAT(req->m_headers, Contains(Pair("SDK-Version", PAL::getSdkVersion())));
     EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id", "NO_AUTH")));
     EXPECT_THAT(req->m_headers, Contains(Pair("Content-Type", "application/bond-compact-binary")));
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token")));
@@ -98,4 +97,3 @@ TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
     req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token,tenant2-token,tenant3-token")));
 }
-#endif
