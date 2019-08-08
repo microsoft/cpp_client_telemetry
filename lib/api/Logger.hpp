@@ -176,6 +176,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void submit(::CsProtocol::Record& record, const EventProperties& props);
 
+        bool CanEventPropertiesBeSent(EventProperties const& properties) const noexcept;
+
         std::mutex                m_lock;
 
         std::string               m_tenantToken;

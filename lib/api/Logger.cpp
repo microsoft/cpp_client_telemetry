@@ -663,4 +663,9 @@ namespace ARIASDK_NS_BEGIN
         m_level = level;
     }
 
+    bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
+    {
+        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+    }
+
 } ARIASDK_NS_END

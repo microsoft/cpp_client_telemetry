@@ -418,6 +418,7 @@
     <ClCompile Include="DebugEventSourceTests.cpp" />
     <ClCompile Include="EventFilterCollectionTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
     <ClCompile Include="LogManagerImplTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="MemoryStorageTests.cpp" />
