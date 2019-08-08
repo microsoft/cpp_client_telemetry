@@ -14,6 +14,7 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
+#include "api/DataViewerCollectionImpl.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -153,6 +154,9 @@ namespace ARIASDK_NS_BEGIN
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
+
+        LOG_TRACE("Setting up the Data Viewer Collection implementation...");
+        m_dataViewerCollection = std::make_unique<DataViewerCollectionImpl>();
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
@@ -523,25 +527,6 @@ namespace ARIASDK_NS_BEGIN
         return m_debugEventSource.DispatchEvent(std::move(evt));
     };
 
-    /// <summary>
-    /// Dispatches data viewer event to this ILogManager instance.
-    /// </summary>
-    /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
-    /// <returns></returns>
-    bool LogManagerImpl::DispatchDataViewerEvent(const std::shared_ptr<StorageBlob>& dataPacket) const
-    {
-        if (AreAnyViewersEnabled() == false)
-            return false;
-
-        auto dataViewerIterator = m_dataViewers.cbegin();
-        while (dataViewerIterator != m_dataViewers.cend())
-        {
-            dataViewerIterator->second->RecieveData(dataPacket);
-        }
-
-        return true;
-    };
-
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
     bool LogManagerImpl::AttachEventSource(DebugEventSource & other)
     {
@@ -613,36 +598,8 @@ namespace ARIASDK_NS_BEGIN
         return m_system;
     }
 
-    status_t LogManagerImpl::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
+    IDataViewerCollection* LogManagerImpl::GetDataViewerCollection() noexcept
     {
-        if (m_dataViewers.find(dataViewer->GetName()) == m_dataViewers.end())
-        {
-            m_dataViewers.emplace(dataViewer->GetName(), dataViewer);
-            return status_t::STATUS_SUCCESS;
-        }
-
-        return status_t::STATUS_EALREADY;
+        return m_dataViewerCollection.get();
     }
-
-    status_t LogManagerImpl::UnregisterViewer(const char* viewerName)
-    {
-        if (m_dataViewers.find(viewerName) == m_dataViewers.end())
-        {
-            return status_t::STATUS_EALREADY;
-        }
-
-        m_dataViewers.erase(viewerName);
-        return status_t::STATUS_SUCCESS;
-    }
-
-    bool LogManagerImpl::IsViewerEnabled(const char* viewerName) const
-    {
-        return m_dataViewers.find(viewerName) != m_dataViewers.end();
-    }
-
-    bool LogManagerImpl::AreAnyViewersEnabled() const noexcept
-    {
-        return m_dataViewers.empty() == false;
-    }
-
 } ARIASDK_NS_END

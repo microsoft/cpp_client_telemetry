@@ -203,8 +203,6 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         virtual bool DispatchEvent(DebugEvent evt) override;
 
-        virtual bool DispatchDataViewerEvent(const std::shared_ptr<std::vector<std::uint8_t>>& dataPacket) const override;
-
         ///
         virtual bool AttachEventSource(DebugEventSource & other) override;
 
@@ -231,13 +229,7 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
 
-        status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) override;
-
-        status_t UnregisterViewer(const char* viewerName) override;
-
-        bool IsViewerEnabled(const char* viewerName) const override;
-
-        bool AreAnyViewersEnabled() const noexcept override;
+        virtual IDataViewerCollection* GetDataViewerCollection() noexcept override;
 
         /// <summary>
         /// Adds the incoming event.
@@ -294,8 +286,7 @@ protected:
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
-
-        std::map<const char*, std::shared_ptr<IDataViewer>>    m_dataViewers;
+        std::unique_ptr<IDataViewerCollection>                 m_dataViewerCollection;
     };
 
 

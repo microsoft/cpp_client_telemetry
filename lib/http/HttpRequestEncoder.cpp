@@ -27,9 +27,9 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
-    bool HttpRequestEncoder::DispatchDataViewerEvent(const std::shared_ptr<StorageBlob>& dataPacket)
+    void HttpRequestEncoder::DispatchDataViewerEvent(const StorageBlob& dataPacket)
     {
-        return m_system.getLogManager().DispatchDataViewerEvent(dataPacket);
+        m_system.getLogManager().GetDataViewerCollection()->DispatchDataViewerEvent(dataPacket);
     }
 
     bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
@@ -155,7 +155,7 @@ namespace ARIASDK_NS_BEGIN {
 
         ctx->httpRequest->SetLatency(ctx->latency);
 
-        DispatchDataViewerEvent(std::make_shared<StorageBlob>(ctx->body));
+        DispatchDataViewerEvent(ctx->body);
 
         return true;
     }

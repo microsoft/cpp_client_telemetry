@@ -11,7 +11,7 @@
 #include "Enums.hpp"
 #include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
-#include "IDataViewer.hpp"
+#include "IDataViewerCollection.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -126,13 +126,6 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="evt">DebugEvent</param>
         /// <returns></returns>
         virtual bool DispatchEvent(DebugEvent evt) override = 0;
-
-        /// <summary>
-        /// Dispatches data viewer event to this ILogManager instance.
-        /// </summary>
-        /// <param name="dataPacket">Data Packet as vector of uint8_t</param>
-        /// <returns></returns>
-        virtual bool DispatchDataViewerEvent(const std::shared_ptr<std::vector<std::uint8_t>>& dataPacket) const = 0;
 
         /// <summary>
         /// Dispatches broadcast event to all active ILogManager instances.
@@ -358,39 +351,10 @@ namespace ARIASDK_NS_BEGIN
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
 
         /// <summary>
-        /// Register an IDataViewer with LogManager.
+        /// Gets an instance of the Data Viewer Collection.
         /// </summary>
-        /// <param name="dataViewer">dataViewer to register with LogManager</param>
-        /// <returns>
-        /// 0 if registeration succeeded, negative value if registeration failed,
-        /// STATUS_EALREADY if dataViewer is already registered.
-        /// </returns>
-        virtual status_t RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) = 0;
-
-        /// <summary>
-        /// Unregister a IDataViewer from LogManager.
-        /// </summary>
-        /// <param name="viewerName">
-        /// Unique Name to identify the viewer that should be unregistered from the LogManager.
-        /// </param>
-        /// <returns>
-        /// 0 if unregisteration succeeded, negative value if unregisteration failed,
-        /// STATUS_EALREADY if dataViewer is already unregistered.
-        /// </returns>
-        virtual status_t UnregisterViewer(const char* viewerName) = 0;
-
-        /// <summary>
-        /// Check if the given viewer (name) is registered as a data viewer.
-        /// </summary>
-        /// <param name="viewerName">
-        /// Unique Name to identify the viewer being checked.
-        /// </param>
-        virtual bool IsViewerEnabled(const char* viewerName) const = 0;
-
-        /// <summary>
-        /// Check if any viewers are registered.
-        /// </summary>
-        virtual bool AreAnyViewersEnabled() const noexcept = 0;
+        /// <returns>A pointer to IDataViewerCollection</returns>
+        virtual IDataViewerCollection* GetDataViewerCollection() noexcept = 0;
     };
 
 } ARIASDK_NS_END

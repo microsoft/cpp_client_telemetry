@@ -109,6 +109,26 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
+    class NullDataViewerCollection : public IDataViewerCollection
+    {
+        virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>&) noexcept {};
+        virtual void RegisterViewer(std::unique_ptr<IDataViewer>&&) override {};
+
+        virtual void UnregisterViewer(const char*) override {};
+
+        virtual void UnregisterAllViewers() override {};
+
+        virtual bool IsViewerEnabled(const char*) const
+        {
+            return false;
+        }
+
+        virtual bool AreAnyViewersEnabled() const noexcept
+        {
+            return false;
+        }
+    };
+
     class NullLogManager : public ILogManager
     {
     public:
@@ -117,11 +137,6 @@ namespace ARIASDK_NS_BEGIN
 
         // Inherited via ILogManager
         virtual bool DispatchEvent(DebugEvent evt) override
-        {
-            return false;
-        }
-
-        virtual bool DispatchDataViewerEvent(const std::shared_ptr<std::vector<std::uint8_t>>&) const override
         {
             return false;
         }
@@ -310,24 +325,10 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
 
-        virtual status_t RegisterViewer(const std::shared_ptr<IDataViewer>& /*dataViewer*/) noexcept override
+        virtual IDataViewerCollection* GetDataViewerCollection() noexcept
         {
-            return status_t::STATUS_SUCCESS;
-        }
-
-        virtual status_t UnregisterViewer(const char* /*viewerName*/) noexcept override
-        {
-            return status_t::STATUS_SUCCESS;
-        }
-
-        virtual bool IsViewerEnabled(const char* /*viewerName*/) const noexcept override
-        {
-            return false;
-        }
-
-        virtual bool AreAnyViewersEnabled() const noexcept override
-        {
-            return false;
+            static NullDataViewerCollection nullDataViewerCollection;
+            return &nullDataViewerCollection;
         }
     };
 
