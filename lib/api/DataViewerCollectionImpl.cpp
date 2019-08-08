@@ -53,13 +53,13 @@ namespace ARIASDK_NS_BEGIN {
         m_dataViewerCollection.clear();
     }
 
-    bool DataViewerCollectionImpl::IsViewerEnabled(const char* viewerName) const
+    bool DataViewerCollectionImpl::IsViewerEnabled(const char* viewerName)
     {
         LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
-    bool DataViewerCollectionImpl::AreAnyViewersEnabled() const noexcept
+    bool DataViewerCollectionImpl::AreAnyViewersEnabled() noexcept
     {
         LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;

@@ -118,12 +118,12 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void UnregisterAllViewers() override {};
 
-        virtual bool IsViewerEnabled(const char*) const
+        virtual bool IsViewerEnabled(const char*) override
         {
             return false;
         }
 
-        virtual bool AreAnyViewersEnabled() const noexcept
+        virtual bool AreAnyViewersEnabled() noexcept override
         {
             return false;
         }
