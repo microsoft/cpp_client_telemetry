@@ -26,6 +26,12 @@ namespace ARIASDK_NS_BEGIN {
     void DataViewerCollectionImpl::RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer)
     {
         LOCKGUARD(m_dataViewerMapLock);
+
+        if (dataViewer == nullptr)
+        {
+            throw std::invalid_argument("nullptr passed for data viewer");
+        }
+
         if (m_dataViewerCollection.find(dataViewer->GetName()) == m_dataViewerCollection.end())
         {
             m_dataViewerCollection.emplace(dataViewer->GetName(), std::move(dataViewer));
@@ -39,6 +45,12 @@ namespace ARIASDK_NS_BEGIN {
     void DataViewerCollectionImpl::UnregisterViewer(const char* viewerName)
     {
         LOCKGUARD(m_dataViewerMapLock);
+
+        if (viewerName == nullptr)
+        {
+            throw std::invalid_argument("nullptr passed for viewer name");
+        }
+
         if (m_dataViewerCollection.find(viewerName) == m_dataViewerCollection.end())
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName });
@@ -56,6 +68,12 @@ namespace ARIASDK_NS_BEGIN {
     bool DataViewerCollectionImpl::IsViewerEnabled(const char* viewerName)
     {
         LOCKGUARD(m_dataViewerMapLock);
+
+        if (viewerName == nullptr)
+        {
+            throw std::invalid_argument("nullptr passed for viewer name");
+        }
+
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
