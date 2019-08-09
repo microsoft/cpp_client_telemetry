@@ -26,11 +26,13 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool AreAnyViewersEnabled() noexcept override;
 
+    protected:
+        std::map<const char*, std::unique_ptr<IDataViewer>> m_dataViewerCollection;
+
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
         std::recursive_mutex m_dataViewerMapLock;
-        std::map<const char*, std::unique_ptr<IDataViewer>> m_dataViewerCollection;
     };
 
 } ARIASDK_NS_END
