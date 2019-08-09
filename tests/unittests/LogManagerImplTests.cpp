@@ -53,3 +53,11 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_HttpClientIsSet)
    TestLogManagerImpl logManager { configuration, &httpClient, true };
    ASSERT_EQ(logManager.m_httpClient, &httpClient);
 }
+
+TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewerCollectionIsSet)
+{
+    ILogConfiguration configuration;
+    TestHttpClient httpClient;
+    TestLogManagerImpl logManager { configuration, &httpClient, true };
+    ASSERT_NE(logManager.GetDataViewerCollection(), nullptr);
+}

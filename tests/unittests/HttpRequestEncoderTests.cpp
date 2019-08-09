@@ -8,6 +8,23 @@
 using namespace testing;
 using namespace MAT;
 
+
+class MockHttpRequestEncoder : public HttpRequestEncoder
+{
+public:
+    MockHttpRequestEncoder(ITelemetrySystem& system, IHttpClient& httpClient)
+        : HttpRequestEncoder(system, httpClient) { }
+
+    using HttpRequestEncoder::handleEncode;
+    
+    void DispatchDataViewerEvent(const StorageBlob& packet)
+    {
+        dataPacket = packet;
+    }
+
+    StorageBlob dataPacket;
+};
+
 class HttpRequestEncoderTests : public Test {
 
 public:
@@ -96,4 +113,16 @@ TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
     req = static_cast<SimpleHttpRequest*>(ctx->httpRequest);
     EXPECT_THAT(req->m_headers, Contains(Pair("APIKey", "tenant1-token,tenant2-token,tenant3-token")));
+}
+
+TEST_F(HttpRequestEncoderTests, DispatchDataViewerEventCorrectly)
+{
+    EventsUploadContextPtr ctx = new EventsUploadContext();
+    ctx->body = { 1, 127, 255 };
+
+    MockHttpRequestEncoder mockEncoder(system, mockHttpClient);
+
+    mockEncoder.encode(ctx);
+
+    EXPECT_THAT(mockEncoder.dataPacket, Eq(std::vector<uint8_t>{1, 127, 255}));
 }

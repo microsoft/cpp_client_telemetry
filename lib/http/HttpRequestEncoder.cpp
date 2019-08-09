@@ -155,7 +155,7 @@ namespace ARIASDK_NS_BEGIN {
 
         ctx->httpRequest->SetLatency(ctx->latency);
 
-        DispatchDataViewerEvent(ctx->body);
+        DispatchDataViewerEvent(ctx->httpRequest->GetBody());
 
         return true;
     }
