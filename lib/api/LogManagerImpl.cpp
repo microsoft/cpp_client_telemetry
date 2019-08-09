@@ -263,6 +263,8 @@ namespace ARIASDK_NS_BEGIN
             m_httpClient = nullptr;
         }
 
+        m_filters.UnregisterAllFilters();
+
         auto shutTime = GetUptimeMs();
         PAL::shutdown();
         shutTime = GetUptimeMs() - shutTime;
