@@ -1,0 +1,169 @@
+# Data Viewing as a 1SDK First Class Citizen
+
+## Summary
+Microsoft products require support for data viewing capabilities where we can show
+the data being uploaded by the 1SDK in a custom viewer. Office has implemented this
+support in DevMain, but the 1SDK does not natively support this. As it stands today,
+consumers of the 1SDK must design and implement this feature on their own,
+duplicating much of the work. 
+
+## Problem Space 
+
+Microsoft products must support data viewing capabilities to meet customer
+promises with regards to data transparency.
+
+## Proposed Solution
+#### `IDataViewer` Interface
+
+    class IDataViewer 
+    { 
+    public:
+        virtual void RecieveData(const std::vector<std::uint8_t>& packetData) noexcept = 0;
+        virtual const char* const GetName() const noexcept = 0;
+    };
+
+This is intended to be a simple interface that can be integrated into the 1SDK. It will
+allow for extension of data viewing capabilities by allowing consumer to extend this
+interface class.
+
+`ReceiveData` will receive a reference to the packet and allow data viewers to
+consume it as they see appropriate. Having a `const` reference will allow us to
+retain a single copy of the data, ensuring it is consistent for all viewers, and
+having that `const` allows us to prevent any unwanted data modifications.
+
+`GetName` should return a name that will allow for ensuring unique data viewer
+registration, unregistering specific data viewers and validating if a given viewer
+is registered. We can also use this name to gather data on the number and name
+of data viewers that are being registered. 
+
+#### `IDataViewerCollection` Accessors 
+
+    class IDataViewerCollection  
+    { 
+    public: 
+       virtual void RegisterViewer(const std::unique_ptr<IDataViewer>& dataViewer) = 0;
+       virtual void UnregisterAllViewers() = 0;
+       virtual void UnregisterViewer(const char* viewerName) noexcept = 0;
+       virtual bool IsViewerRegistered(const char* viewerName) noexcept = 0;
+       virtual bool AreAnyViewersRegistered() noexcept = 0;
+
+       virtual bool DispatchDataViewerEvent(const std::vector<std::uint8_t>& dataPacket) noexcept = 0;
+    }; 
+
+The `IDataViewerCollection` will allow for managing a set of `IDataViewer`
+objects and checking their registration status. The `IsViewerEnabled` and
+`AreAnyViewersEnabled` methods return the result of searching for a given
+viewer in the viewer collection, without modifying the `IDataViewerCollection`
+. Having functionalities such as registration, unregistration and ability to
+check if any viewer is registered, directly on `IDataViewerCollection`
+allows a unified viewer management capability that will affect all ILoggers
+registered with the ILogManager. 
+
+The `DispatchDataViewerEvent` method will be used internally to dispatch
+a packet to the `IDataViewerCollection` implementation, which subsequently
+conveys it to all registered data viewers. The current plan is that
+`HttpRequestEncoder` should call this method as it encodes data to be sent
+via Network. 
+
+To provide access to `IDataViewerCollection`, `ILogManager` Accessors
+will be added as below and the `LogManagerImpl` will store a pointer to the
+implemented instance of `IDataViewerCollection`.
+
+#### `ILogManager` Accessors 
+
+    class ILogManager
+    {
+    public:
+       ...
+       virtual IDataViewerCollection* GetDataViewerCollection() noexcept = 0;
+    };
+
+## Abstract Decision Tree
+
+Once we have instantiated a `DataViewerCollection` instance, the following
+decisions can be made. 
+
+#### Registering `IDataViewer`
+
+* Invoke `IDataViewerCollection::RegisterViewer(ViewerImpl)`
+    * If `ViewerImpl` is not registered, register it.
+    * Else, throw duplicate viewer exception.
+
+#### Post-Registration
+
+* 1SDK generates an HTTP encoded packet and sends it to `IDataViewerCollection`
+before calling the upload method.
+* Identify all registered viewers.
+* For each viewer, asynchronously invoke `IDataViewer::ReceiveData(packet)`.
+
+#### Unregistering `IDataViewer`
+
+* Invoke `IDataViewerCollection::UnregisterViewer("ViewerImplName")`
+    * If ViewerImpl is registered, unregister it.
+    * Else, throw viewer not registered exception.
+
+#### Unregistering all registered instances of `IDataViewer`
+
+* Invoke `IDataViewerCollection::UnregisterAllViewers()`
+    * Clear data viewer collection map.
+
+## Microsoft Data Viewer Default Implementation 
+
+Office has currently implemented support for data viewing capabilities in
+Windows Diagnostic Data Viewer (DDV). In the current form, it supports
+making DDV connection via remote HTTP connection, or local via App Services
+connection only for Windows 10 RS4+ builds.
+
+In the 1SDK implementation, the implementation will be converged for all
+consumers of the SDK in the Default implementation of the IDataViewer
+component. Additionally, it will build support the existing connectivity
+capabilities, but not limit the endpoint to just DDV. This will allow
+consumers to decide how they wish their 1SDK data to be shown for any
+transparency requirements they may have. 
+
+    class DefaultDataViewer 
+    { 
+        ...
+        virtual void ReceiveData(const std::vector<std::uint8_t>& dataPacket) noexcept; 
+        virtual const char* GetName() const noexcept; 
+        virtual bool EnableRemoteViewer(const std::string& endpoint) = 0; 
+        virtual bool EnableLocalViewer() = 0;
+        virtual bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage) = 0;
+        virtual bool DisableViewer() = 0; 
+    }; 
+
+#### `EnableRemoteViewer`
+
+In this method, the `endpoint` parameter would be the endpoint where the
+data viewer is running. This will allow the SDK to know where to make
+connections using the HTTP pipeline. The result from the method would
+signify whether the connection was successful or not. 
+
+#### `EnableLocalViewer`
+
+In this method, the SDK will attempt to connect to a locally running
+instance of a diagnostic viewer on Windows. By default, it will try
+to establish a connection with the Diagnostic Data Viewer. Optionally,
+it can be provided `AppID` and `AppPackage` information to connect
+to another application. The Local connection would be established using
+App Services. Like the remote connection, the result here would signify
+whether the connection was successful or not. 
+
+#### Implementation Notes
+
+From implementation perspective, the goal will be to utilize existing
+HTTP stack used by 1SDK to support HTTP remote connection. This work
+will be considered as **First Phase 1**.
+
+For **Second Phase**, we will integrate App Services connection to
+extend the local connection support for DDV, bringing the 1DS SDK
+offerings to feature parity with Office’s viewer implementation. 
+
+## Related Note
+To support alternative viewer implementations, we should also
+provide an appropriate Aria Packet Parser. The parser should contain
+enough logic to unbond the network packet and allow the viewer implementer
+to determine how they want to consume the data. Additionally, this should
+be made available in the same location as the SDK for easy access to the
+parser. This should be addressed at a later point when we allow consumption
+via an application other than Windows DDV. 
