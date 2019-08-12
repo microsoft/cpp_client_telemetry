@@ -73,6 +73,12 @@ this approach allows us to send each packet exactly once to the viewer, without
 having to add fall-back logic in case of retries or network failures. The
 dispatching of the event to the registered viewers is not done in any particular order.
 
+In terms of lock contention, `RegisterViewer` and `Unregister*Viewer` methods take
+exclusive locks as they are allowed to modify the internal map of registered data viewers.
+The `DispatchDataViewerEvent` and `IsViewerRegistered` take shared locks as they
+only need the knowledge regarding the current state of registered viewers and perform
+relevant operations on that.
+
 To provide access to `IDataViewerCollection`, `ILogManager` Accessors
 will be added as below and the `LogManagerImpl` will store a pointer to the
 implemented instance of `IDataViewerCollection`.
@@ -114,6 +120,19 @@ before calling the upload method.
 
 * Invoke `IDataViewerCollection::UnregisterAllViewers()`
     * Clear data viewer collection map.
+
+## Alternatives Considered
+
+As alternatives to the proposed solution, it was considered if providing a
+plug-in to for an external packet sniffing tool, such as Fiddler, would be
+appropriate/sufficient. We decided against that as the tools are external
+3rd party. We should not take a dependency on any external tools that may
+change their usage or privacy policies and break our dependency on it. Additionally,
+from our experience working with customers who have requested data transparency
+capabilities, they do not prefer to install root level certificates and
+perform Man-In-The-Middle sniffing approaches. For full transparency of
+the uploaded data, we needed to establish a pipeline that will be available
+in parallel to the upload pipeline.
 
 ## Microsoft Data Viewer Default Implementation 
 

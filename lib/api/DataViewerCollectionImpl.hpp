@@ -6,7 +6,7 @@
 #include "pal/DebugTrace.hpp"
 #include "public/ctmacros.hpp"
 
-#include <mutex>
+#include <shared_mutex>
 #include <map>
 
 namespace ARIASDK_NS_BEGIN {
@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        std::recursive_mutex m_dataViewerMapLock;
+        mutable std::shared_mutex m_dataViewerMapLock;
     };
 
 } ARIASDK_NS_END

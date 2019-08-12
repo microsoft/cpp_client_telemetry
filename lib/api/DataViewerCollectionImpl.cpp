@@ -4,6 +4,7 @@
 #endif
 
 #include "DataViewerCollectionImpl.hpp"
+#include <mutex>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -14,7 +15,9 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::shared_lock<std::shared_mutex> lock(m_dataViewerMapLock);
+        
         auto dataViewerIterator = m_dataViewerCollection.cbegin();
         while (dataViewerIterator != m_dataViewerCollection.cend())
         {
@@ -25,7 +28,8 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer)
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::unique_lock<std::shared_mutex> lock(m_dataViewerMapLock);
 
         if (dataViewer == nullptr)
         {
@@ -44,7 +48,8 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::UnregisterViewer(const char* viewerName)
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::unique_lock<std::shared_mutex> lock(m_dataViewerMapLock);
 
         if (viewerName == nullptr)
         {
@@ -61,13 +66,15 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::UnregisterAllViewers()
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::unique_lock<std::shared_mutex> lock(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
     bool DataViewerCollectionImpl::IsViewerEnabled(const char* viewerName)
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::shared_lock<std::shared_mutex> lock(m_dataViewerMapLock);
 
         if (viewerName == nullptr)
         {
@@ -79,7 +86,9 @@ namespace ARIASDK_NS_BEGIN {
 
     bool DataViewerCollectionImpl::IsViewerEnabled() noexcept
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
+        std::shared_lock<std::shared_mutex> lock(m_dataViewerMapLock);
+
         return m_dataViewerCollection.empty() == false;
     }
 } ARIASDK_NS_END
