@@ -2,7 +2,7 @@
 #ifndef IEVENTFILTERCOLLECTION_HPP
 #define IEVENTFILTERCOLLECTION_HPP
 
-#include <IEventFiler.hpp>
+#include <IEventFilter.hpp>
 #include <memory>
 #include <Version.hpp>
 
