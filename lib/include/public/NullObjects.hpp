@@ -123,7 +123,7 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
-        virtual bool AreAnyViewersEnabled() noexcept override
+        virtual bool IsViewerEnabled() noexcept override
         {
             return false;
         }
