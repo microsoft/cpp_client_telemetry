@@ -2,10 +2,15 @@
 
 ## Summary
 Microsoft products require support for data viewing capabilities where we can show
-the data being uploaded by the 1SDK in a custom viewer. Office has implemented this
-support in DevMain, but the 1SDK does not natively support this. As it stands today,
-consumers of the 1SDK must design and implement this feature on their own,
-duplicating much of the work. 
+the data being uploaded by the 1SDK in a custom viewer. A core principle of the viewing
+capabilities is that we should not modify the data being uploaded by routing it through
+a proxy or another machine. The data being uploaded should be comparable to the data
+being displayed in the custom viewer. This approach allows Microsoft to earn customers
+trust and guarantee them the highest level of transparency possible.
+
+Office has implemented this support in DevMain, but the 1SDK does not natively support
+this. As it stands today, consumers of the 1SDK must design and implement this feature
+on their own, duplicating much of the work. 
 
 ## Problem Space 
 
@@ -18,7 +23,7 @@ promises with regards to data transparency.
     class IDataViewer 
     { 
     public:
-        virtual void RecieveData(const std::vector<std::uint8_t>& packetData) noexcept = 0;
+        virtual void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept = 0;
         virtual const char* const GetName() const noexcept = 0;
     };
 
@@ -45,7 +50,7 @@ of data viewers that are being registered.
        virtual void UnregisterAllViewers() = 0;
        virtual void UnregisterViewer(const char* viewerName) noexcept = 0;
        virtual bool IsViewerRegistered(const char* viewerName) noexcept = 0;
-       virtual bool AreAnyViewersRegistered() noexcept = 0;
+       virtual bool IsViewerRegistered() noexcept = 0;
 
        virtual bool DispatchDataViewerEvent(const std::vector<std::uint8_t>& dataPacket) noexcept = 0;
     }; 
@@ -53,8 +58,8 @@ of data viewers that are being registered.
 The `IDataViewerCollection` will allow for managing a set of `IDataViewer`
 objects and checking their registration status. The `IsViewerEnabled` and
 `AreAnyViewersEnabled` methods return the result of searching for a given
-viewer in the viewer collection, without modifying the `IDataViewerCollection`
-. Having functionalities such as registration, unregistration and ability to
+viewer in the viewer collection, without modifying the `IDataViewerCollection`.
+Having functionalities such as registration, unregistration and ability to
 check if any viewer is registered, directly on `IDataViewerCollection`
 allows a unified viewer management capability that will affect all ILoggers
 registered with the ILogManager. 
@@ -62,8 +67,11 @@ registered with the ILogManager.
 The `DispatchDataViewerEvent` method will be used internally to dispatch
 a packet to the `IDataViewerCollection` implementation, which subsequently
 conveys it to all registered data viewers. The current plan is that
-`HttpRequestEncoder` should call this method as it encodes data to be sent
-via Network. 
+`HttpRequestEncoder` should call this method as it encodes data to be sent.
+Given that we will send the event to the viewer before attempting network calls,
+this approach allows us to send each packet exactly once to the viewer, without
+having to add fall-back logic in case of retries or network failures. The
+dispatching of the event to the registered viewers is not done in any particular order.
 
 To provide access to `IDataViewerCollection`, `ILogManager` Accessors
 will be added as below and the `LogManagerImpl` will store a pointer to the

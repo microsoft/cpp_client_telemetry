@@ -52,7 +52,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Check if any viewers are registered.
         /// </summary>
-        virtual bool AreAnyViewersEnabled() noexcept = 0;
+        virtual bool IsViewerEnabled() noexcept = 0;
     };
 
 } ARIASDK_NS_END

@@ -11,7 +11,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollectionImpl::DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) noexcept
     {
-        if (AreAnyViewersEnabled() == false)
+        if (IsViewerEnabled() == false)
             return;
 
         LOCKGUARD(m_dataViewerMapLock);
@@ -77,7 +77,7 @@ namespace ARIASDK_NS_BEGIN {
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
-    bool DataViewerCollectionImpl::AreAnyViewersEnabled() noexcept
+    bool DataViewerCollectionImpl::IsViewerEnabled() noexcept
     {
         LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;

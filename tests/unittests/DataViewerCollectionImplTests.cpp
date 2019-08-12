@@ -37,7 +37,6 @@ public:
    using DataViewerCollectionImpl::UnregisterViewer;
    using DataViewerCollectionImpl::UnregisterAllViewers;
    using DataViewerCollectionImpl::IsViewerEnabled;
-   using DataViewerCollectionImpl::AreAnyViewersEnabled;
 
    std::map<const char*, std::unique_ptr<IDataViewer>>& GetCollection()
    {
@@ -177,21 +176,21 @@ TEST(DataViewerCollectionImplTests, IsViewerEnabled_MultipleViewersRegistered_Re
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled("UniqueName3"));
 }
 
-TEST(DataViewerCollectionImplTests, AreAnyViewersEnabled_NoViewerIsRegistered_ReturnsFalseCorrectly)
+TEST(DataViewerCollectionImplTests, IsViewerEnabledNoParam_NoViewerIsRegistered_ReturnsFalseCorrectly)
 {
     TestDataViewerCollectionImpl dataViewerCollection { };
-    ASSERT_FALSE(dataViewerCollection.AreAnyViewersEnabled());
+    ASSERT_FALSE(dataViewerCollection.IsViewerEnabled());
 }
 
-TEST(DataViewerCollectionImplTests, AreAnyViewersEnabled_SingleViewerIsRegistered_ReturnsTrueCorrectly)
+TEST(DataViewerCollectionImplTests, IsViewerEnabledNoParam_SingleViewerIsRegistered_ReturnsTrueCorrectly)
 {
     std::unique_ptr<IDataViewer> viewer = std::make_unique<MockIDataViewer>("UniqueName");
     TestDataViewerCollectionImpl dataViewerCollection { };
     dataViewerCollection.GetCollection().emplace("UniqueName", std::move(viewer));
-    ASSERT_TRUE(dataViewerCollection.AreAnyViewersEnabled());
+    ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }
 
-TEST(DataViewerCollectionImplTests, AreAnyViewersEnabled_MultipleViewersRegistered_ReturnsTrueCorrectly)
+TEST(DataViewerCollectionImplTests, IsViewerEnabledNoParam_MultipleViewersRegistered_ReturnsTrueCorrectly)
 {
     std::unique_ptr<IDataViewer> viewer1 = std::make_unique<MockIDataViewer>("UniqueName1");
     std::unique_ptr<IDataViewer> viewer2 = std::make_unique<MockIDataViewer>("UniqueName2");
@@ -200,5 +199,5 @@ TEST(DataViewerCollectionImplTests, AreAnyViewersEnabled_MultipleViewersRegister
     dataViewerCollection.GetCollection().emplace("UniqueName1", std::move(viewer1));
     dataViewerCollection.GetCollection().emplace("UniqueName2", std::move(viewer1));
     dataViewerCollection.GetCollection().emplace("UniqueName3", std::move(viewer1));
-    ASSERT_TRUE(dataViewerCollection.AreAnyViewersEnabled());
+    ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }

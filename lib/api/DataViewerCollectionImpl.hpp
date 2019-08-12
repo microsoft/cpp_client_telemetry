@@ -24,7 +24,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsViewerEnabled(const char* viewerName) override;
 
-        virtual bool AreAnyViewersEnabled() noexcept override;
+        virtual bool IsViewerEnabled() noexcept override;
 
     protected:
         std::map<const char*, std::unique_ptr<IDataViewer>> m_dataViewerCollection;
