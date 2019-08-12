@@ -477,8 +477,8 @@ namespace ARIASDK_NS_BEGIN
             if (it == std::end(m_loggers))
             {
                 m_loggers[hash] = std::unique_ptr<Logger>(new Logger(
-					normalizedTenantToken, normalizedSource, scope,
-					*this, m_context, *m_config));
+                    normalizedTenantToken, normalizedSource, scope,
+                    *this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
             if (level != DIAG_LEVEL_DEFAULT) 

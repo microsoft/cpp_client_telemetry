@@ -182,7 +182,7 @@ namespace ARIASDK_NS_BEGIN
         IAuthTokensController* GetAuthTokensController() override;
 
         IEventFilterCollection& GetEventFilters() noexcept override;
-        
+
         const IEventFilterCollection& GetEventFilters() const noexcept override;
 
         /// <summary>
