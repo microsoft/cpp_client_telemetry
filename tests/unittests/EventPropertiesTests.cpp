@@ -213,3 +213,12 @@ TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
     EXPECT_TRUE(std::get<bool>(result));
     EXPECT_EQ(std::get<std::uint8_t>(result), 42);
 }
+
+TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectValue)
+{
+    EventProperties properties;
+    properties.SetLevel(42);
+    auto result = properties.TryGetLevel();
+    EXPECT_TRUE(std::get<bool>(result));
+    EXPECT_EQ(std::get<std::uint8_t>(result), 42);
+}
