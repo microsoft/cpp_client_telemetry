@@ -29,6 +29,10 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_DEFAULTDATAVIEWER
+#include "modules/dataviewer/DefaultDataViewer.hpp"
+#endif
+
 namespace ARIASDK_NS_BEGIN
 {
 
@@ -157,6 +161,10 @@ namespace ARIASDK_NS_BEGIN
 
         LOG_TRACE("Setting up the Data Viewer Collection implementation...");
         m_dataViewerCollection = std::make_unique<DataViewerCollectionImpl>();
+
+#ifdef HAVE_MAT_DEFAULTDATAVIEWER
+        m_dataViewerCollection->RegisterViewer(std::move(std::make_unique<DefaultDataViewer>()));
+#endif
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
