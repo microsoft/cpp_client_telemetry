@@ -291,6 +291,22 @@ namespace ARIASDK_NS_BEGIN {
         return m_storage->eventType;
     }
 
+    std::tuple<bool, std::uint8_t> EventProperties::TryGetLevel() const
+    {
+        const auto& findResult = GetProperties().find(COMMONFIELDS_EVENT_LEVEL);
+        if (findResult == GetProperties().cend())
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+        
+        const auto& property = findResult->second;
+        if (property.type != TYPE_INT64)
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+
+        const auto& value = property.as_int64;
+        if (value < 0 || value > UINT8_MAX)
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+        return std::make_tuple<bool, std::uint8_t>(true, static_cast<uint8_t>(value));
+    }
+
     /// <summary>
     /// Specify a property of an event
     /// It creates a new property if none exists or overwrites an existing one
