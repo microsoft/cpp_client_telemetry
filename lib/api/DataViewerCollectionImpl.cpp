@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-    void DataViewerCollectionImpl::RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer)
+    void DataViewerCollectionImpl::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
     {
         LOG_DEBUG("LOCKGUARD   locking at %s:%d", __FILE__, __LINE__);
         std::unique_lock<std::shared_mutex> lock(m_dataViewerMapLock);

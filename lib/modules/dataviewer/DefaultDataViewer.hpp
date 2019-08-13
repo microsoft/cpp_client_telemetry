@@ -1,8 +1,6 @@
 #pragma once
 #include "mat/config.h"
 
-#ifdef HAVE_MAT_DEFAULTDATAVIEWER
-
 #ifndef DEFAULTDATAVIEWER_HPP
 #define DEFAULTDATAVIEWER_HPP
 
@@ -12,7 +10,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    class DefaultDataViewer : public IDataViewer
+    class MATSDK_LIBABI DefaultDataViewer final : public IDataViewer
     {
     public:
         void RecieveData(const std::vector<std::uint8_t>& packetData) noexcept override;
@@ -22,12 +20,15 @@ namespace ARIASDK_NS_BEGIN {
             return m_name;
         }
 
+        bool EnableRemoteViewer(const char * endpoint);
+        bool EnableLocalViewer();
+        bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage);
+        bool DisableViewer();
+
     private:
        static constexpr const char* m_name = "DefaultDataViewer";
     };
 
 } ARIASDK_NS_END
-
-#endif
 
 #endif
