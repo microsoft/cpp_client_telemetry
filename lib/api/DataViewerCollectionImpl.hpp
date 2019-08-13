@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
     public:
         virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) noexcept override;
 
-        virtual void RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer) override;
+        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) override;
 
         virtual void UnregisterViewer(const char* viewerName) override;
 
@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool IsViewerEnabled() noexcept override;
 
     protected:
-        std::map<const char*, std::unique_ptr<IDataViewer>> m_dataViewerCollection;
+        std::map<const char*, std::shared_ptr<IDataViewer>> m_dataViewerCollection;
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();

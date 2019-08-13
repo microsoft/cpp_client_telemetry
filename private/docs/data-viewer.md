@@ -46,7 +46,7 @@ of data viewers that are being registered.
     class IDataViewerCollection  
     { 
     public: 
-       virtual void RegisterViewer(const std::unique_ptr<IDataViewer>& dataViewer) = 0;
+       virtual void RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) = 0;
        virtual void UnregisterAllViewers() = 0;
        virtual void UnregisterViewer(const char* viewerName) noexcept = 0;
        virtual bool IsViewerRegistered(const char* viewerName) noexcept = 0;
@@ -62,7 +62,13 @@ viewer in the viewer collection, without modifying the `IDataViewerCollection`.
 Having functionalities such as registration, unregistration and ability to
 check if any viewer is registered, directly on `IDataViewerCollection`
 allows a unified viewer management capability that will affect all ILoggers
-registered with the ILogManager. 
+registered with the ILogManager.
+
+The implementations of `IDataViewer` shall be passed as `const std::shared_ptr<IDataViewer>&`
+as the SDK host should be able to access any custom methods within their implementation
+of `IDataViewer`. Additionally, both the SDK and the SDK host should be able
+to jointly manage the lifetime of the implementation as a last-user-cleans-up
+approach.
 
 The `DispatchDataViewerEvent` method will be used internally to dispatch
 a packet to the `IDataViewerCollection` implementation, which subsequently
@@ -151,12 +157,12 @@ transparency requirements they may have.
     class DefaultDataViewer 
     { 
         ...
-        virtual void ReceiveData(const std::vector<std::uint8_t>& dataPacket) noexcept; 
-        virtual const char* GetName() const noexcept; 
-        virtual bool EnableRemoteViewer(const std::string& endpoint) = 0; 
-        virtual bool EnableLocalViewer() = 0;
-        virtual bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage) = 0;
-        virtual bool DisableViewer() = 0; 
+        void ReceiveData(const std::vector<std::uint8_t>& dataPacket) noexcept override;
+        const char* GetName() const noexcept override;
+        bool EnableRemoteViewer(const std::string& endpoint);
+        bool EnableLocalViewer();
+        bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage);
+        bool DisableViewer();
     }; 
 
 #### `EnableRemoteViewer`
