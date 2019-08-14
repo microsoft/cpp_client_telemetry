@@ -174,8 +174,8 @@ TEST(EventPropertiesTests, TryGetLevel_NotPresent_ReturnsFalseAndZero)
 {
     EventProperties properties;
     auto result = properties.TryGetLevel();
-    EXPECT_FALSE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 0);
+    EXPECT_FALSE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_NotTheRightType_ReturnsFalseAndZero)
@@ -183,8 +183,8 @@ TEST(EventPropertiesTests, TryGetLevel_NotTheRightType_ReturnsFalseAndZero)
     EventProperties properties;
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, "Not a number");
     auto result = properties.TryGetLevel();
-    EXPECT_FALSE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 0);
+    EXPECT_FALSE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
@@ -192,8 +192,8 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
     EventProperties properties;
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 257);
     auto result = properties.TryGetLevel();
-    EXPECT_FALSE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 0);
+    EXPECT_FALSE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
@@ -201,8 +201,8 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
     EventProperties properties;
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, -1);
     auto result = properties.TryGetLevel();
-    EXPECT_FALSE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 0);
+    EXPECT_FALSE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
@@ -210,8 +210,8 @@ TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
     EventProperties properties;
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 42);
     auto result = properties.TryGetLevel();
-    EXPECT_TRUE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 42);
+    EXPECT_TRUE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 42);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectValue)
@@ -219,6 +219,6 @@ TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectV
     EventProperties properties;
     properties.SetLevel(42);
     auto result = properties.TryGetLevel();
-    EXPECT_TRUE(std::get<bool>(result));
-    EXPECT_EQ(std::get<std::uint8_t>(result), 42);
+    EXPECT_TRUE(std::get<0>(result));
+    EXPECT_EQ(std::get<1>(result), 42);
 }
