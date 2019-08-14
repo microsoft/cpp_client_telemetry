@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 #include "utils/Utils.hpp"
 
 #if defined(_DEBUG) && defined(_WIN32) && !defined(_INC_WINDOWS)
@@ -31,8 +32,9 @@ int MAIN_CDECL main(int argc, char** argv)
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
 
-    ILogConfiguration configuration;
-    PAL::initialize(configuration);
+    ILogConfiguration logConfig;
+    RuntimeConfig_Default runtimeConfig(logConfig);
+    PAL::initialize(runtimeConfig);
     int result = RUN_ALL_TESTS();
     PAL::shutdown();
 
