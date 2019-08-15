@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <tuple>
 #include <map>
 
 #ifdef MAT_C_API
@@ -190,6 +191,12 @@ namespace ARIASDK_NS_BEGIN
         {
             SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
         }
+
+        /// <summary>
+        /// Attempts to get the diagnostic level for an event.
+        /// <return>True and the level, or false if unset, set to the wrong type, or the value is out of bounds.</return>
+        /// </summary>
+        std::tuple<bool, std::uint8_t> TryGetLevel() const;
 
         /// <summary>
         /// Specify a property for an event.
