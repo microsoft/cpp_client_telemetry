@@ -91,7 +91,17 @@ namespace ARIASDK_NS_BEGIN
     {
     }
 
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/, dataViewer)
+    {
+    }
+
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
+       : LogManagerImpl(configuration, httpClient, deferSystemStart, nullptr)
+    {
+    }
+
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer)
         : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
@@ -162,9 +172,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("Setting up the Data Viewer Collection implementation...");
         m_dataViewerCollection = std::make_unique<DataViewerCollectionImpl>();
 
-#ifdef HAVE_MAT_DEFAULTDATAVIEWER
-        m_dataViewerCollection->RegisterViewer(std::move(std::make_unique<DefaultDataViewer>()));
-#endif
+//#ifdef HAVE_MAT_DEFAULTDATAVIEWER
+        if (dataViewer != nullptr)
+        {
+            m_dataViewerCollection->RegisterViewer(dataViewer);
+        }
+//#endif
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
