@@ -118,7 +118,9 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer);
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer);
 
         virtual ~LogManagerImpl() override;
 

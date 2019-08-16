@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN
         /// Register an IDataViewer with Data Viewer Collection.
         /// </summary>
         /// <param name="dataViewer">dataViewer to register with IDataViewerCollection.</param>
-        virtual void RegisterViewer(std::unique_ptr<IDataViewer>&& dataViewer) = 0;
+        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) = 0;
 
         /// <summary>
         /// Unregister a IDataViewer from LogManager.
