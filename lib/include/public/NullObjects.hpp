@@ -325,10 +325,16 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
 
-        virtual IDataViewerCollection* GetDataViewerCollection() noexcept
+        virtual const IDataViewerCollection& GetDataViewerCollection() const noexcept override
+        {
+            static const NullDataViewerCollection nullDataViewerCollectionConst;
+            return nullDataViewerCollectionConst;
+        }
+        
+        virtual IDataViewerCollection& GetDataViewerCollection() noexcept override
         {
             static NullDataViewerCollection nullDataViewerCollection;
-            return &nullDataViewerCollection;
+            return nullDataViewerCollection;
         }
     };
 
