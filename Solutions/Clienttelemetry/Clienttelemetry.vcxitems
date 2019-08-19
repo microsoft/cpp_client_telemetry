@@ -24,7 +24,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollectionImpl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogSessionData.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.cpp" />
@@ -68,7 +68,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerImpl.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollectionImpl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\Backoff_ExponentialWithJitter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\backoff\IBackoff.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\All.hpp" />
