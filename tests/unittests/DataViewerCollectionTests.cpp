@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "common/Common.hpp"
-#include "api/DataViewerCollectionImpl.hpp"
+#include "api/DataViewerCollection.hpp"
 
 using namespace testing;
 using namespace MAT;

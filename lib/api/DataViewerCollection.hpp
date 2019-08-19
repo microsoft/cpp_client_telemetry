@@ -22,9 +22,9 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void UnregisterAllViewers() override;
 
-        virtual bool IsViewerEnabled(const char* viewerName) override;
+        virtual bool IsViewerEnabled(const char* viewerName) const override;
 
-        virtual bool IsViewerEnabled() noexcept override;
+        virtual bool IsViewerEnabled() const noexcept override;
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
