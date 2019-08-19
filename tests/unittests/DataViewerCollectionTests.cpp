@@ -16,7 +16,7 @@ public:
 
     void RecieveData(const std::vector<std::uint8_t>& packetData) noexcept override
     {
-        localPacketData.assign(packetData.cbegin(), packetData.cend() );
+        localPacketData = packetData;
     }
 
     const char* const GetName() const noexcept override
@@ -28,15 +28,15 @@ public:
     const char* m_name;
 };
 
-class TestDataViewerCollectionImpl : public DataViewerCollectionImpl
+class TestDataViewerCollectionImpl : public DataViewerCollection
 {
 public:
 
-   using DataViewerCollectionImpl::DispatchDataViewerEvent;
-   using DataViewerCollectionImpl::RegisterViewer;
-   using DataViewerCollectionImpl::UnregisterViewer;
-   using DataViewerCollectionImpl::UnregisterAllViewers;
-   using DataViewerCollectionImpl::IsViewerEnabled;
+   using DataViewerCollection::DispatchDataViewerEvent;
+   using DataViewerCollection::RegisterViewer;
+   using DataViewerCollection::UnregisterViewer;
+   using DataViewerCollection::UnregisterAllViewers;
+   using DataViewerCollection::IsViewerEnabled;
 
    std::map<const char*, std::shared_ptr<IDataViewer>>& GetCollection()
    {

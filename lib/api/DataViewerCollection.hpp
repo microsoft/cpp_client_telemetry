@@ -6,12 +6,12 @@
 #include "pal/DebugTrace.hpp"
 #include "public/ctmacros.hpp"
 
-#include <shared_mutex>
+#include <mutex>
 #include <map>
 
 namespace ARIASDK_NS_BEGIN {
 
-    class DataViewerCollectionImpl : public IDataViewerCollection
+    class DataViewerCollection : public IDataViewerCollection
     {
     public:
         virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) noexcept override;
@@ -26,13 +26,13 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsViewerEnabled() noexcept override;
 
-    protected:
-        std::map<const char*, std::shared_ptr<IDataViewer>> m_dataViewerCollection;
-
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        mutable std::shared_mutex m_dataViewerMapLock;
+        mutable std::recursive_mutex m_dataViewerMapLock;
+
+    protected:
+        std::map<const char*, std::shared_ptr<IDataViewer>> m_dataViewerCollection;
     };
 
 } ARIASDK_NS_END

@@ -14,7 +14,7 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
-#include "api/DataViewerCollectionImpl.hpp"
+#include "api/DataViewerCollection.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -170,14 +170,12 @@ namespace ARIASDK_NS_BEGIN
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
         LOG_TRACE("Setting up the Data Viewer Collection implementation...");
-        m_dataViewerCollection = std::make_unique<DataViewerCollectionImpl>();
+        m_dataViewerCollection = std::unique_ptr<DataViewerCollection>(new DataViewerCollection());
 
-#ifdef HAVE_MAT_DEFAULTDATAVIEWER
         if (dataViewer != nullptr)
         {
             m_dataViewerCollection->RegisterViewer(dataViewer);
         }
-#endif
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
@@ -286,6 +284,7 @@ namespace ARIASDK_NS_BEGIN
 
             m_ownHttpClient.reset();
             m_httpClient = nullptr;
+            m_dataViewerCollection = nullptr;
 
             // Reset the contents of m_eventFilterRegulator, but keep the object
             m_eventFilterRegulator.Reset();
