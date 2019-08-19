@@ -14,7 +14,7 @@ public:
     MockIDataViewer(const char* name)
         : m_name(name) {}
 
-    void RecieveData(const std::vector<std::uint8_t>& packetData) noexcept override
+    void RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept override
     {
         localPacketData = packetData;
     }
@@ -24,7 +24,7 @@ public:
         return m_name;
     }
 
-    std::vector<std::uint8_t> localPacketData;
+    mutable std::vector<std::uint8_t> localPacketData;
     const char* m_name;
 };
 
