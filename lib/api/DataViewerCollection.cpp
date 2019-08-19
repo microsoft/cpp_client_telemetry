@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
         m_dataViewerCollection.clear();
     }
 
-    bool DataViewerCollection::IsViewerEnabled(const char* viewerName)
+    bool DataViewerCollection::IsViewerEnabled(const char* viewerName) const
     {
         if (viewerName == nullptr)
         {
@@ -74,7 +74,7 @@ namespace ARIASDK_NS_BEGIN {
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
-    bool DataViewerCollection::IsViewerEnabled() noexcept
+    bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
         LOCKGUARD(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;
