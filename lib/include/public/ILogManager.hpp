@@ -354,7 +354,8 @@ namespace ARIASDK_NS_BEGIN
         /// Gets an instance of the Data Viewer Collection.
         /// </summary>
         /// <returns>A pointer to IDataViewerCollection</returns>
-        virtual IDataViewerCollection* GetDataViewerCollection() noexcept = 0;
+        virtual IDataViewerCollection& GetDataViewerCollection() = 0;
+        virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
     };
 
 } ARIASDK_NS_END

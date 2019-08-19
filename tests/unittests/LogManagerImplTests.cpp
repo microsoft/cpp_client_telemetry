@@ -59,5 +59,5 @@ TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewe
     ILogConfiguration configuration;
     TestHttpClient httpClient;
     TestLogManagerImpl logManager { configuration, &httpClient, true };
-    ASSERT_NE(logManager.GetDataViewerCollection(), nullptr);
+    ASSERT_NO_THROW(logManager.GetDataViewerCollection());
 }

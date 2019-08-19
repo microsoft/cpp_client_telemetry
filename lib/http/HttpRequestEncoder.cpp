@@ -29,7 +29,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpRequestEncoder::DispatchDataViewerEvent(const StorageBlob& dataPacket)
     {
-        m_system.getLogManager().GetDataViewerCollection()->DispatchDataViewerEvent(dataPacket);
+        m_system.getLogManager().GetDataViewerCollection().DispatchDataViewerEvent(dataPacket);
     }
 
     bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)

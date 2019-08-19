@@ -654,6 +654,10 @@ namespace ARIASDK_NS_BEGIN
         static status_t Configure()
             LM_SAFE_CALL(Configure);
 
+        static IDataViewerCollection& GetDataViewerCollection()
+        {
+            return instance->GetDataViewerCollection();
+        }
     };
 
     // Implements LogManager<T> singleton template static  members

@@ -231,7 +231,8 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
 
-        virtual IDataViewerCollection* GetDataViewerCollection() noexcept override;
+        virtual IDataViewerCollection& GetDataViewerCollection() override;
+        virtual const IDataViewerCollection& GetDataViewerCollection() const override;
 
         /// <summary>
         /// Adds the incoming event.

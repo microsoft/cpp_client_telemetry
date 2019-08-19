@@ -618,8 +618,23 @@ namespace ARIASDK_NS_BEGIN
         return m_system;
     }
 
-    IDataViewerCollection* LogManagerImpl::GetDataViewerCollection() noexcept
+    const IDataViewerCollection& LogManagerImpl::GetDataViewerCollection() const
     {
-        return m_dataViewerCollection.get();
+        if (m_dataViewerCollection == nullptr)
+        {
+            throw std::logic_error("m_dataViewerCollection is not initialized");
+        }
+
+        return *m_dataViewerCollection;
+    }
+
+    IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
+    {
+        if (m_dataViewerCollection == nullptr)
+        {
+            throw std::logic_error("m_dataViewerCollection is not initialized");
+        }
+
+        return *m_dataViewerCollection;
     }
 } ARIASDK_NS_END
