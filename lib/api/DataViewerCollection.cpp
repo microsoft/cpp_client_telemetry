@@ -10,7 +10,7 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class");
 
-    void DataViewerCollection::DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) noexcept
+    void DataViewerCollection::DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) const noexcept
     {
         if (IsViewerEnabled() == false)
             return;
