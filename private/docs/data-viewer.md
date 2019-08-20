@@ -23,7 +23,7 @@ promises with regards to data transparency.
     class IDataViewer
     {
     public:
-        virtual void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept = 0;
+        virtual void ReceiveData(const std::vector<std::uint8_t>& packetData) const noexcept = 0;
         virtual const char* const GetName() const noexcept = 0;
     };
 
@@ -32,11 +32,10 @@ allow for extension of data viewing capabilities by allowing consumer to extend 
 interface class.
 
 `ReceiveData` will receive a reference to the packet and allow data viewers to
-consume it as they see appropriate. Having a `const` reference will allow us to
-retain a single copy of the data, ensuring it is consistent for all viewers, and
-having that `const` allows us to prevent any unwanted data modifications.
+consume it as they see appropriate. Having a `const` reference will allow us to save the cost of
+creating another copy of the vector.
 
-`GetName` should return a unique identifier to help in ensuring a given data viewer
+`GetName` returns the name of the data viewer to help in ensuring a given data viewer
 is registered exactly once, being able to unregister a specific data viewer and
 to validate if a given viewer is registered.
 
@@ -46,12 +45,12 @@ to validate if a given viewer is registered.
     {
     public:
        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) = 0;
+       virtual void UnregisterViewer(const char* viewerName) = 0;
        virtual void UnregisterAllViewers() = 0;
-       virtual void UnregisterViewer(const char* viewerName) noexcept = 0;
-       virtual bool IsViewerRegistered(const char* viewerName) noexcept = 0;
-       virtual bool IsViewerRegistered() noexcept = 0;
+       virtual bool IsViewerRegistered(const char* viewerName) const = 0;
+       virtual bool IsViewerRegistered() const noexcept = 0;
 
-       virtual bool DispatchDataViewerEvent(const std::vector<std::uint8_t>& dataPacket) noexcept = 0;
+       virtual bool DispatchDataViewerEvent(const std::vector<std::uint8_t>& dataPacket) const noexcept = 0;
     };
 
 The `IDataViewerCollection` will allow for managing a set of `IDataViewer`
@@ -85,7 +84,7 @@ only need the knowledge regarding the current state of registered viewers and pe
 relevant operations on that.
 
 To provide access to `IDataViewerCollection`, `ILogManager` Accessors
-will be added as below and the `LogManagerImpl` will store a pointer to the
+will be added as below and the `LogManagerImpl` will store a unique pointer to the
 implemented instance of `IDataViewerCollection`.
 
 #### `ILogManager` Accessors
@@ -94,7 +93,8 @@ implemented instance of `IDataViewerCollection`.
     {
     public:
        ...
-       virtual IDataViewerCollection* GetDataViewerCollection() noexcept = 0;
+        virtual IDataViewerCollection& GetDataViewerCollection() = 0;
+        virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
     };
 
 ## Abstract Decision Tree
@@ -156,7 +156,7 @@ transparency requirements they may have.
     class DefaultDataViewer
     {
         ...
-        void ReceiveData(const std::vector<std::uint8_t>& dataPacket) noexcept override;
+        void ReceiveData(const std::vector<std::uint8_t>& dataPacket) const noexcept override;
         const char* GetName() const noexcept override;
         bool EnableRemoteViewer(const std::string& endpoint);
         bool EnableLocalViewer();
