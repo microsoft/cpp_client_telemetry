@@ -353,8 +353,13 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Gets an instance of the Data Viewer Collection.
         /// </summary>
-        /// <returns>A pointer to IDataViewerCollection</returns>
+        /// <returns>A reference to the IDataViewerCollection instance</returns>
         virtual IDataViewerCollection& GetDataViewerCollection() = 0;
+
+        /// <summary>
+        /// Gets an instance of the Data Viewer Collection.
+        /// </summary>
+        /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
     };
 
