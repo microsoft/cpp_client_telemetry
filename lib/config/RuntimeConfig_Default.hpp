@@ -197,6 +197,11 @@ namespace ARIASDK_NS_BEGIN {
             return config[key]; // FIXME: [MG] - Error #116: LEAK 32 bytes
         }
 
+        virtual bool HasConfig(const char* key) override
+        {
+            return config.count(key) != 0;
+        }
+
     };
 
 } ARIASDK_NS_END
