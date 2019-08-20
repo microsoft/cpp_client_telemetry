@@ -1,3 +1,5 @@
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif 
@@ -96,3 +98,5 @@ TEST(BondDecoderTests, BasicTest)
         LogManager::RemoveEventListener(dbgEvt, eventDecoderListener);
     }
 }
+
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

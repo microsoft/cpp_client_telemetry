@@ -30,6 +30,7 @@ LOGMANAGER_INSTANCE
 #define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define TEST_TOKEN2     "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
 
+
 class TestDebugEventListener : public DebugEventListener {
 
 public:
@@ -301,6 +302,8 @@ void removeAllListeners(DebugEventListener& listener)
     LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
     LogManager::RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
 }
+
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 /// <summary>
 /// Perform simple Initialize and FlushAndTeardown
@@ -1064,5 +1067,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
 }
 
 // #endif
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
