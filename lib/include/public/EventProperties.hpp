@@ -31,13 +31,21 @@ namespace ARIASDK_NS_BEGIN
     {
     public:
         /// <summary>
+        /// Constructs an EventProperties object, taking a string for the property name and a diagnostic level.
+        /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
+        /// </summary>
+        EventProperties(const std::string& name, uint8_t diagnosticLevel);
+
+        /// <summary>
         /// Constructs an EventProperties object, taking a string for the property name.
+        /// Sets the diagnostic level of the event to DIAG_LEVEL_OPTIONAL
         /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
         /// </summary>
         EventProperties(const std::string& name);
 
         /// <summary>
         /// Constructs an EventProperties object (the default constructor).
+        /// Sets the diagnostic level of the event to DIAG_LEVEL_OPTIONAL
         /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
         /// </summary>
         EventProperties();
@@ -49,7 +57,7 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>
         /// The EventProperties equals operator overload.
-        /// </summary>		
+        /// </summary>
         EventProperties& operator=(EventProperties const& copy);
 
         /// <summary>
