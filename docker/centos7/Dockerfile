@@ -1,5 +1,7 @@
 FROM centos/devtoolset-7-toolchain-centos7
 
+USER 0
+
 # Package installation
 RUN yum update -y
 
