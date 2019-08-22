@@ -57,7 +57,8 @@ namespace ARIASDK_NS_BEGIN
     {
         auto request = m_httpClient->CreateRequest();
         request->SetMethod("POST");
-        request->SetBody(std::vector<std::uint8_t>{packetData});
+        auto localPacketDataCopy = std::vector<std::uint8_t> { packetData };
+        request->SetBody(localPacketDataCopy);
 
         auto& header = request->GetHeaders();
         header.add("Machine-Identifier", m_machineFriendlyIdentifier);
