@@ -14,10 +14,10 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    class DefaultDataViewer final : public IDataViewer
+    class DefaultDataViewer final : public MAT::IDataViewer, public MAT::IHttpResponseCallback
     {
     public:
-        DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient);
+        DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier);
 
         void RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept override;
 
@@ -34,16 +34,19 @@ namespace ARIASDK_NS_BEGIN {
         bool DisableViewer() noexcept;
 
     private:
-        void ProcessQueue();
+        void OnHttpResponse(IHttpResponse* response) override;
 
-        static constexpr const char* m_name = "DefaultDataViewer";
+        void ProcessQueue(const std::vector<std::uint8_t>& packetData);
+
+        static constexpr const char* m_name { "DefaultDataViewer" };
+        static constexpr const char* m_httpPrefix { "http://" };
+        static constexpr const char* m_httpsPrefix { "https://" };
+
         std::shared_ptr<MAT::IHttpClient> m_httpClient;
 
         std::atomic<bool> m_isTransmissionEnabled;
         const char* m_endpoint;
-
-        mutable std::queue<std::vector<std::uint8_t>> m_packetQueue;
-
+        const char* m_machineFriendlyIdentifier;
     };
 
 } ARIASDK_NS_END
