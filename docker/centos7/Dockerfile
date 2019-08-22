@@ -1,12 +1,10 @@
 FROM centos/devtoolset-7-toolchain-centos7
 
-USER 0
-
 # Package installation
-RUN yum update -y
+RUN sudo yum update -y
 
 ## Common packages for linux build environment
-RUN yum install -y gcc gcc-c++ automake libtool-bin curl libcurl4-openssl-dev zlib1g-dev build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-7 devtoolset-7-valgrind
+RUN yum install -y gcc gcc-c++ automake libtool-bin curl libcurl4-openssl-dev zlib1g-dev zlib-static build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-7 devtoolset-7-valgrind
 
 ## Add docker user
 RUN useradd -m docker
