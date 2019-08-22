@@ -4,6 +4,8 @@
 #include "public/DebugEvents.hpp"
 #include "pal/PAL.hpp"
 
+#include <chrono>
+
 namespace ARIASDK_NS_BEGIN
 {
 
@@ -30,10 +32,7 @@ namespace ARIASDK_NS_BEGIN
 
     void DefaultDataViewer::RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept
     {
-        if (!m_isTransmissionEnabled)
-            return;
-
-        const_cast<DefaultDataViewer*>(this)->ProcessQueue(packetData);
+        const_cast<DefaultDataViewer*>(this)->ProcessReceivedPacket(packetData);
     }
 
     bool DefaultDataViewer::EnableLocalViewer()
@@ -46,7 +45,15 @@ namespace ARIASDK_NS_BEGIN
         throw std::logic_error("Function not implemented");
     }
 
-    void DefaultDataViewer::ProcessQueue(const std::vector<std::uint8_t>& packetData)
+    void DefaultDataViewer::ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData)
+    {
+        std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
+        if (!m_isTransmissionEnabled)
+            return;
+        SendPacket(packetData);
+    }
+
+    void DefaultDataViewer::SendPacket(const std::vector<std::uint8_t>& packetData)
     {
         auto request = m_httpClient->CreateRequest();
         request->SetMethod("POST");
@@ -66,18 +73,29 @@ namespace ARIASDK_NS_BEGIN
     {
         if (response->GetStatusCode() != 200)
         {
-            m_isTransmissionEnabled = false;
+            m_isTransmissionEnabled.exchange(false);
             m_httpClient->CancelAllRequests();
+        }
+        else
+        {
+            m_isTransmissionEnabled.exchange(true);
+            m_initializationEvent.notify_all();
         }
     }
 
     bool DefaultDataViewer::EnableRemoteViewer(const char* endpoint)
     {
+        std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
+        
         m_endpoint = endpoint;
-        //Add validation
-        m_isTransmissionEnabled.exchange(true);
+        SendPacket(std::vector<std::uint8_t>{});
 
-        return true;
+        m_initializationEvent.wait_until(transmissionLock, std::chrono::system_clock::now() + std::chrono::seconds(30));
+        if (!m_isTransmissionEnabled)
+        {
+            m_endpoint = "";
+        }
+        return m_isTransmissionEnabled;
     }
 
     bool DefaultDataViewer::DisableViewer() noexcept
