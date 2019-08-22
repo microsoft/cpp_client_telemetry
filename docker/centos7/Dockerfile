@@ -4,7 +4,7 @@ FROM centos:centos7
 RUN yum update -y
 
 ## Common packages for linux build environment
-RUN yum install -y gcc gcc-c++ automake libtool-bin curl libcurl4-openssl-dev zlib1g-dev build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-8 devtoolset-8-valgrind
+RUN yum install -y gcc gcc-c++ automake libtool-bin curl libcurl4-openssl-dev zlib1g-dev build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-7 devtoolset-7-valgrind
 
 ## Add docker user
 RUN useradd -m docker
@@ -15,7 +15,7 @@ RUN mkdir -p /tmp
 ## RUN mount -t tmpfs -o size=512M tmpfs /tmp
 ## USER docker
 
-RUN echo "scl enable devtoolset-8 bash" >> ~/.bash_profile
+RUN echo "scl enable devtoolset-7 bash" >> ~/.bash_profile
 RUN sudo yum update -y
 
 ## Install cmake3
