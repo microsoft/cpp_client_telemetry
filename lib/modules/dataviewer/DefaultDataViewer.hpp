@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <queue>
+#include <condition_variable>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -36,15 +37,17 @@ namespace ARIASDK_NS_BEGIN {
     private:
         void OnHttpResponse(IHttpResponse* response) override;
 
-        void ProcessQueue(const std::vector<std::uint8_t>& packetData);
+        void SendPacket(const std::vector<std::uint8_t>& packetData);
+        void ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData);
 
         static constexpr const char* m_name { "DefaultDataViewer" };
         static constexpr const char* m_httpPrefix { "http://" };
         static constexpr const char* m_httpsPrefix { "https://" };
 
         std::shared_ptr<MAT::IHttpClient> m_httpClient;
-
         std::atomic<bool> m_isTransmissionEnabled;
+        std::condition_variable m_initializationEvent;
+        std::mutex m_transmissionGuard;
         const char* m_endpoint;
         const char* m_machineFriendlyIdentifier;
     };
