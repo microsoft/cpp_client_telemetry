@@ -13,8 +13,8 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN echo 'docker ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN mkdir -p /tmp
 ## RUN mount -t tmpfs -o size=512M tmpfs /tmp
+## USER docker
 
-USER docker
 RUN echo "scl enable devtoolset-7 bash" >> ~/.bash_profile
 RUN sudo yum update -y
 

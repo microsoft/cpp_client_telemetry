@@ -13,7 +13,7 @@ echo Building docker image...
 docker build --rm -t %IMAGE_NAME% docker/%IMAGE_NAME%
 
 echo Starting build...
-docker run -i -v %CD%:/build %IMAGE_NAME% /build/build.sh
+docker run -it -v %CD%:/build %IMAGE_NAME% /build/build.sh
 
 exit
 
