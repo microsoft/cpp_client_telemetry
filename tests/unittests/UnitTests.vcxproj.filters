@@ -40,6 +40,8 @@
     <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="LogManagerImplTests.cpp" />
+    <ClCompile Include="EventFilterCollectionTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

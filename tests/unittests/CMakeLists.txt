@@ -9,8 +9,7 @@ set(SRCS
   CorrelationVectorTests.cpp
   DebugEventSourceTests.cpp
   DiskLocalStorageTests.cpp
-  EventFilterRegulatorTests.cpp
-  EventFilterTests.cpp
+  EventFilterCollectionTests.cpp
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
   GuidTests.cpp
@@ -20,6 +19,7 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
+  LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
   Main.cpp
