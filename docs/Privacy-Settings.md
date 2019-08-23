@@ -1,9 +1,4 @@
----
-layout: page
-title: Privacy Settings on 1DS C++ SDK
-sub_title:
 
----
 # **1. Using privacy tags on UTC mode **
 
 In order to set privacy tags to an event on UTC mode, the C++ SDK exposes the functionality on it's API.
@@ -58,7 +53,7 @@ PDT_SoftwareSetupAndInventory           0x0000000080000000u
 
 The tag set on your event will show it the field ext.metadata.privTags. You can validate that using Telemetry Real Time Tool **[TRTT](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT)**
 
-![UTC Privacy Tags example](/images/14154-utc.png)
+![UTC Privacy Tags example](/docs/images/14154-utc.png)
 
 
 # **2. Diagnostic level filtering**

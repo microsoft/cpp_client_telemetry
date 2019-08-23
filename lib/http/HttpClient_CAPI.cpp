@@ -109,7 +109,7 @@ namespace ARIASDK_NS_BEGIN {
                     response->m_body = std::vector<uint8_t>(capiResponse->body, capiResponse->body + capiResponse->bodySize);
                 }
 
-                for (size_t i = 0; i < capiResponse->headersCount; ++i)
+                for (size_t i = 0; i < static_cast<size_t>(capiResponse->headersCount); ++i)
                 {
                     const http_header_t* capiHeader = &capiResponse->headers[i];
                     response->m_headers.emplace(capiHeader->name, capiHeader->value);
