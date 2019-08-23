@@ -551,6 +551,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.hpp">
       <Filter>system</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IModule.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp">
       <Filter>include\public</Filter>
     </ClInclude>

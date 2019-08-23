@@ -9,6 +9,7 @@
 
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
+#include "IModule.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
@@ -238,6 +239,8 @@ namespace ARIASDK_NS_BEGIN
 
 protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
+        void InitializeModules() const noexcept;
+        void TeardownModules() noexcept;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
@@ -267,6 +270,7 @@ protected:
         DiagLevelFilter                                        m_diagLevelFilter;
 
         EventFilterCollection                                  m_filters;
+        std::vector<std::unique_ptr<IModule>>                  m_modules;
     };
 
 
