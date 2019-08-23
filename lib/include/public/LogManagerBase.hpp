@@ -601,12 +601,6 @@ namespace ARIASDK_NS_BEGIN
         static LogSessionData* GetLogSessionData()
             LM_SAFE_CALL_PTR(GetLogSessionData);
 
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterCount);
-
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
-
         /// <summary>
         /// Sets the diagnostic level filter for the LogManager
         /// </summary>
