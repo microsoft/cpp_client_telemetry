@@ -332,9 +332,9 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Erase property from event.
         /// </summary>
-        size_t erase(std::string key, DataCategory category = DataCategory_PartC);
+        size_t erase(const std::string& key, DataCategory category = DataCategory_PartC);
 
-        virtual ~EventProperties();
+        virtual ~EventProperties() noexcept;
 
 #ifdef MAT_C_API
         /// Implementation of ABI-safe packing of EventProperties object

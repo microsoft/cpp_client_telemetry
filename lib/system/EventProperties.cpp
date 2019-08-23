@@ -367,7 +367,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>
     /// Erase property from event.
     /// </summary>
-    size_t EventProperties::erase(std::string key, DataCategory category)
+    size_t EventProperties::erase(const std::string& key, DataCategory category)
     {
         size_t result = 0;
         auto &props = (category == DataCategory_PartC) ? m_storage->properties : m_storage->propertiesPartB;

@@ -13,13 +13,12 @@
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
 
-#include "filter/EventFilterRegulator.hpp"
-
 #include "DebugEvents.hpp"
 #include <memory>
 
 #include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
+#include "filter/EventFilterCollection.hpp"
 
 #include "LogSessionData.hpp"
 
@@ -182,6 +181,10 @@ namespace ARIASDK_NS_BEGIN
 
         IAuthTokensController* GetAuthTokensController() override;
 
+        IEventFilterCollection& GetEventFilters() noexcept override;
+
+        const IEventFilterCollection& GetEventFilters() const noexcept override;
+
         /// <summary>
         /// Adds the event listener.
         /// </summary>
@@ -208,26 +211,6 @@ namespace ARIASDK_NS_BEGIN
 
         ///
         virtual bool DetachEventSource(DebugEventSource & other) override;
-        
-        /// <summary>
-        /// Sets the exclusion filter.
-        /// </summary>
-        /// <param name="tenantToken">The tenant token.</param>
-        /// <param name="filterStrings">The filter strings.</param>
-        /// <param name="filterCount">The filter count.</param>
-        /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
-        
-
-        /// <summary>
-        /// Sets the exclusion filter.
-        /// </summary>
-        /// <param name="tenantToken">The tenant token.</param>
-        /// <param name="filterStrings">The filter strings.</param>
-        /// <param name="filterRates">The filter rates.</param>
-        /// <param name="filterCount">The filter count.</param>
-        /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
 
         /// <summary>
         /// Adds the incoming event.
@@ -278,12 +261,12 @@ protected:
         bool                                                   m_isSystemStarted {};
         std::unique_ptr<ITelemetrySystem>                      m_system;
 
-        EventFilterRegulator                                   m_eventFilterRegulator;
-
         bool                                                   m_alive;
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
+
+        EventFilterCollection                                  m_filters;
     };
 
 
