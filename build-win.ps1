@@ -31,6 +31,7 @@ if (-not $env:DevEnvDir) {
   echo "Running VsDevCmd.bat..."
   & cmd /s /c """$vsDevCmdBat"" -no_logo && set" | foreach-object {
     $name, $value = $_ -split '=', 2
+    echo "Setting $name = $value"
     set-content env:\"$name" $value
   }
   echo "...Done!"
