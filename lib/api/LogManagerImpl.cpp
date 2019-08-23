@@ -216,6 +216,9 @@ namespace ARIASDK_NS_BEGIN
             m_isSystemStarted = true;
         }
 
+        LOG_INFO("Initializng Modules");
+        InitializeModules();
+
         LOG_INFO("Started up and running");
         m_alive = true;
 
@@ -244,6 +247,9 @@ namespace ARIASDK_NS_BEGIN
     void LogManagerImpl::FlushAndTeardown()
     {
         LOG_INFO("Shutting down...");
+
+        LOG_INFO("Tearing down modules");
+        TeardownModules();
         {
             LOCKGUARD(m_lock);
             if (m_isSystemStarted && m_system)
@@ -592,6 +598,23 @@ namespace ARIASDK_NS_BEGIN
         m_system->start();
         m_isSystemStarted = true;
         return m_system;
+    }
+
+    void LogManagerImpl::InitializeModules() const noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Initialize(this);
+        }
+    }
+
+    void LogManagerImpl::TeardownModules() noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Teardown();
+        }
+        std::vector<std::unique_ptr<IModule>>{}.swap(m_modules);
     }
 
 } ARIASDK_NS_END
