@@ -19,7 +19,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Registers the given IEventFilter for subsequent calls to CanEventPropertiesBeSent.
         /// Throws std::invalid_argument if filter == nullptr.
-        /// </sumamry>
+        /// </summary>
         /// <param="filter">A unique_ptr passing ownership of the IEventFilter to the IEventFilterCollection.</param>
         virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&& filter) = 0;
 
