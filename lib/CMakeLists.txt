@@ -29,6 +29,7 @@ set(SRCS decorators/BaseDecorator.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
   pal/InformationProviderImpl.cpp
+  http/HttpClient_CAPI.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
   http/HttpResponseDecoder.cpp

@@ -1,0 +1,26 @@
+name: C/C++ CI on Linux and Mac
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: build
+      run: ./build.sh

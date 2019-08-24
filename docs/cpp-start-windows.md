@@ -1,16 +1,13 @@
----
-layout: page
-title: Getting started with the 1DS SDK (Beta) for Windows (C++)
-sub_title:
 
----
 This tutorial guides you through the process of integrating the 1DS SDK (Beta) into your existing C++ Windows app or service.
 
 ## **Clone the repository**
 
-1. Run `git clone https://msasg.visualstudio.com/DefaultCollection/Shared%20Data/_git/Aria.SDK.Cpp` to clone the repo.
+1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo.
 
-2. You will be asked your credentials to clone the repo, use your username and password as entered on https://msasg.visualstudio.com/DefaultCollection/_usersSettings/altcreds 
+	If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+
+2. You will be asked your credentials to clone the repo, use your username and password as entered on Github
 	
     If you do not have those credentials, generate them and use the username and password that you enabled.
     
@@ -21,22 +18,22 @@ This tutorial guides you through the process of integrating the 1DS SDK (Beta) i
     
 ## **Build the SDK from source using Visual Studio 2017**
 
-* Navigate to the folder where the SDK was cloned and open the Aria.SDK.Cpp/Solutions folder
+* Navigate to the folder where the SDK was cloned and open the cpp_client_telemetry/Solutions folder
 
-* Open the AriaSDK.sln file to open the project with Visual Studio 2017.
+* Open the MSTelemetrySDK.sln file to open the project with Visual Studio 2017.
 
-* Expand the Samples folder, the project HelloAria should be located there
+* Expand the Samples folder, the project SampleCpp should be located there
 
-![SampleCpp](/images/SampleCpp.png)
+![SampleCpp](/docs/images/SampleCpp.PNG)
 
-* Go to the HelloAria project properties and make sure that Visual Studio 2017 is set as Platform Toolset
+* Go to the SampleCpp project properties and make sure that Visual Studio 2017 is set as Platform Toolset
 
-![SampleCppProperties](/images/SampleCppProperties.png)
+![SampleCppProperties](/docs/images/SampleCppProperties.PNG)
 
-* When you build the HelloAria sample app Visual studio will also build the SDK, as it is listed as a dependency.
+* When you build the SampleCpp sample app Visual Studio will also build the SDK, as it is listed as a dependency.
     The win32-dll project is the SDK dll, when Visual Studio builds it, it will also build all it's references, including sqlite, zlib and all the headers for the SDK to work.
 	
-![win32-dll](/images/87016-win32lib.png)
+![win32-dll](/docs/images/87016-win32lib.png)
 
 ## **Windows prerequisites and dependencies for building from source using LLVM compiler**
 

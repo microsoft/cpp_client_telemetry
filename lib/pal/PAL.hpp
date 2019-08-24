@@ -52,6 +52,7 @@
 #include <chrono>
 #include <thread>
 
+#include "api/IRuntimeConfig.hpp"
 #include "typename.hpp"
 #include "WorkerThread.hpp"
 
@@ -118,7 +119,7 @@ namespace PAL_NS_BEGIN
     //
     // Startup/shutdown
     //
-    void initialize();
+    void initialize(IRuntimeConfig& configuration);
     void shutdown();
 
     INetworkInformation* GetNetworkInformation();
