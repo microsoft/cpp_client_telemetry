@@ -3,6 +3,7 @@
 // - HttpServer needs to be implemented for Linux and Mac
 // - POSIX SDK uniquely identifies REQ-N and RESP-N which causes HttpClientTests to break.
 //   We need to adjust Windows behaviour and fix the test below.
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -347,5 +348,5 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
     EXPECT_THAT(it, _countedRequests.end());
 
 }
-#endif
-
+#endif // _WIN32
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

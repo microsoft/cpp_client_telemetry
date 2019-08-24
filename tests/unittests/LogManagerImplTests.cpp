@@ -27,15 +27,23 @@ class TestHttpClient : public IHttpClient
 TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_ConstructsOwnHttpClient)
 {
    ILogConfiguration configuration;
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
    TestLogManagerImpl logManager { configuration, nullptr };
    ASSERT_NE(logManager.m_ownHttpClient, nullptr);
+#else
+   EXPECT_THROW(TestLogManagerImpl(configuration, nullptr), std::invalid_argument);
+#endif
 }
 
 TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_HttpClientAndOwnHttpClientAreSame)
 {
    ILogConfiguration configuration;
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
    TestLogManagerImpl logManager { configuration, nullptr };
    ASSERT_EQ(logManager.m_ownHttpClient.get(), logManager.m_httpClient);
+#else
+   EXPECT_THROW(TestLogManagerImpl(configuration, nullptr), std::invalid_argument);
+#endif
 }
 
 TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_DoesNotConstructOwnHttpClient)
