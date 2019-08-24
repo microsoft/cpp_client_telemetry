@@ -71,6 +71,11 @@ function generateVersionTxt() {
   // Read base version and replace '999' with nightly build number
   var version = readAll("..\\Solutions\\version.txt").replace("999", dayNumber());
 
+  // Create 'out' folder if it doesn't already exist. Otherwise, OpenTextFile below will fail
+  if (!fso.FolderExists("..\\Solutions\\out")) {
+    fso.CreateFolder("..\\Solutions\\out");
+  }
+
   // Write version.txt with updated build number
   var versionTxt = "..\\Solutions\\out\\version.txt";
   var f = fso.OpenTextFile(versionTxt, 8, true);

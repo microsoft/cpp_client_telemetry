@@ -176,7 +176,7 @@
       <AssemblerOutput>All</AssemblerOutput>
       <BrowseInformation>false</BrowseInformation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <DisableSpecificWarnings>4005;4503;4244;4530</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503;4530</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
