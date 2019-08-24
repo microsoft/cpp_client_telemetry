@@ -29,6 +29,7 @@ set(SRCS decorators/BaseDecorator.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
   pal/InformationProviderImpl.cpp
+  http/HttpClient_CAPI.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
   http/HttpResponseDecoder.cpp
@@ -77,8 +78,6 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_
 add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DARIASDK_PLATFORM_WINDOWS=1 -DARIASDK_SHARED_LIB=1 -D_ARIA_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
-    http/HttpClient_CAPI.cpp
-    http/HttpClient_CAPI.hpp
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
     http/HttpClient.hpp
