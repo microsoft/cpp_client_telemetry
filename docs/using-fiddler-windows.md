@@ -1,9 +1,4 @@
----
-layout: page
-title: Using Fiddler inspector on Windows
-sub_title:
 
----
 This tutorial guides you through the process of downloading and configuring Fiddler inspector on Windows in order to see events sent with 1DS C++ Client SDK.
 
 ### **Installation instructions for 1DS Events protocol decoder / inspector for Fiddler**
@@ -29,4 +24,4 @@ That would redirect all the HTTPS traffic via Fiddler
 Now the events should be decrypted and formated to JSON when clicked on Fiddler.
 
 
-![Fiddler example Windows](/images/fiddlerWindows.png)
+![Fiddler example Windows](/docs/images/fiddlerWindows.png)

@@ -302,6 +302,8 @@ void removeAllListeners(DebugEventListener& listener)
     LogManager::RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 /// <summary>
 /// Perform simple Initialize and FlushAndTeardown
 /// </summary>
@@ -668,6 +670,7 @@ TEST(APITest, C_API_Test)
     };
 
     evt_handle_t handle = evt_open(config);
+    ASSERT_NE(handle, 0);
 
     capi_client *client = capi_get_client(handle);
     ASSERT_NE(client, nullptr);
@@ -692,6 +695,18 @@ TEST(APITest, C_API_Test)
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
     evt_close(handle);
+    ASSERT_EQ(capi_get_client(handle), nullptr);
+
+    // Re-open with the same configuration
+    handle = evt_open(config);
+    ASSERT_NE(handle, 0);
+    client = capi_get_client(handle);
+    ASSERT_NE(client, nullptr);
+    ASSERT_NE(client->logmanager, nullptr);
+
+    // Re-close
+    evt_close(handle);
+    ASSERT_EQ(capi_get_client(handle), nullptr);
 }
 
 #ifdef HAVE_MAT_JSONHPP
@@ -1051,5 +1066,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
 }
 
 // #endif
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)

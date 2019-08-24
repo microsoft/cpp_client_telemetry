@@ -92,10 +92,12 @@ namespace ARIASDK_NS_BEGIN
         m_offlineStorage(nullptr),
         m_logConfiguration(configuration)
     {
+        m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
+
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
-        PAL::initialize();
+        PAL::initialize(*m_config);
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
@@ -146,8 +148,6 @@ namespace ARIASDK_NS_BEGIN
                 SetTransmitProfile(transmitProfile);
             }
         }
-
-        m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));

@@ -184,7 +184,6 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
@@ -222,7 +221,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
@@ -249,7 +247,6 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
@@ -284,7 +281,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
@@ -313,7 +309,6 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
@@ -348,7 +343,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>

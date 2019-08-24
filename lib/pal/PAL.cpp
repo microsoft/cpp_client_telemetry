@@ -101,8 +101,13 @@ namespace PAL_NS_BEGIN {
         std::string          debugLogPath;
         std::ostream*        debugLogStream = nullptr;
         
-        bool log_init()
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
+            if (!isTraceEnabled)
+            {
+                return false;
+            }
+
             bool result = true;
             if (debugLogStream != nullptr)
             {
@@ -110,7 +115,7 @@ namespace PAL_NS_BEGIN {
             }
 
             debugLogMutex.lock();
-            debugLogPath = MAT::GetTempDirectory();
+            debugLogPath = traceFolderPath;
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
@@ -140,7 +145,7 @@ namespace PAL_NS_BEGIN {
             debugLogMutex.unlock();
         }
 #else
-        bool log_init()
+        bool log_init(bool /*isTraceEnabled*/, const std::string& /*traceFolderPath*/)
         {
             return false;
         }
@@ -479,16 +484,22 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize()
+    void initialize(IRuntimeConfig& configuration)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
-            detail::isLoggingInited = detail::log_init();
+            std::string traceFolderPath = MAT::GetTempDirectory();
+            if (configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH))
+            {
+                traceFolderPath = static_cast<std::string&>(configuration[CFG_STR_TRACE_FOLDER_PATH]);
+            }
+
+            detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
             g_workerThread = WorkerThreadFactory::Create();
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
-            g_NetworkInformation = NetworkInformationImpl::Create();
+            g_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
             LOG_INFO("Initialized");
         }
         else

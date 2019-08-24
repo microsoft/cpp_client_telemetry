@@ -10,6 +10,7 @@ namespace ARIASDK_NS_BEGIN {
 
     static ILogConfiguration currentConfig {
         { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
+        { CFG_BOOL_ENABLE_TRACE,            true },
         { CFG_INT_SDK_MODE,                 SdkModeTypes::SdkModeTypes_CS },
         { CFG_BOOL_ENABLE_ANALYTICS,        false },
         { CFG_INT_CACHE_FILE_SIZE,          3145728 },
@@ -21,7 +22,8 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_TRACE_LEVEL_MASK,         0 },
         { CFG_STR_COLLECTOR_URL,            COLLECTOR_URL_PROD },
         { CFG_INT_STORAGE_FULL_PCT,         75 },
-        { CFG_INT_RAMCACHE_FULL_PCT,        75 }
+        { CFG_INT_RAMCACHE_FULL_PCT,        75 },
+        { CFG_BOOL_ENABLE_NET_DETECT,       true },
     };
 
     const ILogConfiguration& GetDefaultConfiguration()
@@ -92,8 +94,12 @@ namespace ARIASDK_NS_BEGIN {
                     dst[it.key()] = (uint64_t)(it.value());
                     break;
                 case json::value_t::object:
-                    parse(it.value(), dst[it.key()]);
+                {
+                    VariantMap sub;
+                    parse(it.value(), sub);
+                    dst[it.key()] = sub;
                     break;
+                }
                 case json::value_t::string:
                     std::string val = it.value();
                     dst[it.key()] = std::move(val);

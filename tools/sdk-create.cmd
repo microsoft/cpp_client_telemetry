@@ -8,7 +8,7 @@ set PATH=%CD%;%PATH%
 cd ..
 
 set ROOT=%CD%
-set /p PackageVersion=<%ROOT%\Solutions\version.txt
+set /p PackageVersion=<%ROOT%\Solutions\out\version.txt
 set SRCDIR=%ROOT%\Solutions\out
 set OUTDIR=%ROOT%\dist\aria-windows-sdk\%PackageVersion%
 set ProjectName=Microsoft.Applications.Telemetry.Windows
@@ -46,4 +46,4 @@ call sku-create.cmd win32-lib-vs2015-md  win32-lib
 call sku-create.cmd win32-lib-vs2015-md  sqlite
 call sku-create.cmd win32-lib-vs2015-md  zlib
 
-copy /Y %ROOT%\docs\release-notes.md %OUTDIR%\
+copy /Y %ROOT%\CHANGELOG.md %OUTDIR%\

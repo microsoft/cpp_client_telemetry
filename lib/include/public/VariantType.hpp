@@ -185,7 +185,10 @@ public:
     Variant(VariantMap& m) :
         type(TYPE_OBJ)
     {
-        assign(m);
+        for (const auto& kv : m)
+        {
+            mV[kv.first] = kv.second;
+        }
     };
 
     // C++11 initializer list support for maps

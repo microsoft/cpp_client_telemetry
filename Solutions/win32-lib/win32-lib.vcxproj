@@ -267,7 +267,7 @@
       <AssemblerOutput>All</AssemblerOutput>
       <BrowseInformation>false</BrowseInformation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <DisableSpecificWarnings>4005;4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -332,7 +332,7 @@
       <AssemblerOutput>All</AssemblerOutput>
       <BrowseInformation>false</BrowseInformation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>4005;4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -408,7 +408,7 @@
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Size</FavorSizeOrSpeed>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</WholeProgramOptimization>
-      <DisableSpecificWarnings>4005;4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -481,7 +481,7 @@
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Size</FavorSizeOrSpeed>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">false</WholeProgramOptimization>
-      <DisableSpecificWarnings>4005;4503;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4503</DisableSpecificWarnings>
       <EnablePREfast>false</EnablePREfast>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ProgramDataBaseFileName Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
