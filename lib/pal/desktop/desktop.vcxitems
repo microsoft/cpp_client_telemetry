@@ -13,11 +13,9 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_CAPI.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_CAPI.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp">
       <AdditionalIncludeDirectories>..\..;..\..\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>

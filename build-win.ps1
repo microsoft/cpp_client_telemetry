@@ -2,7 +2,8 @@ param (
   [string[]]$configs = @("Debug", "Release"),
   [string[]]$archs = @("x64", "Win32", "ARM", "ARM64"),
   [string[]]$binTypes = @("dll", "lib"),
-  [string[]]$enableWin10 = "true",
+  [string]$enableWin10 = "true",
+  [string]$enableMini = "true",
   [string]$enableTests = "true",
   [string]$customProps = ""
 )
@@ -22,6 +23,8 @@ $testTargets = @("Tests\gmock", "Tests\gtest", "Tests\UnitTests", "Tests\FuncTes
 $win10DllTargets = @("sqlite-uwp", "win10-cs", "win10-dll")
 $win32DllTargets = @("sqlite", "win32-dll")
 $win32LibTargets = @("sqlite", "win32-lib")
+$win32MiniDllTargets = @("win32-mini-dll")
+$win32MiniLibTargets = @("win32-mini-lib")
 
 # Update version headers
 & "tools\gen-version.cmd"
@@ -91,12 +94,18 @@ foreach ($arch in $archs) {
 
       if ($binType -eq "lib") {
         $targets += $win32LibTargets
+        if ($enableMini -eq "true") {
+          $targets += $win32MiniLibTargets
+        }
       } elseif ($binType -eq "dll") {
         if ($actualArch -eq "x64" -or $actualArch -eq "Win32" -or $actualArch -eq "ARM64") {
           $targets += $win32DllTargets
         }
         if ($enableWin10 -eq "true") {
           $targets += $win10DllTargets
+        }
+        if ($enableMini -eq "true") {
+          $targets += $win32MiniDllTargets
         }
       }
 

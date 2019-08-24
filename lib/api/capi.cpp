@@ -253,15 +253,15 @@ evt_status_t mat_close(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
-    remove_client(ctx->handle);
-    ctx->result = result;
-
+    
     if (client->http != nullptr)
     {
         delete client->http;
         client->http = nullptr;
     }
 
+    remove_client(ctx->handle);
+    ctx->result = result;
     return result;
 }
 
