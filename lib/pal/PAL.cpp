@@ -145,7 +145,7 @@ namespace PAL_NS_BEGIN {
             debugLogMutex.unlock();
         }
 #else
-        bool log_init()
+        bool log_init(bool /*isTraceEnabled*/, const std::string& /*traceFolderPath*/)
         {
             return false;
         }
