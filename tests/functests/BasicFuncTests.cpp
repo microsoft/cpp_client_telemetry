@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifdef _WIN32 /* TODO: [MG] - unfortunately the HttpServer is not implemented for Linux and Mac OS X yet */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -1261,5 +1262,5 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     }
 }
 #endif
-#endif
-
+#endif // _WIN32
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
