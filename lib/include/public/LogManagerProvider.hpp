@@ -22,18 +22,18 @@ namespace ARIASDK_NS_BEGIN
     {
     public:
 
-        /// <summary> 
-        /// Creates the LogManager.  The passed in configuration is used to 
-        /// initialize the telemetry system, if it hasn't been initialized. 
+        /// <summary>
+        /// Creates the LogManager. The passed in configuration is used to
+        /// initialize the telemetry system, if it hasn't been initialized.
         ///
         /// If system is already initialized, customer (guest) configuration
         /// is reconciled with host confugration.
         ///
-        /// <param name="cfg">Configuration settings.</param> 
-        /// <param name="id">Instance Id.</param> 
-        /// <param name="status">Status.</param> 
-        /// <param name="wantController">WantController.</param> 
-        /// </summary> 
+        /// <param name="cfg">Configuration settings.</param>
+        /// <param name="id">Instance Id.</param>
+        /// <param name="status">Status.</param>
+        /// <param name="wantController">WantController.</param>
+        /// </summary>
         static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
@@ -60,13 +60,13 @@ namespace ARIASDK_NS_BEGIN
 
          */
 
-         /// <summary> 
-         /// Creates the LogManager with the current configuration. 
-         /// The same ILogManager is returned for the same apiKey specified. 
-         /// <param name="id">Instance Id.</param> 
-         /// <param name="status">Status.</param> 
-         /// <param name="wantController">WantController.</param> 
-         /// </summary> 
+         /// <summary>
+         /// Creates the LogManager with the current configuration.
+         /// The same ILogManager is returned for the same apiKey specified.
+         /// <param name="id">Instance Id.</param>
+         /// <param name="status">Status.</param>
+         /// <param name="wantController">WantController.</param>
+         /// </summary>
         static ILogManager* MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
@@ -83,12 +83,12 @@ namespace ARIASDK_NS_BEGIN
         };
 #endif
 
-        /// <summary> 
-        /// Creates the LogManager with the current configuration. 
+        /// <summary>
+        /// Creates the LogManager with the current configuration.
         ///
-        /// <param name="id">Instance Id.</param> 
-        /// <param name="status">Status.</param> 
-        /// </summary> 
+        /// <param name="id">Instance Id.</param>
+        /// <param name="status">Status.</param>
+        /// </summary>
         static ILogManager* MATSDK_SPEC CreateLogManager(char const* id,
             status_t& status,
             uint64_t targetVersion = MAT::Version)
@@ -116,19 +116,19 @@ namespace ARIASDK_NS_BEGIN
            return Get(cfg, status, httpClient);
         }
 
-        /// <summary> 
-        /// Releases a guest or host LogManager by its instance id.
-        /// <param name="id">Instance Id.</param> 
-        /// </summary> 
+        /// <summary>
+        /// Releases a guest or host LogManager by its instance id.
+        /// <param name="id">Instance Id.</param>
+        /// </summary>
         static status_t MATSDK_SPEC DestroyLogManager(char const* id)
         {
             return Release(id);
         }
 
-        /// <summary> 
-        /// Releases a guest or host LogManager by its instance id.
-        /// <param name="id">Instance Id</param> 
-        /// </summary> 
+        /// <summary>
+        /// Releases a guest or host LogManager by its instance id.
+        /// <param name="id">Instance Id</param>
+        /// </summary>
         static status_t MATSDK_SPEC Release(const char * id);
 
         static status_t MATSDK_SPEC Release(ILogConfiguration & cfg);
@@ -167,12 +167,14 @@ namespace ARIASDK_NS_BEGIN
     /// logmanager  - ILogManager pointer to SDK instance
     /// config      - ILogConfiguration
     /// ctx_data    - original JSON configuration or token passed to mat_open
+    /// http        - optional IHttpClient override instance
     /// </summary>
     typedef struct
     {
         ILogManager*        logmanager = nullptr;
         ILogConfiguration   config;
         std::string         ctx_data;
+        IHttpClient*        http = nullptr;
     } capi_client;
 
     /// <summary>

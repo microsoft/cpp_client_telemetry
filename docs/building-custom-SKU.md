@@ -1,9 +1,4 @@
----
-layout: page
-title: Building your custom SKU
-sub_title:
 
----
 # Custom build
 
 SDK customers may build their own custom SKU tuned to their liking, tailoring SDK for a specific need. Sometimes it is important to optimize the SDK for size, turning non-essential features off. Some customers would like to build SDK with UTC channel only and exclude the rest of unwanted features, such as Offlien Storage. While other customers would like to build SKU without UTC channel. We give our SDK customers the choice of building custom SKU based on their own build recipe, with just the subset of features our specific customer needs.

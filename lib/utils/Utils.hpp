@@ -100,6 +100,11 @@ namespace ARIASDK_NS_BEGIN {
 #pragma warning (pop)
 #endif //_MSC_VER
 
+    inline bool equalsIgnoreCase(const std::string& str1, const std::string& str2)
+    {
+        return (str1.size() == str2.size()) && (toLower(str1) == toLower(str2));
+    }
+
     inline std::string sanitizeIdentifier(const std::string &str)
     {
 #if 0
