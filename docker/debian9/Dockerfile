@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM debian:9
 
 ENV DEBIAN_FRONTEND noninteractive
 
