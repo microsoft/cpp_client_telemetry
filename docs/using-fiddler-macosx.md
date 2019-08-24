@@ -1,9 +1,4 @@
----
-layout: page
-title: Using Fiddler inspector on Mac OS X
-sub_title:
 
----
 This tutorial guides you through the process of downloading and configuring Fiddler inspector on Mac OS X in order to see events sent with 1DS C++ Client SDK.
 
 ### **Installation instructions for 1DS Events protocol decoder / inspector for Fiddler**
@@ -39,11 +34,11 @@ For realtime monitoring of events flow, for one particular process (assuming the
 ```
 export ALL_PROXY=127.0.0.1:8888
 ./yourAppName.bin
-``
+```
 
 That would redirect all the HTTPS traffic via Fiddler.
 
 
 Now the events should be decrypted and formated to JSON when clicked on Fiddler:
 
-![Fiddler example Mac](/images/22867-fiddler_example.png)
+![Fiddler example Mac](/docs/images/22867-fiddler_example.png)

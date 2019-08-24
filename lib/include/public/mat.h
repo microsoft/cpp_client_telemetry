@@ -55,7 +55,8 @@ extern "C" {
         EVT_OP_UPLOAD = 0x00000009,
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
-        EVT_OP_MAX = EVT_OP_VERSION + 1
+        EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
+        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
     } evt_call_t;
 
     typedef enum
@@ -122,6 +123,41 @@ extern "C" {
         uint32_t        size;       /* In / Out */
     } evt_context_t;
 
+    /**
+     * <summary>
+     * Identifies the type of input parameter to 'evt_open_with_params'. New parameter types can be added without
+     * breaking backwards compatibility.
+     * </summary>
+     */
+    typedef enum
+    {
+        OPEN_PARAM_TYPE_HTTP_HANDLER_SEND = 0,
+        OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL = 1,
+    } evt_open_param_type_t;
+
+    /**
+     * <summary>
+     * Represents a single input parameter to 'evt_open_with_params'
+     * </summary>
+     */
+    typedef struct
+    {
+        evt_open_param_type_t   type;
+        void*                   data;
+    } evt_open_param_t;
+
+    /**
+     * <summary>
+     * Wraps logger configuration string and all input parameters to 'evt_open_with_params'
+     * </summary>
+     */
+    typedef struct
+    {
+        const char*             config;
+        const evt_open_param_t* params;
+        int32_t                 paramsCount;
+    } evt_open_with_params_data_t;
+
     typedef union
     {
         /* Basic types */
@@ -148,6 +184,76 @@ extern "C" {
         evt_prop_v              value;
         uint32_t                piiKind;
     } evt_prop;
+    
+    /**
+     * <summary>
+     * Identifies HTTP request method type
+     * </summary>
+     */
+    typedef enum
+    {
+        HTTP_REQUEST_TYPE_GET = 0,
+        HTTP_REQUEST_TYPE_POST = 1,
+    } http_request_type_t;
+
+    /**
+     * <summary>
+     * Identifies whether an HTTP operation has succeeded or failed, including general failure type
+     * </summary>
+     */
+    typedef enum
+    {
+        HTTP_RESULT_OK = 0,
+        HTTP_RESULT_CANCELLED = 1,
+        HTTP_RESULT_LOCAL_FAILURE = 2,
+        HTTP_RESULT_NETWORK_FAILURE = 3,
+    } http_result_t;
+
+    /**
+     * <summary>
+     * Represents a single HTTP request or response header (key/value pair)
+     * </summary>
+     */
+    typedef struct
+    {
+        const char*             name;
+        const char*             value;
+    } http_header_t;
+
+    /**
+     * <summary>
+     * Represents a single HTTP request. Used by optional app-provided HTTP handler callback functions.
+     * </summary>
+     */
+    typedef struct
+    {
+        const char*             id;
+        http_request_type_t     type;
+        const char*             url;
+        const uint8_t*          body;
+        int32_t                 bodySize;
+        const http_header_t*    headers;
+        int32_t                 headersCount;
+    } http_request_t;
+
+    /**
+     * <summary>
+     * Represents a single HTTP response. Used by optional app-provided HTTP handler callback functions.
+     * </summary>
+     */
+    typedef struct
+    {
+        int32_t                 statusCode;
+        const uint8_t*          body;
+        int32_t                 bodySize;
+        const http_header_t*    headers;
+        int32_t                 headersCount;
+    } http_response_t;
+
+    /* HTTP callback function signatures */
+    typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
+    typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
+    typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */
@@ -287,7 +393,33 @@ extern "C" {
         evt_api_call(&ctx);
         return ctx.handle;
     }
-    
+
+    /**
+     * <summary>
+     * Create or open existing SDK instance.
+     * </summary>
+     * <param name="config">SDK configuration.</param>
+     * <param name="params">Optional initialization parameters.</param>
+     * <param name="paramsCount">Number of initialization parameters.</param>
+     * <returns>SDK instance handle.</returns>
+     */
+    static inline evt_handle_t evt_open_with_params(
+        const char* config,
+        evt_open_param_t* params,
+        int32_t paramsCount)
+    {
+        evt_open_with_params_data_t data;
+        data.config = config;
+        data.params = params;
+        data.paramsCount = paramsCount;
+
+        evt_context_t ctx;
+        ctx.call = EVT_OP_OPEN_WITH_PARAMS;
+        ctx.data = (void *)(&data);
+        evt_api_call(&ctx);
+        return ctx.handle;
+    }
+
     /**
      * <summary>
      * Destroy or close SDK instance by handle

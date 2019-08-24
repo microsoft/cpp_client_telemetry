@@ -1,9 +1,4 @@
----
-layout: page
-title: Getting started with the 1DS SDK (Beta) for Linux (C++)
-sub_title:
 
----
 This tutorial guides you through the process of integrating the 1DS SDK (Beta) into your existing C++ Linux app or service.
 
 ## 1. Linux Prerequisites for building from source
@@ -16,6 +11,16 @@ This tutorial guides you through the process of integrating the 1DS SDK (Beta) i
 {% include_relative linux-setup-build.md %}
 
 {% include contents/tutorial-create-api-key.md %}
+
+## 2. Clone the repository
+
+1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo.
+
+	If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+
+2. You will be asked your credentials to clone the repo, use your username and password as entered on Github
+	
+    If you do not have those credentials, generate them and use the username and password that you enabled.
 
 ## 3. Get the 1DS SDK (Beta) for C++
 
