@@ -83,10 +83,14 @@ foreach ($arch in $archs) {
       }
 
       # Ignore irrelevant parameters
-      # 1) Tests are only supported on x64/x86
+      # 1) Tests are only supported for DLL build on x64/x86
       if ($enableTests -eq "true") {
         if ($actualArch -eq "x64" -or $actualArch -eq "Win32") {
-          $targets += $testTargets
+          if ($binType -eq "dll") {
+            $targets += $testTargets
+          } else {
+            echo "   NOTE: Automation tests are not supported for $binType builds"
+          }
         } else {
           echo "   NOTE: Automation tests are not supported for $actualArch architecture"
         }
@@ -98,14 +102,17 @@ foreach ($arch in $archs) {
           $targets += $win32MiniLibTargets
         }
       } elseif ($binType -eq "dll") {
-        if ($actualArch -eq "x64" -or $actualArch -eq "Win32" -or $actualArch -eq "ARM64") {
+        # ARM doesn't support win32 targets
+        if ($actualArch -ne "ARM") {
           $targets += $win32DllTargets
+          if ($enableMini -eq "true") {
+            $targets += $win32MiniDllTargets
+          }
         }
-        if ($enableWin10 -eq "true") {
-          $targets += $win10DllTargets
-        }
-        if ($enableMini -eq "true") {
-          $targets += $win32MiniDllTargets
+
+        # ARM64 doesn't support win10 targets
+        if ($actualArch -ne "ARM64" -and $enableWin10 -eq "true") {
+            $targets += $win10DllTargets
         }
       }
 
