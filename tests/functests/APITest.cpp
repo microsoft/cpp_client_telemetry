@@ -302,6 +302,8 @@ void removeAllListeners(DebugEventListener& listener)
     LogManager::RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
+#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
+
 /// <summary>
 /// Perform simple Initialize and FlushAndTeardown
 /// </summary>
@@ -1064,5 +1066,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
 }
 
 // #endif
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
