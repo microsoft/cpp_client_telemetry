@@ -33,9 +33,12 @@ $win32MiniLibTargets = @("win32-mini-lib")
 if (-not $env:DevEnvDir) {
   echo "Running VsDevCmd.bat..."
   & cmd /s /c """$vsDevCmdBat"" -no_logo && set" | foreach-object {
+    echo "Reading $_"
     $name, $value = $_ -split '=', 2
-    echo "Setting $name = $value"
-    set-content env:\"$name" $value
+    if ($name -and $value) {
+      echo "   Setting $name = $value"
+      set-content env:\"$name" $value
+    }
   }
   echo "...Done!"
 }
