@@ -13,7 +13,8 @@ namespace ARIASDK_NS_BEGIN
           : m_httpClient(httpClient),
             m_machineFriendlyIdentifier(machineFriendlyIdentifier),
             m_endpoint(""),
-            m_isTransmissionEnabled(false)
+            m_isTransmissionEnabled(false),
+            m_enabledRemoteViewerNotifyCalled(false)
     {
         if (m_httpClient == nullptr)
         {
@@ -30,9 +31,9 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    void DefaultDataViewer::RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept
+    void DefaultDataViewer::ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept
     {
-        const_cast<DefaultDataViewer*>(this)->ProcessReceivedPacket(packetData);
+        ProcessReceivedPacket(packetData);
     }
 
     bool DefaultDataViewer::EnableLocalViewer()
@@ -48,7 +49,7 @@ namespace ARIASDK_NS_BEGIN
     void DefaultDataViewer::ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData)
     {
         std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
-        if (!m_isTransmissionEnabled)
+        if (!IsTransmissionEnabled())
             return;
         SendPacket(packetData);
     }
@@ -77,11 +78,13 @@ namespace ARIASDK_NS_BEGIN
             m_isTransmissionEnabled.exchange(false);
             m_httpClient->CancelAllRequests();
         }
-        else
+        else if(!IsTransmissionEnabled())
         {
             m_isTransmissionEnabled.exchange(true);
-            m_initializationEvent.notify_all();
         }
+
+        m_enabledRemoteViewerNotifyCalled.exchange(true);
+        m_initializationEvent.notify_all();
     }
 
     bool DefaultDataViewer::EnableRemoteViewer(const char* endpoint)
@@ -89,12 +92,17 @@ namespace ARIASDK_NS_BEGIN
         std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
         
         m_endpoint = endpoint;
+
+        m_enabledRemoteViewerNotifyCalled.exchange(false);
         SendPacket(std::vector<std::uint8_t>{});
 
-        m_initializationEvent.wait_until(transmissionLock, std::chrono::system_clock::now() + std::chrono::seconds(30));
-        if (!m_isTransmissionEnabled)
+        if (!m_enabledRemoteViewerNotifyCalled && !m_initializationEvent.wait_for(transmissionLock, std::chrono::seconds(30), []
+            {
+                return false;
+            }))
         {
             m_endpoint = "";
+            m_isTransmissionEnabled.exchange(false);
         }
         return m_isTransmissionEnabled;
     }
@@ -102,7 +110,6 @@ namespace ARIASDK_NS_BEGIN
     bool DefaultDataViewer::DisableViewer() noexcept
     {
         m_isTransmissionEnabled.exchange(false);
-
         return true;
     }
 

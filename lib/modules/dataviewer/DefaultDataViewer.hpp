@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
     public:
         DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier);
 
-        void RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept override;
+        void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept override;
 
         const char* const GetName() const noexcept override
         {
@@ -34,7 +34,25 @@ namespace ARIASDK_NS_BEGIN {
         bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage);
         bool DisableViewer() noexcept;
 
+        std::shared_ptr<MAT::IHttpClient> GetHttpClient() const noexcept
+        {
+            return m_httpClient;
+        }
+
+        const char* GetMachineFriendlyIdentifier() const noexcept
+        {
+            return m_machineFriendlyIdentifier;
+        }
+
+        bool IsTransmissionEnabled() const noexcept
+        {
+            return m_isTransmissionEnabled;
+        }
+
     private:
+        std::condition_variable m_initializationEvent;
+        mutable std::mutex m_transmissionGuard;
+
         void OnHttpResponse(IHttpResponse* response) override;
 
         void SendPacket(const std::vector<std::uint8_t>& packetData);
@@ -46,8 +64,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::shared_ptr<MAT::IHttpClient> m_httpClient;
         std::atomic<bool> m_isTransmissionEnabled;
-        std::condition_variable m_initializationEvent;
-        std::mutex m_transmissionGuard;
+        std::atomic<bool> m_enabledRemoteViewerNotifyCalled;
         const char* m_endpoint;
         const char* m_machineFriendlyIdentifier;
     };
