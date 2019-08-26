@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN {
         while (dataViewerIterator != m_dataViewerCollection.cend())
         {
             //ToDo: Send data asynchronously to individual viewers
-            dataViewerIterator->second->RecieveData(packetData);
+            dataViewerIterator->second->ReceiveData(packetData);
         }
     };
 
