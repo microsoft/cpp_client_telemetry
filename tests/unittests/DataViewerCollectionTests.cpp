@@ -37,12 +37,14 @@ public:
    using DataViewerCollection::UnregisterViewer;
    using DataViewerCollection::UnregisterAllViewers;
    using DataViewerCollection::IsViewerEnabled;
+   using DataViewerCollection::IsViewerInCollection;
 
-   std::map<const char*, std::shared_ptr<IDataViewer>>& GetCollection()
+   std::vector<std::shared_ptr<IDataViewer>>& GetCollection()
    {
        return m_dataViewerCollection;
    }
 };
+
 
 TEST(DataViewerCollectionImplTests, RegisterViewer_DataViewerIsNullptr_ThrowsInvalidArgumentException)
 {
@@ -62,7 +64,7 @@ TEST(DataViewerCollectionImplTests, RegisterViewer_sharedDataViewerRegistered_sh
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
     TestDataViewerCollectionImpl dataViewerCollection { };
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer));
-    ASSERT_NE(dataViewerCollection.GetCollection().find(viewer->GetName()), dataViewerCollection.GetCollection().end());
+    ASSERT_TRUE(dataViewerCollection.IsViewerInCollection(viewer->GetName()));
 }
 
 TEST(DataViewerCollectionImplTests, RegisterViewer_MultiplesharedDataViewersRegistered_sharedDataViewersRegisteredCorrectly)
@@ -79,10 +81,10 @@ TEST(DataViewerCollectionImplTests, RegisterViewer_MultiplesharedDataViewersRegi
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer4));
 
     ASSERT_EQ(dataViewerCollection.GetCollection().size(), 4);
-    ASSERT_NE(dataViewerCollection.GetCollection().find(viewer1->GetName()), dataViewerCollection.GetCollection().end());
-    ASSERT_NE(dataViewerCollection.GetCollection().find(viewer2->GetName()), dataViewerCollection.GetCollection().end());
-    ASSERT_NE(dataViewerCollection.GetCollection().find(viewer3->GetName()), dataViewerCollection.GetCollection().end());
-    ASSERT_NE(dataViewerCollection.GetCollection().find(viewer4->GetName()), dataViewerCollection.GetCollection().end());
+    ASSERT_TRUE(dataViewerCollection.IsViewerInCollection(viewer1->GetName()));
+    ASSERT_TRUE(dataViewerCollection.IsViewerInCollection(viewer2->GetName()));
+    ASSERT_TRUE(dataViewerCollection.IsViewerInCollection(viewer3->GetName()));
+    ASSERT_TRUE(dataViewerCollection.IsViewerInCollection(viewer4->GetName()));
 }
 
 TEST(DataViewerCollectionImplTests, RegisterViewer_DuplicateDataViewerRegistered_ThrowsInvalidArgumentException)
@@ -110,8 +112,10 @@ TEST(DataViewerCollectionImplTests, UnregisterViewer_ViewerNameIsNotRegistered_T
 TEST(DataViewerCollectionImplTests, UnregisterViewer_ViewerNameIsRegistered_UnregistersCorrectly)
 {
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
+    
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer->GetName(), viewer);
+    dataViewerCollection.GetCollection().push_back(viewer);
+
     ASSERT_NO_THROW(dataViewerCollection.UnregisterViewer(viewer->GetName()));
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
@@ -125,8 +129,10 @@ TEST(DataViewerCollectionImplTests, UnregisterAllViewers_NoViewersRegistered_Unr
 TEST(DataViewerCollectionImplTests, UnregisterAllViewers_OneViewerRegistered_UnregisterCallSuccessful)
 {
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
+
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer->GetName(), viewer);
+    dataViewerCollection.GetCollection().push_back(viewer);
+    
     ASSERT_NO_THROW(dataViewerCollection.UnregisterAllViewers());
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
@@ -136,10 +142,12 @@ TEST(DataViewerCollectionImplTests, UnregisterAllViewers_ThreeViewersRegistered_
     std::shared_ptr<IDataViewer> viewer1 = std::make_shared<MockIDataViewer>("sharedName1");
     std::shared_ptr<IDataViewer> viewer2 = std::make_shared<MockIDataViewer>("sharedName2");
     std::shared_ptr<IDataViewer> viewer3 = std::make_shared<MockIDataViewer>("sharedName3");
+    
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer1->GetName(), viewer1);
-    dataViewerCollection.GetCollection().emplace(viewer2->GetName(), viewer2);
-    dataViewerCollection.GetCollection().emplace(viewer3->GetName(), viewer3);
+    dataViewerCollection.GetCollection().push_back(viewer1);
+    dataViewerCollection.GetCollection().push_back(viewer2);
+    dataViewerCollection.GetCollection().push_back(viewer3);
+
     ASSERT_NO_THROW(dataViewerCollection.UnregisterAllViewers());
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
@@ -160,7 +168,7 @@ TEST(DataViewerCollectionImplTests, IsViewerEnabled_SingleViewerIsRegistered_Ret
 {
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer->GetName(), viewer);
+    dataViewerCollection.GetCollection().push_back(viewer);
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled(viewer->GetName()));
 }
 
@@ -169,10 +177,12 @@ TEST(DataViewerCollectionImplTests, IsViewerEnabled_MultipleViewersRegistered_Re
     std::shared_ptr<IDataViewer> viewer1 = std::make_shared<MockIDataViewer>("sharedName1");
     std::shared_ptr<IDataViewer> viewer2 = std::make_shared<MockIDataViewer>("sharedName2");
     std::shared_ptr<IDataViewer> viewer3 = std::make_shared<MockIDataViewer>("sharedName3");
+    
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer1->GetName(), viewer1);
-    dataViewerCollection.GetCollection().emplace(viewer2->GetName(), viewer2);
-    dataViewerCollection.GetCollection().emplace(viewer3->GetName(), viewer3);
+    dataViewerCollection.GetCollection().push_back(viewer1);
+    dataViewerCollection.GetCollection().push_back(viewer2);
+    dataViewerCollection.GetCollection().push_back(viewer3);
+    
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled("sharedName3"));
 }
 
@@ -186,7 +196,7 @@ TEST(DataViewerCollectionImplTests, IsViewerEnabledNoParam_SingleViewerIsRegiste
 {
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer->GetName(), viewer);
+    dataViewerCollection.GetCollection().push_back(viewer);
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }
 
@@ -196,8 +206,8 @@ TEST(DataViewerCollectionImplTests, IsViewerEnabledNoParam_MultipleViewersRegist
     std::shared_ptr<IDataViewer> viewer2 = std::make_shared<MockIDataViewer>("sharedName2");
     std::shared_ptr<IDataViewer> viewer3 = std::make_shared<MockIDataViewer>("sharedName3");
     TestDataViewerCollectionImpl dataViewerCollection { };
-    dataViewerCollection.GetCollection().emplace(viewer1->GetName(), viewer1);
-    dataViewerCollection.GetCollection().emplace(viewer2->GetName(), viewer2);
-    dataViewerCollection.GetCollection().emplace(viewer3->GetName(), viewer3);
+    dataViewerCollection.GetCollection().push_back(viewer1);
+    dataViewerCollection.GetCollection().push_back(viewer2);
+    dataViewerCollection.GetCollection().push_back(viewer3);
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }
