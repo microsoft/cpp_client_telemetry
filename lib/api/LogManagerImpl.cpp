@@ -29,10 +29,6 @@
 #endif
 #endif
 
-#ifdef HAVE_MAT_DEFAULTDATAVIEWER
-#include "modules/dataviewer/DefaultDataViewer.hpp"
-#endif
-
 namespace ARIASDK_NS_BEGIN
 {
 
