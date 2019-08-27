@@ -330,7 +330,7 @@ namespace ARIASDK_NS_BEGIN
             static const NullDataViewerCollection nullDataViewerCollectionConst;
             return nullDataViewerCollectionConst;
         }
-        
+
         virtual IDataViewerCollection& GetDataViewerCollection() noexcept override
         {
             static NullDataViewerCollection nullDataViewerCollection;
