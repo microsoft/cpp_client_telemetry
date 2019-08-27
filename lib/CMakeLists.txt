@@ -42,7 +42,8 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/OfflineStorageHandler.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
-  pal/PAL.hpp
+  pal/WorkerThread.cpp
+  pal/WorkerThread_CAPI.cpp
 )
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
@@ -64,8 +65,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     http/HttpClient_Curl.cpp
     http/HttpClient_Curl.hpp
     http/HttpClient.hpp
-    pal/WorkerThread.cpp
-    pal/WorkerThread.hpp
     pal/posix/DeviceInformationImpl.cpp
     pal/posix/NetworkInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
@@ -81,8 +80,6 @@ remove_definitions(-D_MBCS)
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
     http/HttpClient.hpp
-    pal/WorkerThread.cpp
-    pal/WorkerThread.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp

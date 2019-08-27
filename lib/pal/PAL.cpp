@@ -257,15 +257,16 @@ namespace PAL_NS_BEGIN {
     } // namespace detail
 
     static IWorkerThread *g_workerThread = nullptr;
+    static bool g_hasOwnWorkerThread = false;
 
     namespace detail {
 
-        void queueWorkerThreadItem(detail::WorkerThreadItemPtr item)
+        void queueWorkerThreadItem(WorkerThreadItemPtr item)
         {
             g_workerThread->queue(item);
         }
 
-        bool cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
+        bool cancelWorkerThreadItem(WorkerThreadItemPtr item)
         {
             return g_workerThread->cancel(item);
         }
@@ -484,7 +485,7 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize(IRuntimeConfig& configuration)
+    void initialize(IRuntimeConfig& configuration, IWorkerThread* workerThread)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
@@ -496,7 +497,14 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            g_workerThread = WorkerThreadFactory::Create();
+            if (workerThread != nullptr) {
+                g_hasOwnWorkerThread = false;
+                g_workerThread = workerThread;
+                LOG_TRACE("WorkerThread: External %p", workerThread);
+            } else {
+                g_hasOwnWorkerThread = true;
+                g_workerThread = WorkerThreadFactory::Create();
+            }
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
             g_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
@@ -522,7 +530,7 @@ namespace PAL_NS_BEGIN {
         if (g_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
-            delete g_workerThread;
+            if (g_hasOwnWorkerThread) { delete g_workerThread; }
             g_workerThread = nullptr;
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }

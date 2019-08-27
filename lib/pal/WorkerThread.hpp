@@ -11,6 +11,7 @@
 #include <climits>
 #include <algorithm>
 
+#include "IWorkerThread.hpp"
 #include "Version.hpp"
 
 namespace PAL_NS_BEGIN {
@@ -76,18 +77,6 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
-        class WorkerThreadItem
-        {
-        public:
-            volatile enum { Shutdown, Call, TimedCall, Done } type;
-            int64_t targetTime;
-            virtual ~WorkerThreadItem() {}
-            virtual void operator()() {}
-            std::string typeName;
-        };
-
-        typedef WorkerThreadItem* WorkerThreadItemPtr;
-
         // TODO: [MG] - allow lambdas, std::function, functors, etc.
         template<typename TCall>
         class WorkerThreadCall : public WorkerThreadItem
@@ -127,16 +116,16 @@ namespace PAL_NS_BEGIN {
     } // namespace detail
 
     namespace detail {
-        extern void queueWorkerThreadItem(detail::WorkerThreadItemPtr item);
-        extern bool cancelWorkerThreadItem(detail::WorkerThreadItemPtr item);
+        extern void queueWorkerThreadItem(MAT::WorkerThreadItemPtr item);
+        extern bool cancelWorkerThreadItem(MAT::WorkerThreadItemPtr item);
     } // namespace detail
 
     class DeferredCallbackHandle
     {
     public:
-        detail::WorkerThreadItemPtr m_item;
+        MAT::WorkerThreadItemPtr m_item;
 
-        DeferredCallbackHandle(detail::WorkerThreadItemPtr item) : m_item(item) { };
+        DeferredCallbackHandle(MAT::WorkerThreadItemPtr item) : m_item(item) { };
         DeferredCallbackHandle() : m_item(nullptr) {};
         DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) { };
         bool cancel()
@@ -158,7 +147,7 @@ namespace PAL_NS_BEGIN {
     {
         assert(obj != nullptr);
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
-        detail::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
+        MAT::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
         detail::queueWorkerThreadItem(item);
     }
 
@@ -186,18 +175,8 @@ namespace PAL_NS_BEGIN {
         return scheduleOnWorkerThread(delayMs, (TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
     }
 
-    class IWorkerThread
-    {
-    public:
-        virtual ~IWorkerThread() {}
-
-        virtual void join() = 0;
-        virtual void queue(detail::WorkerThreadItemPtr item) = 0;
-        virtual bool cancel(detail::WorkerThreadItemPtr item) = 0;
-    };
-
     namespace WorkerThreadFactory {
-        IWorkerThread* Create();
+        MAT::IWorkerThread* Create();
     }
 
 } PAL_NS_END

@@ -119,7 +119,7 @@ namespace PAL_NS_BEGIN
     //
     // Startup/shutdown
     //
-    void initialize(IRuntimeConfig& configuration);
+    void initialize(IRuntimeConfig& configuration, IWorkerThread* workerThread);
     void shutdown();
 
     INetworkInformation* GetNetworkInformation();

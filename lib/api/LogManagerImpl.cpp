@@ -14,6 +14,7 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
+#include "pal/WorkerThread.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -81,12 +82,12 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient)
-       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread)
+       : LogManagerImpl(configuration, httpClient, workerThread, false /*deferSystemStart*/)
     {
     }
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart)
         : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
@@ -97,7 +98,7 @@ namespace ARIASDK_NS_BEGIN
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
-        PAL::initialize(*m_config);
+        PAL::initialize(*m_config, workerThread);
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();

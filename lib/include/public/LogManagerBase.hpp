@@ -199,7 +199,7 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         inline static ILogger* Initialize(const std::string& tenantToken, ILogConfiguration& configuration)
         {
-           return Initialize(tenantToken, configuration, nullptr);
+           return Initialize(tenantToken, configuration, nullptr /*httpClient*/, nullptr /*workerThread*/);
         }
 
         /// <summary>
@@ -207,23 +207,26 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <param name="workerThread">IWorkerThread implementation to be used, nullptr uses the default</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient)
+        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient, IWorkerThread* workerThread)
         {
-           return Initialize(tenantToken, GetLogConfiguration(), httpClient);
+           return Initialize(tenantToken, GetLogConfiguration(), httpClient, workerThread);
         }
 
         /// <summary>
-        /// Initializes the telemetry logging system with the specified ILogConfiguration and IHttpClient.
+        /// Initializes the telemetry logging system with the specified ILogConfiguration, IHttpClient, IWorkerThread.
         /// </summary>
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <param name="workerThread">IWorkerThread implementation to be used, nullptr uses the default</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
             const std::string& tenantToken,
             ILogConfiguration& configuration,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            IWorkerThread* workerThread
         )
         {
             LM_LOCKGUARD(stateLock());
@@ -246,7 +249,7 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, workerThread, status);
                 instance->AttachEventSource(GetDebugEventSource());
                 return instance->GetLogger(currentConfig[CFG_STR_PRIMARY_TOKEN]);
             }

@@ -4,6 +4,7 @@
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
+#include "IWorkerThread.hpp"
 
 #include "NullObjects.hpp"
 
@@ -47,7 +48,7 @@ namespace ARIASDK_NS_BEGIN {
 
         const ILogManager* find(const std::string& name);
 
-        ILogManager* lease(ILogConfiguration& configuration, IHttpClient* client);
+        ILogManager* lease(ILogConfiguration& configuration, IHttpClient* client, IWorkerThread* workerThread);
 
         bool release(const std::string& name, const std::string& host);
 
@@ -76,8 +77,9 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
         /// <param name="httpClient">Implementation of IHttpClient for the LogManager to use.</param>
+        /// <param name="workerTHread">Implementation of IWorkerThread for the LogManager to use.</param>
         /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and HTTP Client.</returns>
-        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient);
+        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread);
 
         /// <summary>
         /// Creates a new ILogManager instance
@@ -86,7 +88,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and the default HTTP client.</returns>
         static ILogManager* Create(ILogConfiguration& configuration)
         {
-           return Create(configuration, nullptr);
+           return Create(configuration, nullptr /*httpClient*/, nullptr /*workerThread*/);
         }
 
         /// <summary>
@@ -97,10 +99,11 @@ namespace ARIASDK_NS_BEGIN {
         static ILogManager * Get(
             ILogConfiguration& logConfiguration,
             status_t& status,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            IWorkerThread* workerThread
         )
         {
-            auto result = instance().lease(logConfiguration, httpClient);
+            auto result = instance().lease(logConfiguration, httpClient, workerThread);
             status = (result != nullptr)?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
@@ -112,7 +115,7 @@ namespace ARIASDK_NS_BEGIN {
            status_t& status
         )
         {
-           return Get(logConfiguration, status, nullptr);
+           return Get(logConfiguration, status, nullptr /*httpClient*/, nullptr /*workerThread*/);
         }
 
         static ILogManager* Get(
@@ -126,7 +129,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "version", "0.0.0" },
                 { "config", {  } }
             };
-            auto result = instance().lease(config, nullptr);
+            auto result = instance().lease(config, nullptr /*httpClient*/, nullptr /*workerThread*/);
             status = (result != nullptr) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;

@@ -5,6 +5,7 @@
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
+#include "IWorkerThread.hpp"
 #include "NullObjects.hpp"
 
 namespace ARIASDK_NS_BEGIN
@@ -40,12 +41,13 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status,
             IHttpClient* httpClient,
+            IWorkerThread* workerThread,
             uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg["config"]["host"] = (wantController) ? id : "*";
-            return Get(cfg, status, httpClient);
+            return Get(cfg, status, httpClient, workerThread);
         };
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
@@ -105,15 +107,16 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status)
         {
-            return Get(cfg, status, nullptr);
+            return Get(cfg, status, nullptr /*httpClient*/, nullptr /*workerThread*/);
         }
 
         static ILogManager* MATSDK_SPEC CreateLogManager(
            ILogConfiguration& cfg,
            IHttpClient* httpClient,
+           IWorkerThread* workerThread,
            status_t& status)
         {
-           return Get(cfg, status, httpClient);
+           return Get(cfg, status, httpClient, workerThread);
         }
 
         /// <summary>
@@ -146,7 +149,8 @@ namespace ARIASDK_NS_BEGIN
         static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
             status_t &status,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            IWorkerThread* workerThread
         );
 
         static ILogManager* MATSDK_SPEC Get(
@@ -164,10 +168,11 @@ namespace ARIASDK_NS_BEGIN
 
     /// <summary>
     /// C API client struct
-    /// logmanager  - ILogManager pointer to SDK instance
-    /// config      - ILogConfiguration
-    /// ctx_data    - original JSON configuration or token passed to mat_open
-    /// http        - optional IHttpClient override instance
+    /// logmanager   - ILogManager pointer to SDK instance
+    /// config       - ILogConfiguration
+    /// ctx_data     - original JSON configuration or token passed to mat_open
+    /// http         - optional IHttpClient override instance
+    /// workerThread - optional IWorkerThread override instance
     /// </summary>
     typedef struct
     {
@@ -175,6 +180,7 @@ namespace ARIASDK_NS_BEGIN
         ILogConfiguration   config;
         std::string         ctx_data;
         IHttpClient*        http = nullptr;
+        IWorkerThread*      workerThread = nullptr;
     } capi_client;
 
     /// <summary>
