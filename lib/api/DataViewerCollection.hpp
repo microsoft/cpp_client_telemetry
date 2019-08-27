@@ -29,7 +29,7 @@ namespace ARIASDK_NS_BEGIN {
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        mutable std::recursive_mutex m_dataViewerMapLock;
+        mutable std::mutex m_dataViewerMapLock;
 
     protected:
         std::map<const char*, std::shared_ptr<IDataViewer>> m_dataViewerCollection;
