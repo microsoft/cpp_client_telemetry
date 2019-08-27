@@ -9,12 +9,12 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-    DefaultDataViewer::DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier)
-          : m_httpClient(httpClient),
-            m_machineFriendlyIdentifier(machineFriendlyIdentifier),
-            m_endpoint(""),
-            m_isTransmissionEnabled(false),
-            m_enabledRemoteViewerNotifyCalled(false)
+    DefaultDataViewer::DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier) :
+        m_httpClient(httpClient),
+        m_isTransmissionEnabled(false), 
+        m_enabledRemoteViewerNotifyCalled(false),
+        m_endpoint(""),
+        m_machineFriendlyIdentifier(machineFriendlyIdentifier)
     {
         if (m_httpClient == nullptr)
         {
@@ -25,10 +25,28 @@ namespace ARIASDK_NS_BEGIN
     #endif
         }
 
-        if (!m_machineFriendlyIdentifier || strlen(m_machineFriendlyIdentifier) == 0)
+        if (IsNullOrEmpty(m_machineFriendlyIdentifier))
         {
             throw std::invalid_argument("machineFriendlyIdentifier");
         }
+    }
+
+    bool DefaultDataViewer::IsNullOrEmpty(const char* toCheck) noexcept
+    {
+        if (!toCheck || strlen(toCheck) == 0)
+            return true;
+
+        const char* currentChar = &toCheck[0];
+        while (*currentChar != '\0')
+        {
+            if (!isspace(*currentChar))
+            {
+                return false;
+            }
+            ++currentChar;
+        }
+
+        return true;
     }
 
     void DefaultDataViewer::ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept
@@ -58,8 +76,9 @@ namespace ARIASDK_NS_BEGIN
     {
         auto request = m_httpClient->CreateRequest();
         request->SetMethod("POST");
-        auto localPacketDataCopy = std::vector<std::uint8_t> { packetData };
-        request->SetBody(localPacketDataCopy);
+
+        auto localPacketData = std::vector<std::uint8_t> { packetData };
+        request->SetBody(localPacketData);
 
         auto& header = request->GetHeaders();
         header.add("Machine-Identifier", m_machineFriendlyIdentifier);
@@ -78,13 +97,16 @@ namespace ARIASDK_NS_BEGIN
             m_isTransmissionEnabled.exchange(false);
             m_httpClient->CancelAllRequests();
         }
-        else if(!IsTransmissionEnabled())
+        else if (!IsTransmissionEnabled())
         {
             m_isTransmissionEnabled.exchange(true);
         }
 
-        m_enabledRemoteViewerNotifyCalled.exchange(true);
-        m_initializationEvent.notify_all();
+        if (!m_enabledRemoteViewerNotifyCalled)
+        {
+            m_enabledRemoteViewerNotifyCalled.exchange(true);
+            m_initializationEvent.notify_all();
+        }
     }
 
     bool DefaultDataViewer::EnableRemoteViewer(const char* endpoint)
@@ -96,7 +118,7 @@ namespace ARIASDK_NS_BEGIN
         m_enabledRemoteViewerNotifyCalled.exchange(false);
         SendPacket(std::vector<std::uint8_t>{});
 
-        if (!m_enabledRemoteViewerNotifyCalled && !m_initializationEvent.wait_for(transmissionLock, std::chrono::seconds(30), []
+        if (!m_enabledRemoteViewerNotifyCalled && !m_initializationEvent.wait_for(transmissionLock, std::chrono::seconds(30), []() noexcept
             {
                 return false;
             }))
@@ -110,7 +132,22 @@ namespace ARIASDK_NS_BEGIN
     bool DefaultDataViewer::DisableViewer() noexcept
     {
         m_isTransmissionEnabled.exchange(false);
+        
+        {
+            std::lock_guard<std::mutex> onDisableNotificationLock(m_onDisableNotificationGuard);
+            for (const auto& notification : m_onDisabledNotification)
+            {
+                notification();
+            }
+        }
+
         return true;
+    }
+
+    void DefaultDataViewer::RegisterOnDisableNotification(const std::function<void()>& onDisabled) noexcept
+    {
+        std::unique_lock<std::mutex> transmissionLock(m_onDisableNotificationGuard);
+        m_onDisabledNotification.push_back(onDisabled);
     }
 
 } ARIASDK_NS_END

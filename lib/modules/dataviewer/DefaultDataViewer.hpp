@@ -15,7 +15,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    class DefaultDataViewer final : public MAT::IDataViewer, public MAT::IHttpResponseCallback
+    class DefaultDataViewer : public MAT::IDataViewer, public MAT::IHttpResponseCallback
     {
     public:
         DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier);
@@ -34,9 +34,12 @@ namespace ARIASDK_NS_BEGIN {
         bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage);
         bool DisableViewer() noexcept;
 
-        std::shared_ptr<MAT::IHttpClient> GetHttpClient() const noexcept
+        void RegisterOnDisableNotification(const std::function<void()>& onDisabled) noexcept;
+
+    protected:
+        MAT::IHttpClient* GetHttpClient() const noexcept
         {
-            return m_httpClient;
+            return m_httpClient.get();
         }
 
         const char* GetMachineFriendlyIdentifier() const noexcept
@@ -49,24 +52,34 @@ namespace ARIASDK_NS_BEGIN {
             return m_isTransmissionEnabled;
         }
 
+        void SetTransmissionEnabled(bool state) noexcept
+        {
+            m_isTransmissionEnabled.exchange(state);
+        }
+
     private:
+        void OnHttpResponse(IHttpResponse* response) override;
+        void SendPacket(const std::vector<std::uint8_t>& packetData);
+        void ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData);
+
+        bool IsNullOrEmpty(const char* toCheck) noexcept;
+
         std::condition_variable m_initializationEvent;
         mutable std::mutex m_transmissionGuard;
 
-        void OnHttpResponse(IHttpResponse* response) override;
+        std::shared_ptr<MAT::IHttpClient> m_httpClient;
+        std::atomic<bool> m_isTransmissionEnabled;
+        std::atomic<bool> m_enabledRemoteViewerNotifyCalled;
 
-        void SendPacket(const std::vector<std::uint8_t>& packetData);
-        void ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData);
+        const char* m_endpoint;
+        const char* m_machineFriendlyIdentifier;
 
         static constexpr const char* m_name { "DefaultDataViewer" };
         static constexpr const char* m_httpPrefix { "http://" };
         static constexpr const char* m_httpsPrefix { "https://" };
 
-        std::shared_ptr<MAT::IHttpClient> m_httpClient;
-        std::atomic<bool> m_isTransmissionEnabled;
-        std::atomic<bool> m_enabledRemoteViewerNotifyCalled;
-        const char* m_endpoint;
-        const char* m_machineFriendlyIdentifier;
+        std::mutex m_onDisableNotificationGuard;
+        std::vector<std::function<void()>> m_onDisabledNotification;
     };
 
 } ARIASDK_NS_END
