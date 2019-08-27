@@ -26,11 +26,12 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="configuration">The configuration.</param>
     /// <param name="httpClient">IHTTPClient implementation for the LogManager to use.</param>
+    /// <param name="workerThread">IWorkerThread implementation for the LogManager to use.</param>
     /// <returns>ILogManager instance</returns>
-    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration, IHttpClient* httpClient)
+    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto logManager = new LogManagerImpl(configuration, httpClient);
+        auto logManager = new LogManagerImpl(configuration, httpClient, workerThread);
         ILogManagerInternal::managers.emplace(logManager);
         return logManager;
     }
@@ -99,7 +100,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    ILogManager* LogManagerFactory::lease(ILogConfiguration& c, IHttpClient* httpClient)
+    ILogManager* LogManagerFactory::lease(ILogConfiguration& c, IHttpClient* httpClient, IWorkerThread* workerThread)
     {
         std::string name;
         std::string host;
@@ -111,7 +112,7 @@ namespace ARIASDK_NS_BEGIN {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
             {
-                exclusive[name] = { { name }, Create(c, httpClient) };
+                exclusive[name] = { { name }, Create(c, httpClient, workerThread) };
             }
             c["hostMode"] = true;
             return exclusive[name].instance;
@@ -138,7 +139,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                shared[host] = { { name }, Create(c, httpClient) };
+                shared[host] = { { name }, Create(c, httpClient, workerThread) };
             }
         }
         else

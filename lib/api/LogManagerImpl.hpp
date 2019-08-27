@@ -9,6 +9,7 @@
 
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
+#include "IWorkerThread.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
@@ -117,8 +118,8 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart);
 
         virtual ~LogManagerImpl() override;
 

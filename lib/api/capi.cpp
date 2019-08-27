@@ -7,6 +7,7 @@
 #include "http/HttpClient_CAPI.hpp"
 #include "LogManagerProvider.hpp"
 #include "mat.h"
+#include "pal/WorkerThread_CAPI.hpp"
 #include "utils/Utils.hpp"
 
 #include "PAL.hpp"
@@ -66,7 +67,10 @@ evt_status_t mat_open_core(
     evt_context_t *ctx,
     const char* config,
     http_send_fn_t httpSendFn,
-    http_cancel_fn_t httpCancelFn)
+    http_cancel_fn_t httpCancelFn,
+    task_queue_fn_t taskQueueFn,
+    task_cancel_fn_t taskCancelFn,
+    task_shutdown_fn_t taskShutdownFn)
 {
     if ((config == nullptr) || (config[0] == 0))
     {
@@ -137,8 +141,21 @@ evt_status_t mat_open_core(
         }
     }
 
+    // Create custom worker thread
+    if (taskQueueFn != nullptr && taskCancelFn != nullptr && taskShutdownFn != nullptr)
+    {
+        try
+        {
+            clients[code].workerThread = new PAL::WorkerThread_CAPI(taskQueueFn, taskCancelFn, taskShutdownFn);
+        }
+        catch (...)
+        {
+            return EFAULT;
+        }
+    }
+
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, clients[code].http, status);
+    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, clients[code].http, clients[code].workerThread, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)
@@ -158,7 +175,7 @@ evt_status_t mat_open(evt_context_t *ctx)
     };
 
     char* config = static_cast<char *>(ctx->data);
-    return mat_open_core(ctx, config, nullptr, nullptr);
+    return mat_open_core(ctx, config, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 evt_status_t mat_open_with_params(evt_context_t *ctx)
@@ -177,6 +194,9 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 
     http_send_fn_t httpSendFn = nullptr;
     http_cancel_fn_t httpCancelFn = nullptr;
+    task_queue_fn_t taskQueueFn = nullptr;
+    task_cancel_fn_t taskCancelFn = nullptr;
+    task_shutdown_fn_t taskShutdownFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
         const evt_open_param_t& param = data->params[i];
@@ -187,10 +207,19 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
             case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
                 httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
                 break;
+            case OPEN_PARAM_TYPE_TASK_HANDLER_QUEUE:
+                taskQueueFn = reinterpret_cast<task_queue_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_TASK_HANDLER_CANCEL:
+                taskCancelFn = reinterpret_cast<task_cancel_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_TASK_HANDLER_SHUTDOWN:
+                taskShutdownFn = reinterpret_cast<task_shutdown_fn_t>(param.data);
+                break;
         }
     }
 
-    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn);
+    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn, taskQueueFn, taskCancelFn, taskShutdownFn);
 }
 
 /**
@@ -258,6 +287,12 @@ evt_status_t mat_close(evt_context_t *ctx)
     {
         delete client->http;
         client->http = nullptr;
+    }
+
+    if (client->workerThread != nullptr)
+    {
+        delete client->workerThread;
+        client->workerThread = nullptr;
     }
 
     remove_client(ctx->handle);

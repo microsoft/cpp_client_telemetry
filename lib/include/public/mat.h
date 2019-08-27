@@ -133,6 +133,9 @@ extern "C" {
     {
         OPEN_PARAM_TYPE_HTTP_HANDLER_SEND = 0,
         OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL = 1,
+        OPEN_PARAM_TYPE_TASK_HANDLER_QUEUE = 2,
+        OPEN_PARAM_TYPE_TASK_HANDLER_CANCEL = 3,
+        OPEN_PARAM_TYPE_TASK_HANDLER_SHUTDOWN = 4,
     } evt_open_param_type_t;
 
     /**
@@ -254,6 +257,24 @@ extern "C" {
     typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
     typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
     typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
+
+    /**
+     * <summary>
+     * Represents a single asynchrous task. Used by optional app-provided task handler callback functions.
+     * </summary>
+     */
+    typedef struct
+    {
+        const char*             id;
+        int64_t                 delayMs;
+        const char*             typeName;
+    } async_task_t;
+
+    /* Async task callback function signatures */
+    typedef void (EVTSDK_LIBABI_CDECL *task_callback_fn_t)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *task_queue_fn_t)(async_task_t*, task_callback_fn_t);
+    typedef bool (EVTSDK_LIBABI_CDECL *task_cancel_fn_t)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *task_shutdown_fn_t)();
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */

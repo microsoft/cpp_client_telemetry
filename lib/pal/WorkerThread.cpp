@@ -5,12 +5,12 @@
 
 namespace PAL_NS_BEGIN {
 
-    class WorkerThreadShutdownItem : public detail::WorkerThreadItem
+    class WorkerThreadShutdownItem : public WorkerThreadItem
     {
     public:
         WorkerThreadShutdownItem()
         {
-            type = detail::WorkerThreadItem::Shutdown;
+            type = MAT::WorkerThreadItem::Shutdown;
         }
     };
 
@@ -22,10 +22,10 @@ namespace PAL_NS_BEGIN {
         // TODO: [MG] - investigate all the cases why we need recursive here
         std::recursive_mutex                   m_lock;
 
-        std::list<detail::WorkerThreadItemPtr> m_queue;
-        std::list<detail::WorkerThreadItemPtr> m_timerQueue;
-        Event                                  m_event;
-        detail::WorkerThreadItemPtr            m_itemInProgress;
+        std::list<MAT::WorkerThreadItemPtr> m_queue;
+        std::list<MAT::WorkerThreadItemPtr> m_timerQueue;
+        Event                          m_event;
+        MAT::WorkerThreadItemPtr            m_itemInProgress;
         int count = 0;
     
     public:
@@ -66,12 +66,12 @@ namespace PAL_NS_BEGIN {
             }
         }
 
-        void queue(detail::WorkerThreadItemPtr item) override
+        void queue(MAT::WorkerThreadItemPtr item) override
         {
             // TODO: [MG] - show item type
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
-            if (item->type == detail::WorkerThreadItem::TimedCall) {
+            if (item->type == MAT::WorkerThreadItem::TimedCall) {
                 auto it = m_timerQueue.begin();
                 while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
                     ++it;
@@ -85,7 +85,7 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        bool cancel(detail::WorkerThreadItemPtr item) override
+        bool cancel(MAT::WorkerThreadItemPtr item) override
         {
             if ((m_itemInProgress == item)||(item==nullptr))
             {
@@ -106,7 +106,7 @@ namespace PAL_NS_BEGIN {
             for (;;) {
                 {
                     LOCKGUARD(m_lock);
-                    if (item->type == detail::WorkerThreadItem::Done) {
+                    if (item->type == MAT::WorkerThreadItem::Done) {
                         return;
                     }
                 }
@@ -124,7 +124,7 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            std::unique_ptr<detail::WorkerThreadItem> item = nullptr;
+            std::unique_ptr<MAT::WorkerThreadItem> item = nullptr;
             for (;;) {
                 wakeupCount++;
                 unsigned nextTimerInMs = UINT_MAX;
@@ -133,7 +133,7 @@ namespace PAL_NS_BEGIN {
 
                     int64_t now = getMonotonicTimeMs();
                     if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
-                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_timerQueue.front());
+                        item = std::unique_ptr<MAT::WorkerThreadItem>(self->m_timerQueue.front());
                         self->m_timerQueue.pop_front();
                     }
                     if (!self->m_timerQueue.empty()) {
@@ -141,7 +141,7 @@ namespace PAL_NS_BEGIN {
                     }
 
                     if (!self->m_queue.empty() && !item) {
-                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_queue.front());
+                        item = std::unique_ptr<MAT::WorkerThreadItem>(self->m_queue.front());
                         self->m_queue.pop_front();
                     }
                 }
@@ -152,7 +152,7 @@ namespace PAL_NS_BEGIN {
                     continue;
                 }
 
-                if (item->type == detail::WorkerThreadItem::Shutdown) {
+                if (item->type == MAT::WorkerThreadItem::Shutdown) {
                     item.reset();
                     break;
                 }
@@ -163,17 +163,15 @@ namespace PAL_NS_BEGIN {
                 self->m_itemInProgress = nullptr;
 
                 if (item.get()) {
-                    item->type = detail::WorkerThreadItem::Done;
+                    item->type = MAT::WorkerThreadItem::Done;
                     item.reset();
                 }
             }
         }
     };
 
-    class WorkerThread_CoreLib;
-
     namespace WorkerThreadFactory {
-        IWorkerThread* Create()
+        MAT::IWorkerThread* Create()
         {
             return new WorkerThread();
         }
