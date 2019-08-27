@@ -73,14 +73,14 @@ TEST(DefaultDataViewerTests, Constructor_HttpClientNotPassed_HttpClientSetsOrThr
 #endif
 }
 
-TEST(DefaultDataViewerTests, Constructor_MachineIdentifierValid_MachineIdentifierSetCorrectly)
+TEST(DefaultDataViewerTests, Constructor_ValidMachineIdentifier_MachineIdentifierSetCorrectly)
 {
     auto mockHttpClient = std::shared_ptr<MockHttpClient>(new MockHttpClient());
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     ASSERT_EQ(viewer.GetMachineFriendlyIdentifier(), "Test");
 }
 
-TEST(DefaultDataViewerTests, Constructor_MachineIdentifierInvalid_ThrowsInvalidArgument)
+TEST(DefaultDataViewerTests, Constructor_InvalidMachineIdentifier_ThrowsInvalidArgument)
 {
     auto mockHttpClient = std::shared_ptr<MockHttpClient>(new MockHttpClient());
     ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, NULL), std::invalid_argument);
@@ -275,16 +275,16 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
 {
     auto mockHttpClient = std::shared_ptr<MockHttpClient>(new MockHttpClient());
     int sendRequestAsyncCalledCount { 0 };
-    auto l_request = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
-    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &l_request](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
+    auto sp_request = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
+    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &sp_request](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
     {
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
         callback->OnHttpResponse(response.get());
 
-        l_request->m_body = request->GetBody();
-        l_request->m_headers = request->GetHeaders();
+        sp_request->m_body = request->GetBody();
+        sp_request->m_headers = request->GetHeaders();
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -296,12 +296,7 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
     }
 
     ASSERT_EQ(sendRequestAsyncCalledCount, 1);
-
-    ASSERT_EQ(l_request->GetBody(), (std::vector<std::uint8_t> { 1, 2, 3 }));
-    ASSERT_EQ(l_request->GetHeaders().get("Machine-Identifier"), "Test");
-    ASSERT_EQ(l_request->GetHeaders().get("Content-Type"), "Application/bond-compact-binary");
-    ASSERT_FALSE(l_request->GetHeaders().get("App-Name").empty());
-    ASSERT_FALSE(l_request->GetHeaders().get("App-Platform").empty());
+    ASSERT_EQ(sp_request->GetBody(), (std::vector<std::uint8_t> { 1, 2, 3 }));
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
@@ -317,8 +312,7 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.SetTransmissionEnabled(true);
-    auto packet = std::vector<std::uint8_t> { 1, 2, 3 };
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
-    viewer.ReceiveData(packet);
+    viewer.ReceiveData(std::vector<std::uint8_t> { 1, 2, 3 });
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
