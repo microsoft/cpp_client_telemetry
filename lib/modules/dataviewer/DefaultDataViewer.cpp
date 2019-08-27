@@ -4,12 +4,13 @@
 #include "public/DebugEvents.hpp"
 #include "pal/PAL.hpp"
 
+#include <algorithm>
 #include <chrono>
 
 namespace ARIASDK_NS_BEGIN
 {
 
-    DefaultDataViewer::DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier) :
+    DefaultDataViewer::DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const char* machineFriendlyIdentifier) :
         m_httpClient(httpClient),
         m_isTransmissionEnabled(false), 
         m_enabledRemoteViewerNotifyCalled(false),
@@ -36,17 +37,10 @@ namespace ARIASDK_NS_BEGIN
         if (!toCheck || strlen(toCheck) == 0)
             return true;
 
-        const char* currentChar = &toCheck[0];
-        while (*currentChar != '\0')
-        {
-            if (!isspace(*currentChar))
+        return std::all_of(toCheck, strlen(toCheck) + toCheck, [](char c)
             {
-                return false;
-            }
-            ++currentChar;
-        }
-
-        return true;
+                return isspace(c);
+            });
     }
 
     void DefaultDataViewer::ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept
@@ -66,7 +60,7 @@ namespace ARIASDK_NS_BEGIN
 
     void DefaultDataViewer::ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData)
     {
-        std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
+        std::lock_guard<std::mutex> transmissionLock(m_transmissionGuard);
         if (!IsTransmissionEnabled())
             return;
         SendPacket(packetData);
@@ -92,7 +86,7 @@ namespace ARIASDK_NS_BEGIN
 
     void DefaultDataViewer::OnHttpResponse(IHttpResponse* response)
     {
-        if (response->GetStatusCode() != 200)
+        if (response == nullptr || response->GetStatusCode() != 200)
         {
             m_isTransmissionEnabled.exchange(false);
             m_httpClient->CancelAllRequests();
@@ -112,7 +106,11 @@ namespace ARIASDK_NS_BEGIN
     bool DefaultDataViewer::EnableRemoteViewer(const char* endpoint)
     {
         std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
-        
+        if (IsNullOrEmpty(endpoint))
+        {
+            throw std::invalid_argument("endpoint is null or empty");
+        }
+
         m_endpoint = endpoint;
 
         m_enabledRemoteViewerNotifyCalled.exchange(false);
@@ -146,7 +144,7 @@ namespace ARIASDK_NS_BEGIN
 
     void DefaultDataViewer::RegisterOnDisableNotification(const std::function<void()>& onDisabled) noexcept
     {
-        std::unique_lock<std::mutex> transmissionLock(m_onDisableNotificationGuard);
+        std::lock_guard<std::mutex> transmissionLock(m_onDisableNotificationGuard);
         m_onDisabledNotification.push_back(onDisabled);
     }
 
