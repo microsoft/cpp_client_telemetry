@@ -25,6 +25,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/AuthTokensController.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
+  api/DataViewerCollection.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
