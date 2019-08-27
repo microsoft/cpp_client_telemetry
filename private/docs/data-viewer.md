@@ -23,7 +23,7 @@ promises with regards to data transparency.
     class IDataViewer
     {
     public:
-        virtual void ReceiveData(const std::vector<std::uint8_t>& packetData) const noexcept = 0;
+        virtual void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept = 0;
         virtual const char* const GetName() const noexcept = 0;
     };
 
@@ -106,20 +106,20 @@ decisions can be made.
 
 * Invoke `IDataViewerCollection::RegisterViewer(ViewerImpl)`
     * If `ViewerImpl` is not registered, register it.
-    * Else, throw duplicate viewer exception.
+    * Else, throw exception for duplicate viewer registration.
 
 #### Post-Registration
 
 * 1SDK generates an HTTP encoded packet and sends it to `IDataViewerCollection`
 before calling the upload method.
 * Identify all registered viewers.
-* For each viewer, asynchronously invoke `IDataViewer::ReceiveData(packet)`.
+* For each viewer, synchronously invoke `IDataViewer::ReceiveData(packet)`.
 
 #### Unregistering `IDataViewer`
 
 * Invoke `IDataViewerCollection::UnregisterViewer("ViewerImplName")`
     * If ViewerImpl is registered, unregister it.
-    * Else, throw viewer not registered exception.
+    * Else, throw exception for viewer not being registered.
 
 #### Unregistering all registered instances of `IDataViewer`
 
@@ -155,14 +155,24 @@ transparency requirements they may have.
 
     class DefaultDataViewer
     {
-        ...
-        void ReceiveData(const std::vector<std::uint8_t>& dataPacket) const noexcept override;
+        DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier)
+        void ReceiveData(const std::vector<std::uint8_t>& dataPacket) noexcept override;
         const char* GetName() const noexcept override;
         bool EnableRemoteViewer(const std::string& endpoint);
         bool EnableLocalViewer();
         bool EnableLocalViewer(const std::string& AppId, const std::string& AppPackage);
         bool DisableViewer();
+        ...
     };
+
+#### `DefaultDataViewer` Constructor
+The `DefaultDataViewer` object allows the consumer to set the Http
+client to be used for remote connections. This is especially helpful
+when the SDK is using a different HTTP library than the one it provides
+natively. Additionally, when sending data to the data viewer, it is
+recommended to send a friendly machine identifier. This allows the
+viewer to group incoming data by machine, and provide a user friendly
+name to the group as well, improving consumer experience.
 
 #### `EnableRemoteViewer`
 
