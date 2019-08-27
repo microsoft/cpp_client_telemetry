@@ -1,8 +1,3 @@
-#ifdef _MSC_VER
-// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning( disable : 4459 )
-#endif
-
 #include "DataViewerCollection.hpp"
 #include <mutex>
 
@@ -15,30 +10,28 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        LOCKGUARD(m_dataViewerMapLock);        
-        auto dataViewerIterator = m_dataViewerCollection.cbegin();
-        while (dataViewerIterator != m_dataViewerCollection.cend())
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        for(const auto& viewer : m_dataViewerCollection)
         {
-            //ToDo: Send data asynchronously to individual viewers
-            dataViewerIterator->second->RecieveData(packetData);
+            // Task 3568800: Integrate ThreadPool to IDataViewerCollection
+            viewer.second->RecieveData(packetData);
         }
     };
 
     void DataViewerCollection::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
     {
-
         if (dataViewer == nullptr)
         {
             throw std::invalid_argument("nullptr passed for data viewer");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         if (m_dataViewerCollection.find(dataViewer->GetName()) != m_dataViewerCollection.end())
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() });
         }
         
-        m_dataViewerCollection.emplace(dataViewer->GetName(), std::move(dataViewer));
+        m_dataViewerCollection.emplace(dataViewer->GetName(), dataViewer);
     }
 
     void DataViewerCollection::UnregisterViewer(const char* viewerName)
@@ -48,7 +41,7 @@ namespace ARIASDK_NS_BEGIN {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         if (m_dataViewerCollection.find(viewerName) == m_dataViewerCollection.end())
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName });
@@ -59,7 +52,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollection::UnregisterAllViewers()
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
@@ -70,13 +63,13 @@ namespace ARIASDK_NS_BEGIN {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;
     }
 } ARIASDK_NS_END
