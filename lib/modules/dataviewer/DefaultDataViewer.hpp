@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     class DefaultDataViewer : public MAT::IDataViewer, public MAT::IHttpResponseCallback
     {
     public:
-        DefaultDataViewer(std::shared_ptr<IHttpClient> httpClient, const char* machineFriendlyIdentifier);
+        DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const char* machineFriendlyIdentifier);
 
         void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept override;
 
