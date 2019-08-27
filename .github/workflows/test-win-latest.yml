@@ -1,0 +1,34 @@
+name: Build and Run Unit/Functional tests on Windows
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: 0 2 * * 1-5
+
+parameters:
+  archs: ["Win32","x64"]
+  configs: ["Release","Debug"]
+
+jobs:
+  build:
+
+    runs-on: [windows-latest]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: build
+      run: build-tests.bat $(archName) $(configName)
+      strategy:
+        matrix:
+          ${{ each arch in parameters.archs }}:
+            ${{ each config in parameters.configs }}:
+              ${{ format('{0}{1}', arch, config) }}:
+                archName: ${{ arch }}
+                configName: ${{ config }}
