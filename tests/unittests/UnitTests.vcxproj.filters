@@ -96,7 +96,4 @@
       <UniqueIdentifier>{44049a53-32db-4e10-87ad-3d42a4fcac17}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
 </Project>
