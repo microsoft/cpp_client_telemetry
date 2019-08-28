@@ -14,13 +14,13 @@ using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
-    class WorkerThread_Task
+    class WorkItem_CAPI
     {
     public:
-        WorkerThread_Task(std::unique_ptr<WorkerThreadItem> item)
+        WorkItem_CAPI(std::unique_ptr<WorkerThreadItem> item)
           : m_item(std::move(item)) {}
 
-        ~WorkerThread_Task()
+        ~WorkItem_CAPI()
         {
             ReleaseItem();
         }
@@ -51,44 +51,44 @@ namespace PAL_NS_BEGIN {
     };
 
 
-    static std::mutex s_tasksLock;
+    static std::mutex s_workItemsLock;
 
-    std::map<std::string, std::shared_ptr<WorkerThread_Task>>& GetPendingTasks() {
-      static std::map<std::string, std::shared_ptr<WorkerThread_Task>> s_tasks;
-      return s_tasks;
+    std::map<std::string, std::shared_ptr<WorkItem_CAPI>>& GetPendingWorkItems() {
+      static std::map<std::string, std::shared_ptr<WorkItem_CAPI>> s_workItems;
+      return s_workItems;
     }
 
-    std::string GetNextTaskId() {
-        static std::atomic<int32_t> s_nextTaskId(0);
+    std::string GetNextWorkItemId() {
+        static std::atomic<int32_t> s_nextWorkItemId(0);
         std::ostringstream idStream;
-        idStream << "MAT_Task-" << s_nextTaskId++;
+        idStream << "MAT_WorkItem-" << s_nextWorkItemId++;
         return idStream.str();
     }
 
-    void EVTSDK_LIBABI_CDECL OnAsyncTaskCallback(const char* taskId)
+    void EVTSDK_LIBABI_CDECL OnAsyncWorkItemCallback(const char* workItemId)
     {
-        std::shared_ptr<WorkerThread_Task> task;
+        std::shared_ptr<WorkItem_CAPI> workItem;
 
-        // Find and remove pending task
+        // Find and remove pending work item
         {
-            LOCKGUARD(s_tasksLock);
-            auto itTask = GetPendingTasks().find(taskId);
-            if (itTask != GetPendingTasks().end()) {
-                task = itTask->second;
-                GetPendingTasks().erase(itTask);
+            LOCKGUARD(s_workItemsLock);
+            auto itWorkItem = GetPendingWorkItems().find(workItemId);
+            if (itWorkItem != GetPendingWorkItems().end()) {
+                workItem = itWorkItem->second;
+                GetPendingWorkItems().erase(itWorkItem);
             }
         }
 
-        if (task)
-            task->OnCallback();
+        if (workItem)
+            workItem->OnCallback();
     }
 
-    WorkerThread_CAPI::WorkerThread_CAPI(task_queue_fn_t queueFn, task_cancel_fn_t cancelFn, task_shutdown_fn_t shutdownFn)
+    WorkerThread_CAPI::WorkerThread_CAPI(worker_thread_queue_fn_t queueFn, worker_thread_cancel_fn_t cancelFn, worker_thread_join_fn_t joinFn)
       : m_queueFn(queueFn),
         m_cancelFn(cancelFn),
-        m_shutdownFn(shutdownFn)
+        m_joinFn(joinFn)
     {
-        if ((queueFn == nullptr) || (cancelFn == nullptr) || (shutdownFn == nullptr))
+        if ((queueFn == nullptr) || (cancelFn == nullptr) || (joinFn == nullptr))
         {
             throw std::invalid_argument("Created WorkerThread_CAPI with invalid parameters");
         }
@@ -96,7 +96,7 @@ namespace PAL_NS_BEGIN {
 
     void WorkerThread_CAPI::join()
     {
-        m_shutdownFn();
+        m_joinFn();
     }
 
     void WorkerThread_CAPI::queue(WorkerThreadItemPtr item)
@@ -106,44 +106,44 @@ namespace PAL_NS_BEGIN {
 
         auto ownedItem = std::unique_ptr<WorkerThreadItem>(item);
 
-        // Create task
-        async_task_t task;
-        std::string taskId = GetNextTaskId();
-        task.id = taskId.c_str();
-        task.typeName = ownedItem->typeName.c_str();
-        task.delayMs = 0;
+        // Create work item
+        work_item_t workItem;
+        std::string workItemId = GetNextWorkItemId();
+        workItem.id = workItemId.c_str();
+        workItem.typeName = ownedItem->typeName.c_str();
+        workItem.delayMs = 0;
         if (ownedItem->type == WorkerThreadItem::TimedCall) {
-            task.delayMs = ownedItem->targetTime - getMonotonicTimeMs();
+            workItem.delayMs = ownedItem->targetTime - getMonotonicTimeMs();
         }
 
-        // Add pending task
+        // Add pending work item
         {
-            LOCKGUARD(s_tasksLock);
-            GetPendingTasks()[task.id] = std::make_shared<WorkerThread_Task>(std::move(ownedItem));
+            LOCKGUARD(s_workItemsLock);
+            GetPendingWorkItems()[workItem.id] = std::make_shared<WorkItem_CAPI>(std::move(ownedItem));
         }
 
-        m_queueFn(&task, &OnAsyncTaskCallback);
+        m_queueFn(&workItem, &OnAsyncWorkItemCallback);
     }
 
     bool WorkerThread_CAPI::cancel(WorkerThreadItemPtr item)
     {
-        std::string taskId;
+        std::string workItemId;
 
-        // Find and erase pending task
+        // Find and erase pending work item
         {
-            LOCKGUARD(s_tasksLock);
-            auto itTask = std::find_if(GetPendingTasks().begin(), GetPendingTasks().end(),
-                    [item](const std::pair<std::string, std::shared_ptr<WorkerThread_Task>>& task) {
-                return task.second->GetItem() == item;
+            LOCKGUARD(s_workItemsLock);
+            auto itWorkItem = std::find_if(GetPendingWorkItems().begin(), GetPendingWorkItems().end(),
+                    [item](const std::pair<std::string, std::shared_ptr<WorkItem_CAPI>>& workItem) {
+                return workItem.second->GetItem() == item;
             });
 
-            if (itTask != GetPendingTasks().end()) {
-                taskId = itTask->first;
-                GetPendingTasks().erase(itTask);
+            if (itWorkItem != GetPendingWorkItems().end()) {
+                workItemId = itWorkItem->first;
+                GetPendingWorkItems().erase(itWorkItem);
             }
         }
 
-        return (!taskId.empty()) ? m_cancelFn(taskId.c_str()) : false;
+        return (!workItemId.empty()) ? m_cancelFn(workItemId.c_str()) : false;
     }
 
 } PAL_NS_END
