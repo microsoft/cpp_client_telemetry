@@ -24,7 +24,7 @@ namespace PAL_NS_BEGIN {
 
         std::list<MAT::WorkerThreadItemPtr> m_queue;
         std::list<MAT::WorkerThreadItemPtr> m_timerQueue;
-        Event                          m_event;
+        Event                               m_event;
         MAT::WorkerThreadItemPtr            m_itemInProgress;
         int count = 0;
     
