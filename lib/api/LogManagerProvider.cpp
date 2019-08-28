@@ -23,10 +23,10 @@ namespace ARIASDK_NS_BEGIN {
         return LogManagerFactory::Get(moduleName, status);
     }
 
-    /// <summary>�
+    /// <summary>
     /// Releases the LogManager identified by moduleName
-    /// <param name="moduleName">Module name</param>�
-    /// </summary>�
+    /// <param name="moduleName">Module name</param>
+    /// </summary>
     status_t LogManagerProvider::Release(const char * moduleName)
     {
         return LogManagerFactory::Release(moduleName);

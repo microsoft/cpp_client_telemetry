@@ -13,70 +13,70 @@ namespace
     class TestHttpResponseCallback : public IHttpResponseCallback
     {
     public:
-        void ValidateResponse(std::function<void(IHttpResponse*)> fn) { mValidateFn = fn; }
+        void ValidateResponse(std::function<void(IHttpResponse*)> fn) { m_validateFn = fn; }
 
         virtual void OnHttpResponse(IHttpResponse* response) override
         {
-            if (mValidateFn)
-                mValidateFn(response);
+            if (m_validateFn)
+                m_validateFn(response);
         }
 
     private:
-        std::function<void(IHttpResponse*)> mValidateFn;
+        std::function<void(IHttpResponse*)> m_validateFn;
     };
 
     class TestHelper {
     public:
-        void SetShouldSend(bool shouldSend) { mShouldSend = shouldSend; }
-        bool ShouldSend() { return mShouldSend; }
-        void ValidateSend(std::function<void(http_request_t*)> fn) { mValidateSendFn = fn; }
-        void ValidateCancel(std::function<void(const char*)> fn) { mValidateCancelFn = fn; }
+        void SetShouldSend(bool shouldSend) { m_shouldSend = shouldSend; }
+        bool ShouldSend() { return m_shouldSend; }
+        void ValidateSend(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
+        void ValidateCancel(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
 
         void OnSend(http_request_t* request)
         {
-            if (mValidateSendFn)
-                mValidateSendFn(request);
+            if (m_validateSendFn)
+                m_validateSendFn(request);
         }
 
         void OnCancel(const char* requestId)
         {
-            if (mValidateCancelFn)
-                mValidateCancelFn(requestId);
+            if (m_validateCancelFn)
+                m_validateCancelFn(requestId);
         }
 
     private:
-        std::function<void(http_request_t*)> mValidateSendFn;
-        std::function<void(const char*)> mValidateCancelFn;
-        bool mShouldSend = false;
+        std::function<void(http_request_t*)> m_validateSendFn;
+        std::function<void(const char*)> m_validateCancelFn;
+        bool m_shouldSend = false;
     };
 
-    static std::unique_ptr<TestHelper> kTestHelper;
+    static std::unique_ptr<TestHelper> s_testHelper;
 
     // RAII helper that automatically uninstalls static TestHelper instance upon destruction
     class AutoTestHelper {
     public:
         AutoTestHelper()
         {
-            kTestHelper.reset(new TestHelper());
+            s_testHelper.reset(new TestHelper());
         }
 
         ~AutoTestHelper()
         {
-            kTestHelper = nullptr;
+            s_testHelper = nullptr;
         }
         
         TestHelper* operator->()
         {
-            return kTestHelper.get();
+            return s_testHelper.get();
         }
     };
 } // namespace
 
 void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t callback)
 {
-    kTestHelper->OnSend(request);
+    s_testHelper->OnSend(request);
 
-    if (kTestHelper->ShouldSend())
+    if (s_testHelper->ShouldSend())
     {
         // Construct simple test response
         uint8_t body[] = {'y', 'e', 's'};
@@ -96,7 +96,7 @@ void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t 
 
 void EVTSDK_LIBABI_CDECL OnHttpCancel(const char* requestId)
 {
-    kTestHelper->OnCancel(requestId);
+    s_testHelper->OnCancel(requestId);
 }
 
 TEST(HttpClientCAPITests, SendAsync)
