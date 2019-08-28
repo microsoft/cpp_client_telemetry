@@ -35,6 +35,7 @@ set(SRCS
   StringUtilsTests.cpp
   TransmissionPolicyManagerTests.cpp
   UtilsTests.cpp
+  WorkerTHreadCAPITests.cpp
 )
 
 source_group(" "      REGULAR_EXPRESSION "")

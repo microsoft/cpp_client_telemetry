@@ -108,7 +108,8 @@ namespace PAL_NS_BEGIN {
 
         // Create task
         async_task_t task;
-        task.id = GetNextTaskId().c_str();
+        std::string taskId = GetNextTaskId();
+        task.id = taskId.c_str();
         task.typeName = ownedItem->typeName.c_str();
         task.delayMs = 0;
         if (ownedItem->type == WorkerThreadItem::TimedCall) {
