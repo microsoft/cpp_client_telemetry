@@ -34,7 +34,7 @@ int MAIN_CDECL main(int argc, char** argv)
 
     ILogConfiguration logConfig;
     RuntimeConfig_Default runtimeConfig(logConfig);
-    PAL::initialize(runtimeConfig, nullptr /*workerThread*/);
+    PAL::initialize(runtimeConfig);
     int result = RUN_ALL_TESTS();
     PAL::shutdown();
 

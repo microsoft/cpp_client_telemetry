@@ -18,9 +18,10 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
-    OfflineStorageHandler::OfflineStorageHandler(ILogManager & logManager, IRuntimeConfig& runtimeConfig)
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, IWorkerThread& workerThread)
         : m_logManager(logManager),
         m_config(runtimeConfig),
+        m_workerThread(workerThread),
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_offlineStorageMemory(nullptr),
@@ -252,7 +253,7 @@ namespace ARIASDK_NS_BEGIN {
                     {
                         m_flushPending = true;
                         m_flushComplete.Reset();
-                        m_flushHandle = PAL::scheduleOnWorkerThread(0, this, &OfflineStorageHandler::Flush);
+                        m_flushHandle = PAL::scheduleOnWorkerThread(&m_workerThread, 0, this, &OfflineStorageHandler::Flush);
                         LOG_INFO("Requested Flush (%p)", m_flushHandle.m_item);
                     }
                     m_flushLock.unlock();

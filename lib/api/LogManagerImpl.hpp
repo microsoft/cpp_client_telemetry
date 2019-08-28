@@ -263,6 +263,8 @@ protected:
         std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
         ContextFieldsProvider                                  m_context;
 
+        IWorkerThread*                                         m_workerThread;
+
         IHttpClient*                                           m_httpClient;
         std::unique_ptr<IHttpClient>                           m_ownHttpClient;
 

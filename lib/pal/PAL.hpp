@@ -111,6 +111,10 @@ namespace PAL_NS_BEGIN
      */
     void registerSemanticContext(MAT::ISemanticContext * context);
 
+    /**
+     * Get default PAL-owned worker thread
+     */
+    MAT::IWorkerThread* getDefaultWorkerThread();
 
     class INetworkInformation;
     class IDeviceInformation;
@@ -119,7 +123,7 @@ namespace PAL_NS_BEGIN
     //
     // Startup/shutdown
     //
-    void initialize(IRuntimeConfig& configuration, IWorkerThread* workerThread);
+    void initialize(IRuntimeConfig& configuration);
     void shutdown();
 
     INetworkInformation* GetNetworkInformation();

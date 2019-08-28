@@ -15,7 +15,7 @@ namespace ARIASDK_NS_BEGIN {
 class HttpClientManager {
 
   public:
-    HttpClientManager(IHttpClient& httpClient);
+    HttpClientManager(IHttpClient& httpClient, IWorkerThread& workerThread);
     virtual ~HttpClientManager();
     void cancelAllRequests();
 
@@ -35,6 +35,7 @@ class HttpClientManager {
 
   protected:
     IHttpClient&             m_httpClient;
+    IWorkerThread&           m_workerThread;
 
     std::mutex               m_httpCallbacksMtx;
     std::list<HttpCallback*> m_httpCallbacks;

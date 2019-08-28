@@ -18,6 +18,7 @@
 
 #include "offline/StorageObserver.hpp"
 #include "IOfflineStorage.hpp"
+#include "IWorkerThread.hpp"
 
 #include "packager/Packager.hpp"
 
@@ -42,6 +43,7 @@ namespace ARIASDK_NS_BEGIN {
             IRuntimeConfig& runtimeConfig,
             IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
+            IWorkerThread& workerThread,
             IBandwidthController* bandwidthController
         );
 

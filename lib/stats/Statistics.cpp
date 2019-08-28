@@ -9,8 +9,9 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    Statistics::Statistics(ITelemetrySystem& telemetrySystem) :
+    Statistics::Statistics(ITelemetrySystem& telemetrySystem, IWorkerThread& workerThread) :
         m_iTelemetrySystem(telemetrySystem),
+        m_workerThread(workerThread),
         m_logManager(telemetrySystem.getLogManager()),
         m_metaStats(telemetrySystem.getConfig()),
         m_config(telemetrySystem.getConfig()),
@@ -36,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (!m_isScheduled.exchange(true))
             {
-                m_scheduledSend = PAL::scheduleOnWorkerThread(m_intervalMs, this, &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
+                m_scheduledSend = PAL::scheduleOnWorkerThread(&m_workerThread, m_intervalMs, this, &Statistics::send, ACT_STATS_ROLLUP_KIND_ONGOING);
                 LOG_TRACE("Ongoing stats event generation scheduled in %u msec", m_intervalMs);
             }
         }

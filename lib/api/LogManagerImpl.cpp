@@ -89,6 +89,7 @@ namespace ARIASDK_NS_BEGIN
 
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart)
         : m_httpClient(httpClient),
+        m_workerThread(workerThread),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
         m_logConfiguration(configuration)
@@ -98,7 +99,7 @@ namespace ARIASDK_NS_BEGIN
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
-        PAL::initialize(*m_config, workerThread);
+        PAL::initialize(*m_config);
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
@@ -197,6 +198,15 @@ namespace ARIASDK_NS_BEGIN
         }
 #endif
 
+        if (m_workerThread == nullptr) {
+            // The PAL's default worker thread should only be created if there exists a log manager without a worker
+            // thread override.
+            m_workerThread = PAL::getDefaultWorkerThread();
+        }
+        else {
+            LOG_TRACE("WorkerThread: External %p", m_workerThread);
+        }
+
         if (m_bandwidthController == nullptr) {
             m_bandwidthController = m_ownBandwidthController.get();
         }
@@ -207,9 +217,9 @@ namespace ARIASDK_NS_BEGIN
             LOG_TRACE("BandwidthController: None");
         }
 
-        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config));
+        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_workerThread));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, m_bandwidthController));
+        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_workerThread, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
