@@ -81,7 +81,7 @@ namespace ARIASDK_NS_BEGIN {
         return m_dataViewerCollection.empty() == false;
     }
 
-    const std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const char* viewerName) const noexcept
+    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const char* viewerName) const noexcept
     {
         auto lookup = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
@@ -91,7 +91,7 @@ namespace ARIASDK_NS_BEGIN {
         return lookup != m_dataViewerCollection.end() ? *lookup : nullptr;
     }
 
-    const std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept
+    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept
     {
         return IsViewerInCollection(viewer->GetName());
     }
