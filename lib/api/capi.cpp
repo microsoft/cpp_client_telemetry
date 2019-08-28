@@ -68,9 +68,9 @@ evt_status_t mat_open_core(
     const char* config,
     http_send_fn_t httpSendFn,
     http_cancel_fn_t httpCancelFn,
-    task_queue_fn_t taskQueueFn,
-    task_cancel_fn_t taskCancelFn,
-    task_shutdown_fn_t taskShutdownFn)
+    worker_thread_queue_fn_t workerThreadQueueFn,
+    worker_thread_cancel_fn_t workerThreadCancelFn,
+    worker_thread_join_fn_t workerThreadJoinFn)
 {
     if ((config == nullptr) || (config[0] == 0))
     {
@@ -142,11 +142,11 @@ evt_status_t mat_open_core(
     }
 
     // Create custom worker thread
-    if (taskQueueFn != nullptr && taskCancelFn != nullptr && taskShutdownFn != nullptr)
+    if (workerThreadQueueFn != nullptr && workerThreadCancelFn != nullptr && workerThreadJoinFn != nullptr)
     {
         try
         {
-            clients[code].workerThread = new PAL::WorkerThread_CAPI(taskQueueFn, taskCancelFn, taskShutdownFn);
+            clients[code].workerThread = new PAL::WorkerThread_CAPI(workerThreadQueueFn, workerThreadCancelFn, workerThreadJoinFn);
         }
         catch (...)
         {
@@ -194,9 +194,9 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 
     http_send_fn_t httpSendFn = nullptr;
     http_cancel_fn_t httpCancelFn = nullptr;
-    task_queue_fn_t taskQueueFn = nullptr;
-    task_cancel_fn_t taskCancelFn = nullptr;
-    task_shutdown_fn_t taskShutdownFn = nullptr;
+    worker_thread_queue_fn_t workerThreadQueueFn = nullptr;
+    worker_thread_cancel_fn_t workerThreadCancelFn = nullptr;
+    worker_thread_join_fn_t workerThreadJoinFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
         const evt_open_param_t& param = data->params[i];
@@ -207,19 +207,19 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
             case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
                 httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
                 break;
-            case OPEN_PARAM_TYPE_TASK_HANDLER_QUEUE:
-                taskQueueFn = reinterpret_cast<task_queue_fn_t>(param.data);
+            case OPEN_PARAM_TYPE_WORKER_THREAD_QUEUE:
+                workerThreadQueueFn = reinterpret_cast<worker_thread_queue_fn_t>(param.data);
                 break;
-            case OPEN_PARAM_TYPE_TASK_HANDLER_CANCEL:
-                taskCancelFn = reinterpret_cast<task_cancel_fn_t>(param.data);
+            case OPEN_PARAM_TYPE_WORKER_THREAD_CANCEL:
+                workerThreadCancelFn = reinterpret_cast<worker_thread_cancel_fn_t>(param.data);
                 break;
-            case OPEN_PARAM_TYPE_TASK_HANDLER_SHUTDOWN:
-                taskShutdownFn = reinterpret_cast<task_shutdown_fn_t>(param.data);
+            case OPEN_PARAM_TYPE_WORKER_THREAD_JOIN:
+                workerThreadJoinFn = reinterpret_cast<worker_thread_join_fn_t>(param.data);
                 break;
         }
     }
 
-    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn, taskQueueFn, taskCancelFn, taskShutdownFn);
+    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn, workerThreadQueueFn, workerThreadCancelFn, workerThreadJoinFn);
 }
 
 /**

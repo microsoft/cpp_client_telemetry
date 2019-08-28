@@ -133,9 +133,9 @@ extern "C" {
     {
         OPEN_PARAM_TYPE_HTTP_HANDLER_SEND = 0,
         OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL = 1,
-        OPEN_PARAM_TYPE_TASK_HANDLER_QUEUE = 2,
-        OPEN_PARAM_TYPE_TASK_HANDLER_CANCEL = 3,
-        OPEN_PARAM_TYPE_TASK_HANDLER_SHUTDOWN = 4,
+        OPEN_PARAM_TYPE_WORKER_THREAD_QUEUE = 2,
+        OPEN_PARAM_TYPE_WORKER_THREAD_CANCEL = 3,
+        OPEN_PARAM_TYPE_WORKER_THREAD_JOIN = 4,
     } evt_open_param_type_t;
 
     /**
@@ -260,7 +260,7 @@ extern "C" {
 
     /**
      * <summary>
-     * Represents a single asynchrous task. Used by optional app-provided task handler callback functions.
+     * Represents a single asynchrous worker thread item. Used by optional app-provided worker thread callback functions.
      * </summary>
      */
     typedef struct
@@ -268,13 +268,13 @@ extern "C" {
         const char*             id;
         int64_t                 delayMs;
         const char*             typeName;
-    } async_task_t;
+    } work_item_t;
 
-    /* Async task callback function signatures */
-    typedef void (EVTSDK_LIBABI_CDECL *task_callback_fn_t)(const char* /*taskId*/);
-    typedef void (EVTSDK_LIBABI_CDECL *task_queue_fn_t)(async_task_t*, task_callback_fn_t);
-    typedef bool (EVTSDK_LIBABI_CDECL *task_cancel_fn_t)(const char* /*taskId*/);
-    typedef void (EVTSDK_LIBABI_CDECL *task_shutdown_fn_t)();
+    /* Async worker thread callback function signatures */
+    typedef void (EVTSDK_LIBABI_CDECL *work_item_callback_fn_t)(const char* /*workItemId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *worker_thread_queue_fn_t)(work_item_t*, work_item_callback_fn_t);
+    typedef bool (EVTSDK_LIBABI_CDECL *worker_thread_cancel_fn_t)(const char* /*workItemId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *worker_thread_join_fn_t)();
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */

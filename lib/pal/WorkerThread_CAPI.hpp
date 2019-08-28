@@ -9,15 +9,15 @@ namespace PAL_NS_BEGIN {
     class WorkerThread_CAPI : public MAT::IWorkerThread
     {
     public:
-        WorkerThread_CAPI(task_queue_fn_t queueFn, task_cancel_fn_t cancelFn, task_shutdown_fn_t shutdownFn);
+        WorkerThread_CAPI(worker_thread_queue_fn_t queueFn, worker_thread_cancel_fn_t cancelFn, worker_thread_join_fn_t joinFn);
         void join() override;
         void queue(MAT::WorkerThreadItemPtr item) override;
         bool cancel(MAT::WorkerThreadItemPtr item) override;
 
     private:
-        task_queue_fn_t m_queueFn;
-        task_cancel_fn_t m_cancelFn;
-        task_shutdown_fn_t m_shutdownFn;
+        worker_thread_queue_fn_t m_queueFn;
+        worker_thread_cancel_fn_t m_cancelFn;
+        worker_thread_join_fn_t m_joinFn;
     };
 } PAL_NS_END
 
