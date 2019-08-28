@@ -20,12 +20,12 @@ namespace PAL_NS_BEGIN {
         WorkItem_CAPI(std::unique_ptr<WorkerThreadItem> item)
           : m_item(std::move(item)) {}
 
-        ~WorkItem_CAPI()
+        ~WorkItem_CAPI() noexcept
         {
             ReleaseItem();
         }
 
-        WorkerThreadItemPtr GetItem()
+        WorkerThreadItem* GetItem()
         {
             return m_item.get();
         }
@@ -42,7 +42,7 @@ namespace PAL_NS_BEGIN {
         void ReleaseItem()
         {
             if (m_item) {
-                m_item->type = WorkerThreadItem::Done;
+                m_item->Type = WorkerThreadItem::Done;
                 m_item = nullptr;
             }
         }
@@ -94,14 +94,14 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    void WorkerThread_CAPI::join()
+    void WorkerThread_CAPI::Join()
     {
         m_joinFn();
     }
 
-    void WorkerThread_CAPI::queue(WorkerThreadItemPtr item)
+    void WorkerThread_CAPI::Queue(WorkerThreadItem* item)
     {
-        if (item->type != WorkerThreadItem::Call && item->type != WorkerThreadItem::TimedCall)
+        if (item->Type != WorkerThreadItem::Call && item->Type != WorkerThreadItem::TimedCall)
             return;
 
         auto ownedItem = std::unique_ptr<WorkerThreadItem>(item);
@@ -110,10 +110,10 @@ namespace PAL_NS_BEGIN {
         work_item_t workItem;
         std::string workItemId = GetNextWorkItemId();
         workItem.id = workItemId.c_str();
-        workItem.typeName = ownedItem->typeName.c_str();
+        workItem.typeName = ownedItem->TypeName.c_str();
         workItem.delayMs = 0;
-        if (ownedItem->type == WorkerThreadItem::TimedCall) {
-            workItem.delayMs = ownedItem->targetTime - getMonotonicTimeMs();
+        if (ownedItem->Type == WorkerThreadItem::TimedCall) {
+            workItem.delayMs = ownedItem->TargetTime - getMonotonicTimeMs();
         }
 
         // Add pending work item
@@ -125,7 +125,7 @@ namespace PAL_NS_BEGIN {
         m_queueFn(&workItem, &OnAsyncWorkItemCallback);
     }
 
-    bool WorkerThread_CAPI::cancel(WorkerThreadItemPtr item)
+    bool WorkerThread_CAPI::Cancel(WorkerThreadItem* item)
     {
         std::string workItemId;
 

@@ -32,24 +32,24 @@ namespace ARIASDK_NS_BEGIN
             /// </summary>
             Call,
             /// <summary>
-            /// A TimedCall item is a generic functor that should execute at the time specified by targetTime
+            /// A TimedCall item is a generic functor that should execute at the time specified by TargetTime
             /// </summary>
             TimedCall,
             /// <summary>
             /// A Done item is an item that has been marked by the worker thread as already completed.
             /// </summary>
             Done
-        } type;
+        } Type;
 
         /// <summary>
         /// The time (in milliseconds since epoch) when this work item should be executed
         /// </summary>
-        int64_t targetTime;
+        int64_t TargetTime;
 
         /// <summary>
         /// The WorkerThreadItem class destructor.
         /// </summary>
-        virtual ~WorkerThreadItem() {}
+        virtual ~WorkerThreadItem() noexcept = default;
 
         /// <summary>
         /// The functor implementation that executes task logic. This method is overridden by WorkerThreadItem
@@ -60,13 +60,8 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The typename of the underlying functor executed by this work item
         /// </summary>
-        std::string typeName;
+        std::string TypeName;
     };
-
-    /// <summary>
-    /// Raw pointer to a work item
-    /// </summary>
-    typedef WorkerThreadItem* WorkerThreadItemPtr;
 
     /// <summary>
     /// The IWorkerThread class manages dispatching of asynchronous tasks to background worker thread(s).
@@ -78,25 +73,25 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IWorkerThread class destructor.
         /// </summary>
-        virtual ~IWorkerThread() {}
+        virtual ~IWorkerThread() noexcept = default;
 
         /// <summary>
         /// Terminate worker thread(s) and clean up thread resources
         /// </summary>
-        virtual void join() = 0;
+        virtual void Join() = 0;
 
         /// <summary>
         /// Queue an asynchronous task for dispatching to a worker thread
         /// </summary>
         /// <param name="item">Task to be executed on a worker thread</param>
-        virtual void queue(WorkerThreadItemPtr item) = 0;
+        virtual void Queue(WorkerThreadItem* item) = 0;
 
         /// <summary>
         /// Cancel a previously queued tasks
         /// </summary>
         /// <param name="item">Task to be cancelled</param>
         /// <returns>True if successfully cancelled, else false</returns>
-        virtual bool cancel(WorkerThreadItemPtr item) = 0;
+        virtual bool Cancel(WorkerThreadItem* item) = 0;
     };
 
     /// @endcond

@@ -29,8 +29,8 @@ namespace
     public:
         void SetShouldSend(bool shouldSend) { m_shouldSend = shouldSend; }
         bool ShouldSend() { return m_shouldSend; }
-        void ValidateSend(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
-        void ValidateCancel(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
+        void SetSendValidation(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
+        void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
 
         void OnSend(http_request_t* request)
         {
@@ -101,11 +101,11 @@ void EVTSDK_LIBABI_CDECL OnHttpCancel(const char* requestId)
 
 TEST(HttpClientCAPITests, SendAsync)
 {
-    auto httpClient = std::make_shared<HttpClient_CAPI>(&OnHttpSend, &OnHttpCancel);
+    HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
 
     // Build request
     std::vector<uint8_t> body = {'a', 'b', 'c'};
-    auto request = httpClient->CreateRequest();
+    auto request = httpClient.CreateRequest();
     request->SetUrl("https://www.microsoft.com");
     request->SetBody(body);
     request->SetMethod("POST");
@@ -117,7 +117,7 @@ TEST(HttpClientCAPITests, SendAsync)
 
     // Validate C++ -> C transformation of request
     bool wasSent = false;
-    testHelper->ValidateSend([&wasSent](http_request_t* request) {
+    testHelper->SetSendValidation([&wasSent](http_request_t* request) {
         wasSent = true;
         EXPECT_EQ(request->type, HTTP_REQUEST_TYPE_POST);
         EXPECT_EQ(string(request->url), string("https://www.microsoft.com"));
@@ -134,8 +134,8 @@ TEST(HttpClientCAPITests, SendAsync)
 
     // Validate C -> C++ transformation of response
     bool wasReceived = false;
-    auto responseCallback = std::make_shared<TestHttpResponseCallback>();
-    responseCallback->ValidateResponse([&wasReceived](IHttpResponse* response) {
+    TestHttpResponseCallback responseCallback;
+    responseCallback.ValidateResponse([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
         EXPECT_EQ(response->GetBody().size(), 3);
@@ -147,7 +147,7 @@ TEST(HttpClientCAPITests, SendAsync)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient->SendRequestAsync(request, responseCallback.get());
+    httpClient.SendRequestAsync(request, &responseCallback;
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);
@@ -155,10 +155,10 @@ TEST(HttpClientCAPITests, SendAsync)
 
 TEST(HttpClientCAPITests, Cancel)
 {
-    auto httpClient = std::make_shared<HttpClient_CAPI>(&OnHttpSend, &OnHttpCancel);
+    HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
 
     // Build request
-    auto request = httpClient->CreateRequest();
+    auto request = httpClient.CreateRequest();
     request->SetUrl("https://www.microsoft.com");
     request->SetMethod("GET");
 
@@ -166,40 +166,40 @@ TEST(HttpClientCAPITests, Cancel)
     testHelper->SetShouldSend(false);
 
     string cancelledId;
-    testHelper->ValidateCancel([&cancelledId](const char* requestId) {
+    testHelper->SetCancelValidation([&cancelledId](const char* requestId) {
         cancelledId = requestId;
     });
 
-    auto responseCallback = std::make_shared<TestHttpResponseCallback>();
-    responseCallback->ValidateResponse([](IHttpResponse* /*response*/) {
+    TestHttpResponseCallback responseCallback;
+    responseCallback.ValidateResponse([](IHttpResponse* /*response*/) {
         FAIL() << "No response should have been received";
     });
 
-    httpClient->SendRequestAsync(request, responseCallback.get());
-    httpClient->CancelRequestAsync(request->GetId());
+    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.CancelRequestAsync(request->GetId());
 
     EXPECT_EQ(cancelledId, request->GetId());
 }
 
 TEST(HttpClientCAPITests, CancelAllThenSend)
 {
-    auto httpClient = std::make_shared<HttpClient_CAPI>(&OnHttpSend, &OnHttpCancel);
+    HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
 
     AutoTestHelper testHelper;
     testHelper->SetShouldSend(true);
 
     // Cancel all requests (none pending)
-    httpClient->CancelAllRequests();
+    httpClient.CancelAllRequests();
 
     // Build request
-    auto request = httpClient->CreateRequest();
+    auto request = httpClient.CreateRequest();
     request->SetUrl("https://www.microsoft.com");
     request->SetMethod("GET");
     request->GetHeaders().add("key1", "value1");
 
     // Validate C++ -> C transformation of request
     bool wasSent = false;
-    testHelper->ValidateSend([&wasSent](http_request_t* request) {
+    testHelper->SetSendValidation([&wasSent](http_request_t* request) {
         wasSent = true;
         EXPECT_EQ(request->type, HTTP_REQUEST_TYPE_GET);
         EXPECT_EQ(request->url, string("https://www.microsoft.com"));
@@ -211,8 +211,8 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
 
     // Validate C -> C++ transformation of response
     bool wasReceived = false;
-    auto responseCallback = std::make_shared<TestHttpResponseCallback>();
-    responseCallback->ValidateResponse([&wasReceived](IHttpResponse* response) {
+    TestHttpResponseCallback responseCallback;
+    responseCallback.ValidateResponse([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
         EXPECT_EQ(response->GetBody().size(), 3);
@@ -224,7 +224,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient->SendRequestAsync(request, responseCallback.get());
+    httpClient.SendRequestAsync(request, &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);

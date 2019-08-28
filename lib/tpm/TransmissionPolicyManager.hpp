@@ -112,7 +112,7 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         bool cancelUploadTask()
         {
-            bool result = m_scheduledUpload.cancel();
+            bool result = m_scheduledUpload.Cancel();
             m_isUploadScheduled.exchange(false);
             return result;
         }
