@@ -15,8 +15,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DefaultDataViewer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)OnDisableNotificationCollection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DefaultDataViewer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)OnDisableNotificationCollection.hpp" />
   </ItemGroup>
 </Project>

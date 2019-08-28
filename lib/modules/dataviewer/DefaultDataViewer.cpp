@@ -9,12 +9,13 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    /*static*/ const char* DefaultDataViewer::s_name { "DefaultDataViewer" };
 
-    DefaultDataViewer::DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const char* machineFriendlyIdentifier) :
+    DefaultDataViewer::DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const std::string& machineFriendlyIdentifier) :
         m_httpClient(httpClient),
         m_isTransmissionEnabled(false), 
         m_enabledRemoteViewerNotifyCalled(false),
-        m_endpoint(""),
+        m_endpoint {},
         m_machineFriendlyIdentifier(machineFriendlyIdentifier)
     {
         if (m_httpClient == nullptr)
@@ -32,15 +33,9 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    bool DefaultDataViewer::IsNullOrEmpty(const char* toCheck) noexcept
+    bool DefaultDataViewer::IsNullOrEmpty(const std::string& toCheck) noexcept
     {
-        if (!toCheck || strlen(toCheck) == 0)
-            return true;
-
-        return std::all_of(toCheck, strlen(toCheck) + toCheck, [](char c)
-            {
-                return isspace(c);
-            });
+        return (toCheck.empty() || toCheck.find_first_not_of(' ') == std::string::npos);
     }
 
     void DefaultDataViewer::ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept
@@ -103,7 +98,7 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    bool DefaultDataViewer::EnableRemoteViewer(const char* endpoint)
+    bool DefaultDataViewer::EnableRemoteViewer(const std::string& endpoint)
     {
         std::unique_lock<std::mutex> transmissionLock(m_transmissionGuard);
         if (IsNullOrEmpty(endpoint))
@@ -116,12 +111,13 @@ namespace ARIASDK_NS_BEGIN
         m_enabledRemoteViewerNotifyCalled.exchange(false);
         SendPacket(std::vector<std::uint8_t>{});
 
-        if (!m_enabledRemoteViewerNotifyCalled && !m_initializationEvent.wait_for(transmissionLock, std::chrono::seconds(30), []() noexcept
-            {
-                return false;
-            }))
+        if (!m_enabledRemoteViewerNotifyCalled && 
+            m_initializationEvent.wait_for(transmissionLock, std::chrono::seconds(30), []() noexcept
+                {
+                    return true; //Timed-out
+                }))
         {
-            m_endpoint = "";
+            m_endpoint.clear();
             m_isTransmissionEnabled.exchange(false);
         }
         return m_isTransmissionEnabled;
@@ -130,22 +126,14 @@ namespace ARIASDK_NS_BEGIN
     bool DefaultDataViewer::DisableViewer() noexcept
     {
         m_isTransmissionEnabled.exchange(false);
-        
-        {
-            std::lock_guard<std::mutex> onDisableNotificationLock(m_onDisableNotificationGuard);
-            for (const auto& notification : m_onDisabledNotification)
-            {
-                notification();
-            }
-        }
+        m_onDisableNotificationCollection.TriggerCallbacks();
 
         return true;
     }
 
     void DefaultDataViewer::RegisterOnDisableNotification(const std::function<void()>& onDisabled) noexcept
     {
-        std::lock_guard<std::mutex> transmissionLock(m_onDisableNotificationGuard);
-        m_onDisabledNotification.push_back(onDisabled);
+        m_onDisableNotificationCollection.AddOnDisableNotification(onDisabled);
     }
 
 } ARIASDK_NS_END
