@@ -61,6 +61,7 @@ endif()
 if(EXISTS "modules/dataviewer/")
   list(APPEND SRCS
     modules/dataviewer/DefaultDataViewer.cpp
+    modules/dataviewer/OnDisableNotificationCollection.cpp
   )
 endif()
 

@@ -4,30 +4,33 @@
 #ifndef DEFAULTDATAVIEWER_HPP
 #define DEFAULTDATAVIEWER_HPP
 
+#include "OnDisableNotificationCollection.hpp"
+
 #include "public/Version.hpp"
 #include "public/IDataViewer.hpp"
 #include "public/IHttpClient.hpp"
 #include "public/ctmacros.hpp"
 
 #include <atomic>
-#include <queue>
 #include <condition_variable>
+#include <string>
+#include <vector>
 
 namespace ARIASDK_NS_BEGIN {
 
     class DefaultDataViewer : public MAT::IDataViewer, public MAT::IHttpResponseCallback
     {
     public:
-        DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const char* machineFriendlyIdentifier);
+        DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const std::string& machineFriendlyIdentifier);
 
         void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept override;
 
         const char* const GetName() const noexcept override
         {
-            return m_name;
+            return s_name;
         }
 
-        bool EnableRemoteViewer(const char* endpoint);
+        bool EnableRemoteViewer(const std::string& endpoint);
 
         bool EnableLocalViewer();
 
@@ -42,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
             return m_httpClient.get();
         }
 
-        const char* GetMachineFriendlyIdentifier() const noexcept
+        const std::string& GetMachineFriendlyIdentifier() const noexcept
         {
             return m_machineFriendlyIdentifier;
         }
@@ -62,7 +65,7 @@ namespace ARIASDK_NS_BEGIN {
         void SendPacket(const std::vector<std::uint8_t>& packetData);
         void ProcessReceivedPacket(const std::vector<std::uint8_t>& packetData);
 
-        bool IsNullOrEmpty(const char* toCheck) noexcept;
+        bool IsNullOrEmpty(const std::string& toCheck) noexcept;
 
         std::condition_variable m_initializationEvent;
         mutable std::mutex m_transmissionGuard;
@@ -71,15 +74,11 @@ namespace ARIASDK_NS_BEGIN {
         std::atomic<bool> m_isTransmissionEnabled;
         std::atomic<bool> m_enabledRemoteViewerNotifyCalled;
 
-        const char* m_endpoint;
-        const char* m_machineFriendlyIdentifier;
+        const std::string m_machineFriendlyIdentifier;
+        std::string m_endpoint;
+        OnDisableNotificationCollection m_onDisableNotificationCollection;
 
-        static constexpr const char* m_name { "DefaultDataViewer" };
-        static constexpr const char* m_httpPrefix { "http://" };
-        static constexpr const char* m_httpsPrefix { "https://" };
-
-        std::mutex m_onDisableNotificationGuard;
-        std::vector<std::function<void()>> m_onDisabledNotification;
+        static const char* s_name;
     };
 
 } ARIASDK_NS_END

@@ -91,7 +91,6 @@ TEST(DefaultDataViewerTests, Constructor_ValidMachineIdentifier_MachineIdentifie
 
 TEST(DefaultDataViewerTests, Constructor_InvalidMachineIdentifier_ThrowsInvalidArgument)
 {
-    ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, NULL), std::invalid_argument);
     ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, ""), std::invalid_argument);
     ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, "   "), std::invalid_argument);
 }
@@ -115,7 +114,6 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
 TEST(DefaultDataViewerTests, EnableRemoteViewer_NullOrEmptryEndpoint_ThrowsInvalidArgument)
 {
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-    ASSERT_THROW(viewer.EnableRemoteViewer(nullptr), std::invalid_argument);
     ASSERT_THROW(viewer.EnableRemoteViewer(""), std::invalid_argument);
     ASSERT_THROW(viewer.EnableRemoteViewer("           "), std::invalid_argument);
 }
