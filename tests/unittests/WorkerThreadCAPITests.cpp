@@ -17,10 +17,10 @@ namespace
         void SetShouldExecute(bool shouldExecute) { m_shouldExecute = shouldExecute; }
         bool ShouldExecute() { return m_shouldExecute; }
 
-        void ValidateQueue(std::function<void(work_item_t*)> fn) { m_validateQueueFn = fn; }
-        void ValidateCancel(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
-        void ValidateJoin(std::function<void()> fn) { m_validateJoinFn = fn; }
-        void ValidateCallback(std::function<void(int, int)> fn) { m_validateCallbackFn = fn; }
+        void SetQueueValidation(std::function<void(work_item_t*)> fn) { m_validateQueueFn = fn; }
+        void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
+        void SetJoinValidation(std::function<void()> fn) { m_validateJoinFn = fn; }
+        void SetCallbackValidation(std::function<void(int, int)> fn) { m_validateCallbackFn = fn; }
 
         void OnQueue(work_item_t* workItem)
         {
@@ -102,14 +102,14 @@ void EVTSDK_LIBABI_CDECL OnWorkerThreadJoin()
 
 TEST(WorkerThreadCAPITests, Execute)
 {
-    auto workerThread = std::make_shared<WorkerThread_CAPI>(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
+    WorkerThread_CAPI workerThread(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
 
     AutoTestHelper testHelper;
     testHelper->SetShouldExecute(true);
 
     // Validate C++ -> C transformation of worker thread item
     bool wasQueued = false;
-    testHelper->ValidateQueue([&wasQueued](work_item_t* workItem) {
+    testHelper->SetQueueValidation([&wasQueued](work_item_t* workItem) {
         wasQueued = true;
         EXPECT_EQ(workItem->delayMs, 0);
         EXPECT_TRUE(std::string(workItem->typeName).find("TestHelper") != string::npos);
@@ -117,13 +117,13 @@ TEST(WorkerThreadCAPITests, Execute)
 
     // Validate callback execution
     bool wasExecuted = false;
-    testHelper->ValidateCallback([&wasExecuted](int param1, int param2) {
+    testHelper->SetCallbackValidation([&wasExecuted](int param1, int param2) {
         wasExecuted = true;
         EXPECT_EQ(param1, 10);
         EXPECT_EQ(param2, 20);
     });
 
-    executeOnWorkerThread(workerThread.get(), testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
+    executeOnWorkerThread(&workerThread, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
 
     EXPECT_EQ(wasQueued, true);
     EXPECT_EQ(wasExecuted, true);
@@ -131,14 +131,14 @@ TEST(WorkerThreadCAPITests, Execute)
 
 TEST(WorkerThreadCAPITests, Schedule)
 {
-    auto workerThread = std::make_shared<WorkerThread_CAPI>(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
+    WorkerThread_CAPI workerThread(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
 
     AutoTestHelper testHelper;
     testHelper->SetShouldExecute(true);
 
     // Validate C++ -> C transformation of worker thread item
     bool wasQueued = false;
-    testHelper->ValidateQueue([&wasQueued](work_item_t* workItem) {
+    testHelper->SetQueueValidation([&wasQueued](work_item_t* workItem) {
         wasQueued = true;
         EXPECT_EQ(workItem->delayMs, 100);
         EXPECT_TRUE(std::string(workItem->typeName).find("TestHelper") != string::npos);
@@ -146,13 +146,13 @@ TEST(WorkerThreadCAPITests, Schedule)
 
     // Validate callback execution
     bool wasExecuted = false;
-    testHelper->ValidateCallback([&wasExecuted](int param1, int param2) {
+    testHelper->SetCallbackValidation([&wasExecuted](int param1, int param2) {
         wasExecuted = true;
         EXPECT_EQ(param1, 10);
         EXPECT_EQ(param2, 20);
     });
 
-    scheduleOnWorkerThread(workerThread.get(), 100 /*delayMs*/, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
+    scheduleOnWorkerThread(&workerThread, 100 /*delayMs*/, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
 
     EXPECT_EQ(wasQueued, true);
     EXPECT_EQ(wasExecuted, true);
@@ -160,7 +160,7 @@ TEST(WorkerThreadCAPITests, Schedule)
 
 TEST(WorkerThreadCAPITests, Cancel)
 {
-    auto workerThread = std::make_shared<WorkerThread_CAPI>(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
+    WorkerThread_CAPI workerThread(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
 
     AutoTestHelper testHelper;
     testHelper->SetShouldExecute(false);
@@ -168,7 +168,7 @@ TEST(WorkerThreadCAPITests, Cancel)
     // Validate C++ -> C transformation of worker thread item
     string workItemIdStr;
     bool wasQueued = false;
-    testHelper->ValidateQueue([&wasQueued, &workItemIdStr](work_item_t* workItem) {
+    testHelper->SetQueueValidation([&wasQueued, &workItemIdStr](work_item_t* workItem) {
         wasQueued = true;
         workItemIdStr = workItem->id;
         EXPECT_EQ(workItem->delayMs, 100);
@@ -177,18 +177,18 @@ TEST(WorkerThreadCAPITests, Cancel)
 
     // Validate cancellation
     bool wasCancelled = false;
-    testHelper->ValidateCancel([&wasCancelled, &workItemIdStr](const char* workItemId) {
+    testHelper->SetCancelValidation([&wasCancelled, &workItemIdStr](const char* workItemId) {
         wasCancelled = true;
         EXPECT_EQ(workItemIdStr, workItemId);
     });
 
     // Validate callback execution
-    testHelper->ValidateCallback([](int /*param1*/, int /*param2*/) {
+    testHelper->SetCallbackValidation([](int /*param1*/, int /*param2*/) {
         FAIL() << "Callback should not have been executed";
     });
 
-    auto handle = scheduleOnWorkerThread(workerThread.get(), 100 /*delayMs*/, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
-    handle.cancel();
+    auto handle = scheduleOnWorkerThread(&workerThread, 100 /*delayMs*/, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/);
+    handle.Cancel();
 
     EXPECT_EQ(wasQueued, true);
     EXPECT_EQ(wasCancelled, true);
@@ -196,16 +196,16 @@ TEST(WorkerThreadCAPITests, Cancel)
 
 TEST(WorkerThreadCAPITests, Join)
 {
-    auto workerThread = std::make_shared<WorkerThread_CAPI>(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
+    WorkerThread_CAPI workerThread(&OnWorkerThreadQueue, &OnWorkerThreadCancel, &OnWorkerThreadJoin);
 
     AutoTestHelper testHelper;
 
     // Validate C++ -> C transformation of worker thread item
-    bool wasJoin = false;
-    testHelper->ValidateJoin([&wasJoin]() {
-        wasJoin = true;
+    bool wasJoined = false;
+    testHelper->SetJoinValidation([&wasJoined]() {
+        wasJoined = true;
     });
 
-    workerThread->join();
-    EXPECT_EQ(wasJoin, true);
+    workerThread.Join();
+    EXPECT_EQ(wasJoined, true);
 }

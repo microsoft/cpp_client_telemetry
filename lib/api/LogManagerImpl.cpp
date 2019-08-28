@@ -199,8 +199,6 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
         if (m_workerThread == nullptr) {
-            // The PAL's default worker thread should only be created if there exists a log manager without a worker
-            // thread override.
             m_workerThread = PAL::getDefaultWorkerThread();
         }
         else {

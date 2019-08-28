@@ -10,7 +10,7 @@ namespace PAL_NS_BEGIN {
     public:
         WorkerThreadShutdownItem()
         {
-            type = MAT::WorkerThreadItem::Shutdown;
+            Type = MAT::WorkerThreadItem::Shutdown;
         }
     };
 
@@ -22,10 +22,10 @@ namespace PAL_NS_BEGIN {
         // TODO: [MG] - investigate all the cases why we need recursive here
         std::recursive_mutex                   m_lock;
 
-        std::list<MAT::WorkerThreadItemPtr> m_queue;
-        std::list<MAT::WorkerThreadItemPtr> m_timerQueue;
-        Event                               m_event;
-        MAT::WorkerThreadItemPtr            m_itemInProgress;
+        std::list<MAT::WorkerThreadItem*> m_queue;
+        std::list<MAT::WorkerThreadItem*> m_timerQueue;
+        Event                             m_event;
+        MAT::WorkerThreadItem*            m_itemInProgress;
         int count = 0;
     
     public:
@@ -38,13 +38,13 @@ namespace PAL_NS_BEGIN {
 
         ~WorkerThread()
         {
-            join();
+            Join();
         }
 
-        void join() override
+        void Join() override
         {
             auto item = new WorkerThreadShutdownItem();
-            queue(item);
+            Queue(item);
             std::thread::id this_id = std::this_thread::get_id();
             try {
                 if (m_hThread.joinable() && (m_hThread.get_id() != this_id))
@@ -66,14 +66,14 @@ namespace PAL_NS_BEGIN {
             }
         }
 
-        void queue(MAT::WorkerThreadItemPtr item) override
+        void Queue(MAT::WorkerThreadItem* item) override
         {
             // TODO: [MG] - show item type
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
-            if (item->type == MAT::WorkerThreadItem::TimedCall) {
+            if (item->Type == MAT::WorkerThreadItem::TimedCall) {
                 auto it = m_timerQueue.begin();
-                while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
+                while (it != m_timerQueue.end() && (*it)->TargetTime < item->TargetTime) {
                     ++it;
                 }
                 m_timerQueue.insert(it, item);
@@ -85,7 +85,7 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        bool cancel(MAT::WorkerThreadItemPtr item) override
+        bool Cancel(MAT::WorkerThreadItem* item) override
         {
             if ((m_itemInProgress == item)||(item==nullptr))
             {
@@ -106,7 +106,7 @@ namespace PAL_NS_BEGIN {
             for (;;) {
                 {
                     LOCKGUARD(m_lock);
-                    if (item->type == MAT::WorkerThreadItem::Done) {
+                    if (item->Type == MAT::WorkerThreadItem::Done) {
                         return;
                     }
                 }
@@ -132,12 +132,12 @@ namespace PAL_NS_BEGIN {
                     LOCKGUARD(self->m_lock);
 
                     int64_t now = getMonotonicTimeMs();
-                    if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
+                    if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->TargetTime <= now) {
                         item = std::unique_ptr<MAT::WorkerThreadItem>(self->m_timerQueue.front());
                         self->m_timerQueue.pop_front();
                     }
                     if (!self->m_timerQueue.empty()) {
-                        nextTimerInMs = static_cast<unsigned>(self->m_timerQueue.front()->targetTime - now);
+                        nextTimerInMs = static_cast<unsigned>(self->m_timerQueue.front()->TargetTime - now);
                     }
 
                     if (!self->m_queue.empty() && !item) {
@@ -152,18 +152,18 @@ namespace PAL_NS_BEGIN {
                     continue;
                 }
 
-                if (item->type == MAT::WorkerThreadItem::Shutdown) {
+                if (item->Type == MAT::WorkerThreadItem::Shutdown) {
                     item.reset();
                     break;
                 }
                 
-                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->typeName.c_str() );
+                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                 self->m_itemInProgress = item.get();
                 (*item)();
                 self->m_itemInProgress = nullptr;
 
                 if (item.get()) {
-                    item->type = MAT::WorkerThreadItem::Done;
+                    item->Type = MAT::WorkerThreadItem::Done;
                     item.reset();
                 }
             }

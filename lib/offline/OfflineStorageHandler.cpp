@@ -159,7 +159,7 @@ namespace ARIASDK_NS_BEGIN {
         // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
         // If we are running that item right now (our thread), then nothing happens other
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
-        m_flushHandle.cancel();
+        m_flushHandle.Cancel();
 
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))

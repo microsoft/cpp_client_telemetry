@@ -101,7 +101,7 @@ namespace ARIASDK_NS_BEGIN {
         m_isStarted = false;
 
         if (m_isScheduled.exchange(false)) {
-            m_scheduledSend.cancel();
+            m_scheduledSend.Cancel();
         }
 
         // synchronously send stats event on SDK stop, but only if stats are enabled

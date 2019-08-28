@@ -10,9 +10,9 @@ namespace PAL_NS_BEGIN {
     {
     public:
         WorkerThread_CAPI(worker_thread_queue_fn_t queueFn, worker_thread_cancel_fn_t cancelFn, worker_thread_join_fn_t joinFn);
-        void join() override;
-        void queue(MAT::WorkerThreadItemPtr item) override;
-        bool cancel(MAT::WorkerThreadItemPtr item) override;
+        void Join() override;
+        void Queue(MAT::WorkerThreadItem* item) override;
+        bool Cancel(MAT::WorkerThreadItem* item) override;
 
     private:
         worker_thread_queue_fn_t m_queueFn;

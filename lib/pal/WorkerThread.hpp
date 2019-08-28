@@ -87,18 +87,18 @@ namespace PAL_NS_BEGIN {
                 WorkerThreadItem(),
                 m_call(call)
             {
-                this->typeName = __typename(call);
-                this->type = WorkerThreadItem::Call;
-                this->targetTime = -1;
+                this->TypeName = __typename(call);
+                this->Type = WorkerThreadItem::Call;
+                this->TargetTime = -1;
             }
 
             WorkerThreadCall(TCall& call, int64_t targetTime) :
                 WorkerThreadItem(),
                 m_call(call)
             {
-                this->typeName = __typename(call);
-                this->type = WorkerThreadItem::TimedCall;
-                this->targetTime = targetTime;
+                this->TypeName = __typename(call);
+                this->Type = WorkerThreadItem::TimedCall;
+                this->TargetTime = targetTime;
             }
 
             virtual void operator()() override
@@ -118,10 +118,10 @@ namespace PAL_NS_BEGIN {
     class DeferredCallbackHandle
     {
     public:
-        MAT::WorkerThreadItemPtr m_item;
+        MAT::WorkerThreadItem* m_item;
         MAT::IWorkerThread* m_workerThread;
 
-        DeferredCallbackHandle(MAT::WorkerThreadItemPtr item, MAT::IWorkerThread* workerThread) :
+        DeferredCallbackHandle(MAT::WorkerThreadItem* item, MAT::IWorkerThread* workerThread) :
             m_item(item),
             m_workerThread(workerThread) { };
         DeferredCallbackHandle() : m_item(nullptr), m_workerThread(nullptr) {};
@@ -129,11 +129,11 @@ namespace PAL_NS_BEGIN {
             m_item(h.m_item),
             m_workerThread(h.m_workerThread) { };
 
-        bool cancel()
+        bool Cancel()
         {
             if (m_item)
             {
-                bool result = (m_workerThread != nullptr) && (m_workerThread->cancel(m_item));
+                bool result = (m_workerThread != nullptr) && (m_workerThread->Cancel(m_item));
                 m_item = nullptr;
                 m_workerThread = nullptr;
                 return result;
@@ -149,8 +149,8 @@ namespace PAL_NS_BEGIN {
     {
         assert(obj != nullptr);
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
-        MAT::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
-        workerThread->queue(item);
+        MAT::WorkerThreadItem* item = new detail::WorkerThreadCall<decltype(bound)>(bound);
+        workerThread->Queue(item);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
@@ -167,7 +167,7 @@ namespace PAL_NS_BEGIN {
     {
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
         auto item = new detail::WorkerThreadCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs);
-        workerThread->queue(item);
+        workerThread->Queue(item);
         return DeferredCallbackHandle(item, workerThread);
     }
 
