@@ -257,21 +257,17 @@ namespace PAL_NS_BEGIN {
     } // namespace detail
 
     static IWorkerThread *g_workerThread = nullptr;
-    static bool g_hasOwnWorkerThread = false;
 
-    namespace detail {
 
-        void queueWorkerThreadItem(WorkerThreadItemPtr item)
+    IWorkerThread* getDefaultWorkerThread()
+    {
+        if (g_workerThread == nullptr)
         {
-            g_workerThread->queue(item);
+            LOG_TRACE("Initializing PAL worker thread");
+            g_workerThread = PAL::WorkerThreadFactory::Create();
         }
-
-        bool cancelWorkerThreadItem(WorkerThreadItemPtr item)
-        {
-            return g_workerThread->cancel(item);
-        }
-
-    } // namespace detail
+        return g_workerThread;
+    }
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -485,7 +481,7 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize(IRuntimeConfig& configuration, IWorkerThread* workerThread)
+    void initialize(IRuntimeConfig& configuration)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
@@ -497,14 +493,6 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            if (workerThread != nullptr) {
-                g_hasOwnWorkerThread = false;
-                g_workerThread = workerThread;
-                LOG_TRACE("WorkerThread: External %p", workerThread);
-            } else {
-                g_hasOwnWorkerThread = true;
-                g_workerThread = WorkerThreadFactory::Create();
-            }
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
             g_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
@@ -530,8 +518,7 @@ namespace PAL_NS_BEGIN {
         if (g_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
-            if (g_hasOwnWorkerThread) { delete g_workerThread; }
-            g_workerThread = nullptr;
+            if (g_workerThread) { delete g_workerThread; g_workerThread = nullptr; }
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
             if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }

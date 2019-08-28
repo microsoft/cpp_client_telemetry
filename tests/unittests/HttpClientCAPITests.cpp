@@ -102,7 +102,7 @@ void EVTSDK_LIBABI_CDECL OnHttpCancel(const char* requestId)
 TEST(HttpClientCAPITests, SendAsync)
 {
     auto httpClient = std::make_shared<HttpClient_CAPI>(&OnHttpSend, &OnHttpCancel);
-    
+
     // Build request
     std::vector<uint8_t> body = {'a', 'b', 'c'};
     auto request = httpClient->CreateRequest();
@@ -156,7 +156,7 @@ TEST(HttpClientCAPITests, SendAsync)
 TEST(HttpClientCAPITests, Cancel)
 {
     auto httpClient = std::make_shared<HttpClient_CAPI>(&OnHttpSend, &OnHttpCancel);
-    
+
     // Build request
     auto request = httpClient->CreateRequest();
     request->SetUrl("https://www.microsoft.com");

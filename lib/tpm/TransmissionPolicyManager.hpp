@@ -12,6 +12,7 @@
 #include "system/ITelemetrySystem.hpp"
 
 #include "DeviceStateHandler.hpp"
+#include "IWorkerThread.hpp"
 
 #include <set>
 #include <atomic>
@@ -22,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
     {
 
     public:
-        TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
+        TransmissionPolicyManager(ITelemetrySystem& system, IWorkerThread& workerThread, IBandwidthController* bandwidthController);
         virtual ~TransmissionPolicyManager();
         virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
@@ -52,6 +53,7 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex                       m_lock;
 
         ITelemetrySystem&                m_system;
+        IWorkerThread&                   m_workerThread;
         IRuntimeConfig&                  m_config;
         IBandwidthController*            m_bandwidthController;
 

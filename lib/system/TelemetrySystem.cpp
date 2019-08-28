@@ -15,22 +15,24 @@ namespace ARIASDK_NS_BEGIN {
 /// <param name="runtimeConfig">The runtime configuration.</param>
 /// <param name="offlineStorage">The offline storage.</param>
 /// <param name="httpClient">The HTTP client.</param>
+/// <param name="workerThread">The background worker thread.</param>
 /// <param name="bandwidthController">The bandwidth controller.</param>
     TelemetrySystem::TelemetrySystem(
         ILogManager& logManager,
         IRuntimeConfig& runtimeConfig,
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
+        IWorkerThread& workerThread,
         IBandwidthController* bandwidthController)
         :
-        TelemetrySystemBase(logManager, runtimeConfig),
+        TelemetrySystemBase(logManager, runtimeConfig, workerThread),
         compression(runtimeConfig),
-        hcm(httpClient),
+        hcm(httpClient, workerThread),
         httpEncoder(*this, httpClient),
         httpDecoder(*this),
         storage(*this, offlineStorage),
         packager(runtimeConfig),
-        tpm(*this, bandwidthController)
+        tpm(*this, workerThread, bandwidthController)
     {
         
         // Handler for start

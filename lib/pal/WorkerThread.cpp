@@ -171,7 +171,7 @@ namespace PAL_NS_BEGIN {
     };
 
     namespace WorkerThreadFactory {
-        MAT::IWorkerThread* Create()
+        IWorkerThread* Create()
         {
             return new WorkerThread();
         }

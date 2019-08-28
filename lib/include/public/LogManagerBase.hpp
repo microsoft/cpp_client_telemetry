@@ -207,7 +207,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <param name="workerThread">IWorkerThread implementation to be used, nullptr uses the default</param>
+        /// <param name="workerThread">IWorkerThread implementation to be used (owned by caller), nullptr uses the default.</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient, IWorkerThread* workerThread)
         {
@@ -220,7 +220,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <param name="workerThread">IWorkerThread implementation to be used, nullptr uses the default</param>
+        /// <param name="workerThread">IWorkerThread implementation to be used (owned by caller), nullptr uses the default</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
             const std::string& tenantToken,

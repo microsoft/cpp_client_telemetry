@@ -115,25 +115,27 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
-    namespace detail {
-        extern void queueWorkerThreadItem(MAT::WorkerThreadItemPtr item);
-        extern bool cancelWorkerThreadItem(MAT::WorkerThreadItemPtr item);
-    } // namespace detail
-
     class DeferredCallbackHandle
     {
     public:
         MAT::WorkerThreadItemPtr m_item;
+        MAT::IWorkerThread* m_workerThread;
 
-        DeferredCallbackHandle(MAT::WorkerThreadItemPtr item) : m_item(item) { };
-        DeferredCallbackHandle() : m_item(nullptr) {};
-        DeferredCallbackHandle(const DeferredCallbackHandle& h) : m_item(h.m_item) { };
+        DeferredCallbackHandle(MAT::WorkerThreadItemPtr item, MAT::IWorkerThread* workerThread) :
+            m_item(item),
+            m_workerThread(workerThread) { };
+        DeferredCallbackHandle() : m_item(nullptr), m_workerThread(nullptr) {};
+        DeferredCallbackHandle(const DeferredCallbackHandle& h) :
+            m_item(h.m_item),
+            m_workerThread(h.m_workerThread) { };
+
         bool cancel()
         {
             if (m_item)
             {
-                bool result = detail::cancelWorkerThreadItem(m_item);
+                bool result = (m_workerThread != nullptr) && (m_workerThread->cancel(m_item));
                 m_item = nullptr;
+                m_workerThread = nullptr;
                 return result;
             }
             return false;
@@ -143,36 +145,36 @@ namespace PAL_NS_BEGIN {
     // *INDENT-OFF* parameter pack expansions etc.
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-    void executeOnWorkerThread(TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    void executeOnWorkerThread(MAT::IWorkerThread* workerThread, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
         assert(obj != nullptr);
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
         MAT::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
-        detail::queueWorkerThreadItem(item);
+        m_workerThread->queue(item);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-    void executeOnWorkerThread(const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    void executeOnWorkerThread(MAT::IWorkerThread* workerThread, const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
-        executeOnWorkerThread((TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
+        executeOnWorkerThread(workerThread, (TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
     }
 
     // Return the monotonic system clock time in milliseconds (since unspecified point).
     extern int64_t getMonotonicTimeMs();
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-    DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    DeferredCallbackHandle scheduleOnWorkerThread(MAT::IWorkerThread* workerThread, unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
         auto item = new detail::WorkerThreadCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs);
-        detail::queueWorkerThreadItem(item);
-        return DeferredCallbackHandle(item);
+        workerThread->queue(item);
+        return DeferredCallbackHandle(item, workerThread);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
-    DeferredCallbackHandle scheduleOnWorkerThread(unsigned delayMs, const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
+    DeferredCallbackHandle scheduleOnWorkerThread(MAT::IWorkerThread* workerThread, unsigned delayMs, const TObject& obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
-        return scheduleOnWorkerThread(delayMs, (TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
+        return scheduleOnWorkerThread(workerThread, delayMs, (TObject*)(&obj), func, std::forward<TPassedArgs>(args)...);
     }
 
     namespace WorkerThreadFactory {

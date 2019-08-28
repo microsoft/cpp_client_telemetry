@@ -3,6 +3,7 @@
 #define TELEMETRYSYSTEMBASE_HPP
 
 #include "system/ITelemetrySystem.hpp"
+#include "IWorkerThread.hpp"
 #include "stats/Statistics.hpp"
 #include <functional>
 
@@ -26,12 +27,12 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="logManager">The log manager.</param>
         /// <param name="runtimeConfig">The runtime configuration.</param>
-        TelemetrySystemBase(ILogManager & logManager, IRuntimeConfig& runtimeConfig) :
+        TelemetrySystemBase(ILogManager& logManager, IRuntimeConfig& runtimeConfig, IWorkerThread& workerThread) :
             m_logManager(logManager),
             m_config(runtimeConfig),
             m_isStarted(false),
             m_isPaused(false),
-            stats(*this)
+            stats(*this, workerThread)
         {
             onStart  = []() { return true; };
             onStop   = []() { return true; };

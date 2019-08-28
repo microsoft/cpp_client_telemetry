@@ -59,8 +59,9 @@ namespace ARIASDK_NS_BEGIN {
 
     //---
 
-    HttpClientManager::HttpClientManager(IHttpClient& httpClient)
-        : m_httpClient(httpClient)
+    HttpClientManager::HttpClientManager(IHttpClient& httpClient, IWorkerThread& workerThread) :
+        m_httpClient(httpClient),
+        m_workerThread(workerThread)
     {
     }
 
@@ -86,7 +87,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
     {
-        PAL::scheduleOnWorkerThread(0, this, &HttpClientManager::onHttpResponse, callback);
+        PAL::scheduleOnWorkerThread(&m_workerThread, 0, this, &HttpClientManager::onHttpResponse, callback);
     }
 
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
