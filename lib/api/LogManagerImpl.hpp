@@ -20,6 +20,7 @@
 
 #include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
+#include "api/DataViewerCollection.hpp"
 
 #include "LogSessionData.hpp"
 
@@ -289,7 +290,7 @@ protected:
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
-        std::unique_ptr<IDataViewerCollection>                 m_dataViewerCollection;
+        DataViewerCollection                                   m_dataViewerCollection;
     };
 
 

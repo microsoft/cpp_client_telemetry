@@ -33,8 +33,8 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
-        const std::shared_ptr<IDataViewer> IsViewerInCollection(const char* viewerName) const noexcept;
-        const std::shared_ptr<IDataViewer> IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept;
+        std::shared_ptr<IDataViewer> IsViewerInCollection(const char* viewerName) const noexcept;
+        std::shared_ptr<IDataViewer> IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept;
     };
 
 } ARIASDK_NS_END

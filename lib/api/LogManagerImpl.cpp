@@ -14,7 +14,6 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
-#include "api/DataViewerCollection.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -165,12 +164,9 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
-        LOG_TRACE("Setting up the Data Viewer Collection implementation...");
-        m_dataViewerCollection = std::unique_ptr<DataViewerCollection>(new DataViewerCollection());
-
         if (dataViewer != nullptr)
         {
-            m_dataViewerCollection->RegisterViewer(dataViewer);
+            m_dataViewerCollection.RegisterViewer(dataViewer);
         }
 
 #ifdef HAVE_MAT_UTC
@@ -280,7 +276,6 @@ namespace ARIASDK_NS_BEGIN
 
             m_ownHttpClient.reset();
             m_httpClient = nullptr;
-            m_dataViewerCollection = nullptr;
 
             // Reset the contents of m_eventFilterRegulator, but keep the object
             m_eventFilterRegulator.Reset();
@@ -616,21 +611,12 @@ namespace ARIASDK_NS_BEGIN
 
     const IDataViewerCollection& LogManagerImpl::GetDataViewerCollection() const
     {
-        if (m_dataViewerCollection == nullptr)
-        {
-            throw std::logic_error("m_dataViewerCollection is not initialized");
-        }
-
-        return *m_dataViewerCollection;
+        return m_dataViewerCollection;
     }
 
     IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
     {
-        if (m_dataViewerCollection == nullptr)
-        {
-            throw std::logic_error("m_dataViewerCollection is not initialized");
-        }
-
-        return *m_dataViewerCollection;
+        return m_dataViewerCollection;
     }
+
 } ARIASDK_NS_END
