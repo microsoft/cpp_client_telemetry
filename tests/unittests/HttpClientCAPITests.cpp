@@ -13,7 +13,7 @@ namespace
     class TestHttpResponseCallback : public IHttpResponseCallback
     {
     public:
-        void ValidateResponse(std::function<void(IHttpResponse*)> fn) { m_validateFn = fn; }
+        void SetResponseValidation(std::function<void(IHttpResponse*)> fn) { m_validateFn = fn; }
 
         virtual void OnHttpResponse(IHttpResponse* response) override
         {
@@ -135,7 +135,7 @@ TEST(HttpClientCAPITests, SendAsync)
     // Validate C -> C++ transformation of response
     bool wasReceived = false;
     TestHttpResponseCallback responseCallback;
-    responseCallback.ValidateResponse([&wasReceived](IHttpResponse* response) {
+    responseCallback.SetResponseValidation([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
         EXPECT_EQ(response->GetBody().size(), 3);
@@ -147,7 +147,7 @@ TEST(HttpClientCAPITests, SendAsync)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback;
+    httpClient.SendRequestAsync(request, &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);
@@ -171,7 +171,7 @@ TEST(HttpClientCAPITests, Cancel)
     });
 
     TestHttpResponseCallback responseCallback;
-    responseCallback.ValidateResponse([](IHttpResponse* /*response*/) {
+    responseCallback.SetResponseValidation([](IHttpResponse* /*response*/) {
         FAIL() << "No response should have been received";
     });
 
@@ -212,7 +212,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
     // Validate C -> C++ transformation of response
     bool wasReceived = false;
     TestHttpResponseCallback responseCallback;
-    responseCallback.ValidateResponse([&wasReceived](IHttpResponse* response) {
+    responseCallback.SetResponseValidation([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
         EXPECT_EQ(response->GetBody().size(), 3);
