@@ -150,7 +150,7 @@ namespace PAL_NS_BEGIN {
         assert(obj != nullptr);
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
         MAT::WorkerThreadItemPtr item = new detail::WorkerThreadCall<decltype(bound)>(bound);
-        m_workerThread->queue(item);
+        workerThread->queue(item);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
