@@ -1,0 +1,28 @@
+name: Build and Run Unit/Functional tests on Windows
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  test:
+    name: Test on Windows ${{ matrix.arch }}-${{ matrix.config }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        arch: [Win32, x64]
+        config: [Release, Debug]
+        os: [windows-2016]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Test ${{ matrix.arch }} ${{ matrix.config }}
+      run: build-tests.bat ${{ matrix.arch }} ${{ matrix.config }}
