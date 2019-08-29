@@ -1,6 +1,6 @@
 # Contributing
 
-The 1DS C++ SDK community meets every [Tuesday at 10:30AM PST].
+The 1DS C++ SDK community meets every **Tuesday at 10:30AM PST**.
 
 **TODO: create a public calendar**
 
@@ -10,7 +10,7 @@ The 1DS C++ SDK community meets every [Tuesday at 10:30AM PST].
 
 Conference ID: 634 117 56#
 
-See the public meeting notes for a summary description of past meetings **TBD**. To request edit access, please contact [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com).
+See the public meeting notes for a summary description of past meetings **TODO: add the link**. To request edit access, please contact [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com).
 
 ## Issues and Feature Requests
 
