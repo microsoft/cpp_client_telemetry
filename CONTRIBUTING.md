@@ -10,7 +10,9 @@ The 1DS C++ SDK community meets every **Tuesday at 10:30AM PST**.
 
 Conference ID: 634 117 56#
 
-See the public meeting notes for a summary description of past meetings **TODO: add the link**. To request edit access, please contact [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com).
+See the public meeting notes for a summary description of past meetings
+**TODO: add the link**. To request edit access, please contact [1ds.sdk.cpp@service.microsoft.com](mailto:1ds.sdk.cpp@service.microsoft.com)
+or ping us on [Teams](https://teams.microsoft.com/l/channel/19%3a50d8ce341e12455fa3bbfba72b2ba2b5%40thread.skype/General?groupId=d0d4e6fc-48e6-4e38-bb62-bec0fc26b520&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
 
 ## Issues and Feature Requests
 
