@@ -83,7 +83,7 @@ To become a Collaborator:
 * Actively participate in the community meeting, design discussion, PR review
    and issue discussion.
 * Contact the Maintainers, express the willingness and commitment.
-* Acknowledged and approved by two Maintainers (at different companies).
+* Acknowledged and approved by two Maintainers.
 
 ## Become a Maintainer
 
