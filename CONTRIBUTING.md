@@ -11,34 +11,58 @@ If you have questions, please contact [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.m
 
 This project adopted Inner Source [model](https://oe-documentation.azurewebsites.net/inner-source/index.html)
 
-## Pull Request Process
-
-1. Prepare your work on a separate branch, preferred format of the branch name:
-
-    remotes/origin/YOUR_ALIAS/FEATURE_BRANCH_NAME
-
-2. Before integrating into 'master' branch:
-
-    - Make sure all changes follow local [Coding style](docs/Coding%20style.md).
-
-    - Make sure the code builds cleanly on all platforms and there are no failed tests.
-      You can use buildme/YOUR_ALIAS branch to verify using GitHub actions build in the cloud.
-
-3. Create a PT for code review. Completion of the pull request requires at least one reviewer.
-
-4. Iterate on the changes until all code review comments are addressed.
-   You may push commits to your feature branch to refresh the PR.
-   
-5. Merging your changes:
-* Integrate the changes to 'master' by completing your pull request.
-* Resolve merge conflicts if necessary.
-* Discuss conflicts with your code reviewers if necessary.
-
 ## Issues and Feature Requests
 
-Please report issues, feature proposals and feature requests, roadmaps, etc. to:
-* [1ds.sdk.cpp DL](mailto:1ds.sdk.cpp@service.microsoft.com)
-* [1DS Client SDK Support](mailto:1dsclientsdksupport@microsoft.com)
+Issues and feature requests are tracked on GitHub. Everyone can file issue
+or create feature request [here](https://github.com/microsoft/cpp_client_telemetry/issues).
+
+## Pull Request
+
+### How to Send Pull Requests
+
+Everyone is welcome to contribute code to `1DS C++ SDK` via GitHub
+pull requests (PRs).
+
+To create a new PR, fork the project in GitHub and clone the upstream repo:
+
+```sh
+$ git clone https://github.com/microsoft/cpp_client_telemetry.git
+```
+
+Add your fork as an origin:
+
+```sh
+$ git remote add fork https://github.com/YOUR_GITHUB_USERNAME/cpp_client_telemetry.git
+```
+
+Check out a new branch, make modifications and push the branch to your fork:
+
+```sh
+$ git checkout -b feature_branch_name
+# edit files
+$ git commit
+$ git push fork feature_branch_name
+```
+
+Open a pull request against the main `cpp_client_telemetry` repo.
+
+### How to Receive Comments
+
+* If the PR is not ready for review, please put `[WIP]` in the title, tag it
+  as `work-in-progress`, or mark it as [`draft`](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
+* Make sure CLA is signed and CI is clear.
+
+### How to Get PR Merged
+
+A PR is considered to be **ready to merge** when:
+* It has received two approvals from Collaborators/Maintainers.
+* Major feedbacks are resolved.
+* It has been open for review for at least one working day. This gives people
+  reasonable time to review.
+* Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for one day.
+* Urgent fix can take exception as long as it has been actively communicated.
+
+Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
 
 ## Style Guidelines
 
@@ -48,8 +72,24 @@ Please note that we are rapidly evolving product with many different contributor
 Some modules have been written following platform-specific coding style.
 Please try to keep your changes consistent with the coding style of a module you are modifying.
 
-## License Information
+## Become a Collaborator
 
-This project has adopted the internal open source model. (c) Microsoft - All Rights Reserved.
-We are currently working on contributing this project to open source under MIT license by April 2019.
-Please DO NOT SHARE THIS PROJECT SOURCE CODE EXTERNALLY until we satisfy all the legal requirements.
+Collaborators have write access to the repo.
+
+To become a Collaborator:
+* Become an active Contributor by working on PRs.
+* Actively participate in the community meeting, design discussion, PR review
+   and issue discussion.
+* Contact the Maintainers, express the willingness and commitment.
+* Acknowledged and approved by two Maintainers (at different companies).
+
+## Become a Maintainer
+
+Maintainers have admin access to the repo.
+
+To become a Maintainer:
+* Become a [member of OpenTelemetry organization](https://github.com/orgs/open-telemetry/people).
+* Become a Collaborator.
+* Demonstrate the ability and commitment.
+* Contact the Maintainers, express the willingness and commitment.
+* Acknowledged and approved by all the current Maintainers.
