@@ -51,11 +51,17 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
+    EventProperties::EventProperties(const string& name)
+        : EventProperties(name, DIAG_LEVEL_OPTIONAL)
+    {
+    }
+
     /**
     * \brief EventProperties constructor
     * \param name Event name - must not be empty!
+    * \param diagnosticLevel Event diagnostic level for filtering
     */
-    EventProperties::EventProperties(const string& name)
+    EventProperties::EventProperties(const string& name, uint8_t diagnosticLevel)
         : m_storage(new EventPropertiesStorage())
     {
         if (!name.empty())
@@ -65,6 +71,8 @@ namespace ARIASDK_NS_BEGIN {
         else {
             SetName(DefaultEventName);
         }
+
+        SetLevel(diagnosticLevel);
     }
 
     EventProperties::EventProperties(EventProperties const& copy)
@@ -359,7 +367,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>
     /// Erase property from event.
     /// </summary>
-    size_t EventProperties::erase(std::string key, DataCategory category)
+    size_t EventProperties::erase(const std::string& key, DataCategory category)
     {
         size_t result = 0;
         auto &props = (category == DataCategory_PartC) ? m_storage->properties : m_storage->propertiesPartB;
