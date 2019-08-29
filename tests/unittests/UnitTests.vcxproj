@@ -416,8 +416,10 @@
   <ItemGroup>
     <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="DebugEventSourceTests.cpp" />
+    <ClCompile Include="EventFilterCollectionTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
     <ClCompile Include="DataViewerCollectionTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
     <ClCompile Include="LogManagerImplTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="MemoryStorageTests.cpp" />
