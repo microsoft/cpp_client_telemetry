@@ -256,10 +256,14 @@ namespace ARIASDK_NS_BEGIN
     {
         std::string appInfoAppName = eventCtx->source->extApp[0].id;
 
-        ProviderData providerdata = getProviderFortoken(eventCtx->record.tenantToken);
-        if (0 == providerdata.providerHandle)
-        { // invalid handle for provider, no need to log event for this token
-            return -1;
+        ProviderData providerdata;
+        {
+            LOCKGUARD(providerTokenLock);
+            providerdata = getProviderFortoken(eventCtx->record.tenantToken);
+            if (0 == providerdata.providerHandle)
+            { // invalid handle for provider, no need to log event for this token
+                return -1;
+            }
         }
 
         UINT32 eventTags = MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE;
