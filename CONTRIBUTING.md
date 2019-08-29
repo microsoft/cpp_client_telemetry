@@ -88,7 +88,7 @@ To become a Collaborator:
 Maintainers have admin access to the repo.
 
 To become a Maintainer:
-* Become a [member of OpenTelemetry organization](https://github.com/orgs/open-telemetry/people).
+* Become a [member of client-telemetry-sdk organization](https://repos.opensource.microsoft.com/microsoft/teams/client-telemetry-sdk/join/).
 * Become a Collaborator.
 * Demonstrate the ability and commitment.
 * Contact the Maintainers, express the willingness and commitment.
