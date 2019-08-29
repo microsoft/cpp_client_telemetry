@@ -14,8 +14,7 @@ See the public meeting notes for a summary description of past meetings **TODO: 
 
 ## Issues and Feature Requests
 
-Issues and feature requests are tracked on GitHub. Everyone can file issue
-or create feature request [here](https://github.com/microsoft/cpp_client_telemetry/issues).
+Issues and feature requests are tracked on [GitHub](https://github.com/microsoft/cpp_client_telemetry/issues).
 
 ## Pull Request
 
@@ -69,9 +68,9 @@ Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
 
 [Coding style guidelines](docs/Coding%20style.md)
 
-Please note that we are rapidly evolving product with many different contributors.
+_Please note that we are rapidly evolving product with many different contributors.
 Some modules have been written following platform-specific coding style.
-Please try to keep your changes consistent with the coding style of a module you are modifying.
+Please try to keep your changes consistent with the coding style of a module you are modifying._
 
 ## Become a Collaborator
 
