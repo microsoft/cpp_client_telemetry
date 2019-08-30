@@ -19,7 +19,7 @@ public:
         localPacketData = packetData;
     }
 
-    const char* const GetName() const noexcept override
+    const char* GetName() const noexcept override
     {
         return m_name;
     }

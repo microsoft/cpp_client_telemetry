@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Get the name of the current viewer.
         /// </summary>
-        virtual const char* const GetName() const noexcept = 0;
+        virtual const char* GetName() const noexcept = 0;
     };
 
 } ARIASDK_NS_END

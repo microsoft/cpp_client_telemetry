@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN {
 
         void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept override;
 
-        const char* const GetName() const noexcept override
+        const char* GetName() const noexcept override
         {
             return s_name;
         }
