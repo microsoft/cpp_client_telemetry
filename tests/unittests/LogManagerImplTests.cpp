@@ -119,7 +119,6 @@ TEST_F(LogManagerModuleTests, TeardownModules_OneModuleRegistered_SizeOfModulesI
     logManager.TeardownModules();
     ASSERT_EQ(logManager.m_modules.size(), size_t{ 0 });
 }
-}
 
 TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewerCollectionIsSet)
 {
