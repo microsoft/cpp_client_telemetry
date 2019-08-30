@@ -416,7 +416,10 @@
   <ItemGroup>
     <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="DebugEventSourceTests.cpp" />
+    <ClCompile Include="EventFilterCollectionTests.cpp" />
     <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="DataViewerCollectionTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
     <ClCompile Include="LogManagerImplTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="MemoryStorageTests.cpp" />
@@ -458,10 +461,10 @@
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
-    <ClInclude Include="..\common\MockIBandwidthController.hpp" />
-    <ClInclude Include="..\common\MockIEcsClient.hpp" />
-    <ClInclude Include="..\common\MockITelemetrySystem.hpp" />
-    <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIBandwidthController.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIEcsClient.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockITelemetrySystem.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockITenantDataSerializer.hpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

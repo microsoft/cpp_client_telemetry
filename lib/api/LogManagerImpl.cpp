@@ -86,7 +86,17 @@ namespace ARIASDK_NS_BEGIN
     {
     }
 
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/, dataViewer)
+    {
+    }
+
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
+       : LogManagerImpl(configuration, httpClient, deferSystemStart, nullptr)
+    {
+    }
+
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer)
         : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
@@ -154,6 +164,11 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
+        if (dataViewer != nullptr)
+        {
+            m_dataViewerCollection.RegisterViewer(dataViewer);
+        }
+
 #ifdef HAVE_MAT_UTC
         // UTC is not active
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
@@ -216,6 +231,9 @@ namespace ARIASDK_NS_BEGIN
             m_isSystemStarted = true;
         }
 
+        LOG_INFO("Initializng Modules");
+        InitializeModules();
+
         LOG_INFO("Started up and running");
         m_alive = true;
 
@@ -244,6 +262,9 @@ namespace ARIASDK_NS_BEGIN
     void LogManagerImpl::FlushAndTeardown()
     {
         LOG_INFO("Shutting down...");
+
+        LOG_INFO("Tearing down modules");
+        TeardownModules();
         {
             LOCKGUARD(m_lock);
             if (m_isSystemStarted && m_system)
@@ -261,10 +282,9 @@ namespace ARIASDK_NS_BEGIN
 
             m_ownHttpClient.reset();
             m_httpClient = nullptr;
-
-            // Reset the contents of m_eventFilterRegulator, but keep the object
-            m_eventFilterRegulator.Reset();
         }
+
+        m_filters.UnregisterAllFilters();
 
         auto shutTime = GetUptimeMs();
         PAL::shutdown();
@@ -477,11 +497,9 @@ namespace ARIASDK_NS_BEGIN
             auto it = m_loggers.find(hash);
             if (it == std::end(m_loggers))
             {
-                Logger* newLogger = new Logger(
+                m_loggers[hash] = std::unique_ptr<Logger>(new Logger(
                     normalizedTenantToken, normalizedSource, scope,
-                    *this, m_context, *m_config,
-                    m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
-                m_loggers[hash] = std::unique_ptr<Logger>(newLogger);
+                    *this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
             if (level != DIAG_LEVEL_DEFAULT) 
@@ -553,19 +571,19 @@ namespace ARIASDK_NS_BEGIN
         return &m_authTokensController;
     }
 
+    IEventFilterCollection& LogManagerImpl::GetEventFilters() noexcept
+    {
+        return m_filters;
+    }
+
+    const IEventFilterCollection& LogManagerImpl::GetEventFilters() const noexcept
+    {
+        return m_filters;
+    }
+
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterCount);
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterRates, filterCount);
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
@@ -592,6 +610,33 @@ namespace ARIASDK_NS_BEGIN
         m_system->start();
         m_isSystemStarted = true;
         return m_system;
+    }
+
+    void LogManagerImpl::InitializeModules() const noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Initialize(this);
+        }
+    }
+
+    void LogManagerImpl::TeardownModules() noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Teardown();
+        }
+        std::vector<std::unique_ptr<IModule>>{}.swap(m_modules);
+    }
+
+    const IDataViewerCollection& LogManagerImpl::GetDataViewerCollection() const
+    {
+        return m_dataViewerCollection;
+    }
+
+    IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
+    {
+        return m_dataViewerCollection;
     }
 
 } ARIASDK_NS_END
