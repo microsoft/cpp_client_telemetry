@@ -5,8 +5,7 @@ set(SRCS decorators/BaseDecorator.cpp
   packager/Packager.cpp
   callbacks/DebugSource.cpp
   bond/BondSerializer.cpp
-  filter/EventFilterRegulator.cpp
-  filter/EventFilter.cpp
+  filter/EventFilterCollection.cpp
   tpm/TransmitProfiles.cpp
   tpm/TransmissionPolicyManager.cpp
   tpm/DeviceStateHandler.cpp
@@ -25,6 +24,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/AuthTokensController.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
+  api/DataViewerCollection.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp

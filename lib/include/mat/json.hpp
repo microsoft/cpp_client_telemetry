@@ -8331,35 +8331,6 @@ class basic_json
             // check if buffer was large enough
             assert(static_cast<size_t>(written_bytes) < m_buf.size());
 
-            // read information from locale
-            const auto loc = localeconv();
-            assert(loc != nullptr);
-            const char thousands_sep = !loc->thousands_sep ? '\0'
-                                       : loc->thousands_sep[0];
-
-            const char decimal_point = !loc->decimal_point ? '\0'
-                                       : loc->decimal_point[0];
-
-            // erase thousands separator
-            if (thousands_sep != '\0')
-            {
-                const auto end = std::remove(m_buf.begin(), m_buf.begin() + written_bytes, thousands_sep);
-                std::fill(end, m_buf.end(), '\0');
-            }
-
-            // convert decimal point to '.'
-            if (decimal_point != '\0' and decimal_point != '.')
-            {
-                for (auto& c : m_buf)
-                {
-                    if (c == decimal_point)
-                    {
-                        c = '.';
-                        break;
-                    }
-                }
-            }
-
             // determine if need to append ".0"
             size_t i = 0;
             bool value_is_int_like = true;
@@ -11146,45 +11117,12 @@ basic_json_parser_74:
                 // when necessary; data will point to either the original
                 // string, or buf, or tempstr containing the fixed string.
                 std::string tempstr;
-                std::array<char, 64> buf;
                 const size_t len = static_cast<size_t>(m_end - m_start);
 
                 // lexer will reject empty numbers
                 assert(len > 0);
 
-                // since dealing with strtod family of functions, we're
-                // getting the decimal point char from the C locale facilities
-                // instead of C++'s numpunct facet of the current std::locale
-                const auto loc = localeconv();
-                assert(loc != nullptr);
-                const char decimal_point_char = (loc->decimal_point == nullptr) ? '.' : loc->decimal_point[0];
-
                 const char* data = m_start;
-
-                if (decimal_point_char != '.')
-                {
-                    const size_t ds_pos = static_cast<size_t>(std::find(m_start, m_end, '.') - m_start);
-
-                    if (ds_pos != len)
-                    {
-                        // copy the data into the local buffer or tempstr, if
-                        // buffer is too small; replace decimal separator, and
-                        // update data to point to the modified bytes
-                        if ((len + 1) < buf.size())
-                        {
-                            std::copy(m_start, m_end, buf.begin());
-                            buf[len] = 0;
-                            buf[ds_pos] = decimal_point_char;
-                            data = buf.data();
-                        }
-                        else
-                        {
-                            tempstr.assign(m_start, m_end);
-                            tempstr[ds_pos] = decimal_point_char;
-                            data = tempstr.c_str();
-                        }
-                    }
-                }
 
                 char* endptr = nullptr;
                 value = 0;

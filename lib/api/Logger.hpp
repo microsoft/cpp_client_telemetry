@@ -13,13 +13,13 @@
 
 #include "ContextFieldsProvider.hpp"
 
-#include "filter/IEventFilter.hpp"
-
 // Decorators
 #include "decorators/BaseDecorator.hpp"
 #include "decorators/EventPropertiesDecorator.hpp"
 #include "decorators/SemanticApiDecorators.hpp"
 #include "decorators/SemanticContextDecorator.hpp"
+
+#include "filter/EventFilterCollection.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -40,10 +40,9 @@ namespace ARIASDK_NS_BEGIN {
             const std::string& scope,
             ILogManagerInternal& logManager,
             ContextFieldsProvider& parentContext,
-            IRuntimeConfig& runtimeConfig,
-            IEventFilter& eventFilter);
+            IRuntimeConfig& runtimeConfig);
 
-        ~Logger();
+        ~Logger() noexcept;
 
     public:
 
@@ -148,6 +147,10 @@ namespace ARIASDK_NS_BEGIN {
             long timeToLiveInMillis,
             EventProperties const& properties) override;
 
+        virtual IEventFilterCollection& GetEventFilters() noexcept override;
+
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept override;
+
         virtual std::string GetSource();
 
         virtual ILogManager& GetParent();
@@ -173,6 +176,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void submit(::CsProtocol::Record& record, const EventProperties& props);
 
+        bool CanEventPropertiesBeSent(EventProperties const& properties) const noexcept;
+
         std::mutex                m_lock;
 
         std::string               m_tenantToken;
@@ -192,7 +197,6 @@ namespace ARIASDK_NS_BEGIN {
         ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;
         IRuntimeConfig&           m_config;
-        IEventFilter&             m_eventFilter;
 
         BaseDecorator             m_baseDecorator;
         EventPropertiesDecorator  m_eventPropertiesDecorator;
@@ -200,6 +204,7 @@ namespace ARIASDK_NS_BEGIN {
         SemanticApiDecorators     m_semanticApiDecorators;
 
         bool                      m_allowDotsInType;
+        EventFilterCollection     m_filters;
     };
 
 } ARIASDK_NS_END

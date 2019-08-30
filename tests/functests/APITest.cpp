@@ -977,19 +977,19 @@ TEST(APITest, LogManager_DiagLevels)
     // inherit diagnostic level from parent (basic)
     auto logger1 = LogManager::GetLogger();
 
-    // set diagnostic level to enhanced
-    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
-    logger2->SetLevel(DIAG_LEVEL_ENHANCED);
+    // set diagnostic level to optional
+    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
+    logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
 
-    // set diagnostic level to full
-    auto logger3 = LogManager::GetLogger("my_full_source");
-    logger3->SetLevel(DIAG_LEVEL_FULL);
+    // set diagnostic level to a custom value
+    auto logger3 = LogManager::GetLogger("my_custom_source");
+    logger3->SetLevel(5);
     
     std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
     std::set<uint8_t> logAll   = { };
-    std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+    std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
-    auto filters = { logNone, logAll, logBasic };
+    auto filters = { logNone, logAll, logRequired };
 
     size_t expectedCounts[] = { 12, 0, 8 };
 
@@ -1006,13 +1006,13 @@ TEST(APITest, LogManager_DiagLevels)
             EventProperties defLevelEvent("My.DefaultLevelEvent");
             logger->LogEvent(defLevelEvent);   // inherit from logger
 
-            EventProperties basicEvent("My.BasicEvent");
-            basicEvent.SetLevel(DIAG_LEVEL_BASIC);
-            logger->LogEvent(basicEvent);   // basic
+            EventProperties requiredEvent("My.RequiredEvent");
+            requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+            logger->LogEvent(requiredEvent);   // required
 
-            EventProperties fullEvent("My.FullEvent");
-            fullEvent.SetLevel(DIAG_LEVEL_FULL);
-            logger->LogEvent(fullEvent);
+            EventProperties customEvent("My.CustomEvent");
+            customEvent.SetLevel(5);
+            logger->LogEvent(customEvent);
         }
         EXPECT_EQ(eventListener.numFiltered, expectedCounts[i]);
         eventListener.numFiltered = 0;

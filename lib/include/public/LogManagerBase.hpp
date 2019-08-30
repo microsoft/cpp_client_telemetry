@@ -199,7 +199,7 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         inline static ILogger* Initialize(const std::string& tenantToken, ILogConfiguration& configuration)
         {
-           return Initialize(tenantToken, configuration, nullptr);
+           return Initialize(tenantToken, configuration, nullptr, nullptr);
         }
 
         /// <summary>
@@ -210,7 +210,19 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient)
         {
-           return Initialize(tenantToken, GetLogConfiguration(), httpClient);
+           return Initialize(tenantToken, GetLogConfiguration(), httpClient, nullptr);
+        }
+
+        /// <summary>
+        /// Initializes the telemetry logging system with the specified ILogConfiguration.
+        /// </summary>
+        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
+        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <param name="dataViewer">IDataViewer implementation to be registered at the very start, nullptr doesn't register any viewer</param>
+        /// <returns>A logger instance instantiated with the tenantToken.</returns>
+        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+        {
+           return Initialize(tenantToken, GetLogConfiguration(), httpClient, dataViewer);
         }
 
         /// <summary>
@@ -219,11 +231,13 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
+        /// <param name="dataViewer">IDataViewer implementation to be registered at the very start, nullptr doesn't register any viewer</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
             const std::string& tenantToken,
             ILogConfiguration& configuration,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            const std::shared_ptr<IDataViewer>& dataViewer
         )
         {
             LM_LOCKGUARD(stateLock());
@@ -246,7 +260,7 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, dataViewer, status);
                 instance->AttachEventSource(GetDebugEventSource());
                 return instance->GetLogger(currentConfig[CFG_STR_PRIMARY_TOKEN]);
             }
@@ -601,12 +615,6 @@ namespace ARIASDK_NS_BEGIN
         static LogSessionData* GetLogSessionData()
             LM_SAFE_CALL_PTR(GetLogSessionData);
 
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterCount);
-
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
-
         /// <summary>
         /// Sets the diagnostic level filter for the LogManager
         /// </summary>
@@ -640,6 +648,10 @@ namespace ARIASDK_NS_BEGIN
         static status_t Configure()
             LM_SAFE_CALL(Configure);
 
+        static IDataViewerCollection& GetDataViewerCollection()
+        {
+            return instance->GetDataViewerCollection();
+        }
     };
 
     // Implements LogManager<T> singleton template static  members

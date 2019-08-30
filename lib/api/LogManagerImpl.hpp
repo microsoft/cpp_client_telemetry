@@ -9,17 +9,18 @@
 
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
+#include "IModule.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
-
-#include "filter/EventFilterRegulator.hpp"
 
 #include "DebugEvents.hpp"
 #include <memory>
 
 #include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
+#include "filter/EventFilterCollection.hpp"
+#include "api/DataViewerCollection.hpp"
 
 #include "LogSessionData.hpp"
 
@@ -118,7 +119,9 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer);
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
+        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer);
 
         virtual ~LogManagerImpl() override;
 
@@ -182,6 +185,10 @@ namespace ARIASDK_NS_BEGIN
 
         IAuthTokensController* GetAuthTokensController() override;
 
+        IEventFilterCollection& GetEventFilters() noexcept override;
+
+        const IEventFilterCollection& GetEventFilters() const noexcept override;
+
         /// <summary>
         /// Adds the event listener.
         /// </summary>
@@ -208,7 +215,7 @@ namespace ARIASDK_NS_BEGIN
 
         ///
         virtual bool DetachEventSource(DebugEventSource & other) override;
-        
+
         /// <summary>
         /// Sets the exclusion filter.
         /// </summary>
@@ -228,6 +235,9 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="filterCount">The filter count.</param>
         /// <returns></returns>
         status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
+
+        virtual IDataViewerCollection& GetDataViewerCollection() override;
+        virtual const IDataViewerCollection& GetDataViewerCollection() const override;
 
         /// <summary>
         /// Adds the incoming event.
@@ -255,6 +265,8 @@ namespace ARIASDK_NS_BEGIN
 
 protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
+        void InitializeModules() const noexcept;
+        void TeardownModules() noexcept;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
@@ -278,12 +290,14 @@ protected:
         bool                                                   m_isSystemStarted {};
         std::unique_ptr<ITelemetrySystem>                      m_system;
 
-        EventFilterRegulator                                   m_eventFilterRegulator;
-
         bool                                                   m_alive;
 
         DebugEventSource                                       m_debugEventSource;
         DiagLevelFilter                                        m_diagLevelFilter;
+
+        EventFilterCollection                                  m_filters;
+        std::vector<std::unique_ptr<IModule>>                  m_modules;
+        DataViewerCollection                                   m_dataViewerCollection;
     };
 
 

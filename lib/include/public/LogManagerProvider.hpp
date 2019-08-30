@@ -40,12 +40,13 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status,
             IHttpClient* httpClient,
+            const std::shared_ptr<IDataViewer>& dataViewer,
             uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg["config"]["host"] = (wantController) ? id : "*";
-            return Get(cfg, status, httpClient);
+            return Get(cfg, status, httpClient, dataViewer);
         };
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
@@ -105,7 +106,7 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status)
         {
-            return Get(cfg, status, nullptr);
+            return Get(cfg, status, nullptr, nullptr);
         }
 
         static ILogManager* MATSDK_SPEC CreateLogManager(
@@ -113,7 +114,16 @@ namespace ARIASDK_NS_BEGIN
            IHttpClient* httpClient,
            status_t& status)
         {
-           return Get(cfg, status, httpClient);
+           return Get(cfg, status, httpClient, nullptr);
+        }
+
+        static ILogManager* MATSDK_SPEC CreateLogManager(
+           ILogConfiguration& cfg,
+           IHttpClient* httpClient,
+           const std::shared_ptr<IDataViewer>& dataViewer,
+           status_t& status)
+        {
+           return Get(cfg, status, httpClient, dataViewer);
         }
 
         /// <summary>
@@ -146,7 +156,8 @@ namespace ARIASDK_NS_BEGIN
         static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
             status_t &status,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            const std::shared_ptr<IDataViewer>& dataViewer
         );
 
         static ILogManager* MATSDK_SPEC Get(

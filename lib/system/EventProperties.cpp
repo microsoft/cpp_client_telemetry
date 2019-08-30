@@ -51,11 +51,17 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
+    EventProperties::EventProperties(const string& name)
+        : EventProperties(name, DIAG_LEVEL_OPTIONAL)
+    {
+    }
+
     /**
     * \brief EventProperties constructor
     * \param name Event name - must not be empty!
+    * \param diagnosticLevel Event diagnostic level for filtering
     */
-    EventProperties::EventProperties(const string& name)
+    EventProperties::EventProperties(const string& name, uint8_t diagnosticLevel)
         : m_storage(new EventPropertiesStorage())
     {
         if (!name.empty())
@@ -65,6 +71,8 @@ namespace ARIASDK_NS_BEGIN {
         else {
             SetName(DefaultEventName);
         }
+
+        SetLevel(diagnosticLevel);
     }
 
     EventProperties::EventProperties(EventProperties const& copy)
@@ -291,6 +299,22 @@ namespace ARIASDK_NS_BEGIN {
         return m_storage->eventType;
     }
 
+    std::tuple<bool, std::uint8_t> EventProperties::TryGetLevel() const
+    {
+        const auto& findResult = GetProperties().find(COMMONFIELDS_EVENT_LEVEL);
+        if (findResult == GetProperties().cend())
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+        
+        const auto& property = findResult->second;
+        if (property.type != TYPE_INT64)
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+
+        const auto& value = property.as_int64;
+        if (value < 0 || value > UINT8_MAX)
+            return std::make_tuple<bool, std::uint8_t>(false, 0);
+        return std::make_tuple<bool, std::uint8_t>(true, static_cast<uint8_t>(value));
+    }
+
     /// <summary>
     /// Specify a property of an event
     /// It creates a new property if none exists or overwrites an existing one
@@ -343,7 +367,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>
     /// Erase property from event.
     /// </summary>
-    size_t EventProperties::erase(std::string key, DataCategory category)
+    size_t EventProperties::erase(const std::string& key, DataCategory category)
     {
         size_t result = 0;
         auto &props = (category == DataCategory_PartC) ? m_storage->properties : m_storage->propertiesPartB;
