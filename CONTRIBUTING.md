@@ -10,8 +10,9 @@ The 1DS C++ SDK community meets every **Tuesday at 10:30AM PST**.
 
 Conference ID: 634 117 56#
 
-See the public meeting notes for a summary description of past meetings
-**TODO: add the link**. To request edit access, please contact [1ds.sdk.cpp@service.microsoft.com](mailto:1ds.sdk.cpp@service.microsoft.com)
+Meeting agenda and notes are maintained [here](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/_layouts/15/WopiFrame.aspx?sourcedoc={15b57d3d-8461-4bdc-b5cb-249283e20e5c}&action=edit&wd=target%28Meeting%20Notes.one%7C8cfc64cc-1ae7-44d6-9780-118d8dca1197%2F%29&wdorigin=717).
+If you want to propose topics, please append them to the agenda.
+To request edit access, please contact [1ds.sdk.cpp@service.microsoft.com](mailto:1ds.sdk.cpp@service.microsoft.com)
 or ping us on [Teams](https://teams.microsoft.com/l/channel/19%3a50d8ce341e12455fa3bbfba72b2ba2b5%40thread.skype/General?groupId=d0d4e6fc-48e6-4e38-bb62-bec0fc26b520&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
 
 ## Issues and Feature Requests
@@ -57,7 +58,7 @@ Open a pull request against the main `cpp_client_telemetry` repo.
 ### How to Get PR Merged
 
 A PR is considered to be **ready to merge** when:
-* It has received two approvals from Collaborators/Maintainers.
+* It has received one approval from Maintainers.
 * Major feedbacks are resolved.
 * It has been open for review for at least one working day. This gives people
   reasonable time to review.
