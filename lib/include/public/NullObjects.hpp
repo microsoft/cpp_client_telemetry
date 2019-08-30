@@ -29,6 +29,14 @@ namespace ARIASDK_NS_BEGIN
         virtual void SetCustomField(const std::string &, const EventProperty &) override {};
     };
 
+    class NullEventFilterCollection : public IEventFilterCollection
+    {
+        virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&&) override { }
+        virtual void UnregisterEventFilter(const char*) override { }
+        virtual void UnregisterAllFilters() noexcept override { }
+        virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return false; }
+    };
+
     class NullLogger : public ILogger
     {
 
@@ -103,10 +111,16 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void LogUserState(UserState state, long timeToLiveInMillis, EventProperties const & properties) override {};
 
+        virtual IEventFilterCollection& GetEventFilters() noexcept override { return m_filters; }
+
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept { return m_filters; }
+
         virtual void SetParentContext(ISemanticContext * context) override {};
 
         virtual void SetLevel(uint8_t level) override {};
 
+    private:
+        NullEventFilterCollection m_filters;
     };
 
     class NullDataViewerCollection : public IDataViewerCollection
@@ -311,14 +325,14 @@ namespace ARIASDK_NS_BEGIN
             return nullptr;
         }
 
-        virtual status_t SetExclusionFilter(const char * tenantToken, const char ** filterStrings, uint32_t filterCount) override
+        virtual IEventFilterCollection& GetEventFilters() noexcept override
         {
-            return STATUS_ENOSYS;
+            return m_filters;
         }
 
-        virtual status_t SetExclusionFilter(const char * tenantToken, const char ** filterStrings, const uint32_t * filterRates, uint32_t filterCount) override
+        virtual const IEventFilterCollection& GetEventFilters() const noexcept override
         {
-            return STATUS_ENOSYS;
+            return m_filters;
         }
 
         virtual void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) override {};
@@ -327,15 +341,17 @@ namespace ARIASDK_NS_BEGIN
 
         virtual const IDataViewerCollection& GetDataViewerCollection() const noexcept override
         {
-            static const NullDataViewerCollection nullDataViewerCollectionConst;
-            return nullDataViewerCollectionConst;
-        }
-        
-        virtual IDataViewerCollection& GetDataViewerCollection() noexcept override
-        {
-            static NullDataViewerCollection nullDataViewerCollection;
             return nullDataViewerCollection;
         }
+
+        virtual IDataViewerCollection& GetDataViewerCollection() noexcept override
+        {
+            return nullDataViewerCollection;
+        }
+
+        private:
+            NullDataViewerCollection nullDataViewerCollection;
+            NullEventFilterCollection m_filters;
     };
 
 } ARIASDK_NS_END

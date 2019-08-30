@@ -9,9 +9,10 @@
 #include <string>
 
 #include "Enums.hpp"
-#include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
+#include "ILogger.hpp"
 #include "IDataViewerCollection.hpp"
+#include "IEventFilterCollection.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -316,24 +317,9 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual IAuthTokensController*  GetAuthTokensController() override = 0;
 
-        /// <summary>
-        /// Set tenant-specific event exclusion filter
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="filterStrings">The events to exclude from uploads, specified as an array of strings</param>
-        /// <param name="filterCount">The number of strings in filterStrings</param>
-        /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
-        /// </summary>
-        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
+        virtual IEventFilterCollection& GetEventFilters() noexcept = 0;
 
-        /// <summary>
-        /// Set tenant-specific event exclusion filter
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="filterStrings">The events to exclude from uploads, specified as an array of strings</param>
-        /// <param name="filterRates">The rate at which events are excluded, specified as an array of integers representing a percentage</param>
-        /// <param name="filterCount">The number of strings, integers in filterStrings, filterRates</param>
-        /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
-        /// </summary>
-        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
+        virtual const IEventFilterCollection& GetEventFilters() const noexcept = 0;
 
         /// <summary>
         /// Sets the diagnostic level for the LogManager

@@ -1,0 +1,5 @@
+#pragma once
+
+// Values defined by Office
+#define DIAG_LEVEL_NECESSARYSERVICEDATA 110
+#define DIAG_LEVEL_ALWAYSONNECESSARYSERVICEDATA 120

@@ -427,6 +427,7 @@
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
@@ -438,6 +439,7 @@
     <ClCompile Include="$(ProjectDir)\HttpServerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />

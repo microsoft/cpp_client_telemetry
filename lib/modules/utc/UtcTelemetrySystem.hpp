@@ -93,6 +93,7 @@ namespace ARIASDK_NS_BEGIN
             tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
 
     protected:
+        std::mutex providerTokenLock;
         std::map<std::string, ProviderData> tokenToProviderDataMap;
         std::map<std::string, bool> tokenToIkeyaMap;
 
