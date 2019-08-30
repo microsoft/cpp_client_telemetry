@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
     public:
         DefaultDataViewer(const std::shared_ptr<IHttpClient>& httpClient, const std::string& machineFriendlyIdentifier);
 
-        void ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept override;
+        void ReceiveData(const std::vector<uint8_t>& packetData) noexcept override;
 
         const char* GetName() const noexcept override
         {

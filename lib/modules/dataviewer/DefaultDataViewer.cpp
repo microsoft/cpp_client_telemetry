@@ -38,7 +38,7 @@ namespace ARIASDK_NS_BEGIN
         return (toCheck.empty() || toCheck.find_first_not_of(' ') == std::string::npos);
     }
 
-    void DefaultDataViewer::ReceiveData(const std::vector<std::uint8_t>& packetData) noexcept
+    void DefaultDataViewer::ReceiveData(const std::vector<uint8_t>& packetData) noexcept
     {
         ProcessReceivedPacket(packetData);
     }

@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
         /// Dispatch a Data Viewer Event to all viewers in the collection.
         /// </summary>
         /// <param name="packetData">Data packet to be passed to all viewers.</param>
-        virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) const noexcept = 0;
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept = 0;
 
         /// <summary>
         /// Register an IDataViewer with Data Viewer Collection.
