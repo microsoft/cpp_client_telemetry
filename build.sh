@@ -66,10 +66,10 @@ set -e
 
 if [ "$2" == "release" ]; then
 # TODO: pass custom build flags?
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="-Wignored-qualifiers -Wreorder" ..
+  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 # TODO: strip symbols to minimize
 else
-  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="-Wignored-qualifiers -Wreorder" ..
+  cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 fi
 
 # Build all
