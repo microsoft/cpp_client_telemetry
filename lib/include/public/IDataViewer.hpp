@@ -18,12 +18,12 @@ namespace ARIASDK_NS_BEGIN
         /// This method allows SDK to pass the uploaded packet to the data viewer.
         /// </summary>
         /// <param name="packetData">HTTP Request Packet as a binary blob.</param>
-        virtual void RecieveData(const std::vector<std::uint8_t>& packetData) const noexcept = 0;
+        virtual void ReceiveData(const std::vector<uint8_t>& packetData) noexcept = 0;
 
         /// <summary>
         /// Get the name of the current viewer.
         /// </summary>
-        virtual const char* const GetName() const noexcept = 0;
+        virtual const char* GetName() const noexcept = 0;
     };
 
 } ARIASDK_NS_END

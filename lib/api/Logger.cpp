@@ -33,10 +33,9 @@ namespace ARIASDK_NS_BEGIN
         m_config(runtimeConfig),
 
         m_baseDecorator(logManager),
-        m_semanticContextDecorator(logManager, m_context),
         m_eventPropertiesDecorator(logManager),
+        m_semanticContextDecorator(logManager, m_context),
         m_semanticApiDecorators(logManager),
-
         m_sessionStartTime(0),
         m_allowDotsInType(false)
     {

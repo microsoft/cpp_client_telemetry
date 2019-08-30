@@ -306,7 +306,7 @@ namespace ARIASDK_NS_BEGIN {
             return std::make_tuple<bool, std::uint8_t>(false, 0);
         
         const auto& property = findResult->second;
-        if (property.type != TYPE_INT64)
+        if (property.type != EventProperty::TYPE_INT64)
             return std::make_tuple<bool, std::uint8_t>(false, 0);
 
         const auto& value = property.as_int64;
