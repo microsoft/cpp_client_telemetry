@@ -67,8 +67,7 @@ namespace PAL_NS_BEGIN {
             }
             if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName != NULL))
             {
-                std::string adapterName{ pAdapterInfo->AdapterName };
-                std::transform(adapterName.begin(), adapterName.end(), adapterName.begin(), ::tolower);
+                std::string adapterName{ toLower(pAdapterInfo->AdapterName) };
                 devId = adapterName;
             }
             FREE(pAdapterInfo);

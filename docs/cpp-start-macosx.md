@@ -1,9 +1,4 @@
----
-layout: page
-title: Getting started with the 1DS SDK (Beta) for Mac OS X (C++)
-sub_title:
 
----
 This tutorial guides you through the process of integrating the 1DS SDK (Beta) into your existing C++ Mac OS X app or service.
 
 ## **Mac OS X prerequisites and dependencies for building from source**
@@ -25,9 +20,11 @@ _**Note:** Preferably use Homebrew to install missing packages._
 
 ## **Clone the repository**
 
-1. Run `git clone https://msasg.visualstudio.com/DefaultCollection/Shared%20Data/_git/Aria.SDK.Cpp` to clone the repo.
+1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo.
 
-2. You will be asked your credentials to clone the repo, use your username and password as entered on https://msasg.visualstudio.com/DefaultCollection/_usersSettings/altcreds 
+	If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+
+2. You will be asked your credentials to clone the repo, use your username and password as entered on Github
 	
     If you do not have those credentials, generate them and use the username and password that you enabled.
     
@@ -53,7 +50,7 @@ _**Note:** Preferably use Homebrew to install missing packages._
 
 	_**Note:** In order to build from scratch all dependencies along with the SDK you need to run:_ ` ./build.sh clean`
     
-3. The SDK will be installed under `usr/local/libaria.a`
+3. The SDK will be installed under `usr/local/libmat.a`
 
 ## **Instrument your code to send a telemetry event**
 

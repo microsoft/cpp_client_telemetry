@@ -1,5 +1,5 @@
 ---
-ms.reviewedAt: 02/20/2019
+ms.reviewedAt: 08/23/2019
 ms.reviewedBy: maxgolov
 ---
 
@@ -17,20 +17,20 @@ This project adopted Inner Source [model](https://oe-documentation.azurewebsites
 
     remotes/origin/YOUR_ALIAS/FEATURE_BRANCH_NAME
 
-2. Before integrating into 'onesdk' or 'master' branch:
+2. Before integrating into 'master' branch:
 
     - Make sure all changes follow local [Coding style](docs/Coding%20style.md).
 
     - Make sure the code builds cleanly on all platforms and there are no failed tests.
+      You can use buildme/YOUR_ALIAS branch to verify using GitHub actions build in the cloud.
 
-3. Create a VSTS pull request for code review at [MS ASG VSO](http://msasg.visualstudio.com).
-   Completion of the pull request requires at least one reviewer.
+3. Create a PT for code review. Completion of the pull request requires at least one reviewer.
 
 4. Iterate on the changes until all code review comments are addressed.
-   You may push commits to your feature branch and VSO would auto-refresh the pull request.
-
+   You may push commits to your feature branch to refresh the PR.
+   
 5. Merging your changes:
-* Integrate the changes to 'onesdk' by completing your pull request.
+* Integrate the changes to 'master' by completing your pull request.
 * Resolve merge conflicts if necessary.
 * Discuss conflicts with your code reviewers if necessary.
 

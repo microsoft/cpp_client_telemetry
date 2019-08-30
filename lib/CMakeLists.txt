@@ -29,6 +29,7 @@ set(SRCS decorators/BaseDecorator.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
   pal/InformationProviderImpl.cpp
+  http/HttpClient_CAPI.cpp
   http/HttpClientManager.cpp
   http/HttpRequestEncoder.cpp
   http/HttpResponseDecoder.cpp
@@ -44,7 +45,7 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/PAL.hpp
 )
 
-if(EXISTS "modules/exp/")
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   list(APPEND SRCS
     modules/exp/afd/afdclient/AFDClientUtils.cpp
     modules/exp/afd/afdclient/AFDClient.cpp
@@ -88,7 +89,7 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
   )
-  if(EXISTS "modules/utc/")
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS
       modules/utc/desktop/UtcHelpers.cpp
       modules/utc/UtcTelemetrySystem.cpp
