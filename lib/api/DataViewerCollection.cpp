@@ -6,7 +6,7 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class");
 
-    void DataViewerCollection::DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) const noexcept
+    void DataViewerCollection::DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept
     {
         if (IsViewerEnabled() == false)
             return;
@@ -15,7 +15,7 @@ namespace ARIASDK_NS_BEGIN {
         for(const auto& viewer : m_dataViewerCollection)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
-            viewer->RecieveData(packetData);
+            viewer->ReceiveData(packetData);
         }
     };
 

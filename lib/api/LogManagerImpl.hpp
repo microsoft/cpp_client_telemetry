@@ -35,9 +35,9 @@ namespace ARIASDK_NS_BEGIN
     class DiagLevelFilter final {
     public:
         DiagLevelFilter():
-            m_level(DIAG_LEVEL_DEFAULT),
             m_levelMin(DIAG_LEVEL_DEFAULT_MIN),
             m_levelMax(DIAG_LEVEL_DEFAULT_MAX),
+            m_level(DIAG_LEVEL_DEFAULT),
             m_levelSet({})
         {
         }
@@ -216,28 +216,7 @@ namespace ARIASDK_NS_BEGIN
         ///
         virtual bool DetachEventSource(DebugEventSource & other) override;
 
-        /// <summary>
-        /// Sets the exclusion filter.
-        /// </summary>
-        /// <param name="tenantToken">The tenant token.</param>
-        /// <param name="filterStrings">The filter strings.</param>
-        /// <param name="filterCount">The filter count.</param>
-        /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) override;
-        
 
-        /// <summary>
-        /// Sets the exclusion filter.
-        /// </summary>
-        /// <param name="tenantToken">The tenant token.</param>
-        /// <param name="filterStrings">The filter strings.</param>
-        /// <param name="filterRates">The filter rates.</param>
-        /// <param name="filterCount">The filter count.</param>
-        /// <returns></returns>
-        status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) override;
-
-        virtual IDataViewerCollection& GetDataViewerCollection() override;
-        virtual const IDataViewerCollection& GetDataViewerCollection() const override;
 
         /// <summary>
         /// Adds the incoming event.
@@ -248,6 +227,9 @@ namespace ARIASDK_NS_BEGIN
         void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax) override;
 
         void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override;
+
+        virtual IDataViewerCollection& GetDataViewerCollection() override;
+        virtual const IDataViewerCollection& GetDataViewerCollection() const override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter
