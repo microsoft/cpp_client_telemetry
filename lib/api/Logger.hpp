@@ -191,9 +191,6 @@ namespace ARIASDK_NS_BEGIN {
         std::string               m_scope;
         uint8_t                   m_level;
 
-        int64_t                   m_sessionStartTime;
-        std::string               m_sessionId;
-
         ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;
         IRuntimeConfig&           m_config;
@@ -202,6 +199,9 @@ namespace ARIASDK_NS_BEGIN {
         EventPropertiesDecorator  m_eventPropertiesDecorator;
         SemanticContextDecorator  m_semanticContextDecorator;
         SemanticApiDecorators     m_semanticApiDecorators;
+
+        int64_t                   m_sessionStartTime;
+        std::string               m_sessionId;
 
         bool                      m_allowDotsInType;
         EventFilterCollection     m_filters;
