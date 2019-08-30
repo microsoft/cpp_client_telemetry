@@ -1,9 +1,5 @@
-#ifdef _MSC_VER
-// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning( disable : 4459 )
-#endif
-
 #include "DataViewerCollection.hpp"
+#include <algorithm>
 #include <mutex>
 
 namespace ARIASDK_NS_BEGIN {
@@ -15,30 +11,30 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        LOCKGUARD(m_dataViewerMapLock);        
-        auto dataViewerIterator = m_dataViewerCollection.cbegin();
-        while (dataViewerIterator != m_dataViewerCollection.cend())
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        for(const auto& viewer : m_dataViewerCollection)
         {
-            //ToDo: Send data asynchronously to individual viewers
-            dataViewerIterator->second->ReceiveData(packetData);
+            // Task 3568800: Integrate ThreadPool to IDataViewerCollection
+            viewer->ReceiveData(packetData);
         }
     };
 
     void DataViewerCollection::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
     {
-
         if (dataViewer == nullptr)
         {
             throw std::invalid_argument("nullptr passed for data viewer");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
-        if (m_dataViewerCollection.find(dataViewer->GetName()) != m_dataViewerCollection.end())
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        auto lookupResult = IsViewerInCollection(dataViewer);
+
+        if (lookupResult != nullptr)
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() });
         }
         
-        m_dataViewerCollection.emplace(dataViewer->GetName(), std::move(dataViewer));
+        m_dataViewerCollection.push_back(dataViewer);
     }
 
     void DataViewerCollection::UnregisterViewer(const char* viewerName)
@@ -48,18 +44,23 @@ namespace ARIASDK_NS_BEGIN {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
-        if (m_dataViewerCollection.find(viewerName) == m_dataViewerCollection.end())
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
+            {
+                return viewer->GetName() == viewerName;
+            });
+        
+        if (toErase == m_dataViewerCollection.end())
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName });
         }
 
-        m_dataViewerCollection.erase(viewerName);
+        m_dataViewerCollection.erase(toErase);
     }
 
     void DataViewerCollection::UnregisterAllViewers()
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
@@ -70,13 +71,28 @@ namespace ARIASDK_NS_BEGIN {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        LOCKGUARD(m_dataViewerMapLock);
-        return m_dataViewerCollection.find(viewerName) != m_dataViewerCollection.end();
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        return IsViewerInCollection(viewerName) != nullptr;
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
-        LOCKGUARD(m_dataViewerMapLock);
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;
+    }
+
+    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const char* viewerName) const noexcept
+    {
+        auto lookup = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
+            {
+                return viewer->GetName() == viewerName;
+            });
+
+        return lookup != m_dataViewerCollection.end() ? *lookup : nullptr;
+    }
+
+    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept
+    {
+        return IsViewerInCollection(viewer->GetName());
     }
 } ARIASDK_NS_END

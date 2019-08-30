@@ -3,11 +3,11 @@
 #define DATAVIEWERCOLLECTIONIMPL_HPP
 
 #include "public/IDataViewerCollection.hpp"
-#include "pal/DebugTrace.hpp"
+#include "pal/PAL.hpp"
 #include "public/ctmacros.hpp"
 
 #include <mutex>
-#include <map>
+#include <vector>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -29,10 +29,12 @@ namespace ARIASDK_NS_BEGIN {
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        mutable std::recursive_mutex m_dataViewerMapLock;
+        mutable std::mutex m_dataViewerMapLock;
 
     protected:
-        std::map<const char*, std::shared_ptr<IDataViewer>> m_dataViewerCollection;
+        std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
+        std::shared_ptr<IDataViewer> IsViewerInCollection(const char* viewerName) const noexcept;
+        std::shared_ptr<IDataViewer> IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept;
     };
 
 } ARIASDK_NS_END

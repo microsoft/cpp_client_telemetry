@@ -42,6 +42,15 @@
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
       <Filter>mocks</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryStorageTests.cpp" />
+    <ClCompile Include="EventPropertiesStorageTests.cpp" />
+    <ClCompile Include="DebugEventSourceTests.cpp" />
+    <ClCompile Include="ClockSkewManagerTests.cpp" />
+    <ClCompile Include="LogSessionDataTests.cpp" />
+    <ClCompile Include="LogManagerImplTests.cpp" />
+    <ClCompile Include="DataViewerCollectionTests.cpp" />
+    <ClCompile Include="EventFilterCollectionTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
