@@ -47,7 +47,7 @@ namespace ARIASDK_NS_BEGIN {
 
         const ILogManager* find(const std::string& name);
 
-        ILogManager* lease(ILogConfiguration& configuration, IHttpClient* client);
+        ILogManager* lease(ILogConfiguration& configuration, IHttpClient* client, const std::shared_ptr<IDataViewer>& dataViewer);
 
         bool release(const std::string& name, const std::string& host);
 
@@ -70,14 +70,24 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         static const NullLogManager   NULL_LOGMANAGER;
-
         /// <summary>
         /// Creates a new ILogManager instance
         /// </summary>
         /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
         /// <param name="httpClient">Implementation of IHttpClient for the LogManager to use.</param>
         /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and HTTP Client.</returns>
-        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient);
+        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer);
+        
+        /// <summary>
+        /// Creates a new ILogManager instance
+        /// </summary>
+        /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
+        /// <param name="httpClient">Implementation of IHttpClient for the LogManager to use.</param>
+        /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and HTTP Client.</returns>
+        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient)
+        {
+            return Create(configuration, httpClient, nullptr);
+        }
 
         /// <summary>
         /// Creates a new ILogManager instance
@@ -97,10 +107,11 @@ namespace ARIASDK_NS_BEGIN {
         static ILogManager * Get(
             ILogConfiguration& logConfiguration,
             status_t& status,
-            IHttpClient* httpClient
+            IHttpClient* httpClient,
+            const std::shared_ptr<IDataViewer>& dataViewer
         )
         {
-            auto result = instance().lease(logConfiguration, httpClient);
+            auto result = instance().lease(logConfiguration, httpClient, dataViewer);
             status = (result != nullptr)?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
@@ -112,7 +123,7 @@ namespace ARIASDK_NS_BEGIN {
            status_t& status
         )
         {
-           return Get(logConfiguration, status, nullptr);
+           return Get(logConfiguration, status, nullptr, nullptr);
         }
 
         static ILogManager* Get(
@@ -126,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "version", "0.0.0" },
                 { "config", {  } }
             };
-            auto result = instance().lease(config, nullptr);
+            auto result = instance().lease(config, nullptr, nullptr);
             status = (result != nullptr) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;

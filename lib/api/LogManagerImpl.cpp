@@ -86,7 +86,17 @@ namespace ARIASDK_NS_BEGIN
     {
     }
 
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/, dataViewer)
+    {
+    }
+
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
+       : LogManagerImpl(configuration, httpClient, deferSystemStart, nullptr)
+    {
+    }
+
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer)
         : m_httpClient(httpClient),
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
@@ -153,6 +163,11 @@ namespace ARIASDK_NS_BEGIN
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
+
+        if (dataViewer != nullptr)
+        {
+            m_dataViewerCollection.RegisterViewer(dataViewer);
+        }
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
@@ -612,6 +627,16 @@ namespace ARIASDK_NS_BEGIN
             module->Teardown();
         }
         std::vector<std::unique_ptr<IModule>>{}.swap(m_modules);
+    }
+
+    const IDataViewerCollection& LogManagerImpl::GetDataViewerCollection() const
+    {
+        return m_dataViewerCollection;
+    }
+
+    IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
+    {
+        return m_dataViewerCollection;
     }
 
 } ARIASDK_NS_END

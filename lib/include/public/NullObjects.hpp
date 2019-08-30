@@ -123,6 +123,26 @@ namespace ARIASDK_NS_BEGIN
         NullEventFilterCollection m_filters;
     };
 
+    class NullDataViewerCollection : public IDataViewerCollection
+    {
+        virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>&) const noexcept {};
+        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {};
+
+        virtual void UnregisterViewer(const char*) override {};
+
+        virtual void UnregisterAllViewers() override {};
+
+        virtual bool IsViewerEnabled(const char*) const override
+        {
+            return false;
+        }
+
+        virtual bool IsViewerEnabled() const noexcept override
+        {
+            return false;
+        }
+    };
+
     class NullLogManager : public ILogManager
     {
     public:
@@ -319,8 +339,19 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) override {};
 
+        virtual const IDataViewerCollection& GetDataViewerCollection() const noexcept override
+        {
+            return nullDataViewerCollection;
+        }
+
+        virtual IDataViewerCollection& GetDataViewerCollection() noexcept override
+        {
+            return nullDataViewerCollection;
+        }
+
         private:
-        NullEventFilterCollection m_filters;
+            NullDataViewerCollection nullDataViewerCollection;
+            NullEventFilterCollection m_filters;
     };
 
 } ARIASDK_NS_END

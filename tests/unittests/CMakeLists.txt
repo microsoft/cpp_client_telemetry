@@ -7,6 +7,7 @@ set(SRCS
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
+  DataViewerCollectionTests.cpp
   DebugEventSourceTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp

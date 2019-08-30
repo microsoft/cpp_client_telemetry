@@ -12,6 +12,7 @@
 #include "IAuthTokensController.hpp"
 #include "ILogger.hpp"
 #include "IEventFilterCollection.hpp"
+#include "IDataViewerCollection.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -334,6 +335,18 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
         /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
+
+        /// <summary>
+        /// Gets an instance of the Data Viewer Collection.
+        /// </summary>
+        /// <returns>A reference to the IDataViewerCollection instance</returns>
+        virtual IDataViewerCollection& GetDataViewerCollection() = 0;
+
+        /// <summary>
+        /// Gets an instance of the Data Viewer Collection.
+        /// </summary>
+        /// <returns>A const reference to the IDataViewerCollection instance</returns>
+        virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
     };
 
 } ARIASDK_NS_END
