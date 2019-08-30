@@ -98,9 +98,9 @@ namespace ARIASDK_NS_BEGIN
 
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer)
         : m_httpClient(httpClient),
+        m_logConfiguration(configuration),
         m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr),
-        m_logConfiguration(configuration)
+        m_offlineStorage(nullptr)
     {
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 

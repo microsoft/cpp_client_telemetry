@@ -1,4 +1,4 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -55,7 +55,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
     modules/exp/ecs/ecsclient/ECSConfigCache.cpp
     modules/exp/JsonHelper.cpp
     modules/exp/EXPCommonClient.cpp
-    modules/exp/FifoFileStorage.cpp    
+    modules/exp/FifoFileStorage.cpp
+  )
+endif()
+
+if(EXISTS "modules/dataviewer/")
+  list(APPEND SRCS
+    modules/dataviewer/DefaultDataViewer.cpp
+    modules/dataviewer/OnDisableNotificationCollection.cpp
   )
 endif()
 

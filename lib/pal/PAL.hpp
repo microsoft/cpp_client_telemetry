@@ -124,6 +124,7 @@ namespace PAL_NS_BEGIN
 
     INetworkInformation* GetNetworkInformation();
     IDeviceInformation* GetDeviceInformation();
+    ISystemInformation* GetSystemInformation();
 
     // Pseudo-random number generator (not for cryptographic usage).
     // The instances are not thread-safe, serialize access externally if needed.
