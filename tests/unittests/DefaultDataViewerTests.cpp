@@ -225,7 +225,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionNotEnabled_DoesntSendsDataT
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
 
-    viewer.ReceiveData(std::vector<std::uint8_t>{});
+    viewer.ReceiveData(std::vector<uint8_t>{});
     ASSERT_FALSE(wasSendRequestAsyncCalled);
 }
 
@@ -247,7 +247,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectBodyToH
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.SetTransmissionEnabled(true);
-    auto packet = std::vector<std::uint8_t> { 1, 2, 3 };
+    auto packet = std::vector<uint8_t> { 1, 2, 3 };
     viewer.ReceiveData(packet);
     ASSERT_EQ(sendRequestAsyncCalledCount, 1);
 
@@ -272,7 +272,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeaders
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.SetTransmissionEnabled(true);
-    viewer.ReceiveData(std::vector<std::uint8_t> { });
+    viewer.ReceiveData(std::vector<uint8_t> { });
 
     ASSERT_EQ(sendRequestAsyncCalledCount, 1);
     ASSERT_EQ(requestToValidate->GetHeaders().get("Machine-Identifier"), "Test");
@@ -301,12 +301,12 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
     viewer.SetTransmissionEnabled(true);
 
     {
-        auto packet = std::vector<std::uint8_t> { 1, 2, 3 };
+        auto packet = std::vector<uint8_t> { 1, 2, 3 };
         viewer.ReceiveData(packet);
     }
 
     ASSERT_EQ(sendRequestAsyncCalledCount, 1);
-    ASSERT_EQ(requestToValidate->GetBody(), (std::vector<std::uint8_t> { 1, 2, 3 }));
+    ASSERT_EQ(requestToValidate->GetBody(), (std::vector<uint8_t> { 1, 2, 3 }));
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
@@ -322,6 +322,6 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.SetTransmissionEnabled(true);
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
-    viewer.ReceiveData(std::vector<std::uint8_t> { 1, 2, 3 });
+    viewer.ReceiveData(std::vector<uint8_t> { 1, 2, 3 });
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }

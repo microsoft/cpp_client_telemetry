@@ -14,7 +14,7 @@ namespace ARIASDK_NS_BEGIN {
     class DataViewerCollection : public IDataViewerCollection
     {
     public:
-        virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>& packetData) const noexcept override;
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept override;
 
         virtual void RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer) override;
 
