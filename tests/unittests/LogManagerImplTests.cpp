@@ -119,3 +119,12 @@ TEST_F(LogManagerModuleTests, TeardownModules_OneModuleRegistered_SizeOfModulesI
     logManager.TeardownModules();
     ASSERT_EQ(logManager.m_modules.size(), size_t{ 0 });
 }
+}
+
+TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewerCollectionIsSet)
+{
+    ILogConfiguration configuration;
+    TestHttpClient httpClient;
+    TestLogManagerImpl logManager { configuration, &httpClient, true };
+    ASSERT_NO_THROW(logManager.GetDataViewerCollection());
+}

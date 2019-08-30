@@ -198,6 +198,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.cpp">
       <Filter>system</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollection.cpp">
+      <Filter>api</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp">
       <Filter>filter</Filter>
     </ClCompile>
@@ -392,6 +395,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewer.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
@@ -562,6 +568,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollection.hpp">
+      <Filter>api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

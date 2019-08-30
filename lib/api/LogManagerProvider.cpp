@@ -7,10 +7,11 @@ namespace ARIASDK_NS_BEGIN {
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
         status_t &status,
-        IHttpClient* httpClient
+        IHttpClient* httpClient,
+        const std::shared_ptr<IDataViewer>& dataViewer
     )
     {
-        return LogManagerFactory::Get(config, status, httpClient);
+        return LogManagerFactory::Get(config, status, httpClient, dataViewer);
     }
 
     // TODO: consider utilizing a default reference
