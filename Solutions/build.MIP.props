@@ -8,4 +8,5 @@
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>mip_ClientTelemetry</TargetName>
   </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)build.spectr.props" />
 </Project>
