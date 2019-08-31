@@ -24,5 +24,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+      with:
+        submodules: true
     - name: Test ${{ matrix.arch }} ${{ matrix.config }}
       run: build-tests.bat ${{ matrix.arch }} ${{ matrix.config }}
