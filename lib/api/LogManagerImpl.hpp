@@ -118,8 +118,8 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread);
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart);
+        LogManagerImpl(ILogConfiguration& configuration);
+        LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart);
 
         virtual ~LogManagerImpl() override;
 

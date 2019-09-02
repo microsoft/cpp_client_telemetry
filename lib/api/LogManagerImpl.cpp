@@ -82,18 +82,24 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread)
-       : LogManagerImpl(configuration, httpClient, workerThread, false /*deferSystemStart*/)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration)
+       : LogManagerImpl(configuration, false /*deferSystemStart*/)
     {
     }
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart)
-        : m_httpClient(httpClient),
-        m_workerThread(workerThread),
-        m_bandwidthController(nullptr),
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
+        : m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
         m_logConfiguration(configuration)
     {
+        m_httpClient = static_cast<IHttpClient*>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
+
+#ifdef HAVE_MAT_WORKER_THREAD_MODULE
+        m_workerThread = static_cast<IWorkerThread*>(configuration.GetModule(CGF_MODULE_WORKER_THREAD));
+#else
+        m_workerThread = nullptr;
+#endif
+
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         setLogLevel(configuration);
@@ -103,10 +109,10 @@ namespace ARIASDK_NS_BEGIN
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
-        if ( !m_logConfiguration.count(CFG_STR_CACHE_FILE_PATH) ||
+        if ( !m_logConfiguration.HasConfig(CFG_STR_CACHE_FILE_PATH) ||
             (const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
         {
-            if (m_logConfiguration.count(CFG_STR_PRIMARY_TOKEN))
+            if (m_logConfiguration.HasConfig(CFG_STR_PRIMARY_TOKEN))
             {
                 std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
@@ -131,7 +137,7 @@ namespace ARIASDK_NS_BEGIN
             // TODO: [MG] - verify that cache file is writeable
         }
 
-        if (m_logConfiguration.count(CFG_STR_TRANSMIT_PROFILES))
+        if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
         {
             std::string transmitProfiles = m_logConfiguration[CFG_STR_TRANSMIT_PROFILES];
             if (!transmitProfiles.empty())
@@ -141,7 +147,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        if (m_logConfiguration.count(CFG_STR_START_PROFILE_NAME))
+        if (m_logConfiguration.HasConfig(CFG_STR_START_PROFILE_NAME))
         {
             std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
             if (!transmitProfile.empty())
@@ -193,8 +199,8 @@ namespace ARIASDK_NS_BEGIN
 #else
         if (m_httpClient == nullptr)
         {
-           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's c'tor.");
-           throw std::invalid_argument("httpClient");
+           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
+           throw std::invalid_argument("configuration");
         }
 #endif
 

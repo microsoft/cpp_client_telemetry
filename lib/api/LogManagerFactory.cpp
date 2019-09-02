@@ -25,13 +25,11 @@ namespace ARIASDK_NS_BEGIN {
     /// Creates an instance of ILogManager using specified configuration.
     /// </summary>
     /// <param name="configuration">The configuration.</param>
-    /// <param name="httpClient">IHTTPClient implementation for the LogManager to use.</param>
-    /// <param name="workerThread">IWorkerThread implementation for the LogManager to use.</param>
     /// <returns>ILogManager instance</returns>
-    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread)
+    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto logManager = new LogManagerImpl(configuration, httpClient, workerThread);
+        auto logManager = new LogManagerImpl(configuration);
         ILogManagerInternal::managers.emplace(logManager);
         return logManager;
     }
@@ -84,15 +82,15 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerFactory::parseConfig(ILogConfiguration& c, std::string& name, std::string& host)
     {
-        if (c.find("name") != std::end(c))
+        if (c.HasConfig("name"))
         {
             name = std::string((const char*)c["name"]);
         }
 
-        auto it = c.find("config");
-        if (it != std::end(c))
+        if (c.HasConfig("config"))
         {
-            if (it->second.type == Variant::TYPE_OBJ)
+            auto configValue = c["config"];
+            if (configValue.type == Variant::TYPE_OBJ)
             {
                 const char* config_host = c["config"]["host"];
                 host = std::string(config_host);
@@ -100,7 +98,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    ILogManager* LogManagerFactory::lease(ILogConfiguration& c, IHttpClient* httpClient, IWorkerThread* workerThread)
+    ILogManager* LogManagerFactory::lease(ILogConfiguration& c)
     {
         std::string name;
         std::string host;
@@ -112,7 +110,7 @@ namespace ARIASDK_NS_BEGIN {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
             {
-                exclusive[name] = { { name }, Create(c, httpClient, workerThread) };
+                exclusive[name] = { { name }, Create(c) };
             }
             c["hostMode"] = true;
             return exclusive[name].instance;
@@ -139,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                shared[host] = { { name }, Create(c, httpClient, workerThread) };
+                shared[host] = { { name }, Create(c) };
             }
         }
         else

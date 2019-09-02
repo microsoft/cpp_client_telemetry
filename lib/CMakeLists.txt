@@ -23,6 +23,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/CorrelationVector.cpp
   api/LogConfiguration.cpp
   api/AuthTokensController.cpp
+  api/ILogConfiguration.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
   utils/FileUtils.cpp

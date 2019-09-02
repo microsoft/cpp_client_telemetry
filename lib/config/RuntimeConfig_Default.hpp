@@ -93,7 +93,7 @@ namespace ARIASDK_NS_BEGIN {
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
             config(customConfig)
         {
-            Variant::merge_map(customConfig, defaultRuntimeConfig);
+            Variant::merge_map(*customConfig, *defaultRuntimeConfig);
         };
 
         virtual ~RuntimeConfig_Default()
@@ -199,7 +199,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool HasConfig(const char* key) override
         {
-            return config.count(key) != 0;
+            return config.HasConfig(key);
         }
 
     };
