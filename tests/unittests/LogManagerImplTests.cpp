@@ -8,10 +8,10 @@ using namespace MAT;
 class TestLogManagerImpl : public LogManagerImpl
 {
 public:
-   TestLogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread)
-      : TestLogManagerImpl(configuration, httpClient, workerThread, false) { }
-   TestLogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, IWorkerThread* workerThread, bool deferSystemStart)
-      : LogManagerImpl(configuration, httpClient, workerThread, deferSystemStart) { }
+   TestLogManagerImpl(ILogConfiguration& configuration)
+      : TestLogManagerImpl(configuration, false) { }
+   TestLogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
+      : LogManagerImpl(configuration, deferSystemStart) { }
 
    using LogManagerImpl::m_httpClient;
    using LogManagerImpl::m_ownHttpClient;
@@ -28,10 +28,10 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_ConstructsOwnHttpClien
 {
    ILogConfiguration configuration;
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-   TestLogManagerImpl logManager { configuration, nullptr, nullptr };
+   TestLogManagerImpl logManager { configuration };
    ASSERT_NE(logManager.m_ownHttpClient, nullptr);
 #else
-   EXPECT_THROW(TestLogManagerImpl(configuration, nullptr, nullptr), std::invalid_argument);
+   EXPECT_THROW(TestLogManagerImpl(configuration), std::invalid_argument);
 #endif
 }
 
@@ -39,10 +39,10 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_HttpClientAndOwnHttpCl
 {
    ILogConfiguration configuration;
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-   TestLogManagerImpl logManager { configuration, nullptr, nullptr };
+   TestLogManagerImpl logManager { configuration };
    ASSERT_EQ(logManager.m_ownHttpClient.get(), logManager.m_httpClient);
 #else
-   EXPECT_THROW(TestLogManagerImpl(configuration, nullptr, nullptr), std::invalid_argument);
+   EXPECT_THROW(TestLogManagerImpl(configuration), std::invalid_argument);
 #endif
 }
 
@@ -50,7 +50,8 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_DoesNotConstructOwn
 {
    ILogConfiguration configuration;
    TestHttpClient httpClient;
-   TestLogManagerImpl logManager { configuration, &httpClient, nullptr, true };
+   configuration.AddModule(CFG_MODULE_HTTP_CLIENT, &httpClient);
+   TestLogManagerImpl logManager { configuration, true };
    ASSERT_EQ(logManager.m_ownHttpClient, nullptr);
 }
 
@@ -58,6 +59,7 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_HttpClientIsSet)
 {
    ILogConfiguration configuration;
    TestHttpClient httpClient;
-   TestLogManagerImpl logManager { configuration, &httpClient, nullptr, true };
+   configuration.AddModule(CFG_MODULE_HTTP_CLIENT, &httpClient);
+   TestLogManagerImpl logManager { configuration, true };
    ASSERT_EQ(logManager.m_httpClient, &httpClient);
 }

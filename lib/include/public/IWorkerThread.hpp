@@ -2,6 +2,7 @@
 #ifndef IWORKERTHREAD_HPP
 #define IWORKERTHREAD_HPP
 
+#include "IModule.hpp"
 #include "Version.hpp"
 
 #include <string>
@@ -15,7 +16,7 @@ namespace ARIASDK_NS_BEGIN
     /// thread.
     /// Individual WorkerThreadItem implementations override operator() to execute
     /// </summary>
-    class WorkerThreadItem
+    class WorkerThreadItem : public IModule
     {
     public:
         /// <summary>

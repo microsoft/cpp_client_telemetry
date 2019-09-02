@@ -133,7 +133,9 @@ evt_status_t mat_open_core(
     {
         try
         {
-            clients[code].http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+            IHttpClient* http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+            clients[code].http = http;
+            clients[code].config.AddModule(CFG_MODULE_HTTP_CLIENT, http);
         }
         catch (...)
         {
@@ -141,21 +143,29 @@ evt_status_t mat_open_core(
         }
     }
 
+#ifdef HAVE_MAT_WORKER_THREAD_MODULE
     // Create custom worker thread
     if (workerThreadQueueFn != nullptr && workerThreadCancelFn != nullptr && workerThreadJoinFn != nullptr)
     {
         try
         {
-            clients[code].workerThread = new PAL::WorkerThread_CAPI(workerThreadQueueFn, workerThreadCancelFn, workerThreadJoinFn);
+            IWorkerThread* workerThread = new PAL::WorkerThread_CAPI(workerThreadQueueFn, workerThreadCancelFn, workerThreadJoinFn);
+            clients[code].workerThread = workerThread;
+            clients[code].config.AddModule(CFG_MODULE_WORKER_THREAD, workerThread);
         }
         catch (...)
         {
             return EFAULT;
         }
     }
+#else
+    UNREFERENCED_PARAMETER(workerThreadQueueFn);
+    UNREFERENCED_PARAMETER(workerThreadCancelFn);
+    UNREFERENCED_PARAMETER(workerThreadJoinFn);
+#endif // HAVE_MAT_WORKER_THREAD_MODULE
 
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, clients[code].http, clients[code].workerThread, status);
+    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)

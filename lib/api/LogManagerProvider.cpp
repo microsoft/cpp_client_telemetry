@@ -6,12 +6,10 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
-        status_t &status,
-        IHttpClient* httpClient,
-        IWorkerThread* workerThread
+        status_t &status
     )
     {
-        return LogManagerFactory::Get(config, status, httpClient, workerThread);
+        return LogManagerFactory::Get(config, status);
     }
 
     // TODO: consider utilizing a default reference

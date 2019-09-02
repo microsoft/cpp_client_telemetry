@@ -40,14 +40,12 @@ namespace ARIASDK_NS_BEGIN
             bool wantController,
             ILogConfiguration& cfg,
             status_t& status,
-            IHttpClient* httpClient,
-            IWorkerThread* workerThread,
             uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg["config"]["host"] = (wantController) ? id : "*";
-            return Get(cfg, status, httpClient, workerThread);
+            return Get(cfg, status);
         };
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
@@ -107,16 +105,7 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status)
         {
-            return Get(cfg, status, nullptr /*httpClient*/, nullptr /*workerThread*/);
-        }
-
-        static ILogManager* MATSDK_SPEC CreateLogManager(
-           ILogConfiguration& cfg,
-           IHttpClient* httpClient,
-           IWorkerThread* workerThread,
-           status_t& status)
-        {
-           return Get(cfg, status, httpClient, workerThread);
+            return Get(cfg, status);
         }
 
         /// <summary>
@@ -148,9 +137,7 @@ namespace ARIASDK_NS_BEGIN
 
         static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
-            status_t &status,
-            IHttpClient* httpClient,
-            IWorkerThread* workerThread
+            status_t &status
         );
 
         static ILogManager* MATSDK_SPEC Get(
