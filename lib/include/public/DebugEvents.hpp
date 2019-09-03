@@ -14,10 +14,24 @@
 #include <functional>
 #include <algorithm>
 #include <chrono>
-#include <mutex>
 
 #ifndef __cplusplus_cli
 #include <atomic>
+#endif
+
+#ifdef _MANAGED
+#include <msclr/lock.h>
+public ref class DebugEventLock {
+public:
+    static Object ^ lock = gcnew Object();
+};
+#define debugevent_lock_type bool
+#define DE_LOCKGUARD(macro_mutex) msclr::lock l(DebugEventLock::lock);
+#else
+#include <mutex>
+#define debugevent_lock_type std::mutex
+#define DE_LOCKGUARD(macro_mutex)                   \
+    std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
 #include <cstdio>
@@ -185,15 +199,15 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
         virtual bool DetachEventSource(DebugEventSource & other);
 
-    protected: 
+    protected:
         /// <summary>Mutex guarding the event listener collection</summary>
-        std::mutex listenersMutex;
+        debugevent_lock_type listenersMutex;
+
+        /// <summary>Mutex guarding the cascaded debug event source collection</summary>
+        debugevent_lock_type cascadedMutex;
 
         /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
-
-        /// <summary>Mutex guarding the cascaded debug event source collection</summary>
-        std::mutex cascadedMutex;
 
         /// <summary>A collection of cascaded debug event sources.</summary>
         std::set<DebugEventSource*> cascaded;

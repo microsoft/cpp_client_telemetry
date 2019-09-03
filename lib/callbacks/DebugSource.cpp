@@ -10,7 +10,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>Add event listener for specific debug event type.</summary>
     void DebugEventSource::AddEventListener(DebugEventType type, DebugEventListener &listener)
     {
-        LOCKGUARD(listenersMutex);
+        DE_LOCKGUARD(listenersMutex);
         auto &v = listeners[type];
         v.push_back(&listener);
     }
@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>Remove previously added debug event listener for specific type.</summary>
     void DebugEventSource::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
     {
-        LOCKGUARD(listenersMutex);
+        DE_LOCKGUARD(listenersMutex);
         auto registeredTypes = listeners.find(type);
         if (registeredTypes == listeners.end())
             return;
@@ -37,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
         bool dispatched = false;
 
         {
-            LOCKGUARD(listenersMutex);
+            DE_LOCKGUARD(listenersMutex);
             if (listeners.size()) {
                 // Events filter handlers list
                 auto &v = listeners[evt.type];
@@ -49,7 +49,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         {
-            LOCKGUARD(cascadedMutex);
+            DE_LOCKGUARD(cascadedMutex);
             if (cascaded.size())
             {
                 // Cascade event to all other attached sources
@@ -70,7 +70,7 @@ namespace ARIASDK_NS_BEGIN {
         if (&other == this)
            return false;
 
-        LOCKGUARD(cascadedMutex);
+        DE_LOCKGUARD(cascadedMutex);
         cascaded.insert(&other);
         return true;
     }
@@ -78,7 +78,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
     bool DebugEventSource::DetachEventSource(DebugEventSource & other)
     {
-        LOCKGUARD(cascadedMutex);
+        DE_LOCKGUARD(cascadedMutex);
         return (cascaded.erase(&other)!=0);
     }
 
