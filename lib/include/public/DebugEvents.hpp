@@ -25,13 +25,11 @@ public ref class DebugEventLock {
 public:
     static Object ^ lock = gcnew Object();
 };
-#define debugevent_lock_type bool
 #define DE_LOCKGUARD(macro_mutex) msclr::lock l(DebugEventLock::lock);
 #else
 #include <mutex>
-#define debugevent_lock_type std::mutex
 #define DE_LOCKGUARD(macro_mutex)                   \
-    std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+    std::lock_guard<std::recursive_mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
 #include <cstdio>
@@ -200,11 +198,18 @@ namespace ARIASDK_NS_BEGIN
         virtual bool DetachEventSource(DebugEventSource & other);
 
     protected:
-        /// <summary>Mutex guarding the event listener collection</summary>
-        debugevent_lock_type listenersMutex;
-
-        /// <summary>Mutex guarding the cascaded debug event source collection</summary>
-        debugevent_lock_type cascadedMutex;
+#ifndef _MANAGED
+        /// <summary>
+        /// Native code lock used for executing singleton state-management methods in a thread-safe manner.
+        /// Managed code uses a different DebugEventLock.
+        /// </summary>
+        static std::recursive_mutex& stateLock()
+        {
+            // Magic static is thread-safe in C++
+            static std::recursive_mutex lock;
+            return lock;
+        }
+#endif
 
         /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
