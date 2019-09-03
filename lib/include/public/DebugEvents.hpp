@@ -14,6 +14,7 @@
 #include <functional>
 #include <algorithm>
 #include <chrono>
+#include <mutex>
 
 #ifndef __cplusplus_cli
 #include <atomic>
@@ -185,8 +186,14 @@ namespace ARIASDK_NS_BEGIN
         virtual bool DetachEventSource(DebugEventSource & other);
 
     protected: 
+        /// <summary>Mutex guarding the event listener collection</summary>
+        std::mutex listenersMutex;
+
         /// <summary>A collection of debug event listeners.</summary>
         std::map<unsigned, std::vector<DebugEventListener*> > listeners;
+
+        /// <summary>Mutex guarding the cascaded debug event source collection</summary>
+        std::mutex cascadedMutex;
 
         /// <summary>A collection of cascaded debug event sources.</summary>
         std::set<DebugEventSource*> cascaded;
