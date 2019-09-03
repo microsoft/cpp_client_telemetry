@@ -82,6 +82,4 @@ namespace ARIASDK_NS_BEGIN {
         return (cascaded.erase(&other)!=0);
     }
 
-
-
 } ARIASDK_NS_END
