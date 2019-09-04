@@ -79,26 +79,23 @@ namespace ARIASDK_NS_BEGIN {
 
     std::string to_string(const GUID_t& uuid);
 
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable:4244)
-#endif //_MSC_VER
     inline std::string toLower(const std::string& str)
     {
         std::string result = str;
-        std::transform(str.begin(), str.end(), result.begin(), ::tolower);
+        std::transform(str.begin(), str.end(), result.begin(), 
+                   [](unsigned char c){ return (char)::tolower(c); }
+                );
         return result;
     }
 
     inline std::string toUpper(const std::string& str)
     {
         std::string result = str;
-        std::transform(str.begin(), str.end(), result.begin(), ::toupper);
+        std::transform(str.begin(), str.end(), result.begin(), 
+                   [](unsigned char c){ return (char)::toupper(c); }
+                );
         return result;
     }
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif //_MSC_VER
 
     inline bool equalsIgnoreCase(const std::string& str1, const std::string& str2)
     {
