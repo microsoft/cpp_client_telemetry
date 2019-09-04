@@ -1,6 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "common/Common.hpp"
-#include "../modules/dataviewer/DefaultDataViewer.hpp"
+
+#define HAVE_MAT_DEFAULTDATAVIEWER
+
+#if defined __has_include
+#  if __has_include ("modules/dataviewer/DefaultDataViewer.hpp")
+#    include "modules/dataviewer/DefaultDataViewer.hpp"
+#  else
+   /* Compiling without Data Viewer */
+#  undef HAVE_MAT_DEFAULTDATAVIEWER
+#  endif
+#endif
+
+#ifdef HAVE_MAT_DEFAULTDATAVIEWER
 #include "public/IHttpClient.hpp"
 
 using namespace testing;
@@ -325,3 +337,4 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     viewer.ReceiveData(std::vector<uint8_t> { 1, 2, 3 });
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
+#endif
