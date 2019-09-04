@@ -132,7 +132,7 @@ namespace PAL_NS_BEGIN {
         const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
         const PCSTR c_buildLabEx_ValueName = "BuildLabEx";
         DWORD size = sizeof(buff);
-        RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ, NULL, (char*)buff, &size);
+        RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY, NULL, (char*)buff, &size);
         return buff;
     }
 
