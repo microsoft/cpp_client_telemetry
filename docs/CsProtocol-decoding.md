@@ -5,8 +5,8 @@
 - **Common Schema Record**
 
 The decoder consists of:
-- implementation in (PayloadDecoder.cpp) (../lib/decoder/PayloadDecoder.cpp)
-- public header in (PayloadDecoder.hpp) (../lib/include/public/PayloadDecoder.hpp)
+- implementation in [PayloadDecoder.cpp] (../lib/decoder/PayloadDecoder.cpp)
+- public header in [PayloadDecoder.hpp] (../lib/include/public/PayloadDecoder.hpp)
 
 Decoder requires zlib and json.hpp libraries to be present in the build.
 Compact SDK build that do not include these libs cannot provide the event decoding functionality.
