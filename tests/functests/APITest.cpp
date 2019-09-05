@@ -18,9 +18,13 @@
 #include <cassert>
 #include <LogManager.hpp>
 
-#include "AriaDecoderV3.hpp"
+#include "PayloadDecoder.hpp"
 
 #include "mat.h"
+
+#ifdef HAVE_MAT_JSONHPP
+#include "json.hpp"
+#endif
 
 using namespace MAT;
 
@@ -750,18 +754,21 @@ TEST(APITest, UTC_Callback_Test)
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
         ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+
         // Transform to JSON and print
-        nlohmann::json j;
-        AriaDecoderV3::to_json(j, record);
+        std::vector<uint8_t> output;
+        PayloadDecoder::DecodeRecord(record, output);
+        std::string j;
+        j.assign(output.begin(), output.end());
         printf(
             "*************************************** Event %u ***************************************\n%s\n",
             totalEvents,
-            j.dump(4).c_str()
+            j.c_str()
         );
     };
 
     // Ingest 3 events via C++ API in UTC mode. Callback function above intercepts
-    // these events as CsRecord, then invokes AriaDecoderV3 to represent as JSON.
+    // these events as CsRecord, then invokes PayloadDecoder to represent as JSON.
     for (size_t i = 0; i < 3; i++)
     {
         EventProperties event("MyProduct.UtcEvent",

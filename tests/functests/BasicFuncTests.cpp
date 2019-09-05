@@ -17,7 +17,7 @@
 #include <fstream>
 #include <atomic>
 
-//#include <AriaDecoderV3.hpp>
+// TODO: replace decoder below with PayloadDecoder.hpp
 
 using namespace testing;
 using namespace MAT;

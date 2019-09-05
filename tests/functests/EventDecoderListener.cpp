@@ -1,5 +1,5 @@
 #include "EventDecoderListener.hpp"
-#include "AriaDecoderV3.hpp"
+#include "PayloadDecoder.hpp"
 
 unsigned   latency[MAX_LATENCY_SAMPLES] = { 0 };
 
@@ -47,7 +47,7 @@ void EventDecoderListener::DecodeBuffer(void *data, size_t size)
     {
         std::vector<uint8_t> in, out;
         in.assign((uint8_t*)data, (uint8_t*)data + size);
-        AriaDecoderV3::decode(in, out, true);       
+        PayloadDecoder::DecodeRequest(in, out, true);
         std::string s(out.begin(), out.end());
         // printf("%s\n", s.c_str());
     }
