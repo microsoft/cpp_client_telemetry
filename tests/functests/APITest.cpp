@@ -254,6 +254,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
     props.SetPriority(prio);
+    props.SetLevel(DIAG_LEVEL_REQUIRED);
 
     return props;
 }
@@ -375,8 +376,10 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     {
         // Log some foo
         size_t numIterations = MAX_ITERATIONS;
+        EventProperties eventToLog{ "foo1" };
+        eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
         while (numIterations--)
-            result->LogEvent("foo1");
+            result->LogEvent(eventToLog);
         LogManager::UploadNow();                                    // Try to upload whatever we got
         PAL::sleep(2000);                                           // Give enough time to upload at least one event
         if (i == 0)
@@ -417,6 +420,9 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
 
+    EventProperties eventToLog{ "foo1" };
+    eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
+
     CleanStorage();
     addAllListeners(debugListener);
     {
@@ -425,7 +431,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
         while (numIterations--)
         {
-            LogManager::GetLogger()->LogEvent("foo1");
+            LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
@@ -447,7 +453,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
-        result->LogEvent("foo1");
+        result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
     EXPECT_EQ(0, debugListener.numDropped);
@@ -459,8 +465,11 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     LogManager::PauseTransmission();
 
     numIterations = MAX_ITERATIONS;
+
+    EventProperties eventToStore{ "bar2" };
+    eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
-        result->LogEvent("bar2");                               // New events go straight to offline storage
+        result->LogEvent(eventToStore);                               // New events go straight to offline storage
     EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
 
     LogManager::Flush();
@@ -494,6 +503,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetProperty("secret", 5.6872);
     event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
     event.SetLatency(EventLatency_Normal);
+    event.SetLevel(DIAG_LEVEL_REQUIRED);
 
     ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
@@ -620,13 +630,14 @@ TEST(APITest, C_API_Test)
     evt_prop event[] = TELEMETRY_EVENT
     (
         // Part A/B fields
-        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),       // Event name
-        _INT(COMMONFIELDS_EVENT_TIME, (int64_t)(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
-        _DBL("popSample", 100.0),                               // Effective sample rate
-        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                    // iKey to send this event to
-        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),       // UTC policy bitflags (optional)
-        _INT(COMMONFIELDS_EVENT_PRIORITY, (int64_t)EventPriority_Immediate),
-        _INT(COMMONFIELDS_EVENT_LATENCY, (int64_t)EventLatency_Max),
+        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
+        _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
+        _DBL("popSample", 100.0),                                          // Effective sample rate
+        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
+        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),                  // UTC policy bitflags (optional)
+        _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
+        _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
+        _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
         // Customer Data fields go as part of userdata
         _STR("strKey", "value1"),
         _INT("intKey", 12345),
@@ -973,6 +984,7 @@ TEST(APITest, LogManager_DiagLevels)
 
     // default
     auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetEventFilters().UnregisterAllFilters();
 
     // inherit diagnostic level from parent (basic)
     auto logger1 = LogManager::GetLogger();
