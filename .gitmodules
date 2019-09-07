@@ -3,6 +3,5 @@
 	url = https://github.com/Microsoft/vcpkg
 [submodule "lib/modules"]
 	path = lib/modules
-	url = https://github.com/Microsoft/cpp_client_telemetry_modules
+	url = https://github.com/microsoft/cpp_client_telemetry_modules.git
         branch = master
-
