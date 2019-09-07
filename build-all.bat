@@ -2,6 +2,11 @@
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
+if DEFINED GIT_PULL_TOKEN (
+  rd /s /q lib\modules
+  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+)
+
 echo "Building using Visual Studio 2017 tools"
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 
