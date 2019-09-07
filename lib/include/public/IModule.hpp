@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
         /// Initializes the module.
         /// Invoked as part of parent ILogManager is constructed.
         /// </summary>
-        virtual void Initialize(const ILogManager* parent) noexcept = 0;
+        virtual void Initialize(ILogManager* parent) noexcept = 0;
 
         /// <summary>
         /// Tears down the module.
