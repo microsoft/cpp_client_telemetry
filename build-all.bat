@@ -2,7 +2,7 @@
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
-if NOT "%GIT_PULL_TOKEN" == "" (
+if NOT "%GIT_PULL_TOKEN%" == "" (
   rd /s /q lib\modules
   del .git-credentials
   git config credential.helper store --file=.git-credentials

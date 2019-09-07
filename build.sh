@@ -4,10 +4,10 @@ export PATH=/usr/local/bin:$PATH
 
 if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
 rm -rf lib/modules
-rm .git-credentials
+rm -f .git-credentials
 git config credential.helper store --file=.git-credentials
 echo https://$GIT_PULL_TOKEN:@github.com/ >>.git-credentials
-git clone https://github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
+git clone https://$GIT_PULL_TOKEN:github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
