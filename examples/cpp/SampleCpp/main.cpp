@@ -101,9 +101,12 @@ void samplingTest()
         "MyEvent3",
         "MyEvent4"
     };
+
+#if 0
     uint32_t samplingRates[] = { 100, 75, 50, 0 };
     LogManager::SetExclusionFilter(TOKEN, sampledList, samplingRates, 4);
-    
+#endif
+
     ILogger *logger = LogManager::GetLogger();
     for (size_t i = 0; i < 100; i++)
     {
