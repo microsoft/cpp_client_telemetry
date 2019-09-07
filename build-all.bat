@@ -4,7 +4,7 @@ call tools\gen-version.cmd
 
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
-  git clone https://%GIT_PULL_USER%:%GIT_PULL_TOKEN%@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
 echo "Building using Visual Studio 2017 tools"
