@@ -4,10 +4,7 @@ call tools\gen-version.cmd
 
 if NOT "%GIT_PULL_TOKEN%" == "" (
   rd /s /q lib\modules
-  del .git-credentials
-  git config credential.helper store --file=.git-credentials
-  echo https://%GIT_PULL_TOKEN:@github.com/ >.git-credentials
-  git clone https://github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+  git clone https://%GIT_PULL_USER%:%GIT_PULL_TOKEN%@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
 echo "Building using Visual Studio 2017 tools"
