@@ -4,7 +4,7 @@ export PATH=/usr/local/bin:$PATH
 
 if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
   rm -rf lib/modules
-  git clone https://$GIT_PULL_USER:$GIT_PULL_TOKEN@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
+  git clone https://${GIT_PULL_USER}:${GIT_PULL_TOKEN}@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

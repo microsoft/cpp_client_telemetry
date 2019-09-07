@@ -2,7 +2,7 @@
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
-if NOT "%GIT_PULL_TOKEN%" == "" (
+if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
   git clone https://%GIT_PULL_USER%:%GIT_PULL_TOKEN%@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
