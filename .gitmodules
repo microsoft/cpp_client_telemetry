@@ -3,7 +3,5 @@
 	url = https://github.com/Microsoft/vcpkg
 [submodule "lib/modules"]
 	path = lib/modules
-	url = https://github.com/Microsoft/cpp_client_telemetry_modules
-        branch = maxgolov/msasg_to_github
-
-
+	url = https://github.com/Microsoft/cpp_client_telemetry_modules.git
+  branch = maxgolov/msasg_to_github
