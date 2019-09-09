@@ -260,7 +260,7 @@ extern "C" {
 
     /**
      * <summary>
-     * Represents a single asynchrous worker thread item. Used by optional app-provided worker thread callback functions.
+     * Represents a single asynchronous worker thread item. Used by optional app-provided worker thread callback functions.
      * </summary>
      */
     typedef struct

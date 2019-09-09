@@ -3,36 +3,36 @@
 namespace ARIASDK_NS_BEGIN
 {
     ILogConfiguration::ILogConfiguration(const std::initializer_list<std::pair<const std::string, Variant>>& initList)
-        : mConfigs(initList) { }
+        : m_configs(initList) { }
 
     void ILogConfiguration::AddModule(const char* key, const std::shared_ptr<IModule>& module)
     {
-        mModules[key] = module;
+        m_modules[key] = module;
     }
 
     std::shared_ptr<IModule> ILogConfiguration::GetModule(const char* key)
     {
-        return (mModules.count(key) != 0) ? mModules[key] : nullptr;
+        return (m_modules.count(key) != 0) ? m_modules[key] : nullptr;
     }
 
     std::map<std::string, std::shared_ptr<IModule>>& ILogConfiguration::GetModules()
     {
-        return mModules;
+        return m_modules;
     }
 
     bool ILogConfiguration::HasConfig(const char* key)
     {
-        return mConfigs.count(key) != 0;
+        return m_configs.count(key) != 0;
     }
 
     Variant& ILogConfiguration::operator[](const char* key)
     {
-        return mConfigs[key];
+        return m_configs[key];
     }
 
     VariantMap& ILogConfiguration::operator*()
     {
-        return mConfigs;
+        return m_configs;
     }
 
 } ARIASDK_NS_END

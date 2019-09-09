@@ -30,7 +30,7 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_ConstructsOwnHttpClien
    TestLogManagerImpl logManager { configuration };
    ASSERT_NE(logManager.m_httpClient, nullptr);
 #else
-   EXPECT_THROW(TestLogManagerImpl(configuration), std::invalid_argument);
+   EXPECT_THROW(TestLogManagerImpl { configuration }, std::invalid_argument);
 #endif
 }
 

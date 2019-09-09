@@ -284,8 +284,8 @@ namespace ARIASDK_NS_BEGIN
         VariantMap& operator*();
 
     private:
-        VariantMap mConfigs;
-        std::map<std::string, std::shared_ptr<IModule>> mModules;
+        VariantMap m_configs;
+        std::map<std::string, std::shared_ptr<IModule>> m_modules;
     };
 
 } ARIASDK_NS_END
