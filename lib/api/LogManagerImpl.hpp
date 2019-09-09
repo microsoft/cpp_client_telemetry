@@ -263,10 +263,8 @@ protected:
         std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
         ContextFieldsProvider                                  m_context;
 
-        ITaskDispatcher*                                       m_taskDispatcher;
-
-        IHttpClient*                                           m_httpClient;
-        std::unique_ptr<IHttpClient>                           m_ownHttpClient;
+        std::shared_ptr<IHttpClient>                           m_httpClient;
+        std::shared_ptr<ITaskDispatcher>                       m_taskDispatcher;
 
         std::unique_ptr<IRuntimeConfig>                        m_config;
         ILogConfiguration&                                     m_logConfiguration;

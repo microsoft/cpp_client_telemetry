@@ -14,7 +14,6 @@ public:
       : LogManagerImpl(configuration, deferSystemStart) { }
 
    using LogManagerImpl::m_httpClient;
-   using LogManagerImpl::m_ownHttpClient;
 };
 
 class TestHttpClient : public IHttpClient
@@ -29,37 +28,17 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_ConstructsOwnHttpClien
    ILogConfiguration configuration;
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
    TestLogManagerImpl logManager { configuration };
-   ASSERT_NE(logManager.m_ownHttpClient, nullptr);
+   ASSERT_NE(logManager.m_httpClient, nullptr);
 #else
    EXPECT_THROW(TestLogManagerImpl(configuration), std::invalid_argument);
 #endif
-}
-
-TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_HttpClientAndOwnHttpClientAreSame)
-{
-   ILogConfiguration configuration;
-#ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-   TestLogManagerImpl logManager { configuration };
-   ASSERT_EQ(logManager.m_ownHttpClient.get(), logManager.m_httpClient);
-#else
-   EXPECT_THROW(TestLogManagerImpl(configuration), std::invalid_argument);
-#endif
-}
-
-TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_DoesNotConstructOwnHttpClient)
-{
-   ILogConfiguration configuration;
-   TestHttpClient httpClient;
-   configuration.AddModule(CFG_MODULE_HTTP_CLIENT, &httpClient);
-   TestLogManagerImpl logManager { configuration, true };
-   ASSERT_EQ(logManager.m_ownHttpClient, nullptr);
 }
 
 TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_HttpClientIsSet)
 {
    ILogConfiguration configuration;
-   TestHttpClient httpClient;
-   configuration.AddModule(CFG_MODULE_HTTP_CLIENT, &httpClient);
+   auto httpClient = std::make_shared<TestHttpClient>();
+   configuration.AddModule(CFG_MODULE_HTTP_CLIENT, httpClient);
    TestLogManagerImpl logManager { configuration, true };
-   ASSERT_EQ(logManager.m_httpClient, &httpClient);
+   ASSERT_EQ(logManager.m_httpClient, httpClient);
 }

@@ -5,17 +5,17 @@ namespace ARIASDK_NS_BEGIN
     ILogConfiguration::ILogConfiguration(const std::initializer_list<std::pair<const std::string, Variant>>& initList)
         : mConfigs(initList) { }
 
-    void ILogConfiguration::AddModule(const char* key, IModule* module)
+    void ILogConfiguration::AddModule(const char* key, const std::shared_ptr<IModule>& module)
     {
         mModules[key] = module;
     }
 
-    IModule* ILogConfiguration::GetModule(const char* key)
+    std::shared_ptr<IModule> ILogConfiguration::GetModule(const char* key)
     {
         return (mModules.count(key) != 0) ? mModules[key] : nullptr;
     }
 
-    std::map<std::string, IModule*>& ILogConfiguration::GetModules()
+    std::map<std::string, std::shared_ptr<IModule>>& ILogConfiguration::GetModules()
     {
         return mModules;
     }

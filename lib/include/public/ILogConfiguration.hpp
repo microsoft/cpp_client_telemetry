@@ -8,6 +8,7 @@
 #include "ctmacros.hpp"
 #include "stdint.h"
 
+#include <memory>
 #include <string>
 #include "IModule.hpp"
 #include "Variant.hpp"
@@ -248,20 +249,20 @@ namespace ARIASDK_NS_BEGIN
         /// Add a module to the log configuration
         /// </summary>
         /// <param name="key">Module name</param>
-        /// <param name="module">Module instance, owned by calling application</param>
-        void AddModule(const char* key, IModule* module);
+        /// <param name="module">Module instance</param>
+        void AddModule(const char* key, const std::shared_ptr<IModule>& module);
 
         /// <summary>
         /// Get a module by name
         /// </summary>
         /// <param name="key">Module name</param>
         /// <returns>Module instance if set, else null</returns>
-        IModule* GetModule(const char* key);
+        std::shared_ptr<IModule> GetModule(const char* key);
 
         /// <summary>
         /// Access underlying modules mpa
         /// </summary>
-        std::map<std::string, IModule*>& GetModules();
+        std::map<std::string, std::shared_ptr<IModule>>& GetModules();
 
         /// <summary>
         /// Check if a config value has been set
@@ -284,7 +285,7 @@ namespace ARIASDK_NS_BEGIN
 
     private:
         VariantMap mConfigs;
-        std::map<std::string, IModule*> mModules;
+        std::map<std::string, std::shared_ptr<IModule>> mModules;
     };
 
 } ARIASDK_NS_END

@@ -92,8 +92,8 @@ namespace ARIASDK_NS_BEGIN
         m_offlineStorage(nullptr),
         m_logConfiguration(configuration)
     {
-        m_httpClient = static_cast<IHttpClient*>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
-        m_taskDispatcher = static_cast<ITaskDispatcher*>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
+        m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
+        m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         setLogLevel(configuration);
@@ -184,11 +184,10 @@ namespace ARIASDK_NS_BEGIN
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr) {
-            m_ownHttpClient.reset(HttpClientFactory::Create());
-            m_httpClient = m_ownHttpClient.get();
+            m_httpClient.reset(HttpClientFactory::Create());
         }
         else {
-            LOG_TRACE("HttpClient: External %p", m_httpClient);
+            LOG_TRACE("HttpClient: External %p", m_httpClient.get());
         }
 #else
         if (m_httpClient == nullptr)
@@ -202,7 +201,7 @@ namespace ARIASDK_NS_BEGIN
             m_taskDispatcher = PAL::getDefaultTaskDispatcher();
         }
         else {
-            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher);
+            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
         if (m_bandwidthController == nullptr) {
@@ -268,8 +267,8 @@ namespace ARIASDK_NS_BEGIN
             m_ownBandwidthController.reset();
             m_bandwidthController = nullptr;
 
-            m_ownHttpClient.reset();
             m_httpClient = nullptr;
+            m_taskDispatcher = nullptr;
 
             // Reset the contents of m_eventFilterRegulator, but keep the object
             m_eventFilterRegulator.Reset();
