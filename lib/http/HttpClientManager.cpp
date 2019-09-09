@@ -2,6 +2,7 @@
 
 #include "HttpClientManager.hpp"
 #include "utils/Utils.hpp"
+#include "pal/TaskDispatcher.hpp"
 #include <assert.h>
 
 #include <algorithm>
@@ -59,8 +60,9 @@ namespace ARIASDK_NS_BEGIN {
 
     //---
 
-    HttpClientManager::HttpClientManager(IHttpClient& httpClient)
-        : m_httpClient(httpClient)
+    HttpClientManager::HttpClientManager(IHttpClient& httpClient, ITaskDispatcher& taskDispatcher) :
+        m_httpClient(httpClient),
+        m_taskDispatcher(taskDispatcher)
     {
     }
 
@@ -86,7 +88,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
     {
-        PAL::scheduleOnWorkerThread(0, this, &HttpClientManager::onHttpResponse, callback);
+        PAL::scheduleTask(&m_taskDispatcher, 0, this, &HttpClientManager::onHttpResponse, callback);
     }
 
     void HttpClientManager::onHttpResponse(HttpCallback* callback)

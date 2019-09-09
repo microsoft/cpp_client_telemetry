@@ -5,27 +5,27 @@
 
 namespace PAL_NS_BEGIN {
 
-    class WorkerThreadShutdownItem : public detail::WorkerThreadItem
+    class WorkerThreadShutdownItem : public Task
     {
     public:
         WorkerThreadShutdownItem()
         {
-            type = detail::WorkerThreadItem::Shutdown;
+            Type = MAT::Task::Shutdown;
         }
     };
 
-    class WorkerThread : public IWorkerThread
+    class WorkerThread : public ITaskDispatcher
     {
     protected:
-        std::thread                            m_hThread;
+        std::thread           m_hThread;
 
         // TODO: [MG] - investigate all the cases why we need recursive here
-        std::recursive_mutex                   m_lock;
+        std::recursive_mutex  m_lock;
 
-        std::list<detail::WorkerThreadItemPtr> m_queue;
-        std::list<detail::WorkerThreadItemPtr> m_timerQueue;
-        Event                                  m_event;
-        detail::WorkerThreadItemPtr            m_itemInProgress;
+        std::list<MAT::Task*> m_queue;
+        std::list<MAT::Task*> m_timerQueue;
+        Event                 m_event;
+        MAT::Task*            m_itemInProgress;
         int count = 0;
     
     public:
@@ -38,13 +38,13 @@ namespace PAL_NS_BEGIN {
 
         ~WorkerThread()
         {
-            join();
+            Join();
         }
 
-        void join() override
+        void Join() override
         {
             auto item = new WorkerThreadShutdownItem();
-            queue(item);
+            Queue(item);
             std::thread::id this_id = std::this_thread::get_id();
             try {
                 if (m_hThread.joinable() && (m_hThread.get_id() != this_id))
@@ -66,14 +66,14 @@ namespace PAL_NS_BEGIN {
             }
         }
 
-        void queue(detail::WorkerThreadItemPtr item) override
+        void Queue(MAT::Task* item) override
         {
             // TODO: [MG] - show item type
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
-            if (item->type == detail::WorkerThreadItem::TimedCall) {
+            if (item->Type == MAT::Task::TimedCall) {
                 auto it = m_timerQueue.begin();
-                while (it != m_timerQueue.end() && (*it)->targetTime < item->targetTime) {
+                while (it != m_timerQueue.end() && (*it)->TargetTime < item->TargetTime) {
                     ++it;
                 }
                 m_timerQueue.insert(it, item);
@@ -85,7 +85,7 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        bool cancel(detail::WorkerThreadItemPtr item) override
+        bool Cancel(MAT::Task* item) override
         {
             if ((m_itemInProgress == item)||(item==nullptr))
             {
@@ -106,7 +106,7 @@ namespace PAL_NS_BEGIN {
             for (;;) {
                 {
                     LOCKGUARD(m_lock);
-                    if (item->type == detail::WorkerThreadItem::Done) {
+                    if (item->Type == MAT::Task::Done) {
                         return;
                     }
                 }
@@ -124,7 +124,7 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            std::unique_ptr<detail::WorkerThreadItem> item = nullptr;
+            std::unique_ptr<MAT::Task> item = nullptr;
             for (;;) {
                 wakeupCount++;
                 unsigned nextTimerInMs = UINT_MAX;
@@ -132,16 +132,16 @@ namespace PAL_NS_BEGIN {
                     LOCKGUARD(self->m_lock);
 
                     int64_t now = getMonotonicTimeMs();
-                    if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->targetTime <= now) {
-                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_timerQueue.front());
+                    if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->TargetTime <= now) {
+                        item = std::unique_ptr<MAT::Task>(self->m_timerQueue.front());
                         self->m_timerQueue.pop_front();
                     }
                     if (!self->m_timerQueue.empty()) {
-                        nextTimerInMs = static_cast<unsigned>(self->m_timerQueue.front()->targetTime - now);
+                        nextTimerInMs = static_cast<unsigned>(self->m_timerQueue.front()->TargetTime - now);
                     }
 
                     if (!self->m_queue.empty() && !item) {
-                        item = std::unique_ptr<detail::WorkerThreadItem>(self->m_queue.front());
+                        item = std::unique_ptr<MAT::Task>(self->m_queue.front());
                         self->m_queue.pop_front();
                     }
                 }
@@ -152,28 +152,26 @@ namespace PAL_NS_BEGIN {
                     continue;
                 }
 
-                if (item->type == detail::WorkerThreadItem::Shutdown) {
+                if (item->Type == MAT::Task::Shutdown) {
                     item.reset();
                     break;
                 }
                 
-                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->typeName.c_str() );
+                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                 self->m_itemInProgress = item.get();
                 (*item)();
                 self->m_itemInProgress = nullptr;
 
                 if (item.get()) {
-                    item->type = detail::WorkerThreadItem::Done;
+                    item->Type = MAT::Task::Done;
                     item.reset();
                 }
             }
         }
     };
 
-    class WorkerThread_CoreLib;
-
     namespace WorkerThreadFactory {
-        IWorkerThread* Create()
+        ITaskDispatcher* Create()
         {
             return new WorkerThread();
         }

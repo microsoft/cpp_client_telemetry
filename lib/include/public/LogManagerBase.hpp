@@ -197,33 +197,9 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken, ILogConfiguration& configuration)
-        {
-           return Initialize(tenantToken, configuration, nullptr);
-        }
-
-        /// <summary>
-        /// Initializes the telemetry logging system with the specified ILogConfiguration.
-        /// </summary>
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient)
-        {
-           return Initialize(tenantToken, GetLogConfiguration(), httpClient);
-        }
-
-        /// <summary>
-        /// Initializes the telemetry logging system with the specified ILogConfiguration and IHttpClient.
-        /// </summary>
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="configuration">ILogConfiguration to be used.</param>
-        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
             const std::string& tenantToken,
-            ILogConfiguration& configuration,
-            IHttpClient* httpClient
+            ILogConfiguration& configuration
         )
         {
             LM_LOCKGUARD(stateLock());
@@ -233,9 +209,14 @@ namespace ARIASDK_NS_BEGIN
                 // Copy alternate configuration into currentConfig
                 if (&configuration != &currentConfig)
                 {
-                    for (const auto &kv : configuration)
+                    for (const auto &kv : *configuration)
                     {
-                        currentConfig[kv.first] = kv.second;
+                        currentConfig[kv.first.c_str()] = kv.second;
+                    }
+
+                    for (const auto &kv : configuration.GetModules())
+                    {
+                        currentConfig.AddModule(kv.first.c_str(), kv.second);
                     }
                 }
 
@@ -246,7 +227,7 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, status);
                 instance->AttachEventSource(GetDebugEventSource());
                 return instance->GetLogger(currentConfig[CFG_STR_PRIMARY_TOKEN]);
             }

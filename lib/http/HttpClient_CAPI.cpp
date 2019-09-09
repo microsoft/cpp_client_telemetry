@@ -137,7 +137,7 @@ namespace ARIASDK_NS_BEGIN {
         // Generate a unique request ID
         static std::atomic<int32_t> s_nextRequestId(0);
         std::ostringstream idStream;
-        idStream << "Aria_CL-" << s_nextRequestId++;
+        idStream << "OneDS_HTTP-" << s_nextRequestId++;
         std::string requestId = idStream.str();
 
         return new SimpleHttpRequest(requestId);

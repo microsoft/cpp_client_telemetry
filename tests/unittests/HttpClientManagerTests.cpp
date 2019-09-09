@@ -11,7 +11,7 @@ using namespace MAT;
 class HttpClientManager4Test : public HttpClientManager {
   public:
     HttpClientManager4Test(IHttpClient& httpClient)
-      : HttpClientManager(httpClient)
+      : HttpClientManager(httpClient, *PAL::getDefaultTaskDispatcher())
     {
     }
 

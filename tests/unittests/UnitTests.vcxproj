@@ -439,6 +439,7 @@
     <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\HttpClientCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpDeflateCompressionTests.cpp" />
@@ -454,6 +455,7 @@
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />

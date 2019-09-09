@@ -12,6 +12,7 @@
 #include "system/ITelemetrySystem.hpp"
 
 #include "DeviceStateHandler.hpp"
+#include "pal/TaskDispatcher.hpp"
 
 #include <set>
 #include <atomic>
@@ -22,7 +23,7 @@ namespace ARIASDK_NS_BEGIN {
     {
 
     public:
-        TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController);
+        TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController);
         virtual ~TransmissionPolicyManager();
         virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
@@ -52,6 +53,7 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex                       m_lock;
 
         ITelemetrySystem&                m_system;
+        ITaskDispatcher&                 m_taskDispatcher;
         IRuntimeConfig&                  m_config;
         IBandwidthController*            m_bandwidthController;
 
@@ -110,7 +112,7 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         bool cancelUploadTask()
         {
-            bool result = m_scheduledUpload.cancel();
+            bool result = m_scheduledUpload.Cancel();
             m_isUploadScheduled.exchange(false);
             return result;
         }
