@@ -18,7 +18,7 @@
 
 #include "offline/StorageObserver.hpp"
 #include "IOfflineStorage.hpp"
-#include "IWorkerThread.hpp"
+#include "ITaskDispatcher.hpp"
 
 #include "packager/Packager.hpp"
 
@@ -43,7 +43,7 @@ namespace ARIASDK_NS_BEGIN {
             IRuntimeConfig& runtimeConfig,
             IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
-            IWorkerThread& workerThread,
+            ITaskDispatcher& taskDispatcher,
             IBandwidthController* bandwidthController
         );
 
@@ -54,7 +54,7 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
 
-        virtual void handleFlushWorkerThread() override;
+        virtual void handleFlushTaskDispatcher() override;
 
 #ifdef HAVE_MAT_ZLIB
         HttpDeflateCompression    compression;
@@ -71,7 +71,7 @@ namespace ARIASDK_NS_BEGIN {
         ClockSkewDelta            clockSkewDelta;
 
     public:
-        RouteSink<TelemetrySystem>                                 flushWorkerThread{ this, &TelemetrySystem::handleFlushWorkerThread };
+        RouteSink<TelemetrySystem>                                 flushTaskDispatcher{ this, &TelemetrySystem::handleFlushTaskDispatcher };
         RouteSink<TelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &TelemetrySystem::handleIncomingEventPrepared };
     };
 

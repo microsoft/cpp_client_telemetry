@@ -15,24 +15,24 @@ namespace ARIASDK_NS_BEGIN {
 /// <param name="runtimeConfig">The runtime configuration.</param>
 /// <param name="offlineStorage">The offline storage.</param>
 /// <param name="httpClient">The HTTP client.</param>
-/// <param name="workerThread">The background worker thread.</param>
+/// <param name="taskDispatcher">The async task dispatcher.</param>
 /// <param name="bandwidthController">The bandwidth controller.</param>
     TelemetrySystem::TelemetrySystem(
         ILogManager& logManager,
         IRuntimeConfig& runtimeConfig,
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
-        IWorkerThread& workerThread,
+        ITaskDispatcher& taskDispatcher,
         IBandwidthController* bandwidthController)
         :
-        TelemetrySystemBase(logManager, runtimeConfig, workerThread),
+        TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
-        hcm(httpClient, workerThread),
+        hcm(httpClient, taskDispatcher),
         httpEncoder(*this, httpClient),
         httpDecoder(*this),
         storage(*this, offlineStorage),
         packager(runtimeConfig),
-        tpm(*this, workerThread, bandwidthController)
+        tpm(*this, taskDispatcher, bandwidthController)
     {
         
         // Handler for start
@@ -129,7 +129,7 @@ namespace ARIASDK_NS_BEGIN {
             return tpm.start();
         };
 
-        tpm.allUploadsFinished >> stats.onStop >> this->flushWorkerThread;
+        tpm.allUploadsFinished >> stats.onStop >> this->flushTaskDispatcher;
 
         // On an arbitrary user thread
         this->sending >> bondSerializer.serialize >> this->incomingEventPrepared;
@@ -212,7 +212,7 @@ namespace ARIASDK_NS_BEGIN {
         preparedIncomingEventAsync(event);
     }
 
-    void TelemetrySystem::handleFlushWorkerThread()
+    void TelemetrySystem::handleFlushTaskDispatcher()
     {
         signalDone();
     }

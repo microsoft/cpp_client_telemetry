@@ -14,7 +14,7 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
-#include "pal/WorkerThread.hpp"
+#include "pal/TaskDispatcher.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -93,13 +93,7 @@ namespace ARIASDK_NS_BEGIN
         m_logConfiguration(configuration)
     {
         m_httpClient = static_cast<IHttpClient*>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
-
-#ifdef HAVE_MAT_WORKER_THREAD_MODULE
-        m_workerThread = static_cast<IWorkerThread*>(configuration.GetModule(CGF_MODULE_WORKER_THREAD));
-#else
-        m_workerThread = nullptr;
-#endif
-
+        m_taskDispatcher = static_cast<ITaskDispatcher*>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
         setLogLevel(configuration);
@@ -204,11 +198,11 @@ namespace ARIASDK_NS_BEGIN
         }
 #endif
 
-        if (m_workerThread == nullptr) {
-            m_workerThread = PAL::getDefaultWorkerThread();
+        if (m_taskDispatcher == nullptr) {
+            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
         }
         else {
-            LOG_TRACE("WorkerThread: External %p", m_workerThread);
+            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher);
         }
 
         if (m_bandwidthController == nullptr) {
@@ -221,9 +215,9 @@ namespace ARIASDK_NS_BEGIN
             LOG_TRACE("BandwidthController: None");
         }
 
-        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_workerThread));
+        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_workerThread, m_bandwidthController));
+        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {

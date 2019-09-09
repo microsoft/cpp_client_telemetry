@@ -3,7 +3,7 @@
 #define TELEMETRYSYSTEMBASE_HPP
 
 #include "system/ITelemetrySystem.hpp"
-#include "IWorkerThread.hpp"
+#include "ITaskDispatcher.hpp"
 #include "stats/Statistics.hpp"
 #include <functional>
 
@@ -27,12 +27,13 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="logManager">The log manager.</param>
         /// <param name="runtimeConfig">The runtime configuration.</param>
-        TelemetrySystemBase(ILogManager& logManager, IRuntimeConfig& runtimeConfig, IWorkerThread& workerThread) :
+        /// <param name="taskDispatcher">The async task dispatcher.</param>
+        TelemetrySystemBase(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
             m_logManager(logManager),
             m_config(runtimeConfig),
             m_isStarted(false),
             m_isPaused(false),
-            stats(*this, workerThread)
+            stats(*this, taskDispatcher)
         {
             onStart  = []() { return true; };
             onStop   = []() { return true; };
@@ -101,7 +102,7 @@ namespace ARIASDK_NS_BEGIN {
         };
 
         // TODO: [MG] - consider for removal
-        virtual void handleFlushWorkerThread() override
+        virtual void handleFlushTaskDispatcher() override
         {
 
         };

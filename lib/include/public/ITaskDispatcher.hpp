@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifndef IWORKERTHREAD_HPP
-#define IWORKERTHREAD_HPP
+#ifndef ITASKDISPATHER_HPP
+#define ITASKDISPATHER_HPP
 
 #include "IModule.hpp"
 #include "Version.hpp"
@@ -12,11 +12,11 @@
 namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
-    /// The WorkerThreadItem class represents a single executable task that can be dispatched to an asynchronous worker
+    /// The Task class represents a single executable task that can be dispatched to an asynchronous worker
     /// thread.
-    /// Individual WorkerThreadItem implementations override operator() to execute
+    /// Individual Task implementations override operator() to execute
     /// </summary>
-    class WorkerThreadItem : public IModule
+    class Task
     {
     public:
         /// <summary>
@@ -48,12 +48,12 @@ namespace ARIASDK_NS_BEGIN
         int64_t TargetTime;
 
         /// <summary>
-        /// The WorkerThreadItem class destructor.
+        /// The Task class destructor.
         /// </summary>
-        virtual ~WorkerThreadItem() noexcept = default;
+        virtual ~Task() noexcept = default;
 
         /// <summary>
-        /// The functor implementation that executes task logic. This method is overridden by WorkerThreadItem
+        /// The functor implementation that executes task logic. This method is overridden by Task
         /// implementations.
         /// </summary>
         virtual void operator()() {}
@@ -65,16 +65,16 @@ namespace ARIASDK_NS_BEGIN
     };
 
     /// <summary>
-    /// The IWorkerThread class manages dispatching of asynchronous tasks to background worker thread(s).
-    /// Individual WorkerThread implementations can manage creation/destruction of thread resources.
+    /// The ITaskDispatcher class manages dispatching of asynchronous tasks to background worker thread(s).
+    /// Individual TaskDispatcher implementations can manage creation/destruction of thread resources.
     /// </summary>
-    class IWorkerThread
+    class ITaskDispatcher : public IModule
     {
     public:
         /// <summary>
-        /// The IWorkerThread class destructor.
+        /// The ITaskDispatcher class destructor.
         /// </summary>
-        virtual ~IWorkerThread() noexcept = default;
+        virtual ~ITaskDispatcher() noexcept = default;
 
         /// <summary>
         /// Terminate worker thread(s) and clean up thread resources
@@ -84,19 +84,19 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Queue an asynchronous task for dispatching to a worker thread
         /// </summary>
-        /// <param name="item">Task to be executed on a worker thread</param>
-        virtual void Queue(WorkerThreadItem* item) = 0;
+        /// <param name="task">Task to be executed on a worker thread</param>
+        virtual void Queue(Task* task) = 0;
 
         /// <summary>
         /// Cancel a previously queued tasks
         /// </summary>
-        /// <param name="item">Task to be cancelled</param>
+        /// <param name="task">Task to be cancelled</param>
         /// <returns>True if successfully cancelled, else false</returns>
-        virtual bool Cancel(WorkerThreadItem* item) = 0;
+        virtual bool Cancel(Task* task) = 0;
     };
 
     /// @endcond
 
 } ARIASDK_NS_END
 
-#endif // IWORKERTHREAD_HPP
+#endif // ITASKDISPATHER_HPP

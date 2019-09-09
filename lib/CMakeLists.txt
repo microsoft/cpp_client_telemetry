@@ -43,8 +43,8 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/OfflineStorageHandler.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
+  pal/TaskDispatcher_CAPI.cpp
   pal/WorkerThread.cpp
-  pal/WorkerThread_CAPI.cpp
 )
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
