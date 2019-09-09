@@ -47,7 +47,7 @@ namespace ARIASDK_NS_BEGIN {
 
         const ILogManager* find(const std::string& name);
 
-        ILogManager* lease(ILogConfiguration& configuration, IHttpClient* client);
+        ILogManager* lease(ILogConfiguration& configuration);
 
         bool release(const std::string& name, const std::string& host);
 
@@ -75,19 +75,8 @@ namespace ARIASDK_NS_BEGIN {
         /// Creates a new ILogManager instance
         /// </summary>
         /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
-        /// <param name="httpClient">Implementation of IHttpClient for the LogManager to use.</param>
         /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and HTTP Client.</returns>
-        static ILogManager* Create(ILogConfiguration& configuration, IHttpClient* httpClient);
-
-        /// <summary>
-        /// Creates a new ILogManager instance
-        /// </summary>
-        /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
-        /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and the default HTTP client.</returns>
-        static ILogManager* Create(ILogConfiguration& configuration)
-        {
-           return Create(configuration, nullptr);
-        }
+        static ILogManager* Create(ILogConfiguration& configuration);
 
         /// <summary>
         /// Destroys a ILogManager instance
@@ -96,23 +85,14 @@ namespace ARIASDK_NS_BEGIN {
 
         static ILogManager * Get(
             ILogConfiguration& logConfiguration,
-            status_t& status,
-            IHttpClient* httpClient
+            status_t& status
         )
         {
-            auto result = instance().lease(logConfiguration, httpClient);
+            auto result = instance().lease(logConfiguration);
             status = (result != nullptr)?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;
             return result;
-        }
-
-        static ILogManager * Get(
-           ILogConfiguration& logConfiguration,
-           status_t& status
-        )
-        {
-           return Get(logConfiguration, status, nullptr);
         }
 
         static ILogManager* Get(
@@ -126,7 +106,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "version", "0.0.0" },
                 { "config", {  } }
             };
-            auto result = instance().lease(config, nullptr);
+            auto result = instance().lease(config);
             status = (result != nullptr) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;

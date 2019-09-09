@@ -19,6 +19,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CorrelationVector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManager.cpp" />
@@ -47,6 +48,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher_CAPI.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\Statistics.cpp" />
@@ -131,6 +133,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogConfiguration.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ISemanticContext.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ITaskDispatcher.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogConfiguration.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\LogManagerBase.hpp" />
@@ -160,6 +163,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher_CAPI.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\typename.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\desktop\WindowsEnvironmentInfo.hpp" />

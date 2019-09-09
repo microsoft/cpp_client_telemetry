@@ -14,6 +14,7 @@ set(SRCS
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
   GuidTests.cpp
+  HttpClientCAPITests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
   HttpDeflateCompressionTests.cpp
@@ -32,6 +33,7 @@ set(SRCS
   PalTests.cpp
   RouteTests.cpp
   StringUtilsTests.cpp
+  TaskDispatcherCAPITests.cpp
   TransmissionPolicyManagerTests.cpp
   UtilsTests.cpp
 )
