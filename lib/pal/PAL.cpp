@@ -256,16 +256,15 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
-    static ITaskDispatcher *g_taskDispatcher = nullptr;
+    static std::shared_ptr<ITaskDispatcher> g_taskDispatcher = nullptr;
 
-
-    ITaskDispatcher* getDefaultTaskDispatcher()
+    std::shared_ptr<ITaskDispatcher> getDefaultTaskDispatcher()
     {
         if (g_taskDispatcher == nullptr)
         {
             // Default implementation of task dispatcher is a single-threaded worker thread task queue
             LOG_TRACE("Initializing PAL worker thread");
-            g_taskDispatcher = PAL::WorkerThreadFactory::Create();
+            g_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
         }
         return g_taskDispatcher;
     }
@@ -519,7 +518,7 @@ namespace PAL_NS_BEGIN {
         if (g_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
-            if (g_taskDispatcher) { delete g_taskDispatcher; g_taskDispatcher = nullptr; }
+            if (g_taskDispatcher) { g_taskDispatcher = nullptr; }
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
             if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }

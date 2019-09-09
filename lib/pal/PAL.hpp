@@ -119,7 +119,7 @@ namespace PAL_NS_BEGIN
     /**
      * Get default PAL-owned worker thread
      */
-    MAT::ITaskDispatcher* getDefaultTaskDispatcher();
+    std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher();
 
     class INetworkInformation;
     class IDeviceInformation;

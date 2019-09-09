@@ -133,7 +133,7 @@ evt_status_t mat_open_core(
     {
         try
         {
-            IHttpClient* http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+            auto http = std::make_shared<HttpClient_CAPI>(httpSendFn, httpCancelFn);
             clients[code].http = http;
             clients[code].config.AddModule(CFG_MODULE_HTTP_CLIENT, http);
         }
@@ -148,7 +148,7 @@ evt_status_t mat_open_core(
     {
         try
         {
-            ITaskDispatcher* taskDispatcher = new PAL::TaskDispatcher_CAPI(taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
+            auto taskDispatcher = std::make_shared<PAL::TaskDispatcher_CAPI>(taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
             clients[code].taskDispatcher = taskDispatcher;
             clients[code].config.AddModule(CFG_MODULE_TASK_DISPATCHER, taskDispatcher);
         }
@@ -289,13 +289,11 @@ evt_status_t mat_close(evt_context_t *ctx)
     
     if (client->http != nullptr)
     {
-        delete client->http;
         client->http = nullptr;
     }
 
     if (client->taskDispatcher != nullptr)
     {
-        delete client->taskDispatcher;
         client->taskDispatcher = nullptr;
     }
 

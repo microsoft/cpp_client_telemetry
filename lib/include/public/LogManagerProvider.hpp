@@ -163,11 +163,11 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     typedef struct
     {
-        ILogManager*        logmanager = nullptr;
-        ILogConfiguration   config;
-        std::string         ctx_data;
-        IHttpClient*        http = nullptr;
-        ITaskDispatcher*    taskDispatcher = nullptr;
+        ILogManager*                     logmanager = nullptr;
+        ILogConfiguration                config;
+        std::string                      ctx_data;
+        std::shared_ptr<IHttpClient>     http;
+        std::shared_ptr<ITaskDispatcher> taskDispatcher;
     } capi_client;
 
     /// <summary>
