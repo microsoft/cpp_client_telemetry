@@ -156,6 +156,13 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
+        if (m_taskDispatcher == nullptr) {
+            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
+        }
+        else {
+            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
+        }
+
 #ifdef HAVE_MAT_UTC
         // UTC is not active
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
@@ -170,7 +177,7 @@ namespace ARIASDK_NS_BEGIN
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
             LOG_TRACE("Initializing UTC physical layer...");
-            m_system.reset(new UtcTelemetrySystem(*this, *m_config));
+            m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
             if (!deferSystemStart)
             {
                m_system->start();
@@ -196,13 +203,6 @@ namespace ARIASDK_NS_BEGIN
            throw std::invalid_argument("configuration");
         }
 #endif
-
-        if (m_taskDispatcher == nullptr) {
-            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
-        }
-        else {
-            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
-        }
 
         if (m_bandwidthController == nullptr) {
             m_bandwidthController = m_ownBandwidthController.get();
