@@ -253,13 +253,13 @@ TEST_F(PalTests, WorkerThreadCallsMethod)
     auto workerThread = PAL::WorkerThreadFactory::Create();
 
     EXPECT_THAT(obj->noArgsResult, false);
-    PAL::executeOnWorkerThread(workerThread, obj, &Deferred::noArgs);
+    PAL::dispatchTask(workerThread, obj, &Deferred::noArgs);
     PAL::sleep(300);
     EXPECT_THAT(obj->noArgsResult, true);
 
     EXPECT_THAT(obj->threeArgsResult, 0);
     std::string output("values are passed through");
-    PAL::executeOnWorkerThread(workerThread, obj.get(), &Deferred::threeArgs, 10, true, output);
+    PAL::dispatchTask(workerThread, obj.get(), &Deferred::threeArgs, 10, true, output);
     PAL::sleep(300);
     EXPECT_THAT(obj->threeArgsResult, 60);
     EXPECT_THAT(output, Ne("references are lost"));
@@ -273,11 +273,11 @@ TEST_F(PalTests, WorkerThreadCallsMethodWithDelay)
     auto workerThread = PAL::WorkerThreadFactory::Create();
 
     EXPECT_THAT(obj->noArgsResult, false);
-    PAL::scheduleOnWorkerThread(workerThread, 400, obj, &Deferred::noArgs);
+    PAL::scheduleTask(workerThread, 400, obj, &Deferred::noArgs);
 
     EXPECT_THAT(obj->threeArgsResult, 0);
     std::string output("values are passed through");
-    PAL::scheduleOnWorkerThread(workerThread, 800, obj.get(), &Deferred::threeArgs, 10, true, output);
+    PAL::scheduleTask(workerThread, 800, obj.get(), &Deferred::threeArgs, 10, true, output);
 
     PAL::sleep(100);
     EXPECT_THAT(obj->noArgsResult, false);
@@ -304,12 +304,12 @@ TEST_F(PalTests, WorkerThreadIsSerialized)
 
     ASSERT_THAT(obj->waitedMs, 0);
 
-    PAL::executeOnWorkerThread(workerThread, obj, &Deferred::wait, 500);
-    PAL::scheduleOnWorkerThread(workerThread, 300, obj, &Deferred::wait, 100);
+    PAL::dispatchTask(workerThread, obj, &Deferred::wait, 500);
+    PAL::scheduleTask(workerThread, 300, obj, &Deferred::wait, 100);
 
     PAL::sleep(100);
 
-    PAL::executeOnWorkerThread(workerThread, obj, &Deferred::wait, 50);
+    PAL::dispatchTask(workerThread, obj, &Deferred::wait, 50);
 
     PAL::sleep(800);
 
@@ -322,10 +322,10 @@ TEST_F(PalTests, WorkerThreadDeferredCallbackIsCancellable)
     auto obj = Deferred::create();
     auto workerThread = PAL::WorkerThreadFactory::Create();
 
-    PAL::DeferredCallbackHandle call0 = PAL::scheduleOnWorkerThread(workerThread, 100, obj, &Deferred::wait, 1);
+    PAL::DeferredCallbackHandle call0 = PAL::scheduleTask(workerThread, 100, obj, &Deferred::wait, 1);
     ASSERT_THAT(!!call0, true);
 
-    PAL::DeferredCallbackHandle call1 = PAL::scheduleOnWorkerThread(workerThread, 400, obj, &Deferred::wait, 2);
+    PAL::DeferredCallbackHandle call1 = PAL::scheduleTask(workerThread, 400, obj, &Deferred::wait, 2);
     ASSERT_THAT(!!call1, true);
 
     PAL::DeferredCallbackHandle call0copy;

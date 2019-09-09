@@ -24,9 +24,9 @@
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\WorkerThreadCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
       <Filter>common</Filter>
     </ClCompile>

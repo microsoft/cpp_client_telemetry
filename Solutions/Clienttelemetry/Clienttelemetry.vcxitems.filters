@@ -141,7 +141,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.cpp">
       <Filter>pal</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread_CAPI.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher_CAPI.cpp">
       <Filter>pal</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.cpp">
@@ -332,7 +332,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread.hpp">
       <Filter>pal</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\WorkerThread_CAPI.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher.hpp">
+      <Filter>pal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher_CAPI.hpp">
       <Filter>pal</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp">
@@ -383,7 +386,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ISemanticContext.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IWorkerThread.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ITaskDispatcher.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp">

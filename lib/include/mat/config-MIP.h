@@ -14,4 +14,3 @@
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
 #endif
-#define HAVE_MAT_WORKER_THREAD_MODULE

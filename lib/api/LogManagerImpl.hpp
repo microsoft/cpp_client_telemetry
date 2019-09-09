@@ -9,7 +9,7 @@
 
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
-#include "IWorkerThread.hpp"
+#include "ITaskDispatcher.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
@@ -263,7 +263,7 @@ protected:
         std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
         ContextFieldsProvider                                  m_context;
 
-        IWorkerThread*                                         m_workerThread;
+        ITaskDispatcher*                                       m_taskDispatcher;
 
         IHttpClient*                                           m_httpClient;
         std::unique_ptr<IHttpClient>                           m_ownHttpClient;

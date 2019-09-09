@@ -5,7 +5,7 @@
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
-#include "IWorkerThread.hpp"
+#include "ITaskDispatcher.hpp"
 #include "NullObjects.hpp"
 
 namespace ARIASDK_NS_BEGIN
@@ -155,11 +155,11 @@ namespace ARIASDK_NS_BEGIN
 
     /// <summary>
     /// C API client struct
-    /// logmanager   - ILogManager pointer to SDK instance
-    /// config       - ILogConfiguration
-    /// ctx_data     - original JSON configuration or token passed to mat_open
-    /// http         - optional IHttpClient override instance
-    /// workerThread - optional IWorkerThread override instance
+    /// logmanager     - ILogManager pointer to SDK instance
+    /// config         - ILogConfiguration
+    /// ctx_data       - original JSON configuration or token passed to mat_open
+    /// http           - optional IHttpClient override instance
+    /// taskDispatcher - optional ITaskDispatcher override instance
     /// </summary>
     typedef struct
     {
@@ -167,7 +167,7 @@ namespace ARIASDK_NS_BEGIN
         ILogConfiguration   config;
         std::string         ctx_data;
         IHttpClient*        http = nullptr;
-        IWorkerThread*      workerThread = nullptr;
+        ITaskDispatcher*    taskDispatcher = nullptr;
     } capi_client;
 
     /// <summary>

@@ -223,9 +223,9 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_MODULE_HTTP_CLIENT = "httpClient";
 
     /// <summary>
-    /// IWorkerThread override module
+    /// ITaskDispatcher override module
     /// </summary>
-    static constexpr const char* const CFG_MODULE_WORKER_THREAD = "workerThread";
+    static constexpr const char* const CFG_MODULE_TASK_DISPATCHER = "taskDispatcher";
 
     /// <summary>
     /// The ILogConfiguration class contains LogManager-specific configuration settings
