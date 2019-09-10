@@ -45,10 +45,10 @@ void EventDecoderListener::DecodeBuffer(void *data, size_t size)
 {
     if (data && size)
     {
-        std::vector<uint8_t> in, out;
+        std::vector<uint8_t> in;
         in.assign((uint8_t*)data, (uint8_t*)data + size);
-        PayloadDecoder::DecodeRequest(in, out, true);
-        std::string s(out.begin(), out.end());
+        std::string s;
+        exporters::DecodeRequest(in, s, true);
         // printf("%s\n", s.c_str());
     }
 }

@@ -86,14 +86,20 @@ namespace clienttelemetry {
                 return v;
             }
 
-            void to_json(json& out, const std::vector<uint8_t>& request) {
+            bool to_json(json& out, const std::vector<uint8_t>& request)
+            {
                 auto records = decodeRequest(request);
+                if (records.size() == 0)
+                {
+                    return false;
+                }
                 for (const auto &r : records)
                 {
                     json j;
                     to_json(j, r);
                     out.push_back(j);
                 }
+                return true;
             }
 
             void to_json(json& j, const Data& d)
@@ -197,9 +203,11 @@ namespace clienttelemetry {
                 }
             }
 
-            void to_json(json& j, const Record& r) {
+            void to_json(json& j, const Record& r)
+            {
 
-                j = json{
+                j = json
+                {
                     { "ver",        r.ver },        // 1: required string ver
                     { "name",       r.name },       // 2: required string name
                     { "time",       r.time },       // 3: required int64 time
@@ -207,7 +215,8 @@ namespace clienttelemetry {
                     { "iKey",       r.iKey },       // 5: optional string iKey
                     { "flags",      r.flags },      // 6: optional int64 flags
                     { "cV",         r.cV },         // 7: optional string cV
-                    { "ext", {
+                    { "ext",
+                        {
                     /*
                                                 { "ingest", r.extIngest },                           // 20: optional vector<Ingest> extIngest
                      */
@@ -321,7 +330,9 @@ namespace clienttelemetry {
             bool Compress(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool prependSize)
             {
                 if ((!source) || (!sourceLen))
+                {
                     return false;
+                }
 
                 *dest = NULL;
                 destLen = 0;
@@ -372,7 +383,10 @@ namespace clienttelemetry {
             bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex)
             {
                 if (!(source) || !(sourceLen))
+                {
+                    TEST_LOG_ERROR("Invalid input buffer!");
                     return false;
+                }
 
                 *dest = NULL;
 
@@ -385,14 +399,17 @@ namespace clienttelemetry {
                     // If we are reading 64-bit generated legacy DB, step 32-bit forward to
                     // skip zero-padding in most-significant DWORD on Intel architecture
                     if ((s64 - s32) == 0)
+                    {
                         reserved += sizeof(uint32_t);
+                    }
                     destLen = s32;
                 }
 
                 // Allocate memory for the new uncompressed buffer
                 if (destLen > 0)
                 {
-                    try {
+                    try
+                    {
                         char* decompBody = new char[destLen];
                         if (source != NULL)
                         {
@@ -410,7 +427,8 @@ namespace clienttelemetry {
                             return true;
                         }
                     }
-                    catch (std::bad_alloc&) {
+                    catch (std::bad_alloc&)
+                    {
                         TEST_LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
                         dest = NULL;
                         destLen = 0;
@@ -418,31 +436,43 @@ namespace clienttelemetry {
                 }
 
                 // OOM
+                TEST_LOG_ERROR("Unable to allocate memory for uncompressed buffer!");
                 return false;
             }
 
 
-            void ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+            bool ExpandVector(std::vector<uint8_t>& in, std::vector<uint8_t>& out)
             {
+                bool result = true;
                 size_t destLen = out.size();
-                std::cout << "size=" << destLen << std::endl;
                 char *buffer = nullptr;
-                Expand((const char*)(in.data()), in.size(), &buffer, destLen, false); // TODO: Check if true
-                out = std::vector<uint8_t>(buffer, buffer + destLen);
-                if (buffer)
-                    delete[] buffer;
 
+                result = Expand((const char*)(in.data()), in.size(), &buffer, destLen, false);
+                if (result)
+                {
+                    if (buffer)
+                    {
+                        out = std::vector<uint8_t>(buffer, buffer + destLen);
+                        delete[] buffer;
+                    }
+                }
+
+                return result;
             }
 
-            void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+            bool InflateVector(const std::vector<uint8_t>& in, std::vector<uint8_t>& out)
             {
+                bool result = true;
+
                 z_stream zs;
                 memset(&zs, 0, sizeof(zs));
 
                 // [MG]: must call inflateInit2 with -9 because otherwise
                 // it'd be searching for non-existing gzip header...
                 if (inflateInit2(&zs, -9) != Z_OK)
-                    return;
+                {
+                    return false;
+                }
 
                 zs.next_in = (Bytef *)in.data();
                 zs.avail_in = (uInt)in.size();
@@ -454,7 +484,8 @@ namespace clienttelemetry {
                 uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
 
                 char* outbuffer = new char[outbufferSize];
-                do {
+                do
+                {
                     zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
                     zs.avail_out = outbufferSize;
                     ret = inflate(&zs, Z_NO_FLUSH);
@@ -462,11 +493,12 @@ namespace clienttelemetry {
                 } while (ret == Z_OK);
                 if (ret != Z_STREAM_END)
                 {
-                    /* TODO: return error if buffer is corrupt */;
                     TEST_LOG_ERROR("Unable to successfully decompress into buffer");
+                    result = false;
                 }
                 inflateEnd(&zs);
                 delete[] outbuffer;
+                return result;
             }
 
         }
@@ -477,42 +509,61 @@ using namespace clienttelemetry::data::v3;
 
 namespace ARIASDK_NS_BEGIN {
 
-    /// <summary>
-    /// Decodes the request from binary into human-readable format.
-    /// </summary>
-    /// <param name="in">Input request buffer containing HTTP request body</param>
-    /// <param name="out">Event payload in a human-readable format, e.g. JSON</param>
-    /// <param name="compressed">If set to <c>true</c> then the input buffer is [compressed] (optional)</param>
-    void PayloadDecoder::DecodeRequest(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed)
-    {
+    namespace exporters {
 
-        if (compressed)
+        /// <summary>
+        /// Decodes the request from binary into human-readable format.
+        /// </summary>
+        /// <param name="in">Input request buffer containing HTTP request body</param>
+        /// <param name="out">Event payload in a human-readable format, e.g. JSON</param>
+        /// <param name="compressed">If set to <c>true</c> then the input buffer is [compressed] (optional)</param>
+        bool DecodeRequest(const std::vector<uint8_t>& in, std::string& out, bool compressed)
         {
-            InflateVector(in, out);
+            out.clear();
+
+            std::vector<uint8_t> buffer;
+            if (compressed)
+            {
+                if (!InflateVector(in, buffer))
+                {
+                    TEST_LOG_ERROR("Failed to inflate compressed data");
+                    return false;
+                }
+            }
+            else
+            {
+                std::copy(in.begin(), in.end(), std::back_inserter(buffer));
+            }
+
+            bool result = true;
+            json j = json::array();
+            result = to_json(j, buffer);
+
+            if (result)
+            {
+                out = j.dump(2);
+            }
+
+            return result;
         }
-        else
+
+        /// <summary>
+        /// Decodes the record contents from binary into human-readable format.
+        /// </summary>
+        /// <param name="in">Input record containing CsProtocol Record</param>
+        /// <param name="out">Event payload in a human-readable format, e.g. JSON</param>
+        bool DecodeRecord(const CsProtocol::Record& in, std::string& out)
         {
-            std::copy(in.begin(), in.end(), std::back_inserter(out));
+            out.clear();
+
+            nlohmann::json j;
+            to_json(j, in);
+            std::string s = j.dump(4);
+            out.assign(s.begin(), s.end());
+
+            return true;
         }
 
-        json j = json::array();
-        to_json(j, out);
-        std::string s = j.dump(2);
-        out.clear();
-        std::copy(s.begin(), s.end(), std::back_inserter(out));
-    }
-
-    /// <summary>
-    /// Decodes the record from binary into human-readable format.
-    /// </summary>
-    /// <param name="in">Input record containing CsProtocol Record</param>
-    /// <param name="out">Event payload in a human-readable format, e.g. JSON</param>
-    void PayloadDecoder::DecodeRecord(const CsProtocol::Record& in, std::vector<uint8_t> &out)
-    {
-        nlohmann::json j;
-        to_json(j, in);
-        std::string s = j.dump(4);
-        out.assign(s.begin(), s.end());
     }
 
 } ARIASDK_NS_END

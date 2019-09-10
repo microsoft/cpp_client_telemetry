@@ -413,8 +413,8 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     TestDebugEventListener debugListener;
 
     auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
     configuration["stats"]["interval"] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
@@ -756,14 +756,12 @@ TEST(APITest, UTC_Callback_Test)
         ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
 
         // Transform to JSON and print
-        std::vector<uint8_t> output;
-        PayloadDecoder::DecodeRecord(record, output);
-        std::string j;
-        j.assign(output.begin(), output.end());
+        std::string s;
+        exporters::DecodeRecord(record, s);
         printf(
             "*************************************** Event %u ***************************************\n%s\n",
             totalEvents,
-            j.c_str()
+            s.c_str()
         );
     };
 

@@ -3,14 +3,12 @@
 #define PAYLOADDECODER_HPP
 
 //
-// Advanced functionality for Diagnostic Data Viewer and internal Unit Tests. Use with care!
-// Payload decoder implementation allows to transform the binary serialized or packaged
-// event payload data into human-readable JSON format.
+// Advanced functionality for Diagnostic Data Viewer and internal Unit Tests.
+// Payload decoder implementation allows to transform the Bond binary-serialized
+// payload data or Common Schema protocol struct into JSON format.
 //
 
 #include "Version.hpp"
-
-#include "mat/config.h"
 
 #include <vector>
 #include <cinttypes>
@@ -23,25 +21,29 @@ namespace CsProtocol
 
 namespace ARIASDK_NS_BEGIN {
 
-    class PayloadDecoder
-    {
-    public:
+    namespace exporters {
 
         /// <summary>
-        /// Decode SDK transport layer and version-specific record structure into human-readable format
+        /// Decode SDK transport layer and version-specific record struct into JSON format.
         /// <param name="in">Common Schema Protocol record</param>
-        /// <param name="out">Decoded record</param>
-        /// </summary>    
-        static void DecodeRecord(const CsProtocol::Record& in, std::vector<uint8_t> &out);
+        /// <param name="out">Record in JSON format</param>
+        /// <returns>
+        /// Returns true on success.
+        /// </returns>
+        /// </summary>
+        bool DecodeRecord(const CsProtocol::Record& in, std::string& out);
 
         /// <summary>
         /// Decode SDK transport layer and version-specific request structure into human-readable format.
         /// <param name="in">Payload data, e.g. HTTPS POST request body</param>
-        /// <param name="out">Decoded record(s)</param>
-        /// <param name="compressed">Optional parameter that specifies if the payload data is compressed</param>
-        /// </summary>    
-        static void DecodeRequest(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool compressed = true);
-    
+        /// <param name="out">Record(s) in JSON format</param>
+        /// <param name="compressed">Parameter that specifies that the payload data is compressed (optional, default true)</param>
+        /// </summary>
+        /// <returns>
+        /// Returns true on success.
+        /// </returns>
+        bool DecodeRequest(const std::vector<uint8_t>& in, std::string& out, bool compressed = true);
+
     };
 
 } ARIASDK_NS_END
