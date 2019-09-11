@@ -584,6 +584,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\JsonFormatter.hpp">
       <Filter>system</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\PayloadDecoder.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">
