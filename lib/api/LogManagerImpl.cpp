@@ -28,6 +28,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_DEFAULT_FILTER
+#if defined __has_include
+#  if __has_include ("modules/filter/CompliantByDefaultEventFilterModule.hpp")
+#    include "modules/filter/CompliantByDefaultEventFilterModule.hpp"
+#  else
+   /* Compiling without Filtering support because Filtering private header is unavailable */
+#  undef HAVE_MAT_DEFAULT_FILTER
+#  endif
+#  else
+#include "modules/filter/LevelChececkingEventFilter.hpp"
+#endif
+#endif // HAVE_MAT_DEFAULT_FILTER
+
 namespace ARIASDK_NS_BEGIN
 {
 
@@ -231,6 +244,10 @@ namespace ARIASDK_NS_BEGIN
             m_isSystemStarted = true;
         }
 
+#ifdef HAVE_MAT_DEFAULT_FILTER
+        m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
+#endif // HAVE_MAT_DEFAULT_FILTER
+
         LOG_INFO("Initializng Modules");
         InitializeModules();
 
@@ -252,7 +269,7 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-    LogManagerImpl::~LogManagerImpl()
+    LogManagerImpl::~LogManagerImpl() noexcept
     {
         FlushAndTeardown();
         LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -612,7 +629,7 @@ namespace ARIASDK_NS_BEGIN
         return m_system;
     }
 
-    void LogManagerImpl::InitializeModules() const noexcept
+    void LogManagerImpl::InitializeModules() noexcept
     {
         for (const auto& module : m_modules)
         {

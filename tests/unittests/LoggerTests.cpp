@@ -39,6 +39,11 @@ public:
     RuntimeConfig_Default runtimeConfig;
     TestLogger logger;
 
+    virtual void SetUp() override
+    {
+        logManager.GetEventFilters().UnregisterAllFilters();
+    }
+
 protected:
     class LoggerTestEventFilter : public IEventFilter
     {

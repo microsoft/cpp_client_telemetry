@@ -2,6 +2,7 @@
 #ifndef MAT_LOGMANAGER_HPP
 #define MAT_LOGMANAGER_HPP
 
+#include <exception>
 #include "CommonFields.h"
 
 #ifdef _MSC_VER
@@ -84,6 +85,13 @@ public:
 
 namespace ARIASDK_NS_BEGIN
 {
+    class LogManagerNotInitializedException : public std::runtime_error
+    {
+    public:
+        LogManagerNotInitializedException(const char* message) noexcept
+            : std::runtime_error(message) { }
+    };
+
     /// <summary>
     /// This configuration flag is populated by SDK to indicate if this singleton instance
     /// is running in "host" mode and all LogController methods should be accessible to the
@@ -573,6 +581,16 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static IAuthTokensController* GetAuthTokensController()
             LM_SAFE_CALL_PTR(GetAuthTokensController);
+
+        inline static IEventFilterCollection& GetEventFilters()
+        {
+            LM_LOCKGUARD(stateLock());
+            if (nullptr != instance)
+            {
+                return instance->GetEventFilters();
+            }
+            throw LogManagerNotInitializedException("LogManager::Initialize must be invoked prior to calling GetFilters()");
+        }
 
         /// <summary>
         /// Add Debug callback

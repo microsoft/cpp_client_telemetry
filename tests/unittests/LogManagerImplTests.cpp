@@ -76,7 +76,7 @@ public:
             , teardownCalled(teardownCalled)
             , addressPassedToInitialize(pointerPassedToInitialize) { }
 
-        virtual void Initialize(const ILogManager* parentManager) noexcept override
+        virtual void Initialize(ILogManager* parentManager) noexcept override
         {
             addressPassedToInitialize = parentManager;
             initializeCalled = true;

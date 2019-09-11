@@ -21,6 +21,7 @@
 #include "api/AuthTokensController.hpp"
 #include "filter/EventFilterCollection.hpp"
 #include "api/DataViewerCollection.hpp"
+#include "modules/filter/AllowedLevelsCollection.hpp"
 
 #include "LogSessionData.hpp"
 
@@ -123,7 +124,7 @@ namespace ARIASDK_NS_BEGIN
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
         LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer);
 
-        virtual ~LogManagerImpl() override;
+        virtual ~LogManagerImpl() noexcept override;
 
         /**
          * ILogController - state management methods
@@ -247,7 +248,7 @@ namespace ARIASDK_NS_BEGIN
 
 protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
-        void InitializeModules() const noexcept;
+        void InitializeModules() noexcept;
         void TeardownModules() noexcept;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
