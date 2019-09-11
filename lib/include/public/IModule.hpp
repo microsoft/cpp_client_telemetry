@@ -4,13 +4,15 @@
 
 #include "Version.hpp"
 
+#include "ctmacros.hpp"
+
 ///@cond INTERNAL_DOCS
 namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
     /// IModule is a broad container interface that allows an application to override an internal component
     /// </summary>
-    class IModule
+    class MATSDK_LIBABI IModule
     {
     public:
         /// <summary>
