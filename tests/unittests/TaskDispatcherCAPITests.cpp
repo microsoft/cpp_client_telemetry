@@ -140,7 +140,7 @@ TEST(TaskDispatcherCAPITests, Schedule)
     bool wasQueued = false;
     testHelper->SetQueueValidation([&wasQueued](task_t* task) {
         wasQueued = true;
-        EXPECT_EQ(task->delayMs, 100);
+        EXPECT_NE(task->delayMs, 0);
         EXPECT_TRUE(std::string(task->typeName).find("TestHelper") != string::npos);
     });
 
@@ -171,7 +171,7 @@ TEST(TaskDispatcherCAPITests, Cancel)
     testHelper->SetQueueValidation([&wasQueued, &taskIdStr](task_t* task) {
         wasQueued = true;
         taskIdStr = task->id;
-        EXPECT_EQ(task->delayMs, 100);
+        EXPECT_NE(task->delayMs, 0);
         EXPECT_TRUE(std::string(task->typeName).find("TestHelper") != string::npos);
     });
 
