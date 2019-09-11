@@ -17,7 +17,6 @@
 #include <fstream>
 #include <atomic>
 
-// TODO: replace decoder below with PayloadDecoder.hpp
 
 using namespace testing;
 using namespace MAT;
