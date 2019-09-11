@@ -61,8 +61,6 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   list(APPEND SRCS
-    http/HttpClient_Curl.cpp
-    http/HttpClient_Curl.hpp
     http/HttpClient.hpp
     pal/WorkerThread.cpp
     pal/WorkerThread.hpp
@@ -71,6 +69,17 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     pal/posix/SystemInformationImpl.cpp
     pal/posix/sysinfo_sources.cpp
   )
+
+  if(BUILD_IOS)
+    list(APPEND SRCS
+      http/HttpClient_iOS.mm
+    )
+  else()
+    list(APPEND SRCS
+      http/HttpClient_Curl.cpp
+      http/HttpClient_Curl.hpp
+    )
+  endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
