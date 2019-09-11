@@ -157,7 +157,7 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
-#define MAX_EVENTS_TO_LOG       100000L 
+#define MAX_EVENTS_TO_LOG       100L 
 
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
@@ -303,10 +303,11 @@ int main()
     for (auto evt : eventsList)
         LogManager::AddEventListener(evt, listener);
 
+    ILogger *logger = LogManager::Initialize(TOKEN);
+    
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
-    ILogger *logger = LogManager::Initialize(TOKEN);
     logPiiMark();   // UTC upload
     LogManager::FlushAndTeardown();
 #endif
