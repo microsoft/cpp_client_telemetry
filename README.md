@@ -25,17 +25,12 @@ lifeblood of Microsoft...
 
 The SDK is released as a source package. Here are the supported platforms:
 
-+-------------------------------------------------------+-----------------+
 | Build Environment                                     | Target Platform |
-+=========================================================================+
+| ----------------------------------------------------- | --------------- |
 | Linux with [GCC](https://gcc.gnu.org/)                |                 |
-+-------------------------------------------------------------------------+
 | Mac OS X with cmake and XCode standard clang compiler |                 |
-+-------------------------------------------------------------------------+
 | Windows with Visual Studio 2017                       |                 |
-+-------------------------------------------------------------------------+
 | Windows with cmake + llvm-clang compiler              |                 |
-+-------------------------------------------------------------------------+
 
 ## Running the tests
 
