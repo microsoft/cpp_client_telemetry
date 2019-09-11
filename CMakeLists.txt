@@ -229,7 +229,6 @@ if (BUILD_PACKAGE)
     include(tools/MakeRpm.cmake)
   endif()
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
-    message("Building tgz package")
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
     # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)
