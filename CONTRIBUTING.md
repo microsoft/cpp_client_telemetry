@@ -1,14 +1,12 @@
 # Contributing
 
-The 1DS C++ SDK community meets every **Tuesday at 10:30AM PST**.
+The 1DS C++ SDK community meets every **Tuesday at 10:30AM PST**. The meeting
+invitation is published to [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com)
+team calendar:
 
-**TODO: create a public calendar**
-
-[Join Microsoft Teams Meeting](https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZmQ3MzhlYzMtNWVmNS00MmE3LWE3MTYtMWE1MWUyNmFiZWU5%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%2283ba88b7-f89d-4e39-86c5-39927960aca7%22%7d)
-
-+1(425)616-0754, 63411756#   United States
-
-Conference ID: 634 117 56#
+* [Join Microsoft Teams Meeting](https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZmQ3MzhlYzMtNWVmNS00MmE3LWE3MTYtMWE1MWUyNmFiZWU5%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%2283ba88b7-f89d-4e39-86c5-39927960aca7%22%7d)
+* +1(425)616-0754, 63411756#   United States
+* Conference ID: 634 117 56#
 
 Meeting agenda and notes are maintained [here](https://microsoft.sharepoint.com/teams/1ds.sdk.cpp/_layouts/15/WopiFrame.aspx?sourcedoc={15b57d3d-8461-4bdc-b5cb-249283e20e5c}&action=edit&wd=target%28Meeting%20Notes.one%7C8cfc64cc-1ae7-44d6-9780-118d8dca1197%2F%29&wdorigin=717).
 If you want to propose topics, please append them to the agenda.
