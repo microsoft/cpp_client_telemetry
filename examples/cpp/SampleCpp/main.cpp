@@ -304,7 +304,7 @@ int main()
         LogManager::AddEventListener(evt, listener);
 
     ILogger *logger = LogManager::Initialize(TOKEN);
-    
+
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
@@ -315,12 +315,12 @@ int main()
     printf("LogManager::Initialize in direct\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     logger = LogManager::Initialize(TOKEN);
-    
+
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
     LogManager::SetContext("GlobalContext.Var", 12345);
-     
+
     printf("LogManager::GetSemanticContext \n"); 
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 
