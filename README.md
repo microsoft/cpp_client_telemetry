@@ -23,7 +23,10 @@ lifeblood of Microsoft...
 
 # Getting Started
 
-The SDK is released as a source package. Here are the supported platforms:
+The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
+every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
+
+Here are the supported platforms:
 
 | Build Environment                                     | Target Platform |
 | ----------------------------------------------------- | --------------- |
@@ -32,22 +35,17 @@ The SDK is released as a source package. Here are the supported platforms:
 | Windows with Visual Studio 2017                       |                 |
 | Windows with cmake + llvm-clang compiler              |                 |
 
-## Running the tests
+## Running the Tests
 
 There are two sets of tests available:
-* 'tests/functests' - functional tests that verify customer-facing APIs and Features
-* 'tests/unittests' - internal unit tests that verify operation of each individual component
+* 'tests/unittests' - unit tests that verify operation of each individual
+  component.
+* 'tests/functests' - functional tests that verify customer-facing APIs and
+  features, they also cover the flow of data to Collector++.
 
-These tests use Google Test / Google Mock framework and get built alongside with SDK.
-Launch 'functests' and 'unittests' binary executables to capture the test results.
-
-### Unit Tests
-
-'unittests' cover various internal component tests, such as LogManager, ILogger, HTTP uploader, IStorage, etc.
-
-### Integration Tests
-
-'functests' include integration tests that verify the flow of data to Collector++.
+These tests use Google Test / Google Mock framework and get built alongside
+with SDK. Launch 'functests' and 'unittests' binary executables to capture
+the test results.
 
 # Getting Support
 
