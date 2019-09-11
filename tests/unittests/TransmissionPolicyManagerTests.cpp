@@ -14,7 +14,7 @@ using namespace MAT;
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
   public:
     TransmissionPolicyManager4Test(ITelemetrySystem& system, IBandwidthController* bandwidthController)
-      : TransmissionPolicyManager(system, bandwidthController)
+      : TransmissionPolicyManager(system, *PAL::getDefaultTaskDispatcher(), bandwidthController)
     {
     }
 

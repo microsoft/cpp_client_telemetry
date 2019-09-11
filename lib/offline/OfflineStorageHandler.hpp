@@ -6,6 +6,7 @@
 
 #include "api/IRuntimeConfig.hpp"
 #include "ILogManager.hpp"
+#include "pal/TaskDispatcher.hpp"
 
 #include <memory>
 #include <atomic>
@@ -20,7 +21,7 @@ namespace ARIASDK_NS_BEGIN {
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
     {
     public:
-        OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
+        OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
         virtual ~OfflineStorageHandler() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
@@ -58,6 +59,7 @@ namespace ARIASDK_NS_BEGIN {
         ILogManager &               m_logManager;
         std::string                 m_databasePath;
         IRuntimeConfig&             m_config;
+        ITaskDispatcher&            m_taskDispatcher;
         
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;

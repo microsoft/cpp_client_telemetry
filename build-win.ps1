@@ -121,10 +121,21 @@ foreach ($arch in $archs) {
 
       $targetStr = $targets -join ","
       echo "   Targets: $targetStr"
+      echo "   Architecture: $actualArch"
       echo "   Configuration: $actualConfig"
+      echo "   CPU Count: $cpuCount"
+      if ($customProps -ne "") {
+        echo "   Custom .props: $customProps"
+      }
+
+      # Build!
       & cmd /c "msbuild $solution /target:$targetStr /p:BuildProjectReferences=true /maxcpucount:$cpuCount /p:Configuration=$actualConfig /p:Platform=$actualArch $actualCustomProps"
+
       echo "...Done!"
       echo ""
+      if ($lastexitcode -ne 0) {
+        exit 1
+      }
     }
   }
 }
