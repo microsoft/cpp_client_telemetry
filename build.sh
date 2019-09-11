@@ -35,7 +35,7 @@ else
 BUILD_TYPE="Debug"
 fi
 
-MACOS_MIN_VER="10.10"
+export MACOSX_DEPLOYMENT_TARGET=10.10
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
@@ -84,7 +84,7 @@ set -e
 
 
 # TODO: pass custom build flags?
-cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DMACOSX_DEPLOYMENT_TARGET=$MACOS_MIN_VER ..
+cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 # TODO: strip symbols to minimize (release-only)
 
 # Build all
