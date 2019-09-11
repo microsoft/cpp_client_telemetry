@@ -21,6 +21,8 @@
 namespace ARIASDK_NS_BEGIN
 {
 
+    class ILogConfiguration;
+
     class IContextProvider {
 
     public:

@@ -2,10 +2,10 @@
 #ifndef IHTTPCLIENT_HPP
 #define IHTTPCLIENT_HPP
 
-#include "IModule.hpp"
 #include "Version.hpp"
-
+#include "IModule.hpp"
 #include "Enums.hpp"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -505,6 +505,12 @@ namespace ARIASDK_NS_BEGIN
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
         virtual void CancelAllRequests() {};
+
+        virtual void SetOption(uint32_t, void*, size_t) {};
+        virtual void SetOption(const std::string&, const std::string&) {};
+        virtual void SetOption(const std::string&, uint32_t) {};
+        virtual void SetOption(const std::string&, uint64_t) {};
+
     };
 
     /// @endcond

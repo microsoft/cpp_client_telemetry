@@ -16,6 +16,7 @@
 namespace ARIASDK_NS_BEGIN
 {
 
+    class ILogConfiguration;
     class IHttpClient;
 
     /// Default collector url to send events to
@@ -283,10 +284,12 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         VariantMap& operator*();
 
-    private:
+    protected:
         VariantMap m_configs;
         std::map<std::string, std::shared_ptr<IModule>> m_modules;
     };
+
+//    typedef ILogConfiguration IModuleConfiguration;
 
 } ARIASDK_NS_END
 #endif 
