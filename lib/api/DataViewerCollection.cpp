@@ -27,9 +27,8 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-        auto lookupResult = IsViewerInCollection(dataViewer);
 
-        if (lookupResult != nullptr)
+        if (IsViewerEnabledHelper(dataViewer->GetName()))
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() });
         }
@@ -72,27 +71,30 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-        return IsViewerInCollection(viewerName) != nullptr;
+
+		  return IsViewerEnabledHelper(viewerName);
+    }
+	 
+	 bool DataViewerCollection::IsViewerEnabledHelper(const char* viewerName) const
+    {
+        if (viewerName == nullptr)
+        {
+            throw std::invalid_argument("nullptr passed for viewer name");
+        }
+
+        auto lookup = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
+			  {
+				  return strcmp(viewer->GetName(), viewerName) == 0;
+			  });
+
+		  auto result = lookup != m_dataViewerCollection.end();
+
+		  return result;
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
         return m_dataViewerCollection.empty() == false;
-    }
-
-    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const char* viewerName) const noexcept
-    {
-        auto lookup = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
-            {
-                return viewer->GetName() == viewerName;
-            });
-
-        return lookup != m_dataViewerCollection.end() ? *lookup : nullptr;
-    }
-
-    std::shared_ptr<IDataViewer> DataViewerCollection::IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept
-    {
-        return IsViewerInCollection(viewer->GetName());
     }
 } ARIASDK_NS_END
