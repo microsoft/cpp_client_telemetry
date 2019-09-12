@@ -87,9 +87,9 @@ for more details.
 
 _**Note**: Please refer to the supported [platforms](#build),
 anything not in the list should be treated as a feature request. The SDK is
-released as source package, currently there is no plan to release prebuilt
-libraries. Build issues are in general out of the support scope due to the
-unlimited number of build flags combinations._
+released as source package, there is no plan to release prebuilt binaries.
+Build issues are in general out of the support scope due to the unlimited
+number of build flags combinations._
 
 # Contributing
 
