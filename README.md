@@ -63,7 +63,7 @@ every month, following the [milestones](https://github.com/microsoft/cpp_client_
   * Covered by CI - these platforms are tested as part of CI.
 </details>
 
-## Running the Tests
+## Test
 
 There are two sets of tests available:
 * 'tests/unittests' - unit tests that verify operation of each individual
