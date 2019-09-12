@@ -25,12 +25,13 @@ namespace ARIASDK_NS_BEGIN {
     /// Creates an instance of ILogManager using specified configuration.
     /// </summary>
     /// <param name="configuration">The configuration.</param>
-    /// <param name="httpClient">IHTTPClient implementation for the LogManager to use.</param>
     /// <returns>ILogManager instance</returns>
-    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+    ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
+        // TODO: [MG] - ensure that std::shared_ptr<IDataViewer>& dataViewer
+        // is registered under ILogConfiguration
         LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto logManager = new LogManagerImpl(configuration, httpClient, dataViewer);
+        auto logManager = new LogManagerImpl(configuration);
         ILogManagerInternal::managers.emplace(logManager);
         return logManager;
     }
@@ -83,15 +84,15 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerFactory::parseConfig(ILogConfiguration& c, std::string& name, std::string& host)
     {
-        if (c.find("name") != std::end(c))
+        if (c.HasConfig("name"))
         {
             name = std::string((const char*)c["name"]);
         }
 
-        auto it = c.find("config");
-        if (it != std::end(c))
+        if (c.HasConfig("config"))
         {
-            if (it->second.type == Variant::TYPE_OBJ)
+            auto configValue = c["config"];
+            if (configValue.type == Variant::TYPE_OBJ)
             {
                 const char* config_host = c["config"]["host"];
                 host = std::string(config_host);
@@ -99,7 +100,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    ILogManager* LogManagerFactory::lease(ILogConfiguration& c, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
+    ILogManager* LogManagerFactory::lease(ILogConfiguration& c)
     {
         std::string name;
         std::string host;
@@ -111,7 +112,7 @@ namespace ARIASDK_NS_BEGIN {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
             {
-                exclusive[name] = { { name }, Create(c, httpClient, dataViewer) };
+                exclusive[name] = { { name }, Create(c) };
             }
             c["hostMode"] = true;
             return exclusive[name].instance;
@@ -138,7 +139,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                shared[host] = { { name }, Create(c, httpClient, dataViewer) };
+                shared[host] = { { name }, Create(c) };
             }
         }
         else

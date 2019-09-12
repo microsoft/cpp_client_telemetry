@@ -18,9 +18,13 @@
 #include <cassert>
 #include <LogManager.hpp>
 
-#include "AriaDecoderV3.hpp"
+#include "PayloadDecoder.hpp"
 
 #include "mat.h"
+
+#ifdef HAVE_MAT_JSONHPP
+#include "json.hpp"
+#endif
 
 using namespace MAT;
 
@@ -412,8 +416,8 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     TestDebugEventListener debugListener;
 
     auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
     configuration["stats"]["interval"] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
@@ -761,18 +765,19 @@ TEST(APITest, UTC_Callback_Test)
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
         ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+
         // Transform to JSON and print
-        nlohmann::json j;
-        AriaDecoderV3::to_json(j, record);
+        std::string s;
+        exporters::DecodeRecord(record, s);
         printf(
             "*************************************** Event %u ***************************************\n%s\n",
             totalEvents,
-            j.dump(4).c_str()
+            s.c_str()
         );
     };
 
     // Ingest 3 events via C++ API in UTC mode. Callback function above intercepts
-    // these events as CsRecord, then invokes AriaDecoderV3 to represent as JSON.
+    // these events as CsRecord, then invokes PayloadDecoder to represent as JSON.
     for (size_t i = 0; i < 3; i++)
     {
         EventProperties event("MyProduct.UtcEvent",

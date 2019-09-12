@@ -6,12 +6,10 @@ namespace ARIASDK_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
-        status_t &status,
-        IHttpClient* httpClient,
-        const std::shared_ptr<IDataViewer>& dataViewer
+        status_t &status
     )
     {
-        return LogManagerFactory::Get(config, status, httpClient, dataViewer);
+        return LogManagerFactory::Get(config, status);
     }
 
     // TODO: consider utilizing a default reference
@@ -23,10 +21,10 @@ namespace ARIASDK_NS_BEGIN {
         return LogManagerFactory::Get(moduleName, status);
     }
 
-    /// <summary> 
+    /// <summary>
     /// Releases the LogManager identified by moduleName
-    /// <param name="moduleName">Module name</param> 
-    /// </summary> 
+    /// <param name="moduleName">Module name</param>
+    /// </summary>
     status_t LogManagerProvider::Release(const char * moduleName)
     {
         return LogManagerFactory::Release(moduleName);

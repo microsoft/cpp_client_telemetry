@@ -12,9 +12,10 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
-    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, IBandwidthController* bandwidthController)
+    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
         : m_lock(),
         m_system(system),
+        m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
         m_bandwidthController(bandwidthController),
         m_isPaused(true),
@@ -100,7 +101,7 @@ namespace ARIASDK_NS_BEGIN {
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delayInMs;
             m_runningLatency = latency;
             LOG_TRACE("SCHED upload %d ms for lat=%d", delayInMs, m_runningLatency);
-            m_scheduledUpload = PAL::scheduleOnWorkerThread(delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
+            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
 
@@ -199,7 +200,7 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
         pauseAllUploads();
-        allUploadsFinished();   // calls stats.onStop >> this->flushWorkerThread;
+        allUploadsFinished();   // calls stats.onStop >> this->flushTaskDispatcher;
     }
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)

@@ -14,6 +14,7 @@ set(SRCS
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
   GuidTests.cpp
+  HttpClientCAPITests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
   HttpDeflateCompressionTests.cpp
@@ -33,6 +34,7 @@ set(SRCS
   PalTests.cpp
   RouteTests.cpp
   StringUtilsTests.cpp
+  TaskDispatcherCAPITests.cpp
   TransmissionPolicyManagerTests.cpp
   UtilsTests.cpp
 )
@@ -91,12 +93,14 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
     mat
-    curl
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)
 
+  if(NOT BUILD_IOS)
+    target_link_libraries(UnitTests curl)
+  endif()
 
 endif()
 

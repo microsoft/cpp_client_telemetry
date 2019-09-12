@@ -2,6 +2,7 @@
 #ifndef IHTTPCLIENT_HPP
 #define IHTTPCLIENT_HPP
 
+#include "IModule.hpp"
 #include "Version.hpp"
 
 #include "Enums.hpp"
@@ -461,7 +462,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The IHttpClient class is the interface for HTTP client implementations.
     /// </summary>
-    class IHttpClient
+    class IHttpClient : public IModule
     {
     public:
         virtual ~IHttpClient() noexcept {}
