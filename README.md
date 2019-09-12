@@ -59,7 +59,8 @@ every month, following the [milestones](https://github.com/microsoft/cpp_client_
   | Windows Server 2012            | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: | :white_check_mark: |
   
-  * **Supported** - SDK is known to work well in production on these platforms.
+  * **Supported** - these platforms are known to work well with the SDK in
+    production.
   * **Covered by CI** - these platforms are tested as part of CI.
 </details>
 
