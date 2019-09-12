@@ -35,6 +35,9 @@ else
 BUILD_TYPE="Debug"
 fi
 
+# Set target MacOS minver
+export MACOSX_DEPLOYMENT_TARGET=10.10
+
 # Install build tools and recent sqlite3
 FILE=.buildtools
 OS_NAME=`uname -a`

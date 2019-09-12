@@ -15,6 +15,29 @@ if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
+# iOS build options
+option(BUILD_IOS           "Build for iOS"               NO)
+option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
+
+if(BUILD_IOS)
+  set(TARGET_ARCH "APPLE")
+  if(BUILD_SIMULATOR)
+    set(IOS_PLATFORM "iphonesimulator")
+    set(CMAKE_SYSTEM_PROCESSOR x86_64)
+  else()
+    set(IOS_PLATFORM "iphoneos")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+    set(CMAKE_SYSTEM_PROCESSOR arm64)
+  endif()
+
+  execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} Path
+    OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
+endif()
+
 message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
 message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -127,14 +150,17 @@ message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 # Only use custom curl if compiling with CPP11 PAL
 if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-  include(FindCURL)
-  find_package(CURL REQUIRED)
-  if (NOT CURL_FOUND)
-    message (FATAL_ERROR "libcurl not found! Have you installed deps?")
-  endif (NOT CURL_FOUND)
-  include_directories(CURL_INCLUDE_DIRS)
-  set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
-  list(APPEND LIBS "${CURL_LIBRARIES}")
+  
+  if(NOT BUILD_IOS)
+    include(FindCURL)
+    find_package(CURL REQUIRED)
+    if (NOT CURL_FOUND)
+      message (FATAL_ERROR "libcurl not found! Have you installed deps?")
+    endif (NOT CURL_FOUND)
+    include_directories(CURL_INCLUDE_DIRS)
+    set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+    list(APPEND LIBS "${CURL_LIBRARIES}")
+  endif()
 endif()
 
 ################################################################################################
