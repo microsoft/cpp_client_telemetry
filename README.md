@@ -99,5 +99,5 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 # License
 
-By contributing to OpenTelemetry Specification repository, you agree that
-your contributions will be licensed under [MIT License](LICENSE).
+By contributing to 1DS C++ SDK repository, you agree that your contributions
+will be licensed under [MIT License](LICENSE).
