@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
 
-        if (IsViewerEnabledHelper(dataViewer->GetName()))
+        if (IsViewerInCollection(dataViewer->GetName()))
         {
             throw std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() });
         }
@@ -72,24 +72,20 @@ namespace ARIASDK_NS_BEGIN {
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
 
-		  return IsViewerEnabledHelper(viewerName);
+        return IsViewerInCollection(viewerName);
     }
-	 
-	 bool DataViewerCollection::IsViewerEnabledHelper(const char* viewerName) const
+    
+    bool DataViewerCollection::IsViewerInCollection(const char* viewerName) const
     {
         if (viewerName == nullptr)
         {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        auto lookup = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
-			  {
-				  return strcmp(viewer->GetName(), viewerName) == 0;
-			  });
-
-		  auto result = lookup != m_dataViewerCollection.end();
-
-		  return result;
+        return m_dataViewerCollection.end() != std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
+           { 
+              return strcmp(viewer->GetName(), viewerName) == 0; 
+           });
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
