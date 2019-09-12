@@ -228,10 +228,14 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_TASK_DISPATCHER = "taskDispatcher";
 
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4251 )
+#endif
     /// <summary>
     /// The ILogConfiguration class contains LogManager-specific configuration settings
     /// </summary>
-    class ILogConfiguration
+    class MATSDK_LIBABI ILogConfiguration
     {
     public:
         /// <summary>
@@ -287,6 +291,9 @@ namespace ARIASDK_NS_BEGIN
         VariantMap m_configs;
         std::map<std::string, std::shared_ptr<IModule>> m_modules;
     };
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 } ARIASDK_NS_END
 #endif 
