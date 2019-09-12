@@ -67,10 +67,11 @@ every month, following the [milestones](https://github.com/microsoft/cpp_client_
 ## Test
 
 There are two sets of tests available:
-* 'tests/unittests' - unit tests that verify operation of each individual
-  component.
-* 'tests/functests' - functional tests that verify customer-facing APIs and
-  features, they also cover the flow of data to Collector++.
+* [tests/unittests](tests/unittests) - unit tests that verify operation of
+  each individual component.
+* [tests/functests](tests/functests) - functional tests that verify
+  customer-facing APIs and features, they also cover the flow of data to
+  Collector++.
 
 These tests use Google Test / Google Mock framework and get built alongside
 the SDK. Launch 'functests' and 'unittests' binary executables to capture
