@@ -74,7 +74,7 @@ There are two sets of tests available:
   Collector++.
 
 These tests use Google Test / Google Mock framework and get built alongside
-the SDK. Launch 'functests' and 'unittests' binary executables to capture
+the SDK. Launch `functests` and `unittests` binary executables to capture
 the test results.
 
 # Getting Support
