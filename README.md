@@ -84,8 +84,10 @@ as the communication channel for both feature requests and issues.
 We are also available on email and community meeting, please refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 for more details.
 
-_Note: please refer to the supported [platforms](#target-platform)
-and [build environments](#build-environment)._
+_**Note**: Please refer to the supported [platforms](#target-platform),
+anything not in the list should be treated as a feature request. Build
+issues are in general out of the support scope due to the unlimited number
+of build flags combinations._
 
 # Contributing
 
