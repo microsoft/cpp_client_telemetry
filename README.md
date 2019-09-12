@@ -1,6 +1,7 @@
 # 1DS C/C++ SDK
 
-1DS C/C++ SDK enables cross-platform telemetry collection from various Microsoft products. It enables data / telemetry upload to 1DS Collector++.
+1DS C/C++ SDK enables cross-platform telemetry collection from various
+Microsoft products. It enables data / telemetry upload to 1DS Collector++.
 
 # Overview
 
@@ -26,14 +27,40 @@ lifeblood of Microsoft...
 The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
 every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
 
-Here are the supported platforms:
+<details>
+  <summary>Build Environment (click to expand)</summary>
+  
+  | Operating System              | Compiler                         |
+  | ----------------------------- | -------------------------------- |
+  | Mac OS X 10.11.6              | Clang Xcode 8.3                  |
+  | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
+  | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
+  | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
+  | Ubuntu 14.04.* LTS            | GCC 4.8.*, 4.9.4                 |
+  | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
+  | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
+  | Windows Server 2016           | Visual Studio 2017               |
+</details>
 
-| Build Environment                                     | Target Platform |
-| ----------------------------------------------------- | --------------- |
-| Linux with [GCC](https://gcc.gnu.org/)                |                 |
-| Mac OS X with cmake and XCode standard clang compiler |                 |
-| Windows with Visual Studio 2017                       |                 |
-| Windows with cmake + llvm-clang compiler              |                 |
+<details>
+  <summary>Target Platform (click to expand)</summary>
+  
+  | Target Platform                | Supported          | Covered by CI      |
+  | ------------------------------ | --------------------------------------- |
+  | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
+  | Mac OS X 10.11+                | :white_check_mark: |                    |
+  | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
+  | Ubuntu 14.04.x LTS             | :white_check_mark: | :white_check_mark: |
+  | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
+  | Windows 7.1                    | :white_check_mark: |                    |
+  | Windows 8.1                    | :white_check_mark: | :white_check_mark: |
+  | Windows 10.x                   | :white_check_mark: |                    |
+  | Windows Server 2012            | :white_check_mark: |                    |
+  | Windows Server 2016            | :white_check_mark: | :white_check_mark: |
+  
+  * Supported - SDK is known to work well in production on these platforms.
+  * Covered by CI - these platforms are tested as part of CI.
+</details>
 
 ## Running the Tests
 
@@ -44,7 +71,7 @@ There are two sets of tests available:
   features, they also cover the flow of data to Collector++.
 
 These tests use Google Test / Google Mock framework and get built alongside
-with SDK. Launch 'functests' and 'unittests' binary executables to capture
+the SDK. Launch 'functests' and 'unittests' binary executables to capture
 the test results.
 
 # Getting Support
