@@ -5,6 +5,7 @@
 #include "Enums.hpp"
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
+#include "ITaskDispatcher.hpp"
 #include "NullObjects.hpp"
 
 namespace ARIASDK_NS_BEGIN
@@ -39,14 +40,12 @@ namespace ARIASDK_NS_BEGIN
             bool wantController,
             ILogConfiguration& cfg,
             status_t& status,
-            IHttpClient* httpClient,
-            const std::shared_ptr<IDataViewer>& dataViewer,
             uint64_t targetVersion = MAT::Version)
         {
             cfg["name"] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg["config"]["host"] = (wantController) ? id : "*";
-            return Get(cfg, status, httpClient, dataViewer);
+            return Get(cfg, status);
         };
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
@@ -106,24 +105,7 @@ namespace ARIASDK_NS_BEGIN
             ILogConfiguration& cfg,
             status_t& status)
         {
-            return Get(cfg, status, nullptr, nullptr);
-        }
-
-        static ILogManager* MATSDK_SPEC CreateLogManager(
-           ILogConfiguration& cfg,
-           IHttpClient* httpClient,
-           status_t& status)
-        {
-           return Get(cfg, status, httpClient, nullptr);
-        }
-
-        static ILogManager* MATSDK_SPEC CreateLogManager(
-           ILogConfiguration& cfg,
-           IHttpClient* httpClient,
-           const std::shared_ptr<IDataViewer>& dataViewer,
-           status_t& status)
-        {
-           return Get(cfg, status, httpClient, dataViewer);
+            return Get(cfg, status);
         }
 
         /// <summary>
@@ -155,9 +137,7 @@ namespace ARIASDK_NS_BEGIN
 
         static ILogManager * MATSDK_SPEC Get(
             ILogConfiguration & cfg,
-            status_t &status,
-            IHttpClient* httpClient,
-            const std::shared_ptr<IDataViewer>& dataViewer
+            status_t &status
         );
 
         static ILogManager* MATSDK_SPEC Get(
@@ -175,17 +155,19 @@ namespace ARIASDK_NS_BEGIN
 
     /// <summary>
     /// C API client struct
-    /// logmanager  - ILogManager pointer to SDK instance
-    /// config      - ILogConfiguration
-    /// ctx_data    - original JSON configuration or token passed to mat_open
-    /// http        - optional IHttpClient override instance
+    /// logmanager     - ILogManager pointer to SDK instance
+    /// config         - ILogConfiguration
+    /// ctx_data       - original JSON configuration or token passed to mat_open
+    /// http           - optional IHttpClient override instance
+    /// taskDispatcher - optional ITaskDispatcher override instance
     /// </summary>
     typedef struct
     {
-        ILogManager*        logmanager = nullptr;
-        ILogConfiguration   config;
-        std::string         ctx_data;
-        IHttpClient*        http = nullptr;
+        ILogManager*                     logmanager = nullptr;
+        ILogConfiguration                config;
+        std::string                      ctx_data;
+        std::shared_ptr<IHttpClient>     http;
+        std::shared_ptr<ITaskDispatcher> taskDispatcher;
     } capi_client;
 
     /// <summary>

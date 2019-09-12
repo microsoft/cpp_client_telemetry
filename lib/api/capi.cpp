@@ -7,6 +7,7 @@
 #include "http/HttpClient_CAPI.hpp"
 #include "LogManagerProvider.hpp"
 #include "mat.h"
+#include "pal/TaskDispatcher_CAPI.hpp"
 #include "utils/Utils.hpp"
 
 #include "PAL.hpp"
@@ -66,7 +67,10 @@ evt_status_t mat_open_core(
     evt_context_t *ctx,
     const char* config,
     http_send_fn_t httpSendFn,
-    http_cancel_fn_t httpCancelFn)
+    http_cancel_fn_t httpCancelFn,
+    task_dispatcher_queue_fn_t taskDispatcherQueueFn,
+    task_dispatcher_cancel_fn_t taskDispatcherCancelFn,
+    task_dispatcher_join_fn_t taskDispatcherJoinFn)
 {
     if ((config == nullptr) || (config[0] == 0))
     {
@@ -129,7 +133,24 @@ evt_status_t mat_open_core(
     {
         try
         {
-            clients[code].http = new HttpClient_CAPI(httpSendFn, httpCancelFn);
+            auto http = std::make_shared<HttpClient_CAPI>(httpSendFn, httpCancelFn);
+            clients[code].http = http;
+            clients[code].config.AddModule(CFG_MODULE_HTTP_CLIENT, http);
+        }
+        catch (...)
+        {
+            return EFAULT;
+        }
+    }
+
+    // Create custom worker thread
+    if (taskDispatcherQueueFn != nullptr && taskDispatcherCancelFn != nullptr && taskDispatcherJoinFn != nullptr)
+    {
+        try
+        {
+            auto taskDispatcher = std::make_shared<PAL::TaskDispatcher_CAPI>(taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
+            clients[code].taskDispatcher = taskDispatcher;
+            clients[code].config.AddModule(CFG_MODULE_TASK_DISPATCHER, taskDispatcher);
         }
         catch (...)
         {
@@ -138,7 +159,7 @@ evt_status_t mat_open_core(
     }
 
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, clients[code].http, status);
+    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)
@@ -158,7 +179,7 @@ evt_status_t mat_open(evt_context_t *ctx)
     };
 
     char* config = static_cast<char *>(ctx->data);
-    return mat_open_core(ctx, config, nullptr, nullptr);
+    return mat_open_core(ctx, config, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 evt_status_t mat_open_with_params(evt_context_t *ctx)
@@ -177,6 +198,9 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 
     http_send_fn_t httpSendFn = nullptr;
     http_cancel_fn_t httpCancelFn = nullptr;
+    task_dispatcher_queue_fn_t taskDispatcherQueueFn = nullptr;
+    task_dispatcher_cancel_fn_t taskDispatcherCancelFn = nullptr;
+    task_dispatcher_join_fn_t taskDispatcherJoinFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
         const evt_open_param_t& param = data->params[i];
@@ -187,10 +211,19 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
             case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
                 httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
                 break;
+            case OPEN_PARAM_TYPE_TASK_DISPATCHER_QUEUE:
+                taskDispatcherQueueFn = reinterpret_cast<task_dispatcher_queue_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_TASK_DISPATCHER_CANCEL:
+                taskDispatcherCancelFn = reinterpret_cast<task_dispatcher_cancel_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_TASK_DISPATCHER_JOIN:
+                taskDispatcherJoinFn = reinterpret_cast<task_dispatcher_join_fn_t>(param.data);
+                break;
         }
     }
 
-    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn);
+    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn, taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
 }
 
 /**
@@ -256,8 +289,12 @@ evt_status_t mat_close(evt_context_t *ctx)
     
     if (client->http != nullptr)
     {
-        delete client->http;
         client->http = nullptr;
+    }
+
+    if (client->taskDispatcher != nullptr)
+    {
+        client->taskDispatcher = nullptr;
     }
 
     remove_client(ctx->handle);

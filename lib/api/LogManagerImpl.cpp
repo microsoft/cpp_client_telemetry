@@ -14,6 +14,7 @@
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
+#include "pal/TaskDispatcher.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -94,29 +95,21 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient)
-       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration)
+       : LogManagerImpl(configuration, false /*deferSystemStart*/)
     {
     }
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer)
-       : LogManagerImpl(configuration, httpClient, false /*deferSystemStart*/, dataViewer)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
+        : m_bandwidthController(nullptr),
+        m_offlineStorage(nullptr),
+        m_logConfiguration(configuration)
     {
-    }
-
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart)
-       : LogManagerImpl(configuration, httpClient, deferSystemStart, nullptr)
-    {
-    }
-
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer)
-        : m_httpClient(httpClient),
-        m_logConfiguration(configuration),
-        m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr)
-    {
+        m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
+        m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
-
+        // TODO: [MG] - initialize m_dataViewerCollection
+        
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
@@ -124,10 +117,10 @@ namespace ARIASDK_NS_BEGIN
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
-        if ( !m_logConfiguration.count(CFG_STR_CACHE_FILE_PATH) ||
+        if ( !m_logConfiguration.HasConfig(CFG_STR_CACHE_FILE_PATH) ||
             (const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
         {
-            if (m_logConfiguration.count(CFG_STR_PRIMARY_TOKEN))
+            if (m_logConfiguration.HasConfig(CFG_STR_PRIMARY_TOKEN))
             {
                 std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
@@ -152,7 +145,7 @@ namespace ARIASDK_NS_BEGIN
             // TODO: [MG] - verify that cache file is writeable
         }
 
-        if (m_logConfiguration.count(CFG_STR_TRANSMIT_PROFILES))
+        if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
         {
             std::string transmitProfiles = m_logConfiguration[CFG_STR_TRANSMIT_PROFILES];
             if (!transmitProfiles.empty())
@@ -162,7 +155,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        if (m_logConfiguration.count(CFG_STR_START_PROFILE_NAME))
+        if (m_logConfiguration.HasConfig(CFG_STR_START_PROFILE_NAME))
         {
             std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
             if (!transmitProfile.empty())
@@ -177,9 +170,20 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
+#if 0
+        // FIXME: [MG] - re-enable data viewer
         if (dataViewer != nullptr)
         {
             m_dataViewerCollection.RegisterViewer(dataViewer);
+        }
+#endif
+        if (m_taskDispatcher == nullptr)
+        {
+            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
+        }
+        else
+        {
+            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
 #ifdef HAVE_MAT_UTC
@@ -196,7 +200,7 @@ namespace ARIASDK_NS_BEGIN
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
             LOG_TRACE("Initializing UTC physical layer...");
-            m_system.reset(new UtcTelemetrySystem(*this, *m_config));
+            m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
             if (!deferSystemStart)
             {
                m_system->start();
@@ -210,17 +214,16 @@ namespace ARIASDK_NS_BEGIN
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr) {
-            m_ownHttpClient.reset(HttpClientFactory::Create());
-            m_httpClient = m_ownHttpClient.get();
+            m_httpClient.reset(HttpClientFactory::Create());
         }
         else {
-            LOG_TRACE("HttpClient: External %p", m_httpClient);
+            LOG_TRACE("HttpClient: External %p", m_httpClient.get());
         }
 #else
         if (m_httpClient == nullptr)
         {
-           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's c'tor.");
-           throw std::invalid_argument("httpClient");
+           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
+           throw std::invalid_argument("configuration");
         }
 #endif
 
@@ -234,9 +237,9 @@ namespace ARIASDK_NS_BEGIN
             LOG_TRACE("BandwidthController: None");
         }
 
-        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config));
+        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, m_bandwidthController));
+        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
@@ -297,8 +300,11 @@ namespace ARIASDK_NS_BEGIN
             m_ownBandwidthController.reset();
             m_bandwidthController = nullptr;
 
-            m_ownHttpClient.reset();
             m_httpClient = nullptr;
+            m_taskDispatcher = nullptr;
+
+            // Reset the contents of m_eventFilterRegulator, but keep the object
+            m_eventFilterRegulator.Reset();
         }
 
         m_filters.UnregisterAllFilters();

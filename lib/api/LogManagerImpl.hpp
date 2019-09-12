@@ -10,6 +10,7 @@
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
 #include "IModule.hpp"
+#include "ITaskDispatcher.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
@@ -119,10 +120,8 @@ namespace ARIASDK_NS_BEGIN
 
     public:
 
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient);
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, const std::shared_ptr<IDataViewer>& dataViewer);
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart);
-        LogManagerImpl(ILogConfiguration& configuration, IHttpClient* httpClient, bool deferSystemStart, const std::shared_ptr<IDataViewer>& dataViewer);
+        LogManagerImpl(ILogConfiguration& configuration);
+        LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart);
 
         virtual ~LogManagerImpl() noexcept override;
 
@@ -257,8 +256,8 @@ protected:
         std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
         ContextFieldsProvider                                  m_context;
 
-        IHttpClient*                                           m_httpClient;
-        std::unique_ptr<IHttpClient>                           m_ownHttpClient;
+        std::shared_ptr<IHttpClient>                           m_httpClient;
+        std::shared_ptr<ITaskDispatcher>                       m_taskDispatcher;
 
         std::unique_ptr<IRuntimeConfig>                        m_config;
         ILogConfiguration&                                     m_logConfiguration;

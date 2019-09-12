@@ -2,32 +2,38 @@
 #ifndef IMODULE_HPP
 #define IMODULE_HPP
 
-#include <ILogManager.hpp>
-#include <Version.hpp>
-
+#include "Version.hpp"
+#include "ctmacros.hpp"
+#include "ILogManager.hpp"
+    
+///@cond INTERNAL_DOCS
 namespace ARIASDK_NS_BEGIN
 {
-
     /// <summary>
-    /// Interface for pluggable modules in the 1DS C++ SDK.
+    /// IModule is a broad container interface that allows an application to override an internal component
     /// </summary>
-    class IModule
+    class MATSDK_LIBABI IModule
     {
     public:
+        /// <summary>
+        /// IModule destructor
+        /// </summary>
         virtual ~IModule() noexcept = default;
-
+        
         /// <summary>
         /// Initializes the module.
         /// Invoked as part of parent ILogManager is constructed.
         /// </summary>
-        virtual void Initialize(ILogManager* parent) noexcept = 0;
-
+        virtual void Initialize(ILogManager* parent) noexcept {};
+        
         /// <summary>
         /// Tears down the module.
-        /// Invoked as part of parent ILogManager's FlushAndTeardown() method. 
+        /// Invoked as part of parent ILogManager's FlushAndTeardown() method.
         /// </summary>
-        virtual void Teardown() noexcept = 0;
+        virtual void Teardown() noexcept {};
     };
+
+    /// @endcond
 
 } ARIASDK_NS_END
 

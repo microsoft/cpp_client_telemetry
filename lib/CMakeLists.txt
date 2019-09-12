@@ -22,6 +22,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/CorrelationVector.cpp
   api/LogConfiguration.cpp
   api/AuthTokensController.cpp
+  api/ILogConfiguration.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
   api/DataViewerCollection.cpp
@@ -42,7 +43,8 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/OfflineStorageHandler.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
-  pal/PAL.hpp
+  pal/TaskDispatcher_CAPI.cpp
+  pal/WorkerThread.cpp
 )
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
@@ -68,16 +70,23 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   list(APPEND SRCS
-    http/HttpClient_Curl.cpp
-    http/HttpClient_Curl.hpp
     http/HttpClient.hpp
-    pal/WorkerThread.cpp
-    pal/WorkerThread.hpp
     pal/posix/DeviceInformationImpl.cpp
     pal/posix/NetworkInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
     pal/posix/sysinfo_sources.cpp
   )
+
+  if(BUILD_IOS)
+    list(APPEND SRCS
+      http/HttpClient_iOS.mm
+    )
+  else()
+    list(APPEND SRCS
+      http/HttpClient_Curl.cpp
+      http/HttpClient_Curl.hpp
+    )
+  endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
@@ -88,8 +97,6 @@ remove_definitions(-D_MBCS)
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
     http/HttpClient.hpp
-    pal/WorkerThread.cpp
-    pal/WorkerThread.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp

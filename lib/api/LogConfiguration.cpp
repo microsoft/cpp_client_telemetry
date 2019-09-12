@@ -107,7 +107,7 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
         };
-        parse(src, result);
+        parse(src, *result);
 #else
         (void)(configuration);
         assert(false /* json.hpp support is not enabled! */);
