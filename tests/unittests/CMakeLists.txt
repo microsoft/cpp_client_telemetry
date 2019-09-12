@@ -92,12 +92,14 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
     mat
-    curl
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)
 
+  if(NOT BUILD_IOS)
+    target_link_libraries(UnitTests curl)
+  endif()
 
 endif()
 
