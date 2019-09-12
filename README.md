@@ -27,8 +27,9 @@ lifeblood of Microsoft...
 The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
 every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
 
+## Build Environment
 <details>
-  <summary>Build Environment (click to expand)</summary>
+  <summary>Click to expand:</summary>
   
   | Operating System              | Compiler                         |
   | ----------------------------- | -------------------------------- |
@@ -42,8 +43,9 @@ every month, following the [milestones](https://github.com/microsoft/cpp_client_
   | Windows Server 2016           | Visual Studio 2017               |
 </details>
 
+## Target Platform
 <details>
-  <summary>Target Platform (click to expand)</summary>
+  <summary>Click to expand:</summary>
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
@@ -82,6 +84,8 @@ as the communication channel for both feature requests and issues.
 We are also available on email and community meeting, please refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 for more details.
 
+_Note: please refer to the [supported platforms](#target-platform) and
+[build environments](build-environment).
 
 # Contributing
 
