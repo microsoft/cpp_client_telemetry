@@ -82,10 +82,14 @@ namespace ARIASDK_NS_BEGIN {
             throw std::invalid_argument("nullptr passed for viewer name");
         }
 
-        return m_dataViewerCollection.end() != std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
-           { 
-              return strcmp(viewer->GetName(), viewerName) == 0; 
-           });
+        auto lookupResult = std::find_if(m_dataViewerCollection.begin(),
+                                         m_dataViewerCollection.end(),
+                                        [&viewerName](std::shared_ptr<IDataViewer> viewer)
+                                         {
+                                            return strcmp(viewer->GetName(), viewerName) == 0;
+                                         });
+
+        return lookupResult != m_dataViewerCollection.end();
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
