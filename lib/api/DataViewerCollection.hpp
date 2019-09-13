@@ -32,9 +32,8 @@ namespace ARIASDK_NS_BEGIN {
         mutable std::mutex m_dataViewerMapLock;
 
     protected:
+        bool IsViewerInCollection(const char* viewerName) const;
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
-        std::shared_ptr<IDataViewer> IsViewerInCollection(const char* viewerName) const noexcept;
-        std::shared_ptr<IDataViewer> IsViewerInCollection(const std::shared_ptr<IDataViewer>& viewer) const noexcept;
     };
 
 } ARIASDK_NS_END
