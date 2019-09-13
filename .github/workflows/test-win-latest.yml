@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         arch: [Win32, x64]
-        config: [Release, Debug]
+        config: [Release]
         os: [windows-2016]
     
     steps:
