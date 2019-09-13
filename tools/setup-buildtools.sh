@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -f /bin/yum ]; then
-# Prefer yum over apt
+# Prefer yum over apt-get
 yum -y install automake
 yum -y install autoconf
 yum -y install libtool
@@ -41,20 +41,23 @@ cd ..
 fi
 
 else
-# Use apt
-apt install -y automake
-apt install -y libtool-bin
-apt install -y cmake
-apt install -y sqlite
-apt install -y curl libcurl4-openssl-dev
-apt install -y zlib1g-dev
-apt install -y git
-apt install -y build-essential
-apt install -y libssl-dev
-apt install -y libsqlite3-dev
+# Use apt-get
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y automake
+apt-get install -y libtool-bin
+apt-get install -y cmake
+apt-get install -y sqlite
+apt-get install -y curl
+apt-get install -y libcurl4-openssl-dev
+apt-get install -y zlib1g-dev
+apt-get install -y git
+apt-get install -y build-essential
+apt-get install -y libssl-dev
+apt-get install -y libsqlite3-dev
 # Stock sqlite may be too old
 #apt install libsqlite3-dev
-apt install -y wget
+apt-get install -y wget
 fi
 
 ## Install sqlite 3.22
