@@ -95,6 +95,6 @@ namespace ARIASDK_NS_BEGIN {
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-        return m_dataViewerCollection.empty() == false;
+        return !m_dataViewerCollection.empty();
     }
 } ARIASDK_NS_END
