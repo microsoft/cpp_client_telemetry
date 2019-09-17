@@ -2,8 +2,12 @@
 #ifndef MAT_LOGMANAGER_HPP
 #define MAT_LOGMANAGER_HPP
 
-#include <exception>
+#include "ctmacros.hpp"
 #include "CommonFields.h"
+
+#if (HAVE_EXCEPTIONS)
+#include <exception>
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -34,6 +38,15 @@ public:
             return STATUS_SUCCESS;                  \
         }                                           \
         return STATUS_EFAIL;                        \
+    }
+
+#define LM_SAFE_CALL_RETURN(method , ... )          \
+    {                                               \
+        LM_LOCKGUARD(stateLock());                  \
+        if (nullptr != instance)                    \
+        {                                           \
+            return instance-> method ( __VA_ARGS__);\
+        }                                           \
     }
 
 #define LM_SAFE_CALL_STR(method , ... )             \
@@ -85,12 +98,14 @@ public:
 
 namespace ARIASDK_NS_BEGIN
 {
+#if (HAVE_EXCEPTIONS)
     class LogManagerNotInitializedException : public std::runtime_error
     {
     public:
         LogManagerNotInitializedException(const char* message) noexcept
             : std::runtime_error(message) { }
     };
+#endif
 
     /// <summary>
     /// This configuration flag is populated by SDK to indicate if this singleton instance
@@ -551,12 +566,15 @@ namespace ARIASDK_NS_BEGIN
 
         inline static IEventFilterCollection& GetEventFilters()
         {
-            LM_LOCKGUARD(stateLock());
-            if (nullptr != instance)
-            {
-                return instance->GetEventFilters();
-            }
+            LM_SAFE_CALL_RETURN(GetEventFilters);
+#if HAVE_EXCEPTIONS
+            /* Enforce exception   */
             throw LogManagerNotInitializedException("LogManager::Initialize must be invoked prior to calling GetFilters()");
+#else
+            /* NULL object pattern */
+            static NullLogManager nullLogManager;
+            return nullLogManager.GetEventFilters();
+#endif
         }
 
         /// <summary>
@@ -635,7 +653,15 @@ namespace ARIASDK_NS_BEGIN
 
         static IDataViewerCollection& GetDataViewerCollection()
         {
-            return instance->GetDataViewerCollection();
+            LM_SAFE_CALL_RETURN(GetDataViewerCollection);
+#if HAVE_EXCEPTIONS
+            /* Enforce exception   */
+            throw LogManagerNotInitializedException("LogManager::Initialize must be invoked prior to calling GetDataViewerCollection()");
+#else
+            /* NULL object pattern */
+            static NullLogManager nullLogManager;
+            return nullLogManager.GetDataViewerCollection();
+#endif
         }
     };
 

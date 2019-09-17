@@ -1,14 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include <algorithm>
 #include "EventFilterCollection.hpp"
+#include "ctmacros.hpp"
+
+#if (HAVE_EXCEPTIONS)
 #include <exception>
+#endif
 
 namespace ARIASDK_NS_BEGIN
 {
     void EventFilterCollection::RegisterEventFilter(std::unique_ptr<IEventFilter>&& filter)
     {
         if (filter == nullptr)
-            throw std::invalid_argument("filter");
+            MATSDK_THROW(std::invalid_argument("filter"));
 
         std::lock_guard<std::mutex> lock(m_filterLock);
         m_filters.emplace_back(std::move(filter));
@@ -17,7 +21,7 @@ namespace ARIASDK_NS_BEGIN
     void EventFilterCollection::UnregisterEventFilter(const char* filterName)
     {
         if (filterName == nullptr)
-            throw std::invalid_argument("filterName");
+            MATSDK_THROW(std::invalid_argument("filterName"));
 
         std::lock_guard<std::mutex> lock(m_filterLock);
         m_filters.erase(

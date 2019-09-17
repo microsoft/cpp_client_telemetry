@@ -107,9 +107,8 @@ namespace ARIASDK_NS_BEGIN
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
+        m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
-        // TODO: [MG] - initialize m_dataViewerCollection
-        
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
@@ -170,13 +169,14 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
-#if 0
-        // FIXME: [MG] - re-enable data viewer
-        if (dataViewer != nullptr)
+        if (m_dataViewer != nullptr)
         {
-            m_dataViewerCollection.RegisterViewer(dataViewer);
+            m_dataViewerCollection.RegisterViewer(m_dataViewer);
+        } else 
+        {
+            // TODO: [MG] - register default data viewer implementation if enabled?
         }
-#endif
+
         if (m_taskDispatcher == nullptr)
         {
             m_taskDispatcher = PAL::getDefaultTaskDispatcher();
@@ -213,27 +213,31 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-        if (m_httpClient == nullptr) {
+        if (m_httpClient == nullptr)
+        {
             m_httpClient.reset(HttpClientFactory::Create());
         }
-        else {
+        else
+        {
             LOG_TRACE("HttpClient: External %p", m_httpClient.get());
         }
 #else
         if (m_httpClient == nullptr)
         {
            LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
-           throw std::invalid_argument("configuration");
+           MATSDK_THROW(std::invalid_argument("configuration"));
         }
 #endif
 
         if (m_bandwidthController == nullptr) {
             m_bandwidthController = m_ownBandwidthController.get();
         }
-        else {
+        else
+        {
             LOG_TRACE("BandwidthController: External %p", m_bandwidthController);
         }
-        if (m_bandwidthController == nullptr) {
+        if (m_bandwidthController == nullptr)
+        {
             LOG_TRACE("BandwidthController: None");
         }
 
@@ -283,10 +287,12 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_INFO("Shutting down...");
 
-        LOG_INFO("Tearing down modules");
-        TeardownModules();
         {
             LOCKGUARD(m_lock);
+
+            LOG_INFO("Tearing down modules");
+            TeardownModules();
+
             if (m_isSystemStarted && m_system)
             {
                 m_system->stop();
@@ -302,9 +308,7 @@ namespace ARIASDK_NS_BEGIN
 
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
-
-            // Reset the contents of m_eventFilterRegulator, but keep the object
-            m_eventFilterRegulator.Reset();
+            m_dataViewer = nullptr;
         }
 
         m_filters.UnregisterAllFilters();

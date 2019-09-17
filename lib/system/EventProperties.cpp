@@ -51,6 +51,10 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
+    /**
+    * \brief EventProperties constructor
+    * \param name Event name - must not be empty!
+    */
     EventProperties::EventProperties(const string& name)
         : EventProperties(name, DIAG_LEVEL_OPTIONAL)
     {

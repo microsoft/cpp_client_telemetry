@@ -28,8 +28,6 @@ namespace ARIASDK_NS_BEGIN {
     /// <returns>ILogManager instance</returns>
     ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
-        // TODO: [MG] - ensure that std::shared_ptr<IDataViewer>& dataViewer
-        // is registered under ILogConfiguration
         LOCKGUARD(ILogManagerInternal::managers_lock);
         auto logManager = new LogManagerImpl(configuration);
         ILogManagerInternal::managers.emplace(logManager);

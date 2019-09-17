@@ -23,14 +23,14 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (dataViewer == nullptr)
         {
-            throw std::invalid_argument("nullptr passed for data viewer");
+            MATSDK_THROW(std::invalid_argument("nullptr passed for data viewer"));
         }
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
 
         if (IsViewerInCollection(dataViewer->GetName()))
         {
-            throw std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() });
+            MATSDK_THROW(std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() }));
         }
         
         m_dataViewerCollection.push_back(dataViewer);
@@ -40,7 +40,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (viewerName == nullptr)
         {
-            throw std::invalid_argument("nullptr passed for viewer name");
+            MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
@@ -51,7 +51,7 @@ namespace ARIASDK_NS_BEGIN {
         
         if (toErase == m_dataViewerCollection.end())
         {
-            throw std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName });
+            MATSDK_THROW(std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName }));
         }
 
         m_dataViewerCollection.erase(toErase);
@@ -67,7 +67,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (viewerName == nullptr)
         {
-            throw std::invalid_argument("nullptr passed for viewer name");
+            MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
@@ -79,7 +79,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (viewerName == nullptr)
         {
-            throw std::invalid_argument("nullptr passed for viewer name");
+            MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
         auto lookupResult = std::find_if(m_dataViewerCollection.begin(),
