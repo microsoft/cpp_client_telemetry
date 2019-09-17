@@ -29,6 +29,11 @@ SOFTWARE.
 #ifndef NLOHMANN_JSON_HPP
 #define NLOHMANN_JSON_HPP
 
+#ifdef _WIN32
+#undef max
+#undef min
+#endif
+
 #include <algorithm> // all_of, copy, fill, find, for_each, none_of, remove, reverse, transform
 #include <array> // array
 #include <cassert> // assert
