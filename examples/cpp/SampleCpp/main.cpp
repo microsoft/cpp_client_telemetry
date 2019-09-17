@@ -93,35 +93,6 @@ void Api_v1_CompatChecks()
 
 }
 
-void samplingTest()
-{
-    const char *sampledList[] = {
-        "MyEvent1",
-        "MyEvent2",
-        "MyEvent3",
-        "MyEvent4"
-    };
-
-#if 0
-    uint32_t samplingRates[] = { 100, 75, 50, 0 };
-    LogManager::SetExclusionFilter(TOKEN, sampledList, samplingRates, 4);
-#endif
-
-    ILogger *logger = LogManager::GetLogger();
-    for (size_t i = 0; i < 100; i++)
-    {
-        logger->LogEvent("MyEvent1");
-        logger->LogEvent("MyEvent2");
-        logger->LogEvent("MyEvent3");
-        logger->LogEvent("MyEvent4");
-        logger->LogEvent("NS1.MyEvent1.Foo");
-        logger->LogEvent("NS2.MyEvent2.Bar");
-        logger->LogEvent("NS3.MyEvent3.Toor");
-        logger->LogEvent("NS4.MyEvent4.Root");
-    }
-
-}
-
 #define	 ENTER	printf("%s\n", __FUNCTION__)
 
 typedef std::chrono::milliseconds ms;
