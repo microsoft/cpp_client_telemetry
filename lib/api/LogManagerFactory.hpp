@@ -70,12 +70,12 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         static const NullLogManager   NULL_LOGMANAGER;
+
         /// <summary>
         /// Creates a new ILogManager instance
         /// </summary>
         /// <param name="configuration">Configuration settings to apply to the telemetry logging system.</param>
         /// <returns>An ILogManager telemetry logging system instance created with the specified configuration and HTTP Client.</returns>
-
         static ILogManager* Create(ILogConfiguration& configuration);
 
         /// <summary>
@@ -106,9 +106,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "version", "0.0.0" },
                 { "config", {  } }
             };
-
             auto result = instance().lease(config);
-
             status = (result != nullptr) ?
                 STATUS_SUCCESS :
                 STATUS_EFAIL;

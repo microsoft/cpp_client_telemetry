@@ -3,6 +3,9 @@
 #define IDATAVIEWER_HPP
 
 #include "Version.hpp"
+#include "ctmacros.hpp"
+#include "IModule.hpp"
+
 #include <vector>
 
 namespace ARIASDK_NS_BEGIN
@@ -11,7 +14,7 @@ namespace ARIASDK_NS_BEGIN
     /// This interface allows SDK users to register a data viewer
     /// that will receive all packets uploaded by the SDK.
     /// </summary>
-    class IDataViewer
+    class IDataViewer: public IModule
     {
     public:
         /// <summary>

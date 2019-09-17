@@ -2,11 +2,12 @@
 #ifndef EVENTFILTERCOLLECTION_HPP
 #define EVENTFILTERCOLLECTION_HPP
 
-#include <IEventFilterCollection.hpp>
+#include "Version.hpp"
+#include "IEventFilterCollection.hpp"
+
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <Version.hpp>
 
 namespace ARIASDK_NS_BEGIN
 {

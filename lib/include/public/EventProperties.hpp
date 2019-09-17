@@ -200,6 +200,9 @@ namespace ARIASDK_NS_BEGIN
             SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
         }
 
+        ///
+        /// TODO: [MG] - can we revisit this, do we need a tuple?
+        ///
         /// <summary>
         /// Attempts to get the diagnostic level for an event.
         /// <return>True and the level, or false if unset, set to the wrong type, or the value is out of bounds.</return>

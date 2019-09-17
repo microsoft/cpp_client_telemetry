@@ -2,9 +2,9 @@
 #ifndef DATAVIEWERCOLLECTIONIMPL_HPP
 #define DATAVIEWERCOLLECTIONIMPL_HPP
 
-#include "public/IDataViewerCollection.hpp"
+#include "ctmacros.hpp"
+#include "IDataViewerCollection.hpp"
 #include "pal/PAL.hpp"
-#include "public/ctmacros.hpp"
 
 #include <mutex>
 #include <vector>

@@ -1,8 +1,9 @@
 #ifndef COMPLIANTBYDEFAULTEVENTFILTERAPI_HPP
 #define COMPLIANTBYDEFAULTEVENTFILTERAPI_HPP
 
-#include <ctmacros.hpp>
-#include <Version.hpp>
+#include "Version.hpp"
+#include "ctmacros.hpp"
+
 #include <vector>
 
 namespace ARIASDK_NS_BEGIN { namespace Modules { namespace Filtering
