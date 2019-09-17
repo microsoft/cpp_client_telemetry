@@ -76,10 +76,24 @@
 /* Default set of diagnostic level constants. Customers may define their own set. */
 #define DIAG_LEVEL_DEFAULT                              255     /* Default level is inherited from parent */
 #define DIAG_LEVEL_NONE                                 0       /* Logging disabled                       */
+
+/* Windows OS diagnostic level classification        */
+#define DIAG_LEVEL_BASIC                                1       /* Basic info                             */
+#define DIAG_LEVEL_ENHANCED                             2       /* Additional performance data            */
+#define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
+
+/* Microsoft Office diagnostic level classification  */
 #define DIAG_LEVEL_REQUIRED                             1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
 #define DIAG_LEVEL_OPTIONAL                             2       /* Additional optional data               */
+
+/* Custom SDK configuration allows to override DIAG_LEVEL_DEFAULT_MIN and DIAG_LEVEL_DEFAULT_MAX          */
+#ifndef DIAG_LEVEL_DEFAULT_MIN
 #define DIAG_LEVEL_DEFAULT_MIN                          DIAG_LEVEL_REQUIRED
+#endif
+
+#ifndef DIAG_LEVEL_DEFAULT_MAX
 #define DIAG_LEVEL_DEFAULT_MAX                          DIAG_LEVEL_OPTIONAL
+#endif
 
 /* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
 #define SESSION_SDKUID                                  "DeviceInfo.SDKUid"
