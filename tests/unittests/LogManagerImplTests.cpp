@@ -77,7 +77,7 @@ public:
     };
 
     ILogConfiguration configuration;
-    TestLogManagerImpl logManager{ configuration, nullptr };
+    TestLogManagerImpl logManager{ configuration };
     const ILogManager* AddressPassedToInitialize{};
     bool InitializeCalled{};
     bool TeardownCalled{};
