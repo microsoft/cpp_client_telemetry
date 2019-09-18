@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <vector>
+#include <algorithm>
 
 #include "Version.hpp"
 #include "ctmacros.hpp"
