@@ -1,5 +1,5 @@
 # Supported Platforms
-The SDK definines 'platforms' as the union of Operating System, Compiler, and Standard Library.
+The SDK defines 'platforms' as the combination of Operating System, Compiler, and Standard Library.
 
 ## Compilers
 The SDK requires a code base that at least supports C++11 and our code is C++11 compliant. We guarantee the SDK will compile under any of the following compilation flags:
