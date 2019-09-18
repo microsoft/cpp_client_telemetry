@@ -1,4 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
+
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifdef _WIN32 /* TODO: [MG] - unfortunately the HttpServer is not implemented for Linux and Mac OS X yet */
 #ifndef WIN32_LEAN_AND_MEAN
@@ -13,7 +15,8 @@
 #include "bond/generated/CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 #include "LogManager.hpp"
-#include <CompliantByDefaultFilterApi.hpp>
+
+#include "CompliantByDefaultFilterApi.hpp"
 
 #include <fstream>
 #include <atomic>

@@ -19,7 +19,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// IModule destructor
         /// </summary>
-        virtual ~IModule() noexcept {}; // = default;
+        virtual ~IModule() noexcept = default;
 
         /// <summary>
         /// Initializes the module.

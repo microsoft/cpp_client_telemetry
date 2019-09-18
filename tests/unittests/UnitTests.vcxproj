@@ -435,7 +435,6 @@
     <ClCompile Include="$(ProjectDir)\HttpClientCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientManagerTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpDeflateCompressionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpRequestEncoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
