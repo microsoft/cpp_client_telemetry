@@ -13,6 +13,7 @@ set(SRCS decorators/BaseDecorator.cpp
   system/TelemetrySystem.cpp
   system/EventProperties.cpp
   compression/HttpDeflateCompression.cpp
+  api/AllowedLevelsCollection.cpp
   api/LogManager.cpp
   api/ContextFieldsProvider.cpp
   api/LogManagerImpl.cpp
@@ -103,16 +104,27 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
   )
+  
+  # UTC module
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS
       modules/utc/desktop/UtcHelpers.cpp
       modules/utc/UtcTelemetrySystem.cpp
     )
   endif()
+
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()
 
+# Filtering module
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/filter)
+  list(APPEND SRCS
+    modules/filter/CompliantByDefaultEventFilterModule.cpp
+    modules/filter/CompliantByDefaultFilterApi.cpp
+    modules/filter/LevelCheckingEventFilter.cpp
+  )
+endif()
 
 create_source_files_groups_per_folder(${SRCS})
 
