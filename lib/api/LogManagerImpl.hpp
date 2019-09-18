@@ -22,7 +22,8 @@
 #include "api/AuthTokensController.hpp"
 #include "filter/EventFilterCollection.hpp"
 #include "api/DataViewerCollection.hpp"
-#include "modules/filter/AllowedLevelsCollection.hpp"
+
+#include "AllowedLevelsCollection.hpp"
 
 #include "LogSessionData.hpp"
 

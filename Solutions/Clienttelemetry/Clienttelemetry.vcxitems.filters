@@ -209,6 +209,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewerCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.cpp">
+      <Filter>api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.hpp">
@@ -229,9 +232,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp">
       <Filter>tpm</Filter>
     </ClInclude>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.hpp">
-      <Filter>http</Filter>
-    </ClCompile>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientFactory.hpp">
       <Filter>http</Filter>
     </ClInclude>
@@ -583,10 +583,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\PayloadDecoder.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.hpp">
+      <Filter>api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">
       <Filter>include\public</Filter>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\README" />
   </ItemGroup>
 </Project>
