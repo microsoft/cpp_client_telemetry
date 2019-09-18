@@ -15,6 +15,7 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\IRuntimeConfig.hpp" />
