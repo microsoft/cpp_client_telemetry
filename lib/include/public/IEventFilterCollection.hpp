@@ -2,9 +2,10 @@
 #ifndef IEVENTFILTERCOLLECTION_HPP
 #define IEVENTFILTERCOLLECTION_HPP
 
-#include <IEventFilter.hpp>
+#include "Version.hpp"
+#include "IEventFilter.hpp"
+
 #include <memory>
-#include <Version.hpp>
 
 namespace ARIASDK_NS_BEGIN
 {

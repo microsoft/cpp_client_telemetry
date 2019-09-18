@@ -255,7 +255,7 @@ namespace ARIASDK_NS_BEGIN
         m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
 #endif // HAVE_MAT_DEFAULT_FILTER
 
-        LOG_INFO("Initializng Modules");
+        LOG_INFO("Initializing Modules");
         InitializeModules();
 
         LOG_INFO("Started up and running");

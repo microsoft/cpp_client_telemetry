@@ -2,8 +2,8 @@
 #ifndef IEVENTFILTER_HPP
 #define IEVENTFILTER_HPP
 
-#include <EventProperties.hpp>
-#include <Version.hpp>
+#include "Version.hpp"
+#include "EventProperties.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {

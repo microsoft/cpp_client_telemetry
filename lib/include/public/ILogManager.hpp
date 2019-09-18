@@ -317,8 +317,14 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         virtual IAuthTokensController*  GetAuthTokensController() override = 0;
 
+        /// <summary>
+        /// Get collection of current event filters.
+        /// </summary>
         virtual IEventFilterCollection& GetEventFilters() noexcept = 0;
 
+        /// <summary>
+        /// Get collection of current event filters.
+        /// </summary>
         virtual const IEventFilterCollection& GetEventFilters() const noexcept = 0;
 
         /// <summary>

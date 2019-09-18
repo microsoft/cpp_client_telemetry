@@ -564,6 +564,12 @@ namespace ARIASDK_NS_BEGIN
         static IAuthTokensController* GetAuthTokensController()
             LM_SAFE_CALL_PTR(GetAuthTokensController);
 
+        /// <summary>
+        /// Obtain event filter collection.
+        /// Notes:
+        /// - If the build has exceptions enabled, then the code triggers exception in case of invalid API use.
+        /// - If the build has exceptions disabled, then the code returns an empty NULL object pattern collection.
+        /// </summary>
         inline static IEventFilterCollection& GetEventFilters()
         {
             LM_SAFE_CALL_RETURN(GetEventFilters);
@@ -651,6 +657,9 @@ namespace ARIASDK_NS_BEGIN
         static status_t Configure()
             LM_SAFE_CALL(Configure);
 
+        /// <summary>
+        /// Obtain data viewer collection associated with this LogManager instance.
+        /// </summary>
         static IDataViewerCollection& GetDataViewerCollection()
         {
             LM_SAFE_CALL_RETURN(GetDataViewerCollection);
