@@ -28,7 +28,7 @@ class LoggerTests : public ::testing::Test
 {
 public:
     LoggerTests() noexcept
-        : logManager(configuration, nullptr)
+        : logManager(configuration)
         , runtimeConfig(configuration)
         , logger("", "", "", logManager, contextFieldsProvider, runtimeConfig)
     { }
