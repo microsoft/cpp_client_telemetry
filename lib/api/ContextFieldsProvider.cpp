@@ -189,7 +189,8 @@ namespace ARIASDK_NS_BEGIN
                             deviceId[0] == 'u' || // u: Mac OS X UUID
                             deviceId[0] == 'a' || // a: Android ID
                             deviceId[0] == 's' || // s: SQM ID
-                            deviceId[0] == 'x'))  // x: XBox One hardware ID
+                            deviceId[0] == 'x' || // x: XBox One hardware ID
+                            deviceId[0] == 'i'))  // i: iOS ID
                         {
                             // Remove "c:" prefix
                             temp = "";
