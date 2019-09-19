@@ -5,6 +5,7 @@
 #include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "IHttpClient.hpp"
+#include "ctmacros.hpp"
 
 #include <functional>
 #include <string>
