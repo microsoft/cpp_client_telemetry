@@ -595,7 +595,7 @@ TEST(APITest, C_API_Test)
     // config, but generally well-suited for illustrative purposes, to create easy-
     // to-read JSON config file. Note __VA_ARGS__ substitution is a C++11 feature
     // that isn't avail in C99
-    char* config = JSON_CONFIG(
+    const char* config = JSON_CONFIG(
         {
             "cacheFilePath": "MyOfflineStorage.db",
             "config" : {
