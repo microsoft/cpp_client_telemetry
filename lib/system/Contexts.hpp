@@ -23,8 +23,8 @@ namespace ARIASDK_NS_BEGIN {
 
     public:
         IncomingEventContext() :
-            policyBitFlags(0),
-            source(nullptr)
+            source(nullptr),
+            policyBitFlags(0)
         {
         }
 
