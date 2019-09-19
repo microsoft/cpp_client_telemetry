@@ -75,6 +75,24 @@
 #endif
 #endif
 
+/* Exceptions support is optional */
+#if (__cpp_exceptions) || defined(__EXCEPTIONS)
+#define HAVE_EXCEPTIONS 1
+#else
+#define HAVE_EXCEPTIONS 0
+#endif
+
+// allow to disable exceptions
+#if (HAVE_EXCEPTIONS)
+# define MATSDK_TRY            try
+# define MATSDK_CATCH          catch
+# define MATSDK_THROW          throw
+#else
+# define MATSDK_TRY            if (true)
+# define MATSDK_CATCH(...)     if (false)
+# define MATSDK_THROW(...)     std::abort()
+#endif
+
 #if defined(__arm__) || defined(_M_ARM) || defined(_M_ARMT)
 /* TODO: add suport for 64-bit aarch64 */
 #define ARCH_ARM

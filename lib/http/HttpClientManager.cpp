@@ -3,8 +3,8 @@
 #include "HttpClientManager.hpp"
 #include "utils/Utils.hpp"
 #include "pal/TaskDispatcher.hpp"
-#include <assert.h>
 
+#include <assert.h>
 #include <algorithm>
 
 #ifdef linux

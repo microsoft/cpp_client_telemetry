@@ -90,7 +90,7 @@ namespace PAL_NS_BEGIN {
     {
         if ((queueFn == nullptr) || (cancelFn == nullptr) || (joinFn == nullptr))
         {
-            throw std::invalid_argument("Created TaskDispatcher_CAPI with invalid parameters");
+            MATSDK_THROW(std::invalid_argument("Created TaskDispatcher_CAPI with invalid parameters"));
         }
     }
 

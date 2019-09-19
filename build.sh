@@ -125,5 +125,5 @@ MATSDK_INSTALL_DIR="${MATSDK_INSTALL_DIR:-/usr/local}"
 echo "+-----------------------------------------------------------------------------------+"
 echo " This step may prompt for your sudo password to deploy SDK to $MATSDK_INSTALL_DIR  "
 echo "+-----------------------------------------------------------------------------------+"
-sudo ./install.sh $MATSDK_INSTALL_DIR
+[[ -z "$NOROOT" ]] && sudo ./install.sh $MATSDK_INSTALL_DIR || echo "No root: skipping package deployment."
 fi

@@ -27,6 +27,11 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
+    void HttpRequestEncoder::DispatchDataViewerEvent(const StorageBlob& dataPacket)
+    {
+        m_system.getLogManager().GetDataViewerCollection().DispatchDataViewerEvent(dataPacket);
+    }
+
     bool HttpRequestEncoder::handleEncode(EventsUploadContextPtr const& ctx)
     {
         ctx->httpRequest = m_httpClient.CreateRequest();
@@ -43,7 +48,7 @@ namespace ARIASDK_NS_BEGIN {
         ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
 
-        if (GetAuthTokensController()->GetDeviceTokens().size() > 0)
+        if (GetAuthTokensController() != nullptr && GetAuthTokensController()->GetDeviceTokens().size() > 0)
         {
             std::map<TicketType, std::string>& map = GetAuthTokensController()->GetDeviceTokens();
             if (map.end() != map.find(TicketType::TicketType_MSA_Device))
@@ -67,7 +72,7 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        if (GetAuthTokensController()->GetUserTokens().size() > 0)
+        if (GetAuthTokensController() != nullptr && GetAuthTokensController()->GetUserTokens().size() > 0)
         {  //create Ticket header
             std::map<TicketType, std::string>& map = GetAuthTokensController()->GetUserTokens();
 
@@ -117,7 +122,7 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
         //strict mode
-        if (true == GetAuthTokensController()->GetStrictMode())
+        if (GetAuthTokensController() != nullptr && true == GetAuthTokensController()->GetStrictMode())
         {
             ctx->httpRequest->GetHeaders().set("Strict", "true");
         }
@@ -149,6 +154,8 @@ namespace ARIASDK_NS_BEGIN {
         ctx->body.clear();
 
         ctx->httpRequest->SetLatency(ctx->latency);
+
+        DispatchDataViewerEvent(ctx->httpRequest->GetBody());
 
         return true;
     }

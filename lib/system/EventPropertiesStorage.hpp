@@ -1,9 +1,12 @@
 #pragma once
 #include <map>
 #include <string>
+
 #include "Enums.hpp"
 #include "EventProperty.hpp"
 #include "Version.hpp"
+
+#include "ctmacros.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 

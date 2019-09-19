@@ -357,7 +357,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             return 0;
         }
-
+        
         /// <summary>
         /// Check if return code is OK
         /// </summary>

@@ -8,6 +8,7 @@
 #include "Enums.hpp"
 #include "EventProperties.hpp"
 #include "ISemanticContext.hpp"
+#include "IEventFilterCollection.hpp"
 
 #include <stdint.h>
 #include <string>
@@ -615,6 +616,16 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
         /// </summary>
         /// <param name="level">Diagnostic level.</param>
         virtual void SetLevel(uint8_t level) = 0;
+
+        /// <summary>
+        /// Get collection of current event filters.
+        /// </summary>
+        virtual IEventFilterCollection & GetEventFilters() noexcept = 0;
+
+        /// <summary>
+        /// Get collection of current event filters.
+        /// </summary>
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept = 0;
     };
 
 
