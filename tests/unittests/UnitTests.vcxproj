@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
@@ -91,6 +91,8 @@
   <ImportGroup Label="Shared">
     <Import Project="..\..\Solutions\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -414,30 +416,21 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ClockSkewManagerTests.cpp" />
-    <ClCompile Include="DebugEventSourceTests.cpp" />
-    <ClCompile Include="EventPropertiesStorageTests.cpp" />
-    <ClCompile Include="LogManagerImplTests.cpp" />
-    <ClCompile Include="LogSessionDataTests.cpp" />
-    <ClCompile Include="MemoryStorageTests.cpp" />
-    <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockIRuntimeConfig.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockISemanticContext.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
+    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ClockSkewManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
@@ -446,7 +439,11 @@
     <ClCompile Include="$(ProjectDir)\HttpRequestEncoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpServerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OacrTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests.cpp" />
@@ -458,12 +455,21 @@
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
-    <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
-    <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
-    <ClInclude Include="..\common\MockIBandwidthController.hpp" />
-    <ClInclude Include="..\common\MockIEcsClient.hpp" />
-    <ClInclude Include="..\common\MockITelemetrySystem.hpp" />
-    <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIBandwidthController.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIEcsClient.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockIRuntimeConfig.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockISemanticContext.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockISqlite3Proxy.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockITelemetrySystem.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\MockITenantDataSerializer.hpp" />
+    <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

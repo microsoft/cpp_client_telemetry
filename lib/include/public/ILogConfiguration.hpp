@@ -10,12 +10,13 @@
 
 #include <memory>
 #include <string>
+
 #include "IModule.hpp"
 #include "Variant.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
-
+    class IModule;
     class IHttpClient;
 
     /// Default collector url to send events to
@@ -227,6 +228,12 @@ namespace ARIASDK_NS_BEGIN
     /// ITaskDispatcher override module
     /// </summary>
     static constexpr const char* const CFG_MODULE_TASK_DISPATCHER = "taskDispatcher";
+
+    /// <summary>
+    /// IDataViewer override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
+
 
 #ifdef _MSC_VER
 #pragma warning( push )

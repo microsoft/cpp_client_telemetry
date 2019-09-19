@@ -39,10 +39,14 @@
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
-#include <IOKit/IOKitLib.h>
 #include <mach-o/dyld.h>
 #include <sys/syslimits.h>
 #include <libgen.h>
+#include "TargetConditionals.h"
+
+#ifdef TARGET_MAC_OS 
+
+#include <IOKit/IOKitLib.h>
 
 // This would be better than  int gethostuuid(uuid_t id, const struct timespec *wait);
 void get_platform_uuid(char * buf, int bufSize)
@@ -53,6 +57,8 @@ void get_platform_uuid(char * buf, int bufSize)
     CFStringGetCString(uuidCf, buf, bufSize, kCFStringEncodingMacRoman);
     CFRelease(uuidCf);
 }
+
+#endif // TARGET_MAC_OS
 
 std::string get_app_name()
 {
@@ -263,8 +269,6 @@ public:
             // We were unable to use get_platform_uuid to obtain Device Id
             // in render processes.
             std::string contents = Exec(R"(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')");
-            // char deviceId[512] = { 0 };
-            // get_platform_uuid(deviceId, sizeof(deviceId));
             cache["devId"] = "u:";
             cache["devId"] += MAT::GUID_t(contents.c_str()).to_string();
 #else
