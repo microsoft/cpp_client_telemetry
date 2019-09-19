@@ -9,8 +9,10 @@
 #include <string>
 
 #include "Enums.hpp"
-#include "ILogger.hpp"
 #include "IAuthTokensController.hpp"
+#include "ILogger.hpp"
+#include "IDataViewerCollection.hpp"
+#include "IEventFilterCollection.hpp"
 #include "ISemanticContext.hpp"
 #include "LogConfiguration.hpp"
 #include "LogSessionData.hpp"
@@ -316,23 +318,14 @@ namespace ARIASDK_NS_BEGIN
         virtual IAuthTokensController*  GetAuthTokensController() override = 0;
 
         /// <summary>
-        /// Set tenant-specific event exclusion filter
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="filterStrings">The events to exclude from uploads, specified as an array of strings</param>
-        /// <param name="filterCount">The number of strings in filterStrings</param>
-        /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
+        /// Get collection of current event filters.
         /// </summary>
-        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount) = 0;
+        virtual IEventFilterCollection& GetEventFilters() noexcept = 0;
 
         /// <summary>
-        /// Set tenant-specific event exclusion filter
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="filterStrings">The events to exclude from uploads, specified as an array of strings</param>
-        /// <param name="filterRates">The rate at which events are excluded, specified as an array of integers representing a percentage</param>
-        /// <param name="filterCount">The number of strings, integers in filterStrings, filterRates</param>
-        /// <returns>A positive value on success, a negative value on failure. Never returns 0</returns>
+        /// Get collection of current event filters.
         /// </summary>
-        virtual status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount) = 0;
+        virtual const IEventFilterCollection& GetEventFilters() const noexcept = 0;
 
         /// <summary>
         /// Sets the diagnostic level for the LogManager
@@ -348,6 +341,18 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
         /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
         virtual void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels) = 0;
+
+        /// <summary>
+        /// Gets an instance of the Data Viewer Collection.
+        /// </summary>
+        /// <returns>A reference to the IDataViewerCollection instance</returns>
+        virtual IDataViewerCollection& GetDataViewerCollection() = 0;
+
+        /// <summary>
+        /// Gets an instance of the Data Viewer Collection.
+        /// </summary>
+        /// <returns>A const reference to the IDataViewerCollection instance</returns>
+        virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
     };
 
 } ARIASDK_NS_END

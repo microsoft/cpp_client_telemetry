@@ -1,12 +1,11 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
   packager/Packager.cpp
   callbacks/DebugSource.cpp
   bond/BondSerializer.cpp
-  filter/EventFilterRegulator.cpp
-  filter/EventFilter.cpp
+  filter/EventFilterCollection.cpp
   tpm/TransmitProfiles.cpp
   tpm/TransmissionPolicyManager.cpp
   tpm/DeviceStateHandler.cpp
@@ -14,6 +13,7 @@ set(SRCS decorators/BaseDecorator.cpp
   system/TelemetrySystem.cpp
   system/EventProperties.cpp
   compression/HttpDeflateCompression.cpp
+  api/AllowedLevelsCollection.cpp
   api/LogManager.cpp
   api/ContextFieldsProvider.cpp
   api/LogManagerImpl.cpp
@@ -26,6 +26,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/ILogConfiguration.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
+  api/DataViewerCollection.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
@@ -57,7 +58,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
     modules/exp/ecs/ecsclient/ECSConfigCache.cpp
     modules/exp/JsonHelper.cpp
     modules/exp/EXPCommonClient.cpp
-    modules/exp/FifoFileStorage.cpp    
+    modules/exp/FifoFileStorage.cpp
+  )
+endif()
+
+if(EXISTS "modules/dataviewer/")
+  list(APPEND SRCS
+    modules/dataviewer/DefaultDataViewer.cpp
+    modules/dataviewer/OnDisableNotificationCollection.cpp
   )
 endif()
 
@@ -96,16 +104,27 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
   )
+  
+  # UTC module
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS
       modules/utc/desktop/UtcHelpers.cpp
       modules/utc/UtcTelemetrySystem.cpp
     )
   endif()
+
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()
 
+# Filtering module
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/filter)
+  list(APPEND SRCS
+    modules/filter/CompliantByDefaultEventFilterModule.cpp
+    modules/filter/CompliantByDefaultFilterApi.cpp
+    modules/filter/LevelCheckingEventFilter.cpp
+  )
+endif()
 
 create_source_files_groups_per_folder(${SRCS})
 
