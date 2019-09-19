@@ -60,6 +60,12 @@ void get_platform_uuid(char * buf, int bufSize)
 
 #endif // TARGET_MAC_OS
 
+#if TARGET_OS_IPHONE
+
+#include "sysinfo_utils_ios.hpp"
+
+#endif // TARGET_OS_IPHONE
+
 std::string get_app_name()
 {
     std::vector<char> appId(PATH_MAX+1, 0);
@@ -217,7 +223,11 @@ public:
 #if defined(__APPLE__)
         // FIXME: [MG] - This is not the most elegant way of obtaining it
         cache["devMake"] = "Apple";
+#if TARGET_OS_IPHONE
+        cache["devModel"] = get_device_model();
+#else
         cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
+#endif // TARGET_OS_IPHONE
         cache["osName"]  = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductName");
         cache["osVer"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductVersion");
         cache["osRel"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductUserVisibleVersion");
@@ -265,11 +275,16 @@ public:
         if (!get("devId").compare(""))
         {
 #ifdef __APPLE__
+#if TARGET_OS_IPHONE
+            cache["devId"] = "i:";
+            std::string contents = get_device_id();
+#else
             // Microsoft Edge bug 21528330
             // We were unable to use get_platform_uuid to obtain Device Id
             // in render processes.
             std::string contents = Exec(R"(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')");
             cache["devId"] = "u:";
+#endif // TARGET_OS_IPHONE
             cache["devId"] += MAT::GUID_t(contents.c_str()).to_string();
 #else
             // We were unable to obtain Device Id using standard means.
