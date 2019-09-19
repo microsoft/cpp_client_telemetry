@@ -125,7 +125,7 @@ namespace ARIASDK_NS_BEGIN
 
     class NullDataViewerCollection : public IDataViewerCollection
     {
-        virtual void DispatchDataViewerEvent(const std::vector<std::uint8_t>&) const noexcept {};
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept {};
         virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {};
 
         virtual void UnregisterViewer(const char*) override {};

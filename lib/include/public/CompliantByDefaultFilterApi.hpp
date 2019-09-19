@@ -9,7 +9,7 @@
 namespace ARIASDK_NS_BEGIN { namespace Modules { namespace Filtering
 {
 
-    MATSDK_LIBABI void UpdateAllowedLevels(const std::vector<std::uint8_t>& allowedLevels) noexcept;
+    MATSDK_LIBABI void UpdateAllowedLevels(const std::vector<uint8_t>& allowedLevels) noexcept;
 
 }}} ARIASDK_NS_END
 
