@@ -207,7 +207,7 @@ namespace ARIASDK_NS_BEGIN
         /// Attempts to get the diagnostic level for an event.
         /// <return>True and the level, or false if unset, set to the wrong type, or the value is out of bounds.</return>
         /// </summary>
-        std::tuple<bool, std::uint8_t> TryGetLevel() const;
+        std::tuple<bool, uint8_t> TryGetLevel() const;
 
         /// <summary>
         /// Specify a property for an event.

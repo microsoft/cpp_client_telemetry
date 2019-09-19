@@ -4,11 +4,11 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    AllowedLevelsCollection::AllowedLevelsCollection(std::initializer_list<std::uint8_t>&& allowedLevels) noexcept
+    AllowedLevelsCollection::AllowedLevelsCollection(std::initializer_list<uint8_t>&& allowedLevels) noexcept
         : m_allowedLevels(allowedLevels)
     { }
 
-    bool AllowedLevelsCollection::IsLevelInCollection(std::uint8_t level) const noexcept
+    bool AllowedLevelsCollection::IsLevelInCollection(uint8_t level) const noexcept
     {
         std::lock_guard<std::mutex> lock{ m_allowedLevelsLock };
         return std::find(m_allowedLevels.cbegin(), m_allowedLevels.cend(), level) != m_allowedLevels.cend();
@@ -20,13 +20,13 @@ namespace ARIASDK_NS_BEGIN
         return m_allowedLevels.size();
     }
 
-    std::uint8_t AllowedLevelsCollection::operator[](int index) const noexcept
+    uint8_t AllowedLevelsCollection::operator[](int index) const noexcept
     {
         std::lock_guard<std::mutex> lock{ m_allowedLevelsLock };
         return m_allowedLevels[index];
     }
 
-    void AllowedLevelsCollection::UpdateAllowedLevels(const std::vector<std::uint8_t>& levels) noexcept
+    void AllowedLevelsCollection::UpdateAllowedLevels(const std::vector<uint8_t>& levels) noexcept
     {
         std::lock_guard<std::mutex> lock{ m_allowedLevelsLock };
         m_allowedLevels = levels;
