@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 
 #include "sysinfo_utils_ios.hpp"
-
 #import <Foundation/Foundation.h>
-
 #import <UIKit/UIKit.h>
 
 std::string get_device_model()
