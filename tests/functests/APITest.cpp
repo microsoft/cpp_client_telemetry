@@ -258,6 +258,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
     props.SetPriority(prio);
+    props.SetLevel(DIAG_LEVEL_REQUIRED);
 
     return props;
 }
@@ -379,8 +380,10 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     {
         // Log some foo
         size_t numIterations = MAX_ITERATIONS;
+        EventProperties eventToLog{ "foo1" };
+        eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
         while (numIterations--)
-            result->LogEvent("foo1");
+            result->LogEvent(eventToLog);
         LogManager::UploadNow();                                    // Try to upload whatever we got
         PAL::sleep(2000);                                           // Give enough time to upload at least one event
         if (i == 0)
@@ -421,6 +424,9 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
 
+    EventProperties eventToLog{ "foo1" };
+    eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
+
     CleanStorage();
     addAllListeners(debugListener);
     {
@@ -429,7 +435,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
         while (numIterations--)
         {
-            LogManager::GetLogger()->LogEvent("foo1");
+            LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
@@ -451,7 +457,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
-        result->LogEvent("foo1");
+        result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
     EXPECT_EQ(0, debugListener.numDropped);
@@ -463,8 +469,11 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     LogManager::PauseTransmission();
 
     numIterations = MAX_ITERATIONS;
+
+    EventProperties eventToStore{ "bar2" };
+    eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
-        result->LogEvent("bar2");                               // New events go straight to offline storage
+        result->LogEvent(eventToStore);                               // New events go straight to offline storage
     EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
 
     LogManager::Flush();
@@ -498,6 +507,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetProperty("secret", 5.6872);
     event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
     event.SetLatency(EventLatency_Normal);
+    event.SetLevel(DIAG_LEVEL_REQUIRED);
 
     ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
@@ -624,13 +634,14 @@ TEST(APITest, C_API_Test)
     evt_prop event[] = TELEMETRY_EVENT
     (
         // Part A/B fields
-        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),       // Event name
-        _INT(COMMONFIELDS_EVENT_TIME, (int64_t)(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
-        _DBL("popSample", 100.0),                               // Effective sample rate
-        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                    // iKey to send this event to
-        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),       // UTC policy bitflags (optional)
-        _INT(COMMONFIELDS_EVENT_PRIORITY, (int64_t)EventPriority_Immediate),
-        _INT(COMMONFIELDS_EVENT_LATENCY, (int64_t)EventLatency_Max),
+        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
+        _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
+        _DBL("popSample", 100.0),                                          // Effective sample rate
+        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
+        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),                  // UTC policy bitflags (optional)
+        _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
+        _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
+        _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
         // Customer Data fields go as part of userdata
         _STR("strKey", "value1"),
         _INT("intKey", 12345),
@@ -898,11 +909,14 @@ TEST(APITest, LogManager_BadNetwork_Test)
     std::string fileName = MAT::GetTempDirectory();
     fileName += "\\";
     fileName += cacheFilePath;
+    printf("remove %s\n", fileName.c_str());
     std::remove(fileName.c_str());
 
     for (auto url : {
+#if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */
         "https://0.0.0.0/",
         "https://127.0.0.1/",
+#endif
         "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
         "https://invalid.host.name.microsoft.com/"
         })
@@ -978,23 +992,24 @@ TEST(APITest, LogManager_DiagLevels)
 
     // default
     auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetEventFilters().UnregisterAllFilters();
 
     // inherit diagnostic level from parent (basic)
     auto logger1 = LogManager::GetLogger();
 
-    // set diagnostic level to enhanced
-    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
-    logger2->SetLevel(DIAG_LEVEL_ENHANCED);
+    // set diagnostic level to optional
+    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
+    logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
 
-    // set diagnostic level to full
-    auto logger3 = LogManager::GetLogger("my_full_source");
-    logger3->SetLevel(DIAG_LEVEL_FULL);
+    // set diagnostic level to a custom value
+    auto logger3 = LogManager::GetLogger("my_custom_source");
+    logger3->SetLevel(5);
     
     std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
     std::set<uint8_t> logAll   = { };
-    std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+    std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
-    auto filters = { logNone, logAll, logBasic };
+    auto filters = { logNone, logAll, logRequired };
 
     size_t expectedCounts[] = { 12, 0, 8 };
 
@@ -1011,13 +1026,13 @@ TEST(APITest, LogManager_DiagLevels)
             EventProperties defLevelEvent("My.DefaultLevelEvent");
             logger->LogEvent(defLevelEvent);   // inherit from logger
 
-            EventProperties basicEvent("My.BasicEvent");
-            basicEvent.SetLevel(DIAG_LEVEL_BASIC);
-            logger->LogEvent(basicEvent);   // basic
+            EventProperties requiredEvent("My.RequiredEvent");
+            requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+            logger->LogEvent(requiredEvent);   // required
 
-            EventProperties fullEvent("My.FullEvent");
-            fullEvent.SetLevel(DIAG_LEVEL_FULL);
-            logger->LogEvent(fullEvent);
+            EventProperties customEvent("My.CustomEvent");
+            customEvent.SetLevel(5);
+            logger->LogEvent(customEvent);
         }
         EXPECT_EQ(eventListener.numFiltered, expectedCounts[i]);
         eventListener.numFiltered = 0;

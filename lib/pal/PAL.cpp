@@ -506,6 +506,7 @@ namespace PAL_NS_BEGIN {
 
     INetworkInformation* GetNetworkInformation() { return g_NetworkInformation; }
     IDeviceInformation* GetDeviceInformation() { return g_DeviceInformation; }
+    ISystemInformation* GetSystemInformation() { return g_SystemInformation; }
 
     void shutdown()
     {

@@ -156,8 +156,8 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         std::mutex              m_lock;
-        IRuntimeConfig &        m_config;
         ILogManager &           m_logManager;
+        IRuntimeConfig &        m_config;
         std::atomic<bool>       m_isStarted;
         std::atomic<bool>       m_isPaused;
         PAL::Event              m_done;
