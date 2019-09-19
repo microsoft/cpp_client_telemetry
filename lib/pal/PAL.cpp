@@ -256,21 +256,18 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
-    static IWorkerThread *g_workerThread = nullptr;
+    static std::shared_ptr<ITaskDispatcher> g_taskDispatcher = nullptr;
 
-    namespace detail {
-
-        void queueWorkerThreadItem(detail::WorkerThreadItemPtr item)
+    std::shared_ptr<ITaskDispatcher> getDefaultTaskDispatcher()
+    {
+        if (g_taskDispatcher == nullptr)
         {
-            g_workerThread->queue(item);
+            // Default implementation of task dispatcher is a single-threaded worker thread task queue
+            LOG_TRACE("Initializing PAL worker thread");
+            g_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
         }
-
-        bool cancelWorkerThreadItem(detail::WorkerThreadItemPtr item)
-        {
-            return g_workerThread->cancel(item);
-        }
-
-    } // namespace detail
+        return g_taskDispatcher;
+    }
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -496,7 +493,6 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            g_workerThread = WorkerThreadFactory::Create();
             g_SystemInformation = SystemInformationImpl::Create();
             g_DeviceInformation = DeviceInformationImpl::Create();
             g_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
@@ -510,6 +506,7 @@ namespace PAL_NS_BEGIN {
 
     INetworkInformation* GetNetworkInformation() { return g_NetworkInformation; }
     IDeviceInformation* GetDeviceInformation() { return g_DeviceInformation; }
+    ISystemInformation* GetSystemInformation() { return g_SystemInformation; }
 
     void shutdown()
     {
@@ -522,8 +519,7 @@ namespace PAL_NS_BEGIN {
         if (g_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
-            delete g_workerThread;
-            g_workerThread = nullptr;
+            if (g_taskDispatcher) { g_taskDispatcher = nullptr; }
             if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
             if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
             if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }

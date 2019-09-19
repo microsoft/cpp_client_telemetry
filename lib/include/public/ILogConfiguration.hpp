@@ -8,12 +8,15 @@
 #include "ctmacros.hpp"
 #include "stdint.h"
 
+#include <memory>
 #include <string>
+
+#include "IModule.hpp"
 #include "Variant.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
-
+    class IModule;
     class IHttpClient;
 
     /// Default collector url to send events to
@@ -217,9 +220,87 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_STR_TRANSMIT_PROFILES   = "transmitProfiles";
 
     /// <summary>
-    /// The ILogConfiguration is the interface for configuring the telemetry logging system.
+    /// IHttpClient override module
     /// </summary>
-    typedef VariantMap ILogConfiguration;
+    static constexpr const char* const CFG_MODULE_HTTP_CLIENT = "httpClient";
+
+    /// <summary>
+    /// ITaskDispatcher override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_TASK_DISPATCHER = "taskDispatcher";
+
+    /// <summary>
+    /// IDataViewer override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
+
+
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable: 4251 )
+#endif
+    /// <summary>
+    /// The ILogConfiguration class contains LogManager-specific configuration settings
+    /// </summary>
+    class MATSDK_LIBABI ILogConfiguration
+    {
+    public:
+        /// <summary>
+        /// Construct an empty configuration
+        /// </summary>
+        ILogConfiguration() = default;
+
+        /// <summary>
+        /// Construct a pre-populated configuration
+        /// </summary>
+        /// <param name="initList">Initializer list of key/value config settings</param>
+        ILogConfiguration(const std::initializer_list<VariantMap::value_type>& initList);
+
+        /// <summary>
+        /// Add a module to the log configuration
+        /// </summary>
+        /// <param name="key">Module name</param>
+        /// <param name="module">Module instance</param>
+        void AddModule(const char* key, const std::shared_ptr<IModule>& module);
+
+        /// <summary>
+        /// Get a module by name
+        /// </summary>
+        /// <param name="key">Module name</param>
+        /// <returns>Module instance if set, else null</returns>
+        std::shared_ptr<IModule> GetModule(const char* key);
+
+        /// <summary>
+        /// Access underlying modules mpa
+        /// </summary>
+        std::map<std::string, std::shared_ptr<IModule>>& GetModules();
+
+        /// <summary>
+        /// Check if a config value has been set
+        /// </summary>
+        /// <param name="key">Config name</param>
+        /// <returns>True if config value exists, else false</returns>
+        bool HasConfig(const char* key);
+
+        /// <summary>
+        /// Get a config value by name, creating a new value if one doesn't already exist
+        /// </summary>
+        /// <param name="key">Config name</param>
+        /// <returns>Config value</returns>
+        Variant& operator[](const char* key);
+
+        /// <summary>
+        /// Access underlying VariantMap
+        /// </summary>
+        VariantMap& operator*();
+
+    private:
+        VariantMap m_configs;
+        std::map<std::string, std::shared_ptr<IModule>> m_modules;
+    };
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 } ARIASDK_NS_END
 #endif 

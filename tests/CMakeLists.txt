@@ -5,7 +5,7 @@ include_directories(../lib)
 set(TESTS_COMMON_SRCS
   ../common/Common.cpp
   ../common/Mocks.cpp
-  ../../lib/decoder/AriaDecoderV3.cpp
+  ../../lib/decoder/PayloadDecoder.cpp
 )
 
 if(BUILD_FUNC_TESTS)

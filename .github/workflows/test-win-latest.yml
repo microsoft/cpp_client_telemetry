@@ -25,4 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Test ${{ matrix.arch }} ${{ matrix.config }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       run: build-tests.bat ${{ matrix.arch }} ${{ matrix.config }}
