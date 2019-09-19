@@ -14,9 +14,6 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)AriaDecoderV3.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)AriaDecoderV3.hpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)PayloadDecoder.cpp" />
   </ItemGroup>
 </Project>

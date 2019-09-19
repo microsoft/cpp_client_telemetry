@@ -380,12 +380,12 @@ namespace ARIASDK_NS_BEGIN {
 
         int sqlite3_exec(const char *sql, int(*callback)(void*, int, char**, char**) = sqlite3_noop_callback, void *arg = nullptr) {
             static size_t failureCount = 0;
-            char *errmsg;
+            char *errmsg = nullptr;
             int result = 0;
             LOG_DEBUG("%s", sql);
             // TODO: [MG] - expose sqlite3_exec via g_sqlite3Proxy
             result = ::sqlite3_exec(m_db, sql, callback, arg, &errmsg);
-            if (!isOK(result))
+            if (!isOK(result, errmsg))
             {
                 LOG_DEBUG("Failed to execute query: %s [rc=%d]", sql, result);
             }

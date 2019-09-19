@@ -2,6 +2,16 @@
 
 export PATH=/usr/local/bin:$PATH
 
+if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
+  rm -rf lib/modules
+  echo Git local settings:
+  git config -l
+  echo Git system settings:
+  git config --system --list
+  git config credential.helper store
+  git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
+fi
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
@@ -24,6 +34,9 @@ BUILD_TYPE="Release"
 else
 BUILD_TYPE="Debug"
 fi
+
+# Set target MacOS minver
+export MACOSX_DEPLOYMENT_TARGET=10.10
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
@@ -112,5 +125,5 @@ MATSDK_INSTALL_DIR="${MATSDK_INSTALL_DIR:-/usr/local}"
 echo "+-----------------------------------------------------------------------------------+"
 echo " This step may prompt for your sudo password to deploy SDK to $MATSDK_INSTALL_DIR  "
 echo "+-----------------------------------------------------------------------------------+"
-sudo ./install.sh $MATSDK_INSTALL_DIR
+[[ -z "$NOROOT" ]] && sudo ./install.sh $MATSDK_INSTALL_DIR || echo "No root: skipping package deployment."
 fi

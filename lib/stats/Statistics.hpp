@@ -10,6 +10,7 @@
 
 #include "MetaStats.hpp"
 #include "DebugEvents.hpp"
+#include "pal/TaskDispatcher.hpp"
 
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
@@ -25,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
     class Statistics : public DebugEventListener {
 
     public:
-        Statistics(ITelemetrySystem& telemetrySystem);
+        Statistics(ITelemetrySystem& telemetrySystem, ITaskDispatcher& taskDispatcher);
         ~Statistics();
 
     protected:
@@ -55,6 +56,7 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex                  m_metaStats_mtx;
         MetaStats                   m_metaStats;
         ITelemetrySystem&           m_iTelemetrySystem;
+        ITaskDispatcher&            m_taskDispatcher;
         IRuntimeConfig&             m_config;
         ILogManager&                m_logManager;
 

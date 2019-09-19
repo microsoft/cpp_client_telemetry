@@ -40,7 +40,7 @@ namespace testing {
         MOCK_METHOD1(sendEvent, void(IncomingEventContextPtr const& event));
         MOCK_METHOD0(startAsync, void());
         MOCK_METHOD0(stopAsync, void());
-        MOCK_METHOD0(handleFlushWorkerThread, void());
+        MOCK_METHOD0(handleFlushTaskDispatcher, void());
         MOCK_METHOD0(signalDone, void());
         MOCK_METHOD0(pauseAsync, void());
         MOCK_METHOD0(resumeAsync, void());

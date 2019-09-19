@@ -2,7 +2,12 @@
 #ifndef MAT_LOGMANAGER_HPP
 #define MAT_LOGMANAGER_HPP
 
+#include "ctmacros.hpp"
 #include "CommonFields.h"
+
+#if (HAVE_EXCEPTIONS)
+#include <exception>
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -33,6 +38,15 @@ public:
             return STATUS_SUCCESS;                  \
         }                                           \
         return STATUS_EFAIL;                        \
+    }
+
+#define LM_SAFE_CALL_RETURN(method , ... )          \
+    {                                               \
+        LM_LOCKGUARD(stateLock());                  \
+        if (nullptr != instance)                    \
+        {                                           \
+            return instance-> method ( __VA_ARGS__);\
+        }                                           \
     }
 
 #define LM_SAFE_CALL_STR(method , ... )             \
@@ -84,6 +98,15 @@ public:
 
 namespace ARIASDK_NS_BEGIN
 {
+#if (HAVE_EXCEPTIONS)
+    class LogManagerNotInitializedException : public std::runtime_error
+    {
+    public:
+        LogManagerNotInitializedException(const char* message) noexcept
+            : std::runtime_error(message) { }
+    };
+#endif
+
     /// <summary>
     /// This configuration flag is populated by SDK to indicate if this singleton instance
     /// is running in "host" mode and all LogController methods should be accessible to the
@@ -197,33 +220,9 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken, ILogConfiguration& configuration)
-        {
-           return Initialize(tenantToken, configuration, nullptr);
-        }
-
-        /// <summary>
-        /// Initializes the telemetry logging system with the specified ILogConfiguration.
-        /// </summary>
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken, IHttpClient* httpClient)
-        {
-           return Initialize(tenantToken, GetLogConfiguration(), httpClient);
-        }
-
-        /// <summary>
-        /// Initializes the telemetry logging system with the specified ILogConfiguration and IHttpClient.
-        /// </summary>
-        /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
-        /// <param name="configuration">ILogConfiguration to be used.</param>
-        /// <param name="httpClient">IHttpClient implementation to be used, nullptr uses the default</param>
-        /// <returns>A logger instance instantiated with the tenantToken.</returns>
         static ILogger* Initialize(
             const std::string& tenantToken,
-            ILogConfiguration& configuration,
-            IHttpClient* httpClient
+            ILogConfiguration& configuration
         )
         {
             LM_LOCKGUARD(stateLock());
@@ -233,9 +232,14 @@ namespace ARIASDK_NS_BEGIN
                 // Copy alternate configuration into currentConfig
                 if (&configuration != &currentConfig)
                 {
-                    for (const auto &kv : configuration)
+                    for (const auto &kv : *configuration)
                     {
-                        currentConfig[kv.first] = kv.second;
+                        currentConfig[kv.first.c_str()] = kv.second;
+                    }
+
+                    for (const auto &kv : configuration.GetModules())
+                    {
+                        currentConfig.AddModule(kv.first.c_str(), kv.second);
                     }
                 }
 
@@ -246,7 +250,7 @@ namespace ARIASDK_NS_BEGIN
                 }
 
                 status_t status = STATUS_SUCCESS;
-                instance = LogManagerProvider::CreateLogManager(currentConfig, httpClient, status);
+                instance = LogManagerProvider::CreateLogManager(currentConfig, status);
                 instance->AttachEventSource(GetDebugEventSource());
                 return instance->GetLogger(currentConfig[CFG_STR_PRIMARY_TOKEN]);
             }
@@ -561,6 +565,25 @@ namespace ARIASDK_NS_BEGIN
             LM_SAFE_CALL_PTR(GetAuthTokensController);
 
         /// <summary>
+        /// Obtain event filter collection.
+        /// Notes:
+        /// - If the build has exceptions enabled, then the code triggers exception in case of invalid API use.
+        /// - If the build has exceptions disabled, then the code returns an empty NULL object pattern collection.
+        /// </summary>
+        inline static IEventFilterCollection& GetEventFilters()
+        {
+            LM_SAFE_CALL_RETURN(GetEventFilters);
+#if HAVE_EXCEPTIONS
+            /* Enforce exception   */
+            throw LogManagerNotInitializedException("LogManager::Initialize must be invoked prior to calling GetFilters()");
+#else
+            /* NULL object pattern */
+            static NullLogManager nullLogManager;
+            return nullLogManager.GetEventFilters();
+#endif
+        }
+
+        /// <summary>
         /// Add Debug callback
         /// </summary>
         static void AddEventListener(DebugEventType type, DebugEventListener &listener)
@@ -601,12 +624,6 @@ namespace ARIASDK_NS_BEGIN
         static LogSessionData* GetLogSessionData()
             LM_SAFE_CALL_PTR(GetLogSessionData);
 
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterCount);
-
-        static status_t SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-            LM_SAFE_CALL(SetExclusionFilter, tenantToken, filterStrings, filterRates, filterCount);
-
         /// <summary>
         /// Sets the diagnostic level filter for the LogManager
         /// </summary>
@@ -640,6 +657,21 @@ namespace ARIASDK_NS_BEGIN
         static status_t Configure()
             LM_SAFE_CALL(Configure);
 
+        /// <summary>
+        /// Obtain data viewer collection associated with this LogManager instance.
+        /// </summary>
+        static IDataViewerCollection& GetDataViewerCollection()
+        {
+            LM_SAFE_CALL_RETURN(GetDataViewerCollection);
+#if HAVE_EXCEPTIONS
+            /* Enforce exception   */
+            throw LogManagerNotInitializedException("LogManager::Initialize must be invoked prior to calling GetDataViewerCollection()");
+#else
+            /* NULL object pattern */
+            static NullLogManager nullLogManager;
+            return nullLogManager.GetDataViewerCollection();
+#endif
+        }
     };
 
     // Implements LogManager<T> singleton template static  members

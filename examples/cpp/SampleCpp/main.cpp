@@ -93,32 +93,6 @@ void Api_v1_CompatChecks()
 
 }
 
-void samplingTest()
-{
-    const char *sampledList[] = {
-        "MyEvent1",
-        "MyEvent2",
-        "MyEvent3",
-        "MyEvent4"
-    };
-    uint32_t samplingRates[] = { 100, 75, 50, 0 };
-    LogManager::SetExclusionFilter(TOKEN, sampledList, samplingRates, 4);
-    
-    ILogger *logger = LogManager::GetLogger();
-    for (size_t i = 0; i < 100; i++)
-    {
-        logger->LogEvent("MyEvent1");
-        logger->LogEvent("MyEvent2");
-        logger->LogEvent("MyEvent3");
-        logger->LogEvent("MyEvent4");
-        logger->LogEvent("NS1.MyEvent1.Foo");
-        logger->LogEvent("NS2.MyEvent2.Bar");
-        logger->LogEvent("NS3.MyEvent3.Toor");
-        logger->LogEvent("NS4.MyEvent4.Root");
-    }
-
-}
-
 #define	 ENTER	printf("%s\n", __FUNCTION__)
 
 typedef std::chrono::milliseconds ms;
@@ -157,7 +131,7 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
-#define MAX_EVENTS_TO_LOG       100000L 
+#define MAX_EVENTS_TO_LOG       100L 
 
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
@@ -303,10 +277,11 @@ int main()
     for (auto evt : eventsList)
         LogManager::AddEventListener(evt, listener);
 
+    ILogger *logger = LogManager::Initialize(TOKEN);
+
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
-    ILogger *logger = LogManager::Initialize(TOKEN);
     logPiiMark();   // UTC upload
     LogManager::FlushAndTeardown();
 #endif
@@ -314,12 +289,12 @@ int main()
     printf("LogManager::Initialize in direct\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     logger = LogManager::Initialize(TOKEN);
-    
+
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
     LogManager::SetContext("GlobalContext.Var", 12345);
-     
+
     printf("LogManager::GetSemanticContext \n"); 
     ISemanticContext* semanticContext = LogManager::GetSemanticContext();
 

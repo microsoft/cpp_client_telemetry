@@ -18,9 +18,10 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
-    OfflineStorageHandler::OfflineStorageHandler(ILogManager & logManager, IRuntimeConfig& runtimeConfig)
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher)
         : m_logManager(logManager),
         m_config(runtimeConfig),
+        m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_offlineStorageMemory(nullptr),
@@ -60,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_item);
+        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
         m_flushComplete.wait();
     }
 
@@ -158,7 +159,7 @@ namespace ARIASDK_NS_BEGIN {
         // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
         // If we are running that item right now (our thread), then nothing happens other
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
-        m_flushHandle.cancel();
+        m_flushHandle.Cancel();
 
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
@@ -252,8 +253,8 @@ namespace ARIASDK_NS_BEGIN {
                     {
                         m_flushPending = true;
                         m_flushComplete.Reset();
-                        m_flushHandle = PAL::scheduleOnWorkerThread(0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_item);
+                        m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
                     }
                     m_flushLock.unlock();
                 }

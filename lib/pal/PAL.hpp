@@ -90,6 +90,11 @@ namespace PAL_NS_BEGIN
     std::string generateUuidString();
 
     /**
+     * Return the monotonic system clock time in milliseconds (since unspecified point).
+     */
+    extern int64_t getMonotonicTimeMs();
+
+    /**
      * Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
      */
     int64_t getUtcSystemTimeMs();
@@ -111,6 +116,10 @@ namespace PAL_NS_BEGIN
      */
     void registerSemanticContext(MAT::ISemanticContext * context);
 
+    /**
+     * Get default PAL-owned worker thread
+     */
+    std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher();
 
     class INetworkInformation;
     class IDeviceInformation;
@@ -124,6 +133,7 @@ namespace PAL_NS_BEGIN
 
     INetworkInformation* GetNetworkInformation();
     IDeviceInformation* GetDeviceInformation();
+    ISystemInformation* GetSystemInformation();
 
     // Pseudo-random number generator (not for cryptographic usage).
     // The instances are not thread-safe, serialize access externally if needed.
