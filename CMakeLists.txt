@@ -21,6 +21,9 @@ option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
 if(BUILD_IOS)
   set(TARGET_ARCH "APPLE")
+  set(IOS True)
+  set(APPLE True)
+
   if(BUILD_SIMULATOR)
     set(IOS_PLATFORM "iphonesimulator")
     set(CMAKE_SYSTEM_PROCESSOR x86_64)
@@ -229,6 +232,7 @@ if (BUILD_PACKAGE)
     include(tools/MakeRpm.cmake)
   endif()
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
+    message("Building tgz package")
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
     # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)
