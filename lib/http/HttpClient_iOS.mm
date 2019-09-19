@@ -15,13 +15,13 @@ namespace ARIASDK_NS_BEGIN {
 
 static std::string NextReqId()
 {
-    static std::atomic<uint64_t> seq(0);
+    static std::atomic<uint64_t> seq;
     return std::string("REQ-") + std::to_string(seq.fetch_add(1));
 }
 
 static std::string NextRespId()
 {
-    static std::atomic<uint64_t> seq(0);
+    static std::atomic<uint64_t> seq;
     return std::string("RESP-") + std::to_string(seq.fetch_add(1));
 }
 
@@ -30,17 +30,12 @@ class HttpRequestIos : public SimpleHttpRequest
 public:
     HttpRequestIos(HttpClient* parent) :
         SimpleHttpRequest(NextReqId()),
-        m_parent(parent),
-        m_response(NextRespId()),
-        m_callback(nullptr),
-        m_session(nullptr),
-        m_dataTask(nullptr),
-        m_urlRequest(nullptr)
+        m_parent(parent)
     {
         m_parent->add(static_cast<IHttpRequest*>(this));
     }
-    
-    ~HttpRequestIos()
+
+    ~HttpRequestIos() noexcept
     {
         m_parent->erase(static_cast<IHttpRequest*>(this));
     }
@@ -82,7 +77,7 @@ public:
         [m_dataTask resume];
     }
 
-    void HandleResponse(NSData *data, NSURLResponse *response, NSError *error)
+    void HandleResponse(NSData* data, NSURLResponse* response, NSError* error)
     {
         NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
 
@@ -105,6 +100,7 @@ public:
             }
             else
             {
+                LOG_TRACE("HTTP response error code: %l", errorCode);
                 m_response.m_result = HttpResult_NetworkFailure;
             }
         }
@@ -121,19 +117,19 @@ public:
     void Cancel()
     {
         [m_dataTask cancel];
-        [m_session getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks)
+        [m_session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
         {
-            for (NSURLSessionTask *_task in dataTasks)
+            for (NSURLSessionTask* _task in dataTasks)
             {
                 [_task cancel];
             }
 
-            for (NSURLSessionTask *_task in downloadTasks)
+            for (NSURLSessionTask* _task in downloadTasks)
             {
                 [_task cancel];
             }
 
-            for (NSURLSessionTask *_task in uploadTasks)
+            for (NSURLSessionTask* _task in uploadTasks)
             {
                 [_task cancel];
             }
@@ -141,13 +137,13 @@ public:
     }
 
 private:
-    HttpClient* m_parent;
-    SimpleHttpResponse m_response;
-    IHttpResponseCallback* m_callback;
-    NSURLSession* m_session;
-    NSURLSessionDataTask* m_dataTask;
-    NSMutableURLRequest* m_urlRequest;
-    void (^m_completionMethod)(NSData *data, NSURLResponse *response, NSError *error);
+    HttpClient* m_parent = nullptr;
+    SimpleHttpResponse m_response { NextRespId() };
+    IHttpResponseCallback* m_callback = nullptr;
+    NSURLSession* m_session = nullptr;
+    NSURLSessionDataTask* m_dataTask = nullptr;
+    NSMutableURLRequest* m_urlRequest = nullptr;
+    void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
 };
 
 HttpClient::HttpClient()
@@ -174,7 +170,7 @@ void HttpClient::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* 
     LOG_TRACE("HTTP request=%p callback=%p sent", request, callback);
 }
 
-void HttpClient::CancelRequestAsync(std::string const& id)
+void HttpClient::CancelRequestAsync(const std::string& id)
 {
     HttpRequestIos* request = nullptr;
     {
