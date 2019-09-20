@@ -21,6 +21,9 @@ option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
 if(BUILD_IOS)
   set(TARGET_ARCH "APPLE")
+  set(IOS True)
+  set(APPLE True)
+
   if(BUILD_SIMULATOR)
     set(IOS_PLATFORM "iphonesimulator")
     set(CMAKE_SYSTEM_PROCESSOR x86_64)
