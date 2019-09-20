@@ -153,7 +153,7 @@ C++ code
          explicitly expresss lifetime semantics.
      -   If required by a platform (e.g, Microsoft COM), use the appropriate
          ref-counted type, but do not expose those types to platform agnostic code, 
-         prefer to use use an abstraction.
+         prefer to use an abstraction.
 
 Python code
 -----------
