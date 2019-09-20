@@ -34,7 +34,6 @@ void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds 
 
 void SetupLogConfiguration(ILogConfiguration& config)
 {
-    config[std::string(CFG_BOOL_ENABLE_DB_COMPRESS)] = true;
     config[CFG_STR_CACHE_FILE_PATH]   = "Wrapper.db";
     config[CFG_INT_CACHE_FILE_SIZE]   = 10 * 1024 * 1024;
     config[CFG_INT_RAM_QUEUE_SIZE]    = 2 * 1024 * 1024;
