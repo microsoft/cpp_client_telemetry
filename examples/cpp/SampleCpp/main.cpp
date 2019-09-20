@@ -23,7 +23,7 @@
  
 LOGMANAGER_INSTANCE
 
-#define TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 
 extern "C" void guestTest();    // see guest.cpp 
 
@@ -247,6 +247,7 @@ int main()
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
 #endif
 
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  // 0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
@@ -277,19 +278,20 @@ int main()
     for (auto evt : eventsList)
         LogManager::AddEventListener(evt, listener);
 
-    ILogger *logger = LogManager::Initialize(TOKEN);
+    ILogger *logger = nullptr;
 
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+    logger = LogManager::Initialize(TOKEN);
     logPiiMark();   // UTC upload
     LogManager::FlushAndTeardown();
 #endif
 
     printf("LogManager::Initialize in direct\n");
+    printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     logger = LogManager::Initialize(TOKEN);
-
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
