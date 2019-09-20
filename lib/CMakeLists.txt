@@ -81,6 +81,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(BUILD_IOS)
     list(APPEND SRCS
       http/HttpClient_iOS.mm
+      pal/posix/sysinfo_utils_ios.mm
     )
   else()
     list(APPEND SRCS
