@@ -311,6 +311,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::Device& value, bool isBase)
                 break;
             }
 
+            case 10: {
+                if (!reader.ReadString(value.authIdEnt)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -478,6 +485,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::App& value, bool isBase)
                 break;
             }
 
+            case 9: {
+                if (!reader.ReadString(value.sesId)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -614,6 +628,27 @@ bool Deserialize(TReader& reader, ::CsProtocol::Utc& value, bool isBase)
                 break;
             }
 
+            case 16: {
+                if (!reader.ReadInt64(value.wsId)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 17: {
+                if (!reader.ReadInt64(value.wcmp)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 18: {
+                if (!reader.ReadInt64(value.wPId)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -654,6 +689,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::M365a& value, bool isBase)
         switch (id) {
             case 1: {
                 if (!reader.ReadString(value.enrolledTenantId)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadUInt64(value.msp)) {
                     return false;
                 }
                 break;
@@ -920,6 +962,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::Javascript& value, bool isBase)
                 break;
             }
 
+            case 45: {
+                if (!reader.ReadString(value.msfpc)) {
+                    return false;
+                }
+                break;
+            }
+
             case 50: {
                 if (!reader.ReadString(value.mc1Id)) {
                     return false;
@@ -1032,6 +1081,27 @@ bool Deserialize(TReader& reader, ::CsProtocol::Javascript& value, bool isBase)
                 break;
             }
 
+            case 210: {
+                if (!reader.ReadBool(value.userConsent)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 220: {
+                if (!reader.ReadString(value.browserLang)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 230: {
+                if (!reader.ReadString(value.serviceName)) {
+                    return false;
+                }
+                break;
+            }
+
             case 999: {
                 if (!reader.ReadString(value.dnt)) {
                     return false;
@@ -1133,6 +1203,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::Protocol& value, bool isBase)
                 break;
             }
 
+            case 5: {
+                if (!reader.ReadUInt64(value.msp)) {
+                    return false;
+                }
+                break;
+            }
+
             default:
                 return false;
         }
@@ -1180,6 +1257,20 @@ bool Deserialize(TReader& reader, ::CsProtocol::Receipts& value, bool isBase)
 
             case 2: {
                 if (!reader.ReadInt64(value.uploadTime)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.originalName)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadUInt64(value.flags)) {
                     return false;
                 }
                 break;
@@ -1283,7 +1374,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Sdk& value, bool isBase)
 
         switch (id) {
             case 1: {
-                if (!reader.ReadString(value.libVer)) {
+                if (!reader.ReadString(value.ver)) {
                     return false;
                 }
                 break;
@@ -1305,6 +1396,13 @@ bool Deserialize(TReader& reader, ::CsProtocol::Sdk& value, bool isBase)
 
             case 4: {
                 if (!reader.ReadString(value.installId)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 5: {
+                if (!reader.ReadString(value.libVer)) {
                     return false;
                 }
                 break;
@@ -1392,6 +1490,405 @@ bool Deserialize(TReader& reader, ::CsProtocol::Cloud& value, bool isBase)
 
             case 7: {
                 if (!reader.ReadString(value.role)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::Service& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.name)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.role)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.roleVersion)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::Cs& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.sig)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::Mscv& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.cV)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::IntWeb& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.mc1Id)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.msfpc)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.anid)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadString(value.serviceName)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 5: {
+                uint32_t size4;
+                uint8_t keyType4, valueType4;
+                if (!reader.ReadMapContainerBegin(size4, keyType4, valueType4)) {
+                    return false;
+                }
+                if (keyType4 != BT_STRING || valueType4 != BT_STRING) {
+                    return false;
+                }
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    std::string key4;
+                    if (!reader.ReadString(key4)) {
+                        return false;
+                    }
+                    if (!reader.ReadString(value.mscom[key4])) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::IntService& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 1: {
+                if (!reader.ReadString(value.fullEnvName)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 2: {
+                if (!reader.ReadString(value.location)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 3: {
+                if (!reader.ReadString(value.environment)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 4: {
+                if (!reader.ReadString(value.deploymentUnit)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 5: {
+                if (!reader.ReadString(value.name)) {
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!reader.ReadFieldEnd()) {
+            return false;
+        }
+    }
+
+    if (!reader.ReadStructEnd(isBase)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename TReader>
+bool Deserialize(TReader& reader, ::CsProtocol::Web& value, bool isBase)
+{
+    if (!reader.ReadStructBegin(isBase)) {
+        return false;
+    }
+
+    uint8_t type;
+    uint16_t id;
+    for (;;) {
+        if (!reader.ReadFieldBegin(type, id)) {
+            return false;
+        }
+
+        if (type == BT_STOP || type == BT_STOP_BASE) {
+            if (isBase != (type == BT_STOP_BASE)) {
+                return false;
+            }
+            break;
+        }
+
+        switch (id) {
+            case 10: {
+                if (!reader.ReadString(value.browser)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 20: {
+                if (!reader.ReadString(value.browserVer)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 30: {
+                if (!reader.ReadString(value.screenRes)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 40: {
+                if (!reader.ReadString(value.domain)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 50: {
+                if (!reader.ReadBool(value.userConsent)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 60: {
+                if (!reader.ReadString(value.browserLang)) {
+                    return false;
+                }
+                break;
+            }
+
+            case 70: {
+                if (!reader.ReadBool(value.isManual)) {
                     return false;
                 }
                 break;
@@ -2295,6 +2792,48 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 break;
             }
 
+            case 35: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extService.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extService[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 36: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extCs.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extCs[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
             case 37: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2328,6 +2867,90 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 value.ext.resize(size4);
                 for (unsigned i4 = 0; i4 < size4; i4++) {
                     if (!Deserialize(reader, value.ext[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 42: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extMscv.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extMscv[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 43: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extIntWeb.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extIntWeb[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 44: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extIntService.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extIntService[i4], false)) {
+                        return false;
+                    }
+                }
+                if (!reader.ReadContainerEnd()) {
+                    return false;
+                }
+                break;
+            }
+
+            case 45: {
+                uint32_t size4;
+                uint8_t type4;
+                if (!reader.ReadContainerBegin(size4, type4)) {
+                    return false;
+                }
+                if (type4 != BT_STRUCT) {
+                    return false;
+                }
+                value.extWeb.resize(size4);
+                for (unsigned i4 = 0; i4 < size4; i4++) {
+                    if (!Deserialize(reader, value.extWeb[i4], false)) {
                         return false;
                     }
                 }

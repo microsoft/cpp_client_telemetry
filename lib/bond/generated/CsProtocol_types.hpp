@@ -114,6 +114,8 @@ struct Device {
     std::string make;
     // 9: optional string model
     std::string model;
+    // 10: optional string authIdEnt
+    std::string authIdEnt;
 
     bool operator==(Device const& other) const
     {
@@ -125,7 +127,8 @@ struct Device {
             && (orgId == other.orgId)
             && (orgAuthId == other.orgAuthId)
             && (make == other.make)
-            && (model == other.model);
+            && (model == other.model)
+            && (authIdEnt == other.authIdEnt);
     }
 
     bool operator!=(Device const& other) const
@@ -178,6 +181,8 @@ struct App {
     std::string locale;
     // 8: optional string name
     std::string name;
+    // 9: optional string sesId
+    std::string sesId;
 
     bool operator==(App const& other) const
     {
@@ -188,7 +193,8 @@ struct App {
             && (id == other.id)
             && (ver == other.ver)
             && (locale == other.locale)
-            && (name == other.name);
+            && (name == other.name)
+            && (sesId == other.sesId);
     }
 
     bool operator!=(App const& other) const
@@ -226,6 +232,12 @@ struct Utc {
     double popSample = 0.0;
     // 15: optional int64 eventFlags
     int64_t eventFlags = 0;
+    // 16: optional int64 wsId
+    int64_t wsId = 0;
+    // 17: optional int64 wcmp
+    int64_t wcmp = 0;
+    // 18: optional int64 wPId
+    int64_t wPId = 0;
 
     bool operator==(Utc const& other) const
     {
@@ -242,7 +254,10 @@ struct Utc {
             && (epoch == other.epoch)
             && (seq == other.seq)
             && (popSample == other.popSample)
-            && (eventFlags == other.eventFlags);
+            && (eventFlags == other.eventFlags)
+            && (wsId == other.wsId)
+            && (wcmp == other.wcmp)
+            && (wPId == other.wPId);
     }
 
     bool operator!=(Utc const& other) const
@@ -254,10 +269,13 @@ struct Utc {
 struct M365a {
     // 1: optional string enrolledTenantId
     std::string enrolledTenantId;
+    // 2: optional uint64 msp
+    uint64_t msp = 0;
 
     bool operator==(M365a const& other) const
     {
-        return (enrolledTenantId == other.enrolledTenantId);
+        return (enrolledTenantId == other.enrolledTenantId)
+            && (msp == other.msp);
     }
 
     bool operator!=(M365a const& other) const
@@ -343,6 +361,8 @@ struct Javascript {
     std::string model;
     // 40: optional string screenSize
     std::string screenSize;
+    // 45: optional string msfpc
+    std::string msfpc;
     // 50: optional string mc1Id
     std::string mc1Id;
     // 60: optional uint64 mc1Lu
@@ -375,6 +395,12 @@ struct Javascript {
     std::string gsfxSession;
     // 200: optional string domain
     std::string domain;
+    // 210: required bool userConsent
+    bool userConsent = false;
+    // 220: optional string browserLang
+    std::string browserLang;
+    // 230: optional string serviceName
+    std::string serviceName;
     // 999: optional string dnt
     std::string dnt;
 
@@ -388,6 +414,7 @@ struct Javascript {
             && (make == other.make)
             && (model == other.model)
             && (screenSize == other.screenSize)
+            && (msfpc == other.msfpc)
             && (mc1Id == other.mc1Id)
             && (mc1Lu == other.mc1Lu)
             && (isMc1New == other.isMc1New)
@@ -404,6 +431,9 @@ struct Javascript {
             && (omniId == other.omniId)
             && (gsfxSession == other.gsfxSession)
             && (domain == other.domain)
+            && (userConsent == other.userConsent)
+            && (browserLang == other.browserLang)
+            && (serviceName == other.serviceName)
             && (dnt == other.dnt);
     }
 
@@ -422,13 +452,16 @@ struct Protocol {
     std::string devMake;
     // 4: optional string devModel
     std::string devModel;
+    // 5: optional uint64 msp
+    uint64_t msp = 0;
 
     bool operator==(Protocol const& other) const
     {
         return (metadataCrc == other.metadataCrc)
             && (ticketKeys == other.ticketKeys)
             && (devMake == other.devMake)
-            && (devModel == other.devModel);
+            && (devModel == other.devModel)
+            && (msp == other.msp);
     }
 
     bool operator!=(Protocol const& other) const
@@ -442,11 +475,17 @@ struct Receipts {
     int64_t originalTime = 0;
     // 2: optional int64 uploadTime
     int64_t uploadTime = 0;
+    // 3: optional string originalName
+    std::string originalName;
+    // 4: optional uint64 flags
+    uint64_t flags = 0;
 
     bool operator==(Receipts const& other) const
     {
         return (originalTime == other.originalTime)
-            && (uploadTime == other.uploadTime);
+            && (uploadTime == other.uploadTime)
+            && (originalName == other.originalName)
+            && (flags == other.flags);
     }
 
     bool operator!=(Receipts const& other) const
@@ -477,21 +516,24 @@ struct Net {
 };
 
 struct Sdk {
-    // 1: optional string libVer
-    std::string libVer;
+    // 1: optional string ver
+    std::string ver;
     // 2: optional string epoch
     std::string epoch;
     // 3: optional int64 seq
     int64_t seq = 0;
     // 4: optional string installId
     std::string installId;
+    // 5: optional string libVer
+    std::string libVer;
 
     bool operator==(Sdk const& other) const
     {
-        return (libVer == other.libVer)
+        return (ver == other.ver)
             && (epoch == other.epoch)
             && (seq == other.seq)
-            && (installId == other.installId);
+            && (installId == other.installId)
+            && (libVer == other.libVer);
     }
 
     bool operator!=(Sdk const& other) const
@@ -528,6 +570,144 @@ struct Cloud {
     }
 
     bool operator!=(Cloud const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Service {
+    // 1: optional string name
+    std::string name;
+    // 2: optional string role
+    std::string role;
+    // 3: optional string roleVersion
+    std::string roleVersion;
+
+    bool operator==(Service const& other) const
+    {
+        return (name == other.name)
+            && (role == other.role)
+            && (roleVersion == other.roleVersion);
+    }
+
+    bool operator!=(Service const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Cs {
+    // 1: optional string sig
+    std::string sig;
+
+    bool operator==(Cs const& other) const
+    {
+        return (sig == other.sig);
+    }
+
+    bool operator!=(Cs const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Mscv {
+    // 1: optional string cV
+    std::string cV;
+
+    bool operator==(Mscv const& other) const
+    {
+        return (cV == other.cV);
+    }
+
+    bool operator!=(Mscv const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct IntWeb {
+    // 1: optional string mc1Id
+    std::string mc1Id;
+    // 2: optional string msfpc
+    std::string msfpc;
+    // 3: optional string anid
+    std::string anid;
+    // 4: optional string serviceName
+    std::string serviceName;
+    // 5: optional map<string, string> mscom
+    std::map<std::string, std::string> mscom;
+
+    bool operator==(IntWeb const& other) const
+    {
+        return (mc1Id == other.mc1Id)
+            && (msfpc == other.msfpc)
+            && (anid == other.anid)
+            && (serviceName == other.serviceName)
+            && (mscom == other.mscom);
+    }
+
+    bool operator!=(IntWeb const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct IntService {
+    // 1: optional string fullEnvName
+    std::string fullEnvName;
+    // 2: optional string location
+    std::string location;
+    // 3: optional string environment
+    std::string environment;
+    // 4: optional string deploymentUnit
+    std::string deploymentUnit;
+    // 5: optional string name
+    std::string name;
+
+    bool operator==(IntService const& other) const
+    {
+        return (fullEnvName == other.fullEnvName)
+            && (location == other.location)
+            && (environment == other.environment)
+            && (deploymentUnit == other.deploymentUnit)
+            && (name == other.name);
+    }
+
+    bool operator!=(IntService const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct Web {
+    // 10: optional string browser
+    std::string browser;
+    // 20: optional string browserVer
+    std::string browserVer;
+    // 30: optional string screenRes
+    std::string screenRes;
+    // 40: optional string domain
+    std::string domain;
+    // 50: required bool userConsent
+    bool userConsent = false;
+    // 60: optional string browserLang
+    std::string browserLang;
+    // 70: optional bool isManual
+    bool isManual = false;
+
+    bool operator==(Web const& other) const
+    {
+        return (browser == other.browser)
+            && (browserVer == other.browserVer)
+            && (screenRes == other.screenRes)
+            && (domain == other.domain)
+            && (userConsent == other.userConsent)
+            && (browserLang == other.browserLang)
+            && (isManual == other.isManual);
+    }
+
+    bool operator!=(Web const& other) const
     {
         return !(*this == other);
     }
@@ -739,10 +919,22 @@ struct Record {
     std::vector< ::CsProtocol::Loc> extLoc;
     // 34: optional vector<Cloud> extCloud
     std::vector< ::CsProtocol::Cloud> extCloud;
+    // 35: optional vector<Service> extService
+    std::vector< ::CsProtocol::Service> extService;
+    // 36: optional vector<Cs> extCs
+    std::vector< ::CsProtocol::Cs> extCs;
     // 37: optional vector<M365a> extM365a
     std::vector< ::CsProtocol::M365a> extM365a;
     // 41: optional vector<Data> ext
     std::vector< ::CsProtocol::Data> ext;
+    // 42: optional vector<Mscv> extMscv
+    std::vector< ::CsProtocol::Mscv> extMscv;
+    // 43: optional vector<IntWeb> extIntWeb
+    std::vector< ::CsProtocol::IntWeb> extIntWeb;
+    // 44: optional vector<IntService> extIntService
+    std::vector< ::CsProtocol::IntService> extIntService;
+    // 45: optional vector<Web> extWeb
+    std::vector< ::CsProtocol::Web> extWeb;
     // 51: optional map<string, string> tags
     std::map<std::string, std::string> tags;
     // 60: optional string baseType
@@ -775,8 +967,14 @@ struct Record {
             && (extSdk == other.extSdk)
             && (extLoc == other.extLoc)
             && (extCloud == other.extCloud)
+            && (extService == other.extService)
+            && (extCs == other.extCs)
             && (extM365a == other.extM365a)
             && (ext == other.ext)
+            && (extMscv == other.extMscv)
+            && (extIntWeb == other.extIntWeb)
+            && (extIntService == other.extIntService)
+            && (extWeb == other.extWeb)
             && (tags == other.tags)
             && (baseType == other.baseType)
             && (baseData == other.baseData)

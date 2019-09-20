@@ -227,6 +227,14 @@ void Serialize(TWriter& writer, ::CsProtocol::Device const& value, bool isBase)
         writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
     }
 
+    if (!value.authIdEnt.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 10, nullptr);
+        writer.WriteString(value.authIdEnt);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 10, nullptr);
+    }
+
     writer.WriteStructEnd(isBase);
 }
 
@@ -345,6 +353,14 @@ void Serialize(TWriter& writer, ::CsProtocol::App const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 8, nullptr);
+    }
+
+    if (!value.sesId.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 9, nullptr);
+        writer.WriteString(value.sesId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -467,6 +483,30 @@ void Serialize(TWriter& writer, ::CsProtocol::Utc const& value, bool isBase)
         writer.WriteFieldOmitted(BT_INT64, 15, nullptr);
     }
 
+    if (value.wsId != 0) {
+        writer.WriteFieldBegin(BT_INT64, 16, nullptr);
+        writer.WriteInt64(value.wsId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 16, nullptr);
+    }
+
+    if (value.wcmp != 0) {
+        writer.WriteFieldBegin(BT_INT64, 17, nullptr);
+        writer.WriteInt64(value.wcmp);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 17, nullptr);
+    }
+
+    if (value.wPId != 0) {
+        writer.WriteFieldBegin(BT_INT64, 18, nullptr);
+        writer.WriteInt64(value.wPId);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_INT64, 18, nullptr);
+    }
+
     writer.WriteStructEnd(isBase);
 }
 
@@ -481,6 +521,14 @@ void Serialize(TWriter& writer, ::CsProtocol::M365a const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (value.msp != 0) {
+        writer.WriteFieldBegin(BT_UINT64, 2, nullptr);
+        writer.WriteUInt64(value.msp);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_UINT64, 2, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -696,6 +744,14 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
         writer.WriteFieldOmitted(BT_STRING, 40, nullptr);
     }
 
+    if (!value.msfpc.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 45, nullptr);
+        writer.WriteString(value.msfpc);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 45, nullptr);
+    }
+
     if (!value.mc1Id.empty()) {
         writer.WriteFieldBegin(BT_STRING, 50, nullptr);
         writer.WriteString(value.mc1Id);
@@ -824,6 +880,30 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
         writer.WriteFieldOmitted(BT_STRING, 200, nullptr);
     }
 
+    if (value.userConsent != false) {
+        writer.WriteFieldBegin(BT_BOOL, 210, nullptr);
+        writer.WriteBool(value.userConsent);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_BOOL, 210, nullptr);
+    }
+
+    if (!value.browserLang.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 220, nullptr);
+        writer.WriteString(value.browserLang);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 220, nullptr);
+    }
+
+    if (!value.serviceName.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 230, nullptr);
+        writer.WriteString(value.serviceName);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 230, nullptr);
+    }
+
     if (!value.dnt.empty()) {
         writer.WriteFieldBegin(BT_STRING, 999, nullptr);
         writer.WriteString(value.dnt);
@@ -880,6 +960,14 @@ void Serialize(TWriter& writer, ::CsProtocol::Protocol const& value, bool isBase
         writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
     }
 
+    if (value.msp != 0) {
+        writer.WriteFieldBegin(BT_UINT64, 5, nullptr);
+        writer.WriteUInt64(value.msp);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_UINT64, 5, nullptr);
+    }
+
     writer.WriteStructEnd(isBase);
 }
 
@@ -902,6 +990,22 @@ void Serialize(TWriter& writer, ::CsProtocol::Receipts const& value, bool isBase
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_INT64, 2, nullptr);
+    }
+
+    if (!value.originalName.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.originalName);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (value.flags != 0) {
+        writer.WriteFieldBegin(BT_UINT64, 4, nullptr);
+        writer.WriteUInt64(value.flags);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_UINT64, 4, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -944,9 +1048,9 @@ void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
 
-    if (!value.libVer.empty()) {
+    if (!value.ver.empty()) {
         writer.WriteFieldBegin(BT_STRING, 1, nullptr);
-        writer.WriteString(value.libVer);
+        writer.WriteString(value.ver);
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
@@ -974,6 +1078,14 @@ void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (!value.libVer.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.libVer);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -1038,6 +1150,235 @@ void Serialize(TWriter& writer, ::CsProtocol::Cloud const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::Service const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.name.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.name);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.role.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.role);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.roleVersion.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.roleVersion);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::Cs const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.sig.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.sig);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::Mscv const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.cV.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.cV);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::IntWeb const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.mc1Id.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.mc1Id);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.msfpc.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.msfpc);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.anid.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.anid);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (!value.serviceName.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 4, nullptr);
+        writer.WriteString(value.serviceName);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (!value.mscom.empty()) {
+        writer.WriteFieldBegin(BT_MAP, 5, nullptr);
+        writer.WriteMapContainerBegin(value.mscom.size(), BT_STRING, BT_STRING);
+        for (auto const& item2 : value.mscom) {
+            writer.WriteString(item2.first);
+            writer.WriteString(item2.second);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_MAP, 5, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::IntService const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.fullEnvName.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.fullEnvName);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+
+    if (!value.location.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 2, nullptr);
+        writer.WriteString(value.location);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 2, nullptr);
+    }
+
+    if (!value.environment.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 3, nullptr);
+        writer.WriteString(value.environment);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 3, nullptr);
+    }
+
+    if (!value.deploymentUnit.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 4, nullptr);
+        writer.WriteString(value.deploymentUnit);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
+    }
+
+    if (!value.name.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 5, nullptr);
+        writer.WriteString(value.name);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::Web const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (!value.browser.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 10, nullptr);
+        writer.WriteString(value.browser);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 10, nullptr);
+    }
+
+    if (!value.browserVer.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 20, nullptr);
+        writer.WriteString(value.browserVer);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 20, nullptr);
+    }
+
+    if (!value.screenRes.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 30, nullptr);
+        writer.WriteString(value.screenRes);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 30, nullptr);
+    }
+
+    if (!value.domain.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 40, nullptr);
+        writer.WriteString(value.domain);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 40, nullptr);
+    }
+
+    if (value.userConsent != false) {
+        writer.WriteFieldBegin(BT_BOOL, 50, nullptr);
+        writer.WriteBool(value.userConsent);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_BOOL, 50, nullptr);
+    }
+
+    if (!value.browserLang.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 60, nullptr);
+        writer.WriteString(value.browserLang);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 60, nullptr);
+    }
+
+    if (value.isManual != false) {
+        writer.WriteFieldBegin(BT_BOOL, 70, nullptr);
+        writer.WriteBool(value.isManual);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_BOOL, 70, nullptr);
     }
 
     writer.WriteStructEnd(isBase);
@@ -1496,6 +1837,30 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldOmitted(BT_LIST, 34, nullptr);
     }
 
+    if (!value.extService.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 35, nullptr);
+        writer.WriteContainerBegin(value.extService.size(), BT_STRUCT);
+        for (auto const& item2 : value.extService) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 35, nullptr);
+    }
+
+    if (!value.extCs.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 36, nullptr);
+        writer.WriteContainerBegin(value.extCs.size(), BT_STRUCT);
+        for (auto const& item2 : value.extCs) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 36, nullptr);
+    }
+
     if (!value.extM365a.empty()) {
         writer.WriteFieldBegin(BT_LIST, 37, nullptr);
         writer.WriteContainerBegin(value.extM365a.size(), BT_STRUCT);
@@ -1518,6 +1883,54 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_LIST, 41, nullptr);
+    }
+
+    if (!value.extMscv.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 42, nullptr);
+        writer.WriteContainerBegin(value.extMscv.size(), BT_STRUCT);
+        for (auto const& item2 : value.extMscv) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 42, nullptr);
+    }
+
+    if (!value.extIntWeb.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 43, nullptr);
+        writer.WriteContainerBegin(value.extIntWeb.size(), BT_STRUCT);
+        for (auto const& item2 : value.extIntWeb) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 43, nullptr);
+    }
+
+    if (!value.extIntService.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 44, nullptr);
+        writer.WriteContainerBegin(value.extIntService.size(), BT_STRUCT);
+        for (auto const& item2 : value.extIntService) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 44, nullptr);
+    }
+
+    if (!value.extWeb.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 45, nullptr);
+        writer.WriteContainerBegin(value.extWeb.size(), BT_STRUCT);
+        for (auto const& item2 : value.extWeb) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 45, nullptr);
     }
 
     if (!value.tags.empty()) {
