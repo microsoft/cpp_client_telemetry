@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         record.time = PAL::getUtcSystemTimeinTicks();
-        record.ver = "3.0";
+        record.ver = "4.0";
         if (record.baseType.empty())
         {
             record.baseType = record.name;
@@ -33,7 +33,11 @@ namespace ARIASDK_NS_BEGIN {
 
         record.extSdk[0].seq = ++m_sequenceId;
         record.extSdk[0].epoch = m_initId;
-        record.extSdk[0].libVer = PAL::getSdkVersion();
+        // Backward compat note:
+        // - CS3 named this field libVer.
+        // - CS4 moved the libVer from #0 to post #5. And renamed pos #0 from libVer to ver
+        // This creates a ton of confusion, but we keep things where they were before.
+        record.extSdk[0].ver = PAL::getSdkVersion();
         record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
 
         //set Tickets
