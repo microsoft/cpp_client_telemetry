@@ -219,7 +219,7 @@ public:
                 {
                     if (index + 2 < length)
                     {
-                        if (test[index + 1] == '3' && test[index + 2] == '.')
+                        if (test[index + 1] == '4' && test[index + 2] == '.')
                         {
                             found = true;
                             break;
