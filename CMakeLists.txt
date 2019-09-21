@@ -21,6 +21,10 @@ option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
 if(BUILD_IOS)
   set(TARGET_ARCH "APPLE")
+  set(IOS True)
+  set(APPLE True)
+  set (CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+
   if(BUILD_SIMULATOR)
     set(IOS_PLATFORM "iphonesimulator")
     set(CMAKE_SYSTEM_PROCESSOR x86_64)
