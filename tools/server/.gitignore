@@ -18,3 +18,5 @@ jsoneditor/
 *.backup.*
 *.DotSettings
 *\rcf
+
+.vscode/
