@@ -155,7 +155,7 @@ C++ code
          ref-counted type, but do not expose those types to platform agnostic code, 
          prefer to use an abstraction.
  -   Exceptions
-     -   All user defined destructors must be marked [noexcept](https://en.cppreference.com/w/cpp/language/destructor).
+     -   All [user-declared destructors](https://en.cppreference.com/w/cpp/language/destructor) must be marked [noexcept](https://en.cppreference.com/w/cpp/language/noexcept_spec).
 
 Python code
 -----------
