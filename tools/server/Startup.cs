@@ -47,20 +47,31 @@ namespace CommonSchema
                     }
                     loggerReq.LogInformation(headers);
 
-                    var path = context.Request.Path.Value;
-                    if (path.StartsWith("/OneCollector/"))
+                    try
                     {
-                        int length = Int32.Parse(context.Request.Headers["Content-Length"]);
-                        BinaryReader reader = new BinaryReader(context.Request.Body);
+                        string path = context.Request.Path.Value;
+                        if (path.StartsWith("/OneCollector/"))
+                        {
+                            int length = Int32.Parse(context.Request.Headers["Content-Length"]);
+                            BinaryReader reader = new BinaryReader(context.Request.Body);
 
-                        // Read body fully before decoding it
-                        byte[] buffer = reader.ReadBytes(length);
-                        Decoder decoder = new Decoder(loggerDec, context.Request.Headers, buffer);
-                        string result = decoder.ToJson(false, true, 2);
+                            // Read body fully before decoding it
+                            byte[] buffer = reader.ReadBytes(length);
+                            Decoder decoder = new Decoder(loggerDec, context.Request.Headers, buffer);
+                            string result = decoder.ToJson(false, true, 2);
 
-                        // Echo the body converted to JSON array
-                        context.Response.StatusCode = 200;
-                        loggerReq.LogInformation(result);
+                            // Echo the body converted to JSON array
+                            context.Response.StatusCode = 200;
+                            loggerReq.LogInformation(result);
+                            await context.Response.WriteAsync(result);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle all error conditions here
+                        string result = "400 Bad Request";
+                        context.Response.StatusCode = 400;
+                        loggerReq.LogError("Exception: {ex}", ex);
                         await context.Response.WriteAsync(result);
                     }
                 });
