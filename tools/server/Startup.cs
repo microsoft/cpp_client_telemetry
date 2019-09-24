@@ -37,7 +37,7 @@ namespace CommonSchema
                 {
                     // Dump request information with headers
                     seq++;
-                    ILogger logger = loggerFactory.CreateLogger("REQ-" + seq);
+                    ILogger loggerReq = loggerFactory.CreateLogger("REQ-" + seq);
                     ILogger loggerDec = loggerFactory.CreateLogger("DEC-" + seq);
 
                     string headers = "";
@@ -45,7 +45,7 @@ namespace CommonSchema
                     {
                         headers += entry.Key + ": " + entry.Value.ToString() + "\n";
                     }
-                    logger.LogInformation(headers);
+                    loggerReq.LogInformation(headers);
 
                     var path = context.Request.Path.Value;
                     if (path.StartsWith("/OneCollector/"))
@@ -60,7 +60,7 @@ namespace CommonSchema
 
                         // Echo the body converted to JSON array
                         context.Response.StatusCode = 200;
-                        logger.LogInformation(result);
+                        loggerReq.LogInformation(result);
                         await context.Response.WriteAsync(result);
                     }
                 });
