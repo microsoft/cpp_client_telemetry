@@ -1,18 +1,19 @@
+// System
 using System;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
-
+// Protocol
 using Bond;
 using Bond.Protocols;
 using Bond.IO.Safe;
-
+// Extensions
 using Microsoft.AspNetCore.Http;
-
+using Microsoft.Extensions.Logging;
+// JSON parser
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace CommonSchema
 {
