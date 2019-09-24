@@ -28,7 +28,7 @@ struct User
     1: optional string id;
     2: optional string localId;
     3: optional string authId;
-	4: optional string locale;
+        4: optional string locale;
 }
 
 struct Loc
@@ -47,8 +47,8 @@ struct Device
     5: optional string deviceClass;
     6: optional string orgId;
     7: optional string orgAuthId;
-	8: optional string make;
-	9: optional string model;
+        8: optional string make;
+        9: optional string model;
 }
 
 struct Os
@@ -149,7 +149,7 @@ struct Protocol
 {
     1: optional int32 metadataCrc;
     2: optional vector<vector<string>> ticketKeys;
-	3: optional string devMake;
+        3: optional string devMake;
     4: optional string devModel;
 }
 
@@ -163,7 +163,7 @@ struct Net
 {
     1: optional string provider;
     2: optional string cost;
-	3: optional string type;
+        3: optional string type;
 }
 
 struct Sdk
@@ -176,13 +176,13 @@ struct Sdk
 
 struct Cloud
 {
-	1: optional string fullEnvName;
-	2: optional string location;
-	3: optional string environment;
-	4: optional string deploymentUnit;
-	5: optional string name;
-	6: optional string roleInstance;
-	7: optional string role;
+        1: optional string fullEnvName;
+        2: optional string location;
+        3: optional string environment;
+        4: optional string deploymentUnit;
+        5: optional string name;
+        6: optional string roleInstance;
+        7: optional string role;
 }
 
 
@@ -286,7 +286,7 @@ struct CsEvent
     27: optional vector<Xbl> extXbl;
     28: optional vector<Javascript> extJavascript;
     29: optional vector<Receipts> extReceipts;
-    31: optional vector<Net> extNet;	
+    31: optional vector<Net> extNet;    
     32: optional vector<Sdk> extSdk;
     33: optional vector<Loc> extLoc;
     34: optional vector<Cloud> extCloud;
