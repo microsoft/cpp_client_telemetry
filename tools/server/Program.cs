@@ -1,31 +1,38 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace server
+namespace CommonSchema.Server
 {
+    /// <summary>
+    /// Reference implementation of Common Schema protocol server.
+    /// </summary>
     public class Program
     {
+
+        /// <summary>
+        /// Program main entry point
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args)
             .UseKestrel()
             .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                var env = hostingContext.HostingEnvironment;
-                config
+                IHostingEnvironment env = hostingContext.HostingEnvironment;
+                IConfigurationBuilder configurationBuilder = config
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
-                config.AddEnvironmentVariables();
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables();
             })
-            .ConfigureLogging((hostingContext, logging) =>
+            .ConfigureLogging(configureLogging: (hostingContext, logging) =>
             {
                 // Requires `using Microsoft.Extensions.Logging;`
                 logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
@@ -37,9 +44,16 @@ namespace server
             .Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.
-                CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+        /// <summary>
+        /// Creates instance of WebHost using Startup
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns>IWebHostBuilder web host instance</returns>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            return WebHost
+            .CreateDefaultBuilder(args)
+            .UseStartup<Startup>();
+        }
     }
 }

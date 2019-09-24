@@ -7,6 +7,9 @@ bin/
 obj/
 csx/
 
+# jsoneditor
+jsoneditor/
+
 # Miscellaneous files to ignore
 *.suo
 *.user

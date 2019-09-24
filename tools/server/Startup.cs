@@ -1,63 +1,71 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Text;
 
-namespace server
+namespace CommonSchema
 {
-    using CommonSchema;
-
-    public class Startup
+    namespace Server
     {
-        private int seq = 0;
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public class Startup
         {
-        }
+            private int seq = 0;
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
-        {
-            if (env.IsDevelopment())
+            // This method gets called by the runtime. Use this method to add services to the container.
+            // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+            public void ConfigureServices(/* IServiceCollection services */)
             {
-                app.UseDeveloperExceptionPage();
+                // TODO: add services configuration
             }
 
-            app.Run(async (context) =>
+            // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
             {
-                int length = Int32.Parse(context.Request.Headers["Content-Length"]);
-                using (var reader = new BinaryReader(context.Request.Body))
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+
+                app.UseStaticFiles(); // For the wwwroot folder
+
+                app.Run(async (context) =>
                 {
                     // Dump request information with headers
                     seq++;
-                    var logger = loggerFactory.CreateLogger("REQ-"+seq);
+                    ILogger logger = loggerFactory.CreateLogger("REQ-" + seq);
+                    ILogger loggerDec = loggerFactory.CreateLogger("DEC-" + seq);
+
                     string headers = "";
-                    foreach(var entry in context.Request.Headers)
+                    foreach (var entry in context.Request.Headers)
                     {
                         headers += entry.Key + ": " + entry.Value.ToString() + "\n";
                     }
                     logger.LogInformation(headers);
 
-                    // Read body fully before decoding it
-                    byte[] buffer = reader.ReadBytes(length);
-                    Decoder decoder = new Decoder(context.Request.Headers, buffer);
-                    string result = decoder.ToJson(false, 2);
+                    var path = context.Request.Path.Value;
+                    if (path.StartsWith("/OneCollector/"))
+                    {
+                        int length = Int32.Parse(context.Request.Headers["Content-Length"]);
+                        BinaryReader reader = new BinaryReader(context.Request.Body);
 
-                    // Echo the body converted to JSON array
-                    context.Response.StatusCode = 200;
-                    logger.LogInformation(result);
-                    await context.Response.WriteAsync(result);
-                }
-            });
+                        // Read body fully before decoding it
+                        byte[] buffer = reader.ReadBytes(length);
+                        Decoder decoder = new Decoder(loggerDec, context.Request.Headers, buffer);
+                        string result = decoder.ToJson(false, true, 2);
+
+                        // Echo the body converted to JSON array
+                        context.Response.StatusCode = 200;
+                        logger.LogInformation(result);
+                        await context.Response.WriteAsync(result);
+                    }
+                });
+
+            }
         }
     }
 }
