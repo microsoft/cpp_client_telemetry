@@ -891,8 +891,10 @@ struct Record {
     int64_t flags = 0;
     // 7: optional string cV
     std::string cV;
+#ifdef HAVE_FULL_COMMON_SCHEMA
     // 20: optional vector<Ingest> extIngest
     std::vector< ::CsProtocol::Ingest> extIngest;
+#endif
     // 21: optional vector<Protocol> extProtocol
     std::vector< ::CsProtocol::Protocol> extProtocol;
     // 22: optional vector<User> extUser
@@ -903,30 +905,36 @@ struct Record {
     std::vector< ::CsProtocol::Os> extOs;
     // 25: optional vector<App> extApp
     std::vector< ::CsProtocol::App> extApp;
+/* There are scenarios where 1DS C++ SDK needs to populate UTC extension in Direct upload mode */
     // 26: optional vector<Utc> extUtc
     std::vector< ::CsProtocol::Utc> extUtc;
+#ifdef HAVE_FULL_COMMON_SCHEMA
     // 27: optional vector<Xbl> extXbl
     std::vector< ::CsProtocol::Xbl> extXbl;
     // 28: optional vector<Javascript> extJavascript
     std::vector< ::CsProtocol::Javascript> extJavascript;
     // 29: optional vector<Receipts> extReceipts
     std::vector< ::CsProtocol::Receipts> extReceipts;
+#endif
     // 31: optional vector<Net> extNet
     std::vector< ::CsProtocol::Net> extNet;
     // 32: optional vector<Sdk> extSdk
     std::vector< ::CsProtocol::Sdk> extSdk;
     // 33: optional vector<Loc> extLoc
     std::vector< ::CsProtocol::Loc> extLoc;
+#ifdef HAVE_FULL_COMMON_SCHEMA
     // 34: optional vector<Cloud> extCloud
     std::vector< ::CsProtocol::Cloud> extCloud;
     // 35: optional vector<Service> extService
     std::vector< ::CsProtocol::Service> extService;
     // 36: optional vector<Cs> extCs
     std::vector< ::CsProtocol::Cs> extCs;
+#endif
     // 37: optional vector<M365a> extM365a
     std::vector< ::CsProtocol::M365a> extM365a;
     // 41: optional vector<Data> ext
     std::vector< ::CsProtocol::Data> ext;
+#ifdef HAVE_FULL_COMMON_SCHEMA
     // 42: optional vector<Mscv> extMscv
     std::vector< ::CsProtocol::Mscv> extMscv;
     // 43: optional vector<IntWeb> extIntWeb
@@ -935,6 +943,7 @@ struct Record {
     std::vector< ::CsProtocol::IntService> extIntService;
     // 45: optional vector<Web> extWeb
     std::vector< ::CsProtocol::Web> extWeb;
+#endif
     // 51: optional map<string, string> tags
     std::map<std::string, std::string> tags;
     // 60: optional string baseType
@@ -953,28 +962,36 @@ struct Record {
             && (iKey == other.iKey)
             && (flags == other.flags)
             && (cV == other.cV)
+#ifdef HAVE_FULL_COMMON_SCHEMA
             && (extIngest == other.extIngest)
+#endif
             && (extProtocol == other.extProtocol)
             && (extUser == other.extUser)
             && (extDevice == other.extDevice)
             && (extOs == other.extOs)
             && (extApp == other.extApp)
             && (extUtc == other.extUtc)
+#ifdef HAVE_FULL_COMMON_SCHEMA
             && (extXbl == other.extXbl)
             && (extJavascript == other.extJavascript)
             && (extReceipts == other.extReceipts)
+#endif
             && (extNet == other.extNet)
             && (extSdk == other.extSdk)
             && (extLoc == other.extLoc)
+#ifdef HAVE_FULL_COMMON_SCHEMA
             && (extCloud == other.extCloud)
             && (extService == other.extService)
             && (extCs == other.extCs)
+#endif
             && (extM365a == other.extM365a)
             && (ext == other.ext)
+#ifdef HAVE_FULL_COMMON_SCHEMA
             && (extMscv == other.extMscv)
             && (extIntWeb == other.extIntWeb)
             && (extIntService == other.extIntService)
             && (extWeb == other.extWeb)
+#endif
             && (tags == other.tags)
             && (baseType == other.baseType)
             && (baseData == other.baseData)

@@ -4,7 +4,8 @@ namespace ARIASDK_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
-        DecoratorBase(owner),
+        IDecorator(),
+        m_owner(owner),
         // TODO: populate m_source
         m_initId(PAL::generateUuidString()),
         m_sequenceId(0)

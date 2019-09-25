@@ -14,11 +14,16 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-    class EventPropertiesDecorator : public DecoratorBase {
+    class EventPropertiesDecorator : public IDecorator
+    {
+    protected:
+        ILogManager& m_owner;
 
     public:
         EventPropertiesDecorator(ILogManager& owner) :
-            DecoratorBase(owner) {};
+            IDecorator(),
+            m_owner(owner)
+        {};
 
         bool decorate(::CsProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {

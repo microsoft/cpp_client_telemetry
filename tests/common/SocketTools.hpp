@@ -10,6 +10,8 @@
 #undef max
 #pragma comment(lib, "ws2_32.lib")
 
+#include <thread>
+
 namespace testing {
 
     // WinSocks need extra (de)initialization, solved by a global object here,
@@ -32,8 +34,6 @@ namespace testing {
 
 } // namespace testing
 
-// For _beginthread() etc.
-#include <process.h>
 #else
 
 #ifdef __linux__
@@ -357,11 +357,7 @@ namespace testing {
     class Thread
     {
     private:
-#ifdef _WIN32
-        uintptr_t m_thread;
-#else
-        pthread_t m_thread;
-#endif
+        std::thread m_thread;
         volatile bool m_terminate;
 
     protected:
@@ -372,22 +368,19 @@ namespace testing {
         void startThread()
         {
             m_terminate = false;
-#ifdef _WIN32
-            m_thread = _beginthreadex(nullptr, 0, &threadFunc, static_cast<void*>(this), 0, nullptr);
-#else
-            pthread_create(&m_thread, nullptr, &threadFunc, static_cast<void*>(this));
-#endif
+            m_thread = std::thread([&]()
+            {
+                threadFunc(static_cast<void*>(this));
+            });
         }
 
         void joinThread()
         {
             m_terminate = true;
-#ifdef _WIN32
-            WaitForSingleObject(reinterpret_cast<HANDLE>(m_thread), INFINITE);
-#else
-            void* result;
-            pthread_join(m_thread, &result);
-#endif
+            if (m_thread.joinable())
+            {
+                m_thread.join();
+            }
         }
 
         bool shouldTerminate() const

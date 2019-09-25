@@ -2497,7 +2497,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_FULL_COMMON_SCHEMA
             case 20: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2518,7 +2518,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             case 21: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2644,7 +2644,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_FULL_COMMON_SCHEMA
             case 27: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2707,7 +2707,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             case 31: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2770,7 +2770,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_FULL_COMMON_SCHEMA
             case 34: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2833,7 +2833,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             case 37: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2875,7 +2875,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_FULL_COMMON_SCHEMA
             case 42: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2959,7 +2959,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             case 51: {
                 uint32_t size4;
                 uint8_t keyType4, valueType4;

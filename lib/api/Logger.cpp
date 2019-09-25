@@ -185,6 +185,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -230,6 +231,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -421,20 +423,6 @@ namespace ARIASDK_NS_BEGIN
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
-#ifdef ENABLE_FILTERING
-        // TODO:
-        // - event filtering based on EventName
-        // - kill-switch based on TenantId
-        // handled here in one central place before serialization.
-        if (m_eventFilter.IsEventExcluded(record.name))
-        {
-            DispatchEvent(DebugEventType::EVT_FILTERED);
-            LOG_INFO("Event %s/%s removed due to event filter",
-                tenantTokenToId(m_tenantToken).c_str(),
-                record.name.c_str());
-            return;
-        }
-#endif
 
         // TODO: [MG] - check if optimization is possible in generateUuidString
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
@@ -714,7 +702,13 @@ namespace ARIASDK_NS_BEGIN
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
-        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+        bool result = true;
+#ifdef HAVE_MAT_DEFAULT_FILTER
+        result = m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+#else
+        UNREFERENCED_PARAMETER(properties);
+#endif
+        return result;
     }
 
 } ARIASDK_NS_END
