@@ -12,7 +12,7 @@
 #include "api/LogManagerImpl.hpp"
 
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 #include "LogManager.hpp"
 
@@ -20,7 +20,15 @@
 
 #include <fstream>
 #include <atomic>
+#include <assert.h>
+#include <condition_variable>
+#include <thread>
+#include <chrono>
+#include <vector>
 
+#include "PayloadDecoder.hpp"
+
+using namespace std::chrono_literals;
 
 using namespace testing;
 using namespace MAT;
@@ -33,10 +41,41 @@ char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 #define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define HTTP_PORT       19000
 
+#undef LOCKGUARD
+#define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+
+class HttpPostListener : public DebugEventListener
+{
+public:
+    virtual void OnDebugEvent(DebugEvent &evt)
+    {
+        static unsigned seq = 0;
+        switch (evt.type)
+        {
+
+        case EVT_HTTP_OK:
+            {
+                seq++;
+                std::string out;
+                std::vector<uint8_t> reqBody((unsigned char *)evt.data, (unsigned char *)(evt.data) + evt.size);
+                MAT::exporters::DecodeRequest(reqBody, out, false);
+                printf(">>>> REQUEST [%u]:%s\n", seq, out.c_str());
+            }
+            break;
+
+        default:
+            break;
+        };
+
+    };
+};
+
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
 {
 protected:
+
+    std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
     HttpServer server;
@@ -45,17 +84,24 @@ protected:
     ILogger* logger2;
 
     std::atomic<bool> isSetup;
+    std::atomic<bool> isRunning;
+
+    std::condition_variable cv_gotEvents;
+    std::mutex cv_m;
 
 public:
 
-	BasicFuncTests() :
-		isSetup(false)
-	{};
+    BasicFuncTests() :
+        isSetup(false) ,
+        isRunning(false)
+    {};
 
     virtual void SetUp() override
     {
         if (isSetup.exchange(true))
+        {
             return;
+        }
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "localhost:" << port;
@@ -66,6 +112,7 @@ public:
         server.addHandler("/503/", *this);
         server.setKeepalive(false); // This test doesn't work well with keep-alive enabled
         server.start();
+        isRunning = true;
     }
 
     virtual void TearDown() override
@@ -73,6 +120,7 @@ public:
         if (!isSetup.exchange(false))
             return;
         server.stop();
+        isRunning = false;
     }
 
     virtual void CleanStorage()
@@ -89,7 +137,11 @@ public:
         auto configuration = LogManager::GetLogConfiguration();
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+#ifdef NDEBUG
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+#else
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
+#endif
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
@@ -125,7 +177,10 @@ public:
             PAL::sleep(static_cast<unsigned int>(request.content.size() / DELAY_FACTOR_FOR_SERVER));
         }
 
-        receivedRequests.push_back(request);
+        {
+            LOCKGUARD(mtx_requests);
+            receivedRequests.push_back(request);
+        }
 
         response.headers["Content-Type"] = "text/plain";
         response.content = "{ \"status\": \"0\" }";
@@ -133,63 +188,42 @@ public:
         return 200;
     }
 
-    bool waitForRequests(unsigned timeout, unsigned expected_count = 1)
+    bool waitForRequests(unsigned timeOutSec, unsigned expected_count = 1)
     {
-        auto sz = receivedRequests.size();
-        auto start = PAL::getUtcSystemTimeMs();
-        while (receivedRequests.size() - sz < expected_count)
+        std::unique_lock<std::mutex> lk(cv_m);
+        if (cv_gotEvents.wait_for(lk, std::chrono::milliseconds(1000 * timeOutSec), [&] { return receivedRequests.size() >= expected_count; }))
         {
-            if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
-            {
-                return false;
-            }
-            PAL::sleep(500);
+            return true;
         }
-        return true;
+        return false;
     }
 
-    void waitForEvents(unsigned timeout, unsigned expected_count = 1)
+    void waitForEvents(unsigned timeOutSec, unsigned expected_count = 1)
     {
-        unsigned receivedEvnets = 0;
+        unsigned receivedEvents = 0;
         auto start = PAL::getUtcSystemTimeMs();
-        while (receivedEvnets < expected_count)
+        size_t lastIdx = 0;
+        while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
-            unsigned receivedEvnetsLocal = 0;
-            if (waitForRequests(timeout))
+            /* Give time for our friendly HTTP server thread to processs incoming request */
+            std::this_thread::yield();
             {
-                size_t size = receivedRequests.size();
-                for (size_t index = 0; index < size; index++)
+                LOCKGUARD(mtx_requests);
+                if (receivedRequests.size())
                 {
-                    auto request = receivedRequests.at(index);
-                    auto payload = decodeRequest(request, false);
-                    receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
-                }
-                receivedEvnets = receivedEvnetsLocal;
-
-                if (receivedEvnets < expected_count)
-                {
-                    if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
-                    {
-                        GTEST_FATAL_FAILURE_("Didn't receive records within given timeout");
-                    }
-                    PAL::sleep(100);
-                    //requests can come within 100 milisec sleep
-                    receivedEvnetsLocal = 0;
-                    size = receivedRequests.size();
-                    for (size_t index = 0; index < size; index++)
+                    size_t size = receivedRequests.size();
+                    /* Process only new requests that we haven't processed yet */
+                    for (size_t index = lastIdx; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
                         auto payload = decodeRequest(request, false);
-                        receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
+                        receivedEvents+= (unsigned)payload.size();
                     }
-                    receivedEvnets = receivedEvnetsLocal;
+                    lastIdx = size;
                 }
             }
-            else
-            {
-                GTEST_FATAL_FAILURE_("Didn't receive request within given timeout");
-            }
         }
+        ASSERT_EQ(receivedEvents, expected_count);
     }
 
     std::vector<CsProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
@@ -219,7 +253,8 @@ public:
                 {
                     if (index + 2 < length)
                     {
-                        if (test[index + 1] == '3' && test[index + 2] == '.')
+                        // Search for Version "4." marker after \x3 in Bond stream
+                        if (test[index + 1] == '4' && test[index + 2] == '.')
                         {
                             found = true;
                             break;
@@ -464,22 +499,26 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     CleanStorage();
     Initialize();
+    /* Verify both:
+     - local deserializer implementation in verifyEvent
+     - public MAT::exporters::DecodeRequest(...) via debug callback
+     */
+    HttpPostListener listener;
+    LogManager::AddEventListener(EVT_HTTP_OK, listener);
 
     EventProperties event("first_event");
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
     waitForEvents(1, 3);
     EXPECT_GE(receivedRequests.size(), (size_t)1);
-
+    LogManager::RemoveEventListener(EVT_HTTP_OK, listener);
     FlushAndTeardown();
 
     if (receivedRequests.size() >= 1)
