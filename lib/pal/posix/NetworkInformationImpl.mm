@@ -3,7 +3,7 @@
 #include "pal/PAL.hpp"
 #include "pal/NetworkInformationImpl.hpp"
 
-#import <Reachability/Reachability.h>
+#import "Reachability.h"
 
 namespace PAL_NS_BEGIN {
 
@@ -38,7 +38,7 @@ namespace PAL_NS_BEGIN {
 
         /// <summary>
         /// Gets the current network type for the device
-        /// E.g. Wifi, 3G, Ethernet
+        /// E.g. Wifi, WWAN
         /// </summary>
         /// <returns>The current network type for the device</returns>
         virtual NetworkType GetNetworkType()
@@ -48,32 +48,65 @@ namespace PAL_NS_BEGIN {
 
         virtual NetworkCost GetNetworkCost()
         {
-            m_cost = NetworkCost_Unmetered;
             return m_cost;
         }
 
     private:
-        std::string m_network_provider;
+        NetworkType GetNetworkTypeInternal() noexcept;
+        std::string m_network_provider {};
+        Reachability* m_reach = [Reachability reachabilityForInternetConnection];
+        id m_notificationId = nil;
     };
 
     NetworkInformation::NetworkInformation(bool isNetDetectEnabled) :
         NetworkInformationImpl(isNetDetectEnabled)
     {
-        m_type = NetworkType_Wired;
-        auto status = [Reachability currentReachabilityStatus];
-        if(status == ReachableViaWifi)
+        m_type = GetNetworkTypeInternal();
+        m_cost = NetworkCost_Unknown;
+
+        if (isNetDetectEnabled)
         {
-            m_type = NetworkType_Wifi;
+            m_notificationId =
+                [[NSNotificationCenter defaultCenter]
+                 addObserverForName: kReachabilityChangedNotification
+                 object: nil
+                 queue: nil
+                 usingBlock: ^(NSNotification*){
+                     auto type = GetNetworkTypeInternal();
+                     if (type != m_type)
+                     {
+                         m_type = type;
+                         m_info_helper.OnChanged(NETWORK_TYPE, std::to_string(type));
+                     }
+                }];
+
+            [m_reach startNotifier];
         }
-        else if (status == ReachableViaWWAN)
-        {
-            m_type = NetworkType_WWAN;
-        }
-        m_cost = NetworkCost_Unmetered;
     }
 
     NetworkInformation::~NetworkInformation()
     {
+        if (m_isNetDetectEnabled)
+        {
+            [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
+            [m_reach stopNotifier];
+        }
+    }
+
+    NetworkType NetworkInformation::GetNetworkTypeInternal() noexcept
+    {
+        NetworkType type = NetworkType_Unknown;
+        auto status = [m_reach currentReachabilityStatus];
+        if(status == ReachableViaWiFi)
+        {
+            type = NetworkType_Wifi;
+        }
+        else if (status == ReachableViaWWAN)
+        {
+            type = NetworkType_WWAN;
+        }
+        
+        return type;
     }
 
     INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
