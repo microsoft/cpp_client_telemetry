@@ -141,6 +141,21 @@ C++ code
     -   Mock call expectation actions (after
         `WillOnce`/`WillRepeatedly`) on a new line (or lines in case of
         `DoAll`).
+ -   Pointers
+     -   Use raw pointers to express non-ownership. Never delete a raw pointer.
+     -   Use [std::unique_ptr<T>](https://en.cppreference.com/w/cpp/memory/unique_ptr)
+         to express single ownership.
+     -   Use [std::shared_ptr<T>](https://en.cppreference.com/w/cpp/memory/shared_ptr)
+         to express shared ownership between components.
+         -   Use [std::weak_ptr<T>](https://en.cppreference.com/w/cpp/memory/weak_ptr)
+             to avoid reference cycles.
+     -   Only pass smart pointers (unique_ptr, shared_ptr, weak_ptr) as parameters to
+         explicitly expresss lifetime semantics.
+     -   If required by a platform (e.g, Microsoft COM), use the appropriate
+         ref-counted type, but do not expose those types to platform agnostic code, 
+         prefer to use an abstraction.
+ -   Exceptions
+     -   All [user-declared destructors](https://en.cppreference.com/w/cpp/language/destructor) must be marked [noexcept](https://en.cppreference.com/w/cpp/language/noexcept_spec).
 
 Python code
 -----------
