@@ -32,9 +32,10 @@
 #define TRACE(...)	// printf
 
 /**
- *
+ * Global libcurl initialization and clean-up class
  */
-class HttpClientCurl {
+class HttpClientCurl
+{
 
 public:
 
@@ -60,9 +61,17 @@ public:
 
 };
 
-class HttpRequestCurl {
+class HttpRequestCurl
+{
 
 public:
+
+    std::function<CURLcode(HttpStateEvent, HttpRequestCurl&)> OnEventCallback;
+
+    CURLcode DispatchEvent(HttpStateEvent type)
+    {
+        return OnEventCallback(type, *this);
+    }
 
     std::atomic<bool>   isAborted;      // Set to 'true' when async callback is aborted
 
@@ -75,32 +84,41 @@ public:
      * @param httpReadTimeout   HTTP read timeout in seconds
      */
     HttpRequestCurl(
-            std::string method,
-            std::string url,
-            // Default empty headers and empty request body
-            const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
-            const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
-            // Default connectivity and response size options
-            bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
-            size_t httpReadTimeout                                   = HTTP_READ_TIMEOUT) :
+        std::string method,
+        std::string url,
+        // Default empty headers and empty request body
+        const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
+        const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
 
-            //
-            m_method(method),
-            m_url(url),
+        // Default callback function very efficiently does nothing
+        decltype(OnEventCallback) onEventCallback = [](HttpStateEvent ev, HttpRequestCurl& obj)
+        {
+            TRACE("HttpRequestEvent=%d, this=%p", ev, &obj);
+            return CURLE_OK;
+        },
 
-            // Local vars
-            requestHeaders(requestHeaders),
-            requestBody(requestBody),
-            // Optional connection params
-            rawResponse(rawResponse),
-            httpConnTimeout(httpConnTimeout),
-            httpReadTimeout(httpReadTimeout),
-            // Result
-            res(CURLE_OK),
-            sockfd(0),
-            isAborted(false),
-            nread(0)
+        // Default connectivity and response size options
+        bool rawResponse                                         = false,
+        size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
+        size_t httpReadTimeout                                   = HTTP_READ_TIMEOUT
+
+    ) :
+        // Method and URL
+        m_method(method),
+        m_url(url),
+        // Local vars
+        requestHeaders(requestHeaders),
+        requestBody(requestBody),
+        // Optional connection params
+        rawResponse(rawResponse),
+        httpConnTimeout(httpConnTimeout),
+        httpReadTimeout(httpReadTimeout),
+        // Result
+        res(CURLE_OK),
+        sockfd(0),
+        isAborted(false),
+        nread(0),
+        OnEventCallback(onEventCallback)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -108,10 +126,11 @@ public:
 
         /* get a curl handle */
         curl = curl_easy_init();
-        if(!curl) {
+        if(!curl)
+        {
             TRACE("libcurl failed to init!\n");
             res = CURLE_FAILED_INIT;
-            // TODO: throw?
+            DispatchEvent(OnCreateFailed);
             return;
         }
 
@@ -131,7 +150,8 @@ public:
 
         // Specify our custom headers
         struct curl_slist *chunk = NULL;
-        for(auto &kv : this->requestHeaders) {
+        for(auto &kv : this->requestHeaders)
+        {
             std::string header = kv.first.c_str();
             header += ": ";
             header += kv.second.c_str();
@@ -139,8 +159,12 @@ public:
         }
 
         if(chunk != NULL)
+        {
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+        }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
+
+        DispatchEvent(OnCreated);
     }
 
     /**
@@ -150,7 +174,10 @@ public:
     {
         // Given the request has not been aborted we should wait for completion here
         if (result.valid())
+        {
             result.wait();
+        }
+        res = DispatchEvent(OnDestroy);
         curl_easy_cleanup(curl);
         ReleaseResponse();
     }
@@ -167,8 +194,10 @@ public:
         const void *request  = (requestBody.empty())?NULL:&requestBody[0];
         const size_t reqSize = requestBody.size();
 
-        if(!curl) {
+        if(!curl)
+        {
             res = CURLE_FAILED_INIT;
+            DispatchEvent(OnSendFailed);
             goto cleanup;
         }
 
@@ -177,8 +206,11 @@ public:
 
         // Perform initial connect, handling the timeout if needed
         curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
+        DispatchEvent(OnConnecting);
         res = curl_easy_perform(curl);
-        if(CURLE_OK != res) {
+        if(CURLE_OK != res)
+        {
+            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
             TRACE("Error #1: %s\n", curl_easy_strerror(res));
             goto cleanup;
         }
@@ -188,16 +220,20 @@ public:
          * curl_socket_t for sockets otherwise.
          */
         res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
-        if(CURLE_OK != res) {
+        if(CURLE_OK != res)
+        {
+            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
             TRACE("Error #2: %s\n", curl_easy_strerror(res));
             goto cleanup;
         }
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted) {
+        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
+        {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
             res = CURLE_OPERATION_TIMEDOUT;
+            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
             goto cleanup;
         }
 
@@ -205,7 +241,8 @@ public:
         curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0);
 
         // send all data to our callback function
-        if (rawResponse) {
+        if (rawResponse)
+        {
             curl_easy_setopt(curl, CURLOPT_HEADER,        true);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteMemoryCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&response);
@@ -216,23 +253,29 @@ public:
         }
 
         // TODO: only two methods supported for now - POST and GET
-        if (m_method.compare("POST") == 0) {
+        if (m_method.compare("POST") == 0)
+        {
             // POST
             curl_easy_setopt(curl, CURLOPT_POST, true);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char *)request);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
         } else
-        if (m_method.compare("GET") == 0) {
+        if (m_method.compare("GET") == 0)
+        {
             // GET
-        } else {
+        } else
+        {
             TRACE("Error #4: unsupported method %s\n", m_method.c_str());
             res = CURLE_UNSUPPORTED_PROTOCOL;
             goto cleanup;
         }
 
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, httpReadTimeout);
+        DispatchEvent(OnSending);
         res = curl_easy_perform(curl);
-        if(CURLE_OK != res) {
+        if(CURLE_OK != res)
+        {
+            DispatchEvent(OnSendFailed);
             TRACE("Error: %s\n", curl_easy_strerror(res));
             goto cleanup;
         }
@@ -252,6 +295,7 @@ public:
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &res);
         // We got some response from server. Dump the contents.
         TRACE("HTTP response code %d\n", res);
+        DispatchEvent(OnResponse);
 
 cleanup:
 
@@ -356,6 +400,11 @@ cleanup:
                 sockfd = 0;
             }
         }
+    }
+
+    CURL *GetHandle()
+    {
+        return curl;
     }
 
 protected:

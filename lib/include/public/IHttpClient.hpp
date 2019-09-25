@@ -436,6 +436,19 @@ namespace ARIASDK_NS_BEGIN
         }
     };
 
+    typedef enum
+    {
+        OnCreateFailed,
+        OnCreated,
+        OnConnecting,
+        OnConnectFailed,
+        OnConnected,
+        OnSendFailed,
+        OnSending,
+        OnResponse,
+        OnDestroy
+    } HttpStateEvent;
+
     /// <summary>
     /// The IHttpResponseCallback class receives HTTP client responses.
     /// </summary>
@@ -457,6 +470,8 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="response">The object that contains the response data.</param>
         virtual void OnHttpResponse(IHttpResponse* response) = 0;
+
+        virtual void OnHttpStateEvent(HttpStateEvent state, void *data = nullptr, size_t size = 0) {};
     };
 
     /// <summary>

@@ -72,8 +72,14 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOG_TRACE("~CurlHttpRequest=%p, curl=%p", this, request);
             clean();
-            // Stop stracking this request in request-response map
+            // Stop tracking this request in request-response map
             parent->erase((IHttpRequest *)this);
+        }
+
+        CURLcode OnCurlStateEvent(HttpStateEvent state, HttpRequestCurl& curl)
+        {
+            callback->OnHttpStateEvent(state, (void*)(curl.GetHandle()), 0);
+            return CURLE_OK;
         }
 
         /**
@@ -85,8 +91,14 @@ namespace ARIASDK_NS_BEGIN {
             for (auto &kv : m_headers)
                 headers[kv.first] = kv.second;
 
-            request = new HttpRequestCurl(m_method, m_url, headers, m_body);
             this->callback = callback;
+            request = new HttpRequestCurl(m_method, m_url, headers, m_body,
+                // Wire HttpRequestCurl callback to higher-level supplied callback
+                [&](HttpStateEvent ev, HttpRequestCurl& obj)
+                {
+                    return this->OnCurlStateEvent(ev, obj);
+                }
+            );
 
             response.m_result = HttpResult_OK;
 
