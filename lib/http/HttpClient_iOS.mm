@@ -174,7 +174,7 @@ void HttpClient_iOS::CancelRequestAsync(const std::string& id)
 {
     HttpRequestIos* request = nullptr;
     {
-        std::lock_guard<std::mutex> lock(m_requestMtx);
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
         if (m_requests.find(id) != m_requests.cend())
         {
             request = static_cast<HttpRequestIos*>(m_requests[id]);
@@ -190,13 +190,13 @@ void HttpClient_iOS::CancelRequestAsync(const std::string& id)
 
 void HttpClient_iOS::Erase(IHttpRequest* req)
 {
-    std::lock_guard<std::mutex> lock(m_requestMtx);
+    std::lock_guard<std::mutex> lock(m_requestsMtx);
     m_requests.erase(req->GetId());
 }
 
 void HttpClient_iOS::Add(IHttpRequest* req)
 {
-    std::lock_guard<std::mutex> lock(m_requestMtx);
+    std::lock_guard<std::mutex> lock(m_requestsMtx);
     m_requests[req->GetId()] = req;
 }
 
