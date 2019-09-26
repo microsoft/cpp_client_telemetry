@@ -246,6 +246,16 @@ namespace ARIASDK_NS_BEGIN
             return m_context;
         }
 
+        IHttpClient& GetHttpClient()
+        {
+            return *m_httpClient.get();
+        }
+
+        ITaskDispatcher& GetTaskDispatcher()
+        {
+            return *m_taskDispatcher.get();
+        }
+
 protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
         void InitializeModules() noexcept;

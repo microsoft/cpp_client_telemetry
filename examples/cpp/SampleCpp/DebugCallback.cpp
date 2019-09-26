@@ -1,4 +1,5 @@
 #include "DebugCallback.hpp"
+#include "IHttpClient.hpp"
 
 unsigned   latency[MAX_LATENCY_SAMPLES] = { 0 };
 
@@ -117,6 +118,27 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
     case EVT_SEND_FAILED:
         printf("OnEventsSendFailed: seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         break;
+
+    case EVT_HTTP_STATE:
+        {
+            HttpStateEvent state = HttpStateEvent(evt.param1);
+            std::map<HttpStateEvent, std::string> labels =
+            {
+                { OnCreated,       "OnCreated"       },
+                { OnCreateFailed,  "OnCreateFailed"  },
+                { OnConnecting,    "OnConnecting"    },
+                { OnConnectFailed, "OnConnectFailed" },
+                { OnConnected,     "OnConnected"     },
+                { OnSendFailed,    "OnSendFailed"    },
+                { OnSending,       "OnSending"       },
+                { OnResponse,      "OnResponse"      },
+                { OnDestroy,       "OnDestroy"       }
+            };
+            auto it = labels.find(state);
+            printf("HTTP state: %s\n", (it!= labels.end()) ? it->second.c_str() : "unknown");
+        }
+        break;
+
     case EVT_HTTP_ERROR:
         printf("OnHttpError:        seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu, data=%p, size=%zu\n",
             evt.seq, evt.ts, evt.type, evt.param1, evt.param2, evt.data, evt.size);
