@@ -24,7 +24,7 @@ namespace ARIASDK_NS_BEGIN {
         void Add(IHttpRequest* req);
 
     private:
-        std::mutex m_requestMtx;
+        std::mutex m_requestsMtx;
         std::map<std::string, IHttpRequest*> m_requests;
     };
 
