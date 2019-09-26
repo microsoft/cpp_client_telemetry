@@ -39,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
 /**
  * Curl-based HTTP client
  */
-class HttpClient_Curl : public IHttpClient{
+class HttpClient_Curl : public IHttpClient {
 public:
     HttpClient_Curl();
     virtual ~HttpClient_Curl();
@@ -52,7 +52,7 @@ private:
     void EraseRequest(std::string const& id);
     void AddRequest(IHttpRequest* request);
 
-    std::mutex m_request_mtx;
+    std::mutex m_requestsMtx;
     std::map<std::string, IHttpRequest*> m_requests;
 };
 

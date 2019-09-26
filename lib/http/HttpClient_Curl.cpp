@@ -109,7 +109,7 @@ namespace ARIASDK_NS_BEGIN {
         CurlHttpRequest* request = nullptr;
         {
             // Hold the lock only while iterating over the list of requests
-            std::lock_guard<std::mutex> lock(m_request_mtx);
+            std::lock_guard<std::mutex> lock(m_requestsMtx);
             if (m_requests.find(id) != m_requests.cend()) {
                 request = static_cast<CurlHttpRequest*>(m_requests[id]);
                 LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
@@ -124,13 +124,13 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClient_Curl::EraseRequest(std::string const& id)
     {
-        std::lock_guard<std::mutex> lock(m_request_mtx);
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
         m_requests.erase(id);
     }
 
     void HttpClient_Curl::AddRequest(IHttpRequest* request)
     {
-        std::lock_guard<std::mutex> lock(m_request_mtx);
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
         m_requests[request->GetId()] = request;
     }
 
