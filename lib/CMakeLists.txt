@@ -71,7 +71,6 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   list(APPEND SRCS
-    http/HttpClient.hpp
     pal/posix/DeviceInformationImpl.cpp
     pal/posix/NetworkInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
@@ -98,7 +97,6 @@ remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
-    http/HttpClient.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp

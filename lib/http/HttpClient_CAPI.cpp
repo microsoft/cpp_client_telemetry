@@ -12,8 +12,8 @@ namespace ARIASDK_NS_BEGIN {
     class HttpClient_Operation
     {
     public:
-        HttpClient_Operation(std::unique_ptr<SimpleHttpRequest> request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
-          : m_request(std::move(request)),
+        HttpClient_Operation(SimpleHttpRequest* request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
+          : m_request(request),
             m_callback(callback),
             m_cancelFn(cancelFn)
         {
@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
     private:
-        std::unique_ptr<SimpleHttpRequest>  m_request;
+        SimpleHttpRequest*                  m_request;
 
         IHttpResponseCallback*              m_callback;
         http_cancel_fn_t                    m_cancelFn;
@@ -116,7 +116,7 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
-            // 'response' is no longer owned by IHttpClient and gets deleted in EventsUpdateContext.clear()
+            // 'response' is no longer owned by IHttpClient and gets deleted in EventsUploadContext.clear()
             operation->OnResponse(response.release());
         }
     }
@@ -145,8 +145,8 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // It is the responsibility of IHttpClient implementation to delete 'request' when operation is complete
-        auto simpleRequest = std::unique_ptr<SimpleHttpRequest>(static_cast<SimpleHttpRequest*>(request));
+        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        auto simpleRequest = static_cast<SimpleHttpRequest*>(request);
         auto requestId = simpleRequest->m_id;
 
         LOG_TRACE("Sending CAPI HTTP request '%s'", requestId.c_str());
@@ -174,7 +174,7 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
-        auto operation = std::make_shared<HttpClient_Operation>(std::move(simpleRequest), callback, m_cancelFn);
+        auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
         AddPendingOperation(requestId, operation);
 
         m_sendFn(&capiRequest, &OnHttpResponse);

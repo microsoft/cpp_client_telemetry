@@ -13,7 +13,7 @@
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
-  #include "http/HttpClient.hpp"
+  #include "http/HttpClient_Curl.hpp"
 #else
   #error The library cannot work without an HTTP client implementation.
 #endif
@@ -38,8 +38,8 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 #elif defined(MATSDK_PAL_CPP11)
     IHttpClient* HttpClientFactory::Create() {
-        LOG_TRACE("Creating generic HttpClient");
-        return new HttpClient();
+        LOG_TRACE("Creating HttpClient_Curl");
+        return new HttpClient_Curl();
     }
 
 #else
