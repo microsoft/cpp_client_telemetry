@@ -20,6 +20,7 @@ option(BUILD_IOS           "Build for iOS"               NO)
 option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
 if(BUILD_IOS)
+  add_definitions(-DIOS_HTTP=1)
   set(TARGET_ARCH "APPLE")
   set(IOS True)
   set(APPLE True)
