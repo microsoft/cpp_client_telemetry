@@ -42,7 +42,7 @@ set(SRCS
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-add_executable(UnitTests ${SRCS} ${TESTS_COMMON_SRCS})
+add_library(UnitTests STATIC ${SRCS} ${TESTS_COMMON_SRCS})
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
@@ -79,7 +79,7 @@ else()
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
+    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework UIKit -framework SystemConfiguration -framework Foundation")
   endif()
 
   # Find libraries
