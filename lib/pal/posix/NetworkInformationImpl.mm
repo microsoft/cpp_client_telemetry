@@ -25,7 +25,7 @@ namespace PAL_NS_BEGIN {
         /// <summary>
         ///
         /// </summary>
-        virtual ~NetworkInformation();
+        virtual ~NetworkInformation() noexcept;
 
         /// <summary>
         /// Gets the current network provider for the device
@@ -84,7 +84,7 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    NetworkInformation::~NetworkInformation()
+    NetworkInformation::~NetworkInformation() noexcept
     {
         if (m_isNetDetectEnabled)
         {
@@ -95,18 +95,17 @@ namespace PAL_NS_BEGIN {
 
     NetworkType NetworkInformation::GetNetworkTypeInternal() noexcept
     {
-        NetworkType type = NetworkType_Unknown;
         auto status = [m_reach currentReachabilityStatus];
         if(status == ReachableViaWiFi)
         {
-            type = NetworkType_Wifi;
+            return NetworkType_Wifi;
         }
         else if (status == ReachableViaWWAN)
         {
-            type = NetworkType_WWAN;
+            return NetworkType_WWAN;
         }
         
-        return type;
+        return NetworkType_Unknown;
     }
 
     INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
