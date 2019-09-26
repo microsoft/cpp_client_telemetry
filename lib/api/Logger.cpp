@@ -714,7 +714,8 @@ namespace ARIASDK_NS_BEGIN
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
-        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+        return true;
+        // return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
     }
 
 } ARIASDK_NS_END

@@ -436,16 +436,37 @@ namespace ARIASDK_NS_BEGIN
         }
     };
 
+    ///
+    /// API methods:
+    /// 1. create
+    /// 2. send
+    /// 3. cancel (abort)
+    /// 4. destroy
+    ///
+    /// HTTP state machine events:
+    /// create         -> [OnCreated    | OnCreateFailed  ]
+    /// OnConnecting   -> [OnConnected  | OnConnectFailed ]
+    /// send           -> [OnSending                      ]
+    /// OnSending      -> [OnSendFailed | OnResponse      ]
+    /// destroy        -> [OnDestroy                      ]
+    /// cancel         -> [OnCanceled*?                   ]
+    ///
     typedef enum
     {
-        OnCreateFailed,
+        // create states:
         OnCreated,
+        OnCreateFailed,
+        // connecting upon creation
         OnConnecting,
         OnConnectFailed,
         OnConnected,
+        // sending after connection established
         OnSendFailed,
         OnSending,
+        // receiving response
         OnResponse,
+        // no response is covered by OnSendFailed
+        // destroy after success or cancellation
         OnDestroy
     } HttpStateEvent;
 
@@ -471,6 +492,12 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="response">The object that contains the response data.</param>
         virtual void OnHttpResponse(IHttpResponse* response) = 0;
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="state">HttpStateEvent - see diagram</param>
+        /// <param name="data">HTTP client implementation-specific data structure (optional)</param>
+        /// <param name="size">HTTP client implementation-specific data structure size (optional)</param>
         virtual void OnHttpStateEvent(HttpStateEvent state, void *data = nullptr, size_t size = 0) {};
     };
 

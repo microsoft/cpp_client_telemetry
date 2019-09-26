@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
                 // Various typed key-values
                 { "strKey1",  "hello1" },
                 { "strKey2",  "hello2" },
-                { "int64Key", 1L },
+                { "int64Key", (int64_t)1L },
                 { "dblKey",   3.14 },
                 { "boolKey",  false },
                 { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
