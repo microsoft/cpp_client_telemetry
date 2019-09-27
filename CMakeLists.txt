@@ -63,6 +63,11 @@ else()
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
 endif()
 
+## Uncomment this to reduce the volume of note warnings on RPi4 w/gcc-8 Ref. https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
+#if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
+#  set(WARN_FLAGS "${WARN_FLAGS} -Wno-psabi"
+#endif()
+
 # Use libtcmalloc for Debug builds memory leaks detection
 set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
