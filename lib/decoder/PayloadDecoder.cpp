@@ -58,7 +58,7 @@ namespace clienttelemetry {
                         {
                             if (j + 2 < length)
                             {
-                                if (test[j + 1] == '3' && test[j + 2] == '.')
+                                if (test[j + 1] == COMMON_SCHEMA_VER && test[j + 2] == '.')
                                 {
                                     found = true;
                                     break;

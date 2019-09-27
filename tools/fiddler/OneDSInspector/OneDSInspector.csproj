@@ -38,26 +38,26 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bond, Version=8.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>packages\Bond.Core.CSharp.8.0.0\lib\net45\Bond.dll</HintPath>
+    <Reference Include="Bond, Version=8.1.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Bond.Core.CSharp.8.1.0\lib\net45\Bond.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.Attributes, Version=8.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>packages\Bond.Core.CSharp.8.0.0\lib\net45\Bond.Attributes.dll</HintPath>
+    <Reference Include="Bond.Attributes, Version=8.1.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Bond.Core.CSharp.8.1.0\lib\net45\Bond.Attributes.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.IO, Version=8.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>packages\Bond.Core.CSharp.8.0.0\lib\net45\Bond.IO.dll</HintPath>
+    <Reference Include="Bond.IO, Version=8.1.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Bond.Core.CSharp.8.1.0\lib\net45\Bond.IO.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.JSON, Version=8.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>packages\Bond.Runtime.CSharp.8.0.0\lib\net45\Bond.JSON.dll</HintPath>
+    <Reference Include="Bond.JSON, Version=8.1.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Bond.Runtime.CSharp.8.1.0\lib\net45\Bond.JSON.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.Reflection, Version=8.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>packages\Bond.Core.CSharp.8.0.0\lib\net45\Bond.Reflection.dll</HintPath>
+    <Reference Include="Bond.Reflection, Version=8.1.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Bond.Core.CSharp.8.1.0\lib\net45\Bond.Reflection.dll</HintPath>
     </Reference>
     <Reference Include="Fiddler">
       <HintPath>$(LOCALAPPDATA)\Programs\Fiddler\Fiddler.exe</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Solutions\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
