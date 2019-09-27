@@ -14,6 +14,8 @@
 #include <cinttypes>
 #include <iostream>
 
+#define COMMON_SCHEMA_VER '4'
+
 namespace CsProtocol
 {
     struct Record;

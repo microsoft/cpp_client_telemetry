@@ -254,7 +254,7 @@ public:
                     if (index + 2 < length)
                     {
                         // Search for Version "4." marker after \x3 in Bond stream
-                        if (test[index + 1] == '4' && test[index + 2] == '.')
+                        if (test[index + 1] == COMMON_SCHEMA_VER && test[index + 2] == '.')
                         {
                             found = true;
                             break;
