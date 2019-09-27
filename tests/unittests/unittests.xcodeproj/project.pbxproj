@@ -1,0 +1,715 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		431EFE50233EBE54002FCC18 /* HttpClientTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */; };
+		431EFE51233EBE54002FCC18 /* LoggerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */; };
+		431EFE52233EBE54002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */; };
+		431EFE53233EBE54002FCC18 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2D233EBE53002FCC18 /* HttpServerTests.cpp */; };
+		431EFE54233EBE54002FCC18 /* StringUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2E233EBE53002FCC18 /* StringUtilsTests.cpp */; };
+		431EFE56233EBE54002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */; };
+		431EFE57233EBE54002FCC18 /* MemoryStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE31233EBE53002FCC18 /* MemoryStorageTests.cpp */; };
+		431EFE58233EBE54002FCC18 /* PalTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE32233EBE53002FCC18 /* PalTests.cpp */; };
+		431EFE59233EBE54002FCC18 /* HttpRequestEncoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */; };
+		431EFE5A233EBE54002FCC18 /* CorrelationVectorTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */; };
+		431EFE5C233EBE54002FCC18 /* BondSplicerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */; };
+		431EFE5D233EBE54002FCC18 /* ClockSkewManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */; };
+		431EFE5E233EBE54002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */; };
+		431EFE5F233EBE54002FCC18 /* UtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE39233EBE53002FCC18 /* UtilsTests.cpp */; };
+		431EFE60233EBE54002FCC18 /* ControlPlaneProviderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */; };
+		431EFE61233EBE54002FCC18 /* HttpClientCAPITests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */; };
+		431EFE62233EBE54002FCC18 /* DebugEventSourceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3C233EBE53002FCC18 /* DebugEventSourceTests.cpp */; };
+		431EFE63233EBE54002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3D233EBE53002FCC18 /* TransmissionPolicyManagerTests.cpp */; };
+		431EFE64233EBE54002FCC18 /* LogManagerImplTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */; };
+		431EFE65233EBE54002FCC18 /* LogSessionDataTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */; };
+		431EFE66233EBE54002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE40233EBE53002FCC18 /* TaskDispatcherCAPITests.cpp */; };
+		431EFE67233EBE54002FCC18 /* ContextFieldsProviderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE41233EBE53002FCC18 /* ContextFieldsProviderTests.cpp */; };
+		431EFE68233EBE54002FCC18 /* EventPropertiesTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE42233EBE53002FCC18 /* EventPropertiesTests.cpp */; };
+		431EFE69233EBE54002FCC18 /* RouteTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE43233EBE53002FCC18 /* RouteTests.cpp */; };
+		431EFE6A233EBE54002FCC18 /* EventFilterCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */; };
+		431EFE6B233EBE54002FCC18 /* OacrTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE45233EBE53002FCC18 /* OacrTests.cpp */; };
+		431EFE6C233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */; };
+		431EFE6D233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE47233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp */; };
+		431EFE6E233EBE54002FCC18 /* EventPropertiesStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */; };
+		431EFE6F233EBE54002FCC18 /* HttpClientManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */; };
+		431EFE70233EBE54002FCC18 /* OfflineStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */; };
+		431EFE71233EBE54002FCC18 /* GuidTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4B233EBE54002FCC18 /* GuidTests.cpp */; };
+		431EFE72233EBE54002FCC18 /* DiskLocalStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4C233EBE54002FCC18 /* DiskLocalStorageTests.cpp */; };
+		431EFE73233EBE54002FCC18 /* PackagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */; };
+		431EFE74233EBE54002FCC18 /* MetaStatsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */; };
+		431EFE75233EBE54002FCC18 /* HttpResponseDecoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */; };
+		431EFE7E233EC413002FCC18 /* Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE7D233EC413002FCC18 /* Tests.mm */; };
+		431EFE94233EC560002FCC18 /* libgmock.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFE93233EC560002FCC18 /* libgmock.a */; };
+		431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */; };
+		431EFE96233EC590002FCC18 /* BondSplicerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */; };
+		431EFE97233EC590002FCC18 /* ClockSkewManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */; };
+		431EFE98233EC590002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE47233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp */; };
+		431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE41233EBE53002FCC18 /* ContextFieldsProviderTests.cpp */; };
+		431EFE9A233EC590002FCC18 /* ControlPlaneProviderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */; };
+		431EFE9B233EC590002FCC18 /* CorrelationVectorTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */; };
+		431EFE9D233EC590002FCC18 /* DebugEventSourceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3C233EBE53002FCC18 /* DebugEventSourceTests.cpp */; };
+		431EFE9F233EC590002FCC18 /* DiskLocalStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4C233EBE54002FCC18 /* DiskLocalStorageTests.cpp */; };
+		431EFEA0233EC590002FCC18 /* EventFilterCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */; };
+		431EFEA1233EC590002FCC18 /* EventPropertiesStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */; };
+		431EFEA2233EC590002FCC18 /* EventPropertiesTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE42233EBE53002FCC18 /* EventPropertiesTests.cpp */; };
+		431EFEA3233EC590002FCC18 /* GuidTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4B233EBE54002FCC18 /* GuidTests.cpp */; };
+		431EFEA4233EC590002FCC18 /* HttpClientCAPITests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */; };
+		431EFEA5233EC590002FCC18 /* HttpClientManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */; };
+		431EFEA6233EC590002FCC18 /* HttpClientTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */; };
+		431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */; };
+		431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */; };
+		431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */; };
+		431EFEAA233EC590002FCC18 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2D233EBE53002FCC18 /* HttpServerTests.cpp */; };
+		431EFEAB233EC590002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */; };
+		431EFEAC233EC590002FCC18 /* LoggerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */; };
+		431EFEAD233EC590002FCC18 /* LogManagerImplTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */; };
+		431EFEAE233EC590002FCC18 /* LogSessionDataTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */; };
+		431EFEAF233EC590002FCC18 /* MemoryStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE31233EBE53002FCC18 /* MemoryStorageTests.cpp */; };
+		431EFEB0233EC590002FCC18 /* MetaStatsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */; };
+		431EFEB1233EC590002FCC18 /* OacrTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE45233EBE53002FCC18 /* OacrTests.cpp */; };
+		431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */; };
+		431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */; };
+		431EFEB4233EC590002FCC18 /* PackagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */; };
+		431EFEB5233EC590002FCC18 /* PalTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE32233EBE53002FCC18 /* PalTests.cpp */; };
+		431EFEB6233EC590002FCC18 /* RouteTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE43233EBE53002FCC18 /* RouteTests.cpp */; };
+		431EFEB7233EC590002FCC18 /* StringUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2E233EBE53002FCC18 /* StringUtilsTests.cpp */; };
+		431EFEB8233EC590002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE40233EBE53002FCC18 /* TaskDispatcherCAPITests.cpp */; };
+		431EFEB9233EC590002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3D233EBE53002FCC18 /* TransmissionPolicyManagerTests.cpp */; };
+		431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE39233EBE53002FCC18 /* UtilsTests.cpp */; };
+		431EFEBE233EC5C9002FCC18 /* libmat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEBD233EC5C9002FCC18 /* libmat.a */; };
+		431EFEC1233EC680002FCC18 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC0233EC680002FCC18 /* libsqlite3.tbd */; };
+		431EFEC3233EC688002FCC18 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC2233EC688002FCC18 /* UIKit.framework */; };
+		431EFEC5233EC6A0002FCC18 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC4233EC6A0002FCC18 /* SystemConfiguration.framework */; };
+		431EFEC7233EC6DE002FCC18 /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC6233EC6DE002FCC18 /* libgtest.a */; };
+		431EFEC9233EC74E002FCC18 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC8233EC74E002FCC18 /* libz.tbd */; };
+		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		431EFE81233EC413002FCC18 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 431EFE16233EBDF2002FCC18 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 431EFE1D233EBDF2002FCC18;
+			remoteInfo = unittests;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		431EFE1C233EBDF2002FCC18 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		431EFE1E233EBDF2002FCC18 /* libunittests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libunittests.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientTests.cpp; sourceTree = "<group>"; };
+		431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LoggerTests.cpp; sourceTree = "<group>"; };
+		431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpDeflateCompressionTests.cpp; sourceTree = "<group>"; };
+		431EFE2D233EBE53002FCC18 /* HttpServerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpServerTests.cpp; sourceTree = "<group>"; };
+		431EFE2E233EBE53002FCC18 /* StringUtilsTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StringUtilsTests.cpp; sourceTree = "<group>"; };
+		431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BackoffTests_ExponentialWithJitter.cpp; sourceTree = "<group>"; };
+		431EFE31233EBE53002FCC18 /* MemoryStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryStorageTests.cpp; sourceTree = "<group>"; };
+		431EFE32233EBE53002FCC18 /* PalTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PalTests.cpp; sourceTree = "<group>"; };
+		431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpRequestEncoderTests.cpp; sourceTree = "<group>"; };
+		431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CorrelationVectorTests.cpp; sourceTree = "<group>"; };
+		431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BondSplicerTests.cpp; sourceTree = "<group>"; };
+		431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClockSkewManagerTests.cpp; sourceTree = "<group>"; };
+		431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LevelCheckingEventFilterTests.cpp; sourceTree = "<group>"; };
+		431EFE39233EBE53002FCC18 /* UtilsTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UtilsTests.cpp; sourceTree = "<group>"; };
+		431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControlPlaneProviderTests.cpp; sourceTree = "<group>"; };
+		431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientCAPITests.cpp; sourceTree = "<group>"; };
+		431EFE3C233EBE53002FCC18 /* DebugEventSourceTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DebugEventSourceTests.cpp; sourceTree = "<group>"; };
+		431EFE3D233EBE53002FCC18 /* TransmissionPolicyManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransmissionPolicyManagerTests.cpp; sourceTree = "<group>"; };
+		431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LogManagerImplTests.cpp; sourceTree = "<group>"; };
+		431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LogSessionDataTests.cpp; sourceTree = "<group>"; };
+		431EFE40233EBE53002FCC18 /* TaskDispatcherCAPITests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskDispatcherCAPITests.cpp; sourceTree = "<group>"; };
+		431EFE41233EBE53002FCC18 /* ContextFieldsProviderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextFieldsProviderTests.cpp; sourceTree = "<group>"; };
+		431EFE42233EBE53002FCC18 /* EventPropertiesTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPropertiesTests.cpp; sourceTree = "<group>"; };
+		431EFE43233EBE53002FCC18 /* RouteTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RouteTests.cpp; sourceTree = "<group>"; };
+		431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventFilterCollectionTests.cpp; sourceTree = "<group>"; };
+		431EFE45233EBE53002FCC18 /* OacrTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OacrTests.cpp; sourceTree = "<group>"; };
+		431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OfflineStorageTests_SQLite.cpp; sourceTree = "<group>"; };
+		431EFE47233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CompliantByDefaultEventFilterModuleTests.cpp; sourceTree = "<group>"; };
+		431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPropertiesStorageTests.cpp; sourceTree = "<group>"; };
+		431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientManagerTests.cpp; sourceTree = "<group>"; };
+		431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OfflineStorageTests.cpp; sourceTree = "<group>"; };
+		431EFE4B233EBE54002FCC18 /* GuidTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GuidTests.cpp; sourceTree = "<group>"; };
+		431EFE4C233EBE54002FCC18 /* DiskLocalStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DiskLocalStorageTests.cpp; sourceTree = "<group>"; };
+		431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PackagerTests.cpp; sourceTree = "<group>"; };
+		431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetaStatsTests.cpp; sourceTree = "<group>"; };
+		431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpResponseDecoderTests.cpp; sourceTree = "<group>"; };
+		431EFE7B233EC413002FCC18 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		431EFE7D233EC413002FCC18 /* Tests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Tests.mm; sourceTree = "<group>"; };
+		431EFE7F233EC413002FCC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		431EFE93233EC560002FCC18 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
+		431EFEBD233EC5C9002FCC18 /* libmat.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libmat.a; path = ../../../out/lib/libmat.a; sourceTree = "<group>"; };
+		431EFEC0233EC680002FCC18 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		431EFEC2233EC688002FCC18 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		431EFEC4233EC6A0002FCC18 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		431EFEC6233EC6DE002FCC18 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
+		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		431EFE1B233EBDF2002FCC18 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		431EFE78233EC413002FCC18 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				431EFEC9233EC74E002FCC18 /* libz.tbd in Frameworks */,
+				431EFEC5233EC6A0002FCC18 /* SystemConfiguration.framework in Frameworks */,
+				431EFEC3233EC688002FCC18 /* UIKit.framework in Frameworks */,
+				431EFEC1233EC680002FCC18 /* libsqlite3.tbd in Frameworks */,
+				431EFEBE233EC5C9002FCC18 /* libmat.a in Frameworks */,
+				431EFEC7233EC6DE002FCC18 /* libgtest.a in Frameworks */,
+				431EFE94233EC560002FCC18 /* libgmock.a in Frameworks */,
+				431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		431EFE15233EBDF2002FCC18 = {
+			isa = PBXGroup;
+			children = (
+				431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */,
+				431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */,
+				431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */,
+				431EFE47233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp */,
+				431EFE41233EBE53002FCC18 /* ContextFieldsProviderTests.cpp */,
+				431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */,
+				431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */,
+				431EFE3C233EBE53002FCC18 /* DebugEventSourceTests.cpp */,
+				431EFE4C233EBE54002FCC18 /* DiskLocalStorageTests.cpp */,
+				431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */,
+				431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */,
+				431EFE42233EBE53002FCC18 /* EventPropertiesTests.cpp */,
+				431EFE4B233EBE54002FCC18 /* GuidTests.cpp */,
+				431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */,
+				431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */,
+				431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */,
+				431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */,
+				431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */,
+				431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */,
+				431EFE2D233EBE53002FCC18 /* HttpServerTests.cpp */,
+				431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */,
+				431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */,
+				431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */,
+				431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */,
+				431EFE31233EBE53002FCC18 /* MemoryStorageTests.cpp */,
+				431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */,
+				431EFE45233EBE53002FCC18 /* OacrTests.cpp */,
+				431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */,
+				431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */,
+				431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */,
+				431EFE32233EBE53002FCC18 /* PalTests.cpp */,
+				431EFE43233EBE53002FCC18 /* RouteTests.cpp */,
+				431EFE2E233EBE53002FCC18 /* StringUtilsTests.cpp */,
+				431EFE40233EBE53002FCC18 /* TaskDispatcherCAPITests.cpp */,
+				431EFE3D233EBE53002FCC18 /* TransmissionPolicyManagerTests.cpp */,
+				431EFE39233EBE53002FCC18 /* UtilsTests.cpp */,
+				431EFE7C233EC413002FCC18 /* Tests */,
+				431EFE1F233EBDF2002FCC18 /* Products */,
+				431EFEBF233EC680002FCC18 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		431EFE1F233EBDF2002FCC18 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				431EFE1E233EBDF2002FCC18 /* libunittests.a */,
+				431EFE7B233EC413002FCC18 /* Tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		431EFE7C233EC413002FCC18 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				431EFED0233ECB0F002FCC18 /* libUnitTests.a */,
+				431EFEC6233EC6DE002FCC18 /* libgtest.a */,
+				431EFEBD233EC5C9002FCC18 /* libmat.a */,
+				431EFE93233EC560002FCC18 /* libgmock.a */,
+				431EFE7D233EC413002FCC18 /* Tests.mm */,
+				431EFE7F233EC413002FCC18 /* Info.plist */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		431EFEBF233EC680002FCC18 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				431EFEC8233EC74E002FCC18 /* libz.tbd */,
+				431EFEC4233EC6A0002FCC18 /* SystemConfiguration.framework */,
+				431EFEC2233EC688002FCC18 /* UIKit.framework */,
+				431EFEC0233EC680002FCC18 /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		431EFE1D233EBDF2002FCC18 /* unittests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 431EFE27233EBDF2002FCC18 /* Build configuration list for PBXNativeTarget "unittests" */;
+			buildPhases = (
+				431EFE1A233EBDF2002FCC18 /* Sources */,
+				431EFE1B233EBDF2002FCC18 /* Frameworks */,
+				431EFE1C233EBDF2002FCC18 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = unittests;
+			productName = unittests;
+			productReference = 431EFE1E233EBDF2002FCC18 /* libunittests.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		431EFE7A233EC413002FCC18 /* Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 431EFE83233EC413002FCC18 /* Build configuration list for PBXNativeTarget "Tests" */;
+			buildPhases = (
+				431EFE77233EC413002FCC18 /* Sources */,
+				431EFE78233EC413002FCC18 /* Frameworks */,
+				431EFE79233EC413002FCC18 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				431EFE82233EC413002FCC18 /* PBXTargetDependency */,
+			);
+			name = Tests;
+			productName = Tests;
+			productReference = 431EFE7B233EC413002FCC18 /* Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		431EFE16233EBDF2002FCC18 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1020;
+				ORGANIZATIONNAME = "David Brown";
+				TargetAttributes = {
+					431EFE1D233EBDF2002FCC18 = {
+						CreatedOnToolsVersion = 10.2.1;
+					};
+					431EFE7A233EC413002FCC18 = {
+						CreatedOnToolsVersion = 10.2.1;
+					};
+				};
+			};
+			buildConfigurationList = 431EFE19233EBDF2002FCC18 /* Build configuration list for PBXProject "unittests" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 431EFE15233EBDF2002FCC18;
+			productRefGroup = 431EFE1F233EBDF2002FCC18 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				431EFE1D233EBDF2002FCC18 /* unittests */,
+				431EFE7A233EC413002FCC18 /* Tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		431EFE79233EC413002FCC18 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		431EFE1A233EBDF2002FCC18 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				431EFE57233EBE54002FCC18 /* MemoryStorageTests.cpp in Sources */,
+				431EFE6D233EBE54002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp in Sources */,
+				431EFE69233EBE54002FCC18 /* RouteTests.cpp in Sources */,
+				431EFE67233EBE54002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
+				431EFE68233EBE54002FCC18 /* EventPropertiesTests.cpp in Sources */,
+				431EFE65233EBE54002FCC18 /* LogSessionDataTests.cpp in Sources */,
+				431EFE64233EBE54002FCC18 /* LogManagerImplTests.cpp in Sources */,
+				431EFE5C233EBE54002FCC18 /* BondSplicerTests.cpp in Sources */,
+				431EFE50233EBE54002FCC18 /* HttpClientTests.cpp in Sources */,
+				431EFE5F233EBE54002FCC18 /* UtilsTests.cpp in Sources */,
+				431EFE6C233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
+				431EFE75233EBE54002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
+				431EFE59233EBE54002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
+				431EFE6A233EBE54002FCC18 /* EventFilterCollectionTests.cpp in Sources */,
+				431EFE5E233EBE54002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */,
+				431EFE63233EBE54002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
+				431EFE52233EBE54002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
+				431EFE5A233EBE54002FCC18 /* CorrelationVectorTests.cpp in Sources */,
+				431EFE61233EBE54002FCC18 /* HttpClientCAPITests.cpp in Sources */,
+				431EFE73233EBE54002FCC18 /* PackagerTests.cpp in Sources */,
+				431EFE54233EBE54002FCC18 /* StringUtilsTests.cpp in Sources */,
+				431EFE53233EBE54002FCC18 /* HttpServerTests.cpp in Sources */,
+				431EFE56233EBE54002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
+				431EFE6E233EBE54002FCC18 /* EventPropertiesStorageTests.cpp in Sources */,
+				431EFE74233EBE54002FCC18 /* MetaStatsTests.cpp in Sources */,
+				431EFE71233EBE54002FCC18 /* GuidTests.cpp in Sources */,
+				431EFE72233EBE54002FCC18 /* DiskLocalStorageTests.cpp in Sources */,
+				431EFE6F233EBE54002FCC18 /* HttpClientManagerTests.cpp in Sources */,
+				431EFE51233EBE54002FCC18 /* LoggerTests.cpp in Sources */,
+				431EFE66233EBE54002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */,
+				431EFE60233EBE54002FCC18 /* ControlPlaneProviderTests.cpp in Sources */,
+				431EFE5D233EBE54002FCC18 /* ClockSkewManagerTests.cpp in Sources */,
+				431EFE58233EBE54002FCC18 /* PalTests.cpp in Sources */,
+				431EFE70233EBE54002FCC18 /* OfflineStorageTests.cpp in Sources */,
+				431EFE6B233EBE54002FCC18 /* OacrTests.cpp in Sources */,
+				431EFE62233EBE54002FCC18 /* DebugEventSourceTests.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		431EFE77233EC413002FCC18 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				431EFEAF233EC590002FCC18 /* MemoryStorageTests.cpp in Sources */,
+				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
+				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
+				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
+				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
+				431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
+				431EFEAE233EC590002FCC18 /* LogSessionDataTests.cpp in Sources */,
+				431EFE9A233EC590002FCC18 /* ControlPlaneProviderTests.cpp in Sources */,
+				431EFEB0233EC590002FCC18 /* MetaStatsTests.cpp in Sources */,
+				431EFEB5233EC590002FCC18 /* PalTests.cpp in Sources */,
+				431EFE9B233EC590002FCC18 /* CorrelationVectorTests.cpp in Sources */,
+				431EFEB4233EC590002FCC18 /* PackagerTests.cpp in Sources */,
+				431EFEAD233EC590002FCC18 /* LogManagerImplTests.cpp in Sources */,
+				431EFE98233EC590002FCC18 /* CompliantByDefaultEventFilterModuleTests.cpp in Sources */,
+				431EFEB9233EC590002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
+				431EFEA1233EC590002FCC18 /* EventPropertiesStorageTests.cpp in Sources */,
+				431EFEAA233EC590002FCC18 /* HttpServerTests.cpp in Sources */,
+				431EFE7E233EC413002FCC18 /* Tests.mm in Sources */,
+				431EFEAB233EC590002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */,
+				431EFE9F233EC590002FCC18 /* DiskLocalStorageTests.cpp in Sources */,
+				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
+				431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */,
+				431EFEB8233EC590002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */,
+				431EFEB6233EC590002FCC18 /* RouteTests.cpp in Sources */,
+				431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
+				431EFEB7233EC590002FCC18 /* StringUtilsTests.cpp in Sources */,
+				431EFEA3233EC590002FCC18 /* GuidTests.cpp in Sources */,
+				431EFEA0233EC590002FCC18 /* EventFilterCollectionTests.cpp in Sources */,
+				431EFE9D233EC590002FCC18 /* DebugEventSourceTests.cpp in Sources */,
+				431EFEA2233EC590002FCC18 /* EventPropertiesTests.cpp in Sources */,
+				431EFEA4233EC590002FCC18 /* HttpClientCAPITests.cpp in Sources */,
+				431EFEB1233EC590002FCC18 /* OacrTests.cpp in Sources */,
+				431EFEAC233EC590002FCC18 /* LoggerTests.cpp in Sources */,
+				431EFE97233EC590002FCC18 /* ClockSkewManagerTests.cpp in Sources */,
+				431EFEA5233EC590002FCC18 /* HttpClientManagerTests.cpp in Sources */,
+				431EFEA6233EC590002FCC18 /* HttpClientTests.cpp in Sources */,
+				431EFE96233EC590002FCC18 /* BondSplicerTests.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		431EFE82233EC413002FCC18 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 431EFE1D233EBDF2002FCC18 /* unittests */;
+			targetProxy = 431EFE81233EC413002FCC18 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		431EFE25233EBDF2002FCC18 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+					../common/,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		431EFE26233EBDF2002FCC18 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+					../common/,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		431EFE28233EBDF2002FCC18 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		431EFE29233EBDF2002FCC18 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		431EFE84233EC413002FCC18 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+					../../common/,
+				);
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.microsoft.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		431EFE85233EC413002FCC18 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../,
+					../../lib/,
+					../../lib/include/,
+					../../lib/include/mat/,
+					../../lib/include/public/,
+					../../lib/pal/,
+					../../googletest/googletest/include/,
+					../../googletest/googlemock/include/,
+					../../common/,
+				);
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.microsoft.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		431EFE19233EBDF2002FCC18 /* Build configuration list for PBXProject "unittests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				431EFE25233EBDF2002FCC18 /* Debug */,
+				431EFE26233EBDF2002FCC18 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		431EFE27233EBDF2002FCC18 /* Build configuration list for PBXNativeTarget "unittests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				431EFE28233EBDF2002FCC18 /* Debug */,
+				431EFE29233EBDF2002FCC18 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		431EFE83233EC413002FCC18 /* Build configuration list for PBXNativeTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				431EFE84233EC413002FCC18 /* Debug */,
+				431EFE85233EC413002FCC18 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 431EFE16233EBDF2002FCC18 /* Project object */;
+}
