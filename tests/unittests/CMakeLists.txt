@@ -82,6 +82,11 @@ else()
     set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework UIKit -framework SystemConfiguration -framework Foundation")
   endif()
 
+  # Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
+  if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
+    set (PLATFORM_LIBS "atomic")
+  endif()
+
   # Find libraries
   message("--- Linking libraries! ")
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
