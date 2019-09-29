@@ -6,6 +6,8 @@
 #include "Version.hpp"
 
 #include "Enums.hpp"
+#include "ctmacros.hpp"
+
 #include <map>
 #include <string>
 #include <vector>
