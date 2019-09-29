@@ -147,13 +147,13 @@ int main(int argc, char *argv[])
                 // Various typed key-values
                 { "strKey1",  "hello1" },
                 { "strKey2",  "hello2" },
-                { "int64Key", (int64_t)1L },
+                { "int64Key", int64_t(1L) },
                 { "dblKey",   3.14 },
                 { "boolKey",  false },
                 { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
                 { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
                 { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-                { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
+                { "timeKey1", time_ticks_t((uint64_t)0) },     // time in .NET ticks
             });
 
         if (std::string("My.Detailed.Event.PiiMark") == eventName)

@@ -714,8 +714,12 @@ namespace ARIASDK_NS_BEGIN
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
+#ifndef HAVE_MAT_DEFAULT_FILTER
+        UNREFERENCED_PARAMETER(properties);
         return true;
-        // return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+#else
+        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+#endif
     }
 
 } ARIASDK_NS_END

@@ -498,7 +498,12 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="state">HttpStateEvent - see diagram</param>
         /// <param name="data">HTTP client implementation-specific data structure (optional)</param>
         /// <param name="size">HTTP client implementation-specific data structure size (optional)</param>
-        virtual void OnHttpStateEvent(HttpStateEvent, void* = nullptr, size_t = 0) {};
+        virtual void OnHttpStateEvent(HttpStateEvent state, void* data = nullptr, size_t size = 0)
+        {
+            UNREFERENCED_PARAMETER(state);
+            UNREFERENCED_PARAMETER(data);
+            UNREFERENCED_PARAMETER(size);
+        };
     };
 
     /// <summary>
