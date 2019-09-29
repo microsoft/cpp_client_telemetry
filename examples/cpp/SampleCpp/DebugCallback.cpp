@@ -1,6 +1,20 @@
 #include "DebugCallback.hpp"
 #include "IHttpClient.hpp"
 
+//#define HAVE_SSL_VERIFY
+
+#if !defined(_WIN32) && !defined(NO_LIBCURL)
+/* At the moment we allow to build part of this test debug callback with
+ * libcurl only on POSIX platforms, e.g. Linux, Mac, etc. Code below shows
+ * how to enforce SSL verification with curl
+ */
+#include <unistd.h>
+#if defined(__has_include) && __has_include(<curl/curl.h>)
+# include <curl/curl.h>
+#define HAVE_LIBCURL
+#endif
+#endif
+
 unsigned   latency[MAX_LATENCY_SAMPLES] = { 0 };
 
 std::atomic<size_t>   eps(0);
@@ -41,11 +55,44 @@ void MyDebugEventListener::reset()
     logLatMax = 0;
 }
 
+void MyDebugEventListener::OnHttpStateEvent(DebugEvent& evt)
+{
+    HttpStateEvent state = HttpStateEvent(evt.param1);
+    static std::map<HttpStateEvent, std::string> labels =
+    {
+        { OnCreated,       "OnCreated"       },
+        { OnCreateFailed,  "OnCreateFailed"  },
+        { OnConnecting,    "OnConnecting"    },
+        { OnConnectFailed, "OnConnectFailed" },
+        { OnConnected,     "OnConnected"     },
+        { OnSendFailed,    "OnSendFailed"    },
+        { OnSending,       "OnSending"       },
+        { OnResponse,      "OnResponse"      },
+        { OnDestroy,       "OnDestroy"       }
+    };
+    auto it = labels.find(state);
+    printf("HTTP state=%20s, handle=0x%p\n",
+        (it!= labels.end()) ? it->second.c_str() : "unknown",
+        evt.data);
+#if defined(HAVE_LIBCURL) && defined(HAVE_SSL_VERIFY)
+    /* Enforce SSL verification if built with libcurl */
+    CURL* handle = static_cast<CURL*>(evt.data);
+    if (handle!=nullptr)
+    {
+        curl_easy_setopt(handle, CURLOPT_PROXY_SSL_VERIFYHOST, true);
+        curl_easy_setopt(handle, CURLOPT_PROXY_SSL_VERIFYPEER, true);
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, true);
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, true);
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYSTATUS, true);
+    }
+#endif
+}
+
 /// <summary>
 /// The DebugEventListener constructor.
 /// </summary>
 /// <param name="evt"></param>
-void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
+void MyDebugEventListener::OnDebugEvent(DebugEvent& evt)
 {
     // lock for the duration of the print, so that we don't mess up the prints
     std::lock_guard<std::mutex> lock(dbg_callback_mtx);
@@ -121,21 +168,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent &evt)
 
     case EVT_HTTP_STATE:
         {
-            HttpStateEvent state = HttpStateEvent(evt.param1);
-            std::map<HttpStateEvent, std::string> labels =
-            {
-                { OnCreated,       "OnCreated"       },
-                { OnCreateFailed,  "OnCreateFailed"  },
-                { OnConnecting,    "OnConnecting"    },
-                { OnConnectFailed, "OnConnectFailed" },
-                { OnConnected,     "OnConnected"     },
-                { OnSendFailed,    "OnSendFailed"    },
-                { OnSending,       "OnSending"       },
-                { OnResponse,      "OnResponse"      },
-                { OnDestroy,       "OnDestroy"       }
-            };
-            auto it = labels.find(state);
-            printf("HTTP state: %s\n", (it!= labels.end()) ? it->second.c_str() : "unknown");
+            OnHttpStateEvent(evt);
         }
         break;
 

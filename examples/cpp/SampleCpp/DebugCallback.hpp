@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LogManager.hpp"
+#include "IHttpClient.hpp"
 
 #include <mutex>
 #include <atomic>
@@ -19,6 +20,7 @@ public:
     {
         reset();
     }
+    virtual void OnHttpStateEvent(DebugEvent& evt);
     virtual void OnDebugEvent(DebugEvent &evt);
     virtual void reset();
 };
