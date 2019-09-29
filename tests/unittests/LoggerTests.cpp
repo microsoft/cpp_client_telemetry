@@ -61,6 +61,8 @@ protected:
     }
 };
 
+#ifdef HAVE_MAT_DEFAULT_FILTER
+/* Tests specific to Office implementation of compliant-by-default filter */
 TEST_F(LoggerTests, CanEventPropertiesBeSent_NoFiltersInLoggerOrLogManager_ReturnsTrue)
 {
     EXPECT_TRUE(logger.CanEventPropertiesBeSent(EventProperties{}));
@@ -320,3 +322,5 @@ TEST_F(LoggerTests, LogSession_CanEventPropertiesBeSentReturnsTrue_CallsSubmit)
     logger.LogSession(SessionState::Session_Started, EventProperties{});
     EXPECT_TRUE(logger.SubmitCalled);
 }
+#endif
+
