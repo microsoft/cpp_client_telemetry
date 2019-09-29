@@ -6,8 +6,8 @@
 #include "Version.hpp"
 
 #include "Enums.hpp"
-#include "ctmacros.hpp"
 
+#include <tuple>
 #include <map>
 #include <string>
 #include <vector>
@@ -502,9 +502,10 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="size">HTTP client implementation-specific data structure size (optional)</param>
         virtual void OnHttpStateEvent(HttpStateEvent state, void* data = nullptr, size_t size = 0)
         {
-            UNREFERENCED_PARAMETER(state);
-            UNREFERENCED_PARAMETER(data);
-            UNREFERENCED_PARAMETER(size);
+            /* Can't use UNREFERENCED_PARAMETER here on Win32 - we do not necessarily have include winnt.h at this point */
+            std::ignore = state;
+            std::ignore = data;
+            std::ignore = size;
         };
     };
 
