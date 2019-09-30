@@ -8,6 +8,9 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include <cstring>
+#include <cstddef>
+#include <algorithm>
 
 #if defined(HAVE_CONSOLE_LOG) && !defined(LOG_DEBUG)
 /* Log to console if there's no standard log facility defined */
