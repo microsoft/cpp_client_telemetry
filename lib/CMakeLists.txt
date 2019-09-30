@@ -73,7 +73,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   list(APPEND SRCS
     http/HttpClient.hpp
     pal/posix/DeviceInformationImpl.cpp
-    pal/posix/NetworkInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
     pal/posix/sysinfo_sources.cpp
   )
@@ -81,12 +80,15 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(BUILD_IOS)
     list(APPEND SRCS
       http/HttpClient_iOS.mm
+      pal/posix/NetworkInformationImpl.mm
+      pal/posix/Reachability.m
       pal/posix/sysinfo_utils_ios.mm
     )
   else()
     list(APPEND SRCS
       http/HttpClient_Curl.cpp
       http/HttpClient_Curl.hpp
+      pal/posix/NetworkInformationImpl.cpp
     )
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
