@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         record.time = PAL::getUtcSystemTimeinTicks();
-        record.ver = "4.0";
+        record.ver = ::CsProtocol::CS_VER_STRING;
         if (record.baseType.empty())
         {
             record.baseType = record.name;
