@@ -43,7 +43,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
 endif()
 
-  # Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
+# Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
   set (PLATFORM_LIBS "atomic")
 endif()

@@ -2,7 +2,6 @@
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-#ifdef _WIN32 /* TODO: [MG] - unfortunately the HttpServer is not implemented for Linux and Mac OS X yet */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
@@ -824,10 +823,12 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 }
 
+#if defined(HAVE_MAT_DEFAULT_FILTER)
 TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAllowedOneAllowed_OnlyAllowedEventSent)
 {
     CleanStorage();
     Initialize();
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     EventProperties eventWithoutLevel("EventWithoutLevel");
     logger->LogEvent(eventWithoutLevel);
 
@@ -848,6 +849,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 
     FlushAndTeardown();
 }
+#endif
 
 void SendEventWithOptionalThenRequired(ILogger* logger) noexcept
 {
@@ -871,14 +873,17 @@ static std::vector<CsProtocol::Record> GetEventsWithName(const char* name, const
     return results;
 }
 
+#if defined(HAVE_MAT_DEFAULT_FILTER)
 TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSendTwoEvents_ThreeEventsSent)
 {
     CleanStorage();
     Initialize();
+
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    MAT::Modules::Filtering::UpdateAllowedLevels({ DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
-
+    // MAT::Modules::Filtering::UpdateAllowedLevels({ DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
@@ -891,6 +896,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
 
     FlushAndTeardown();
 }
+#endif
 
 class RequestMonitor : public DebugEventListener
 {
@@ -1205,6 +1211,8 @@ TEST_F(BasicFuncTests, killIsTemporary)
     server.clearKilledTokens();
 }
 
+#ifdef _WIN32
+/* TODO: [MG] - debug why this stress-test is very slow on Mac, then re-enable for Mac */
 TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 {
     CleanStorage();
@@ -1266,6 +1274,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         LogManager::RemoveEventListener(evt, listener);
     }
 }
+#endif
 
 #if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
@@ -1354,5 +1363,4 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     }
 }
 #endif
-#endif // _WIN32
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
