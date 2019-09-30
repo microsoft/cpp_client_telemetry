@@ -404,6 +404,14 @@ namespace ARIASDK_NS_BEGIN {
     /// </remarks>
     size_t MemoryStorage::GetSize()
     {
+        size_t totalRecords = GetRecordCount();
+        totalRecords+=GetReservedCount();
+        // Since m_size calculation is approximate - see below,
+        // it may happen that it's slightly off by several bytes.
+        // We audit and clean this up when the number of records
+        // gets down to zero.
+        if (totalRecords==0)
+            m_size = 0;
         return m_size.load();
     }
 
