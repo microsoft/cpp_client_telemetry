@@ -1,0 +1,8 @@
+include
+lib
+offlinestorage*
+Release
+x64
+/build/
+/.externalToolBuilders/
+/out/
