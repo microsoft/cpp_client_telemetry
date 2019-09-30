@@ -3,6 +3,9 @@
 
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
+/* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
+#define MAX_FUTURE_DELTA_MS (60 * 60 * 1000)
+
 namespace PAL_NS_BEGIN {
 
     class WorkerThreadShutdownItem : public Task
@@ -124,20 +127,33 @@ namespace PAL_NS_BEGIN {
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
-            std::unique_ptr<MAT::Task> item = nullptr;
             for (;;) {
+                std::unique_ptr<MAT::Task> item = nullptr;
                 wakeupCount++;
-                unsigned nextTimerInMs = UINT_MAX;
+                unsigned nextTimerInMs = MAX_FUTURE_DELTA_MS;
                 {
                     LOCKGUARD(self->m_lock);
 
-                    int64_t now = getMonotonicTimeMs();
-                    if (!self->m_timerQueue.empty() && self->m_timerQueue.front()->TargetTime <= now) {
-                        item = std::unique_ptr<MAT::Task>(self->m_timerQueue.front());
-                        self->m_timerQueue.pop_front();
-                    }
+                    auto now = getMonotonicTimeMs();
                     if (!self->m_timerQueue.empty()) {
-                        nextTimerInMs = static_cast<unsigned>(self->m_timerQueue.front()->TargetTime - now);
+                        const auto currTargetTime = self->m_timerQueue.front()->TargetTime;
+                        if (currTargetTime <= now) {
+                            // process the item at the front immediately
+                            item = std::unique_ptr<MAT::Task>(self->m_timerQueue.front());
+                            self->m_timerQueue.pop_front();
+                        } else {
+                           // timed call in future, we need to resort the items in the queue
+                           const auto delta = currTargetTime - now;
+                           if (delta > MAX_FUTURE_DELTA_MS) {
+                               const auto itemPtr = self->m_timerQueue.front();
+                               self->m_timerQueue.pop_front();
+                               itemPtr->TargetTime = now + MAX_FUTURE_DELTA_MS;
+                               self->queue(itemPtr);
+                               continue;
+                           }
+                           // value used for sleep in case if m_queue ends up being empty
+                           nextTimerInMs = static_cast<unsigned>(delta);
+                        }
                     }
 
                     if (!self->m_queue.empty() && !item) {
