@@ -77,7 +77,7 @@ public:
     virtual void CleanStorage()
     {
         std::string fileName = MAT::GetTempDirectory();
-        fileName += "\\";
+        fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         std::remove(fileName.c_str());
     }
@@ -88,7 +88,7 @@ public:
         auto configuration = LogManager::GetLogConfiguration();
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
@@ -823,7 +823,6 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 }
 
-#if defined(HAVE_MAT_DEFAULT_FILTER)
 TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAllowedOneAllowed_OnlyAllowedEventSent)
 {
     CleanStorage();
@@ -849,7 +848,6 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 
     FlushAndTeardown();
 }
-#endif
 
 void SendEventWithOptionalThenRequired(ILogger* logger) noexcept
 {
@@ -873,7 +871,6 @@ static std::vector<CsProtocol::Record> GetEventsWithName(const char* name, const
     return results;
 }
 
-#if defined(HAVE_MAT_DEFAULT_FILTER)
 TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSendTwoEvents_ThreeEventsSent)
 {
     CleanStorage();
@@ -882,12 +879,11 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    // MAT::Modules::Filtering::UpdateAllowedLevels({ DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 3 /*expected count*/);
+    waitForEvents(2 /*timeout*/, 3 /*expected count*/);
 
     auto sentRecords = records();
     ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
@@ -896,7 +892,6 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
 
     FlushAndTeardown();
 }
-#endif
 
 class RequestMonitor : public DebugEventListener
 {
