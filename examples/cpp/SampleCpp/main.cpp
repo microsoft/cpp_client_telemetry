@@ -20,10 +20,10 @@
 #endif
 
 #include "DebugCallback.hpp"
- 
+
 LOGMANAGER_INSTANCE
 
-#define TOKEN   "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#include "DefaultApiKey.h"
 
 extern "C" void guestTest();    // see guest.cpp 
 
@@ -283,7 +283,7 @@ int main()
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
-    logger = LogManager::Initialize(TOKEN);
+    logger = LogManager::Initialize(API_KEY);
     logPiiMark();   // UTC upload
     LogManager::FlushAndTeardown();
 #endif
@@ -291,7 +291,8 @@ int main()
     printf("LogManager::Initialize in direct\n");
     printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    logger = LogManager::Initialize(TOKEN);
+    logger = LogManager::Initialize(API_KEY);
+
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
