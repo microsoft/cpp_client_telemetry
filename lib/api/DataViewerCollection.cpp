@@ -30,7 +30,9 @@ namespace ARIASDK_NS_BEGIN {
 
         if (IsViewerInCollection(dataViewer->GetName()))
         {
-            MATSDK_THROW(std::invalid_argument(std::string { "Viewer: '%s' is already registered", dataViewer->GetName() }));
+            std::stringstream errorMessage;
+            errorMessage << "Viewer: '" << dataViewer->GetName() << "' is already registered";
+            MATSDK_THROW(std::invalid_argument(errorMessage.str()));
         }
         
         m_dataViewerCollection.push_back(dataViewer);
@@ -51,7 +53,9 @@ namespace ARIASDK_NS_BEGIN {
         
         if (toErase == m_dataViewerCollection.end())
         {
-            MATSDK_THROW(std::invalid_argument(std::string { "Viewer: '%s' is not currently registered", viewerName }));
+            std::stringstream errorMessage;
+            errorMessage << "Viewer: '" << viewerName << "' is not currently registered";
+            MATSDK_THROW(std::invalid_argument(errorMessage.str()));
         }
 
         m_dataViewerCollection.erase(toErase);
