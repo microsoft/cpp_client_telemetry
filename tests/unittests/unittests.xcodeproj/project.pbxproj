@@ -88,6 +88,8 @@
 		431EFEC7233EC6DE002FCC18 /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC6233EC6DE002FCC18 /* libgtest.a */; };
 		431EFEC9233EC74E002FCC18 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFEC8233EC74E002FCC18 /* libz.tbd */; };
 		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
+		431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
+		431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -161,6 +163,7 @@
 		431EFEC6233EC6DE002FCC18 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
+		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,6 +195,7 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
+				431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */,
 				431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */,
 				431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */,
 				431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */,
@@ -388,6 +392,7 @@
 				431EFE60233EBE54002FCC18 /* ControlPlaneProviderTests.cpp in Sources */,
 				431EFE5D233EBE54002FCC18 /* ClockSkewManagerTests.cpp in Sources */,
 				431EFE58233EBE54002FCC18 /* PalTests.cpp in Sources */,
+				431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */,
 				431EFE70233EBE54002FCC18 /* OfflineStorageTests.cpp in Sources */,
 				431EFE6B233EBE54002FCC18 /* OacrTests.cpp in Sources */,
 				431EFE62233EBE54002FCC18 /* DebugEventSourceTests.cpp in Sources */,
@@ -398,6 +403,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */,
 				431EFEAF233EC590002FCC18 /* MemoryStorageTests.cpp in Sources */,
 				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
@@ -455,7 +461,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -525,7 +531,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -628,6 +634,7 @@
 		431EFE84233EC413002FCC18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
 					../,
@@ -655,6 +662,7 @@
 		431EFE85233EC413002FCC18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
 					../,

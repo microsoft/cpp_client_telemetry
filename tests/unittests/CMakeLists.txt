@@ -42,7 +42,11 @@ set(SRCS
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-add_library(UnitTests STATIC ${SRCS} ${TESTS_COMMON_SRCS})
+if(BUILD_IOS)
+  add_library(UnitTests STATIC ${SRCS} ${TESTS_COMMON_SRCS})
+else()
+  add_executable(UnitTests ${SRCS} ${TESTS_COMMON_SRCS})
+endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows

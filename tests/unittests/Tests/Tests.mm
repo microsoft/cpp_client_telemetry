@@ -7,8 +7,12 @@
 //
 
 #import <XCTest/XCTest.h>
+
+#include "common/Common.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "utils/Utils.hpp"
 
 @interface iOSTestAppTests : XCTestCase
 
@@ -38,7 +42,11 @@
     ::testing::InitGoogleMock(&argc, (char **)argv);
     auto googletest = ::testing::UnitTest::GetInstance();
     auto foo = googletest->total_test_count();
+    ILogConfiguration logConfig;
+    RuntimeConfig_Default runtimeConfig(logConfig);
+    PAL::initialize(runtimeConfig);
     (void)RUN_ALL_TESTS();
+    PAL::shutdown();
 }
 
 - (void)testPerformanceExample {
