@@ -252,7 +252,7 @@ int main()
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
 
-#define USE_LOCAL_URL /* Send to local test server */
+// #define USE_LOCAL_URL /* Send to local test server */
 #ifdef USE_LOCAL_URL
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1:5001/OneCollector/";
 #endif
