@@ -457,7 +457,7 @@
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\Reactor.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIBandwidthController.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIEcsClient.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />

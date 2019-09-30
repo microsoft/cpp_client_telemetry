@@ -423,7 +423,7 @@
     <ClCompile Include="LogSessionDataFuncTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\Reactor.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp" />
