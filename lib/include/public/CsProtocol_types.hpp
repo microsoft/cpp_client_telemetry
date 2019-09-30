@@ -17,6 +17,10 @@
 
 namespace CsProtocol {
 
+constexpr int CS_VER_MAJOR = 4;
+constexpr int CS_VER_MINOR = 0;
+constexpr const char* CS_VER_STRING = "4.0";
+
 struct Ingest {
     // 1: required int64 time
     int64_t time = 0;
