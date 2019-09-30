@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>JSONEditor | Viewer</title>
+  <link href="jsoneditor.css" rel="stylesheet" type="text/css">
+  <script src="jsoneditor.custom.js"></script>
+  <style type="text/css">
+    body {
+      font: 11pt arial;
+    }
+    #jsoneditor {
+      display: block;
+    }
+  </style>
+
+  <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/w/dt/dt-1.10.18/datatables.min.css"/>
+  <script type="text/javascript" src="https://cdn.datatables.net/w/dt/dt-1.10.18/datatables.min.js"></script>
+
+</head>
+<body>
+
+<div id="jsoneditor"></div>
+
+<script>
+/*
+  const container = document.getElementById('jsoneditor')
+
+  const options = {
+    mode: 'view'
+  }
+
+  const json = {
+    'array': [1, 2, 3],
+    'boolean': true,
+    'null': null,
+    'number': 123,
+    'object': {'a': 'b', 'c': 'd'},
+    'string': 'Hello World'
+  }
+
+  const editor = new JSONEditor(container, options, json)
+*/
+</script>
+
+<table id="example" class="display" width="100%"></table>
+
+<script>
+var dataSet = [
+  ["Time", "Name", "Source", "100", "Payload"],
+  ["Time", "Name", "Source", "101", "Payload"],
+  ["Time", "Name", "Source", "102", "Payload"],
+  ["Time", "Name", "Source", "103", "Payload"]
+];
+
+$(document).ready(function() {
+  $('#example').DataTable( {
+      data: dataSet,
+      columns: [
+        { title: "Time" },
+        { title: "Name" },
+        { title: "Source" },
+        { title: "Event ID" },
+        { title: "Payload" }
+      ],
+      "columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function ( data, type, row ) {
+                    return '<div id="event_'+row[3]+'">xxx</div>';
+                    // return data +' ('+ row[3]+')';
+                },
+                "targets": 0
+            },
+            { "visible": false,  "targets": [ 3 ] }
+        ]
+  } );
+  dataSet.forEach(function(row) {
+    var elementId = "event_" + row[3];
+    var container = document.getElementById(elementId)
+    var options = {
+      mode: 'preview',
+      modes: ['code', 'form', 'text', 'tree', 'view', 'preview'] // allowed modes
+    };
+    // { mode: 'view' };
+    var editor = new JSONEditor(container, options, row);
+    $(elementId).toggle();
+    console.log(row);
+  });
+} );
+</script>
+
+</body>
+</html>

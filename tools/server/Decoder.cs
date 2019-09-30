@@ -28,6 +28,7 @@ namespace CommonSchema
 
         // Decoded output in JSON format
         private string DecodedJson;
+        public List<string> JsonList { get; set; }
 
         /// <summary>
         /// Initialize Decoder input parameters: request headers and request body. 
@@ -174,7 +175,7 @@ namespace CommonSchema
         /// <returns></returns>
         public string ToJson(bool outputCompactJson = true, bool flatExt = true, int TabSize = -1)
         {
-            FromBondToJSONList(outputCompactJson, flatExt);
+            JsonList = FromBondToJSONList(outputCompactJson, flatExt);
             if (TabSize != -1)
             {
                 IndentJson(TabSize);

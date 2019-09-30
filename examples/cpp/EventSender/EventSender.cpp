@@ -92,6 +92,8 @@ int main(int argc, char *argv[])
     config = MAT::FromJSON(jsonConfig);
 
     // LogManager initialization
+    config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1:5001/OneCollector/";
+
     ILogger *logger = LogManager::Initialize();
     bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
 

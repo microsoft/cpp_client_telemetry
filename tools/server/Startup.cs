@@ -4,7 +4,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -14,30 +14,33 @@ namespace CommonSchema
     {
         public class Startup
         {
+            private String contentRootPath;
             private int seq = 0;
 
             // This method gets called by the runtime. Use this method to add services to the container.
             // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-            public void ConfigureServices(/* IServiceCollection services */)
+            public void ConfigureServices(IServiceCollection services)
             {
-                // TODO: add services configuration
             }
 
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+            public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
             {
-                if (env.IsDevelopment())
-                {
-                    app.UseDeveloperExceptionPage();
-                }
-
                 app.UseStaticFiles(); // For the wwwroot folder
+                contentRootPath = env.ContentRootPath;
                 app.Run(async (context) =>
                 {
+                    var syncIOFeature = context.Features.Get<IHttpBodyControlFeature>();
+                    if (syncIOFeature != null)
+                    {
+                        syncIOFeature.AllowSynchronousIO = true;
+                    }
+
                     // Dump request information with headers
                     seq++;
                     ILogger loggerReq = loggerFactory.CreateLogger("REQ-" + seq);
                     ILogger loggerDec = loggerFactory.CreateLogger("DEC-" + seq);
+                    ILogger loggerExp = loggerFactory.CreateLogger("EXP-" + seq);
 
                     string headers = "";
                     foreach (var entry in context.Request.Headers)
@@ -63,6 +66,16 @@ namespace CommonSchema
                             context.Response.StatusCode = 200;
                             loggerReq.LogInformation(result);
                             await context.Response.WriteAsync(result);
+
+                            // Append all records to data.json file
+                            // TODO: [MG] - implement proper locking
+                            var exporter = new FileExporter(contentRootPath + "/wwwroot/data.json", loggerExp);
+                            exporter.ArrayResume();
+                            foreach (var record in decoder.JsonList)
+                            {
+                                exporter.ArrayAdd(record);
+                            }
+                            exporter.ArrayClose();
                         } else
                         if (path.StartsWith("/admin/stop"))
                         {

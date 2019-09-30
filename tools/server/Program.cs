@@ -27,7 +27,7 @@ namespace CommonSchema.Server
             .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                IHostingEnvironment env = hostingContext.HostingEnvironment;
+                IWebHostEnvironment env = hostingContext.HostingEnvironment;
                 IConfigurationBuilder configurationBuilder = config
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
