@@ -61,7 +61,6 @@ protected:
     }
 };
 
-#ifdef HAVE_MAT_DEFAULT_FILTER
 TEST_F(LoggerTests, CanEventPropertiesBeSent_NoFiltersInLoggerOrLogManager_ReturnsTrue)
 {
     EXPECT_TRUE(logger.CanEventPropertiesBeSent(EventProperties{}));
@@ -321,4 +320,3 @@ TEST_F(LoggerTests, LogSession_CanEventPropertiesBeSentReturnsTrue_CallsSubmit)
     logger.LogSession(SessionState::Session_Started, EventProperties{});
     EXPECT_TRUE(logger.SubmitCalled);
 }
-#endif

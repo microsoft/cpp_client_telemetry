@@ -142,6 +142,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -275,6 +276,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -322,6 +324,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -450,6 +453,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -499,6 +503,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -530,6 +535,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -561,6 +567,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (!CanEventPropertiesBeSent(properties))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -592,6 +599,7 @@ namespace ARIASDK_NS_BEGIN
     {
         if (!CanEventPropertiesBeSent(props))
         {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
 
@@ -702,13 +710,7 @@ namespace ARIASDK_NS_BEGIN
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
-        bool result = true;
-#ifdef HAVE_MAT_DEFAULT_FILTER
-        result = m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
-#else
-        UNREFERENCED_PARAMETER(properties);
-#endif
-        return result;
+        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
     }
 
 } ARIASDK_NS_END

@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// Finalizes an instance of the <see cref="IDecorator"/> class.
         /// </summary>
-        virtual ~IDecorator() {};
+        virtual ~IDecorator() = default;
         
         /// <summary>
         /// Decorates the specified record with common properties.
