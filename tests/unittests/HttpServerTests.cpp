@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifdef _WIN32 /* TODO: [MG] - implement HttpServer test class for POSIX */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
@@ -332,4 +331,3 @@ TEST_F(HttpServerTestsSimple, FailsOnUnknownExpect)
         "Host: http.server.tests\r\n"
         "\r\n"));
 }
-#endif
