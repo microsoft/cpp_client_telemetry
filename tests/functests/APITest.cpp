@@ -827,7 +827,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         logBenchMark("created");
 
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
         config[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
         config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
@@ -873,7 +873,7 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 {
     auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
-    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
 
     std::vector<std::string> paths =

@@ -4,6 +4,8 @@
 #include "common/MockIHttpClient.hpp"
 #include "http/HttpClientManager.hpp"
 
+#include "NullObjects.hpp"
+#include "ILogManager.hpp"
 using namespace testing;
 using namespace MAT;
 

@@ -113,7 +113,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual IEventFilterCollection& GetEventFilters() noexcept override { return m_filters; }
 
-        virtual IEventFilterCollection const& GetEventFilters() const noexcept { return m_filters; }
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept override { return m_filters; }
 
         virtual void SetParentContext(ISemanticContext * context) override {};
 
@@ -125,7 +125,9 @@ namespace ARIASDK_NS_BEGIN
 
     class NullDataViewerCollection : public IDataViewerCollection
     {
-        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept {};
+    public:
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept override {};
+
         virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {};
 
         virtual void UnregisterViewer(const char*) override {};
@@ -141,6 +143,7 @@ namespace ARIASDK_NS_BEGIN
         {
             return false;
         }
+        virtual ~NullDataViewerCollection() {};
     };
 
     class NullLogManager : public ILogManager

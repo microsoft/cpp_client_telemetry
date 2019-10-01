@@ -2,7 +2,6 @@
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-#ifdef _WIN32 /* TODO: [MG] - unfortunately the HttpServer is not implemented for Linux and Mac OS X yet */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
@@ -27,8 +26,6 @@
 #include <vector>
 
 #include "PayloadDecoder.hpp"
-
-using namespace std::chrono_literals;
 
 using namespace testing;
 using namespace MAT;
@@ -126,7 +123,7 @@ public:
     virtual void CleanStorage()
     {
         std::string fileName = MAT::GetTempDirectory();
-        fileName += "\\";
+        fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         std::remove(fileName.c_str());
     }
@@ -156,6 +153,7 @@ public:
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
         LogManager::ResumeTransmission();
 
         logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
@@ -489,7 +487,6 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     Initialize();
     EventProperties event("first_event");
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event);
     FlushAndTeardown();
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
@@ -537,7 +534,6 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -562,7 +558,6 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     waitForEvents(2, 3);
@@ -582,7 +577,6 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -602,8 +596,6 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
-
-
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -612,13 +604,11 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
-
-
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
-    waitForEvents(1, 2);
+    // 2 x customer events + 1 x evt_stats on start
+    waitForEvents(1, 3);
 
     for (const auto &evt : { event, event2 })
     {
@@ -635,7 +625,6 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     EventProperties event1("first_event");
     event1.SetProperty("property", "value");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -655,18 +644,17 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event1.SetProperty("property4", gvector);
-
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
-
     logger2->LogEvent(event2);
 
     LogManager::UploadNow();
-    waitForEvents(1, 2);
+
+    // 2 x customer events + 1 x evt_stats on start
+    waitForEvents(1, 3);
     for (const auto &evt : { event1, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
@@ -682,19 +670,15 @@ TEST_F(BasicFuncTests, configDecorations)
     Initialize();
 
     EventProperties event1("first_event");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     EventProperties event3("third_event");
-    event3.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event3);
 
     EventProperties event4("4th_event");
-    event4.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event4);
 
     LogManager::UploadNow();
@@ -719,8 +703,6 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
         event2.SetProperty("property2", "value2");
-        event1.SetLevel(DIAG_LEVEL_REQUIRED);
-        event2.SetLevel(DIAG_LEVEL_REQUIRED);
         event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
         event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
@@ -738,8 +720,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::GetLogger()->LogEvent(fooEvent);
         LogManager::UploadNow();
 
-        // 1st request for realtime event
-        waitForEvents(3, 6); // start, first_event, second_event, stop, start, fooEvent
+        waitForEvents(3, 7); // start, first_event, second_event, ongoing, stop, start, fooEvent
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
         {
@@ -834,12 +815,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     EventProperties event1("first_event");
     event1.SetPriority(EventPriority_High);
     event1.SetProperty("property1", "value1");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     event2.SetProperty("property2", "value2");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
     FlushAndTeardown();
 
@@ -867,6 +846,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 {
     CleanStorage();
     Initialize();
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     EventProperties eventWithoutLevel("EventWithoutLevel");
     logger->LogEvent(eventWithoutLevel);
 
@@ -879,9 +859,8 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     logger->LogEvent(eventWithAllowedLevel);
 
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 1 /*expected count*/);
-
-    ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
+    waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
+    ASSERT_EQ(records().size(), static_cast<size_t>(2));
 
     verifyEvent(eventWithAllowedLevel, find(eventWithAllowedLevel.GetName()));
 
@@ -914,17 +893,17 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
 {
     CleanStorage();
     Initialize();
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    MAT::Modules::Filtering::UpdateAllowedLevels({ DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
 
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 3 /*expected count*/);
-
+    waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
     auto sentRecords = records();
-    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
+    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4));
     ASSERT_EQ(GetEventsWithName("EventWithOptionalLevel", sentRecords).size(), size_t{ 1 });
     ASSERT_EQ(GetEventsWithName("EventWithRequiredLevel", sentRecords).size(), size_t{ 2 });
 
@@ -1110,7 +1089,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         while (numIterations--) {
             EventProperties event1("fooEvent");
             event1.SetProperty("property", "value");
-            event1.SetLevel(DIAG_LEVEL_REQUIRED);
             myLogger->LogEvent(event1);
         }
         // Initialize the logger for the killed token and log 100 events
@@ -1121,7 +1099,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         while (numIterations--) {
             EventProperties event2("failEvent");
             event2.SetProperty("property", "value");
-            event2.SetLevel(DIAG_LEVEL_REQUIRED);
             myLogger->LogEvent(event2);
         }
     }
@@ -1137,7 +1114,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     while (numIterations--) {
         EventProperties event1("fooEvent");
         event1.SetProperty("property", "value");
-        event1.SetLevel(DIAG_LEVEL_REQUIRED);
         myLogger->LogEvent(event1);
     }
 
@@ -1148,7 +1124,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     while (numIterations--) {
         EventProperties event2("failEvent");
         event2.SetProperty("property", "value");
-        event2.SetLevel(DIAG_LEVEL_REQUIRED);
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
@@ -1244,6 +1219,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     server.clearKilledTokens();
 }
 
+#ifdef _WIN32
 TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 {
     CleanStorage();
@@ -1305,6 +1281,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         LogManager::RemoveEventListener(evt, listener);
     }
 }
+#endif
 
 #if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
@@ -1394,4 +1371,3 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 }
 #endif
 #endif // _WIN32
-#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
