@@ -23,6 +23,9 @@
 
 #include <unistd.h>
 
+#include "IHttpClient.hpp"
+#include "pal/PAL.hpp"
+
 #define HTTP_CONN_TIMEOUT       5L
 #define HTTP_READ_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
@@ -31,37 +34,29 @@
 #undef TRACE
 #define TRACE(...)	// printf
 
+namespace ARIASDK_NS_BEGIN {
+
 /**
- *
+ * Curl-based HTTP client
  */
-class HttpClientCurl {
-
+class HttpClient_Curl : public IHttpClient {
 public:
+    HttpClient_Curl();
+    virtual ~HttpClient_Curl();
 
-    /**
-     * Create an instance of Curl-based HTTP stack
-     */
-    HttpClientCurl()
-    {
-        /* In windows, this will init the winsock stuff */
-        TRACE("Initialize...\n");
-        curl_global_init(CURL_GLOBAL_ALL);
-        TRACE("libcurl version = %s\n", curl_version_info(CURLVERSION_NOW)->version);
-    }
+    virtual IHttpRequest* CreateRequest() override;
+    virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
+    virtual void CancelRequestAsync(std::string const& id) override;
 
-    /**
-     * Destroy global CURL instance
-     */
-    virtual ~HttpClientCurl()
-    {
-        curl_global_cleanup();
-        TRACE("Done.\n");
-    };
+private:
+    void EraseRequest(std::string const& id);
+    void AddRequest(IHttpRequest* request);
 
+    std::mutex m_requestsMtx;
+    std::map<std::string, IHttpRequest*> m_requests;
 };
 
-class HttpRequestCurl {
-
+class CurlHttpOperation {
 public:
 
     std::atomic<bool>   isAborted;      // Set to 'true' when async callback is aborted
@@ -74,7 +69,7 @@ public:
      * @param httpConnTimeout   HTTP connection timeout in seconds
      * @param httpReadTimeout   HTTP read timeout in seconds
      */
-    HttpRequestCurl(
+    CurlHttpOperation(
             std::string method,
             std::string url,
             // Default empty headers and empty request body
@@ -146,7 +141,7 @@ public:
     /**
      * Destroy CURL instance
      */
-    virtual ~HttpRequestCurl()
+    virtual ~CurlHttpOperation()
     {
         // Given the request has not been aborted we should wait for completion here
         if (result.valid())
@@ -262,7 +257,7 @@ cleanup:
         return res;
     }
 
-    std::future<long> & SendAsync(std::function<void(HttpRequestCurl &)> callback = nullptr) {
+    std::future<long> & SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
         result = std::async(std::launch::async, [this, callback] {
             long result = Send();
             if (callback!=nullptr)
@@ -278,6 +273,14 @@ cleanup:
     long GetResponseCode()
     {
         return res;
+    }
+
+    /**
+     * Get whether or not response was programmatically aborted
+     */
+    bool WasAborted()
+    {
+        return isAborted.load();
     }
 
     /**
@@ -475,6 +478,8 @@ protected:
     }
 
 };
+
+} ARIASDK_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 

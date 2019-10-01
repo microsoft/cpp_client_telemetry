@@ -33,7 +33,7 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         HttpClient_WinRt&      m_parent;
-        std::unique_ptr<SimpleHttpRequest> m_request;
+        SimpleHttpRequest*     m_request;
         const std::string&     m_id;
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
@@ -243,6 +243,7 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
+            // 'response' gets released in EventsUploadContext.clear()
             m_appCallback->OnHttpResponse(response.release());
             m_parent.erase(m_id);
 
@@ -306,6 +307,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
+        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
         if (request==nullptr)
         {
             LOG_ERROR("request is null!");
