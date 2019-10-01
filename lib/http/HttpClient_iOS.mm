@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <CFNetwork/CFNetwork.h>
 
-#include "HttpClient.hpp"
+#include "HttpClient_iOS.hpp"
 #include "Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
@@ -28,16 +28,16 @@ static std::string NextRespId()
 class HttpRequestIos : public SimpleHttpRequest
 {
 public:
-    HttpRequestIos(HttpClient* parent) :
+    HttpRequestIos(HttpClient_iOS* parent) :
         SimpleHttpRequest(NextReqId()),
         m_parent(parent)
     {
-        m_parent->add(static_cast<IHttpRequest*>(this));
+        m_parent->Add(static_cast<IHttpRequest*>(this));
     }
 
     ~HttpRequestIos() noexcept
     {
-        m_parent->erase(static_cast<IHttpRequest*>(this));
+        m_parent->Erase(static_cast<IHttpRequest*>(this));
     }
 
     void SendAsync(IHttpResponseCallback* callback)
@@ -137,7 +137,7 @@ public:
     }
 
 private:
-    HttpClient* m_parent = nullptr;
+    HttpClient_iOS* m_parent = nullptr;
     SimpleHttpResponse m_response { NextRespId() };
     IHttpResponseCallback* m_callback = nullptr;
     NSURLSession* m_session = nullptr;
@@ -146,35 +146,35 @@ private:
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
 };
 
-HttpClient::HttpClient()
+HttpClient_iOS::HttpClient_iOS()
 {
-    LOG_TRACE("Initializing HttpClient...");
+    LOG_TRACE("Initializing HttpClient_iOS...");
 }
 
-HttpClient::~HttpClient()
+HttpClient_iOS::~HttpClient_iOS()
 {
-    LOG_TRACE("Shutting down HttpClient...");
+    LOG_TRACE("Shutting down HttpClient_iOS...");
 }
 
-IHttpRequest* HttpClient::CreateRequest()
+IHttpRequest* HttpClient_iOS::CreateRequest()
 {
     auto request = new HttpRequestIos(this);
     LOG_TRACE("HTTP request=%p id=%s created", request, request->GetId().c_str());
     return request;
 }
 
-void HttpClient::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+void HttpClient_iOS::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
     auto requestIos = static_cast<HttpRequestIos*>(request);
     requestIos->SendAsync(callback);
     LOG_TRACE("HTTP request=%p callback=%p sent", request, callback);
 }
 
-void HttpClient::CancelRequestAsync(const std::string& id)
+void HttpClient_iOS::CancelRequestAsync(const std::string& id)
 {
     HttpRequestIos* request = nullptr;
     {
-        std::lock_guard<std::mutex> lock(m_request_mtx);
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
         if (m_requests.find(id) != m_requests.cend())
         {
             request = static_cast<HttpRequestIos*>(m_requests[id]);
@@ -186,6 +186,18 @@ void HttpClient::CancelRequestAsync(const std::string& id)
             m_requests.erase(id);
         }
     }
+}
+
+void HttpClient_iOS::Erase(IHttpRequest* req)
+{
+    std::lock_guard<std::mutex> lock(m_requestsMtx);
+    m_requests.erase(req->GetId());
+}
+
+void HttpClient_iOS::Add(IHttpRequest* req)
+{
+    std::lock_guard<std::mutex> lock(m_requestsMtx);
+    m_requests[req->GetId()] = req;
 }
 
 } ARIASDK_NS_END
