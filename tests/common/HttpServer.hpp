@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
+
+#include "Common.hpp"
 #include "SocketTools.hpp"
+#include "Reactor.hpp"
 
 // #define ENABLE_HTTP_DEBUG
 
@@ -11,6 +14,8 @@
 #define LOG_TRACE(x, ...) printf(x "\n" , __VA_ARGS__)
 #endif
 #endif
+
+using namespace SocketTools;
 
 namespace testing {
 

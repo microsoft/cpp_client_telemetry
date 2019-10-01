@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
+#include "mat/config.h"
 #include "common/Common.hpp"
 #include "api/DataViewerCollection.hpp"
 

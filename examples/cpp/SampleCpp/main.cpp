@@ -252,6 +252,9 @@ int main()
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
+#ifdef USE_LOCAL_URL
+    config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1:5001/OneCollector/";
+#endif
 #ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
 #endif
