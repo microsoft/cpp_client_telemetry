@@ -249,12 +249,13 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
     std::atomic<size_t> totalRecords(0);
 
     std::vector<std::thread> workers;
-    std::thread t[MAX_STRESS_THREADS];
+    std::atomic<size_t> threadCount(0);
 
     // Add / Remove some events from several threads
     for (size_t i = 0; i < MAX_STRESS_THREADS; i++) {
-        workers.push_back(std::thread([&storage]()
+        workers.push_back(std::thread([&storage, &threadCount]()
         {
+            threadCount++;
             // Add some events
             addEvents(storage);
 
@@ -273,7 +274,10 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
         }));
     }
 
+    while (threadCount.load()!=MAX_STRESS_THREADS)
+    {
     std::this_thread::yield();
+    }
 
     // Wait for completion of all worker threads
     std::for_each(workers.begin(), workers.end(), [](std::thread &t)

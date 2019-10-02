@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&&) override { }
         virtual void UnregisterEventFilter(const char*) override { }
         virtual void UnregisterAllFilters() noexcept override { }
-        virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return false; }
+        virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return true; }
     };
 
     class NullLogger : public ILogger

@@ -29,4 +29,3 @@ cd ..
 ./build-gtest.sh
 
 ## Install dotnet for test server
-brew cask install dotnet

@@ -19,7 +19,13 @@
 
 #include <fstream>
 #include <atomic>
+#include <assert.h>
+#include <condition_variable>
+#include <thread>
+#include <chrono>
+#include <vector>
 
+#include "PayloadDecoder.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -32,10 +38,35 @@ char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 #define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define HTTP_PORT       19000
 
+#undef LOCKGUARD
+#define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+class HttpPostListener : public DebugEventListener
+{
+public:
+    virtual void OnDebugEvent(DebugEvent &evt)
+    {
+        static unsigned seq = 0;
+        switch (evt.type)
+        {
+        case EVT_HTTP_OK:
+            {
+                seq++;
+                std::string out;
+                std::vector<uint8_t> reqBody((unsigned char *)evt.data, (unsigned char *)(evt.data) + evt.size);
+                MAT::exporters::DecodeRequest(reqBody, out, false);
+                printf(">>>> REQUEST [%u]:%s\n", seq, out.c_str());
+            }
+            break;
+        default:
+            break;
+        };
+    };
+};
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
 {
 protected:
+    std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
     HttpServer server;
@@ -44,17 +75,23 @@ protected:
     ILogger* logger2;
 
     std::atomic<bool> isSetup;
+    std::atomic<bool> isRunning;
 
+    std::condition_variable cv_gotEvents;
+    std::mutex cv_m;
 public:
 
 	BasicFuncTests() :
-		isSetup(false)
+        isSetup(false) ,
+        isRunning(false)
 	{};
 
     virtual void SetUp() override
     {
         if (isSetup.exchange(true))
+        {
             return;
+        }
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "localhost:" << port;
@@ -65,6 +102,7 @@ public:
         server.addHandler("/503/", *this);
         server.setKeepalive(false); // This test doesn't work well with keep-alive enabled
         server.start();
+        isRunning = true;
     }
 
     virtual void TearDown() override
@@ -72,6 +110,7 @@ public:
         if (!isSetup.exchange(false))
             return;
         server.stop();
+        isRunning = false;
     }
 
     virtual void CleanStorage()
@@ -88,7 +127,11 @@ public:
         auto configuration = LogManager::GetLogConfiguration();
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+#ifdef NDEBUG
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+#else
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
+#endif
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
@@ -103,6 +146,7 @@ public:
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
         LogManager::ResumeTransmission();
 
         logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
@@ -124,7 +168,10 @@ public:
             PAL::sleep(static_cast<unsigned int>(request.content.size() / DELAY_FACTOR_FOR_SERVER));
         }
 
+        {
+            LOCKGUARD(mtx_requests);
         receivedRequests.push_back(request);
+        }
 
         response.headers["Content-Type"] = "text/plain";
         response.content = "{ \"status\": \"0\" }";
@@ -132,63 +179,43 @@ public:
         return 200;
     }
 
-    bool waitForRequests(unsigned timeout, unsigned expected_count = 1)
+    bool waitForRequests(unsigned timeOutSec, unsigned expected_count = 1)
     {
-        auto sz = receivedRequests.size();
-        auto start = PAL::getUtcSystemTimeMs();
-        while (receivedRequests.size() - sz < expected_count)
+        std::unique_lock<std::mutex> lk(cv_m);
+        if (cv_gotEvents.wait_for(lk, std::chrono::milliseconds(1000 * timeOutSec), [&] { return receivedRequests.size() >= expected_count; }))
         {
-            if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
-            {
-                return false;
-            }
-            PAL::sleep(500);
+            return true;
         }
-        return true;
+        return false;
     }
 
-    void waitForEvents(unsigned timeout, unsigned expected_count = 1)
+    void waitForEvents(unsigned timeOutSec, unsigned expected_count = 1)
     {
-        unsigned receivedEvnets = 0;
+        unsigned receivedEvents = 0;
         auto start = PAL::getUtcSystemTimeMs();
-        while (receivedEvnets < expected_count)
+        size_t lastIdx = 0;
+        while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
-            unsigned receivedEvnetsLocal = 0;
-            if (waitForRequests(timeout))
+            /* Give time for our friendly HTTP server thread to processs incoming request */
+            std::this_thread::yield();
             {
-                size_t size = receivedRequests.size();
-                for (size_t index = 0; index < size; index++)
+                LOCKGUARD(mtx_requests);
+                if (receivedRequests.size())
                 {
-                    auto request = receivedRequests.at(index);
-                    auto payload = decodeRequest(request, false);
-                    receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
-                }
-                receivedEvnets = receivedEvnetsLocal;
+                    size_t size = receivedRequests.size();
 
-                if (receivedEvnets < expected_count)
-                {
-                    if (PAL::getUtcSystemTimeMs() - start >= timeout * 1000)
-                    {
-                        GTEST_FATAL_FAILURE_("Didn't receive records within given timeout");
-                    }
-                    PAL::sleep(100);
                     //requests can come within 100 milisec sleep
-                    receivedEvnetsLocal = 0;
-                    size = receivedRequests.size();
-                    for (size_t index = 0; index < size; index++)
+                    for (size_t index = lastIdx; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
                         auto payload = decodeRequest(request, false);
-                        receivedEvnetsLocal = receivedEvnetsLocal + (unsigned)payload.size();
+                        receivedEvents+= (unsigned)payload.size();
                     }
-                    receivedEvnets = receivedEvnetsLocal;
+                    lastIdx = size;
                 }
             }
-            else
-            {
-                GTEST_FATAL_FAILURE_("Didn't receive request within given timeout");
-            }
         }
+        ASSERT_EQ(receivedEvents, expected_count);
     }
 
     std::vector<CsProtocol::Record> decodeRequest(HttpServer::Request const& request, bool decompress)
@@ -453,7 +480,6 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     Initialize();
     EventProperties event("first_event");
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event);
     FlushAndTeardown();
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
@@ -463,22 +489,22 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     CleanStorage();
     Initialize();
+    HttpPostListener listener;
+    LogManager::AddEventListener(EVT_HTTP_OK, listener);
 
     EventProperties event("first_event");
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
     waitForEvents(1, 3);
     EXPECT_GE(receivedRequests.size(), (size_t)1);
-
+    LogManager::RemoveEventListener(EVT_HTTP_OK, listener);
     FlushAndTeardown();
 
     if (receivedRequests.size() >= 1)
@@ -497,7 +523,6 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -522,7 +547,6 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     waitForEvents(2, 3);
@@ -542,7 +566,6 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     EventProperties event("first_event");
     event.SetPriority(EventPriority_Normal);
     event.SetProperty("property", "value");
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -572,13 +595,12 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
 
 
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
-    waitForEvents(1, 2);
+    waitForEvents(1, 3);
 
     for (const auto &evt : { event, event2 })
     {
@@ -595,7 +617,6 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     EventProperties event1("first_event");
     event1.SetProperty("property", "value");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     std::vector<int64_t> intvector(8);
     std::fill(intvector.begin(), intvector.begin() + 4, 5);
     std::fill(intvector.begin() + 3, intvector.end() - 2, 8);
@@ -621,12 +642,11 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
 
     logger2->LogEvent(event2);
 
     LogManager::UploadNow();
-    waitForEvents(1, 2);
+    waitForEvents(1, 3);
     for (const auto &evt : { event1, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
@@ -642,19 +662,15 @@ TEST_F(BasicFuncTests, configDecorations)
     Initialize();
 
     EventProperties event1("first_event");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
 
     EventProperties event3("third_event");
-    event3.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event3);
 
     EventProperties event4("4th_event");
-    event4.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event4);
 
     LogManager::UploadNow();
@@ -679,8 +695,6 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
         event2.SetProperty("property2", "value2");
-        event1.SetLevel(DIAG_LEVEL_REQUIRED);
-        event2.SetLevel(DIAG_LEVEL_REQUIRED);
         event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
         event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
@@ -699,7 +713,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::UploadNow();
 
         // 1st request for realtime event
-        waitForEvents(3, 6); // start, first_event, second_event, stop, start, fooEvent
+        waitForEvents(3, 7); // start, first_event, second_event, ongoing, stop, start, fooEvent
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
         {
@@ -794,12 +808,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     EventProperties event1("first_event");
     event1.SetPriority(EventPriority_High);
     event1.SetProperty("property1", "value1");
-    event1.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     event2.SetProperty("property2", "value2");
-    event2.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(event2);
     FlushAndTeardown();
 
@@ -840,7 +852,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     logger->LogEvent(eventWithAllowedLevel);
 
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 1 /*expected count*/);
+    waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
 
     ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
 
@@ -883,7 +895,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
-    waitForEvents(2 /*timeout*/, 3 /*expected count*/);
+    waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
 
     auto sentRecords = records();
     ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
@@ -1072,7 +1084,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         while (numIterations--) {
             EventProperties event1("fooEvent");
             event1.SetProperty("property", "value");
-            event1.SetLevel(DIAG_LEVEL_REQUIRED);
             myLogger->LogEvent(event1);
         }
         // Initialize the logger for the killed token and log 100 events
@@ -1083,7 +1094,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         while (numIterations--) {
             EventProperties event2("failEvent");
             event2.SetProperty("property", "value");
-            event2.SetLevel(DIAG_LEVEL_REQUIRED);
             myLogger->LogEvent(event2);
         }
     }
@@ -1099,7 +1109,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     while (numIterations--) {
         EventProperties event1("fooEvent");
         event1.SetProperty("property", "value");
-        event1.SetLevel(DIAG_LEVEL_REQUIRED);
         myLogger->LogEvent(event1);
     }
 
@@ -1110,7 +1119,6 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     while (numIterations--) {
         EventProperties event2("failEvent");
         event2.SetProperty("property", "value");
-        event2.SetLevel(DIAG_LEVEL_REQUIRED);
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
