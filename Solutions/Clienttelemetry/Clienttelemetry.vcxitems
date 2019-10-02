@@ -80,9 +80,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\Common.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolReader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolWriter.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_readers.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_types.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_writers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\BondConstTypes.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_readers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_types.hpp" />
@@ -91,7 +88,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.hpp" />
@@ -120,6 +116,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CompliantByDefaultFilterApi.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ctmacros.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CorrelationVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\DebugEvents.hpp" />
@@ -129,6 +126,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IBandwidthController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IECSClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp" />

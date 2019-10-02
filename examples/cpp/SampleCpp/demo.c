@@ -4,16 +4,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <CommonFields.h>
 
-#define API_KEY "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#include "CommonFields.h"
+
+#include "DefaultApiKey.h"
 
 void test_c_api()
 {
     printf("Testing C API...\n");
 
 #if 0   // Initialize using TOKEN
-    evt_handle_t handle = evt_open(TOKEN);
+    evt_handle_t handle = evt_open(API_KEY);
 #else   // Initialize using ILogConfiguration in JSON format
 
 #ifdef _WIN32

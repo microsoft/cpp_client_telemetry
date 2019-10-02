@@ -6,7 +6,6 @@
 
 #include "NullObjects.hpp"
 #include "ILogManager.hpp"
-
 using namespace testing;
 using namespace MAT;
 

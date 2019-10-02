@@ -26,6 +26,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsViewerEnabled() const noexcept override;
 
+        virtual ~DataViewerCollection() noexcept {};
+
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
