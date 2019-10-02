@@ -92,7 +92,7 @@ TEST(DataViewerCollectionTests, RegisterViewer_DuplicateDataViewerRegistered_Thr
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName");
     TestDataViewerCollection dataViewerCollection { };
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer));
-#if 0
+
     // TODO: [MG] - breaks on Mac
     // UnitTests(50918,0x10751a5c0) malloc: can't allocate region
     // *** mach_vm_map(size=18446744073709502464) failed (error code=3)
@@ -101,10 +101,8 @@ TEST(DataViewerCollectionTests, RegisterViewer_DuplicateDataViewerRegistered_Thr
     // Expected: dataViewerCollection.RegisterViewer(otherViewer) throws an exception of type std::invalid_argument.
     std::shared_ptr<IDataViewer> otherViewer = std::make_shared<MockIDataViewer>("sharedName");
     ASSERT_THROW(dataViewerCollection.RegisterViewer(otherViewer), std::invalid_argument);
-#endif
 }
 
-#if 0
 // TODO: [MG] - this test is broken on Mac:
 // UnitTests(50918,0x10751a5c0) malloc: can't allocate region
 // *** mach_vm_map(size=18446744073709506560) failed (error code=3)
@@ -130,7 +128,6 @@ TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNotRegistered_Throw
     TestDataViewerCollection dataViewerCollection { };
     ASSERT_THROW(dataViewerCollection.UnregisterViewer("NotRegisteredViewer"), std::invalid_argument);
 }
-#endif
 
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsRegistered_UnregistersCorrectly)
 {
