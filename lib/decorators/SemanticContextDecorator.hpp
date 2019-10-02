@@ -17,20 +17,23 @@ namespace ARIASDK_NS_BEGIN
 
     public:
         SemanticContextDecorator(ILogManager& owner) :
-            IDecorator(),
             m_owner(owner),
             provider(static_cast<ContextFieldsProvider&>(owner.GetSemanticContext()))
         {
         }
 
         SemanticContextDecorator(ILogManager& owner, ContextFieldsProvider& context) :
-            IDecorator(),
             m_owner(owner),
             provider(context)
         {
         }
 
-        bool decorate(::CsProtocol::Record& record, bool commonOnly = false)
+        bool decorate(::CsProtocol::Record& record) override
+        {
+            return decorate(record, false);
+        }
+
+        bool decorate(::CsProtocol::Record& record, bool commonOnly)
         {
             provider.writeToRecord(record, commonOnly);
             return true;

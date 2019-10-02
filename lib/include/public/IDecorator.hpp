@@ -15,26 +15,21 @@ namespace ARIASDK_NS_BEGIN {
      /// Part of advanced functionality SDK headers geared to provide the apps that
      /// rely on Common Schema protocol with ability to populate common properties.
      /// </summary>
-    class IDecorator {
+    class IDecorator
+    {
 
     public:
-        
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IDecorator"/> class.
-        /// </summary>
-        /// IDecorator() : m_owner(nullptr) {};
-        
         /// <summary>
         /// Finalizes an instance of the <see cref="IDecorator"/> class.
         /// </summary>
-        virtual ~IDecorator() {};
-        
+        virtual ~IDecorator() = default;
+
         /// <summary>
         /// Decorates the specified record with common properties.
         /// </summary>
         /// <param name="record">Common Schema protocol record.</param>
         /// <returns></returns>
-        virtual bool decorate(CsProtocol::Record&) { return false; };
+        virtual bool decorate(::CsProtocol::Record&) = 0;
 
     };
 
@@ -47,10 +42,10 @@ namespace ARIASDK_NS_BEGIN {
     {
 
     protected:
-        ILogManager *m_owner;
+        ILogManager* m_owner { nullptr };
 
     public:
-        IDecoratorModule() : m_owner(nullptr) {};
+        IDecoratorModule() = default;
 
         void Initialize(ILogManager *owner) noexcept override
         {
@@ -61,7 +56,6 @@ namespace ARIASDK_NS_BEGIN {
         {
             m_owner = nullptr;
         }
-
     };
 
 } ARIASDK_NS_END

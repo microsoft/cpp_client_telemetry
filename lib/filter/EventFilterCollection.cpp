@@ -41,6 +41,10 @@ namespace ARIASDK_NS_BEGIN
 
     bool EventFilterCollection::CanEventPropertiesBeSent(const EventProperties& properties) const noexcept
     {
+        if (!m_filters.size())
+        {
+            return true;
+        }
         std::lock_guard<std::mutex> lock(m_filterLock);
         return std::all_of(m_filters.cbegin(), m_filters.cend(), 
             [&properties](const std::unique_ptr<IEventFilter>& filter)
