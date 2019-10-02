@@ -18,7 +18,7 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         ILogManager& m_owner;
-        bool decorate(::CsProtocol::Record& record) override
+        bool decorate(::CsProtocol::Record&) override
         {
             return false;
         }
