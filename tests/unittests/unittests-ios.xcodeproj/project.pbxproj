@@ -614,6 +614,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				ENABLE_TESTABILITY = YES;
 				HEADER_SEARCH_PATHS = (
 					../,
 					../../lib/,
@@ -636,6 +637,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					../,
 					../../lib/,
@@ -664,6 +666,7 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					../,
 					../../lib/,
@@ -697,7 +700,7 @@
 				431EFE26233EBDF2002FCC18 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		431EFE27233EBDF2002FCC18 /* Build configuration list for PBXNativeTarget "unittests" */ = {
 			isa = XCConfigurationList;
@@ -706,7 +709,7 @@
 				431EFE29233EBDF2002FCC18 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		431EFE83233EC413002FCC18 /* Build configuration list for PBXNativeTarget "Tests" */ = {
 			isa = XCConfigurationList;
@@ -715,7 +718,7 @@
 				431EFE85233EC413002FCC18 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

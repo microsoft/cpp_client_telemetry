@@ -18,6 +18,29 @@
 
 @end
 
+
+class TestStatusLogger : public testing::EmptyTestEventListener
+{
+public:
+    TestStatusLogger(iOSTestAppTests* tests) : m_tests(tests) {}
+    virtual void OnTestStart(testing::TestInfo const& test) override
+    {
+        LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
+    }
+    
+    virtual void OnTestEnd(testing::TestInfo const& test) override
+    {
+        LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
+        if(!test.result()->Passed())
+        {
+            [m_tests recordFailureWithDescription:[NSString stringWithUTF8String:test.test_case_name()] inFile:[NSString stringWithUTF8String:test.file()] atLine:test.line() expected:true];
+        }
+    }
+private:
+    iOSTestAppTests* m_tests;
+};
+
+
 @implementation iOSTestAppTests
 
 - (void)setUp {
@@ -40,8 +63,10 @@
     }
     
     ::testing::InitGoogleMock(&argc, (char **)argv);
+    TestStatusLogger* logger = new TestStatusLogger(self);
     auto googletest = ::testing::UnitTest::GetInstance();
-    auto foo = googletest->total_test_count();
+    googletest->listeners().Append(logger);
+
     ILogConfiguration logConfig;
     RuntimeConfig_Default runtimeConfig(logConfig);
     PAL::initialize(runtimeConfig);
