@@ -18,12 +18,16 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         ILogManager& m_owner;
+        bool decorate(::CsProtocol::Record& record) override
+        {
+            return false;
+        }
 
     public:
         EventPropertiesDecorator(ILogManager& owner) :
-            IDecorator(),
             m_owner(owner)
         {};
+
 
         bool decorate(::CsProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {
@@ -349,30 +353,30 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
-                if (extPartB.size() > 0)
-                {
-                    ::CsProtocol::Data partBdata;
-                    partBdata.properties = extPartB;
-                    record.baseData.push_back(partBdata);
-                }
+            if (extPartB.size() > 0)
+            {
+                ::CsProtocol::Data partBdata;
+                partBdata.properties = extPartB;
+                record.baseData.push_back(partBdata);
+            }
                 // special case of CorrelationVector value
-                if (ext.count(CorrelationVector::PropertyName) > 0)
+            if (ext.count(CorrelationVector::PropertyName) > 0)
+            {
+                CsProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
+
+                if (cvValue.type == ::CsProtocol::ValueKind::ValueString)
                 {
-                    CsProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
-
-                    if (cvValue.type == ::CsProtocol::ValueKind::ValueString)
-                    {
-                        record.cV = cvValue.stringValue;
-                    }
-                    else
-                    {
-                        LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
-                    }
-
-                    ext.erase(CorrelationVector::PropertyName);
+                    record.cV = cvValue.stringValue;
+                }
+                else
+                {
+                    LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
                 }
 
-                return true;
+                ext.erase(CorrelationVector::PropertyName);
+            }
+
+            return true;
         }
 
     };
