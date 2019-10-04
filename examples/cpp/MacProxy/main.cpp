@@ -23,16 +23,17 @@
 
 LOGMANAGER_INSTANCE
 
-//#define USE_LOCAL_URL /* <- uncomment this to send to local test server */
-#define TOKEN            "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
-#define MAX_URL_LENGTH  2048
+#include "DefaultApiKey.h"
 
 using namespace MAT;
 
 /**
- * This function allows to auto-detect the proxy setting for a given target URL
+ * Reference example that shows how to use Apple Core Foundation and Core Foundation - Network for
+ * auto-detection of the proxy settings using a given target URL from C++ code.
+ * Refer to Apple Developer documentation for more information:
+ * https://developer.apple.com/documentation/cfnetwork/1426754-cfnetworkcopysystemproxysettings
  */
-std::string GetProxyForURL(std::string targetURL)
+std::string GetProxyForURL(const std::string& url)
 {
     std::string result = "";
     CFURLRef urlRef = NULL;
@@ -44,57 +45,57 @@ std::string GetProxyForURL(std::string targetURL)
     CFNumberRef portNumberRef = NULL;
     char hostNameBuffer[MAX_URL_LENGTH + 1] = { 0 };
 
-    urlRef = CFURLCreateWithBytes(kCFAllocatorDefault, (const UInt8*) (targetURL.c_str()), targetURL.size(), kCFStringEncodingASCII, NULL);
-    if(!urlRef)
+    urlRef = CFURLCreateWithBytes(kCFAllocatorDefault, (const UInt8*)(url.c_str()), url.size(), kCFStringEncodingASCII, NULL);
+    if (!urlRef)
         goto cleanup;
 
     proxyDicRef = CFNetworkCopySystemProxySettings();
-    if(!proxyDicRef)
+    if (!proxyDicRef)
         goto cleanup;
 
     urlProxArrayRef = CFNetworkCopyProxiesForURL(urlRef, proxyDicRef);
-    if(!urlProxArrayRef)
+    if (!urlProxArrayRef)
         goto cleanup;
 
     defProxyDic = (CFDictionaryRef)CFArrayGetValueAtIndex(urlProxArrayRef, 0);
-    if(!defProxyDic)
+    if (!defProxyDic)
         goto cleanup;
 
-    portNumberRef = (CFNumberRef)CFDictionaryGetValue(defProxyDic, (const void*) kCFProxyPortNumberKey);
-    if(!portNumberRef)
+    portNumberRef = (CFNumberRef)CFDictionaryGetValue(defProxyDic, (const void*)kCFProxyPortNumberKey);
+    if (!portNumberRef)
         goto cleanup;
-    if(!CFNumberGetValue(portNumberRef, kCFNumberSInt32Type, &port))
-        goto cleanup;
-
-    hostNameRef = (CFStringRef)CFDictionaryGetValue(defProxyDic, (const void*) kCFProxyHostNameKey);
-    if(!hostNameRef)
+    if (!CFNumberGetValue(portNumberRef, kCFNumberSInt32Type, &port))
         goto cleanup;
 
-    if(!CFStringGetCString(hostNameRef, hostNameBuffer, sizeof(hostNameBuffer), kCFStringEncodingASCII))
+    hostNameRef = (CFStringRef)CFDictionaryGetValue(defProxyDic, (const void*)kCFProxyHostNameKey);
+    if (!hostNameRef)
         goto cleanup;
 
-    result += (const char *) (hostNameBuffer);
+    if (!CFStringGetCString(hostNameRef, hostNameBuffer, sizeof(hostNameBuffer), kCFStringEncodingASCII))
+        goto cleanup;
+
+    result += (const char*)(hostNameBuffer);
     result += ":";
     result += std::to_string(port);
 
 cleanup:
 
-    if(hostNameRef)
+    if (hostNameRef)
     {
         CFRelease(hostNameRef);
         hostNameRef = NULL;
     }
-    if(urlProxArrayRef)
+    if (urlProxArrayRef)
     {
         CFRelease(urlProxArrayRef);
         urlProxArrayRef = NULL;
     }
-    if(proxyDicRef)
+    if (proxyDicRef)
     {
         CFRelease(proxyDicRef);
         proxyDicRef = NULL;
     }
-    if(urlRef)
+    if (urlRef)
     {
         CFRelease(urlRef);
         urlRef = NULL;
@@ -103,7 +104,7 @@ cleanup:
     return result;
 }
 
-MyDebugEventListener listener;
+HttpEventListener listener;
 
 int main(int argc, char* argv[])
 {
@@ -111,13 +112,14 @@ int main(int argc, char* argv[])
     auto& config = LogManager::GetLogConfiguration();
 
     printf("Auto-detecting proxy settings...\n");
-    auto proxy = GetProxyForURL(COLLECTOR_URL_PROD);
-    printf("Proxy: %s\n", (proxy.empty())?"no proxy":proxy.c_str());
-    if(!proxy.empty())
+    auto proxy = GetProxyForURL(std::string(COLLECTOR_URL_PROD));
+
+    printf("Proxy: %s\n", (proxy.empty()) ? "no proxy" : proxy.c_str());
+    if (!proxy.empty())
     {
         /* libcurl HTTP stack respects this environment variable */
         proxy.insert(0, "HTTPS_PROXY=");
-        putenv((char *)(proxy.c_str()));
+        putenv((char*)(proxy.c_str()));
     }
 
     config["name"] = "MacProxyExample";
@@ -128,35 +130,35 @@ int main(int argc, char* argv[])
     config[CFG_INT_CACHE_FILE_SIZE] = 16 * 1024 * 1024;  // 16 MB storage file limit
 
     printf("Adding debug event listeners...\n");
-    auto eventsList = {
-            DebugEventType::EVT_LOG_EVENT,
-            DebugEventType::EVT_LOG_SESSION,
-            DebugEventType::EVT_REJECTED,
-            DebugEventType::EVT_SEND_FAILED,
-            DebugEventType::EVT_SENT,
-            DebugEventType::EVT_DROPPED,
-            DebugEventType::EVT_HTTP_STATE,
-            DebugEventType::EVT_HTTP_OK,
-            DebugEventType::EVT_HTTP_ERROR,
-            DebugEventType::EVT_SEND_RETRY,
-            DebugEventType::EVT_SEND_RETRY_DROPPED,
-            DebugEventType::EVT_CACHED,
-            DebugEventType::EVT_NET_CHANGED,
-            DebugEventType::EVT_STORAGE_FULL
+    auto eventsList =
+    {
+        /* Generic HTTP stack failures */
+        DebugEventType::EVT_CONN_FAILURE,
+        DebugEventType::EVT_HTTP_FAILURE,
+        DebugEventType::EVT_UNKNOWN_HOST,
+        DebugEventType::EVT_SEND_FAILED,
+        /* HTTP request state notifications */
+        DebugEventType::EVT_HTTP_STATE,
+        /* HTTP response notifications */
+        DebugEventType::EVT_HTTP_OK,
+        DebugEventType::EVT_HTTP_ERROR,
+        /* Retry and no-Retry-Drop status */
+        DebugEventType::EVT_SEND_RETRY,
+        DebugEventType::EVT_SEND_RETRY_DROPPED
     };
 
     // Add event listeners
-    for(auto evt : eventsList)
+    for (auto evt : eventsList)
     {
         LogManager::AddEventListener(evt, listener);
     }
 
-    ILogger *logger = LogManager::Initialize(TOKEN);
+    ILogger* logger = LogManager::Initialize(API_KEY);
     logger->LogEvent("testEvent");
     LogManager::FlushAndTeardown();
 
     // Remove event listeners
-    for(auto evt : eventsList)
+    for (auto evt : eventsList)
     {
         LogManager::RemoveEventListener(evt, listener);
     }
