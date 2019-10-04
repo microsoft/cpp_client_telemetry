@@ -4,5 +4,5 @@ mkdir -p out
 cd out
 cmake ..
 make
-# Strip for release
-# strip SampleCpp
+## Uncomment the following line below to strip the binary for Release:
+#strip SampleCpp

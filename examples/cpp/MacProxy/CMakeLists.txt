@@ -27,7 +27,7 @@ set(MAT_SDK_INCLUDE	/usr/local/include/mat)
 include_directories( . ${MAT_SDK_INCLUDE} )
 
 # Link main.cpp to executable
-add_executable(MacProxy main.cpp DebugCallback.cpp)
+add_executable(MacProxy main.cpp HttpEventListener.cpp)
 source_group(" " REGULAR_EXPRESSION "")
 
 # Prefer linking to more recent local sqlite3
