@@ -252,10 +252,14 @@ int main()
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
+
+// #define USE_LOCAL_URL /* Send to local test server */
 #ifdef USE_LOCAL_URL
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1:5001/OneCollector/";
 #endif
-#ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
+
+//#define USE_INVALID_URL
+#ifdef USE_INVALID_URL /* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
 #endif
     config[CFG_INT_RAM_QUEUE_SIZE]    = 32 * 1024 * 1024;  // 32 MB heap limit for sqlite3
@@ -269,6 +273,7 @@ int main()
         DebugEventType::EVT_SEND_FAILED,
         DebugEventType::EVT_SENT,
         DebugEventType::EVT_DROPPED,
+        DebugEventType::EVT_HTTP_STATE,
         DebugEventType::EVT_HTTP_OK,
         DebugEventType::EVT_HTTP_ERROR,
         DebugEventType::EVT_SEND_RETRY,

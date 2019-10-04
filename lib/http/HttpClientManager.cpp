@@ -25,8 +25,10 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-    class HttpClientManager::HttpCallback : public IHttpResponseCallback {
+    class HttpClientManager::HttpCallback : public IHttpResponseCallback
+    {
     public:
+
         HttpCallback(HttpClientManager& hcm, EventsUploadContextPtr const& ctx)
             : m_hcm(hcm),
             m_ctx(ctx),
@@ -47,26 +49,39 @@ namespace ARIASDK_NS_BEGIN {
 #endif
         }
 
+        virtual void OnHttpStateEvent(HttpStateEvent state, void *data = nullptr, size_t size = 0) override
+        {
+            // TODO: [MG] - do we need to consider adding a return value? For example,
+            // if we implement a state called OnSslVerify in future, passing down some
+            // implementation-dependent struct via data ptr, then the callback can
+            // indicate either success or failure.. But alternatively the callback might
+            // as well pass the data back by updating the data structure.
+            DebugEvent evt(EVT_HTTP_STATE, size_t(state), 0, data, size);
+            m_hcm.m_logManager.DispatchEvent(evt);
+        };
+
+
         virtual ~HttpCallback()
         {
             LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx);
         }
 
     public:
-        HttpClientManager & m_hcm;
-        EventsUploadContextPtr m_ctx;
-        int64_t                m_startTime;
+        HttpClientManager&      m_hcm;
+        EventsUploadContextPtr  m_ctx;
+        int64_t                 m_startTime;
     };
 
     //---
 
-    HttpClientManager::HttpClientManager(IHttpClient& httpClient, ITaskDispatcher& taskDispatcher) :
+    HttpClientManager::HttpClientManager(ILogManager& logManager, IHttpClient& httpClient, ITaskDispatcher& taskDispatcher) :
+        m_logManager(logManager),
         m_httpClient(httpClient),
         m_taskDispatcher(taskDispatcher)
     {
     }
 
-    HttpClientManager::~HttpClientManager()
+    HttpClientManager::~HttpClientManager() noexcept
     {
         cancelAllRequestsAsync();
     }
@@ -94,7 +109,6 @@ namespace ARIASDK_NS_BEGIN {
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
         EventsUploadContextPtr &ctx = callback->m_ctx;
-
         {
             LOCKGUARD(m_httpCallbacksMtx);
             assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
