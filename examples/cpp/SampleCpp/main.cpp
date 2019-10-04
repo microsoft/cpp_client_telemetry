@@ -23,7 +23,7 @@
  
 LOGMANAGER_INSTANCE
 
-#define TOKEN   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#include "DefaultApiKey.h"
 
 extern "C" void guestTest();    // see guest.cpp 
 
@@ -247,11 +247,19 @@ int main()
     config[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
 #endif
 
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
     config[CFG_INT_TRACE_LEVEL_MASK]  = 0;  // 0xFFFFFFFF ^ 128;
     config[CFG_INT_TRACE_LEVEL_MIN]   = ACTTraceLevel_Warn; // ACTTraceLevel_Info; // ACTTraceLevel_Debug;
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS; // SdkModeTypes::SdkModeTypes_UTCCommonSchema
     config[CFG_INT_MAX_TEARDOWN_TIME] = 10;
-#ifdef USE_INVALID_URL	/* Stress-test for the case when collector is unreachable */
+
+// #define USE_LOCAL_URL /* Send to local test server */
+#ifdef USE_LOCAL_URL
+    config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1:5001/OneCollector/";
+#endif
+
+//#define USE_INVALID_URL
+#ifdef USE_INVALID_URL /* Stress-test for the case when collector is unreachable */
     config[CFG_STR_COLLECTOR_URL]     = "https://127.0.0.1/invalid/url";
 #endif
     config[CFG_INT_RAM_QUEUE_SIZE]    = 32 * 1024 * 1024;  // 32 MB heap limit for sqlite3
@@ -265,6 +273,7 @@ int main()
         DebugEventType::EVT_SEND_FAILED,
         DebugEventType::EVT_SENT,
         DebugEventType::EVT_DROPPED,
+        DebugEventType::EVT_HTTP_STATE,
         DebugEventType::EVT_HTTP_OK,
         DebugEventType::EVT_HTTP_ERROR,
         DebugEventType::EVT_SEND_RETRY,
@@ -277,18 +286,20 @@ int main()
     for (auto evt : eventsList)
         LogManager::AddEventListener(evt, listener);
 
-    ILogger *logger = LogManager::Initialize(TOKEN);
+    ILogger *logger = nullptr;
 
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+    logger = LogManager::Initialize(API_KEY);
     logPiiMark();   // UTC upload
     LogManager::FlushAndTeardown();
 #endif
 
     printf("LogManager::Initialize in direct\n");
+    printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    logger = LogManager::Initialize(TOKEN);
+    logger = LogManager::Initialize(API_KEY);
 
     logPiiMark();   // Direct upload
 

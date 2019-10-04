@@ -20,14 +20,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)NetworkDetector.cpp">
       <AdditionalIncludeDirectories>..\..;..\..\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile
-        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp')"
-        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp">
+    <ClCompile Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp')" Include="$(MSBuildThisFileDirectory)..\..\modules\utc\desktop\UtcHelpers.cpp">
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile
-        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')"
-        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
+    <ClCompile Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')" Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsDesktopDeviceInformationImpl.cpp" />

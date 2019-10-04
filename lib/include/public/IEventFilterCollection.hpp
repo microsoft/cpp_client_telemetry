@@ -15,6 +15,7 @@ namespace ARIASDK_NS_BEGIN
     class IEventFilterCollection
     {
     public:
+
         virtual ~IEventFilterCollection() noexcept = default;
 
         /// <summary>
@@ -42,6 +43,22 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="properties">The full set of event properties that may be sent</param>
         /// <returns>True if the event satisifes the all the registered ondtitions, false otherwise.</returns>
         virtual bool CanEventPropertiesBeSent(const EventProperties& properties) const noexcept = 0;
+
+        /// <summary>
+        /// Return size.
+        /// Returns the number of elements in the collection.
+        /// This method is thread-safe.
+        /// </summary>
+        /// <returns>The number of elements in the container. Member type size_type is an unsigned integral type.</returns>
+        virtual size_t Size() const noexcept = 0;
+        
+        /// <summary>
+        /// Returns whether the collection is empty (i.e. whether its size is 0).
+        /// This function does not modify the container in any way.
+        /// This method is thread-safe.
+        /// </summary>
+        /// <returns>true if the container size is 0, false otherwise.</returns>
+        virtual bool Empty() const noexcept = 0;
     };
 
 } ARIASDK_NS_END
