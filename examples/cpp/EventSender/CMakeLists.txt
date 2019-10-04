@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(SampleCpp)
+project(EventSender)
 
 # Uncomment for building i386 binary on x86_64 system
 #set(CMAKE_SYSTEM_PROCESSOR i386)
@@ -27,7 +27,7 @@ set(MAT_SDK_INCLUDE	/usr/local/include/mat)
 include_directories( . ${MAT_SDK_INCLUDE} )
 
 # Link main.cpp to executable
-add_executable(SampleCpp main.cpp DebugCallback.cpp demo.c)
+add_executable(EventSender EventSender.cpp)
 source_group(" " REGULAR_EXPRESSION "")
 
 # Prefer linking to more recent local sqlite3
@@ -40,15 +40,10 @@ endif()
 set (PLATFORM_LIBS "")
 # Add flags for obtaining system UUID via IOKit
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
-endif()
-
-# Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
-  set (PLATFORM_LIBS "atomic")
+set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
 endif()
 
 #tcmalloc turned off by default
-#target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
+#target_link_libraries(EventSender ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
 
-target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
+target_link_libraries(EventSender ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
