@@ -21,3 +21,4 @@ jsoneditor/
 
 .vscode/
 server.code-workspace
+/jsoneditor/

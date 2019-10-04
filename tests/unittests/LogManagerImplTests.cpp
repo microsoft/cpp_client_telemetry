@@ -66,7 +66,7 @@ public:
             initializeCalled = true;
         }
 
-        virtual void Teardown() noexcept
+        virtual void Teardown() noexcept override
         {
             teardownCalled = true;
         }

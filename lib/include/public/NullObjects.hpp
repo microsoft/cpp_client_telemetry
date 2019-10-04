@@ -34,7 +34,9 @@ namespace ARIASDK_NS_BEGIN
         virtual void RegisterEventFilter(std::unique_ptr<IEventFilter>&&) override { }
         virtual void UnregisterEventFilter(const char*) override { }
         virtual void UnregisterAllFilters() noexcept override { }
-        virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return false; }
+        virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return true; }
+        virtual size_t Size() const noexcept override { return 0; };
+        virtual bool Empty() const noexcept override { return false; };
     };
 
     class NullLogger : public ILogger
@@ -113,7 +115,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual IEventFilterCollection& GetEventFilters() noexcept override { return m_filters; }
 
-        virtual IEventFilterCollection const& GetEventFilters() const noexcept { return m_filters; }
+        virtual IEventFilterCollection const& GetEventFilters() const noexcept override { return m_filters; }
 
         virtual void SetParentContext(ISemanticContext * context) override {};
 
@@ -125,7 +127,9 @@ namespace ARIASDK_NS_BEGIN
 
     class NullDataViewerCollection : public IDataViewerCollection
     {
-        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept {};
+    public:
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept override {};
+
         virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {};
 
         virtual void UnregisterViewer(const char*) override {};
@@ -141,6 +145,8 @@ namespace ARIASDK_NS_BEGIN
         {
             return false;
         }
+
+        virtual ~NullDataViewerCollection() {};
     };
 
     class NullLogManager : public ILogManager

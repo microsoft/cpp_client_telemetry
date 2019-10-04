@@ -6,6 +6,8 @@
 #include "Version.hpp"
 
 #include "Enums.hpp"
+
+#include <tuple>
 #include <map>
 #include <string>
 #include <vector>
@@ -436,6 +438,40 @@ namespace ARIASDK_NS_BEGIN
         }
     };
 
+    ///
+    /// API methods:
+    /// 1. create
+    /// 2. send
+    /// 3. cancel (abort)
+    /// 4. destroy
+    ///
+    /// HTTP state machine events:
+    /// create         -> [OnCreated    | OnCreateFailed  ]
+    /// OnConnecting   -> [OnConnected  | OnConnectFailed ]
+    /// send           -> [OnSending                      ]
+    /// OnSending      -> [OnSendFailed | OnResponse      ]
+    /// destroy        -> [OnDestroy                      ]
+    /// cancel         -> [OnCanceled*?                   ]
+    ///
+    typedef enum
+    {
+        // create states:
+        OnCreated,
+        OnCreateFailed,
+        // connecting upon creation
+        OnConnecting,
+        OnConnectFailed,
+        OnConnected,
+        // sending after connection established
+        OnSendFailed,
+        OnSending,
+        // receiving response
+        OnResponse,
+        // no response is covered by OnSendFailed
+        // destroy after success or cancellation
+        OnDestroy
+    } HttpStateEvent;
+
     /// <summary>
     /// The IHttpResponseCallback class receives HTTP client responses.
     /// </summary>
@@ -457,6 +493,20 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="response">The object that contains the response data.</param>
         virtual void OnHttpResponse(IHttpResponse* response) = 0;
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="state">HttpStateEvent - see diagram</param>
+        /// <param name="data">HTTP client implementation-specific data structure (optional)</param>
+        /// <param name="size">HTTP client implementation-specific data structure size (optional)</param>
+        virtual void OnHttpStateEvent(HttpStateEvent state, void* data = nullptr, size_t size = 0)
+        {
+            /* Can't use UNREFERENCED_PARAMETER here on Win32 - we do not necessarily have include winnt.h at this point */
+            std::ignore = state;
+            std::ignore = data;
+            std::ignore = size;
+        };
     };
 
     /// <summary>

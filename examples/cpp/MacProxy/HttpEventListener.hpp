@@ -10,17 +10,11 @@
 
 using namespace MAT;
 
-static const constexpr size_t MAX_LATENCY_SAMPLES = 10;
-
-class MyDebugEventListener : public DebugEventListener {
+class HttpEventListener : public DebugEventListener
+{
     std::mutex dbg_callback_mtx;
-
+    void printDebugEvent(const char *label, const DebugEvent& evt);
 public:
-    MyDebugEventListener() : DebugEventListener()
-    {
-        reset();
-    }
     virtual void OnHttpStateEvent(DebugEvent& evt);
     virtual void OnDebugEvent(DebugEvent &evt);
-    virtual void reset();
 };
