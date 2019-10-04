@@ -35,6 +35,8 @@ namespace ARIASDK_NS_BEGIN
         virtual void UnregisterEventFilter(const char*) override { }
         virtual void UnregisterAllFilters() noexcept override { }
         virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return true; }
+        virtual size_t Size() const noexcept override { return 0; };
+        virtual bool Empty() const noexcept override { return false; };
     };
 
     class NullLogger : public ILogger
@@ -143,6 +145,7 @@ namespace ARIASDK_NS_BEGIN
         {
             return false;
         }
+
         virtual ~NullDataViewerCollection() {};
     };
 

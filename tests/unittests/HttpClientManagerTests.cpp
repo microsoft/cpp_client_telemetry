@@ -6,14 +6,16 @@
 
 #include "NullObjects.hpp"
 #include "ILogManager.hpp"
+
 using namespace testing;
 using namespace MAT;
 
+static NullLogManager dummyLogManager;
 
 class HttpClientManager4Test : public HttpClientManager {
   public:
     HttpClientManager4Test(IHttpClient& httpClient)
-      : HttpClientManager(httpClient, *PAL::getDefaultTaskDispatcher())
+      : HttpClientManager(dummyLogManager, httpClient, *PAL::getDefaultTaskDispatcher())
     {
     }
 

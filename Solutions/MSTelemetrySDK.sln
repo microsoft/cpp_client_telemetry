@@ -142,6 +142,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "privacy", "privacy", "{D1AB
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "filter", "..\lib\modules\filter\filter.vcxitems", "{D74E42EC-C6EE-4944-B92A-EB711BE002A9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MacProxy", "MacProxy", "{835E544D-A6FB-4C1C-B603-D848C4A6B315}"
+	ProjectSection(SolutionItems) = preProject
+		..\examples\cpp\MacProxy\.gitignore = ..\examples\cpp\MacProxy\.gitignore
+		..\examples\cpp\MacProxy\build.sh = ..\examples\cpp\MacProxy\build.sh
+		..\examples\cpp\MacProxy\CMakeLists.txt = ..\examples\cpp\MacProxy\CMakeLists.txt
+		..\examples\cpp\MacProxy\HttpEventListener.cpp = ..\examples\cpp\MacProxy\HttpEventListener.cpp
+		..\examples\cpp\MacProxy\HttpEventListener.hpp = ..\examples\cpp\MacProxy\HttpEventListener.hpp
+		..\examples\cpp\MacProxy\main.cpp = ..\examples\cpp\MacProxy\main.cpp
+		..\examples\cpp\MacProxy\run-tests.sh = ..\examples\cpp\MacProxy\run-tests.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\universal\universal.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
@@ -1251,6 +1262,7 @@ Global
 		{20AD4F2B-3F98-4BAF-8144-E1E7682A7927} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{D1AB0EF1-4753-494E-A334-147C68F94BAF} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{D74E42EC-C6EE-4944-B92A-EB711BE002A9} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
+		{835E544D-A6FB-4C1C-B603-D848C4A6B315} = {D31B3404-AE47-4D0A-9A59-C321164F945C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}

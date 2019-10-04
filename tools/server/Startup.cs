@@ -64,6 +64,14 @@ namespace CommonSchema
                             context.Response.StatusCode = 200;
                             loggerReq.LogInformation(result);
                             await context.Response.WriteAsync(result);
+                        } else
+                        if (path.StartsWith("/admin/stop"))
+                        {
+                            // Stop web-server
+                            loggerReq.LogInformation("Stopping web-server...");
+                            context.Response.StatusCode = 200;
+                            await context.Response.WriteAsync("Server stopped.");
+                            Environment.Exit(0);
                         }
                     }
                     catch (Exception ex)

@@ -893,11 +893,11 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
 {
     CleanStorage();
     Initialize();
+
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
-
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
@@ -1220,6 +1220,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
 }
 
 #ifdef _WIN32
+/* TODO: [MG] - debug why this stress-test is very slow on Mac, then re-enable for Mac */
 TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 {
     CleanStorage();
@@ -1370,4 +1371,4 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     }
 }
 #endif
-#endif // _WIN32
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

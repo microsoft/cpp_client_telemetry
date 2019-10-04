@@ -285,7 +285,7 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
     // that is about to get scheduled!! Solution is to use the threadCount
     // to yield until each thread is guaranteed spawned, assigned a native
     // handle, after that we  can iterate and wait for completion.
-    while (threadCount.load()!=MAX_STRESS_THREADS)
+    while (threadCount.load() != MAX_STRESS_THREADS)
     {
         std::this_thread::yield();
     }
