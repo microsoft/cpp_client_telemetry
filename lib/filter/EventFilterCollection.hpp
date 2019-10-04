@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <atomic>
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -18,8 +19,11 @@ namespace ARIASDK_NS_BEGIN
         void UnregisterEventFilter(const char* filterName) override;
         void UnregisterAllFilters() noexcept override;
         bool CanEventPropertiesBeSent(const EventProperties& properties) const noexcept override;
+        virtual size_t Size() const noexcept override;
+        virtual bool Empty() const noexcept override;
 
     protected:
+        std::atomic<size_t> m_size;
         mutable std::mutex m_filterLock;
         std::vector<std::unique_ptr<IEventFilter>> m_filters;
     };
