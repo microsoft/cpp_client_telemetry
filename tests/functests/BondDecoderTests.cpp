@@ -1,3 +1,4 @@
+#include "mat/config.h"
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #ifndef _CRT_SECURE_NO_WARNINGS

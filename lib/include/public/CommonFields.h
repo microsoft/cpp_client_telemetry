@@ -74,7 +74,8 @@
 #define CONTEXT_SCOPE_NONE                              "-"  /* Do not inherit parent context props */
 
 /* Default set of diagnostic level constants. Customers may define their own set. */
-#define DIAG_LEVEL_DEFAULT                              255     /* Default level is inherited from parent */
+#define DIAG_LEVEL_NOTSET                               255
+#define DIAG_LEVEL_DEFAULT                              DIAG_LEVEL_NOTSET     /* Default level is inherited from parent */
 #define DIAG_LEVEL_NONE                                 0       /* Logging disabled                       */
 
 /* Windows OS diagnostic level classification        */

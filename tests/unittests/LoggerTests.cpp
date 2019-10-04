@@ -320,3 +320,4 @@ TEST_F(LoggerTests, LogSession_CanEventPropertiesBeSentReturnsTrue_CallsSubmit)
     logger.LogSession(SessionState::Session_Started, EventProperties{});
     EXPECT_TRUE(logger.SubmitCalled);
 }
+
