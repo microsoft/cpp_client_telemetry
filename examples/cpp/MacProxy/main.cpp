@@ -19,13 +19,15 @@
 #include "LogManager.hpp"
 
 // Custom debug event callback
-#include "DebugCallback.hpp"
+#include "HttpEventListener.hpp"
 
 LOGMANAGER_INSTANCE
 
 #include "DefaultApiKey.h"
 
 using namespace MAT;
+
+#define MAX_URL_LENGTH        2048
 
 /**
  * Reference example that shows how to use Apple Core Foundation and Core Foundation - Network for
