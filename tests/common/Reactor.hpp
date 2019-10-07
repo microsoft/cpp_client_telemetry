@@ -48,7 +48,7 @@ class Reactor : protected Thread
     /* use epoll on Linux */
     int m_epollFd;
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
     /* use kqueue on Mac */
 #define KQUEUE_SIZE     32
     int kq;
@@ -62,7 +62,7 @@ class Reactor : protected Thread
 #ifdef __linux__
         m_epollFd = ::epoll_create1(0);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
         bzero(&m_events[0], sizeof(m_events));
         kq = kqueue();
 #endif
@@ -73,7 +73,7 @@ class Reactor : protected Thread
 #ifdef __linux__
         ::close(m_epollFd);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
         ::close(kq);
 #endif
     }

@@ -86,6 +86,8 @@
 		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
 		431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
 		431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
+		43F383C4234BA28000602B46 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43F383C3234BA28000602B46 /* HttpServerTests.cpp */; };
+		43F383C5234BA28400602B46 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43F383C3234BA28000602B46 /* HttpServerTests.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,6 +160,7 @@
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
 		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
+		43F383C3234BA28000602B46 /* HttpServerTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = HttpServerTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +192,7 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
+				43F383C3234BA28000602B46 /* HttpServerTests.cpp */,
 				431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */,
 				431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */,
 				431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */,
@@ -369,6 +373,7 @@
 				431EFE52233EBE54002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFE5A233EBE54002FCC18 /* CorrelationVectorTests.cpp in Sources */,
 				431EFE61233EBE54002FCC18 /* HttpClientCAPITests.cpp in Sources */,
+				43F383C4234BA28000602B46 /* HttpServerTests.cpp in Sources */,
 				431EFE73233EBE54002FCC18 /* PackagerTests.cpp in Sources */,
 				431EFE54233EBE54002FCC18 /* StringUtilsTests.cpp in Sources */,
 				431EFE56233EBE54002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
@@ -398,6 +403,7 @@
 				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
 				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
+				43F383C5234BA28400602B46 /* HttpServerTests.cpp in Sources */,
 				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
 				431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
 				431EFEAE233EC590002FCC18 /* LogSessionDataTests.cpp in Sources */,
@@ -655,6 +661,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
+				GCC_OPTIMIZATION_LEVEL = s;
 				HEADER_SEARCH_PATHS = (
 					../,
 					../../lib/,
