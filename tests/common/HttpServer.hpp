@@ -63,13 +63,13 @@ class HttpServer : private Reactor::Callback
     };
 
   protected:
-    bool allowKeepalive;
+    std::string m_serverHost;
+    bool allowKeepalive { true };
     Reactor m_reactor;
     std::list<Socket> m_listeningSockets;
     std::list<std::pair<std::string, Callback*>> m_handlers;
     std::map<Socket, Connection> m_connections;
     size_t m_maxRequestHeadersSize, m_maxRequestContentSize;
-    std::string m_serverHost;
 
 	// Map of killed token to kill duration of that token
 	// Ideally we need a map of string --> std::pair<std::string /* suffix */, uint64_t /* duration */
@@ -93,11 +93,11 @@ class HttpServer : private Reactor::Callback
     }
 
     HttpServer()
-      : m_reactor(*this),
+      : m_serverHost("unnamed"),
+        allowKeepalive(true),
+        m_reactor(*this),
         m_maxRequestHeadersSize(8192),
-        m_maxRequestContentSize(1048576),
-        m_serverHost("unnamed"),
-        allowKeepalive(true)
+        m_maxRequestContentSize(2 * 1024 * 1024)
     {
     }
 
@@ -156,6 +156,7 @@ class HttpServer : private Reactor::Callback
   protected:
     virtual void onSocketAcceptable(Socket socket) override
     {
+        LOG_TRACE("HttpServer: accepting socket fd=0x%x", socket.m_sock);
         assert(std::find(m_listeningSockets.begin(), m_listeningSockets.end(), socket) != m_listeningSockets.end());
 
         Socket csocket;
@@ -173,6 +174,7 @@ class HttpServer : private Reactor::Callback
 
     virtual void onSocketReadable(Socket socket) override
     {
+        LOG_TRACE("HttpServer: reading socket fd=0x%x", socket.m_sock);
         assert(std::find(m_listeningSockets.begin(), m_listeningSockets.end(), socket) == m_listeningSockets.end());
 
         auto connIt = m_connections.find(socket);
@@ -181,7 +183,7 @@ class HttpServer : private Reactor::Callback
         }
         Connection& conn = connIt->second;
 
-        char buffer[2048];
+        char buffer[2048] = { 0 };
         int received = socket.recv(buffer, sizeof(buffer));
         LOG_TRACE("HttpServer: [%s] received %d", conn.request.client.c_str(), received);
         if (received <= 0) {
@@ -195,6 +197,7 @@ class HttpServer : private Reactor::Callback
 
     virtual void onSocketWritable(Socket socket) override
     {
+        LOG_TRACE("HttpServer: writing socket fd=0x%x", socket.m_sock);
         assert(std::find(m_listeningSockets.begin(), m_listeningSockets.end(), socket) == m_listeningSockets.end());
 
         auto connIt = m_connections.find(socket);
@@ -210,6 +213,7 @@ class HttpServer : private Reactor::Callback
 
     virtual void onSocketClosed(Socket socket) override
     {
+        LOG_TRACE("HttpServer: closing socket fd=0x%x", socket.m_sock);
         assert(std::find(m_listeningSockets.begin(), m_listeningSockets.end(), socket) == m_listeningSockets.end());
 
         auto connIt = m_connections.find(socket);
