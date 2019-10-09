@@ -2,17 +2,24 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
+
+#include <chrono>
+
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 
-using namespace testing;
+#ifdef HAVE_CONSOLE_LOG
+#undef  LOG_DEBUG
+#include "common/DebugConsole.hpp"
+#endif
 
+using namespace testing;
 
 class HttpServerTestsBase : public ::testing::Test
 {
   protected:
     HttpServer server;
-    int port;
+    int port { 0 };
     Socket clientSocket;
 
   public:

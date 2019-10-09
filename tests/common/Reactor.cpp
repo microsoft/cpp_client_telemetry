@@ -30,9 +30,11 @@ namespace SocketTools {
 #ifdef TARGET_OS_MAC
                 struct kevent event;
                 bzero(&event, sizeof(event));
-                event.ident = socket;
-                EV_SET(&event, socket, EVFILT_READ, EV_ADD, 0, 0, NULL);
-                assert(-1 != kevent(kq, &event, 1, NULL, 0, NULL));
+                event.ident = socket.m_sock;
+                EV_SET(&event, event.ident, EVFILT_READ, EV_ADD, 0, 0, NULL);
+                kevent(kq, &event, 1, NULL, 0, NULL);
+                EV_SET(&event, event.ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+                kevent(kq, &event, 1, NULL, 0, NULL);
 #endif
                 m_sockets.push_back(SocketData());
                 m_sockets.back().socket = socket;
@@ -117,7 +119,13 @@ namespace SocketTools {
             if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
             {
                 //// Already removed?
-                // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
+                LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
+            }
+            EV_SET(&event, socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+            if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
+            {
+                //// Already removed?
+                LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
             }
 #endif
             m_sockets.erase(it);
@@ -153,7 +161,13 @@ namespace SocketTools {
             if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
             {
                 //// Already removed?
-                // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
+                LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
+            }
+            EV_SET(&event, sd.socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+            if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
+            {
+                //// Already removed?
+                LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
             }
 #endif
         }
@@ -255,21 +269,8 @@ namespace SocketTools {
                 Socket socket = it->socket;
                 int flags = it->flags;
 
-                // LOG_TRACE("Reactor: Handling socket %d active flags 0x%x (armed 0x%x)", static_cast<int>(socket), event.flags, event.fflags);
-
-                if ((event.flags & EV_EOF)||(event.flags & EV_ERROR))
-                {
-                    m_callback.onSocketClosed(socket);
-                    it->flags=Closed;
-                    struct kevent kevt;
-                    EV_SET(&kevt, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
-                    {
-                        //// Already removed?
-                        // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
-                    }
-                    continue;
-                }
+                LOG_TRACE("Handling socket %d active flags 0x%08x (armed 0x%08x)",
+                    static_cast<int>(socket), event.flags, event.fflags);
 
                 if (event.filter==EVFILT_READ)
                 {
@@ -289,6 +290,25 @@ namespace SocketTools {
                     if (flags & Writable)
                     {
                         m_callback.onSocketWritable(socket);
+                    }
+                    continue;
+                }
+
+                if ((event.flags & EV_EOF)||(event.flags & EV_ERROR))
+                {
+                    LOG_TRACE("event.filter=%s", "EVFILT_WRITE");
+                    m_callback.onSocketClosed(socket);
+                    it->flags=Closed;
+                    struct kevent kevt;
+                    EV_SET(&kevt, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
+                    {
+                        LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
+                    }
+                    EV_SET(&kevt, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
+                    {
+                        LOG_TRACE("cannot delete fd=%d from kqueue!", event.ident);
                     }
                     continue;
                 }
