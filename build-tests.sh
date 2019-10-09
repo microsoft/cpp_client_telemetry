@@ -1,5 +1,8 @@
 #!/bin/sh
-./build.sh
+cd "${0%/*}"
+SKU=${1:-release}
+echo Building and running $SKU tests...
+./build.sh ${SKU}
 # Fail on test errors
 set -e
 cd out

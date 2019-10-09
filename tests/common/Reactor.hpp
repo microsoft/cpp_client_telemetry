@@ -51,7 +51,7 @@ class Reactor : protected Thread
 #ifdef TARGET_OS_MAC
     /* use kqueue on Mac */
 #define KQUEUE_SIZE     32
-    int kq;
+    int kq { 0 };
     struct kevent m_events[KQUEUE_SIZE];
 #endif
 
