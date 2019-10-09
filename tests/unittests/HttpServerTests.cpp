@@ -9,7 +9,7 @@
 #include "common/HttpServer.hpp"
 
 #ifdef HAVE_CONSOLE_LOG
-#undef  LOG_DEBUG
+#undef LOG_DEBUG
 #include "common/DebugConsole.hpp"
 #endif
 
