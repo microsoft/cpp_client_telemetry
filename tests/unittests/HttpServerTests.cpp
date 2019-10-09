@@ -3,8 +3,6 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
 
-#include <chrono>
-
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 
