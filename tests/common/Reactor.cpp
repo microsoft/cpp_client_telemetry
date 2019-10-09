@@ -17,7 +17,7 @@ namespace SocketTools {
             auto it = std::find(m_sockets.begin(), m_sockets.end(), socket);
             if(it == m_sockets.end())
             {
-                LOG_TRACE("Reactor: Adding socket %d with flags %d", static_cast<int>(socket), flags);
+                LOG_TRACE("Reactor: Adding socket 0x%x with flags 0x%x", static_cast<int>(socket), flags);
 #ifdef _WIN32
                 m_events.push_back(::WSACreateEvent());
 #endif
@@ -30,9 +30,11 @@ namespace SocketTools {
 #ifdef TARGET_OS_MAC
                 struct kevent event;
                 bzero(&event, sizeof(event));
-                event.ident = socket;
-                EV_SET(&event, socket, EVFILT_READ, EV_ADD, 0, 0, NULL);
-                assert(-1 != kevent(kq, &event, 1, NULL, 0, NULL));
+                event.ident = socket.m_sock;
+                EV_SET(&event, event.ident, EVFILT_READ, EV_ADD, 0, 0, NULL);
+                kevent(kq, &event, 1, NULL, 0, NULL);
+                EV_SET(&event, event.ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+                kevent(kq, &event, 1, NULL, 0, NULL);
 #endif
                 m_sockets.push_back(SocketData());
                 m_sockets.back().socket = socket;
@@ -40,7 +42,7 @@ namespace SocketTools {
                 it = m_sockets.end() - 1;
             } else
             {
-                LOG_TRACE("Reactor: Updating socket %d with flags %d", static_cast<int>(socket), flags);
+                LOG_TRACE("Reactor: Updating socket 0x%x with flags 0x%x", static_cast<int>(socket), flags);
             }
 
             if(it->flags != flags)
@@ -96,7 +98,7 @@ namespace SocketTools {
 
     void Reactor::removeSocket(const Socket& socket)
     {
-        LOG_TRACE("Reactor: Removing socket %d", static_cast<int>(socket));
+        LOG_TRACE("Reactor: Removing socket 0x%x", static_cast<int>(socket));
         auto it = std::find(m_sockets.begin(), m_sockets.end(), socket);
         if(it != m_sockets.end())
         {
@@ -117,7 +119,13 @@ namespace SocketTools {
             if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
             {
                 //// Already removed?
-                // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
+                LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
+            }
+            EV_SET(&event, socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+            if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
+            {
+                //// Already removed?
+                LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
             }
 #endif
             m_sockets.erase(it);
@@ -152,8 +160,12 @@ namespace SocketTools {
             EV_SET(&event, sd.socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
             if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
             {
-                //// Already removed?
-                // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
+                LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
+            }
+            EV_SET(&event, sd.socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+            if (-1 == kevent(kq, &event, 1, NULL, 0, NULL))
+            {
+                LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
             }
 #endif
         }
@@ -180,7 +192,8 @@ namespace SocketTools {
 
             WSANETWORKEVENTS ne;
             ::WSAEnumNetworkEvents(socket, m_events[index], &ne);
-            LOG_TRACE("Reactor: Handling socket %d (index %d) with active flags %d (armed %d)", static_cast<int>(socket), index, ne.lNetworkEvents, flags);
+            LOG_TRACE("Reactor: Handling socket 0x%x (index %d) with active flags 0x%x (armed 0x%x)",
+                static_cast<int>(socket), index, ne.lNetworkEvents, flags);
 
             if ((flags & Readable) && (ne.lNetworkEvents & FD_READ))
             {
@@ -216,7 +229,8 @@ namespace SocketTools {
                 Socket socket = it->socket;
                 int flags = it->flags;
 
-                LOG_TRACE("Reactor: Handling socket %d active flags %d (armed %d)", static_cast<int>(socket), events[i].events, flags);
+                LOG_TRACE("Reactor: Handling socket 0x%x active flags 0x%x (armed 0x%x)",
+                    static_cast<int>(socket), events[i].events, flags);
 
                 if ((flags & Readable) && (events[i].events & EPOLLIN))
                 {
@@ -244,8 +258,6 @@ namespace SocketTools {
             timeout.tv_nsec = (waitms % 1000) * 1000 * 1000;
 
             int nev = kevent(kq, NULL, 0, m_events, KQUEUE_SIZE, &timeout);
-            // LOG_INFO("kqueue got %d events\n", nev);
-
             for(int i = 0; i < nev; i++)
             {
                 struct kevent& event = m_events[i];
@@ -255,21 +267,8 @@ namespace SocketTools {
                 Socket socket = it->socket;
                 int flags = it->flags;
 
-                // LOG_TRACE("Reactor: Handling socket %d active flags 0x%x (armed 0x%x)", static_cast<int>(socket), event.flags, event.fflags);
-
-                if ((event.flags & EV_EOF)||(event.flags & EV_ERROR))
-                {
-                    m_callback.onSocketClosed(socket);
-                    it->flags=Closed;
-                    struct kevent kevt;
-                    EV_SET(&kevt, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
-                    {
-                        //// Already removed?
-                        // LOG_ERROR("cannot delete fd=%d from kqueue!", event.ident);
-                    }
-                    continue;
-                }
+                LOG_TRACE("Handling socket 0x%x active flags 0x%x (armed 0x%x)",
+                    static_cast<int>(socket), event.flags, event.fflags);
 
                 if (event.filter==EVFILT_READ)
                 {
@@ -292,11 +291,30 @@ namespace SocketTools {
                     }
                     continue;
                 }
+
+                if ((event.flags & EV_EOF)||(event.flags & EV_ERROR))
+                {
+                    LOG_TRACE("event.filter=%s", "EVFILT_WRITE");
+                    m_callback.onSocketClosed(socket);
+                    it->flags=Closed;
+                    struct kevent kevt;
+                    EV_SET(&kevt, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
+                    {
+                        LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
+                    }
+                    EV_SET(&kevt, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (-1 == kevent(kq, &kevt, 1, NULL, 0, NULL))
+                    {
+                        LOG_ERROR("cannot delete fd=0x%x from kqueue!", event.ident);
+                    }
+                    continue;
+                }
                 LOG_ERROR("Reactor: unhandled kevent!");
             }
 #endif
         }
-        LOG_INFO("Reactor: Thread done");
+        LOG_TRACE("Reactor: Thread done");
     };
 
 }
