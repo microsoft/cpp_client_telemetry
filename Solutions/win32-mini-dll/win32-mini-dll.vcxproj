@@ -33,7 +33,9 @@
     <ClInclude Include="..\net40\targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc">
+      <AdditionalOptions>/DORIGINAL_FILENAME=$(TargetName).dll %(AdditionalOptions)</AdditionalOptions>
+    </ResourceCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{216A8E97-21F7-4BEF-9E52-7F772C177C33}</ProjectGuid>
