@@ -18,12 +18,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        config: [release, debug]
         os: [ubuntu-latest, macOS-latest]
     
     steps:
     - uses: actions/checkout@v1
-    - name: build
+    - name: Test ${{ matrix.os }} ${{ matrix.config }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
-      run: ./build.sh
+      run: ./build-tests.sh ${{ matrix.config }}
