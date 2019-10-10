@@ -25,6 +25,8 @@
 #include "json.hpp"
 #endif
 
+#include "CorrelationVector.hpp"
+
 using namespace MAT;
 
 LOGMANAGER_INSTANCE
@@ -821,21 +823,38 @@ TEST(APITest, Pii_DROP_Test)
         {
             // usual event with proper SDK-obtained localId
             realDeviceId = record.extDevice[0].localId;
+            EXPECT_STREQ(record.extUser[0].localId.c_str(), "c:1234567890");
             return;
         }
-        // more events with random device id
+
         ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        // more events with random device id
         EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
         EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
         EXPECT_STREQ(record.extDevice[0].authSecId.c_str(), "");
         EXPECT_STREQ(record.extDevice[0].id.c_str(), "");
+        // ext.user.localId stripped
         EXPECT_STREQ(record.extUser[0].localId.c_str(), "");
         EXPECT_STREQ(record.extUser[0].authId.c_str(), "");
         EXPECT_STREQ(record.extUser[0].id.c_str(), "");
+        // SDK tracking cookies stripped
         EXPECT_EQ(record.extSdk[0].seq, 0);
         EXPECT_STREQ(record.extSdk[0].epoch.c_str(), "");
         EXPECT_STREQ(record.extSdk[0].installId.c_str(), "");
+        // cV stripped
+        EXPECT_STREQ(record.cV.c_str(), "");
     };
+
+    auto context = logger->GetSemanticContext();
+    context->SetUserId("c:1234567890");
+
+    // Set some random cV
+    CorrelationVector m_appCV;
+    m_appCV.SetValue("jj9XLhDw7EuXoC2L");
+    // Extend that value.
+    m_appCV.Extend();
+    // Get the next value, log it and/or pass it to your downstream dependency.
+    std::string curCV = m_appCV.GetNextValue();
 
     logger->LogEvent("Regular.Event");
 
@@ -845,7 +864,9 @@ TEST(APITest, Pii_DROP_Test)
         {
             { "strKey", "some string" }
         });
+
         event.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
+        event.SetProperty(CorrelationVector::PropertyName, curCV);
         logger->LogEvent(event);
     }
 

@@ -21,40 +21,51 @@ namespace ARIASDK_NS_BEGIN {
         EventPropertiesDecorator(ILogManager& owner) :
             DecoratorBase(owner)
         {
-            // Spec requires that random local deviceId must be used for events
-            // with Pii DROP event tag. Since we generate a new random id for
-            // evrery app session - customers tagging their telemetry with Pii
-            // DROP cannot rely on on local deviceId for DAU/MAU calculations.
             //
-            // It would have been more logical to adjust the spec to require all
-            // devices running with Pii DROP repot the same {deadbeef-...} id.
-            // That would have allowed to continue using deviceId for estimation
-            // of pop size.
-            randomLocalId = "c:{";
+            // Random local deviceId must be used for events tagged with Pii DROP EventTag.
+            // Since we generate a new random id for every SDK session - products tagging
+            // their telemetry events with Pii DROP tag cannot use ext.device.localId field
+            // in Kusto for DAU/MAU user engagement metrics.
+            //
+            // It would have been more logical to adjust the Pii flags spec to require all
+            // devices running with Pii DROP flag to the same identical bogus {deadbeef-...}
+            // id. That would have allowed the apps to continue using ext.device.localId for
+            // engagement metrics, estimating their population size using that field.
+            //
+            randomLocalId = "c:";
             randomLocalId+= PAL::generateUuidString();
-            randomLocalId+= "}";
         };
 
         void dropPiiPartA(::CsProtocol::Record& record)
         {
-            // MICROSOFT_EVENTTAG_DROP_PII tag functionality:
+            // MICROSOFT_EVENTTAG_DROP_PII tag functionality reference:
             // https://osgwiki.com/wiki/Telemetry#De-Identification_of_Telemetry_Events
-            // Drop Pii EventTag allows to scrub Part A Pii data.
-            // Note: the flag has no effect on Part C Pii data.
+            //
+            // Drop Pii EventTag scrubs Part A Pii data client-side.
+            // The flag has no effect on Part C Pii data.
+            //
+
+            // clear tickets because these provide a way to identify the end-user
             record.extProtocol[0].ticketKeys.clear();
+
             // clean Pii from Device extension
             record.extDevice[0].localId = randomLocalId;
             record.extDevice[0].authId.clear();
             record.extDevice[0].authSecId.clear();
             record.extDevice[0].id.clear();
+
             // clean Pii from User extension
             record.extUser[0].localId.clear();
             record.extUser[0].authId.clear();
             record.extUser[0].id.clear();
+
             // clean epoch and seq + installId
             record.extSdk[0].seq = 0;
             record.extSdk[0].epoch.clear();
             record.extSdk[0].installId.clear();
+
+            // clear correlation vector
+            record.cV = "";
         }
 
         bool decorate(::CsProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
@@ -392,28 +403,25 @@ namespace ARIASDK_NS_BEGIN {
                 record.baseData.push_back(partBdata);
             }
 
-            // cV cannot be added on events with MICROSOFT_EVENTTAG_DROP_PII
-            if (!tagDropPii)
+            // special case of CorrelationVector value
+            if (ext.count(CorrelationVector::PropertyName) > 0)
             {
-                // special case of CorrelationVector value
-                if (ext.count(CorrelationVector::PropertyName) > 0)
+                CsProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
+
+                if (cvValue.type == ::CsProtocol::ValueKind::ValueString)
                 {
-                    CsProtocol::Value cvValue = ext[CorrelationVector::PropertyName];
-
-                    if (cvValue.type == ::CsProtocol::ValueKind::ValueString)
-                    {
-                        record.cV = cvValue.stringValue;
-                    }
-                    else
-                    {
-                        LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
-                    }
-
-                    ext.erase(CorrelationVector::PropertyName);
+                    record.cV = cvValue.stringValue;
                 }
-            } else
+                else
+                {
+                    LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
+                }
+                    ext.erase(CorrelationVector::PropertyName);
+            }
+
+            // scrub if MICROSOFT_EVENTTAG_DROP_PII is set
+            if (tagDropPii)
             {
-                // Scrub Pii MICROSOFT_EVENTTAG_DROP_PII
                 dropPiiPartA(record);
             }
 
