@@ -379,7 +379,6 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         int sqlite3_exec(const char *sql, int(*callback)(void*, int, char**, char**) = sqlite3_noop_callback, void *arg = nullptr) {
-            static size_t failureCount = 0;
             char *errmsg = nullptr;
             int result = 0;
             LOG_DEBUG("%s", sql);
