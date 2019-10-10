@@ -1,4 +1,3 @@
-// #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -30,7 +29,9 @@ using namespace MAT;
 
 LOGMANAGER_INSTANCE
 
-#define TEST_TOKEN      "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+// 1DSCppSdkTest sandbox key
+#define TEST_TOKEN      "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
+
 #define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define TEST_TOKEN2     "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
 
@@ -620,7 +621,7 @@ TEST(APITest, C_API_Test)
             },
             "name" : "C-API-Client-0",
             "version" : "1.0.0",
-            "primaryToken" : "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322",
+            "primaryToken" : "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991",
             "maxTeardownUploadTimeInSec" : 5,
             "hostMode" : false,
             "minimumTraceLevel" : 0,
@@ -795,6 +796,65 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::FlushAndTeardown();
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
+
+TEST(APITest, Pii_DROP_Test)
+{
+    TestDebugEventListener debugListener;
+
+    auto config = LogManager::GetLogConfiguration();
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
+
+    // register a listener
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logger = LogManager::Initialize(TEST_TOKEN);
+    unsigned totalEvents = 0;
+    std::string realDeviceId;
+
+    // verify that we get one regular event with real device id,
+    // as well as more events with anonymous random device id.
+    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    {
+        totalEvents++;
+        if (record.name == "Regular.Event")
+        {
+            // usual event with proper SDK-obtained localId
+            realDeviceId = record.extDevice[0].localId;
+            return;
+        }
+        // more events with random device id
+        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
+        EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
+        EXPECT_STREQ(record.extDevice[0].authSecId.c_str(), "");
+        EXPECT_STREQ(record.extDevice[0].id.c_str(), "");
+        EXPECT_STREQ(record.extUser[0].localId.c_str(), "");
+        EXPECT_STREQ(record.extUser[0].authId.c_str(), "");
+        EXPECT_STREQ(record.extUser[0].id.c_str(), "");
+        EXPECT_EQ(record.extSdk[0].seq, 0);
+        EXPECT_STREQ(record.extSdk[0].epoch.c_str(), "");
+        EXPECT_STREQ(record.extSdk[0].installId.c_str(), "");
+    };
+
+    logger->LogEvent("Regular.Event");
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        EventProperties event("PiiDrop.Event",
+        {
+            { "strKey", "some string" }
+        });
+        event.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
+        logger->LogEvent(event);
+    }
+
+    LogManager::FlushAndTeardown();
+    ASSERT_EQ(totalEvents, 4);
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+
+}
+
 #endif
 
 static void logBenchMark(const char * label)
@@ -1085,7 +1145,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
     // Verify that contents get hashed by server
 }
 
-// #endif
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)

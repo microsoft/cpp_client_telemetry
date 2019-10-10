@@ -15,10 +15,47 @@ namespace ARIASDK_NS_BEGIN {
 
 
     class EventPropertiesDecorator : public DecoratorBase {
+        std::string randomLocalId;
 
     public:
         EventPropertiesDecorator(ILogManager& owner) :
-            DecoratorBase(owner) {};
+            DecoratorBase(owner)
+        {
+            // Spec requires that random local deviceId must be used for events
+            // with Pii DROP event tag. Since we generate a new random id for
+            // evrery app session - customers tagging their telemetry with Pii
+            // DROP cannot rely on on local deviceId for DAU/MAU calculations.
+            //
+            // It would have been more logical to adjust the spec to require all
+            // devices running with Pii DROP repot the same {deadbeef-...} id.
+            // That would have allowed to continue using deviceId for estimation
+            // of pop size.
+            randomLocalId = "c:{";
+            randomLocalId+= PAL::generateUuidString();
+            randomLocalId+= "}";
+        };
+
+        void dropPiiPartA(::CsProtocol::Record& record)
+        {
+            // MICROSOFT_EVENTTAG_DROP_PII tag functionality:
+            // https://osgwiki.com/wiki/Telemetry#De-Identification_of_Telemetry_Events
+            // Drop Pii EventTag allows to scrub Part A Pii data.
+            // Note: the flag has no effect on Part C Pii data.
+            record.extProtocol[0].ticketKeys.clear();
+            // clean Pii from Device extension
+            record.extDevice[0].localId = randomLocalId;
+            record.extDevice[0].authId.clear();
+            record.extDevice[0].authSecId.clear();
+            record.extDevice[0].id.clear();
+            // clean Pii from User extension
+            record.extUser[0].localId.clear();
+            record.extUser[0].authId.clear();
+            record.extUser[0].id.clear();
+            // clean epoch and seq + installId
+            record.extSdk[0].seq = 0;
+            record.extSdk[0].epoch.clear();
+            record.extSdk[0].installId.clear();
+        }
 
         bool decorate(::CsProtocol::Record& record, EventLatency& latency, EventProperties const& eventProperties)
         {
@@ -50,6 +87,10 @@ namespace ARIASDK_NS_BEGIN {
             record.popSample = eventProperties.GetPopSample();
 
             int64_t flags = eventProperties.GetPolicyBitFlags();
+
+            // Caller asked us to drop Pii from Part A of that event
+            bool tagDropPii = bool(flags & MICROSOFT_EVENTTAG_DROP_PII);
+
             // Pack flags the same way as Win 10 UTC is doing this
             flags = (flags & 0xffff) | ((flags & 0xffffffffffff0000) >> 8);
 
@@ -344,12 +385,16 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
-                if (extPartB.size() > 0)
-                {
-                    ::CsProtocol::Data partBdata;
-                    partBdata.properties = extPartB;
-                    record.baseData.push_back(partBdata);
-                }
+            if (extPartB.size() > 0)
+            {
+                ::CsProtocol::Data partBdata;
+                partBdata.properties = extPartB;
+                record.baseData.push_back(partBdata);
+            }
+
+            // cV cannot be added on events with MICROSOFT_EVENTTAG_DROP_PII
+            if (!tagDropPii)
+            {
                 // special case of CorrelationVector value
                 if (ext.count(CorrelationVector::PropertyName) > 0)
                 {
@@ -366,8 +411,13 @@ namespace ARIASDK_NS_BEGIN {
 
                     ext.erase(CorrelationVector::PropertyName);
                 }
+            } else
+            {
+                // Scrub Pii MICROSOFT_EVENTTAG_DROP_PII
+                dropPiiPartA(record);
+            }
 
-                return true;
+            return true;
         }
 
     };
