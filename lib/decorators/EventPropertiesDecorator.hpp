@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN {
             // id. That would have allowed the apps to continue using ext.device.localId for
             // engagement metrics, estimating their population size using that field.
             //
-            randomLocalId = "c:";
+            randomLocalId = "r:";
             randomLocalId+= PAL::generateUuidString();
         };
 
