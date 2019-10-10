@@ -25,7 +25,7 @@ namespace PAL_NS_BEGIN {
         std::list<MAT::Task*> m_queue;
         std::list<MAT::Task*> m_timerQueue;
         Event                 m_event;
-        MAT::Task*            m_itemInProgress;
+        MAT::Task*            m_itemInProgress { nullptr };
         int count = 0;
     
     public:

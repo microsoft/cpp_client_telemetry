@@ -85,7 +85,9 @@ public:
 
 	BasicFuncTests() :
         isSetup(false) ,
-        isRunning(false)
+        isRunning(false),
+        logger(nullptr),
+        logger2(nullptr)
 	{};
 
     virtual void SetUp() override
@@ -105,6 +107,9 @@ public:
         server.setKeepalive(false); // This test doesn't work well with keep-alive enabled
         server.start();
         isRunning = true;
+
+        logger = nullptr;
+        logger2 = nullptr;
     }
 
     virtual void TearDown() override

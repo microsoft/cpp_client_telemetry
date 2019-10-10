@@ -15,7 +15,7 @@ namespace PAL_NS_BEGIN {
     {
     public:
         InformatonProviderImpl();
-        ~InformatonProviderImpl();
+        virtual ~InformatonProviderImpl();
 
         // IInformationProvider API
         int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) override;

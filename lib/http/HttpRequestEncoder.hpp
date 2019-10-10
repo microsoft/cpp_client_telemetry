@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
     class HttpRequestEncoder {
     public:
         HttpRequestEncoder(ITelemetrySystem& system, IHttpClient& httpClient);
-        ~HttpRequestEncoder();
+        virtual ~HttpRequestEncoder();
 
         RoutePassThrough<HttpRequestEncoder, EventsUploadContextPtr const&> encode { this, &HttpRequestEncoder::handleEncode };
 

@@ -558,7 +558,7 @@ public:
 #ifndef _MSC_VER
                 // ofstream<< operator is atomic on MS Visual C++, however, there is no general
                 // guarantee that it is atomic on other platforms. TODO: review this lock on
-                Linux to determine if we require it or not.
+                // Linux to determine if we require it or not.
                 DBG_LOCK;
 #endif
                 (*logsink) << buff;

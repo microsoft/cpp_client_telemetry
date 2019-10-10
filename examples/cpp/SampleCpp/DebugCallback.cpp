@@ -105,6 +105,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent& evt)
             logLatMin = evt.param1;
         if (evt.param1 > logLatMax)
             logLatMax = evt.param1;
+        //no break
     case EVT_LOG_LIFECYCLE:
     case EVT_LOG_FAILURE:
     case EVT_LOG_PAGEVIEW:

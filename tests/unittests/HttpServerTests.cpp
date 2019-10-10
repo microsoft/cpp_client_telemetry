@@ -25,7 +25,7 @@ class HttpServerTestsBase : public ::testing::Test
     {
     }
 
-    ~HttpServerTestsBase()
+    virtual ~HttpServerTestsBase()
     {
         if (!clientSocket.invalid()) {
             clientSocket.close();

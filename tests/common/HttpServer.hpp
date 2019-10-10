@@ -101,7 +101,7 @@ class HttpServer : private Reactor::Callback
     {
     }
 
-    ~HttpServer()
+    virtual ~HttpServer()
     {
         for (auto& sock : m_listeningSockets) {
             sock.close();
