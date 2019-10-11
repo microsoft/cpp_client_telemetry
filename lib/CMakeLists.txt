@@ -139,6 +139,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
+if($ENV{BUILD_SHARED_LIBS})
+  set(BUILD_SHARED_LIBS $ENV{BUILD_SHARED_LIBS})
+  message("-- Using env to set BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}")
+endif()
+
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
   add_library(mat SHARED ${SRCS})

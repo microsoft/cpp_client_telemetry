@@ -1,0 +1,10 @@
+extern crate libc;
+
+//#include!(concat!(env!("OUT_DIR"), "/hello.rs"));
+
+fn main() {
+    let input = 4;
+    let output = 4;
+    // let output = unsafe { double_input(input) };
+    println!("{} * 2 = {}", input, output);
+}

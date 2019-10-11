@@ -26,6 +26,10 @@ typedef	__int8				int8_t;
 typedef unsigned __int8	    uint8_t;
 typedef int                 bool;
 #define inline
+#elif defined(__clang__)
+#include <inttypes.h>
+typedef int                 bool;
+#define inline
 #else
 /* Other compilers with C11 support */
 #include <inttypes.h>

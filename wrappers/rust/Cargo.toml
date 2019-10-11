@@ -1,0 +1,12 @@
+[package]
+name = "rust-1ds-c"
+version = "0.1.0"
+authors = ["Max Golovanov <maxgolov@microsoft.com>"]
+build = "build.rs"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "*"
