@@ -93,7 +93,7 @@ public:
 #define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
 #else
 #define LM_LOCKGUARD(macro_mutex)                   \
-    std::lock_guard<std::mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
+    std::lock_guard<std::recursive_mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 #endif
 
 namespace ARIASDK_NS_BEGIN
@@ -151,10 +151,10 @@ namespace ARIASDK_NS_BEGIN
         /// Native code lock used for executing singleton state-management methods in a thread-safe manner.
         /// Managed code uses a different LogManagerLock.
         /// </summary>
-        static std::mutex& stateLock()
+        static std::recursive_mutex& stateLock()
         {
             // Magic static is thread-safe in C++
-            static std::mutex lock;
+            static std::recursive_mutex lock;
             return lock;
         }
 #endif
@@ -271,6 +271,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static status_t FlushAndTeardown()
         {
+            LM_LOCKGUARD(stateLock());
 #ifdef NO_TEARDOWN // Avoid destroying our ILogManager instance on teardown
             LM_SAFE_CALL(Flush);
             LM_SAFE_CALL(UploadNow);

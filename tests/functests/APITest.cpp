@@ -589,6 +589,55 @@ TEST(APITest, LogManager_Stress_SingleThreaded)
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
+constexpr static unsigned MAX_ITERATIONS_MT = 100;
+constexpr static unsigned MAX_THREADS = 25;
+/// <summary>
+/// Stresses the Upload vs Teardown multi-threaded.
+/// </summary>
+/// <param name="config">The configuration.</param>
+void StressUploadLockMultiThreaded(ILogConfiguration& config)
+{
+    std::srand(std::time(nullptr));
+    TestDebugEventListener debugListener;
+
+    addAllListeners(debugListener);
+    size_t numIterations = MAX_ITERATIONS_MT;
+
+    std::mutex m_threads_mtx;
+    std::atomic<unsigned> threadCount(0);
+
+    while (numIterations--)
+    {
+        // Keep spawning UploadNow threads while the main thread is trying to perform Initialize and Teardown
+        while (threadCount++ < MAX_THREADS)
+        {
+            auto t = std::thread([&]()
+            {
+                std::this_thread::yield();
+                LogManager::UploadNow();
+                const auto randTimeSub2ms = std::chrono::milliseconds(std::rand() % 2);
+                std::this_thread::sleep_for(randTimeSub2ms);
+                threadCount--;
+            });
+            t.detach();
+        };
+        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        result->LogEvent(props);
+        LogManager::FlushAndTeardown();
+    }
+    removeAllListeners(debugListener);
+}
+
+TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
+{
+    auto &config = LogManager::GetLogConfiguration();
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    StressUploadLockMultiThreaded(config);
+    // Basic expectation here is just that we do not crash..
+    // We can add memory utilization metric in here as well.
+}
+
 
 TEST(APITest, LogManager_Reinitialize_Test)
 {
