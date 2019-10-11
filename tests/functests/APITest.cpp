@@ -609,22 +609,22 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
     while (numIterations--)
     {
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
-        // Keep spawning UploadNow threads while the main thread is trying to perform Initialize and Teardown
-        while (threadCount++ < MAX_THREADS)
+        // Keep spawning UploadNow threads while the main thread is trying to perform
+        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        for (size_t i = 0; i < MAX_THREADS; i++)
         {
-            auto t = std::thread([&]()
+            if (threadCount++ < MAX_THREADS)
             {
-                std::this_thread::yield();
-                LogManager::UploadNow();
-                const auto randTimeSub2ms = std::rand() % 2;
-                // I believe we might be hitting an issue with std::this_thread::sleep_for on Windows with msvc++ runtime
-                // Ref.:
-                // https://developercommunity.visualstudio.com/content/problem/58530/bogus-stdthis-threadsleep-for-implementation.html
-                // The solution for Win32 is that PAL::sleep uses Win32 API instead of C++11 sleep.
-                PAL::sleep(randTimeSub2ms);
-                threadCount--;
-            });
-            t.detach();
+                auto t = std::thread([&]()
+                {
+                    std::this_thread::yield();
+                    LogManager::UploadNow();
+                    const auto randTimeSub2ms = std::rand() % 2;
+                    PAL::sleep(randTimeSub2ms);
+                    threadCount--;
+                });
+                t.detach();
+            }
         };
         EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
