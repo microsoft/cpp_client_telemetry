@@ -608,20 +608,24 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
     while (numIterations--)
     {
-        // Keep spawning UploadNow threads while the main thread is trying to perform Initialize and Teardown
-        while (threadCount++ < MAX_THREADS)
-        {
-            auto t = std::thread([&]()
-            {
-                std::this_thread::yield();
-                LogManager::UploadNow();
-                const auto randTimeSub2ms = std::chrono::milliseconds(std::rand() % 2);
-                std::this_thread::sleep_for(randTimeSub2ms);
-                threadCount--;
-            });
-            t.detach();
-        };
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        // Keep spawning UploadNow threads while the main thread is trying to perform
+        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        for (size_t i = 0; i < MAX_THREADS; i++)
+        {
+            if (threadCount++ < MAX_THREADS)
+            {
+                auto t = std::thread([&]()
+                {
+                    std::this_thread::yield();
+                    LogManager::UploadNow();
+                    const auto randTimeSub2ms = std::rand() % 2;
+                    PAL::sleep(randTimeSub2ms);
+                    threadCount--;
+                });
+                t.detach();
+            }
+        };
         EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
         LogManager::FlushAndTeardown();
