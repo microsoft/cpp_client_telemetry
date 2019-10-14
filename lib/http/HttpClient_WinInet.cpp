@@ -322,15 +322,15 @@ void HttpClient_WinInet::erase(std::string const& id)
     }
 }
 
-IHttpRequest* HttpClient_WinInet::CreateRequest()
+std::unique_ptr<IHttpRequest> HttpClient_WinInet::CreateRequest()
 {
     std::string id = "WI-" + toString(::InterlockedIncrement(&s_nextRequestId));
-    return new SimpleHttpRequest(id);
+    return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest(id));
 }
 
-void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+void HttpClient_WinInet::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
 {
-    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<SimpleHttpRequest*>(request));
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<SimpleHttpRequest*>(&request));
     wrapper->send(callback);
 }
 

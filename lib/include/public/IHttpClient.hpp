@@ -525,7 +525,7 @@ namespace ARIASDK_NS_BEGIN
         /// then you can delete it safely using its virtual destructor.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
-        virtual IHttpRequest* CreateRequest() = 0;
+        virtual std::unique_ptr<IHttpRequest> CreateRequest() = 0;
 
         /// <summary>
         /// Begins an HTTP request.
@@ -542,7 +542,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="request">The filled request object returned earlier by
         /// CreateRequest()</param>
         /// <param name="callback">The callback to receive the response.</param>
-        virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) = 0;
+        virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) = 0;
 
         /// <summary>
         /// Cancels an HTTP request.
