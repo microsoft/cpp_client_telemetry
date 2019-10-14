@@ -45,17 +45,17 @@ class HttpClientManagerTests : public StrictMock<Test> {
 
 TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
-    SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
+    auto req = std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest("HttpClientManagerTests"));
 
     auto ctx = new EventsUploadContext();
     ctx->httpRequestId = req->GetId();
-    ctx->httpRequest = req;
+    ctx->httpRequest = std::move(req);
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
     ctx->latency = EventLatency_Normal;
     ctx->packageIds["tenant1-token"] = 0;
 
     IHttpResponseCallback* callback = nullptr;
-    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+    EXPECT_CALL(httpClientMock, SendRequestAsync(testing::Ref(*ctx->httpRequest), _))
         .WillOnce(SaveArg<1>(&callback));
     hcm.sendRequest(ctx);
     ASSERT_THAT(callback, NotNull());

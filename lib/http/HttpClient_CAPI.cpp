@@ -132,7 +132,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    IHttpRequest* HttpClient_CAPI::CreateRequest()
+    std::unique_ptr<IHttpRequest> HttpClient_CAPI::CreateRequest()
     {
         // Generate a unique request ID
         static std::atomic<int32_t> s_nextRequestId(0);
@@ -140,13 +140,13 @@ namespace ARIASDK_NS_BEGIN {
         idStream << "OneDS_HTTP-" << s_nextRequestId++;
         std::string requestId = idStream.str();
 
-        return new SimpleHttpRequest(requestId);
+        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest(requestId));
     }
 
-    void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+    void HttpClient_CAPI::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
     {
         // It is the responsibility of IHttpClient implementation to delete 'request' when operation is complete
-        auto simpleRequest = std::unique_ptr<SimpleHttpRequest>(static_cast<SimpleHttpRequest*>(request));
+        auto simpleRequest = std::unique_ptr<SimpleHttpRequest>(static_cast<SimpleHttpRequest*>(&request));
         auto requestId = simpleRequest->m_id;
 
         LOG_TRACE("Sending CAPI HTTP request '%s'", requestId.c_str());

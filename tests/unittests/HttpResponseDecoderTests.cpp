@@ -50,7 +50,7 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
         rsp->m_body.assign(reinterpret_cast<uint8_t const*>(body.data()), reinterpret_cast<uint8_t const*>(body.data()) + body.size());
 
         EventsUploadContextPtr ctx = new EventsUploadContext();
-        ctx->httpRequest = new SimpleHttpRequest(std::to_string(reqId++));
+        ctx->httpRequest = std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest(std::to_string(reqId++)));
         ctx->httpRequestId = ctx->httpRequest->GetId();
         ctx->httpResponse = (rsp);
         ctx->durationMs = 1234;
