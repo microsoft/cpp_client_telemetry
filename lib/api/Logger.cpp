@@ -375,9 +375,9 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        return m_baseDecorator.decorate(record) && m_semanticContextDecorator.decorate(record)
-                && m_eventPropertiesDecorator.decorate(record, latency, properties);
-
+        return m_baseDecorator.decorate(record)
+            && m_semanticContextDecorator.decorate(record)
+            && m_eventPropertiesDecorator.decorate(record, latency, properties);
     }
 
     void Logger::submit(::CsProtocol::Record& record, const EventProperties& props)
