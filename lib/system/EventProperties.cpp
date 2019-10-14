@@ -91,7 +91,7 @@ namespace ARIASDK_NS_BEGIN {
         return *this;
     }
 
-    EventProperties::~EventProperties()
+    EventProperties::~EventProperties() noexcept
     {
         delete m_storage;
     }
