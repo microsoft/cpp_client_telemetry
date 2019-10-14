@@ -5,7 +5,8 @@
 
 int main(int argc, char** argv){
     @autoreleasepool{
-        NSString* token = @"6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322";
+        // 1DSCppSdkTest sandbox key. Replace with your own iKey!
+        NSString* token = @"7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991";
         
         WLogger* myLogger = [WLogManager initForTenant: token];
         if(myLogger){

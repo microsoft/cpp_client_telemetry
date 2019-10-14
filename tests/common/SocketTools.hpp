@@ -213,7 +213,6 @@ class Socket
     static Type const Invalid = -1;
 #endif
 
- protected:
     Type m_sock;
 
  public:
@@ -310,7 +309,8 @@ class Socket
     int recv(_Out_cap_(size) void* buffer, unsigned size)
     {
         assert(m_sock != Invalid);
-        return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, 0);
+        int flags = 0;
+        return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, flags);
     }
 
     int send(void const* buffer, unsigned size)
@@ -399,7 +399,7 @@ class Thread
 {
  private:
     std::thread m_thread;
-    volatile bool m_terminate;
+    volatile bool m_terminate { false };
 
  protected:
     Thread()

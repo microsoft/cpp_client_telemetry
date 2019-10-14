@@ -412,7 +412,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc" />
+    <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc">
+      <AdditionalOptions>/DORIGINAL_FILENAME=$(TargetName).dll %(AdditionalOptions)</AdditionalOptions>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
