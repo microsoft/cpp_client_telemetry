@@ -6,6 +6,7 @@ on:
     - master
     - release/*
     - buildme/*
+    - dabrow/*
   pull_request:
     branches:
     - master
@@ -15,10 +16,14 @@ on:
 jobs:
   build:
     runs-on: macOS-latest
+    strategy:
+        matrix:
+            config: [release, debug]
+            simulator: ['iPhone 8', 'iPhone 11']
     steps:
     - uses: actions/checkout@v1
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
-      run: ./build-ios.sh
+      run: ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}
