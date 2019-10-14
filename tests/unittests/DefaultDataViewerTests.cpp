@@ -23,21 +23,21 @@ class MockHttpClient : public MAT::IHttpClient
 public:
     MockHttpClient() {}
 
-    IHttpRequest* CreateRequest() override
+    std::unique_ptr<IHttpRequest> CreateRequest() override
     {
-        return new MAT::SimpleHttpRequest("MockSimpleHttpRequest");
+        return std::unique_ptr<SimpleHttpRequest>(new MAT::SimpleHttpRequest("MockSimpleHttpRequest"));
     }
 
     std::function<void(MAT::IHttpRequest*, MAT::IHttpResponseCallback*)> funcSendRequestAsync;
-    void SendRequestAsync(MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback) override
+    void SendRequestAsync(MAT::IHttpRequest& request, MAT::IHttpResponseCallback* callback) override
     {
         if (funcSendRequestAsync)
         {
-            funcSendRequestAsync(request, callback);
+            funcSendRequestAsync(&request, callback);
         }
         else
         {
-            m_request = std::shared_ptr<MAT::IHttpRequest>(request);
+            m_request = std::shared_ptr<MAT::IHttpRequest>(&request);
             m_responseCallback = std::shared_ptr<MAT::IHttpResponseCallback>(callback);
         }
     }
