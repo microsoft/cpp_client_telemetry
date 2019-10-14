@@ -5,6 +5,9 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-MSIPC.h"</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <PropertyGroup>
+    <DisableWinRT>true</DisableWinRT>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>MsipcTelemetry</TargetName>
   </PropertyGroup>
