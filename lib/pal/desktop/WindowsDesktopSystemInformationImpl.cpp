@@ -52,8 +52,9 @@ namespace PAL_NS_BEGIN {
         do
         {
             curExeFullPathBuffer.resize(curBufferLength);
-
-            DWORD result = GetModuleFileName(GetModuleHandle(NULL), &curExeFullPathBuffer[0], curBufferLength);
+            HMODULE *pHandle = nullptr;
+            GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, pHandle);
+            DWORD result = ::GetModuleFileName(*pHandle, &curExeFullPathBuffer[0], curBufferLength);
 
             if (result == curBufferLength)
             {
@@ -178,7 +179,9 @@ namespace PAL_NS_BEGIN {
         // Auto-detect the app name - executable name without .exe suffix
         char buff[MAX_PATH] = { 0 };
         std::string appId;
-        if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
+        HMODULE *pHandle = nullptr;
+        GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, pHandle);
+        if (::GetModuleFileNameA(*pHandle, &buff[0], MAX_PATH) > 0)    
         {
             std::string  app_name(buff);
             size_t pos_dot = app_name.rfind(".");
@@ -202,7 +205,9 @@ namespace PAL_NS_BEGIN {
         m_app_version = getAppVersion();
 
         getOsVersion(m_os_major_version, m_os_full_version);
-
+#ifdef WIN_DESKTOP
+        m_device_class = "Windows";
+#else
         HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
         typedef HRESULT NTSTATUS;
         typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*, unsigned long*, PWSTR, PWSTR);
@@ -225,6 +230,7 @@ namespace PAL_NS_BEGIN {
                 m_device_class = str;
             }
         }
+#endif
 
         m_commercial_id = getCommercialId();
     }
