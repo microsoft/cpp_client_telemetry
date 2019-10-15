@@ -10,9 +10,11 @@
 
 namespace testing {
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4263) // Method does not override base function doesn't play nice with googlemock macros.
 #pragma warning(disable:4264) // Method does not override base function doesn't play nice with googlemock macros.
+#endif
     class MockILogManagerInternal : public MAT::ILogManagerInternal
     {
     public:
@@ -47,6 +49,7 @@ namespace testing {
         MOCK_METHOD4(GetLogger, MAT::ILogger * (std::string const &, MAT::ContextFieldsProvider*, std::string const &, std::string const &));
         MOCK_METHOD1(sendEvent, void(MAT::IncomingEventContextPtr const &));
     };
+#ifdef _MSC_VER
 #pragma warning(pop)
-
+#endif
 } // namespace testing

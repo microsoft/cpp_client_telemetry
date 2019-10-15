@@ -5,6 +5,7 @@ include_directories(../lib)
 set(TESTS_COMMON_SRCS
   ../common/Common.cpp
   ../common/Mocks.cpp
+  ../common/Reactor.cpp
   ../../lib/decoder/PayloadDecoder.cpp
 )
 

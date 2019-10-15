@@ -1,13 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ClockSkewManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\GuidTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpClientTests.cpp" />
@@ -15,7 +20,10 @@
     <ClCompile Include="$(ProjectDir)\HttpDeflateCompressionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpRequestEncoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
+    <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OacrTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests.cpp" />
@@ -42,6 +50,11 @@
     <ClCompile Include="ClockSkewManagerTests.cpp" />
     <ClCompile Include="LogSessionDataTests.cpp" />
     <ClCompile Include="LogManagerImplTests.cpp" />
+    <ClCompile Include="DataViewerCollectionTests.cpp" />
+    <ClCompile Include="EventFilterCollectionTests.cpp" />
+    <ClCompile Include="LoggerTests.cpp" />
+    <ClCompile Include="LevelCheckingEventFilterTests.cpp" />
+    <ClCompile Include="CompliantByDefaultEventFilterModuleTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
@@ -77,16 +90,16 @@
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MockIBandwidthController.hpp">
+    <ClInclude Include="$(ProjectDir)..\common\MockIBandwidthController.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MockIEcsClient.hpp">
+    <ClInclude Include="$(ProjectDir)..\common\MockIEcsClient.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
+    <ClInclude Include="$(ProjectDir)..\common\MockITenantDataSerializer.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MockITelemetrySystem.hpp">
+    <ClInclude Include="$(ProjectDir)..\common\MockITelemetrySystem.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
   </ItemGroup>

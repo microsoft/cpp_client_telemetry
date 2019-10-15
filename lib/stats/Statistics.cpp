@@ -15,9 +15,9 @@ namespace ARIASDK_NS_BEGIN {
         m_logManager(telemetrySystem.getLogManager()),
         m_metaStats(telemetrySystem.getConfig()),
         m_config(telemetrySystem.getConfig()),
-        m_isStarted(false),
         m_baseDecorator(m_logManager),
-        m_semanticContextDecorator(m_logManager)
+        m_semanticContextDecorator(m_logManager),
+        m_isStarted(false)
     {
         m_intervalMs = m_config.GetMetaStatsSendIntervalSec() * 1000;
     }
