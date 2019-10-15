@@ -18,7 +18,6 @@
 		431EFE5A233EBE54002FCC18 /* CorrelationVectorTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */; };
 		431EFE5C233EBE54002FCC18 /* BondSplicerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */; };
 		431EFE5D233EBE54002FCC18 /* ClockSkewManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */; };
-		431EFE5E233EBE54002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */; };
 		431EFE5F233EBE54002FCC18 /* UtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE39233EBE53002FCC18 /* UtilsTests.cpp */; };
 		431EFE60233EBE54002FCC18 /* ControlPlaneProviderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */; };
 		431EFE61233EBE54002FCC18 /* HttpClientCAPITests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */; };
@@ -61,7 +60,6 @@
 		431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */; };
 		431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */; };
 		431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */; };
-		431EFEAB233EC590002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */; };
 		431EFEAC233EC590002FCC18 /* LoggerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */; };
 		431EFEAD233EC590002FCC18 /* LogManagerImplTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */; };
 		431EFEAE233EC590002FCC18 /* LogSessionDataTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */; };
@@ -123,7 +121,6 @@
 		431EFE34233EBE53002FCC18 /* CorrelationVectorTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CorrelationVectorTests.cpp; sourceTree = "<group>"; };
 		431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BondSplicerTests.cpp; sourceTree = "<group>"; };
 		431EFE37233EBE53002FCC18 /* ClockSkewManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClockSkewManagerTests.cpp; sourceTree = "<group>"; };
-		431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LevelCheckingEventFilterTests.cpp; sourceTree = "<group>"; };
 		431EFE39233EBE53002FCC18 /* UtilsTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UtilsTests.cpp; sourceTree = "<group>"; };
 		431EFE3A233EBE53002FCC18 /* ControlPlaneProviderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControlPlaneProviderTests.cpp; sourceTree = "<group>"; };
 		431EFE3B233EBE53002FCC18 /* HttpClientCAPITests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientCAPITests.cpp; sourceTree = "<group>"; };
@@ -208,7 +205,6 @@
 				431EFE2C233EBE53002FCC18 /* HttpDeflateCompressionTests.cpp */,
 				431EFE33233EBE53002FCC18 /* HttpRequestEncoderTests.cpp */,
 				431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */,
-				431EFE38233EBE53002FCC18 /* LevelCheckingEventFilterTests.cpp */,
 				431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */,
 				431EFE3E233EBE53002FCC18 /* LogManagerImplTests.cpp */,
 				431EFE3F233EBE53002FCC18 /* LogSessionDataTests.cpp */,
@@ -364,7 +360,6 @@
 				431EFE75233EBE54002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE59233EBE54002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
 				431EFE6A233EBE54002FCC18 /* EventFilterCollectionTests.cpp in Sources */,
-				431EFE5E233EBE54002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */,
 				431EFE63233EBE54002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
 				431EFE52233EBE54002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFE5A233EBE54002FCC18 /* CorrelationVectorTests.cpp in Sources */,
@@ -410,7 +405,6 @@
 				431EFEB9233EC590002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
 				431EFEA1233EC590002FCC18 /* EventPropertiesStorageTests.cpp in Sources */,
 				431EFE7E233EC413002FCC18 /* Tests.mm in Sources */,
-				431EFEAB233EC590002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */,
 				431EFE9F233EC590002FCC18 /* DiskLocalStorageTests.cpp in Sources */,
 				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */,
