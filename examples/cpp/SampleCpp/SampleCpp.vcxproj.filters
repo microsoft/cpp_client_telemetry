@@ -24,6 +24,9 @@
     <ClInclude Include="LogManagerB.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DefaultApiKey.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DebugCallback.cpp">

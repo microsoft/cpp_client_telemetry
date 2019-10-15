@@ -8,11 +8,11 @@ namespace ARIASDK_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(MemoryStorage, "EventsSDK.MemoryStorage", "Events telemetry client - MemoryStorage class");
 
     MemoryStorage::MemoryStorage(ILogManager & logManager, IRuntimeConfig & runtimeConfig) :
-        m_logManager(logManager),
         m_config(runtimeConfig),
+        m_logManager(logManager),
+        m_observer(nullptr),
         m_size(0),
-        m_lastReadCount(0),
-        m_observer(nullptr)
+        m_lastReadCount(0)
     {
     }
     
@@ -404,6 +404,14 @@ namespace ARIASDK_NS_BEGIN {
     /// </remarks>
     size_t MemoryStorage::GetSize()
     {
+        size_t totalRecords = GetRecordCount();
+        totalRecords+=GetReservedCount();
+        // Since m_size calculation is approximate - see below,
+        // it may happen that it's slightly off by several bytes.
+        // We audit and clean this up when the number of records
+        // gets down to zero.
+        if (totalRecords==0)
+            m_size = 0;
         return m_size.load();
     }
 

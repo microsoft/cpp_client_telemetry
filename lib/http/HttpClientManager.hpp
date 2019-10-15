@@ -5,45 +5,54 @@
 #include "pal/PAL.hpp"
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
+#include "ILogManager.hpp"
 
 #include <list>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
+class HttpClientManager
+{
 
-class HttpClientManager {
+    public:
 
-  public:
-    HttpClientManager(IHttpClient& httpClient, ITaskDispatcher& taskDispatcher);
-    virtual ~HttpClientManager();
-    void cancelAllRequests();
+        HttpClientManager(
+                ILogManager& logManager,
+                IHttpClient& httpClient,
+                ITaskDispatcher& taskDispatcher);
 
-    size_t requestCount() const
-    {
-        return m_httpCallbacks.size();
-    }
+        virtual ~HttpClientManager() noexcept;
 
-  protected:
-    class HttpCallback;
+        void cancelAllRequests();
 
-  protected:
-    void handleSendRequest(EventsUploadContextPtr const& ctx);
-    virtual void scheduleOnHttpResponse(HttpCallback* callback);
-    void onHttpResponse(HttpCallback* callback);
-    bool cancelAllRequestsAsync();
+        size_t requestCount() const
+        {
+            return m_httpCallbacks.size();
+        }
 
-  protected:
-    IHttpClient&             m_httpClient;
-    ITaskDispatcher&         m_taskDispatcher;
+        RouteSource<EventsUploadContextPtr const&> requestDone;
 
-    std::mutex               m_httpCallbacksMtx;
-    std::list<HttpCallback*> m_httpCallbacks;
+        RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest
+        {
+            this, &HttpClientManager::handleSendRequest
+        };
 
-  public:
-    RouteSource<EventsUploadContextPtr const&>                  requestDone;
-    RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest{this, &HttpClientManager::handleSendRequest};
+    protected:
+        class HttpCallback;
+        friend class HttpCallback;
+
+        void handleSendRequest(EventsUploadContextPtr const& ctx);
+        virtual void scheduleOnHttpResponse(HttpCallback* callback);
+        void onHttpResponse(HttpCallback* callback);
+        bool cancelAllRequestsAsync();
+
+        ILogManager&              m_logManager;
+        IHttpClient&              m_httpClient;
+        ITaskDispatcher&          m_taskDispatcher;
+        std::mutex                m_httpCallbacksMtx;
+        std::list<HttpCallback*>  m_httpCallbacks;
 };
-
 
 } ARIASDK_NS_END

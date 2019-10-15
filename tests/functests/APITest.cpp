@@ -1,4 +1,3 @@
-// #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -26,11 +25,15 @@
 #include "json.hpp"
 #endif
 
+#include "CorrelationVector.hpp"
+
 using namespace MAT;
 
 LOGMANAGER_INSTANCE
 
-#define TEST_TOKEN      "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+// 1DSCppSdkTest sandbox key
+#define TEST_TOKEN      "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
+
 #define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
 #define TEST_TOKEN2     "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
 
@@ -258,6 +261,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
     props.SetPriority(prio);
+    props.SetLevel(DIAG_LEVEL_REQUIRED);
 
     return props;
 }
@@ -379,8 +383,10 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     {
         // Log some foo
         size_t numIterations = MAX_ITERATIONS;
+        EventProperties eventToLog{ "foo1" };
+        eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
         while (numIterations--)
-            result->LogEvent("foo1");
+            result->LogEvent(eventToLog);
         LogManager::UploadNow();                                    // Try to upload whatever we got
         PAL::sleep(2000);                                           // Give enough time to upload at least one event
         if (i == 0)
@@ -421,6 +427,9 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
 
+    EventProperties eventToLog{ "foo1" };
+    eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
+
     CleanStorage();
     addAllListeners(debugListener);
     {
@@ -429,7 +438,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
         while (numIterations--)
         {
-            LogManager::GetLogger()->LogEvent("foo1");
+            LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
@@ -451,7 +460,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
-        result->LogEvent("foo1");
+        result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
     EXPECT_EQ(0, debugListener.numDropped);
@@ -463,8 +472,11 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     LogManager::PauseTransmission();
 
     numIterations = MAX_ITERATIONS;
+
+    EventProperties eventToStore{ "bar2" };
+    eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
-        result->LogEvent("bar2");                               // New events go straight to offline storage
+        result->LogEvent(eventToStore);                               // New events go straight to offline storage
     EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
 
     LogManager::Flush();
@@ -498,6 +510,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetProperty("secret", 5.6872);
     event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
     event.SetLatency(EventLatency_Normal);
+    event.SetLevel(DIAG_LEVEL_REQUIRED);
 
     ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
@@ -576,6 +589,59 @@ TEST(APITest, LogManager_Stress_SingleThreaded)
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
+constexpr static unsigned MAX_ITERATIONS_MT = 100;
+constexpr static unsigned MAX_THREADS = 25;
+/// <summary>
+/// Stresses the Upload vs Teardown multi-threaded.
+/// </summary>
+/// <param name="config">The configuration.</param>
+void StressUploadLockMultiThreaded(ILogConfiguration& config)
+{
+    std::srand(std::time(nullptr));
+    TestDebugEventListener debugListener;
+
+    addAllListeners(debugListener);
+    size_t numIterations = MAX_ITERATIONS_MT;
+
+    std::mutex m_threads_mtx;
+    std::atomic<unsigned> threadCount(0);
+
+    while (numIterations--)
+    {
+        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        // Keep spawning UploadNow threads while the main thread is trying to perform
+        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        for (size_t i = 0; i < MAX_THREADS; i++)
+        {
+            if (threadCount++ < MAX_THREADS)
+            {
+                auto t = std::thread([&]()
+                {
+                    std::this_thread::yield();
+                    LogManager::UploadNow();
+                    const auto randTimeSub2ms = std::rand() % 2;
+                    PAL::sleep(randTimeSub2ms);
+                    threadCount--;
+                });
+                t.detach();
+            }
+        };
+        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        result->LogEvent(props);
+        LogManager::FlushAndTeardown();
+    }
+    removeAllListeners(debugListener);
+}
+
+TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
+{
+    auto &config = LogManager::GetLogConfiguration();
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    StressUploadLockMultiThreaded(config);
+    // Basic expectation here is just that we do not crash..
+    // We can add memory utilization metric in here as well.
+}
+
 
 TEST(APITest, LogManager_Reinitialize_Test)
 {
@@ -599,7 +665,7 @@ TEST(APITest, C_API_Test)
     // config, but generally well-suited for illustrative purposes, to create easy-
     // to-read JSON config file. Note __VA_ARGS__ substitution is a C++11 feature
     // that isn't avail in C99
-    char* config = JSON_CONFIG(
+    const char* config = JSON_CONFIG(
         {
             "cacheFilePath": "MyOfflineStorage.db",
             "config" : {
@@ -610,7 +676,7 @@ TEST(APITest, C_API_Test)
             },
             "name" : "C-API-Client-0",
             "version" : "1.0.0",
-            "primaryToken" : "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322",
+            "primaryToken" : "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991",
             "maxTeardownUploadTimeInSec" : 5,
             "hostMode" : false,
             "minimumTraceLevel" : 0,
@@ -624,13 +690,14 @@ TEST(APITest, C_API_Test)
     evt_prop event[] = TELEMETRY_EVENT
     (
         // Part A/B fields
-        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),       // Event name
-        _INT(COMMONFIELDS_EVENT_TIME, (int64_t)(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
-        _DBL("popSample", 100.0),                               // Effective sample rate
-        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                    // iKey to send this event to
-        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),       // UTC policy bitflags (optional)
-        _INT(COMMONFIELDS_EVENT_PRIORITY, (int64_t)EventPriority_Immediate),
-        _INT(COMMONFIELDS_EVENT_LATENCY, (int64_t)EventLatency_Max),
+        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
+        _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
+        _DBL("popSample", 100.0),                                          // Effective sample rate
+        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
+        _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),                  // UTC policy bitflags (optional)
+        _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
+        _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
+        _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
         // Customer Data fields go as part of userdata
         _STR("strKey", "value1"),
         _INT("intKey", 12345),
@@ -784,6 +851,84 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::FlushAndTeardown();
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
+
+TEST(APITest, Pii_DROP_Test)
+{
+    TestDebugEventListener debugListener;
+
+    auto config = LogManager::GetLogConfiguration();
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
+
+    // register a listener
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logger = LogManager::Initialize(TEST_TOKEN);
+    unsigned totalEvents = 0;
+    std::string realDeviceId;
+
+    // verify that we get one regular event with real device id,
+    // as well as more events with anonymous random device id.
+    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    {
+        totalEvents++;
+        if (record.name == "Regular.Event")
+        {
+            // usual event with proper SDK-obtained localId
+            realDeviceId = record.extDevice[0].localId;
+            EXPECT_STREQ(record.extUser[0].localId.c_str(), "c:1234567890");
+            return;
+        }
+
+        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        // more events with random device id
+        EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
+        EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
+        EXPECT_STREQ(record.extDevice[0].authSecId.c_str(), "");
+        EXPECT_STREQ(record.extDevice[0].id.c_str(), "");
+        // ext.user.localId stripped
+        EXPECT_STREQ(record.extUser[0].localId.c_str(), "");
+        EXPECT_STREQ(record.extUser[0].authId.c_str(), "");
+        EXPECT_STREQ(record.extUser[0].id.c_str(), "");
+        // SDK tracking cookies stripped
+        EXPECT_EQ(record.extSdk[0].seq, 0);
+        EXPECT_STREQ(record.extSdk[0].epoch.c_str(), "");
+        EXPECT_STREQ(record.extSdk[0].installId.c_str(), "");
+        // cV stripped
+        EXPECT_STREQ(record.cV.c_str(), "");
+    };
+
+    auto context = logger->GetSemanticContext();
+    context->SetUserId("c:1234567890");
+
+    // Set some random cV
+    CorrelationVector m_appCV;
+    m_appCV.SetValue("jj9XLhDw7EuXoC2L");
+    // Extend that value.
+    m_appCV.Extend();
+    // Get the next value, log it and/or pass it to your downstream dependency.
+    std::string curCV = m_appCV.GetNextValue();
+
+    logger->LogEvent("Regular.Event");
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        EventProperties event("PiiDrop.Event",
+        {
+            { "strKey", "some string" }
+        });
+
+        event.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
+        event.SetProperty(CorrelationVector::PropertyName, curCV);
+        logger->LogEvent(event);
+    }
+
+    LogManager::FlushAndTeardown();
+    ASSERT_EQ(totalEvents, 4);
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+
+}
+
 #endif
 
 static void logBenchMark(const char * label)
@@ -815,7 +960,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         logBenchMark("created");
 
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
         config[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
         config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
@@ -861,7 +1006,7 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 {
     auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
-    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
 
     std::vector<std::string> paths =
@@ -898,11 +1043,14 @@ TEST(APITest, LogManager_BadNetwork_Test)
     std::string fileName = MAT::GetTempDirectory();
     fileName += "\\";
     fileName += cacheFilePath;
+    printf("remove %s\n", fileName.c_str());
     std::remove(fileName.c_str());
 
     for (auto url : {
+#if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */
         "https://0.0.0.0/",
         "https://127.0.0.1/",
+#endif
         "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
         "https://invalid.host.name.microsoft.com/"
         })
@@ -978,23 +1126,24 @@ TEST(APITest, LogManager_DiagLevels)
 
     // default
     auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetEventFilters().UnregisterAllFilters();
 
     // inherit diagnostic level from parent (basic)
     auto logger1 = LogManager::GetLogger();
 
-    // set diagnostic level to enhanced
-    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
-    logger2->SetLevel(DIAG_LEVEL_ENHANCED);
+    // set diagnostic level to optional
+    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
+    logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
 
-    // set diagnostic level to full
-    auto logger3 = LogManager::GetLogger("my_full_source");
-    logger3->SetLevel(DIAG_LEVEL_FULL);
+    // set diagnostic level to a custom value
+    auto logger3 = LogManager::GetLogger("my_custom_source");
+    logger3->SetLevel(5);
     
     std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
     std::set<uint8_t> logAll   = { };
-    std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+    std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
-    auto filters = { logNone, logAll, logBasic };
+    auto filters = { logNone, logAll, logRequired };
 
     size_t expectedCounts[] = { 12, 0, 8 };
 
@@ -1011,13 +1160,13 @@ TEST(APITest, LogManager_DiagLevels)
             EventProperties defLevelEvent("My.DefaultLevelEvent");
             logger->LogEvent(defLevelEvent);   // inherit from logger
 
-            EventProperties basicEvent("My.BasicEvent");
-            basicEvent.SetLevel(DIAG_LEVEL_BASIC);
-            logger->LogEvent(basicEvent);   // basic
+            EventProperties requiredEvent("My.RequiredEvent");
+            requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+            logger->LogEvent(requiredEvent);   // required
 
-            EventProperties fullEvent("My.FullEvent");
-            fullEvent.SetLevel(DIAG_LEVEL_FULL);
-            logger->LogEvent(fullEvent);
+            EventProperties customEvent("My.CustomEvent");
+            customEvent.SetLevel(5);
+            logger->LogEvent(customEvent);
         }
         EXPECT_EQ(eventListener.numFiltered, expectedCounts[i]);
         eventListener.numFiltered = 0;
@@ -1070,7 +1219,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
     // Verify that contents get hashed by server
 }
 
-// #endif
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)

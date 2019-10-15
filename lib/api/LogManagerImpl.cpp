@@ -29,6 +29,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_DEFAULT_FILTER
+#if defined __has_include
+#  if __has_include ("modules/filter/CompliantByDefaultEventFilterModule.hpp")
+#    include "modules/filter/CompliantByDefaultEventFilterModule.hpp"
+#  else
+   /* Compiling without Filtering support because Filtering private header is unavailable */
+#  undef HAVE_MAT_DEFAULT_FILTER
+#  endif
+#  else
+#include "modules/filter/LevelChececkingEventFilter.hpp"
+#endif
+#endif // HAVE_MAT_DEFAULT_FILTER
+
 namespace ARIASDK_NS_BEGIN
 {
 
@@ -94,8 +107,8 @@ namespace ARIASDK_NS_BEGIN
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
+        m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
-
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
@@ -156,10 +169,20 @@ namespace ARIASDK_NS_BEGIN
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
-        if (m_taskDispatcher == nullptr) {
+        if (m_dataViewer != nullptr)
+        {
+            m_dataViewerCollection.RegisterViewer(m_dataViewer);
+        } else 
+        {
+            // TODO: [MG] - register default data viewer implementation if enabled?
+        }
+
+        if (m_taskDispatcher == nullptr)
+        {
             m_taskDispatcher = PAL::getDefaultTaskDispatcher();
         }
-        else {
+        else
+        {
             LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
@@ -190,27 +213,31 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-        if (m_httpClient == nullptr) {
+        if (m_httpClient == nullptr)
+        {
             m_httpClient.reset(HttpClientFactory::Create());
         }
-        else {
+        else
+        {
             LOG_TRACE("HttpClient: External %p", m_httpClient.get());
         }
 #else
         if (m_httpClient == nullptr)
         {
            LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
-           throw std::invalid_argument("configuration");
+           MATSDK_THROW(std::invalid_argument("configuration"));
         }
 #endif
 
         if (m_bandwidthController == nullptr) {
             m_bandwidthController = m_ownBandwidthController.get();
         }
-        else {
+        else
+        {
             LOG_TRACE("BandwidthController: External %p", m_bandwidthController);
         }
-        if (m_bandwidthController == nullptr) {
+        if (m_bandwidthController == nullptr)
+        {
             LOG_TRACE("BandwidthController: None");
         }
 
@@ -223,6 +250,13 @@ namespace ARIASDK_NS_BEGIN
             m_system->start();
             m_isSystemStarted = true;
         }
+
+#ifdef HAVE_MAT_DEFAULT_FILTER
+        m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
+#endif // HAVE_MAT_DEFAULT_FILTER
+
+        LOG_INFO("Initializing Modules");
+        InitializeModules();
 
         LOG_INFO("Started up and running");
         m_alive = true;
@@ -242,7 +276,7 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-    LogManagerImpl::~LogManagerImpl()
+    LogManagerImpl::~LogManagerImpl() noexcept
     {
         FlushAndTeardown();
         LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -252,8 +286,13 @@ namespace ARIASDK_NS_BEGIN
     void LogManagerImpl::FlushAndTeardown()
     {
         LOG_INFO("Shutting down...");
+
         {
             LOCKGUARD(m_lock);
+
+            LOG_INFO("Tearing down modules");
+            TeardownModules();
+
             if (m_isSystemStarted && m_system)
             {
                 m_system->stop();
@@ -269,10 +308,10 @@ namespace ARIASDK_NS_BEGIN
 
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
-
-            // Reset the contents of m_eventFilterRegulator, but keep the object
-            m_eventFilterRegulator.Reset();
+            m_dataViewer = nullptr;
         }
+
+        m_filters.UnregisterAllFilters();
 
         auto shutTime = GetUptimeMs();
         PAL::shutdown();
@@ -485,11 +524,9 @@ namespace ARIASDK_NS_BEGIN
             auto it = m_loggers.find(hash);
             if (it == std::end(m_loggers))
             {
-                Logger* newLogger = new Logger(
+                m_loggers[hash] = std::unique_ptr<Logger>(new Logger(
                     normalizedTenantToken, normalizedSource, scope,
-                    *this, m_context, *m_config,
-                    m_eventFilterRegulator.GetTenantFilter(normalizedTenantToken));
-                m_loggers[hash] = std::unique_ptr<Logger>(newLogger);
+                    *this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
             if (level != DIAG_LEVEL_DEFAULT) 
@@ -561,19 +598,19 @@ namespace ARIASDK_NS_BEGIN
         return &m_authTokensController;
     }
 
+    IEventFilterCollection& LogManagerImpl::GetEventFilters() noexcept
+    {
+        return m_filters;
+    }
+
+    const IEventFilterCollection& LogManagerImpl::GetEventFilters() const noexcept
+    {
+        return m_filters;
+    }
+
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterCount);
-    }
-
-    status_t LogManagerImpl::SetExclusionFilter(const char* tenantToken, const char** filterStrings, const uint32_t* filterRates, uint32_t filterCount)
-    {
-        return m_eventFilterRegulator.SetExclusionFilter(tenantToken, filterStrings, filterRates, filterCount);
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
@@ -600,6 +637,33 @@ namespace ARIASDK_NS_BEGIN
         m_system->start();
         m_isSystemStarted = true;
         return m_system;
+    }
+
+    void LogManagerImpl::InitializeModules() noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Initialize(this);
+        }
+    }
+
+    void LogManagerImpl::TeardownModules() noexcept
+    {
+        for (const auto& module : m_modules)
+        {
+            module->Teardown();
+        }
+        std::vector<std::unique_ptr<IModule>>{}.swap(m_modules);
+    }
+
+    const IDataViewerCollection& LogManagerImpl::GetDataViewerCollection() const
+    {
+        return m_dataViewerCollection;
+    }
+
+    IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
+    {
+        return m_dataViewerCollection;
     }
 
 } ARIASDK_NS_END

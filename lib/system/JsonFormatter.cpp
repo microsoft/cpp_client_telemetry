@@ -65,7 +65,7 @@ namespace ARIASDK_NS_BEGIN
                     break;
                 case CsProtocol::ValueKind::ValueBool:
                 {
-                    UINT8 temp = static_cast<UINT8>(mapIt->second.longValue);
+                    uint8_t temp = static_cast<uint8_t>(mapIt->second.longValue);
                     object["data"][mapIt->first] = temp;
                     break;
                 }
@@ -111,13 +111,17 @@ namespace ARIASDK_NS_BEGIN
                 }
                 case CsProtocol::ValueKind::ValueGuid:
                 {
-
                     if (mapIt->second.guidValue.size() > 0)
                     {
                         /*GUID temp = GUID_t::convertUintVectorToGUID(mapIt->second.guidValue[0]);
                         myJson["data"][mapIt->first] = temp;*/
                     }
                     break;
+                }
+                default:
+                {
+                   LOG_WARN("Unsupported type %d", static_cast<int32_t>(mapIt->second.type));
+                   break;
                 }
                 }
             }

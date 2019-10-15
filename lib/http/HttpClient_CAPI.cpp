@@ -19,7 +19,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             if ((m_request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
             {
-                throw std::invalid_argument("Created HttpClient_Operation with invalid parameters");
+                MATSDK_THROW(std::invalid_argument("Created HttpClient_Operation with invalid parameters"));
             }
         }
 
@@ -128,7 +128,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         if ((sendFn == nullptr) || (cancelFn == nullptr))
         {
-            throw std::invalid_argument("Created HttpClient_CAPI with invalid parameters");
+            MATSDK_THROW(std::invalid_argument("Created HttpClient_CAPI with invalid parameters"));
         }
     }
 

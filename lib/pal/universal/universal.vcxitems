@@ -28,14 +28,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile
-        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp')"
-        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp">
+    <ClCompile Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp')" Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp">
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile
-        Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')"
-        Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
+    <ClCompile Condition="Exists('$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp')" Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp">
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\modules\utc\;$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemGroup>

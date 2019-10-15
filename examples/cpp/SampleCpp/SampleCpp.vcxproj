@@ -1095,6 +1095,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DefaultApiKey.h" />
     <ClInclude Include="LogManagerA.hpp" />
     <ClInclude Include="LogManagerB.hpp" />
     <ClInclude Include="targetver.h" />

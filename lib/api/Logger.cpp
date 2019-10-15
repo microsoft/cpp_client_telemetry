@@ -20,8 +20,7 @@ namespace ARIASDK_NS_BEGIN
 
         ILogManagerInternal & logManager,
         ContextFieldsProvider & parentContext,
-        IRuntimeConfig & runtimeConfig,
-        IEventFilter & eventFilter)
+        IRuntimeConfig & runtimeConfig)
         :
         m_tenantToken(tenantToken),
         m_source(source),
@@ -32,13 +31,11 @@ namespace ARIASDK_NS_BEGIN
         m_logManager(logManager),
         m_context(&parentContext),
         m_config(runtimeConfig),
-        m_eventFilter(eventFilter),
 
         m_baseDecorator(logManager),
-        m_semanticContextDecorator(logManager, m_context),
         m_eventPropertiesDecorator(logManager),
+        m_semanticContextDecorator(logManager, m_context),
         m_semanticApiDecorators(logManager),
-
         m_sessionStartTime(0),
         m_allowDotsInType(false)
     {
@@ -56,7 +53,7 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    Logger::~Logger()
+    Logger::~Logger() noexcept
     {
         LOG_TRACE("%p: Destroyed", this);
     }
@@ -143,6 +140,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogAppLifecycle(state=%u, properties.name=\"%s\", ...)",
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -180,6 +183,12 @@ namespace ARIASDK_NS_BEGIN
 
         LOG_TRACE("%p: LogEvent(properties.name=\"%s\", ...)",
             this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         if (properties.GetLatency() > EventLatency_Unspecified)
@@ -221,6 +230,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogFailure(signature=\"%s\", properties.name=\"%s\", ...)",
             this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -258,6 +273,12 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogPageView(id=\"%s\", properties.name=\"%s\", ...)",
             this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -300,6 +321,12 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogPageAction(pageActionData.actionType=%u, properties.name=\"%s\", ...)",
             this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -348,9 +375,9 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        return m_baseDecorator.decorate(record) && m_semanticContextDecorator.decorate(record)
-                && m_eventPropertiesDecorator.decorate(record, latency, properties);
-
+        return m_baseDecorator.decorate(record)
+            && m_semanticContextDecorator.decorate(record)
+            && m_eventPropertiesDecorator.decorate(record, latency, properties);
     }
 
     void Logger::submit(::CsProtocol::Record& record, const EventProperties& props)
@@ -399,20 +426,10 @@ namespace ARIASDK_NS_BEGIN
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
-#ifdef ENABLE_FILTERING
         // TODO:
         // - event filtering based on EventName
         // - kill-switch based on TenantId
         // handled here in one central place before serialization.
-        if (m_eventFilter.IsEventExcluded(record.name))
-        {
-            DispatchEvent(DebugEventType::EVT_FILTERED);
-            LOG_INFO("Event %s/%s removed due to event filter",
-                tenantTokenToId(m_tenantToken).c_str(),
-                record.name.c_str());
-            return;
-        }
-#endif
 
         // TODO: [MG] - check if optimization is possible in generateUuidString
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
@@ -437,6 +454,12 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogSampledMetric(name=\"%s\", properties.name=\"%s\", ...)",
             this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -482,6 +505,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogAggregatedMetric(name=\"%s\", properties.name=\"%s\", ...)",
             this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -507,6 +536,12 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_TRACE("%p: LogTrace(level=%u, properties.name=\"%s\", ...)",
             this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
 
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
@@ -534,6 +569,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: LogUserState(state=%u, properties.name=\"%s\", ...)",
             this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
+        if (!CanEventPropertiesBeSent(properties))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
+
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
@@ -560,6 +601,12 @@ namespace ARIASDK_NS_BEGIN
     ******************************************************************************/
     void Logger::LogSession(SessionState state, const EventProperties& props)
     {
+        if (!CanEventPropertiesBeSent(props))
+        {
+            DispatchEvent(DebugEventType::EVT_FILTERED);
+            return;
+        }
+
         LogSessionData* logSessionData = m_logManager.GetLogSessionData();
         std::string sessionSDKUid = logSessionData->getSessionSDKUid();
         unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
@@ -625,6 +672,16 @@ namespace ARIASDK_NS_BEGIN
         DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
 
+    IEventFilterCollection& Logger::GetEventFilters() noexcept
+    {
+        return m_filters;
+    }
+
+    const IEventFilterCollection& Logger::GetEventFilters() const noexcept
+    {
+        return m_filters;
+    }
+
     ILogManager& Logger::GetParent()
     {
         return m_logManager;
@@ -653,6 +710,11 @@ namespace ARIASDK_NS_BEGIN
     void Logger::SetLevel(uint8_t level)
     {
         m_level = level;
+    }
+
+    bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
+    {
+        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
     }
 
 } ARIASDK_NS_END

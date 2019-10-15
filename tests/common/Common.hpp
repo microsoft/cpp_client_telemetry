@@ -46,15 +46,18 @@ namespace testing {
         std::string haystack(reinterpret_cast<char const*>(arg.data()), arg.size());
         return Matches(HasSubstr(str))(haystack);
     }
-
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning(disable: 4100)
+#endif
     MATCHER_P2(Near, value, range, "")
     {
         UNREFERENCED_PARAMETER(result_listener);
         return (abs(arg - value) <= range);
     }
+#ifdef _MSC_VER
 #pragma warning( pop ) 
+#endif
 
     MATCHER_P(StrAsIntGt, value, "")
     {

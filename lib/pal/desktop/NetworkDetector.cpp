@@ -135,8 +135,6 @@ namespace ARIASDK_NS_BEGIN
         /// <returns></returns>
         NetworkCost NetworkDetector::_GetCurrentNetworkCost()
         {
-            std::lock_guard<std::mutex> lock(m_lock);
-
             NetworkCost result = NetworkCost_Unknown;
             LOG_TRACE("get network cost...\n");
 
@@ -382,7 +380,10 @@ namespace ARIASDK_NS_BEGIN
             MSG msg;
             m_listener_tid = GetCurrentThreadId();
             PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
-            cv.notify_all();
+            {
+                std::unique_lock<std::mutex> lock(m_lock);
+                cv.notify_all();
+            }
             while ((bRet = GetMessage(&msg, NULL, 0, 0)) > 0)
             {
                 switch (msg.message)
@@ -457,7 +458,6 @@ namespace ARIASDK_NS_BEGIN
             // Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2)
             if (!bIsWindows8orLater)
             {
-                isRunning = false;
                 LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
                 return;
             }
@@ -530,7 +530,10 @@ namespace ARIASDK_NS_BEGIN
             {
                 run();
                 LOG_TRACE("NetworkDetector tid=%p is shutting down..", m_listener_tid);
-                isRunning = false;
+                {
+                    std::lock_guard<std::mutex> lk(m_lock);
+                    isRunning = false;
+                }
             });
 
             if (netDetectThread.joinable())
@@ -541,9 +544,10 @@ namespace ARIASDK_NS_BEGIN
                     // Wait for up to NETDETECTOR_COM_SETTLE_MS ms until:
                     // - COM object is ready; OR
                     // - COM object can't be started (pre-Win 8 scenario)
-                    unsigned retry = 1;
+                    int retry = 1;
+                    constexpr int max_retries = 2;
                     while (!cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS),
-                        [this] {return (m_listener_tid != 0); }) && (isRunning))
+                        [this] {return (m_listener_tid != 0); }) && (isRunning) && (retry < max_retries))
                     {
                         LOG_TRACE("NetworkDetector starting up... [%u]", retry);
                         retry++;
@@ -553,6 +557,7 @@ namespace ARIASDK_NS_BEGIN
             }
             else
             {
+                std::lock_guard<std::mutex> lk(m_lock);
                 LOG_WARN("NetworkDetector thread can't be started!");
                 isRunning = false;
             }

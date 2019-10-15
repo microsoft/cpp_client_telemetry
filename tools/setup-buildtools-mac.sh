@@ -27,3 +27,5 @@ cd ..
 
 ## Build Google Test framework
 ./build-gtest.sh
+
+## Install dotnet for test server

@@ -4,6 +4,7 @@
 
 #include "IModule.hpp"
 #include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <string>
 #include <vector>

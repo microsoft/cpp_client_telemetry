@@ -26,9 +26,15 @@
 #include <windows.networking.h>
 #include <windows.networking.connectivity.h>
 
+// ATL exceptions expose header incompatibilities with Edge's build, using libc++
+#ifndef _ATL_NO_EXCEPTIONS
+#define _ATL_NO_EXCEPTIONS
+#endif
+
+#include <atlbase.h>
+
 #include <Netlistmgr.h>
 #include <OCIdl.h>
-#include <atlbase.h>
 #include <oaidl.h>
 
 #include <cstdio>

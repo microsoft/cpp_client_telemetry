@@ -1,0 +1,7 @@
+#ifndef DEFAULTAPIKEY_H
+#define DEFAULTAPIKEY_H
+#ifndef API_KEY
+/* Default API key for sandbox application */
+#define API_KEY "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#endif
+#endif

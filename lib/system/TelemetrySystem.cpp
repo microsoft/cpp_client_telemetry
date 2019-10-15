@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
-        hcm(httpClient, taskDispatcher),
+        hcm(logManager, httpClient, taskDispatcher),
         httpEncoder(*this, httpClient),
         httpDecoder(*this),
         storage(*this, offlineStorage),
