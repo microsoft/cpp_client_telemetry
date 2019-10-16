@@ -44,17 +44,9 @@
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp">
       <Filter>mocks</Filter>
     </ClCompile>
-    <ClCompile Include="MemoryStorageTests.cpp" />
-    <ClCompile Include="EventPropertiesStorageTests.cpp" />
-    <ClCompile Include="DebugEventSourceTests.cpp" />
-    <ClCompile Include="ClockSkewManagerTests.cpp" />
-    <ClCompile Include="LogSessionDataTests.cpp" />
-    <ClCompile Include="LogManagerImplTests.cpp" />
-    <ClCompile Include="DataViewerCollectionTests.cpp" />
-    <ClCompile Include="EventFilterCollectionTests.cpp" />
-    <ClCompile Include="LoggerTests.cpp" />
-    <ClCompile Include="LevelCheckingEventFilterTests.cpp" />
-    <ClCompile Include="CompliantByDefaultEventFilterModuleTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
@@ -102,6 +94,7 @@
     <ClInclude Include="$(ProjectDir)..\common\MockITelemetrySystem.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
+    <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mocks">
