@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "common/Common.hpp"
+#include "CheckForExceptionOrAbort.hpp"
 
 #define HAVE_MAT_DEFAULTDATAVIEWER
 
@@ -103,8 +104,8 @@ TEST(DefaultDataViewerTests, Constructor_ValidMachineIdentifier_MachineIdentifie
 
 TEST(DefaultDataViewerTests, Constructor_InvalidMachineIdentifier_ThrowsInvalidArgument)
 {
-    ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, ""), std::invalid_argument);
-    ASSERT_THROW(MockDefaultDataViewer(mockHttpClient, "   "), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([]() { MockDefaultDataViewer(mockHttpClient, ""); });
+    CheckForExceptionOrAbort<std::invalid_argument>([]() { MockDefaultDataViewer(mockHttpClient, "   "); });
 }
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnabled)
@@ -126,8 +127,8 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
 TEST(DefaultDataViewerTests, EnableRemoteViewer_NullOrEmptryEndpoint_ThrowsInvalidArgument)
 {
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-    ASSERT_THROW(viewer.EnableRemoteViewer(""), std::invalid_argument);
-    ASSERT_THROW(viewer.EnableRemoteViewer("           "), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer(""); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("           "); });
 }
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
@@ -222,8 +223,8 @@ TEST(DefaultDataViewerTests, EnableLocalViewer_ThrowsLogicError)
     mockHttpClient->Reset();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
 
-    ASSERT_THROW(viewer.EnableLocalViewer(), std::logic_error);
-    ASSERT_THROW(viewer.EnableLocalViewer("AppId", "AppPackage"), std::logic_error);
+    CheckForExceptionOrAbort<std::logic_error>([&viewer]() { viewer.EnableLocalViewer(); });
+    CheckForExceptionOrAbort<std::logic_error>([&viewer]() { viewer.EnableLocalViewer("AppId", "AppPackage"); });
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_TransmissionNotEnabled_DoesntSendsDataToHttpClient)
