@@ -375,9 +375,9 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
+    CleanStorage();
     ILogger *result = LogManager::Initialize(KILLED_TOKEN, configuration);
 
-    CleanStorage();
     addAllListeners(debugListener);
 
     for (int i = 0; i < 2; i++)
@@ -467,27 +467,31 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0, debugListener.numDropped);
     EXPECT_EQ(0, debugListener.numReject);
 
-    LogManager::UploadNow();                                    // Try to upload whatever we got
-    PAL::sleep(1000);                                           // Give enough time to upload at least one event
-    EXPECT_NE(0, debugListener.numSent);     // Some posts have successed within 500ms
-    LogManager::PauseTransmission();
+    LogManager::UploadNow();             // Try to upload whatever we got
+    PAL::sleep(1000);                    // Give enough time to upload at least one event
+    EXPECT_NE(0, debugListener.numSent); // Some posts must succeed within 500ms
+    LogManager::PauseTransmission();     // There could still be some pending at this point
+    LogManager::Flush();                 // Save all pending to disk
 
     numIterations = MAX_ITERATIONS;
-
+    debugListener.numLogged = 0;         // Reset the logged counter
+    debugListener.numCached = 0;         // Reset the flush counter
     EventProperties eventToStore{ "bar2" };
     eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
-        result->LogEvent(eventToStore);                               // New events go straight to offline storage
-    EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
+        result->LogEvent(eventToStore);  // New events go straight to offline storage
+    EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
 
     LogManager::Flush();
-    EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);         // FAILED!!! Verify we saved exactly # of 'bar2' logged
+    EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);
 
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
     LogManager::FlushAndTeardown();
 
-    EXPECT_EQ(debugListener.numSent, debugListener.numLogged);  // Check that we sent whatever exactly all of logged
+    // Check that we sent all of logged + whatever left overs
+    // prior to PauseTransmission
+    EXPECT_GE(debugListener.numSent, debugListener.numLogged);
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
