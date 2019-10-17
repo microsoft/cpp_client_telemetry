@@ -115,7 +115,10 @@ int main(int argc, char *argv[])
     printf("%s\n", json.c_str());
 #endif
 
-    // Log simple event without any properties
+    // Log simple event without any properties.
+    //
+    // Note that this event will be blocked in UTC mode on most recent versions of
+    // Windows as it has no privacy tag.
     printf("Sending My.Simple.Event\n");
     logger->LogEvent("My.Simple.Event");
 
@@ -155,6 +158,12 @@ int main(int argc, char *argv[])
                 { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
                 { "timeKey1", time_ticks_t((uint64_t)0) },     // time in .NET ticks
             });
+
+        if (utcActive)
+        {
+            // Add privacy tags to avoid the event being dropped at UTC layer
+            evt.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+        }
 
         if (std::string("My.Detailed.Event.PiiMark") == eventName)
         {
