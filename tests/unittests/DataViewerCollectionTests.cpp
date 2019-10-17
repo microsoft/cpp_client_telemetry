@@ -3,6 +3,7 @@
 
 #include "common/Common.hpp"
 #include "api/DataViewerCollection.hpp"
+#include "CheckForExceptionOrAbort.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -49,7 +50,7 @@ public:
 TEST(DataViewerCollectionTests, RegisterViewer_DataViewerIsNullptr_ThrowsInvalidArgumentException)
 {
      TestDataViewerCollection dataViewerCollection { };
-     ASSERT_THROW(dataViewerCollection.RegisterViewer(nullptr), std::invalid_argument);
+     CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.RegisterViewer(nullptr); });
 }
 
 TEST(DataViewerCollectionTests, RegisterViewer_DataViewerIsNotNullptr_NoExceptions)
@@ -100,7 +101,7 @@ TEST(DataViewerCollectionTests, RegisterViewer_DuplicateDataViewerRegistered_Thr
     // /build/cpp_client_telemetry/tests/unittests/DataViewerCollectionTests.cpp:95: Failure
     // Expected: dataViewerCollection.RegisterViewer(otherViewer) throws an exception of type std::invalid_argument.
     std::shared_ptr<IDataViewer> otherViewer = std::make_shared<MockIDataViewer>("sharedName");
-    ASSERT_THROW(dataViewerCollection.RegisterViewer(otherViewer), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection, &otherViewer]() { dataViewerCollection.RegisterViewer(otherViewer); });
 }
 
 // TODO: [MG] - this test is broken on Mac:
@@ -113,7 +114,7 @@ TEST(DataViewerCollectionTests, RegisterViewer_DuplicateDataViewerRegistered_Thr
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNullPtr_ThrowsInvalidArgumentException)
 {
     TestDataViewerCollection dataViewerCollection { };
-    ASSERT_THROW(dataViewerCollection.UnregisterViewer(nullptr), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.UnregisterViewer(nullptr); });
 }
 
 // TODO: [MG] - this test is broken on Mac:
@@ -126,7 +127,7 @@ TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNullPtr_ThrowsInval
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNotRegistered_ThrowsInvalidArgumentException)
 {
     TestDataViewerCollection dataViewerCollection { };
-    ASSERT_THROW(dataViewerCollection.UnregisterViewer("NotRegisteredViewer"), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.UnregisterViewer("NotRegisteredViewer"); });
 }
 
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsRegistered_UnregistersCorrectly)
@@ -172,7 +173,7 @@ TEST(DataViewerCollectionTests, UnregisterAllViewers_ThreeViewersRegistered_Unre
 TEST(DataViewerCollectionTests, IsViewerEnabled_ViewerNameIsNullptr_ThrowInvalidArgumentException)
 {
     TestDataViewerCollection dataViewerCollection { };
-    ASSERT_THROW(dataViewerCollection.IsViewerEnabled(nullptr), std::invalid_argument);
+    CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.IsViewerEnabled(nullptr); });
 }
 
 TEST(DataViewerCollectionTests, IsViewerEnabled_NoViewerIsRegistered_ReturnsFalseCorrectly)
