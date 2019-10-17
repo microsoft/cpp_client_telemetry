@@ -6,7 +6,6 @@ on:
     - master
     - release/*
     - buildme/*
-    - dabrow/*
   pull_request:
     branches:
     - master
