@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     size_t MAX_EVENT_SIZE = 131072;
 
     // Log detailed event with some properties
-    for (auto eventName : { "My.Detailed.Event", "My.Detailed.Event.PiiMark", "My.Detailed.Event.RPC" })
+    for (auto eventName : { "My.Detailed.Event", "My.Detailed.Event.PiiMark", "My.Detailed.Event.PiiDrop", "My.Detailed.Event.RPC" })
     {
         EventProperties evt(eventName,
             {
@@ -168,6 +168,10 @@ int main(int argc, char *argv[])
         if (std::string("My.Detailed.Event.PiiMark") == eventName)
         {
             evt.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
+        }
+        else if (std::string("My.Detailed.Event.PiiDrop") == eventName)
+        {
+            evt.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
         }
         else if (std::string("My.Detailed.Event.RPC") == eventName)
         {
