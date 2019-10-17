@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "common/Common.hpp"
+#include "CheckForExceptionOrAbort.hpp"
 #include "filter/EventFilterCollection.hpp"
 
 using namespace testing;
@@ -38,20 +39,8 @@ TEST(EventFilterCollectionTests, Constructor_DefaultConstructed_NoRegisteredFilt
 
 TEST(EventFilterCollectionTests, RegisterEventFilter_NullptrFilter_ThrowsArgumentException)
 {
-    try
-    {
-        TestEventFilterCollection collection;
-        collection.RegisterEventFilter(nullptr);
-        FAIL() << "No exception thrown";
-    }
-    catch (const std::invalid_argument& exception)
-    {
-        EXPECT_EQ(strcmp(exception.what(), "filter"), 0);
-    }
-    catch (...)
-    {
-        FAIL() << "Wrong throw.";
-    }
+    TestEventFilterCollection collection;
+	 CheckForExceptionOrAbort<std::invalid_argument>([&collection]() { collection.RegisterEventFilter(nullptr); });
 }
 
 TEST(EventFilterCollectionTests, RegisterEventFilter_ValidFilter_FilterSizeIsOne)
@@ -71,20 +60,8 @@ TEST(EventFilterCollectionTests, RegisterEventFilter_TwoValidFiltersWithTheSameN
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_NullptrName_ThrowsArgumentException)
 {
-    try
-    {
-        TestEventFilterCollection collection;
-        collection.UnregisterEventFilter(nullptr);
-        FAIL() << "No exception thrown";
-    }
-    catch (const std::invalid_argument& exception)
-    {
-        EXPECT_EQ(strcmp(exception.what(), "filterName"), 0);
-    }
-    catch (...)
-    {
-        FAIL() << "Wrong throw.";
-    }
+    TestEventFilterCollection collection;
+    CheckForExceptionOrAbort<std::invalid_argument>([&collection]() { collection.UnregisterEventFilter(nullptr); });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameNotRegistered_DoesNotModifyCollection)

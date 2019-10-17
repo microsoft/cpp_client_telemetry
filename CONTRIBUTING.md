@@ -27,7 +27,7 @@ pull requests (PRs).
 To create a new PR, fork the project in GitHub and clone the upstream repo:
 
 ```sh
-$ git clone https://github.com/microsoft/cpp_client_telemetry.git
+$ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
 Add your fork as an origin:
