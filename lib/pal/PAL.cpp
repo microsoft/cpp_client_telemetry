@@ -280,16 +280,19 @@ namespace PAL_NS_BEGIN {
         CoCreateGuid(&uuid);
         return MAT::to_string(uuid);
 #else
-        auto now = std::chrono::high_resolution_clock::now();
-        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-        std::srand((unsigned int)(std::time(0) ^ nanos));
+        static std::once_flag flag;
+        std::call_once(flag, [](){
+            auto now = std::chrono::high_resolution_clock::now();
+            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+            std::srand(static_cast<unsigned int>(std::time(0) ^ nanos));
+        });
 
         GUID_t uuid;
-        uuid.Data1 = (uint16_t)std::rand();
-        uuid.Data2 = (uint16_t)std::rand();
-        uuid.Data3 = (uint16_t)std::rand();
+        uuid.Data1 = (static_cast<uint16_t>(std::rand()) << 16) | static_cast<uint16_t>(std::rand());
+        uuid.Data2 = static_cast<uint16_t>(std::rand());
+        uuid.Data3 = static_cast<uint16_t>(std::rand());
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = (uint8_t)(std::rand());
+            uuid.Data4[i] = static_cast<uint8_t>(std::rand());
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
