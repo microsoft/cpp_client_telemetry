@@ -5,6 +5,7 @@ set(SRCS decorators/BaseDecorator.cpp
   packager/Packager.cpp
   callbacks/DebugSource.cpp
   bond/BondSerializer.cpp
+  exporters/ISerializer.cpp
   filter/EventFilterCollection.cpp
   tpm/TransmitProfiles.cpp
   tpm/TransmissionPolicyManager.cpp

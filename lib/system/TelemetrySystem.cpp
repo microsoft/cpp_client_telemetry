@@ -132,7 +132,7 @@ namespace ARIASDK_NS_BEGIN {
         tpm.allUploadsFinished >> stats.onStop >> this->flushTaskDispatcher;
 
         // On an arbitrary user thread
-        this->sending >> bondSerializer.serialize >> this->incomingEventPrepared;
+        this->sending >> m_serializer.serialize >> this->incomingEventPrepared;
 
         // On the inner worker thread
         this->preparedIncomingEvent >> storage.storeRecord >> stats.onIncomingEventAccepted >> tpm.eventArrived;
