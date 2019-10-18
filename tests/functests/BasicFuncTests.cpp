@@ -723,17 +723,6 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         }
         FlushAndTeardown();
     }
-
-    /*
-        ASSERT_THAT(receivedRequests, SizeIs(1));
-        auto payload = decodeRequest(receivedRequests[0], false);
-        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-        ASSERT_THAT(payload, SizeIs(2));
-        verifyEvent(event1, payload[0]);
-        verifyEvent(event2, payload[1]);
-        */
 }
 
 #if 0 // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
@@ -782,17 +771,6 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
         if (receivedRequests.size())
         {
             auto payload = decodeRequest(receivedRequests[0], false);
-            /*    auto payload = decodeRequest(receivedRequests[0], false);
-                ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-                auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-                ASSERT_THAT(payload, SizeIs(2));
-                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-                // The expected number of dropped events is hard to estimate because of database overhead,
-                // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
-                */
         }
         FlushAndTeardown();
     }
