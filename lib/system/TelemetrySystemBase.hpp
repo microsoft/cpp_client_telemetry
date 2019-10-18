@@ -13,6 +13,8 @@ namespace ARIASDK_NS_BEGIN {
 
     typedef std::function<IncomingEventContextPtr const&>   EventHandler;
 
+    static BondSerializer sharedBondSerializer;
+
     /// <summary>
     /// Partial class that implements a foundation of TelemetrySystem
     /// </summary>
@@ -33,7 +35,8 @@ namespace ARIASDK_NS_BEGIN {
             m_config(runtimeConfig),
             m_isStarted(false),
             m_isPaused(false),
-            stats(*this, taskDispatcher)
+            stats(*this, taskDispatcher),
+            m_serializer(sharedBondSerializer)
         {
             onStart  = []() { return true; };
             onStop   = []() { return true; };
@@ -161,7 +164,7 @@ namespace ARIASDK_NS_BEGIN {
         std::atomic<bool>       m_isStarted;
         std::atomic<bool>       m_isPaused;
         PAL::Event              m_done;
-        BondSerializer          bondSerializer;
+        ISerializer&            m_serializer;
         Statistics              stats;
 
         std::function<bool(void)>                                  onStart;

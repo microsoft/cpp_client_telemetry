@@ -178,28 +178,6 @@ TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
     EXPECT_CALL(*this, resultPackagedEvents(ctx))
         .WillOnce(Return());
     packager.finalizePackage(ctx);
-
-/*    AriaProtocol::ClientToCollectorRequest r;
-    bond_lite::CompactBinaryProtocolReader reader(ctx->body);
-    ASSERT_THAT(bond_lite::Deserialize(reader, r), true);
-
-    EXPECT_THAT(r.DataPackages, IsEmpty());
-
-    ASSERT_THAT(r.TokenToDataPackagesMap, Contains(Key("tenant1-token")));
-    ASSERT_THAT(r.TokenToDataPackagesMap["tenant1-token"], SizeIs(1));
-    ASSERT_THAT(r.TokenToDataPackagesMap["tenant1-token"][0].Records, SizeIs(2));
-
-    ASSERT_THAT(r.TokenToDataPackagesMap, Contains(Key("tenant2-token")));
-    ASSERT_THAT(r.TokenToDataPackagesMap["tenant2-token"], SizeIs(1));
-    ASSERT_THAT(r.TokenToDataPackagesMap["tenant2-token"][0].Records, SizeIs(1));
-
-    auto const& dp = r.TokenToDataPackagesMap["tenant1-token"][0];
-    EXPECT_THAT(dp.Type,          Eq("Client"));
-    EXPECT_THAT(dp.Source,        Eq("act_default_source"));
-    EXPECT_THAT(dp.Version,       Eq(VersionString));
-    EXPECT_THAT(dp.DataPackageId, SizeIs(36));
-    EXPECT_THAT(dp.Timestamp,     Near(PAL::getUtcSystemTimeMs(), 1000));
-*/
 }
 
 TEST_F(PackagerTests, ForcedTenantIsForced)
@@ -227,14 +205,4 @@ TEST_F(PackagerTests, ForcedTenantIsForced)
 
     EXPECT_THAT(ctx->packageIds, SizeIs(1));
     EXPECT_THAT(ctx->packageIds, Contains(Key("forced-Tenant-Token")));
-/*
-    AriaProtocol::ClientToCollectorRequest r;
-    bond_lite::CompactBinaryProtocolReader reader(ctx->body);
-    ASSERT_THAT(bond_lite::Deserialize(reader, r), true);
-
-    EXPECT_THAT(r.TokenToDataPackagesMap, SizeIs(1));
-    ASSERT_THAT(r.TokenToDataPackagesMap, Contains(Key("forced-tenant-token")));
-    ASSERT_THAT(r.TokenToDataPackagesMap["forced-tenant-token"], SizeIs(1));
-    ASSERT_THAT(r.TokenToDataPackagesMap["forced-tenant-token"][0].Records, SizeIs(3));
-*/
 }

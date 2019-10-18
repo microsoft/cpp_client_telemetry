@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef BONDSERIALIZER_HPP
+#define BONDSERIALIZER_HPP
 
-#pragma once
-#include "system/Contexts.hpp"
-#include "system/Route.hpp"
+#include "exporters/ISerializer.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace ARIASDK_NS_BEGIN
+{
 
-
-class BondSerializer {
-  protected:
-    bool handleSerialize(IncomingEventContextPtr const& ctx);
-
-  public:
-    RoutePassThrough<BondSerializer, IncomingEventContextPtr const&> serialize{this, &BondSerializer::handleSerialize};
-};
-
+    class BondSerializer: public ISerializer
+    {
+    protected:
+        virtual bool handleSerialize(IncomingEventContextPtr const& ctx) override;
+    };
 
 } ARIASDK_NS_END
+
+#endif
