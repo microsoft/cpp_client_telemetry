@@ -14,7 +14,7 @@ public:
 
 TEST_F(LevelCheckingEventFilterTests, Constructor_Default_AllowedLevelsSizeZero)
 {
-    EXPECT_EQ(0, AllowedLevels.GetSize());
+    EXPECT_EQ(size_t { 0 }, AllowedLevels.GetSize());
 }
 
 TEST_F(LevelCheckingEventFilterTests, GetName_ReturnsExpectedName)
@@ -30,13 +30,13 @@ TEST_F(LevelCheckingEventFilterTests, CanEventPropertiesBeSent_NoLevelSet_Return
 TEST_F(LevelCheckingEventFilterTests, UpdateAllowedLevels_EmptySet_SetsAllowedLevelsToSize0)
 {
     Filter.UpdateAllowedLevels(std::vector<uint8_t>{});
-    EXPECT_EQ(0, AllowedLevels.GetSize());
+    EXPECT_EQ(size_t { 0 }, AllowedLevels.GetSize());
 }
 
 TEST_F(LevelCheckingEventFilterTests, UpdateAllowedLevels_SizeTwo_SetsAllowedLevelsToSize2)
 {
     Filter.UpdateAllowedLevels(std::vector<uint8_t>{42, 97});
-    EXPECT_EQ(2, AllowedLevels.GetSize());
+    EXPECT_EQ(size_t { 2 }, AllowedLevels.GetSize());
 }
 
 TEST_F(LevelCheckingEventFilterTests, UpdateAllowedLevels_SizeTwo_AllowedValuesAreSetProperly)

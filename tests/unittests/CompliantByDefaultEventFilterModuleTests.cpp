@@ -32,7 +32,7 @@ TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_ParentValid_SetsPare
 
 TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_AllowedLevelsSizeOne)
 {
-    ASSERT_EQ(m_allowedLevels.GetSize(), 1);
+    ASSERT_EQ(m_allowedLevels.GetSize(), size_t { 1 });
 }
 
 TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_AllowedLevelValueIsRequired)
