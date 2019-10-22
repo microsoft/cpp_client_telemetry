@@ -3,6 +3,7 @@
 
 #include "pal/TaskDispatcher.hpp"
 #include "pal/TaskDispatcher_CAPI.hpp"
+#include "pal/typename.hpp"
 #include "mat.h"
 
 using namespace testing;
@@ -100,6 +101,16 @@ void EVTSDK_LIBABI_CDECL OnTaskDispatcherJoin()
     s_testHelper->OnJoin();
 }
 
+void CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task_t* task) noexcept
+{
+   std::string typeName { task->typeName };
+#ifdef HAS_RTTI
+   EXPECT_TRUE(typeName.find("TestHelper") != string::npos);
+#else
+   EXPECT_TRUE(typeName.empty());
+#endif // HAS_RTTI
+}
+
 TEST(TaskDispatcherCAPITests, Execute)
 {
     TaskDispatcher_CAPI taskDispatcher(&OnTaskDispatcherQueue, &OnTaskDispatcherCancel, &OnTaskDispatcherJoin);
@@ -112,7 +123,7 @@ TEST(TaskDispatcherCAPITests, Execute)
     testHelper->SetQueueValidation([&wasQueued](task_t* task) {
         wasQueued = true;
         EXPECT_EQ(task->delayMs, 0);
-        EXPECT_TRUE(std::string(task->typeName).find("TestHelper") != string::npos);
+        CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task);
     });
 
     // Validate callback execution
@@ -141,7 +152,7 @@ TEST(TaskDispatcherCAPITests, Schedule)
     testHelper->SetQueueValidation([&wasQueued](task_t* task) {
         wasQueued = true;
         EXPECT_NE(task->delayMs, 0);
-        EXPECT_TRUE(std::string(task->typeName).find("TestHelper") != string::npos);
+        CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task);
     });
 
     // Validate callback execution
@@ -172,7 +183,7 @@ TEST(TaskDispatcherCAPITests, Cancel)
         wasQueued = true;
         taskIdStr = task->id;
         EXPECT_NE(task->delayMs, 0);
-        EXPECT_TRUE(std::string(task->typeName).find("TestHelper") != string::npos);
+        CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task);
     });
 
     // Validate cancellation
