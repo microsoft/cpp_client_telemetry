@@ -45,9 +45,15 @@ TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_HooksIsNotNullptr)
     ASSERT_TRUE(m_hooks != nullptr);
 }
 
-TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_HooksSizeIsTwo)
+TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_HooksSizeSet)
 {
-    ASSERT_EQ(m_hooks->GetSize(), 2); // This, and the default filter initialized by LogManager.
+#ifdef HAVE_MAT_DEFAULT_FILTER
+    constexpr const size_t expected = 2;  // This, and the default filter initialized by LogManager.
+#else
+    constexpr const size_t expected = 1;  // Just this hook.
+#endif // HAVE_MAT_DEFAULT_FILTER
+
+    ASSERT_EQ(m_hooks->GetSize(), expected);
 }
 
 TEST_F(CompliantByDefaultEventFilterModuleTests, Initialize_ThisPointerIsInHooksCollection)
