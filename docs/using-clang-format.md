@@ -9,7 +9,7 @@ Setup the build tools environment first.
 For Windows - cmd.exe command:
 ```call tools\setup-devenv.cmd```
 
-For POSIX (Linxu and Mac) - shell command:
+For POSIX (Linux and Mac) - shell command:
 ```source tools/setup-devenv.sh```
 
 Command will add the tools from repo *tools* directory to PATH environment variable.
