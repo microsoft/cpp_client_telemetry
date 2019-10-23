@@ -10,20 +10,21 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-
+    /// <summary>
+    ///
+    /// </summary>
     class ISerializer
     {
-     protected:
+       protected:
         virtual bool handleSerialize(IncomingEventContextPtr const& ctx) = 0;
-     public:
+
+       public:
         ISerializer() noexcept;
         virtual ~ISerializer();
-        RoutePassThrough<ISerializer, IncomingEventContextPtr const&> serialize
-        {
-            this, &ISerializer::handleSerialize
-        };
+        RoutePassThrough<ISerializer, IncomingEventContextPtr const&> serialize{this, &ISerializer::handleSerialize};
     };
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 
 #endif /* LIB_EXPORTERS_ISERIALIZER_HPP_ */

@@ -70,6 +70,9 @@
     <Filter Include="pal\desktop">
       <UniqueIdentifier>{0741500d-ddf5-493d-bbad-ce8905ee0c91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="exporters">
+      <UniqueIdentifier>{aa9644a2-1c4a-41a7-9606-4e47a32c3e08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\stats\MetaStats.cpp">
@@ -215,6 +218,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp">
       <Filter>filter</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\exporters\ISerializer.cpp">
+      <Filter>exporters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -604,6 +610,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp">
       <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exporters\ISerializer.hpp">
+      <Filter>exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\exporters\ISplicer.hpp">
+      <Filter>exporters</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
