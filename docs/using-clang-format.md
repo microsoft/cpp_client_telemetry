@@ -1,4 +1,4 @@
-# Using clang-format on 1DS C++ SDK C++ Code
+# Using clang-format on 1DS C++ SDK Code
 
 ## Command-line use
 
