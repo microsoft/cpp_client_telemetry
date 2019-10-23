@@ -2,13 +2,12 @@
 #include "FileUtils.hpp"
 #include "Utils.hpp"
 
-#include <string>
 #include <fstream>
 #include <streambuf>
+#include <string>
 
 namespace ARIASDK_NS_BEGIN
 {
-
     /**
      * Return file size by filename.
      *
@@ -66,11 +65,11 @@ namespace ARIASDK_NS_BEGIN
      *
      * @return      File stream on success, null pointer on failure.
      */
-    std::FILE* FileOpen(const char* filename, const char *mode)
+    std::FILE* FileOpen(const char* filename, const char* mode)
     {
 #ifdef _WIN32
         FILE* result = nullptr;
-        std::wstring  path = to_utf16_string(filename);
+        std::wstring path = to_utf16_string(filename);
         std::wstring _mode = to_utf16_string(mode);
         _wfopen_s(&result, path.c_str(), _mode.c_str());
         return result;
@@ -93,13 +92,13 @@ namespace ARIASDK_NS_BEGIN
     /**
      * Read file contents into std::string.
      *
-     * @param       UTF-8 flename
+     * @param       filename    UTF-8 flename
      * @return      File contents. Supports only UTF-8 or ASCII-encoded text files.
      */
-    std::string FileGetContents(const char *filename)
+    std::string FileGetContents(const char* filename)
     {
 #ifdef _WIN32
-        char buff[256] = { 0 };
+        char buff[256] = {0};
         std::string result;
         FILE* fp = FileOpen(filename, "r");
         if (fp != nullptr)
@@ -166,4 +165,5 @@ namespace ARIASDK_NS_BEGIN
 #endif
     }
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
