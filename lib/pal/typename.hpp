@@ -15,12 +15,14 @@ __inline static std::string demangle(const char* name) {
     return (status == 0) ? res.get() : name;
 }
 
-#define __typename(t) demangle(typeid(t).name()).c_str()
+#define TYPENAME(t) demangle(typeid(t).name()).c_str()
+#define HAS_RTTI 1
 #else
 #define demangle(name)  (name)
 
 #if defined(_CPPRTTI) && defined(_WIN32)
-#define __typename(t)   typeid(t).name()
+#define TYPENAME(t)   typeid(t).name()
+#define HAS_RTTI 1
 #else
 #define __typename(t)   "" /* Unknown */
 #endif
