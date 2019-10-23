@@ -63,8 +63,8 @@ void remove_client(evt_handle_t handle)
         return ENOENT;                                          \
     };
 
-evt_status_t mat_open_core(
-    evt_context_t *ctx,
+evt_status mat_open_core(
+    evt_context *ctx,
     const char* config,
     evt_http_send_fn httpSendFn,
     evt_http_cancel_fn httpCancelFn,
@@ -166,12 +166,12 @@ evt_status_t mat_open_core(
     {
         status = static_cast<status_t>(EFAULT);
     }
-    ctx->result = static_cast<evt_status_t>(status);
+    ctx->result = static_cast<evt_status>(status);
     ctx->handle = code;
     return ctx->result;
 }
 
-evt_status_t mat_open(evt_context_t *ctx)
+evt_status mat_open(evt_context *ctx)
 {
     if (ctx == nullptr)
     {
@@ -182,14 +182,14 @@ evt_status_t mat_open(evt_context_t *ctx)
     return mat_open_core(ctx, config, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
-evt_status_t mat_open_with_params(evt_context_t *ctx)
+evt_status mat_open_with_params(evt_context *ctx)
 {
     if (ctx == nullptr)
     {
         return EFAULT; /* bad address */
     };
 
-    evt_open_with_params_data_t* data = static_cast<evt_open_with_params_data_t*>(ctx->data);
+    evt_open_with_params_data* data = static_cast<evt_open_with_params_data*>(ctx->data);
     if ((data == nullptr) || (data->params == nullptr))
     {
         // Invalid param data
@@ -203,7 +203,7 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
     evt_task_dispatcher_join_fn taskDispatcherJoinFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
-        const evt_open_param_t& param = data->params[i];
+        const evt_open_param& param = data->params[i];
         switch (param.type) {
             case OPEN_PARAM_TYPE_HTTP_HANDLER_SEND:
                 httpSendFn = reinterpret_cast<evt_http_send_fn>(param.data);
@@ -229,7 +229,7 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 /**
  * Marashal C struct to C++ API
  */
-evt_status_t mat_log(evt_context_t *ctx)
+evt_status mat_log(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
 
@@ -282,10 +282,10 @@ evt_status_t mat_log(evt_context_t *ctx)
     return ctx->result;
 }
 
-evt_status_t mat_close(evt_context_t *ctx)
+evt_status mat_close(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
-    const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
+    const auto result = static_cast<evt_status>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
     
     if (client->http != nullptr)
     {
@@ -302,34 +302,34 @@ evt_status_t mat_close(evt_context_t *ctx)
     return result;
 }
 
-evt_status_t mat_pause(evt_context_t *ctx)
+evt_status mat_pause(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
-    const auto result = static_cast<evt_status_t>(client->logmanager->PauseTransmission());
+    const auto result = static_cast<evt_status>(client->logmanager->PauseTransmission());
     ctx->result = result;
     return result;
 }
 
-evt_status_t mat_resume(evt_context_t *ctx)
+evt_status mat_resume(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
-    const auto result = static_cast<evt_status_t>(client->logmanager->ResumeTransmission());
+    const auto result = static_cast<evt_status>(client->logmanager->ResumeTransmission());
     ctx->result = result;
     return result;
 }
 
-evt_status_t mat_upload(evt_context_t *ctx)
+evt_status mat_upload(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
-    const auto result = static_cast<evt_status_t>(client->logmanager->UploadNow());
+    const auto result = static_cast<evt_status>(client->logmanager->UploadNow());
     ctx->result = result;
     return result;
 }
 
-evt_status_t mat_flush(evt_context_t *ctx)
+evt_status mat_flush(evt_context *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
-    const auto result = static_cast<evt_status_t>(client->logmanager->Flush());
+    const auto result = static_cast<evt_status>(client->logmanager->Flush());
     ctx->result = result;
     return result;
 }
@@ -339,9 +339,9 @@ extern "C" {
     /**
      * Simple stable backwards- / forward- compatible ABI interface
      */
-    evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx)
+    evt_status EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context *ctx)
     {
-        evt_status_t result = EFAIL;
+        evt_status result = EFAIL;
 
         if (ctx != nullptr)
         {

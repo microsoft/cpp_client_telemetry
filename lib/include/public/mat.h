@@ -57,7 +57,7 @@ extern "C" {
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
         EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
-    } evt_call_t;
+    } evt_call_type;
 
     typedef enum
     {
@@ -77,7 +77,7 @@ extern "C" {
         TYPE_GUID_ARRAY,
         /* NULL-type */
         TYPE_NULL
-    } evt_prop_t;
+    } evt_prop_type;
 
     typedef struct
     {
@@ -108,20 +108,20 @@ extern "C" {
          * </summary>
          */
         uint8_t  Data4[8];
-    } evt_guid_t;
+    } evt_guid;
 
-    typedef int64_t  evt_handle_t;
-    typedef int32_t  evt_status_t;
+    typedef int64_t  evt_handle;
+    typedef int32_t  evt_status;
     typedef struct   evt_event evt_event;
 
     typedef struct
     {
-        evt_call_t      call;       /* In       */
-        evt_handle_t    handle;     /* In / Out */
+        evt_call_type   call;       /* In       */
+        evt_handle      handle;     /* In / Out */
         void*           data;       /* In / Out */
-        evt_status_t    result;     /* Out      */
+        evt_status      result;     /* Out      */
         uint32_t        size;       /* In / Out */
-    } evt_context_t;
+    } evt_context;
 
     /**
      * <summary>
@@ -136,7 +136,7 @@ extern "C" {
         OPEN_PARAM_TYPE_TASK_DISPATCHER_QUEUE = 2,
         OPEN_PARAM_TYPE_TASK_DISPATCHER_CANCEL = 3,
         OPEN_PARAM_TYPE_TASK_DISPATCHER_JOIN = 4,
-    } evt_open_param_type_t;
+    } evt_open_param_type;
 
     /**
      * <summary>
@@ -145,9 +145,9 @@ extern "C" {
      */
     typedef struct
     {
-        evt_open_param_type_t   type;
+        evt_open_param_type     type;
         void*                   data;
-    } evt_open_param_t;
+    } evt_open_param;
 
     /**
      * <summary>
@@ -157,9 +157,9 @@ extern "C" {
     typedef struct
     {
         const char*             config;
-        const evt_open_param_t* params;
+        const evt_open_param*   params;
         int32_t                 paramsCount;
-    } evt_open_with_params_data_t;
+    } evt_open_with_params_data;
 
     typedef union
     {
@@ -169,21 +169,21 @@ extern "C" {
         int64_t             as_int64;
         double              as_double;
         bool                as_bool;
-        evt_guid_t*         as_guid;
+        evt_guid*           as_guid;
         uint64_t            as_time;
         /* Array types are nullptr-terminated array of pointers */
         char**              as_arr_string;
         int64_t**           as_arr_int64;
         bool**              as_arr_bool;
         double**            as_arr_double;
-        evt_guid_t**        as_arr_guid;
+        evt_guid**          as_arr_guid;
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
     typedef struct
     {
         const char*             name;
-        evt_prop_t              type;
+        evt_prop_type           type;
         evt_prop_v              value;
         uint32_t                piiKind;
     } evt_prop;
@@ -339,16 +339,16 @@ extern "C" {
 
 #endif
 
-    typedef evt_status_t(EVTSDK_LIBABI_CDECL *evt_app_call_t)(evt_context_t *);
+    typedef evt_status(EVTSDK_LIBABI_CDECL *evt_app_call_fn)(evt_context *);
 
-    EVTSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx);
+    EVTSDK_LIBABI evt_status EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context *ctx);
 
 #ifdef _MSC_VER
     /* User of the library may delay-load the invocation of __impl_evt_api_call to assign their own implementation */
-    __declspec(selectany) evt_app_call_t evt_api_call = evt_api_call_default;
+    __declspec(selectany) evt_app_call_fn evt_api_call = evt_api_call_default;
 #else
     /* Implementation of evt_api_call can be provided by the executable module that includes this header */
-    __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
+    __attribute__((weak)) evt_app_call evt_api_call = evt_api_call_default;
 #endif
 
     /**
@@ -358,11 +358,11 @@ extern "C" {
      * <param name="handle">Library handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_load(evt_handle_t handle)
+    static inline evt_status evt_load(evt_handle handle)
     {
 #ifdef _WIN32
         /* This code accepts a handle of a library loaded in customer's code */
-        evt_app_call_t impl = (evt_app_call_t)GetProcAddress((HMODULE)handle, "evt_api_call_default");
+        evt_app_call_fn impl = (evt_app_call_fn)GetProcAddress((HMODULE)handle, "evt_api_call_default");
         if (impl != NULL)
         {
             evt_api_call = impl;
@@ -375,7 +375,7 @@ extern "C" {
          * - provide implementation for Linux and Mac
          * - consider accepting a library path rather than a library handle for dlopen
          */
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_LOAD;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -391,9 +391,9 @@ extern "C" {
      * Status code.
      * </returns>
      */
-    static inline evt_status_t evt_unload(evt_handle_t handle)
+    static inline evt_status evt_unload(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_UNLOAD;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -406,9 +406,9 @@ extern "C" {
      * <param name="config">SDK configuration.</param>
      * <returns>SDK instance handle.</returns>
      */
-    static inline evt_handle_t evt_open(const char* config)
+    static inline evt_handle evt_open(const char* config)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_OPEN;
         ctx.data = (void *)config;
         evt_api_call(&ctx);
@@ -424,17 +424,17 @@ extern "C" {
      * <param name="paramsCount">Number of initialization parameters.</param>
      * <returns>SDK instance handle.</returns>
      */
-    static inline evt_handle_t evt_open_with_params(
+    static inline evt_handle evt_open_with_params(
         const char* config,
-        evt_open_param_t* params,
+        evt_open_param* params,
         int32_t paramsCount)
     {
-        evt_open_with_params_data_t data;
+        evt_open_with_params_data data;
         data.config = config;
         data.params = params;
         data.paramsCount = paramsCount;
 
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_OPEN_WITH_PARAMS;
         ctx.data = (void *)(&data);
         evt_api_call(&ctx);
@@ -448,9 +448,9 @@ extern "C" {
      * <param name="handle">SDK instance handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_close(evt_handle_t handle)
+    static inline evt_status evt_close(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_CLOSE;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -464,9 +464,9 @@ extern "C" {
      * <param name="config">The configuration.</param>
      * <returns></returns>
      */
-    static inline evt_status_t evt_configure(evt_handle_t handle, const char* config)
+    static inline evt_status evt_configure(evt_handle handle, const char* config)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_CONFIG;
         ctx.handle = handle;
         ctx.data = (void *)config;
@@ -482,9 +482,9 @@ extern "C" {
      * <param name="evt">Event properties array.</param>
      * <returns></returns>
      */
-    static inline evt_status_t evt_log_s(evt_handle_t handle, uint32_t size, evt_prop* evt)
+    static inline evt_status evt_log_s(evt_handle handle, uint32_t size, evt_prop* evt)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_LOG;
         ctx.handle = handle;
         ctx.data = (void *)evt;
@@ -502,9 +502,9 @@ extern "C" {
      * <param name="evt">Event properties array.</param>
      * <returns></returns>
      */
-    static inline evt_status_t evt_log(evt_handle_t handle, evt_prop* evt)
+    static inline evt_status evt_log(evt_handle handle, evt_prop* evt)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_LOG;
         ctx.handle = handle;
         ctx.data = (void *)evt;
@@ -530,9 +530,9 @@ extern "C" {
      * <param name="handle">SDK handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_pause(evt_handle_t handle)
+    static inline evt_status evt_pause(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_PAUSE;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -545,9 +545,9 @@ extern "C" {
      * <param name="handle">SDK handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_resume(evt_handle_t handle)
+    static inline evt_status evt_resume(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_RESUME;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -561,9 +561,9 @@ extern "C" {
      * <param name="handle">SDK handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_upload(evt_handle_t handle)
+    static inline evt_status evt_upload(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_UPLOAD;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -575,9 +575,9 @@ extern "C" {
      * <param name="handle">SDK handle.</param>
      * <returns>Status code.</returns>
      */
-    static inline evt_status_t evt_flush(evt_handle_t handle)
+    static inline evt_status evt_flush(evt_handle handle)
     {
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_FLUSH;
         ctx.handle = handle;
         return evt_api_call(&ctx);
@@ -595,7 +595,7 @@ extern "C" {
     static inline const char * evt_version()
     {
         static const char * libSemver = TELEMETRY_EVENTS_VERSION;
-        evt_context_t ctx;
+        evt_context ctx;
         ctx.call = EVT_OP_VERSION;
         ctx.data = (void*)libSemver;
         evt_api_call(&ctx);

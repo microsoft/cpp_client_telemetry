@@ -21,12 +21,12 @@ namespace ARIASDK_NS_BEGIN
     {
 
     protected:
-        evt_handle_t    handle;
-        evt_handle_t    lib;
+        evt_handle    handle;
+        evt_handle    lib;
 
     public:
 
-        CAPIClient(evt_handle_t lib = 0) :
+        CAPIClient(evt_handle lib = 0) :
             handle(0),
             lib(lib)
         {
@@ -40,44 +40,44 @@ namespace ARIASDK_NS_BEGIN
                 evt_unload(lib);
         }
 
-        evt_handle_t open(const char* config)
+        evt_handle open(const char* config)
         {
             handle = evt_open(config);
             return handle;
         };
 
-        evt_status_t configure(const char* config)
+        evt_status configure(const char* config)
         {
             return evt_configure(handle, config);
         }
 
         // TODO: [MG] - header-only EventProperties class?
-        evt_status_t log(evt_prop* evt)
+        evt_status log(evt_prop* evt)
         {
             return evt_log(handle, evt);
         }
 
-        evt_status_t pause()
+        evt_status pause()
         {
             return evt_pause(handle);
         }
 
-        evt_status_t resume()
+        evt_status resume()
         {
             return evt_resume(handle);
         }
 
-        evt_status_t upload()
+        evt_status upload()
         {
             return evt_upload(handle);
         }
 
-        evt_status_t flush()
+        evt_status flush()
         {
             return evt_flush(handle);
         }
 
-        evt_status_t close()
+        evt_status close()
         {
             return evt_close(handle);
         }

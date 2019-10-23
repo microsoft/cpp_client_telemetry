@@ -420,7 +420,7 @@ namespace ARIASDK_NS_BEGIN {
             lhs.value.as_bool = rhs.as_bool;
             break;
         case TYPE_GUID:
-            lhs.value.as_guid = new evt_guid_t();
+            lhs.value.as_guid = new evt_guid();
             // TODO: copy from GUID_t to aria_guid_t
             break;
 #if 0
@@ -453,7 +453,7 @@ namespace ARIASDK_NS_BEGIN {
                 auto k = kv.first;
                 auto v = kv.second;
                 result[i].name = (char *)k.c_str();
-                result[i].type = static_cast<evt_prop_t>(v.type);
+                result[i].type = static_cast<evt_prop_type>(v.type);
                 result[i].piiKind = v.piiKind;
                 cppprop_to_cprop(v, result[i]);
             };
