@@ -26,7 +26,7 @@ from Chromium to automagically apply clang-format on all files in a current pend
 ## Editor integrations
 
 For further guidance on editor integration, see these specific pages:
-* [Download link for LLVM tools](https://releases.llvm.org/9.0.0/LLVM-9.0.0-win64.exe)
+* [Download link for LLVM tools for Windows](https://releases.llvm.org/9.0.0/LLVM-9.0.0-win64.exe)
 * [LLVM tools extension for Visual Studio](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
 * [Visual Studio code extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
 * [CppStyle Eclipse CDT extension](https://marketplace.eclipse.org/content/cppstyle)
