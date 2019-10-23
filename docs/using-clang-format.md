@@ -7,14 +7,17 @@ To format a file according to [1DS C++ SDK coding style](Coding%20style.md), fro
 Setup the build tools environment first.
 
 For Windows - cmd.exe command:
+
 ```call tools\setup-devenv.cmd```
 
 For POSIX (Linux and Mac) - shell command:
+
 ```source tools/setup-devenv.sh```
 
 Command will add the tools from repo *tools* directory to PATH environment variable.
 
 Then run:
+
 ```git cl format <filename>```
 
 At the moment the tool requires to specify the file path. Uber goal is to integrate the toolset
