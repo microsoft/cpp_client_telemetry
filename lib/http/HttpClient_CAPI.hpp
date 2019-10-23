@@ -12,7 +12,7 @@ namespace ARIASDK_NS_BEGIN {
 
     class HttpClient_CAPI : public IHttpClient {
     public:
-        HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn);
+        HttpClient_CAPI(evt_http_send_fn sendFn, evt_http_cancel_fn cancelFn);
 
         virtual IHttpRequest* CreateRequest() override;
         virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
@@ -20,9 +20,9 @@ namespace ARIASDK_NS_BEGIN {
         virtual void CancelAllRequests() override;
 
     private:
-        http_send_fn_t    m_sendFn;
-        http_cancel_fn_t  m_cancelFn;
-        std::mutex        m_requestsMutex;
+        evt_http_send_fn    m_sendFn;
+        evt_http_cancel_fn  m_cancelFn;
+        std::mutex          m_requestsMutex;
     };
 
 } ARIASDK_NS_END

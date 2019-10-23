@@ -12,7 +12,7 @@ namespace ARIASDK_NS_BEGIN {
     class HttpClient_Operation
     {
     public:
-        HttpClient_Operation(std::unique_ptr<SimpleHttpRequest> request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
+        HttpClient_Operation(std::unique_ptr<SimpleHttpRequest> request, IHttpResponseCallback* callback, evt_http_cancel_fn cancelFn)
           : m_request(std::move(request)),
             m_callback(callback),
             m_cancelFn(cancelFn)
@@ -37,7 +37,7 @@ namespace ARIASDK_NS_BEGIN {
         std::unique_ptr<SimpleHttpRequest>  m_request;
 
         IHttpResponseCallback*              m_callback;
-        http_cancel_fn_t                    m_cancelFn;
+        evt_http_cancel_fn                  m_cancelFn;
     };
 
 
@@ -73,7 +73,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     // Callback invoked when a response is ready. The ID of the response will match the ID of the corresponding request.
-    void EVTSDK_LIBABI_CDECL OnHttpResponse(const char* requestId, http_result_t result, http_response_t* capiResponse)
+    void EVTSDK_LIBABI_CDECL OnHttpResponse(const char* requestId, evt_http_result result, evt_http_response* capiResponse)
     {
         auto operation = RemovePendingOperation(requestId);
         if (operation != nullptr)
@@ -111,7 +111,7 @@ namespace ARIASDK_NS_BEGIN {
 
                 for (int32_t i = 0; i < capiResponse->headersCount; ++i)
                 {
-                    const http_header_t* capiHeader = &capiResponse->headers[i];
+                    const evt_http_header* capiHeader = &capiResponse->headers[i];
                     response->m_headers.emplace(capiHeader->name, capiHeader->value);
                 }
             }
@@ -122,7 +122,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-    HttpClient_CAPI::HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn)
+    HttpClient_CAPI::HttpClient_CAPI(evt_http_send_fn sendFn, evt_http_cancel_fn cancelFn)
       : m_sendFn(sendFn),
         m_cancelFn(cancelFn)
     {
@@ -151,10 +151,10 @@ namespace ARIASDK_NS_BEGIN {
 
         LOG_TRACE("Sending CAPI HTTP request '%s'", requestId.c_str());
 
-        // Convert IHttpRequest to http_request_t
+        // Convert IHttpRequest to evt_http_request
         // Note that the lifetime of capiRequest's members expires after this method is terminated. It is the
         // responsibility of the external functions to copy any data that must live beyond the initial call to SendHttpRequest.
-        http_request_t capiRequest;
+        evt_http_request capiRequest;
 
         capiRequest.id = requestId.c_str();
         capiRequest.type = equalsIgnoreCase(simpleRequest->m_method, "post") ? HTTP_REQUEST_TYPE_POST : HTTP_REQUEST_TYPE_GET;
@@ -163,10 +163,10 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.body = simpleRequest->m_body.data();
 
         // Build headers
-        std::vector<http_header_t> capiHeaders;
+        std::vector<evt_http_header> capiHeaders;
         for (const auto& header : simpleRequest->m_headers)
         {
-            http_header_t capiHeader;
+            evt_http_header capiHeader;
             capiHeader.name = header.first.c_str();
             capiHeader.value = header.second.c_str();
             capiHeaders.push_back(capiHeader);

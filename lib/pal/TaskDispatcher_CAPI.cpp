@@ -83,7 +83,7 @@ namespace PAL_NS_BEGIN {
             task->OnCallback();
     }
 
-    TaskDispatcher_CAPI::TaskDispatcher_CAPI(task_dispatcher_queue_fn_t queueFn, task_dispatcher_cancel_fn_t cancelFn, task_dispatcher_join_fn_t joinFn)
+    TaskDispatcher_CAPI::TaskDispatcher_CAPI(evt_task_dispatcher_queue_fn queueFn, evt_task_dispatcher_cancel_fn cancelFn, evt_task_dispatcher_join_fn joinFn)
       : m_queueFn(queueFn),
         m_cancelFn(cancelFn),
         m_joinFn(joinFn)
@@ -107,7 +107,7 @@ namespace PAL_NS_BEGIN {
         auto ownedItem = std::unique_ptr<Task>(task);
 
         // Create task
-        task_t capiTask;
+        evt_task capiTask;
         std::string taskId = GetNextTaskId();
         capiTask.id = taskId.c_str();
         capiTask.typeName = ownedItem->TypeName.c_str();

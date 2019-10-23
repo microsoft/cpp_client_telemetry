@@ -197,7 +197,7 @@ extern "C" {
     {
         HTTP_REQUEST_TYPE_GET = 0,
         HTTP_REQUEST_TYPE_POST = 1,
-    } http_request_type_t;
+    } evt_http_request_type;
 
     /**
      * <summary>
@@ -210,7 +210,7 @@ extern "C" {
         HTTP_RESULT_CANCELLED = 1,
         HTTP_RESULT_LOCAL_FAILURE = 2,
         HTTP_RESULT_NETWORK_FAILURE = 3,
-    } http_result_t;
+    } evt_http_result;
 
     /**
      * <summary>
@@ -221,7 +221,7 @@ extern "C" {
     {
         const char*             name;
         const char*             value;
-    } http_header_t;
+    } evt_http_header;
 
     /**
      * <summary>
@@ -231,13 +231,13 @@ extern "C" {
     typedef struct
     {
         const char*             id;
-        http_request_type_t     type;
+        evt_http_request_type   type;
         const char*             url;
         const uint8_t*          body;
         int32_t                 bodySize;
-        const http_header_t*    headers;
+        const evt_http_header*  headers;
         int32_t                 headersCount;
-    } http_request_t;
+    } evt_http_request;
 
     /**
      * <summary>
@@ -249,14 +249,14 @@ extern "C" {
         int32_t                 statusCode;
         const uint8_t*          body;
         int32_t                 bodySize;
-        const http_header_t*    headers;
+        const evt_http_header*  headers;
         int32_t                 headersCount;
-    } http_response_t;
+    } evt_http_response;
 
     /* HTTP callback function signatures */
-    typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
-    typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
-    typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *evt_http_complete_fn)(const char* /*requestId*/, evt_http_result, evt_http_response*);
+    typedef void (EVTSDK_LIBABI_CDECL *evt_http_send_fn)(evt_http_request*, evt_http_complete_fn);
+    typedef void (EVTSDK_LIBABI_CDECL *evt_http_cancel_fn)(const char* /*requestId*/);
 
     /**
      * <summary>
@@ -268,13 +268,13 @@ extern "C" {
         const char*             id;
         int64_t                 delayMs;
         const char*             typeName;
-    } task_t;
+    } evt_task;
 
     /* Async worker thread callback function signatures */
-    typedef void (EVTSDK_LIBABI_CDECL *task_callback_fn_t)(const char* /*taskId*/);
-    typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_queue_fn_t)(task_t*, task_callback_fn_t);
-    typedef bool (EVTSDK_LIBABI_CDECL *task_dispatcher_cancel_fn_t)(const char* /*taskId*/);
-    typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_join_fn_t)();
+    typedef void (EVTSDK_LIBABI_CDECL *evt_task_callback_fn)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *evt_task_dispatcher_queue_fn)(evt_task*, evt_task_callback_fn);
+    typedef bool (EVTSDK_LIBABI_CDECL *evt_task_dispatcher_cancel_fn)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *evt_task_dispatcher_join_fn)();
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */

@@ -29,10 +29,10 @@ namespace
     public:
         void SetShouldSend(bool shouldSend) { m_shouldSend = shouldSend; }
         bool ShouldSend() { return m_shouldSend; }
-        void SetSendValidation(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
+        void SetSendValidation(std::function<void(evt_http_request*)> fn) { m_validateSendFn = fn; }
         void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
 
-        void OnSend(http_request_t* request)
+        void OnSend(evt_http_request* request)
         {
             if (m_validateSendFn)
                 m_validateSendFn(request);
@@ -45,7 +45,7 @@ namespace
         }
 
     private:
-        std::function<void(http_request_t*)> m_validateSendFn;
+        std::function<void(evt_http_request*)> m_validateSendFn;
         std::function<void(const char*)> m_validateCancelFn;
         bool m_shouldSend = false;
     };
@@ -72,7 +72,7 @@ namespace
     };
 } // namespace
 
-void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t callback)
+void EVTSDK_LIBABI_CDECL OnHttpSend(evt_http_request* request, evt_http_complete_fn callback)
 {
     s_testHelper->OnSend(request);
 
@@ -80,10 +80,10 @@ void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t 
     {
         // Construct simple test response
         uint8_t body[] = {'y', 'e', 's'};
-        http_header_t header;
+        evt_http_header header;
         header.name = "response_key1";
         header.value = "response_value1";
-        http_response_t response;
+        evt_http_response response;
         response.statusCode = 200;
         response.body = body;
         response.bodySize = 3;
@@ -117,7 +117,7 @@ TEST(HttpClientCAPITests, SendAsync)
 
     // Validate C++ -> C transformation of request
     bool wasSent = false;
-    testHelper->SetSendValidation([&wasSent](http_request_t* request) {
+    testHelper->SetSendValidation([&wasSent](evt_http_request* request) {
         wasSent = true;
         EXPECT_EQ(request->type, HTTP_REQUEST_TYPE_POST);
         EXPECT_EQ(string(request->url), string("https://www.microsoft.com"));
@@ -199,7 +199,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
 
     // Validate C++ -> C transformation of request
     bool wasSent = false;
-    testHelper->SetSendValidation([&wasSent](http_request_t* request) {
+    testHelper->SetSendValidation([&wasSent](evt_http_request* request) {
         wasSent = true;
         EXPECT_EQ(request->type, HTTP_REQUEST_TYPE_GET);
         EXPECT_EQ(request->url, string("https://www.microsoft.com"));

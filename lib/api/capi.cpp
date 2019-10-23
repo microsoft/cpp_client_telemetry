@@ -66,11 +66,11 @@ void remove_client(evt_handle_t handle)
 evt_status_t mat_open_core(
     evt_context_t *ctx,
     const char* config,
-    http_send_fn_t httpSendFn,
-    http_cancel_fn_t httpCancelFn,
-    task_dispatcher_queue_fn_t taskDispatcherQueueFn,
-    task_dispatcher_cancel_fn_t taskDispatcherCancelFn,
-    task_dispatcher_join_fn_t taskDispatcherJoinFn)
+    evt_http_send_fn httpSendFn,
+    evt_http_cancel_fn httpCancelFn,
+    evt_task_dispatcher_queue_fn taskDispatcherQueueFn,
+    evt_task_dispatcher_cancel_fn taskDispatcherCancelFn,
+    evt_task_dispatcher_join_fn taskDispatcherJoinFn)
 {
     if ((config == nullptr) || (config[0] == 0))
     {
@@ -196,29 +196,29 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
         return EFAULT;
     }
 
-    http_send_fn_t httpSendFn = nullptr;
-    http_cancel_fn_t httpCancelFn = nullptr;
-    task_dispatcher_queue_fn_t taskDispatcherQueueFn = nullptr;
-    task_dispatcher_cancel_fn_t taskDispatcherCancelFn = nullptr;
-    task_dispatcher_join_fn_t taskDispatcherJoinFn = nullptr;
+    evt_http_send_fn httpSendFn = nullptr;
+    evt_http_cancel_fn httpCancelFn = nullptr;
+    evt_task_dispatcher_queue_fn taskDispatcherQueueFn = nullptr;
+    evt_task_dispatcher_cancel_fn taskDispatcherCancelFn = nullptr;
+    evt_task_dispatcher_join_fn taskDispatcherJoinFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
         const evt_open_param_t& param = data->params[i];
         switch (param.type) {
             case OPEN_PARAM_TYPE_HTTP_HANDLER_SEND:
-                httpSendFn = reinterpret_cast<http_send_fn_t>(param.data);
+                httpSendFn = reinterpret_cast<evt_http_send_fn>(param.data);
                 break;
             case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
-                httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
+                httpCancelFn = reinterpret_cast<evt_http_cancel_fn>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_QUEUE:
-                taskDispatcherQueueFn = reinterpret_cast<task_dispatcher_queue_fn_t>(param.data);
+                taskDispatcherQueueFn = reinterpret_cast<evt_task_dispatcher_queue_fn>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_CANCEL:
-                taskDispatcherCancelFn = reinterpret_cast<task_dispatcher_cancel_fn_t>(param.data);
+                taskDispatcherCancelFn = reinterpret_cast<evt_task_dispatcher_cancel_fn>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_JOIN:
-                taskDispatcherJoinFn = reinterpret_cast<task_dispatcher_join_fn_t>(param.data);
+                taskDispatcherJoinFn = reinterpret_cast<evt_task_dispatcher_join_fn>(param.data);
                 break;
         }
     }
