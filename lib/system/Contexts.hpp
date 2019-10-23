@@ -17,7 +17,8 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    static std::unique_ptr<ISplicer> GetSplicerForType(ISplicer::Type splicerType)
+    static std::unique_ptr<ISplicer>
+    GetSplicerForType(ISplicer::Type splicerType)
     {
         switch (splicerType)
         {
@@ -56,7 +57,8 @@ namespace ARIASDK_NS_BEGIN
     {
        public:
         // Track # of outstanding EventUploadContext objects
-        long objCount(long delta = 0)
+        long
+        objCount(long delta = 0)
         {
             static std::atomic<long> seq(0);
             seq += delta;
@@ -66,7 +68,8 @@ namespace ARIASDK_NS_BEGIN
         /**
          * Release unmanaged pointers associated with EventsUploadContext
          */
-        void clear()
+        void
+        clear()
         {
 #ifndef _WIN32  // FIXME: [MG] - confirm that this behaviour is correct
             if (httpRequest != nullptr)
@@ -113,7 +116,16 @@ namespace ARIASDK_NS_BEGIN
         int durationMs = -1;
         bool fromMemory;
 
-        EventsUploadContext(ISplicer::Type splicerType = ISplicer::Type::CSBond) : httpRequest(nullptr), httpResponse(nullptr), fromMemory(false), splicer(GetSplicerForType(splicerType)) { objCount(+1); }
+        // clang-format off
+        EventsUploadContext(ISplicer::Type splicerType = ISplicer::Type::CSBond) :
+            httpRequest(nullptr),
+            httpResponse(nullptr),
+            fromMemory(false),
+            splicer(GetSplicerForType(splicerType))
+        {
+            objCount(+1);
+        }
+        // clang-format on
 
         virtual ~EventsUploadContext()
         {
