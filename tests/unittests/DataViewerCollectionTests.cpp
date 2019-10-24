@@ -81,7 +81,7 @@ TEST(DataViewerCollectionTests, RegisterViewer_MultiplesharedDataViewersRegister
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer3));
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer4));
 
-    ASSERT_EQ(dataViewerCollection.GetCollection().size(), 4);
+    ASSERT_EQ(dataViewerCollection.GetCollection().size(), size_t { 4 });
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled(viewer1->GetName()));
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled(viewer2->GetName()));
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled(viewer3->GetName()));
