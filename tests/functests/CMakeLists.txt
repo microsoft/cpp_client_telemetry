@@ -14,7 +14,11 @@ set(SRCS
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-add_executable(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
+if(BUILD_IOS)
+  add_library(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
+else()
+  add_executable(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
+endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
@@ -51,7 +55,10 @@ else()
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
+    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework SystemConfiguration -framework Foundation")
+    if(BUILD_IOS)
+      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit")
+    endif()
   endif()
 
   # Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
