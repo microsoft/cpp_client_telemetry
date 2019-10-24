@@ -29,4 +29,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
         run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.config }}
-        shell: cmd
+
