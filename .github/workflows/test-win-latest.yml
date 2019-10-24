@@ -28,4 +28,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
-      run: ${GITHUB_WORKSPACE}/build-tests.bat ${{ matrix.arch }} ${{ matrix.config }}
+        run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.config }}
+        shell: cmd
