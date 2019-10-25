@@ -19,18 +19,22 @@ to clone the repo. If your project requires UTC to send telemetry, you need to a
 
 ## **Build the SDK from source using Visual Studio 2017**
 
-* Navigate to the folder where the SDK was cloned and open the cpp_client_telemetry/Solutions folder.
-* Open the MSTelemetrySDK.sln file to open the project with Visual Studio.
-* You can use batch build all to build all solutions
-* Alternatively build from command line using *build-all.bat* conveniently located at build root
+* Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
+* Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
 
 If your build fails, then you most likely missing the following optional Visual Studio components:
 - ATL support
 - ARM64 support
 - Spectre mitigation libraries
-- specific version of Windows 10 SDK referenced by the project(s)
 
-Make sure you install all of these optional Visual Studio components, as these are required for the SDK to build successfully. If you are using GitHub Actions infrastructure to build your project, then all of these are available by default as part of stock GitHub Actions deployment.
+Make sure you install all of these above optional Visual Studio components, as these are required for the SDK to build all SDK SKUs successfully. If you are using GitHub Actions infrastructure to build your project, then all of these optional components are available by default as part of stock GitHub Actions deployment.
+
+Specific version of Windows 10 SDK is referenced by the project(s). You will need to install that exact version of Windows 10 SDK, but you may also manually upgrade all projects to current latest version of Windows 10 SDK for your local build. SDK may periodically update its Windows 10 SDK dependency from time to time. Your responsibility is to decide what Windows 10 SDK you need to use for shipping 1DS C++ SDK build from source.
+
+See:
+- [How to add optional components in Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/modify-visual-studio?view=vs-2017)
+- [Download Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
+
 
 ## **Windows prerequisites and dependencies for building from source using LLVM compiler**
 
