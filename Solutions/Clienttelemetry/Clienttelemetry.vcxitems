@@ -120,6 +120,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CompliantByDefaultFilterApi.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ctmacros.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CorrelationVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\DebugEvents.hpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IBandwidthController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IECSClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp" />

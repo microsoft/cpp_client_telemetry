@@ -605,6 +605,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

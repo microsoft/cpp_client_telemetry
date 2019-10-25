@@ -11,7 +11,7 @@
 #include "api/LogManagerImpl.hpp"
 
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 #include "LogManager.hpp"
 
@@ -247,7 +247,8 @@ public:
                 {
                     if (index + 2 < length)
                     {
-                        if (test[index + 1] == '3' && test[index + 2] == '.')
+                        // Search for Version marker in Bond stream
+                        if (test[index + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[index + 2] == '.')
                         {
                             found = true;
                             break;

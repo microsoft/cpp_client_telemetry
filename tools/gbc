@@ -1,0 +1,16 @@
+#!/bin/sh
+which wine >/dev/null
+if [ $? -eq 0 ]; then
+wine $(dirname $0)/gbc.exe "$@"
+else
+echo "##########################################################"
+echo "# Please install wine (Windows Emulator) to run gbc.exe  #"
+echo "#                                                        #"
+echo "# Mac OS X:                                              #"
+echo "# > brew install wine                                    #"
+echo "#                                                        #"
+echo "# Linux:                                                 #"
+echo "# > apt-get install wine                                 #"
+echo "#                                                        #"
+echo "##########################################################"
+fi

@@ -5,7 +5,7 @@
 #include "utils/Utils.hpp"
 #include "packager/Packager.hpp"
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
 using namespace testing;
