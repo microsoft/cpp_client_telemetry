@@ -28,7 +28,7 @@ namespace PAL_NS_BEGIN {
                 Task(),
                 m_call(call)
             {
-                this->TypeName = __typename(call);
+                this->TypeName = TYPENAME(call);
                 this->Type = Task::Call;
                 this->TargetTime = -1;
             }
@@ -37,7 +37,7 @@ namespace PAL_NS_BEGIN {
                 Task(),
                 m_call(call)
             {
-                this->TypeName = __typename(call);
+                this->TypeName = TYPENAME(call);
                 this->Type = Task::TimedCall;
                 this->TargetTime = targetTime;
             }

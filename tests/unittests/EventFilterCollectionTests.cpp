@@ -34,7 +34,7 @@ public:
 TEST(EventFilterCollectionTests, Constructor_DefaultConstructed_NoRegisteredFilters)
 {
     TestEventFilterCollection collection;
-    EXPECT_EQ(collection.m_filters.size(), 0);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, RegisterEventFilter_NullptrFilter_ThrowsArgumentException)
@@ -47,7 +47,7 @@ TEST(EventFilterCollectionTests, RegisterEventFilter_ValidFilter_FilterSizeIsOne
 {
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
-    EXPECT_EQ(collection.m_filters.size(), 1);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
 }
 
 TEST(EventFilterCollectionTests, RegisterEventFilter_TwoValidFiltersWithTheSameName_FilterSizeIsTwo)
@@ -55,7 +55,7 @@ TEST(EventFilterCollectionTests, RegisterEventFilter_TwoValidFiltersWithTheSameN
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
-    EXPECT_EQ(collection.m_filters.size(), 2);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 2 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_NullptrName_ThrowsArgumentException)
@@ -69,7 +69,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameNotRegistered_Do
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter("NotTheDroidsYoureLookingFor");
-    EXPECT_EQ(collection.m_filters.size(), 1);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegistered_ModifiesCollection)
@@ -77,7 +77,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegistered_Modif
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter(DefaultTestEventFilterName);
-    EXPECT_EQ(collection.m_filters.size(), 0);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegisteredTwice_RemovesBoth)
@@ -86,7 +86,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegisteredTwice_
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter(DefaultTestEventFilterName);
-    EXPECT_EQ(collection.m_filters.size(), 0);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_TwoDifferentlyNamedFilters_RemovesOne)
@@ -95,7 +95,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_TwoDifferentlyNamedFilter
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("One")));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("Two")));
     collection.UnregisterEventFilter("One");
-    EXPECT_EQ(collection.m_filters.size(), 1);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
     EXPECT_EQ(strcmp(collection.m_filters[0]->GetName(), "Two"), 0);
 }
 
@@ -104,7 +104,7 @@ TEST(EventFilterCollectionTests, UnregisterAllFilters_OneRegistered_ModifiesColl
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterAllFilters();
-    EXPECT_EQ(collection.m_filters.size(), 0);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterAllFilters_TwoRegistered_RemovesBoth)
@@ -113,7 +113,7 @@ TEST(EventFilterCollectionTests, UnregisterAllFilters_TwoRegistered_RemovesBoth)
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("One")));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("Two")));
     collection.UnregisterAllFilters();
-    EXPECT_EQ(collection.m_filters.size(), 0);
+    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_ZeroRegisteredFilters_ReturnsTrue)

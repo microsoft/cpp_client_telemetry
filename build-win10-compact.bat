@@ -1,4 +1,5 @@
 @echo off
+cd %~dp0
 REM
 REM Build 'compact' Win 10 SDK for UTC mode :
 REM * exclude built-in SQLite

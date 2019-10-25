@@ -77,7 +77,7 @@ GNUmakefile             text
 *.pbxproj               -text diff -merge
 
 ## Resource files and UI design descriptions
-*.rc                    text
+*.rc                    text eol=crlf
 
 ## Diff/patch files
 *.diff                  text diff -merge

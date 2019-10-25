@@ -8,3 +8,6 @@ set -e
 
 cd tests/unittests
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,name=$SIMULATOR"
+
+cd ../functests
+xcodebuild test -scheme iOSFuncTests -destination "platform=iOS Simulator,name=$SIMULATOR"

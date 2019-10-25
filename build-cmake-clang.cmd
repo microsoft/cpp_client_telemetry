@@ -1,4 +1,5 @@
 @echo off
+cd %~dp0
 setlocal enableextensions
 setlocal enabledelayedexpansion
 set ROOT=%~dp0
