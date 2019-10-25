@@ -25,10 +25,8 @@ namespace ARIASDK_NS_BEGIN {
     class EventPropertiesDecorator : public IDecorator
     {
     protected:
-
-    class EventPropertiesDecorator : public DecoratorBase
-    {
         std::string randomLocalId;
+
         ILogManager& m_owner;
         bool decorate(::CsProtocol::Record&) override
         {
@@ -36,7 +34,6 @@ namespace ARIASDK_NS_BEGIN {
         }
 
     public:
-
         EventPropertiesDecorator(ILogManager& owner) :
             m_owner(owner)
         {
