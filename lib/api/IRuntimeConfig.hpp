@@ -4,28 +4,27 @@
 
 #include "Version.hpp"
 
-#include "ILogger.hpp"
 #include "ILogConfiguration.hpp"
+#include "ILogger.hpp"
 
-#include <string>
 #include <map>
+#include <string>
 
 namespace ARIASDK_NS_BEGIN
 {
     ///@cond INTERNAL_DOCS
 
-    class IRuntimeConfig {
-
-    public:
-
-        virtual Variant & operator[](const char* key) = 0;
+    class IRuntimeConfig
+    {
+       public:
+        virtual Variant& operator[](const char* key) = 0;
         virtual bool HasConfig(const char* key) = 0;
 
         /// <summary>
         /// Gets the URI of the collector (where telemetry events are sent).
         /// </summary>
         /// <remarks>
-        /// <b>Note:</b> Since this method is called for every event, 
+        /// <b>Note:</b> Since this method is called for every event,
         /// you can change the URI dynamically.
         /// </remarks>
         /// <returns>A string that contains the collector URI.</returns>
@@ -75,7 +74,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the maximum size of the offline storage file. You can use this to trigger file trimming.
         /// See also <see cref="GetOfflineStorageResizeThresholdPct"/>.
         /// </summary>
-         /// <returns>An unsigned integer that contains the size, in bytes.</returns>
+        /// <returns>An unsigned integer that contains the size, in bytes.</returns>
         virtual unsigned GetOfflineStorageMaximumSizeBytes() = 0;
 
         /// <summary>
@@ -83,18 +82,18 @@ namespace ARIASDK_NS_BEGIN
         /// See also <see cref="GetOfflineStorageMaximumSizeBytes"/>.
         /// </summary>
         /// <remarks>
-        /// The top <i>N</i> percent of events is sorted by priority, 
+        /// The top <i>N</i> percent of events is sorted by priority,
         /// and then by the timestamp of events that will be dropped.
         /// </remarks>
         /// <returns>An unsigned integer that contains the percentage of events that will be dropped.</returns>
         virtual unsigned GetOfflineStorageResizeThresholdPct() = 0;
 
         /// <summary>
-        /// Gets the maximum number of retries after which an event that failed to be uploaded, 
+        /// Gets the maximum number of retries after which an event that failed to be uploaded,
         /// is discarded.
         /// </summary>
         /// <remarks>
-        /// This method is called each time an event fails to be uploaded 
+        /// This method is called each time an event fails to be uploaded
         /// (except if the failure was the result of an Internet connectivity problem).
         /// </remarks>
         /// <returns>An unsigned integer that contains the maximum number of retries.</returns>
@@ -113,7 +112,7 @@ namespace ARIASDK_NS_BEGIN
         ///
         ///     E,<initialDelayMs>,<maximumDelayMs>,<multiplier>,<jitter>
         ///
-        /// where the delays are integers (in milliseconds), and the multiplier and jitter 
+        /// where the delays are integers (in milliseconds), and the multiplier and jitter
         /// values are floating-points.
         /// </remarks>
         /// <returns>A string that contains the backoff configuration.</returns>
@@ -123,7 +122,7 @@ namespace ARIASDK_NS_BEGIN
         /// Determines whether the compression of HTTP requests is enabled.
         /// </summary>
         /// <remarks>
-        /// This method is called every time packaged events are sent, and therefore, 
+        /// This method is called every time packaged events are sent, and therefore,
         /// you can enable/disable compression dynamically.
         /// </remarks>
         /// <returns>A boolean value that indicates that either compression is enabled (<i>true</i>), or not (<i>false</i>).</returns>
@@ -134,7 +133,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <remarks>
         /// The returned value is used only if the
-        /// telemetry library is configured to use a 
+        /// telemetry library is configured to use a
         /// <see cref="IBandwidthController"/> implementation. This method is called
         /// each time an upload is prepared.
         /// </remarks>
@@ -165,8 +164,7 @@ namespace ARIASDK_NS_BEGIN
         /// </remarks>
         /// <param name="tenantId">Tenant ID for the specified event; note that it
         /// is not a tenant token</param>
-        /// <param name="eventName">Specific event name as used in
-        /// EventProperties</param>
+        /// <param name="eventName">Specific event name as used in EventProperties</param>
         virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) = 0;
 
         /// <summary>
@@ -183,10 +181,11 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
 
-        virtual ~IRuntimeConfig() {};
+        virtual ~IRuntimeConfig(){};
     };
 
     /// @endcond
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 #endif
