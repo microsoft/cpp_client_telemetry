@@ -395,3 +395,7 @@ zlib/contrib/vstudio/vc14/x64/
 # Mac OS X generated files
 .DS_Store
 **/.DS_Store
+
+# Xcode generated files
+*.xcworkspacedata
+*.xcuserstate
