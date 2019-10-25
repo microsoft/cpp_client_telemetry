@@ -5,7 +5,7 @@
 #include "pal/PAL.hpp"
 
 #include "utils/Utils.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <cstddef>
 
