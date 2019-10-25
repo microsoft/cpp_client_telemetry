@@ -9,7 +9,7 @@ This tutorial guides you through the process of integrating the 1DS C++ SDK into
 
 to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` while cloning to tell git to add `lib/modules` repo that contains various proprietary Microsoft modules, including Universal Telemetry Client support.
 
-2. You will be asked your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
+2. You will be asked for your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
 
 ## **Windows prerequisites and dependencies for building from source using Visual Studio 2017**
 
