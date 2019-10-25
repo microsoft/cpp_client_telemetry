@@ -234,6 +234,10 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
 
+    /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
 
 #ifdef _MSC_VER
 #pragma warning( push )

@@ -59,5 +59,5 @@ namespace ARIASDK_NS_BEGIN
         m_overheadEstimate = 0;
     }
 
-}  // namespace ARIASDK_NS_BEGIN
+}
 ARIASDK_NS_END
