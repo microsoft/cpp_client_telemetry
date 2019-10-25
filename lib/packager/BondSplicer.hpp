@@ -24,6 +24,6 @@ namespace ARIASDK_NS_BEGIN
         virtual void clear() override;
     };
 
-}  // namespace ARIASDK_NS_BEGIN
+}
 ARIASDK_NS_END
 #endif
