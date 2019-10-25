@@ -24,7 +24,9 @@ __inline static std::string demangle(const char* name) {
 #define TYPENAME(t)   typeid(t).name()
 #define HAS_RTTI 1
 #else
-#define __typename(t)   "" /* Unknown */
+/* No RTTI support */
+#define TYPENAME(t)   ""
+#define HAS_RTTI 0
 #endif
 
 #endif
