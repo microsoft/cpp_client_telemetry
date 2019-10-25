@@ -104,7 +104,7 @@ void EVTSDK_LIBABI_CDECL OnTaskDispatcherJoin()
 void CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task_t* task) noexcept
 {
    std::string typeName { task->typeName };
-#ifdef HAS_RTTI
+#if HAS_RTTI
    EXPECT_TRUE(typeName.find("TestHelper") != string::npos);
 #else
    EXPECT_TRUE(typeName.empty());
