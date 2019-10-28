@@ -6,7 +6,6 @@
 #if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 
 #include "Version.hpp"
-#include "HttpClient.hpp"
 
 #include <memory>
 
@@ -15,171 +14,124 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    HttpClientCurl curlClient;
-
-    static void DebugPrint(SimpleHttpRequest* request)
-    {
-        LOG_TRACE(">>> %s %s", request->m_method.c_str(), request->m_url.c_str());
-        LOG_TRACE(">>> HEADERS:");
-        for (auto &h : request->m_headers) {
-            LOG_TRACE(">>> %s: %s", h.first.c_str(), h.second.c_str());
-        }
-    }
-
     static std::string NextReqId() {
         static std::atomic<uint64_t> seq(0);
         return std::string("REQ-") + std::to_string(seq.fetch_add(1));
     }
 
-    static std::string NextRespId() {
-        static std::atomic<uint64_t> seq(0);
-        return std::string("RESP-") + std::to_string(seq.fetch_add(1));
-    }
-
-    /**
-     * curl request wrapper compatible with telemetry SDK
-     */
-    class CurlHttpRequest : public SimpleHttpRequest {
-
+    class CurlHttpRequest : public SimpleHttpRequest
+    {
     public:
+        CurlHttpRequest() : SimpleHttpRequest(NextReqId()) { }
 
-        HttpClient             *parent;
-        HttpRequestCurl        *request;    // real curl request
-        SimpleHttpResponse      response;
-        IHttpResponseCallback  *callback;
-
-        CurlHttpRequest(HttpClient* parent) :
-            SimpleHttpRequest(NextReqId()),
-            response(NextRespId()),
-            parent(parent)
+        void SetOperation(const std::shared_ptr<CurlHttpOperation>& curlOperation)
         {
-            request = nullptr;
-            callback = nullptr;
-            parent->add( (IHttpRequest *)this );
+            m_curlOperation = curlOperation;
         }
 
-        void clean()
+        void Cancel()
         {
-            if (request != nullptr)
-            {
-                LOG_TRACE("clean curl=%p", request);
-                delete request;
-                request = nullptr;
+            if (m_curlOperation != nullptr) {
+                m_curlOperation->Abort();
             }
         }
 
-        virtual ~CurlHttpRequest()
-        {
-            LOG_TRACE("~CurlHttpRequest=%p, curl=%p", this, request);
-            clean();
-            // Stop tracking this request in request-response map
-            parent->erase((IHttpRequest *)this);
-        }
-
-        CURLcode OnCurlStateEvent(HttpStateEvent state, HttpRequestCurl& curl)
-        {
-            callback->OnHttpStateEvent(state, (void*)(curl.GetHandle()), 0);
-            return CURLE_OK;
-        }
-
-        /**
-         * Send async HTTP request and invoke callback on completion
-         */
-        void SendAsync(IHttpResponseCallback* callback) {
-            std::map<std::string, std::string> headers;
-
-            for (auto &kv : m_headers)
-                headers[kv.first] = kv.second;
-
-            this->callback = callback;
-            request = new HttpRequestCurl(m_method, m_url, headers, m_body,
-                // Wire HttpRequestCurl callback to higher-level supplied callback
-                [&](HttpStateEvent ev, HttpRequestCurl& obj)
-                {
-                    return this->OnCurlStateEvent(ev, obj);
-                }
-            );
-
-            response.m_result = HttpResult_OK;
-
-            if (request!=nullptr) {
-                request->SendAsync([this, callback](HttpRequestCurl& req) -> void {
-                    response.m_result = HttpResult_OK;
-
-                    response.m_statusCode = request->GetResponseCode();
-                    if (response.m_statusCode == CURLE_FAILED_INIT) {
-                        // There was an error in CURL stack while trying to create request
-                        response.m_result = HttpResult_LocalFailure;
-                    } else
-                    if ((CURLE_OK<response.m_statusCode)&&(response.m_statusCode<=CURL_LAST)) {
-                        // There was an error in CURL stack while trying to connect
-                        response.m_result = HttpResult_NetworkFailure;
-                    }
-                    auto responseHeaders = request->GetResponseHeaders();
-                    response.m_headers.insert(responseHeaders.begin(), responseHeaders.end());
-                    response.m_body = request->GetResponseBody();
-                    // OnHttpResponse is sync on Linux here cause the outside wrapper is async
-                    callback->OnHttpResponse(&response);
-                });
-            };
-        }
-
-        /**
-         * Abort outstanding HTTP request
-         */
-        void Abort() {
-            if (request!=nullptr) {
-                // Signal abort
-                response.m_result = HttpResult_Aborted;
-                request->Abort();
-                // TODO: should we invoke callback? Probably not.
-                // callback->OnHttpResponse(&response);
-            }
-            clean();
-        }
+    private:
+        std::shared_ptr<CurlHttpOperation> m_curlOperation;
     };
 
-    HttpClient::HttpClient()
+    HttpClient_Curl::HttpClient_Curl()
     {
-        LOG_TRACE("Initializing HttpStack...");
+        /* In windows, this will init the winsock stuff */
+        TRACE("Initializing HttpClient_Curl...\n");
+        curl_global_init(CURL_GLOBAL_ALL);
+        TRACE("libcurl version = %s\n", curl_version_info(CURLVERSION_NOW)->version);
     }
 
-    HttpClient::~HttpClient()
+    HttpClient_Curl::~HttpClient_Curl()
     {
-        LOG_TRACE("Shutting down HttpStack...");
+        curl_global_cleanup();
+        TRACE("Destroyed HttpClient_Curl.\n");
+    };
+
+    IHttpRequest* HttpClient_Curl::CreateRequest()
+    {
+        return new CurlHttpRequest();
     }
 
-    IHttpRequest* HttpClient::CreateRequest()
+    void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        CurlHttpRequest *result = new CurlHttpRequest(this);
-        LOG_TRACE("HTTP request=%p id=%s created", result, result->GetId().c_str());
-        return result;
+        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        AddRequest(request);
+        auto curlRequest = static_cast<CurlHttpRequest*>(request);
+
+        std::string requestId = curlRequest->GetId();
+        std::map<std::string, std::string> requestHeaders;
+        for (const auto& header : curlRequest->m_headers) {
+            requestHeaders[header.first] = header.second;
+        }
+
+        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, requestHeaders, curlRequest->m_body);
+        curlRequest->SetOperation(curlOperation);
+
+        // Hold on to 'curlOperation' in lambda to ensure its lifetime until operation completes
+        curlOperation->SendAsync([this, curlOperation, callback, requestId](CurlHttpOperation& operation) {
+            this->EraseRequest(requestId);
+
+            auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));
+            response->m_result = HttpResult_OK;
+
+            response->m_statusCode = operation.GetResponseCode();
+            if (response->m_statusCode == CURLE_FAILED_INIT) {
+                // There was an error in CURL stack while trying to create request
+                response->m_result = HttpResult_LocalFailure;
+            } else if ((CURLE_OK < response->m_statusCode) && (response->m_statusCode <= CURL_LAST)) {
+                if (operation.WasAborted()) {
+                    // Operation was manually aborted
+                    response->m_result = HttpResult_Aborted;
+                } else {
+                    // There was an error in CURL stack while trying to connect
+                    response->m_result = HttpResult_NetworkFailure;
+                }
+            }
+
+            auto responseHeaders = operation.GetResponseHeaders();
+            response->m_headers.insert(responseHeaders.begin(), responseHeaders.end());
+            response->m_body = operation.GetResponseBody();
+            
+            // 'response' is no longer owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+            callback->OnHttpResponse(response.release());
+        });
     }
 
-    void HttpClient::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+    void HttpClient_Curl::CancelRequestAsync(std::string const& id)
     {
-        CurlHttpRequest* req = dynamic_cast<CurlHttpRequest*>(request);
-        DebugPrint(req);
-        req->SendAsync(callback);
-        LOG_TRACE("HTTP request=%p callback=%p sent", request, callback);
-    }
-
-    void HttpClient::CancelRequestAsync(std::string const& id)
-    {
-        CurlHttpRequest * req = nullptr;
-        {   // Hold the lock while iterating over the list of requests
-            std::lock_guard<std::mutex> lock(m_request_mtx);
-            if (m_requests.find(id) != m_requests.cend())
-            {
-                req = dynamic_cast<CurlHttpRequest *>(m_requests[id]);
-                LOG_TRACE("HTTP request=%p id=%s being aborted...", req, id.c_str());
+        CurlHttpRequest* request = nullptr;
+        {
+            // Hold the lock only while iterating over the list of requests
+            std::lock_guard<std::mutex> lock(m_requestsMtx);
+            if (m_requests.find(id) != m_requests.cend()) {
+                request = static_cast<CurlHttpRequest*>(m_requests[id]);
+                LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
                 m_requests.erase(id);
             }
-            if (req != nullptr)
-            {
-                req->Abort();
-            }
         }
+
+        if (request != nullptr) {
+            request->Cancel();
+        }
+    }
+
+    void HttpClient_Curl::EraseRequest(std::string const& id)
+    {
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
+        m_requests.erase(id);
+    }
+
+    void HttpClient_Curl::AddRequest(IHttpRequest* request)
+    {
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
+        m_requests[request->GetId()] = request;
     }
 
 } ARIASDK_NS_END
