@@ -59,11 +59,10 @@ private:
 class CurlHttpOperation {
 public:
 
-    std::function<CURLcode(HttpStateEvent, HttpRequestCurl&)> OnEventCallback;
-
-    CURLcode DispatchEvent(HttpStateEvent type)
+    void DispatchEvent(HttpStateEvent type)
     {
-        return OnEventCallback(type, *this);
+        if(m_callback != nullptr)
+            m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
     }
 
     std::atomic<bool>   isAborted;      // Set to 'true' when async callback is aborted
@@ -79,6 +78,7 @@ public:
     CurlHttpOperation(
             std::string method,
             std::string url,
+            IHttpResponseCallback* callback,
             // Default empty headers and empty request body
             const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
             const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
@@ -90,6 +90,7 @@ public:
             //
             m_method(method),
             m_url(url),
+            m_callback(callback),
 
             // Local vars
             requestHeaders(requestHeaders),
@@ -161,7 +162,8 @@ public:
         {
             result.wait();
         }
-        res = DispatchEvent(OnDestroy);
+        DispatchEvent(OnDestroy);
+        res = CURLE_OK;
         curl_easy_cleanup(curl);
         ReleaseResponse();
     }
@@ -406,6 +408,8 @@ protected:
 
     CURL *curl;                     // Local curl instance
     CURLcode res;                   // Curl result OR HTTP status code if successful
+    
+    IHttpResponseCallback* m_callback = nullptr;
 
     // Request values
     std::string m_method;
