@@ -71,7 +71,7 @@ namespace ARIASDK_NS_BEGIN {
             requestHeaders[header.first] = header.second;
         }
 
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, requestHeaders, curlRequest->m_body);
+        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body);
         curlRequest->SetOperation(curlOperation);
 
         // Hold on to 'curlOperation' in lambda to ensure its lifetime until operation completes
