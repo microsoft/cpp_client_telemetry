@@ -35,7 +35,15 @@ namespace PAL_NS_BEGIN {
         m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor)
             + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
 
-        m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
+        try
+        {
+            m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
+        }
+        catch (Exception^)
+        {
+            // This can throw AccessDeniedException on Windows 10 v17134.
+        }
+
         m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
 
         try
