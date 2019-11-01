@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
     protected:
         HttpClient_WinRt&      m_parent;
         SimpleHttpRequest*     m_request;
-        const std::string&     m_id;
+        const std::string      m_id;
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
         HttpResponseMessage^   m_httpResponseMessage;
