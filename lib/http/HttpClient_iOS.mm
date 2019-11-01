@@ -80,13 +80,14 @@ public:
     void HandleResponse(NSData* data, NSURLResponse* response, NSError* error)
     {
         NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
+        auto simpleResponse = new SimpleHttpResponse { NextRespId() };
 
-        m_response.m_statusCode = httpResp.statusCode;
+        simpleResponse->m_statusCode = httpResp.statusCode;
 
         NSDictionary *responseHeaders = [httpResp allHeaderFields];
         for (id key in responseHeaders)
         {
-            m_response.m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
+            simpleResponse->m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
         }
 
         if (error)
@@ -96,22 +97,22 @@ public:
 
             if ([errorDomain isEqualToString:@"NSURLErrorDomain"] && (errorCode == NSURLErrorCancelled))
             {
-                m_response.m_result = HttpResult_Aborted;
+                simpleResponse->m_result = HttpResult_Aborted;
             }
             else
             {
                 LOG_TRACE("HTTP response error code: %l", errorCode);
-                m_response.m_result = HttpResult_NetworkFailure;
+                simpleResponse->m_result = HttpResult_NetworkFailure;
             }
         }
         else
         {
-            m_response.m_result = HttpResult_OK;
+            simpleResponse->m_result = HttpResult_OK;
             auto body = static_cast<const uint8_t*>([data bytes]);
-            m_response.m_body.reserve(data.length);
-            std::copy(body, body + data.length, std::back_inserter(m_response.m_body));
+            simpleResponse->m_body.reserve(data.length);
+            std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
         }
-        m_callback->OnHttpResponse(&m_response);
+        m_callback->OnHttpResponse(simpleResponse);
     }
 
     void Cancel()
@@ -138,7 +139,6 @@ public:
 
 private:
     HttpClient_iOS* m_parent = nullptr;
-    SimpleHttpResponse m_response { NextRespId() };
     IHttpResponseCallback* m_callback = nullptr;
     NSURLSession* m_session = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
@@ -151,7 +151,7 @@ HttpClient_iOS::HttpClient_iOS()
     LOG_TRACE("Initializing HttpClient_iOS...");
 }
 
-HttpClient_iOS::~HttpClient_iOS()
+HttpClient_iOS::~HttpClient_iOS() noexcept
 {
     LOG_TRACE("Shutting down HttpClient_iOS...");
 }
@@ -185,6 +185,26 @@ void HttpClient_iOS::CancelRequestAsync(const std::string& id)
             }
             m_requests.erase(id);
         }
+    }
+}
+
+void HttpClient_iOS::CancelAllRequests()
+{
+    std::vector<std::string> ids;
+    {
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
+        for (auto const& item : m_requests) {
+            ids.push_back(item.first);
+        }
+    }
+
+    for (const auto &id : ids)
+        CancelRequestAsync(id);
+
+    while (!m_requests.empty())
+    {
+        PAL::sleep(100);
+        std::this_thread::yield();
     }
 }
 
