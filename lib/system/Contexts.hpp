@@ -65,20 +65,14 @@ namespace ARIASDK_NS_BEGIN {
         */
         void clear()
         {
-#ifndef _WIN32  // FIXME: [MG] - confirm that this behaviour is correct
             if (httpRequest != nullptr) {
                 delete httpRequest;
                 httpRequest = nullptr;
             }
-            /* Note that httpResponse is released by httpRequest destructor */
-#else
-            //httpRequest gets deleted in the SendRequestAsync of WinInt and WinRt
             if (httpResponse != nullptr) {
                 delete httpResponse;
                 httpResponse = nullptr;
             }
-
-#endif
         }
 
         // Retrieving
