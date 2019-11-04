@@ -13,8 +13,8 @@
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
-  #if defined(IOS_HTTP)
-    #include "http/HttpClient_iOS.hpp"
+  #if defined(APPLE_HTTP)
+    #include "http/HttpClient_Apple.hpp"
   #else
     #include "http/HttpClient_Curl.hpp"
   #endif
@@ -41,10 +41,10 @@ namespace ARIASDK_NS_BEGIN {
 
 #endif
 #elif defined(MATSDK_PAL_CPP11)
-#if defined(IOS_HTTP)
+#if defined(APPLE_HTTP)
     IHttpClient* HttpClientFactory::Create() {
-        LOG_TRACE("Creating HttpClient_iOS");
-        return new HttpClient_iOS();
+        LOG_TRACE("Creating HttpClient_Apple");
+        return new HttpClient_Apple();
     }
 #else
     IHttpClient* HttpClientFactory::Create() {

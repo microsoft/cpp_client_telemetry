@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <CFNetwork/CFNetwork.h>
 
-#include "HttpClient_iOS.hpp"
+#include "HttpClient_Apple.hpp"
 #include "Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
@@ -25,17 +25,17 @@ static std::string NextRespId()
     return std::string("RESP-") + std::to_string(seq.fetch_add(1));
 }
 
-class HttpRequestIos : public SimpleHttpRequest
+class HttpRequestApple : public SimpleHttpRequest
 {
 public:
-    HttpRequestIos(HttpClient_iOS* parent) :
+    HttpRequestApple(HttpClient_Apple* parent) :
         SimpleHttpRequest(NextReqId()),
         m_parent(parent)
     {
         m_parent->Add(static_cast<IHttpRequest*>(this));
     }
 
-    ~HttpRequestIos() noexcept
+    ~HttpRequestApple() noexcept
     {
         m_parent->Erase(static_cast<IHttpRequest*>(this));
     }
@@ -138,7 +138,7 @@ public:
     }
 
 private:
-    HttpClient_iOS* m_parent = nullptr;
+    HttpClient_Apple* m_parent = nullptr;
     IHttpResponseCallback* m_callback = nullptr;
     NSURLSession* m_session = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
@@ -146,38 +146,38 @@ private:
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
 };
 
-HttpClient_iOS::HttpClient_iOS()
+HttpClient_Apple::HttpClient_Apple()
 {
-    LOG_TRACE("Initializing HttpClient_iOS...");
+    LOG_TRACE("Initializing HttpClient_Apple...");
 }
 
-HttpClient_iOS::~HttpClient_iOS() noexcept
+HttpClient_Apple::~HttpClient_Apple() noexcept
 {
-    LOG_TRACE("Shutting down HttpClient_iOS...");
+    LOG_TRACE("Shutting down HttpClient_Apple...");
 }
 
-IHttpRequest* HttpClient_iOS::CreateRequest()
+IHttpRequest* HttpClient_Apple::CreateRequest()
 {
-    auto request = new HttpRequestIos(this);
+    auto request = new HttpRequestApple(this);
     LOG_TRACE("HTTP request=%p id=%s created", request, request->GetId().c_str());
     return request;
 }
 
-void HttpClient_iOS::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+void HttpClient_Apple::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
-    auto requestIos = static_cast<HttpRequestIos*>(request);
-    requestIos->SendAsync(callback);
+    auto requestApple = static_cast<HttpRequestApple*>(request);
+    requestApple->SendAsync(callback);
     LOG_TRACE("HTTP request=%p callback=%p sent", request, callback);
 }
 
-void HttpClient_iOS::CancelRequestAsync(const std::string& id)
+void HttpClient_Apple::CancelRequestAsync(const std::string& id)
 {
-    HttpRequestIos* request = nullptr;
+    HttpRequestApple* request = nullptr;
     {
         std::lock_guard<std::mutex> lock(m_requestsMtx);
         if (m_requests.find(id) != m_requests.cend())
         {
-            request = static_cast<HttpRequestIos*>(m_requests[id]);
+            request = static_cast<HttpRequestApple*>(m_requests[id]);
             if (request != nullptr)
             {
                 LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
@@ -188,7 +188,7 @@ void HttpClient_iOS::CancelRequestAsync(const std::string& id)
     }
 }
 
-void HttpClient_iOS::CancelAllRequests()
+void HttpClient_Apple::CancelAllRequests()
 {
     std::vector<std::string> ids;
     {
@@ -208,13 +208,13 @@ void HttpClient_iOS::CancelAllRequests()
     }
 }
 
-void HttpClient_iOS::Erase(IHttpRequest* req)
+void HttpClient_Apple::Erase(IHttpRequest* req)
 {
     std::lock_guard<std::mutex> lock(m_requestsMtx);
     m_requests.erase(req->GetId());
 }
 
-void HttpClient_iOS::Add(IHttpRequest* req)
+void HttpClient_Apple::Add(IHttpRequest* req)
 {
     std::lock_guard<std::mutex> lock(m_requestsMtx);
     m_requests[req->GetId()] = req;
