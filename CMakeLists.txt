@@ -15,12 +15,15 @@ if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
+if(APPLE)
+  add_definitions(-DAPPLE_HTTP=1)
+endif()
+
 # iOS build options
 option(BUILD_IOS           "Build for iOS"               NO)
 option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
 if(BUILD_IOS)
-  add_definitions(-DIOS_HTTP=1)
   set(TARGET_ARCH "APPLE")
   set(IOS True)
   set(APPLE True)
