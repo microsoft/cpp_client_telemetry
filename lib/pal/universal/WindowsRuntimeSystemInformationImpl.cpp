@@ -35,16 +35,19 @@ namespace PAL_NS_BEGIN {
         m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor)
             + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
 
-        try
-        {
-            m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
+        m_user_language = "en";
+        try {
+            if (GlobalizationPreferences::Languages->Size)
+                m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
+            m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
         }
-        catch (Exception^)
+        catch (...)
         {
-            // This can throw AccessDeniedException on Windows 10 v17134.
+            // Windows 10 RS4+ OS bug: sometimes access to GlobalizationPreferences::Languages fails
+            // with "Access Denied" error. It is not certain if it's because the list is empty or
+            // because the app is not allowed to access the list of languages.
+            LOG_WARN("Unable to obtain user Language!");
         }
-
-        m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
 
         try
         {
