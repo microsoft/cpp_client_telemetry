@@ -83,6 +83,8 @@ namespace ARIASDK_NS_BEGIN
         EVT_SEND_RETRY          = 0x04000002,
         /// <summary>Event(s) retry drop.</summary>
         EVT_SEND_RETRY_DROPPED  = 0x04000003,
+        /// <summary>Event(s) skip UTC registration.</summary>
+        EVT_SEND_SKIP_UTC_REGISTRATION = 0x04000004,
         /// <summary>Event(s) rejected, e.g.
         /// Failed regexp check or missing event name.
         /// </summary>

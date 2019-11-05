@@ -471,6 +471,7 @@
     <ClInclude Include="$(ProjectDir)..\common\MockITelemetrySystem.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockITenantDataSerializer.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
+    <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
