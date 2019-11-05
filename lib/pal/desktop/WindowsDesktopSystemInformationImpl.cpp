@@ -53,8 +53,9 @@ namespace PAL_NS_BEGIN {
         {
             curExeFullPathBuffer.resize(curBufferLength);
             HMODULE handle = nullptr;
-            if (!::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle))
+            if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) == FALSE)
             {
+                LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
                 return {};    
             }
             DWORD result = ::GetModuleFileName(handle, &curExeFullPathBuffer[0], curBufferLength);
@@ -183,7 +184,7 @@ namespace PAL_NS_BEGIN {
         char buff[MAX_PATH] = { 0 };
         std::string appId;
         HMODULE handle = nullptr;
-        if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle))
+        if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) != FALSE)
         {
             if (::GetModuleFileNameA(handle, &buff[0], MAX_PATH) > 0)
             {
@@ -196,6 +197,10 @@ namespace PAL_NS_BEGIN {
                 }
                 appId = app_name;
             }
+        }
+        else 
+        {
+            LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
         }
         return appId;
     }
