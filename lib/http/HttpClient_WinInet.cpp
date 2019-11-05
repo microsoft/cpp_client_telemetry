@@ -24,7 +24,7 @@ class WinInetRequestWrapper
     IHttpResponseCallback* m_appCallback {};
     HINTERNET              m_hWinInetSession {};
     HINTERNET              m_hWinInetRequest {};
-    std::unique_ptr<SimpleHttpRequest> m_request;
+    SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {};
 
   public:
@@ -289,7 +289,7 @@ class WinInetRequestWrapper
             }
         }
 
-        // response gets released in EventsUploadContext.clear()
+        // 'response' gets released in EventsUploadContext.clear()
         m_appCallback->OnHttpResponse(response.release());
         m_parent.erase(m_id);
     }
@@ -330,6 +330,7 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
+    // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
     WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<SimpleHttpRequest*>(request));
     wrapper->send(callback);
 }
