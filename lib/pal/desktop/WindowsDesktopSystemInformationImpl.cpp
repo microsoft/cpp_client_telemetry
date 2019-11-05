@@ -52,9 +52,12 @@ namespace PAL_NS_BEGIN {
         do
         {
             curExeFullPathBuffer.resize(curBufferLength);
-            HMODULE *pHandle = nullptr;
-            GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, pHandle);
-            DWORD result = ::GetModuleFileName(*pHandle, &curExeFullPathBuffer[0], curBufferLength);
+            HMODULE handle = nullptr;
+            if (!::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle))
+            {
+                return {};    
+            }
+            DWORD result = ::GetModuleFileName(handle, &curExeFullPathBuffer[0], curBufferLength);
 
             if (result == curBufferLength)
             {
@@ -179,18 +182,20 @@ namespace PAL_NS_BEGIN {
         // Auto-detect the app name - executable name without .exe suffix
         char buff[MAX_PATH] = { 0 };
         std::string appId;
-        HMODULE *pHandle = nullptr;
-        GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, pHandle);
-        if (::GetModuleFileNameA(*pHandle, &buff[0], MAX_PATH) > 0)    
+        HMODULE handle = nullptr;
+        if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle))
         {
-            std::string  app_name(buff);
-            size_t pos_dot = app_name.rfind(".");
-            size_t pos_slash = app_name.rfind("\\");
-            if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
+            if (::GetModuleFileNameA(handle, &buff[0], MAX_PATH) > 0)
             {
-                app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
+                std::string  app_name(buff);
+                size_t pos_dot = app_name.rfind(".");
+                size_t pos_slash = app_name.rfind("\\");
+                if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
+                {
+                    app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
+                }
+                appId = app_name;
             }
-            appId = app_name;
         }
         return appId;
     }

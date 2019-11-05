@@ -11,7 +11,9 @@
 #define HAVE_MAT_LOGGING
 #define HAVE_MAT_STORAGE
 #define WIN_DESKTOP
-/* #define HAVE_MAT_DEFAULT_HTTP_CLIENT */
+#define HAVE_MAT_DEFAULT_HTTP_CLIENT
+/* 
 #if defined(_WIN32) && !defined(_WINRT_DLL)
-//define HAVE_MAT_NETDETECT
+#define HAVE_MAT_NETDETECT
 #endif
+*/
