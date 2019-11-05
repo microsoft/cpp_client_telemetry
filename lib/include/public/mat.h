@@ -348,7 +348,7 @@ extern "C" {
     __declspec(selectany) evt_app_call_fn evt_api_call = evt_api_call_default;
 #else
     /* Implementation of evt_api_call can be provided by the executable module that includes this header */
-    __attribute__((weak)) evt_app_call evt_api_call = evt_api_call_default;
+    __attribute__((weak)) evt_app_call_fn evt_api_call = evt_api_call_default;
 #endif
 
     /**
