@@ -41,7 +41,7 @@ namespace PAL_NS_BEGIN {
                 m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
             m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
         }
-        catch (...)
+        catch (AccessDeniedException^)
         {
             // Windows 10 RS4+ OS bug: sometimes access to GlobalizationPreferences::Languages fails
             // with "Access Denied" error. It is not certain if it's because the list is empty or
