@@ -65,10 +65,6 @@ namespace ARIASDK_NS_BEGIN {
         */
         void clear()
         {
-            if (httpRequest != nullptr) {
-                delete httpRequest;
-                httpRequest = nullptr;
-            }
             if (httpResponse != nullptr) {
                 delete httpResponse;
                 httpResponse = nullptr;
@@ -93,7 +89,7 @@ namespace ARIASDK_NS_BEGIN {
         bool                                 compressed = false;
 
         // Sending
-        IHttpRequest*                        httpRequest;
+        std::unique_ptr<IHttpRequest>        httpRequest = nullptr;
         std::string                          httpRequestId;
 
         // Receiving
@@ -103,9 +99,8 @@ namespace ARIASDK_NS_BEGIN {
         bool                                 fromMemory;
 
         EventsUploadContext() :
-            httpRequest(nullptr),
             httpResponse(nullptr),
-	    fromMemory(false)
+            fromMemory(false)
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(1);

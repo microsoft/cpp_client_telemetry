@@ -147,7 +147,7 @@ TEST(HttpClientCAPITests, SendAsync)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.SendRequestAsync(*request, &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);
@@ -175,7 +175,7 @@ TEST(HttpClientCAPITests, Cancel)
         FAIL() << "No response should have been received";
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.SendRequestAsync(*request, &responseCallback);
     httpClient.CancelRequestAsync(request->GetId());
 
     EXPECT_EQ(cancelledId, request->GetId());
@@ -224,7 +224,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.SendRequestAsync(*request, &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);

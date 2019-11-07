@@ -132,7 +132,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    IHttpRequest* HttpClient_CAPI::CreateRequest()
+    std::unique_ptr<IHttpRequest> HttpClient_CAPI::CreateRequest()
     {
         // Generate a unique request ID
         static std::atomic<int32_t> s_nextRequestId(0);
@@ -140,14 +140,13 @@ namespace ARIASDK_NS_BEGIN {
         idStream << "OneDS_HTTP-" << s_nextRequestId++;
         std::string requestId = idStream.str();
 
-        return new SimpleHttpRequest(requestId);
+        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest {requestId});
     }
 
-    void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+    void HttpClient_CAPI::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
     {
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-        auto simpleRequest = static_cast<SimpleHttpRequest*>(request);
-        auto requestId = simpleRequest->m_id;
+        auto requestId = request.GetId();
 
         LOG_TRACE("Sending CAPI HTTP request '%s'", requestId.c_str());
 
@@ -157,14 +156,14 @@ namespace ARIASDK_NS_BEGIN {
         http_request_t capiRequest;
 
         capiRequest.id = requestId.c_str();
-        capiRequest.type = equalsIgnoreCase(simpleRequest->m_method, "post") ? HTTP_REQUEST_TYPE_POST : HTTP_REQUEST_TYPE_GET;
-        capiRequest.url = simpleRequest->m_url.c_str();
-        capiRequest.bodySize = static_cast<int32_t>(simpleRequest->m_body.size());
-        capiRequest.body = simpleRequest->m_body.data();
+        capiRequest.type = equalsIgnoreCase(request.GetMethod(), "post") ? HTTP_REQUEST_TYPE_POST : HTTP_REQUEST_TYPE_GET;
+        capiRequest.url = request.GetUrl().c_str();
+        capiRequest.bodySize = static_cast<int32_t>(request.GetBody().size());
+        capiRequest.body = request.GetBody().data();
 
         // Build headers
         std::vector<http_header_t> capiHeaders;
-        for (const auto& header : simpleRequest->m_headers)
+        for (const auto& header : request.GetHeaders())
         {
             http_header_t capiHeader;
             capiHeader.name = header.first.c_str();
@@ -174,7 +173,7 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
-        auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
+        auto operation = std::make_shared<HttpClient_Operation>(static_cast<SimpleHttpRequest*>(&request), callback, m_cancelFn);
         AddPendingOperation(requestId, operation);
 
         m_sendFn(&capiRequest, &OnHttpResponse);
