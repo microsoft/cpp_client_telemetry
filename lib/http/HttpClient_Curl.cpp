@@ -54,25 +54,24 @@ namespace ARIASDK_NS_BEGIN {
         TRACE("Destroyed HttpClient_Curl.\n");
     };
 
-    IHttpRequest* HttpClient_Curl::CreateRequest()
+    std::unique_ptr<IHttpRequest> HttpClient_Curl::CreateRequest()
     {
-        return new CurlHttpRequest();
+        return std::unique_ptr<CurlHttpRequest>(new CurlHttpRequest());
     }
 
-    void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+    void HttpClient_Curl::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
     {
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-        AddRequest(request);
-        auto curlRequest = static_cast<CurlHttpRequest*>(request);
+        AddRequest(&request);
 
-        std::string requestId = curlRequest->GetId();
+        std::string requestId = request.GetId();
         std::map<std::string, std::string> requestHeaders;
-        for (const auto& header : curlRequest->m_headers) {
+        for (const auto& header : request.GetHeaders()) {
             requestHeaders[header.first] = header.second;
         }
 
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body);
-        curlRequest->SetOperation(curlOperation);
+        auto curlOperation = std::make_shared<CurlHttpOperation>(request.GetMethod(), request.GetUrl(), callback, requestHeaders, request.GetBody());
+        static_cast<CurlHttpRequest&>(request).SetOperation(curlOperation);
 
         // Hold on to 'curlOperation' in lambda to ensure its lifetime until operation completes
         curlOperation->SendAsync([this, curlOperation, callback, requestId](CurlHttpOperation& operation) {
