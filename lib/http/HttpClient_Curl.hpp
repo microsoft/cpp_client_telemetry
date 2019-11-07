@@ -44,8 +44,8 @@ public:
     HttpClient_Curl();
     virtual ~HttpClient_Curl();
 
-    virtual IHttpRequest* CreateRequest() override;
-    virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
+    virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
+    virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
 
 private:

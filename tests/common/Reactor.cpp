@@ -27,7 +27,7 @@ namespace SocketTools {
                 event.events = 0;
                 ::epoll_ctl(m_epollFd, EPOLL_CTL_ADD, socket, &event);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
                 struct kevent event;
                 bzero(&event, sizeof(event));
                 event.ident = socket.m_sock;
@@ -89,7 +89,7 @@ namespace SocketTools {
                 event.events = events;
                 ::epoll_ctl(m_epollFd, EPOLL_CTL_MOD, socket, &event);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
                 // TODO: [MG] - Mac OS X socket doesn't currently support updating flags
 #endif
             }
@@ -111,7 +111,7 @@ namespace SocketTools {
 #ifdef __linux__
             ::epoll_ctl(m_epollFd, EPOLL_CTL_DEL, socket, nullptr);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
             struct kevent event;
             bzero(&event, sizeof(event));
             event.ident = socket;
@@ -153,7 +153,7 @@ namespace SocketTools {
 #ifdef __linux__
             ::epoll_ctl(m_epollFd, EPOLL_CTL_DEL, sd.socket, nullptr);
 #endif
-#ifdef TARGET_OS_MAC
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
             struct kevent event;
             bzero(&event, sizeof(event));
             event.ident = sd.socket;
@@ -251,7 +251,7 @@ namespace SocketTools {
             }
 #endif
 
-#if defined(TARGET_OS_MAC)
+#if defined(TARGET_OS_MAC) || defined(TARGET_OS_IPHONE)
             unsigned waitms = 500;  // never block for more than 500ms
             struct timespec timeout;
             timeout.tv_sec = waitms / 1000;

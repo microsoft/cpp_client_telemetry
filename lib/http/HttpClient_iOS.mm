@@ -156,18 +156,18 @@ HttpClient_iOS::~HttpClient_iOS() noexcept
     LOG_TRACE("Shutting down HttpClient_iOS...");
 }
 
-IHttpRequest* HttpClient_iOS::CreateRequest()
+std::unique_ptr<IHttpRequest> HttpClient_iOS::CreateRequest()
 {
     auto request = new HttpRequestIos(this);
     LOG_TRACE("HTTP request=%p id=%s created", request, request->GetId().c_str());
-    return request;
+    return std::unique_ptr<HttpRequestIos>(request);
 }
 
-void HttpClient_iOS::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+void HttpClient_iOS::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
 {
-    auto requestIos = static_cast<HttpRequestIos*>(request);
+    auto requestIos = static_cast<HttpRequestIos*>(&request);
     requestIos->SendAsync(callback);
-    LOG_TRACE("HTTP request=%p callback=%p sent", request, callback);
+    LOG_TRACE("HTTP request=%p callback=%p sent", &request, callback);
 }
 
 void HttpClient_iOS::CancelRequestAsync(const std::string& id)
