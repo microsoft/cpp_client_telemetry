@@ -37,13 +37,13 @@ namespace ARIASDK_NS_BEGIN {
     {
 #ifndef NDEBUG
         // XXX: [MG] - debug accessing object that's been already freed
-        uint64_t ptr = (uint64_t)(ctx->httpResponse);
+        uint64_t ptr = (uint64_t)(ctx->httpResponse.get());
         assert(ptr != 0x00000000dddddddd);
         assert(ptr != 0xdddddddddddddddd);
 #endif
 
         IHttpResponse const& response = *(ctx->httpResponse);
-        IHttpRequest & request = *(ctx->httpRequest);
+        IHttpRequest& request = *(ctx->httpRequest);
 
         HttpRequestResult outcome = Abort;
         auto result = response.GetResult();
@@ -64,13 +64,11 @@ namespace ARIASDK_NS_BEGIN {
             break;
 
         case HttpResult_Aborted:
-            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
-            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
         }

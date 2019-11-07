@@ -244,7 +244,7 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             // 'response' gets released in EventsUploadContext.clear()
-            m_appCallback->OnHttpResponse(response.release());
+            m_appCallback->OnHttpResponse(std::move(response));
             m_parent.erase(m_id);
 
         }

@@ -25,7 +25,7 @@ class HttpClientTests : public ::testing::Test,
     int                                  _port;
     std::string                          _hostname;
     std::unique_ptr<IHttpClient>         _client;
-    std::vector<IHttpResponse*>          _responses;
+    std::vector<std::unique_ptr<IHttpResponse>> _responses;
 
     enum RequestState { Planned, Sent, Processed, Done };
     std::vector<RequestState>            _countedRequests;
@@ -117,10 +117,10 @@ class HttpClientTests : public ::testing::Test,
         return dst;
     }
 
-    virtual void OnHttpResponse(IHttpResponse* inResponse) override
+    virtual void OnHttpResponse(std::unique_ptr<IHttpResponse> inResponse) override
     {
         std::lock_guard<std::mutex> lock(_lock);
-        _responses.push_back(clone(inResponse));
+        _responses.push_back(clone(inResponse.get()));
     }
 
 };

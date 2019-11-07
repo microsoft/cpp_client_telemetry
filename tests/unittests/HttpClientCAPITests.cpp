@@ -15,10 +15,10 @@ namespace
     public:
         void SetResponseValidation(std::function<void(IHttpResponse*)> fn) { m_validateFn = fn; }
 
-        virtual void OnHttpResponse(IHttpResponse* response) override
+        virtual void OnHttpResponse(std::unique_ptr<IHttpResponse> response) override
         {
             if (m_validateFn)
-                m_validateFn(response);
+                m_validateFn(response.get());
         }
 
     private:

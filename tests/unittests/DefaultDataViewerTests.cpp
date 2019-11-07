@@ -115,7 +115,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -139,7 +139,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotE
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 404;
         response->m_result = HttpResult::HttpResult_NetworkFailure;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -155,7 +155,7 @@ TEST(DefaultDataViewerTests, DisableViewer_TransmissionEnabled_TransmissionDisab
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -252,7 +252,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectBodyToH
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
 
         requestToValidate->m_body = request->GetBody();
         requestToValidate->m_headers = request->GetHeaders();
@@ -277,7 +277,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeaders
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
 
         requestToValidate->m_body = request->GetBody();
         requestToValidate->m_headers = request->GetHeaders();
@@ -304,7 +304,7 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
 
         requestToValidate->m_body = request->GetBody();
         requestToValidate->m_headers = request->GetHeaders();
@@ -329,7 +329,7 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("Failure_Response"));
         response->m_statusCode = 404;
-        callback->OnHttpResponse(response.get());
+        callback->OnHttpResponse(std::move(response));
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");

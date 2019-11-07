@@ -69,9 +69,9 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     EXPECT_CALL(*this, resultRequestDone(ctx))
         .WillOnce(Return());
     IHttpResponse* rspRef = rsp.get();
-    callback->OnHttpResponse(rsp.release());
+    callback->OnHttpResponse(std::move(rsp));
 
-    EXPECT_THAT(ctx->httpResponse, rspRef);
+    EXPECT_THAT(ctx->httpResponse.get(), rspRef);
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
 
@@ -105,7 +105,7 @@ TEST_F(HttpClientManagerTests, CancelAbortsRequests)
     EXPECT_CALL(*this, resultRequestDone(ctx))
         .WillOnce(Return());
     IHttpResponse* rspRef = rsp.get();
-    callback->OnHttpResponse(rsp.release());
+    callback->OnHttpResponse(std::move(rsp));
 
     EXPECT_THAT(ctx->httpResponse, rspRef);
 }

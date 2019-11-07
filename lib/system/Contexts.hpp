@@ -65,10 +65,8 @@ namespace ARIASDK_NS_BEGIN {
         */
         void clear()
         {
-            if (httpResponse != nullptr) {
-                delete httpResponse;
-                httpResponse = nullptr;
-            }
+            httpRequest = nullptr;
+            httpResponse = nullptr;
         }
 
         // Retrieving
@@ -93,13 +91,12 @@ namespace ARIASDK_NS_BEGIN {
         std::string                          httpRequestId;
 
         // Receiving
-        IHttpResponse*                       httpResponse;
+        std::unique_ptr<IHttpResponse>       httpResponse = nullptr;
 
         int                                  durationMs = -1;
         bool                                 fromMemory;
 
         EventsUploadContext() :
-            httpResponse(nullptr),
             fromMemory(false)
         {
 #ifdef CRT_DEBUG_LEAKS
