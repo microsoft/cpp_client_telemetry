@@ -41,7 +41,6 @@
 		431EFE73233EBE54002FCC18 /* PackagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */; };
 		431EFE74233EBE54002FCC18 /* MetaStatsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */; };
 		431EFE75233EBE54002FCC18 /* HttpResponseDecoderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */; };
-		431EFE7E233EC413002FCC18 /* Tests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE7D233EC413002FCC18 /* Tests.mm */; };
 		431EFE94233EC560002FCC18 /* libgmock.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFE93233EC560002FCC18 /* libgmock.a */; };
 		431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */; };
 		431EFE96233EC590002FCC18 /* BondSplicerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */; };
@@ -86,6 +85,7 @@
 		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
 		431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
 		431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
+		43399EC82374C99A0050ABB6 /* iOSWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 43399EC72374C99A0050ABB6 /* iOSWrapper.mm */; };
 		43F383C4234BA28000602B46 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43F383C3234BA28000602B46 /* HttpServerTests.cpp */; };
 		43F383C5234BA28400602B46 /* HttpServerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43F383C3234BA28000602B46 /* HttpServerTests.cpp */; };
 /* End PBXBuildFile section */
@@ -149,7 +149,6 @@
 		431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MetaStatsTests.cpp; sourceTree = "<group>"; };
 		431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpResponseDecoderTests.cpp; sourceTree = "<group>"; };
 		431EFE7B233EC413002FCC18 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		431EFE7D233EC413002FCC18 /* Tests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Tests.mm; sourceTree = "<group>"; };
 		431EFE7F233EC413002FCC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		431EFE93233EC560002FCC18 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
 		431EFEBD233EC5C9002FCC18 /* libmat.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libmat.a; path = ../../../out/lib/libmat.a; sourceTree = "<group>"; };
@@ -160,6 +159,7 @@
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
 		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
+		43399EC72374C99A0050ABB6 /* iOSWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSWrapper.mm; path = ../../common/iOSWrapper.mm; sourceTree = "<group>"; };
 		43F383C3234BA28000602B46 /* HttpServerTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = HttpServerTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -246,11 +246,11 @@
 		431EFE7C233EC413002FCC18 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				43399EC72374C99A0050ABB6 /* iOSWrapper.mm */,
 				431EFED0233ECB0F002FCC18 /* libUnitTests.a */,
 				431EFEC6233EC6DE002FCC18 /* libgtest.a */,
 				431EFEBD233EC5C9002FCC18 /* libmat.a */,
 				431EFE93233EC560002FCC18 /* libgmock.a */,
-				431EFE7D233EC413002FCC18 /* Tests.mm */,
 				431EFE7F233EC413002FCC18 /* Info.plist */,
 			);
 			path = Tests;
@@ -402,6 +402,7 @@
 				431EFEAF233EC590002FCC18 /* MemoryStorageTests.cpp in Sources */,
 				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
+				43399EC82374C99A0050ABB6 /* iOSWrapper.mm in Sources */,
 				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
 				43F383C5234BA28400602B46 /* HttpServerTests.cpp in Sources */,
 				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
@@ -415,7 +416,6 @@
 				431EFEAD233EC590002FCC18 /* LogManagerImplTests.cpp in Sources */,
 				431EFEB9233EC590002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
 				431EFEA1233EC590002FCC18 /* EventPropertiesStorageTests.cpp in Sources */,
-				431EFE7E233EC413002FCC18 /* Tests.mm in Sources */,
 				431EFEAB233EC590002FCC18 /* LevelCheckingEventFilterTests.cpp in Sources */,
 				431EFE9F233EC590002FCC18 /* DiskLocalStorageTests.cpp in Sources */,
 				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
