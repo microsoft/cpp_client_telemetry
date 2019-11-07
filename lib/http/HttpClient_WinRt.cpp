@@ -33,8 +33,8 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         HttpClient_WinRt&      m_parent;
-        std::unique_ptr<SimpleHttpRequest> m_request;
-        const std::string&     m_id;
+        SimpleHttpRequest*     m_request;
+        const std::string      m_id;
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
         HttpResponseMessage^   m_httpResponseMessage;
@@ -243,6 +243,7 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
 
+            // 'response' gets released in EventsUploadContext.clear()
             m_appCallback->OnHttpResponse(response.release());
             m_parent.erase(m_id);
 
@@ -301,7 +302,7 @@ namespace ARIASDK_NS_BEGIN {
     std::unique_ptr<IHttpRequest> HttpClient_WinRt::CreateRequest()
     {
         std::string id = "WI-" + toString(::InterlockedIncrement(&s_nextRequestId));
-        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest(id));
+        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest {id});
     }
 
     void HttpClient_WinRt::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)

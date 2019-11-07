@@ -1,81 +1,58 @@
 
-This tutorial guides you through the process of integrating the 1DS SDK (Beta) into your existing C++ Windows app or service.
+This tutorial guides you through the process of integrating the 1DS C++ SDK into your existing C++ Windows app or service.
 
 ## **Clone the repository**
 
-1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo.
+1. Run
 
-	If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+```git clone https://github.com/microsoft/cpp_client_telemetry.git```
 
-2. You will be asked your credentials to clone the repo, use your username and password as entered on Github
-	
-    If you do not have those credentials, generate them and use the username and password that you enabled.
-    
+to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` while cloning to tell git to add `lib/modules` repo that contains various proprietary Microsoft modules, including Universal Telemetry Client support.
+
+2. You will be asked for your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
+
 ## **Windows prerequisites and dependencies for building from source using Visual Studio 2017**
 
-* Visual Studio 2017
-* C++ Dev Tools for Visual Studio 2017
-    
+* Visual Studio 2017.
+* C++ Dev Tools for Visual Studio 2017.
+* Visual Studio 2019 _should work_ if you use vc141 toolset; newer toolsets _might work_, but not tested.
+
 ## **Build the SDK from source using Visual Studio 2017**
 
-* Navigate to the folder where the SDK was cloned and open the cpp_client_telemetry/Solutions folder
+* Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
+* Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
 
-* Open the MSTelemetrySDK.sln file to open the project with Visual Studio 2017.
+If your build fails, then you most likely missing the following optional Visual Studio components:
+- ATL support
+- ARM64 support
+- Spectre mitigation libraries
 
-* Expand the Samples folder, the project SampleCpp should be located there
+Make sure you install all of these above optional Visual Studio components, as these are required for the SDK to build all SDK SKUs successfully. If you are using GitHub Actions infrastructure to build your project, then all of these optional components are available by default as part of stock GitHub Actions deployment.
 
-![SampleCpp](/docs/images/SampleCpp.PNG)
+Specific version of Windows 10 SDK is referenced by the project(s). You will need to install that exact version of Windows 10 SDK, but you may also manually upgrade all projects to current latest version of Windows 10 SDK for your local build. SDK may periodically update its Windows 10 SDK dependency from time to time. Your responsibility is to decide what Windows 10 SDK you need to use for shipping 1DS C++ SDK build from source.
 
-* Go to the SampleCpp project properties and make sure that Visual Studio 2017 is set as Platform Toolset
+See:
+- [How to add optional components in Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/modify-visual-studio?view=vs-2017)
+- [Download Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
-![SampleCppProperties](/docs/images/SampleCppProperties.PNG)
-
-* When you build the SampleCpp sample app Visual Studio will also build the SDK, as it is listed as a dependency.
-    The win32-dll project is the SDK dll, when Visual Studio builds it, it will also build all it's references, including sqlite, zlib and all the headers for the SDK to work.
-	
-![win32-dll](/docs/images/87016-win32lib.png)
 
 ## **Windows prerequisites and dependencies for building from source using LLVM compiler**
 
-* LLVM compiler
-* CMake build system
-
-### Install instructions
+* [LLVM compiler](https://releases.llvm.org/download.html)
+* [CMake build system](https://cmake.org/download/)
+* [LLVM compiler toolchain for Visual Studio](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
 
 - Install CMake for Windows into C:\Program Files\CMake\bin\ (default path)
-- Install **[LLVM/clang for Windows](http://releases.llvm.org/7.0.0/LLVM-7.0.0-win64.exe)** and install into C:\Program Files\LLVM\bin (default path)
+- Install **[LLVM/clang for Windows](http://releases.llvm.org/7.0.0/LLVM-7.0.0-win64.exe)** - version 7 or newer into C:\Program Files\LLVM\bin (default path)
 
-    
-## **Build the SDK from source using LLVM compiler**
+Make sure you can build a simple "Hello World" using cmake before proceeding to the next step.
+To build SDK using cmake with clang on Windows, run:
 
-1. Navigate to the directory where the SDK is located
-
-2. Run the file `build-cmake-clang.sh` to build the SDK, this will build the SDK along with Unit and Functional Tests.
-
-	To disable building the tests go to the CMakeLists.txt file on the root of the SDK directory and change:
-    
-    ```
-    option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
-    option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
-    ```
-    
-    to: 
-    ```
-    option(BUILD_UNIT_TESTS   "Build unit tests"        NO)
-    option(BUILD_FUNC_TESTS   "Build functional tests"  NO)
-    ```
-
-	_**Note:** In order to build from scratch all dependencies along with the SDK you need to run:_ ` ./build-cmake-clang.sh clean`
-    
-    _**Note:** If you want to skip building dependencies for the SDK you need to run:_ ` ./build-cmake-clang.sh nodeps`
-    
-3. The SDK will be installed under `<PATH>`
-
-
+```build-cmake-clang.cmd```
 
 ## **Instrument your code to send a telemetry event**
 
-1. Include the main 1DS SDK (Beta) header file in your main.cpp by adding the following statement to the top of your app's implementation file.
+1. Include the main 1DS C++ SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file.
 
 	```
     #include "LogManager.hpp"
@@ -93,8 +70,8 @@ This tutorial guides you through the process of integrating the 1DS SDK (Beta) i
     LOGMANAGER_INSTANCE
     ```
 
-4. Initialize the 1DS SDK (Beta) events system, create and send a telemetry event, and then flush the event queue and shut down the telemetry
-logging system by adding the following statements to your main() function.
+4. Initialize the 1DS SDK, create and send a telemetry event, then flush the event queue and shut down the telemetry
+logging system by adding the following statements to your main() function:
 
     ```
     ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
@@ -106,6 +83,5 @@ logging system by adding the following statements to your main() function.
 
 *You're done! You can now compile and run your app, and it will send a telemetry event.*
 
- _**Note:** If you need a deeper look into how to use the 1DS C++ SDK there is a couple of folders with examples under Aria.SDK.Cpp/examples_
-
+More examples can be found under *examples* folder.
 

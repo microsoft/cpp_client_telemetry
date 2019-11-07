@@ -138,11 +138,11 @@ TEST(HttpClientCAPITests, SendAsync)
     responseCallback.SetResponseValidation([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
-        EXPECT_EQ(response->GetBody().size(), 3);
+        EXPECT_EQ(response->GetBody().size(), size_t { 3 });
         EXPECT_EQ(response->GetBody()[0], 'y');
         EXPECT_EQ(response->GetBody()[1], 'e');
         EXPECT_EQ(response->GetBody()[2], 's');
-        EXPECT_EQ(response->GetHeaders().size(), 1);
+        EXPECT_EQ(response->GetHeaders().size(), size_t { 1 });
         EXPECT_EQ(response->GetHeaders().has("response_key1"), true);
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
@@ -215,11 +215,11 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
     responseCallback.SetResponseValidation([&wasReceived](IHttpResponse* response) {
         wasReceived = true;
         EXPECT_EQ(response->GetResult(), HttpResult_OK);
-        EXPECT_EQ(response->GetBody().size(), 3);
+        EXPECT_EQ(response->GetBody().size(), size_t { 3 });
         EXPECT_EQ(response->GetBody()[0], 'y');
         EXPECT_EQ(response->GetBody()[1], 'e');
         EXPECT_EQ(response->GetBody()[2], 's');
-        EXPECT_EQ(response->GetHeaders().size(), 1);
+        EXPECT_EQ(response->GetHeaders().size(), size_t { 1 });
         EXPECT_EQ(response->GetHeaders().has("response_key1"), true);
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });

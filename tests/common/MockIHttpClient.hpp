@@ -12,14 +12,14 @@ class MockIHttpClient : public MAT::IHttpClient {
     MockIHttpClient();
     virtual ~MockIHttpClient();
 
-	 virtual std::unique_ptr<IHttpRequest> CreateRequest()
-	 {
-		 return std::unique_ptr<IHttpRequest>(CreateRequestProxy());
-	 }
+    virtual std::unique_ptr<IHttpRequest> CreateRequest()
+    {
+        return std::unique_ptr<IHttpRequest>(CreateRequestProxy());
+    }
 
     MOCK_METHOD0(CreateRequestProxy, IHttpRequest*());
-    MOCK_METHOD2(SendRequestAsync, void(MAT::IHttpRequest& request, MAT::IHttpResponseCallback * callback));
-    MOCK_METHOD1(CancelRequestAsync, void(std::string const & id));
+    MOCK_METHOD2(SendRequestAsync, void(MAT::IHttpRequest& request, MAT::IHttpResponseCallback* callback));
+    MOCK_METHOD1(CancelRequestAsync, void(std::string const& id));
 };
 
 

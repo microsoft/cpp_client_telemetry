@@ -115,7 +115,10 @@ int main(int argc, char *argv[])
     printf("%s\n", json.c_str());
 #endif
 
-    // Log simple event without any properties
+    // Log simple event without any properties.
+    //
+    // Note that this event will be blocked in UTC mode on most recent versions of
+    // Windows as it has no privacy tag.
     printf("Sending My.Simple.Event\n");
     logger->LogEvent("My.Simple.Event");
 
@@ -126,7 +129,7 @@ int main(int argc, char *argv[])
     size_t MAX_EVENT_SIZE = 131072;
 
     // Log detailed event with some properties
-    for (auto eventName : { "My.Detailed.Event", "My.Detailed.Event.PiiMark", "My.Detailed.Event.RPC" })
+    for (auto eventName : { "My.Detailed.Event", "My.Detailed.Event.PiiMark", "My.Detailed.Event.PiiDrop", "My.Detailed.Event.RPC" })
     {
         EventProperties evt(eventName,
             {
@@ -156,9 +159,19 @@ int main(int argc, char *argv[])
                 { "timeKey1", time_ticks_t((uint64_t)0) },     // time in .NET ticks
             });
 
+        if (utcActive)
+        {
+            // Add privacy tags to avoid the event being dropped at UTC layer
+            evt.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+        }
+
         if (std::string("My.Detailed.Event.PiiMark") == eventName)
         {
             evt.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
+        }
+        else if (std::string("My.Detailed.Event.PiiDrop") == eventName)
+        {
+            evt.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
         }
         else if (std::string("My.Detailed.Event.RPC") == eventName)
         {
