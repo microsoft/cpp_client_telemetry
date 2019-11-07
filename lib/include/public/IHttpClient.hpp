@@ -520,7 +520,7 @@ namespace ARIASDK_NS_BEGIN
         /// must be deleted using its virtual destructor.
         /// </summary>
         /// <param name="response">The object that contains the response data.</param>
-        virtual void OnHttpResponse(IHttpResponse* response) = 0;
+        virtual void OnHttpResponse(std::unique_ptr<IHttpResponse> response) = 0;
 
         /// <summary>
         ///

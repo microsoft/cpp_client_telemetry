@@ -36,10 +36,10 @@ namespace ARIASDK_NS_BEGIN {
         {
         }
 
-        virtual void OnHttpResponse(IHttpResponse* response) override
+        virtual void OnHttpResponse(std::unique_ptr<IHttpResponse> response) override
         {
             m_ctx->durationMs = static_cast<int>(PAL::getMonotonicTimeMs() - m_startTime);
-            m_ctx->httpResponse = response;
+            m_ctx->httpResponse = std::move(response);
 #ifdef USE_SYNC_HTTPRESPONSE_HANDLER // handle HTTP callback synchronously in context of a callback thread
             // We need to decide on pros and cons of synchronous vs. asynchronous callback
             m_hcm.onHttpResponse(this);

@@ -28,9 +28,9 @@ namespace ARIASDK_NS_BEGIN {
             m_cancelFn(m_request->m_id.c_str());
         }
 
-        void OnResponse(IHttpResponse* response)
+        void OnResponse(std::unique_ptr<IHttpResponse> response)
         {
-            m_callback->OnHttpResponse(response);
+            m_callback->OnHttpResponse(std::move(response));
         }
 
     private:
@@ -117,7 +117,7 @@ namespace ARIASDK_NS_BEGIN {
             }
 
             // 'response' is no longer owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-            operation->OnResponse(response.release());
+            operation->OnResponse(std::move(response));
         }
     }
 
