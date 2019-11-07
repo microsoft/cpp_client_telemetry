@@ -120,10 +120,20 @@ namespace ARIASDK_NS_BEGIN
         virtual const std::string& GetId() const = 0;
 
         /// <summary>
+        /// Gets the HTTP method.
+        /// </summary>
+        virtual const std::string& GetMethod() = 0;
+
+        /// <summary>
         /// The set method.
         /// </summary>
         /// <param name="method">A string that contains the the name of the method to set (e.g., <i>GET</i>).</param>
         virtual void SetMethod(std::string const& method) = 0;
+
+        /// <summary>
+        /// Gets the request URI.
+        /// </summary>
+        virtual const std::string& GetUrl() = 0;
 
         /// <summary>
         /// Sets the request URI.
@@ -279,12 +289,30 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
+        /// Get the HTTP method.
+        /// </summary>
+        /// <returns>A string representation of the HTTP method (e.g.., <i>GET</i>).</returns>
+        virtual const std::string& GetMethod() override
+        {
+            return m_method;
+        }
+
+        /// <summary>
         /// Sets the request method (e.g.., <i>GET</i>).
         /// </summary>
         /// <param name="method">A string that contains the method.</param>
         virtual void SetMethod(std::string const& method) override
         {
             m_method = method;
+        }
+
+        /// <summary>
+        /// Gets the HTTP request URI.
+        /// </summary>
+        /// <returns>A string that contains the URI.</returns>
+        virtual const std::string& GetUrl() override
+        {
+            return m_url;
         }
 
         /// <summary>
@@ -525,7 +553,7 @@ namespace ARIASDK_NS_BEGIN
         /// then you can delete it safely using its virtual destructor.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
-        virtual IHttpRequest* CreateRequest() = 0;
+        virtual std::unique_ptr<IHttpRequest> CreateRequest() = 0;
 
         /// <summary>
         /// Begins an HTTP request.
@@ -542,7 +570,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="request">The filled request object returned earlier by
         /// CreateRequest()</param>
         /// <param name="callback">The callback to receive the response.</param>
-        virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) = 0;
+        virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) = 0;
 
         /// <summary>
         /// Cancels an HTTP request.

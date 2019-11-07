@@ -299,21 +299,15 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    IHttpRequest* HttpClient_WinRt::CreateRequest()
+    std::unique_ptr<IHttpRequest> HttpClient_WinRt::CreateRequest()
     {
         std::string id = "WI-" + toString(::InterlockedIncrement(&s_nextRequestId));
-        return new SimpleHttpRequest(id);
+        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest {id});
     }
 
-    void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
+    void HttpClient_WinRt::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-        if (request==nullptr)
-        {
-            LOG_ERROR("request is null!");
-            return;
-        }
-        SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(request);
+        SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(&request);
         WinRtRequestWrapper* wrapper = new WinRtRequestWrapper(*this, req);
         wrapper->send(callback);
     }

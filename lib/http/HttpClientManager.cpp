@@ -98,7 +98,7 @@ namespace ARIASDK_NS_BEGIN {
             static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
             ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
 
-        m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
+        m_httpClient.SendRequestAsync(*ctx->httpRequest, callback);
     }
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)

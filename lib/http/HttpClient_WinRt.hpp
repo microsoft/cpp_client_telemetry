@@ -29,8 +29,8 @@ class HttpClient_WinRt : public IHttpClient {
   public:
     HttpClient_WinRt();
     virtual ~HttpClient_WinRt();
-    virtual IHttpRequest* CreateRequest() override;
-    virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
+    virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
+    virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
     virtual void CancelAllRequests() override;
     HttpClient^ getHttpClient() { return m_httpClient; }
