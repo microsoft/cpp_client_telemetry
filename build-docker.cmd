@@ -1,4 +1,5 @@
 @echo off
+cd %~dp0
 if "%~1"=="" goto help
 
 del .buildtools 2>NUL

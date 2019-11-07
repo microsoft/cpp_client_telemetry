@@ -1,4 +1,5 @@
 @echo off
+cd %~dp0
 set OUTDIR=%CD%\Solutions\out\
 cd %OUTDIR%
 
