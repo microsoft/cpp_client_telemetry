@@ -184,8 +184,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -237,8 +235,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -264,8 +260,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -291,8 +285,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>Ole32;NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -317,8 +309,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>NCrypt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -344,8 +334,6 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <AdditionalDependencies>zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>
-      </DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>$(AriaDepsLibPath)\zlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -369,6 +357,14 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <CompileAsWinRT>true</CompileAsWinRT>
     </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <DelayLoadDLLs>api-ms-win-core-com-l1-1-0.dll; api-ms-win-core-debug-l1-1-0.dll; api-ms-win-core-delayload-l1-1-1.dll; api-ms-win-core-errorhandling-l1-1-0.dll; api-ms-win-core-file-l1-1-0.dll; api-ms-win-core-file-l1-2-0.dll; api-ms-win-core-file-l2-1-0.dll; api-ms-win-core-handle-l1-1-0.dll; api-ms-win-core-heap-l1-1-0.dll; api-ms-win-core-interlocked-l1-1-0.dll; api-ms-win-core-libraryloader-l1-2-0.dll; api-ms-win-core-libraryloader-l2-1-0.dll; api-ms-win-core-localization-l1-2-0.dll; api-ms-win-core-memory-l1-1-0.dll; api-ms-win-core-memory-l1-1-1.dll; api-ms-win-core-processthreads-l1-1-0.dll; api-ms-win-core-profile-l1-1-0.dll; api-ms-win-core-string-l1-1-0.dll; api-ms-win-core-synch-l1-1-0.dll; api-ms-win-core-synch-l1-2-0.dll; api-ms-win-core-sysinfo-l1-1-0.dll; api-ms-win-core-sysinfo-l1-2-0.dll; api-ms-win-core-timezone-l1-1-0.dll;api-ms-win-core-delayload-l1-1-0.dll; api-ms-win-core-util-l1-1-0.dll; api-ms-win-crt-convert-l1-1-0.dll; api-ms-win-crt-filesystem-l1-1-0.dll; api-ms-win-crt-heap-l1-1-0.dll; api-ms-win-crt-math-l1-1-0.dll; api-ms-win-crt-runtime-l1-1-0.dll; api-ms-win-crt-stdio-l1-1-0.dll; api-ms-win-crt-string-l1-1-0.dll; api-ms-win-crt-time-l1-1-0.dll; ole32.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(Configuration)'=='Debug'">ucrtbased.dll; vccorlib140d_app.dll; vcruntime140d_app.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(Configuration)'=='Release'">vccorlib140d_app.dll; vcruntime140_app.dll;  %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(DisableWinRT)'!='true'">api-ms-win-core-winrt-l1-1-0.dll; api-ms-win-core-winrt-string-l1-1-0.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h" />
