@@ -533,6 +533,14 @@
       <IgnoreAllDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">true</IgnoreAllDefaultLibraries>
     </Lib>
   </ItemDefinitionGroup>
+   <ItemDefinitionGroup>
+    <Link>
+      <DelayLoadDLLs>wininet.dll; version.dll; user32.dll; advapi32.dll; ole32.dll; shlwapi.dll; iphlpapi.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(Configuration)'=='Debug'">ucrtbased.dll; vcruntime140d.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(Configuration)'=='Release'">vcruntime140.dll; api-ms-win-crt-runtime-l1-1-0.dll; api-ms-win-crt-heap-l1-1-0.dll; api-ms-win-crt-string-l1-1-0.dll; api-ms-win-crt-convert-l1-1-0.dll; api-ms-win-crt-math-l1-1-0.dll; api-ms-win-crt-stdio-l1-1-0.dll; api-ms-win-crt-filesystem-l1-1-0.dll; api-ms-win-crt-time-l1-1-0.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(DisableWinRT)'!='true'">api-ms-win-core-winrt-l1-1-0.dll; api-ms-win-core-winrt-string-l1-1-0.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
