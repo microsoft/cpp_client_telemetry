@@ -29,8 +29,8 @@ public:
         return std::unique_ptr<SimpleHttpRequest>(new MAT::SimpleHttpRequest("MockSimpleHttpRequest"));
     }
 
-    std::function<void(MAT::IHttpRequest*, MAT::IHttpResponseCallback*)> funcSendRequestAsync;
-    void SendRequestAsync(MAT::IHttpRequest& request, MAT::IHttpResponseCallback* callback) override
+    std::function<void(MAT::IHttpRequest const*, MAT::IHttpResponseCallback*)> funcSendRequestAsync;
+    void SendRequestAsync(MAT::IHttpRequest const& request, MAT::IHttpResponseCallback* callback) override
     {
         if (funcSendRequestAsync)
         {
@@ -38,7 +38,7 @@ public:
         }
         else
         {
-            m_request = std::shared_ptr<MAT::IHttpRequest>(&request);
+            m_request = std::shared_ptr<const MAT::IHttpRequest>(&request);
             m_responseCallback = std::shared_ptr<MAT::IHttpResponseCallback>(callback);
         }
     }
@@ -49,7 +49,7 @@ public:
 
     void CancelAllRequests() override {}
 
-    std::shared_ptr<MAT::IHttpRequest>& GetReceivedRequest() noexcept
+    std::shared_ptr<const MAT::IHttpRequest>& GetReceivedRequest() noexcept
     {
         return m_request;
     }
@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    std::shared_ptr<MAT::IHttpRequest> m_request;
+    std::shared_ptr<const MAT::IHttpRequest> m_request;
     std::shared_ptr<MAT::IHttpResponseCallback> m_responseCallback;
 };
 
@@ -111,7 +111,7 @@ TEST(DefaultDataViewerTests, Constructor_InvalidMachineIdentifier_ThrowsInvalidA
 TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnabled)
 {
     mockHttpClient->Reset();
-    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest const*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
@@ -134,7 +134,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_NullOrEmptryEndpoint_ThrowsInval
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
 {
     mockHttpClient->Reset();
-    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest const*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 404;
@@ -151,7 +151,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotE
 TEST(DefaultDataViewerTests, DisableViewer_TransmissionEnabled_TransmissionDisabled)
 {
     mockHttpClient->Reset();
-    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest const*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
@@ -231,7 +231,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionNotEnabled_DoesntSendsDataT
 {
     mockHttpClient->Reset();
     bool wasSendRequestAsyncCalled { false };
-    mockHttpClient->funcSendRequestAsync = [&wasSendRequestAsyncCalled](MAT::IHttpRequest*, MAT::IHttpResponseCallback*)
+    mockHttpClient->funcSendRequestAsync = [&wasSendRequestAsyncCalled](MAT::IHttpRequest const*, MAT::IHttpResponseCallback*)
     {
         wasSendRequestAsyncCalled = true;
     };
@@ -247,7 +247,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectBodyToH
     mockHttpClient->Reset();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
-    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest const* request, MAT::IHttpResponseCallback* callback)
     {
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -272,7 +272,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeaders
     mockHttpClient->Reset();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
-    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest const* request, MAT::IHttpResponseCallback* callback)
     {
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -299,7 +299,7 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
     mockHttpClient->Reset();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
-    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest const* request, MAT::IHttpResponseCallback* callback)
     {
         sendRequestAsyncCalledCount++;
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -325,7 +325,7 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
 TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
 {
     mockHttpClient->Reset();
-    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest const*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("Failure_Response"));
         response->m_statusCode = 404;

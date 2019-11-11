@@ -15,7 +15,7 @@ namespace ARIASDK_NS_BEGIN {
         HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn);
 
         virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
-        virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
+        virtual void SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback) override;
         virtual void CancelRequestAsync(std::string const& id) override;
         virtual void CancelAllRequests() override;
 

@@ -33,7 +33,7 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         HttpClient_WinRt&      m_parent;
-        SimpleHttpRequest*     m_request;
+        const SimpleHttpRequest&     m_request;
         const std::string      m_id;
         IHttpResponseCallback* m_appCallback;
         HttpRequestMessage^    m_httpRequestMessage;
@@ -41,10 +41,10 @@ namespace ARIASDK_NS_BEGIN {
         concurrency::cancellation_token_source m_cancellationTokenSource;
 
     public:
-        WinRtRequestWrapper(HttpClient_WinRt& parent, SimpleHttpRequest* request)
+        WinRtRequestWrapper(HttpClient_WinRt& parent, const SimpleHttpRequest& request)
             : m_parent(parent),
             m_request(request),
-            m_id(request->GetId()),
+            m_id(request.GetId()),
             m_appCallback(nullptr),
             m_httpRequestMessage(nullptr)
         {
@@ -79,9 +79,9 @@ namespace ARIASDK_NS_BEGIN {
             try
             {
                 // Convert std::string to Uri
-                Uri ^ uri = ref new Uri(to_platform_string(m_request->m_url));
+                Uri ^ uri = ref new Uri(to_platform_string(m_request.m_url));
                 // Create new request message
-                if (m_request->m_method.compare("GET") == 0)
+                if (m_request.m_method.compare("GET") == 0)
                 {
                     m_httpRequestMessage = ref new HttpRequestMessage(HttpMethod::Get, uri);
                 }
@@ -92,14 +92,14 @@ namespace ARIASDK_NS_BEGIN {
 
                 // Initialize the in-memory stream where data will be stored.
                 DataWriter^ dataWriter = ref new DataWriter();
-                dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(m_request->m_body.data()), (DWORD)m_request->m_body.size())));
+                dataWriter->WriteBytes((Platform::ArrayReference<unsigned char>(static_cast<unsigned char*>(const_cast<uint8_t*>(m_request.m_body.data())), (DWORD)m_request.m_body.size())));
                 IBuffer ^ibuffer = dataWriter->DetachBuffer();
                 HttpBufferContent^ httpBufferContent = ref new HttpBufferContent(ibuffer);
 
                 m_httpRequestMessage->Content = httpBufferContent;// ref new HttpBufferContent(ibuffer);
 
                 // Populate headers based on user-supplied headers
-                for (auto &kv : m_request->m_headers)
+                for (auto &kv : m_request.m_headers)
                 {
                     Platform::String^ key = to_platform_string(kv.first);
                     Platform::String^ value = to_platform_string(kv.second);
@@ -305,10 +305,9 @@ namespace ARIASDK_NS_BEGIN {
         return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest {id});
     }
 
-    void HttpClient_WinRt::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
+    void HttpClient_WinRt::SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback)
     {
-        SimpleHttpRequest* req = static_cast<SimpleHttpRequest*>(&request);
-        WinRtRequestWrapper* wrapper = new WinRtRequestWrapper(*this, req);
+        WinRtRequestWrapper* wrapper = new WinRtRequestWrapper(*this, static_cast<const SimpleHttpRequest&>(request));
         wrapper->send(callback);
     }
 

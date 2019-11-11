@@ -12,12 +12,12 @@ namespace ARIASDK_NS_BEGIN {
     class HttpClient_Operation
     {
     public:
-        HttpClient_Operation(SimpleHttpRequest* request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
+        HttpClient_Operation(SimpleHttpRequest const& request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
           : m_request(request),
             m_callback(callback),
             m_cancelFn(cancelFn)
         {
-            if ((m_request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
+            if ((callback == nullptr) || (cancelFn == nullptr))
             {
                 MATSDK_THROW(std::invalid_argument("Created HttpClient_Operation with invalid parameters"));
             }
@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN {
 
         void Cancel()
         {
-            m_cancelFn(m_request->m_id.c_str());
+            m_cancelFn(m_request.m_id.c_str());
         }
 
         void OnResponse(std::unique_ptr<IHttpResponse> response)
@@ -34,7 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
     private:
-        SimpleHttpRequest*                  m_request;
+        const SimpleHttpRequest&            m_request;
 
         IHttpResponseCallback*              m_callback;
         http_cancel_fn_t                    m_cancelFn;
@@ -143,7 +143,7 @@ namespace ARIASDK_NS_BEGIN {
         return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest {requestId});
     }
 
-    void HttpClient_CAPI::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
+    void HttpClient_CAPI::SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback)
     {
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
         auto requestId = request.GetId();
@@ -173,7 +173,7 @@ namespace ARIASDK_NS_BEGIN {
         capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
-        auto operation = std::make_shared<HttpClient_Operation>(static_cast<SimpleHttpRequest*>(&request), callback, m_cancelFn);
+        auto operation = std::make_shared<HttpClient_Operation>(static_cast<const SimpleHttpRequest&>(request), callback, m_cancelFn);
         AddPendingOperation(requestId, operation);
 
         m_sendFn(&capiRequest, &OnHttpResponse);

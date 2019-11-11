@@ -24,14 +24,14 @@ class WinInetRequestWrapper
     IHttpResponseCallback* m_appCallback {};
     HINTERNET              m_hWinInetSession {};
     HINTERNET              m_hWinInetRequest {};
-    SimpleHttpRequest*     m_request;
+    const SimpleHttpRequest&     m_request;
     BYTE                   m_buffer[1024] {};
 
   public:
-    WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
+    WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest const& request)
       : m_parent(parent),
         m_request(request),
-        m_id(request->GetId())
+        m_id(request.GetId())
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -79,9 +79,9 @@ class WinInetRequestWrapper
         char path[1024];
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc)) {
+        if (!::InternetCrackUrlA(m_request.m_url.data(), (DWORD)m_request.m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
-            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
+            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request.m_url.data());
             onRequestComplete(dwError);
             return;
         }
@@ -98,7 +98,7 @@ class WinInetRequestWrapper
 
         PCSTR szAcceptTypes[] = {"*/*", NULL};
         m_hWinInetRequest = ::HttpOpenRequestA(
-            m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
+            m_hWinInetSession, m_request.m_method.c_str(), path, NULL, NULL, szAcceptTypes,
             INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
             INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
@@ -113,13 +113,13 @@ class WinInetRequestWrapper
         ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
 
         std::ostringstream os;
-        for (auto const& header : m_request->m_headers) {
+        for (auto const& header : m_request.m_headers) {
             os << header.first << ": " << header.second << "\r\n";
         }
         ::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE);
 
-        void *data = static_cast<void *>(m_request->m_body.data());
-        DWORD size = static_cast<DWORD>(m_request->m_body.size());
+        void *data = static_cast<void *>(const_cast<uint8_t*>(m_request.m_body.data()));
+        DWORD size = static_cast<DWORD>(m_request.m_body.size());
         BOOL bResult = ::HttpSendRequest(m_hWinInetRequest, NULL, 0, data, (DWORD)size);
         DWORD dwError = GetLastError();
 
@@ -328,10 +328,10 @@ std::unique_ptr<IHttpRequest> HttpClient_WinInet::CreateRequest()
     return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest{id});
 }
 
-void HttpClient_WinInet::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
+void HttpClient_WinInet::SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback)
 {
     // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<SimpleHttpRequest*>(&request));
+    WinInetRequestWrapper *wrapper = new WinInetRequestWrapper(*this, static_cast<const SimpleHttpRequest&>(request));
     wrapper->send(callback);
 }
 

@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class HttpHeaders : public std::multimap<std::string, std::string>
     {
-    public:
+       public:
         /// <summary>
         /// A multimap constant bidirectional iterator.
         /// </summary>
@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         using std::multimap<std::string, std::string>::value_type;
 
-    public:
+       public:
         /// <summary>
         /// The HttpHeaders default constructor.
         /// </summary>
@@ -94,7 +94,7 @@ namespace ARIASDK_NS_BEGIN
         using std::multimap<std::string, std::string>::begin;
         using std::multimap<std::string, std::string>::end;
 
-    protected:
+       protected:
         std::string m_empty;
     };
 
@@ -107,7 +107,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class IHttpRequest
     {
-    public:
+       public:
 
         /// <summary>
         /// The IHttpRequest class destructor.
@@ -122,7 +122,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Gets the HTTP method.
         /// </summary>
-        virtual const std::string& GetMethod() = 0;
+        virtual const std::string& GetMethod() const = 0;
 
         /// <summary>
         /// The set method.
@@ -133,7 +133,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Gets the request URI.
         /// </summary>
-        virtual const std::string& GetUrl() = 0;
+        virtual const std::string& GetUrl() const = 0;
 
         /// <summary>
         /// Sets the request URI.
@@ -145,7 +145,21 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the request headers.
         /// </summary>
         /// <returns>The HTTP headers in an HttpHeaders object.</returns>
-        virtual HttpHeaders& GetHeaders() = 0;
+        virtual const HttpHeaders& GetHeaders() const = 0;
+
+        /// <summary>
+        /// Appends a request header to the collection, preserving any existing instances
+        /// </summary>
+        /// <param name="header">The name of the header to append</param>
+        /// <param name="value">The contents of the header</param>
+        virtual void AppendHeader(const std::string& header, const std::string& value) = 0;
+
+        /// <summary>
+        /// Sets a request header, overwriting any existing value
+        /// </summary>
+        /// <param name="header">The name of the header to set</param>
+        /// <param name="value">The contents of the header</param>
+        virtual void SetHeader(const std::string& header, const std::string& value) = 0;
 
         /// <summary>
         /// Sets the request body.
@@ -156,7 +170,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Gets the request body.
         /// </summary>
-        virtual std::vector<uint8_t>& GetBody() = 0;
+        virtual const std::vector<uint8_t>& GetBody() const = 0;
 
         /// <summary>
         /// Sets the request latency.
@@ -181,7 +195,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class IHttpResponse
     {
-    public:
+       public:
 
         /// <summary>
         /// The IHttpResponse class destructor.
@@ -224,7 +238,7 @@ namespace ARIASDK_NS_BEGIN
     /// The SimpleHttpRequest class represents a simple request.
     /// </summary>
     class SimpleHttpRequest : public IHttpRequest {
-    public:
+       public:
         /// <summary>
         /// A string that contains the request ID.
         /// </summary>
@@ -257,15 +271,15 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         EventPriority        m_priority;
 
-    public:
+       public:
 
         /// <summary>
-        /// A SimpleHttpRequest class constructor that takes a request ID, and initializes the request method to 
+        /// A SimpleHttpRequest class constructor that takes a request ID, and initializes the request method to
         /// <i>GET</i>, and the event priority to <i>EventPriority_Unspecified</i>.
         /// </summary>
         /// <param name="id">A string that contains the request ID.</param>
         SimpleHttpRequest(std::string const& id)
-            : m_id(id),
+          : m_id(id),
             m_method("GET"),
             m_latency(EventLatency_Unspecified)
         {
@@ -292,7 +306,7 @@ namespace ARIASDK_NS_BEGIN
         /// Get the HTTP method.
         /// </summary>
         /// <returns>A string representation of the HTTP method (e.g.., <i>GET</i>).</returns>
-        virtual const std::string& GetMethod() override
+        virtual const std::string& GetMethod() const override
         {
             return m_method;
         }
@@ -310,7 +324,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the HTTP request URI.
         /// </summary>
         /// <returns>A string that contains the URI.</returns>
-        virtual const std::string& GetUrl() override
+        virtual const std::string& GetUrl() const override
         {
             return m_url;
         }
@@ -328,9 +342,29 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the HTTP request headers.
         /// </summary>
         /// <returns>The headers, in a reference to a HttpHeaders object.</returns>
-        virtual HttpHeaders& GetHeaders() override
+        virtual const HttpHeaders& GetHeaders() const override
         {
             return m_headers;
+        }
+
+        /// <summary>
+        /// Appends a new instance of a HTTP request header
+        /// </summary>
+        /// <param name="header">The name of the header to append</param>
+        /// <param name="value">The contents of the header</param>
+        virtual void AppendHeader(const std::string& header, const std::string& value) override
+        {
+            m_headers.add(header, value);
+        }
+
+        /// <summary>
+        /// Sets the value of an HTTP request header
+        /// </summary>
+        /// <param name="header">The name of the header to set</param>
+        /// <param name="value">The contents of the header</param>
+        virtual void SetHeader(const std::string& header, const std::string& value) override
+        {
+            m_headers.set(header, value);
         }
 
         /// <summary>
@@ -361,7 +395,7 @@ namespace ARIASDK_NS_BEGIN
             return size;
         }
 
-        virtual std::vector<uint8_t>& GetBody() override
+        virtual const std::vector<uint8_t>& GetBody() const override
         {
             return m_body;
         }
@@ -373,7 +407,7 @@ namespace ARIASDK_NS_BEGIN
     /// The SimpleHttpResponse class represents a simple response.
     /// </summary>
     class SimpleHttpResponse : public IHttpResponse {
-    public:
+       public:
 
         /// <summary>
         /// The response ID.
@@ -400,15 +434,15 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         std::vector<uint8_t> m_body;
 
-    public:
+       public:
         /// <summary>
-        /// A SimpleHttpResponse constructor that takes a string that contains the response ID, 
-        /// and initializes the response result to <i>HttpResult_LocalFailure</i>, and 
+        /// A SimpleHttpResponse constructor that takes a string that contains the response ID,
+        /// and initializes the response result to <i>HttpResult_LocalFailure</i>, and
         /// the status code to <i>0</i>.
         /// </summary>
         /// <param name="id">A string that contains the response message ID.</param>
         SimpleHttpResponse(std::string const& id)
-            : m_id(id),
+          : m_id(id),
             m_result(HttpResult_LocalFailure),
             m_statusCode(0)
         {
@@ -417,9 +451,9 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The SimpleHttpResponse class destructor.
         /// </summary>
-       virtual ~SimpleHttpResponse() noexcept
-       {
-       }
+        virtual ~SimpleHttpResponse() noexcept
+        {
+        }
 
         /// <summary>
         /// Gets the HTTP response message Id.
@@ -505,7 +539,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class IHttpResponseCallback
     {
-    public:
+       public:
         /// <summary>
         /// The IHttpResponseCallback class destructor.
         /// </summary>
@@ -542,14 +576,14 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class IHttpClient : public IModule
     {
-    public:
+       public:
         virtual ~IHttpClient() noexcept {}
 
         /// <summary>
         /// Creates an empty HTTP request object.
         /// The created request object has only its ID prepopulated. Other fields
         /// must be set by the caller. The request object can then be sent
-        /// using SendRequestAsync(). If you are not going to use the request object, 
+        /// using SendRequestAsync(). If you are not going to use the request object,
         /// then you can delete it safely using its virtual destructor.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
@@ -560,7 +594,7 @@ namespace ARIASDK_NS_BEGIN
         /// The method takes ownership of the passed request, and can destroy it before
         /// returning to the caller. Do not access the request object in any
         /// way after this invocation, and do not delete it.
-        /// The callback object is always called, even if the request is 
+        /// The callback object is always called, even if the request is
         /// cancel led, or if an error occurs immediately during sending. In the
         /// latter case, the OnHttpResponse() callback is called before this
         /// method returns. You must keep the callback object alive until its
@@ -570,12 +604,12 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="request">The filled request object returned earlier by
         /// CreateRequest()</param>
         /// <param name="callback">The callback to receive the response.</param>
-        virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) = 0;
+        virtual void SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback) = 0;
 
         /// <summary>
         /// Cancels an HTTP request.
         /// The caller must provide a string ID returned earlier by request->GetId().
-        /// The request is cancelled asynchronously. The caller must still 
+        /// The request is cancelled asynchronously. The caller must still
         /// wait for the relevant OnHttpResponse() callback (it can just come
         /// earlier with some "aborted" error status).
         /// </summary>

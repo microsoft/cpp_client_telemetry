@@ -18,7 +18,7 @@ class MockIHttpClient : public MAT::IHttpClient {
     }
 
     MOCK_METHOD0(CreateRequestProxy, IHttpRequest*());
-    MOCK_METHOD2(SendRequestAsync, void(MAT::IHttpRequest& request, MAT::IHttpResponseCallback* callback));
+    MOCK_METHOD2(SendRequestAsync, void(MAT::IHttpRequest const& request, MAT::IHttpResponseCallback* callback));
     MOCK_METHOD1(CancelRequestAsync, void(std::string const& id));
 };
 

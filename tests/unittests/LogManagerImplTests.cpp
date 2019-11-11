@@ -23,7 +23,7 @@ public:
 class TestHttpClient : public IHttpClient
 {
    virtual std::unique_ptr<IHttpRequest> CreateRequest() override { return nullptr; }
-   virtual void SendRequestAsync(IHttpRequest&, IHttpResponseCallback*) override { }
+   virtual void SendRequestAsync(IHttpRequest const&, IHttpResponseCallback*) override { }
    virtual void CancelRequestAsync(std::string const&) override { }
 };
 
