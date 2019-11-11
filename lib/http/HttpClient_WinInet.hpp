@@ -20,7 +20,7 @@ class HttpClient_WinInet : public IHttpClient {
     HttpClient_WinInet();
     virtual ~HttpClient_WinInet();
     virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
-    virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
+    virtual void SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
     virtual void CancelAllRequests() override;
 

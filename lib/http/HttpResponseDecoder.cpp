@@ -86,7 +86,7 @@ namespace ARIASDK_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_OK;
                 evt.param1 = response.GetStatusCode();
-                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.data = static_cast<void *>(const_cast<uint8_t*>(request.GetBody().data()));
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
             }
@@ -107,7 +107,7 @@ namespace ARIASDK_NS_BEGIN {
                 // This is to be addressed with ETW trace API that can send
                 // a detailed error context to ETW provider.
                 evt.param1 = response.GetStatusCode();
-                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.data = static_cast<void *>(const_cast<uint8_t*>(request.GetBody().data()));
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
                 eventsRejected(ctx);

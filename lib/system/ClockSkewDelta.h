@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
 		{
 			if (!m_delta.empty())
 			{
-				ctx->httpRequest->GetHeaders().set("time-delta-to-apply-millis", m_delta);
+				ctx->httpRequest->SetHeader("time-delta-to-apply-millis", m_delta);
 			}
 			return true;
 		}
