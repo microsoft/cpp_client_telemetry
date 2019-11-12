@@ -109,8 +109,8 @@ TEST(HttpClientCAPITests, SendAsync)
     request->SetUrl("https://www.microsoft.com");
     request->SetBody(body);
     request->SetMethod("POST");
-    request->AppendHeader("key1", "value1");
-    request->AppendHeader("key2", "value2");
+    request->GetHeaders().add("key1", "value1");
+    request->GetHeaders().add("key2", "value2");
 
     AutoTestHelper testHelper;
     testHelper->SetShouldSend(true);
@@ -195,7 +195,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
     auto request = httpClient.CreateRequest();
     request->SetUrl("https://www.microsoft.com");
     request->SetMethod("GET");
-    request->AppendHeader("key1", "value1");
+    request->GetHeaders().add("key1", "value1");
 
     // Validate C++ -> C transformation of request
     bool wasSent = false;
