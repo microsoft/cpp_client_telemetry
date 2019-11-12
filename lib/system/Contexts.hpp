@@ -87,11 +87,11 @@ namespace ARIASDK_NS_BEGIN {
         bool                                 compressed = false;
 
         // Sending
-        std::unique_ptr<IHttpRequest>        httpRequest = nullptr;
+        std::unique_ptr<IHttpRequest>        httpRequest {};
         std::string                          httpRequestId;
 
         // Receiving
-        std::unique_ptr<IHttpResponse>       httpResponse = nullptr;
+        std::unique_ptr<IHttpResponse>       httpResponse {};
 
         int                                  durationMs = -1;
         bool                                 fromMemory;

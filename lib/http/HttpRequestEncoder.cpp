@@ -41,11 +41,11 @@ namespace ARIASDK_NS_BEGIN {
 
         ctx->httpRequest->SetUrl(m_config.GetCollectorUrl());
 
-        ctx->httpRequest->SetHeader("Expect", "100-continue");
-        ctx->httpRequest->SetHeader("SDK-Version", PAL::getSdkVersion());
-        ctx->httpRequest->SetHeader("Client-Id", "NO_AUTH");
-        ctx->httpRequest->SetHeader("Content-Type", "application/bond-compact-binary");
-        ctx->httpRequest->SetHeader("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
+        ctx->httpRequest->GetHeaders().set("Expect", "100-continue");
+        ctx->httpRequest->GetHeaders().set("SDK-Version", PAL::getSdkVersion());
+        ctx->httpRequest->GetHeaders().set("Client-Id", "NO_AUTH");
+        ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
+        ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
 
         if (GetAuthTokensController() != nullptr && GetAuthTokensController()->GetDeviceTokens().size() > 0)
@@ -53,22 +53,22 @@ namespace ARIASDK_NS_BEGIN {
             std::map<TicketType, std::string>& map = GetAuthTokensController()->GetDeviceTokens();
             if (map.end() != map.find(TicketType::TicketType_MSA_Device))
             {
-                ctx->httpRequest->SetHeader("AuthMsaDeviceTicket", map[TicketType::TicketType_MSA_Device]);
+                ctx->httpRequest->GetHeaders().set("AuthMsaDeviceTicket", map[TicketType::TicketType_MSA_Device]);
             }
 
             if (map.end() != map.find(TicketType::TicketType_XAuth_Device))
             {
-                ctx->httpRequest->SetHeader("AuthXToken", map[TicketType::TicketType_XAuth_Device]);
+                ctx->httpRequest->GetHeaders().set("AuthXToken", map[TicketType::TicketType_XAuth_Device]);
             }
 
             if (map.end() != map.find(TicketType::TicketType_AAD))
             {
-                ctx->httpRequest->SetHeader("Aad-Token", map[TicketType::TicketType_AAD]);
+                ctx->httpRequest->GetHeaders().set("Aad-Token", map[TicketType::TicketType_AAD]);
             }
 
             if (map.end() != map.find(TicketType::TicketType_AAD_JWT))
             {
-                ctx->httpRequest->SetHeader("Aad-Jwt-Token", map[TicketType::TicketType_AAD_JWT]);
+                ctx->httpRequest->GetHeaders().set("Aad-Jwt-Token", map[TicketType::TicketType_AAD_JWT]);
             }
         }
 
@@ -118,13 +118,13 @@ namespace ARIASDK_NS_BEGIN {
 
             if (!ticketHeader.empty())
             {
-                ctx->httpRequest->SetHeader("Tickets", ticketHeader);
+                ctx->httpRequest->GetHeaders().set("Tickets", ticketHeader);
             }
         }
         //strict mode
         if (GetAuthTokensController() != nullptr && true == GetAuthTokensController()->GetStrictMode())
         {
-            ctx->httpRequest->SetHeader("Strict", "true");
+            ctx->httpRequest->GetHeaders().set("Strict", "true");
         }
 
         std::string tenantTokens;
@@ -135,10 +135,10 @@ namespace ARIASDK_NS_BEGIN {
             }
             tenantTokens.append(item.first);
         }
-        ctx->httpRequest->SetHeader("APIKey", tenantTokens);
+        ctx->httpRequest->GetHeaders().set("APIKey", tenantTokens);
 
         if (ctx->compressed) {
-            ctx->httpRequest->AppendHeader("Content-Encoding", "deflate");
+            ctx->httpRequest->GetHeaders().add("Content-Encoding", "deflate");
         }
 
 

@@ -181,7 +181,7 @@ TEST_F(HttpClientTests, HandlesPostRequest)
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetMethod("POST");
-    request->SetHeader("Content-Type", "application/octet-stream");
+    request->GetHeaders().set("Content-Type", "application/octet-stream");
     request->SetUrl("http://" + _hostname + "/echo/");
     auto body = Binary("Some\xBB\x11naryContent");
     request->SetBody(body);
@@ -284,8 +284,8 @@ TEST_F(HttpClientTests, Handles100Continue)
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetMethod("POST");
-    request->SetHeader("Expect", "100-continue");
-    request->SetHeader("Content-Type", "application/octet-stream");
+    request->GetHeaders().set("Expect", "100-continue");
+    request->GetHeaders().set("Content-Type", "application/octet-stream");
     request->SetUrl("http://" + _hostname + "/echo/");
     auto body = Binary("Some\xBB\x11naryContent");
     request->SetBody(body);
@@ -315,8 +315,8 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
         IHttpRequest* request = _client->CreateRequest();
         // _requests.push_back(request);
         request->SetMethod("POST");
-        request->SetHeader("expect", "100-continue");
-        request->SetHeader("content-type", "application/octet-stream");
+        request->GetHeaders().set("expect", "100-continue");
+        request->GetHeaders().set("content-type", "application/octet-stream");
         std::ostringstream url;
         url << "http://" << _hostname << "/count/" << i;
         request->SetUrl(url.str());

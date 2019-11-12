@@ -149,18 +149,10 @@ namespace ARIASDK_NS_BEGIN
         virtual const HttpHeaders& GetHeaders() const = 0;
 
         /// <summary>
-        /// Appends a request header to the collection, preserving any existing instances
+        /// Gets the request headers.
         /// </summary>
-        /// <param name="header">The name of the header to append</param>
-        /// <param name="value">The contents of the header</param>
-        virtual void AppendHeader(const std::string& header, const std::string& value) = 0;
-
-        /// <summary>
-        /// Sets a request header, overwriting any existing value
-        /// </summary>
-        /// <param name="header">The name of the header to set</param>
-        /// <param name="value">The contents of the header</param>
-        virtual void SetHeader(const std::string& header, const std::string& value) = 0;
+        /// <returns>The HTTP headers in an HttpHeaders object.</returns>
+        virtual HttpHeaders& GetHeaders() = 0;
 
         /// <summary>
         /// Sets the request body.
@@ -349,23 +341,12 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Appends a new instance of a HTTP request header
+        /// Gets the HTTP request headers.
         /// </summary>
-        /// <param name="header">The name of the header to append</param>
-        /// <param name="value">The contents of the header</param>
-        virtual void AppendHeader(const std::string& header, const std::string& value) override
+        /// <returns>The headers, in a reference to a HttpHeaders object.</returns>
+        virtual HttpHeaders& GetHeaders() override
         {
-            m_headers.add(header, value);
-        }
-
-        /// <summary>
-        /// Sets the value of an HTTP request header
-        /// </summary>
-        /// <param name="header">The name of the header to set</param>
-        /// <param name="value">The contents of the header</param>
-        virtual void SetHeader(const std::string& header, const std::string& value) override
-        {
-            m_headers.set(header, value);
+            return m_headers;
         }
 
         /// <summary>
