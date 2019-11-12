@@ -36,26 +36,6 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-/**
- * Curl-based HTTP client
- */
-class HttpClient_Curl : public IHttpClient {
-public:
-    HttpClient_Curl();
-    virtual ~HttpClient_Curl();
-
-    virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
-    virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
-    virtual void CancelRequestAsync(std::string const& id) override;
-
-private:
-    void EraseRequest(std::string const& id);
-    void AddRequest(IHttpRequest* request);
-
-    std::mutex m_requestsMtx;
-    std::map<std::string, IHttpRequest*> m_requests;
-};
-
 class CurlHttpOperation {
 public:
 
@@ -519,6 +499,53 @@ protected:
         return size * nmemb;
     }
 
+};
+
+class CurlHttpRequest
+{
+public:
+    CurlHttpRequest(SimpleHttpRequest const& request) : m_request(request) { }
+
+    void SetOperation(const std::shared_ptr<CurlHttpOperation>& curlOperation)
+    {
+        m_curlOperation = curlOperation;
+    }
+
+    const IHttpRequest& GetUnderlyingRequest()
+    {
+        return m_request;
+    }
+
+    void Cancel()
+    {
+        if (m_curlOperation != nullptr) {
+            m_curlOperation->Abort();
+        }
+    }
+
+private:
+    SimpleHttpRequest const& m_request;
+    std::shared_ptr<CurlHttpOperation> m_curlOperation;
+};
+
+/**
+ * Curl-based HTTP client
+ */
+class HttpClient_Curl : public IHttpClient {
+public:
+    HttpClient_Curl();
+    virtual ~HttpClient_Curl();
+
+    virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
+    virtual void SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback) override;
+    virtual void CancelRequestAsync(std::string const& id) override;
+
+private:
+    void EraseRequest(std::string const& id);
+    void AddRequest(std::unique_ptr<CurlHttpRequest> request);
+
+    std::mutex m_requestsMtx;
+    std::map<std::string, std::unique_ptr<CurlHttpRequest>> m_requests;
 };
 
 } ARIASDK_NS_END

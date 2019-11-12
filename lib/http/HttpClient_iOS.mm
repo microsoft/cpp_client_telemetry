@@ -42,7 +42,6 @@ public:
 
     void SendAsync(IHttpResponseCallback* callback)
     {
-        m_callback = callback;
         NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
         NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
         m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
@@ -59,7 +58,7 @@ public:
         m_completionMethod =
             ^(NSData *data, NSURLResponse *response, NSError *error)
             {
-                HandleResponse(data, response, error);
+                HandleResponse(data, response, error, callback);
             };
 
         if(equalsIgnoreCase(m_method, "get"))
@@ -77,10 +76,10 @@ public:
         [m_dataTask resume];
     }
 
-    void HandleResponse(NSData* data, NSURLResponse* response, NSError* error)
+    static void HandleResponse(NSData* data, NSURLResponse* response, NSError* error, IHttpResponseCallback* callback)
     {
         NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
-        auto simpleResponse = new SimpleHttpResponse { NextRespId() };
+        auto simpleResponse = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse { NextRespId() });
 
         simpleResponse->m_statusCode = httpResp.statusCode;
 
@@ -112,7 +111,7 @@ public:
             simpleResponse->m_body.reserve(data.length);
             std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
         }
-        m_callback->OnHttpResponse(simpleResponse);
+        callback->OnHttpResponse(std::move(simpleResponse));
     }
 
     void Cancel()
@@ -139,7 +138,6 @@ public:
 
 private:
     HttpClient_iOS* m_parent = nullptr;
-    IHttpResponseCallback* m_callback = nullptr;
     NSURLSession* m_session = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
     NSMutableURLRequest* m_urlRequest = nullptr;
@@ -163,10 +161,10 @@ std::unique_ptr<IHttpRequest> HttpClient_iOS::CreateRequest()
     return std::unique_ptr<HttpRequestIos>(request);
 }
 
-void HttpClient_iOS::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
+void HttpClient_iOS::SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback)
 {
-    auto requestIos = static_cast<HttpRequestIos*>(&request);
-    requestIos->SendAsync(callback);
+    auto requestIos = static_cast<HttpRequestIos const&>(request);
+    requestIos.SendAsync(callback);
     LOG_TRACE("HTTP request=%p callback=%p sent", &request, callback);
 }
 
