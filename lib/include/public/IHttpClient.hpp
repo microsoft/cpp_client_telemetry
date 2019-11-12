@@ -408,7 +408,7 @@ namespace ARIASDK_NS_BEGIN
     /// The SimpleHttpResponse class represents a simple response.
     /// </summary>
     class SimpleHttpResponse : public IHttpResponse {
-    public:
+       public:
 
         /// <summary>
         /// The response ID.
