@@ -19,27 +19,6 @@ namespace ARIASDK_NS_BEGIN {
         return std::string("REQ-") + std::to_string(seq.fetch_add(1));
     }
 
-    class CurlHttpRequest : public SimpleHttpRequest
-    {
-    public:
-        CurlHttpRequest() : SimpleHttpRequest(NextReqId()) { }
-
-        void SetOperation(const std::shared_ptr<CurlHttpOperation>& curlOperation)
-        {
-            m_curlOperation = curlOperation;
-        }
-
-        void Cancel()
-        {
-            if (m_curlOperation != nullptr) {
-                m_curlOperation->Abort();
-            }
-        }
-
-    private:
-        std::shared_ptr<CurlHttpOperation> m_curlOperation;
-    };
-
     HttpClient_Curl::HttpClient_Curl()
     {
         /* In windows, this will init the winsock stuff */
@@ -56,13 +35,13 @@ namespace ARIASDK_NS_BEGIN {
 
     std::unique_ptr<IHttpRequest> HttpClient_Curl::CreateRequest()
     {
-        return std::unique_ptr<CurlHttpRequest>(new CurlHttpRequest());
+        return std::unique_ptr<SimpleHttpRequest>(new SimpleHttpRequest(NextReqId()));
     }
 
-    void HttpClient_Curl::SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback)
+    void HttpClient_Curl::SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback)
     {
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-        AddRequest(&request);
+        auto curlRequest = std::unique_ptr<CurlHttpRequest>(new CurlHttpRequest(static_cast<const SimpleHttpRequest&>(request)));
 
         std::string requestId = request.GetId();
         std::map<std::string, std::string> requestHeaders;
@@ -71,7 +50,8 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         auto curlOperation = std::make_shared<CurlHttpOperation>(request.GetMethod(), request.GetUrl(), callback, requestHeaders, request.GetBody());
-        static_cast<CurlHttpRequest&>(request).SetOperation(curlOperation);
+        curlRequest->SetOperation(curlOperation);
+        AddRequest(std::move(curlRequest));
 
         // Hold on to 'curlOperation' in lambda to ensure its lifetime until operation completes
         curlOperation->SendAsync([this, curlOperation, callback, requestId](CurlHttpOperation& operation) {
@@ -99,7 +79,7 @@ namespace ARIASDK_NS_BEGIN {
             response->m_body = operation.GetResponseBody();
             
             // 'response' is no longer owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-            callback->OnHttpResponse(response.release());
+            callback->OnHttpResponse(std::move(response));
         });
     }
 
@@ -110,7 +90,7 @@ namespace ARIASDK_NS_BEGIN {
             // Hold the lock only while iterating over the list of requests
             std::lock_guard<std::mutex> lock(m_requestsMtx);
             if (m_requests.find(id) != m_requests.cend()) {
-                request = static_cast<CurlHttpRequest*>(m_requests[id]);
+                request = (m_requests[id]).get();
                 LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
                 m_requests.erase(id);
             }
@@ -127,10 +107,10 @@ namespace ARIASDK_NS_BEGIN {
         m_requests.erase(id);
     }
 
-    void HttpClient_Curl::AddRequest(IHttpRequest* request)
+    void HttpClient_Curl::AddRequest(std::unique_ptr<CurlHttpRequest> request)
     {
         std::lock_guard<std::mutex> lock(m_requestsMtx);
-        m_requests[request->GetId()] = request;
+        m_requests[request->GetUnderlyingRequest().GetId()] = std::move(request);
     }
 
 } ARIASDK_NS_END

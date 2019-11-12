@@ -16,7 +16,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual ~HttpClient_iOS() noexcept;
 
         virtual std::unique_ptr<IHttpRequest> CreateRequest() override;
-        virtual void SendRequestAsync(IHttpRequest& request, IHttpResponseCallback* callback) override;
+        virtual void SendRequestAsync(IHttpRequest const& request, IHttpResponseCallback* callback) override;
         virtual void CancelRequestAsync(std::string const& id) override;
         virtual void CancelAllRequests() override;
 
