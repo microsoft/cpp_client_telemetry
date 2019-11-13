@@ -148,7 +148,7 @@ namespace PAL_NS_BEGIN {
                                const auto itemPtr = self->m_timerQueue.front();
                                self->m_timerQueue.pop_front();
                                itemPtr->TargetTime = now + MAX_FUTURE_DELTA_MS;
-                               self->queue(itemPtr);
+                               self->Queue(itemPtr);
                                continue;
                            }
                            // value used for sleep in case if m_queue ends up being empty
