@@ -130,8 +130,12 @@ protected:
     /// <returns></returns>
     inline std::wstring to_utf16_string(const std::string& in)
     {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-        return converter.from_bytes(in);
+        // libc++ doesn't properly handle wstring conversions, but handles u16 correctly
+        static_assert(sizeof(std::wstring::value_type) == sizeof(std::u16string::value_type),
+                      "wchar_t is expected to be the same size as char16_t on Windows");
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+        std::u16string result = converter.from_bytes(in);
+        return std::wstring(result.begin(), result.end());
     }
 
 public:
