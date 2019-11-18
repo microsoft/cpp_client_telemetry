@@ -43,6 +43,7 @@
 #include <sys/syslimits.h>
 #include <libgen.h>
 #include "TargetConditionals.h"
+#include "sysinfo_utils_apple.hpp"
 
 #ifdef TARGET_MAC_OS 
 
@@ -228,10 +229,10 @@ public:
 #else
         cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
 #endif // TARGET_OS_IPHONE
-        cache["osName"]  = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductName");
-        cache["osVer"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductVersion");
-        cache["osRel"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductUserVisibleVersion");
-        cache["osBuild"] = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductBuildVersion");
+        cache["osName"] = get_device_osName();
+        cache["osVer"] = get_device_osVersion();
+        cache["osRel"] = get_device_osRelease();
+        cache["osBuild"] = get_device_osBuild();
 
         // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
         CFTimeZoneRef tz = CFTimeZoneCopySystem();

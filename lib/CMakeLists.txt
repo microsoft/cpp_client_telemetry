@@ -70,6 +70,16 @@ if(EXISTS "modules/dataviewer/")
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
+  if(APPLE)
+    list(APPEND SRCS
+      pal/posix/sysinfo_utils_apple.mm
+    )
+    if(BUILD_IOS)
+      list(APPEND SRCS
+        pal/posix/sysinfo_utils_ios.mm
+      )
+    endif()
+  endif()
   list(APPEND SRCS
     pal/posix/DeviceInformationImpl.cpp
     pal/posix/SystemInformationImpl.cpp
@@ -81,7 +91,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       http/HttpClient_iOS.mm
       pal/posix/NetworkInformationImpl.mm
       pal/posix/Reachability.m
-      pal/posix/sysinfo_utils_ios.mm
     )
   else()
     list(APPEND SRCS
@@ -89,6 +98,15 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       http/HttpClient_Curl.hpp
       pal/posix/NetworkInformationImpl.cpp
     )
+  endif()
+  if(BUILD_OBJC_WRAPPER)
+	message("Include Wrappers")
+	list(APPEND SRCS
+	  ../wrappers/obj-c/ODWLogger.mm
+	  ../wrappers/obj-c/ODWLogManager.mm
+	  ../wrappers/obj-c/ODWEventProperties.mm
+	  ../wrappers/obj-c/ODWLogConfiguration.mm
+	  )
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
