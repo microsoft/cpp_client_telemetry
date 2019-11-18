@@ -12,6 +12,15 @@ std::string get_device_model()
 
 std::string get_device_id()
 {
-    std::string deviceId { [[[[UIDevice currentDevice] identifierForVendor] UUIDString] UTF8String] };
-    return deviceId;
+    NSUUID *nsuuid = [[UIDevice currentDevice] identifierForVendor];
+    if (nsuuid)
+    {
+        std::string deviceId { [[nsuuid UUIDString] UTF8String] };
+        return deviceId;
+    }
+    else
+    {
+        std::string emptyString;
+        return emptyString;
+    }
 }
