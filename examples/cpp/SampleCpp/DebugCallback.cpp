@@ -152,9 +152,7 @@ void MyDebugEventListener::OnDebugEvent(DebugEvent& evt)
     case EVT_STORAGE_FULL:
         printf("OnStorageFull:      seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", evt.seq, evt.ts, evt.type, evt.param1, evt.param2);
         if (evt.param1 >= 75) {
-            // UploadNow must NEVER EVER be called from SDK callback thread, so either use this structure below
-            // or notify the main app that it has to do the profile timers housekeeping / force the upload...
-            std::thread([]() { LogManager::UploadNow(); }).detach();
+            LogManager::UploadNow();
         }
         break;
 
