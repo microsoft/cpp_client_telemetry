@@ -99,7 +99,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       pal/posix/NetworkInformationImpl.cpp
     )
   endif()
-  if(BUILD_OBJC_WRAPPER)
+  if(APPLE AND BUILD_OBJC_WRAPPER)
 	message("Include Wrappers")
 	list(APPEND SRCS
 	  ../wrappers/obj-c/ODWLogger.mm
