@@ -41,25 +41,25 @@ NSString* get_system_value(CFStringRef key)
     return @"";
 }
 
-std::string get_device_osName()
+std::string GetDeviceOsName()
 {
     NSString* value = get_system_value(CFSTR("ProductName"));
     return std::string([value UTF8String]);
 }
 
-std::string get_device_osVersion()
+std::string GetDeviceOsVersion()
 {
     NSString* value = get_system_value(CFSTR("ProductVersion"));
     return std::string([value UTF8String]);
 }
 
-std::string get_device_osRelease()
+std::string GetDeviceOsRelease()
 {
     NSString* value = get_system_value(CFSTR("ProductUserVisibleVersion"));
     return std::string([value UTF8String]);
 }
 
-std::string get_device_osBuild()
+std::string GetDeviceOsBuild()
 {
     NSString* value = get_system_value(CFSTR("ProductBuildVersion"));
     return std::string([value UTF8String]);

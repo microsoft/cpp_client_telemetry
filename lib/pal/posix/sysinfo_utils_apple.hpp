@@ -4,12 +4,12 @@
 
 #include <string>
 
-std::string get_device_osName();
+std::string GetDeviceOsName();
 
-std::string get_device_osVersion();
+std::string GetDeviceOsVersion();
 
-std::string get_device_osRelease();
+std::string GetDeviceOsRelease();
 
-std::string get_device_osBuild();
+std::string GetDeviceOsBuild();
 
 #endif /* LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_ */
