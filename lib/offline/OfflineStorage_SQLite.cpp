@@ -170,7 +170,7 @@ namespace ARIASDK_NS_BEGIN {
 
         if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate>m_DbSizeLimit))
         {
-            uint64_t now = (uint64_t)PAL::getMonotonicTimeMs();
+            auto now = PAL::getMonotonicTimeMs();
             if (std::abs(static_cast<long>(now-m_isStorageFullNotificationSendTime)) > static_cast<long>(DB_FULL_CHECK_TIME_MS))
             {
                 // Notify the client that the DB is getting full, but only once in DB_FULL_CHECK_TIME_MS
