@@ -2,6 +2,6 @@
 
 #include <string>
 
-std::string get_device_model();
+std::string GetDeviceModel();
 
-std::string get_device_id();
+std::string GetDeviceId();
