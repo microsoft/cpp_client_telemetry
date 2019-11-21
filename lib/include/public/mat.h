@@ -268,11 +268,11 @@ extern "C" {
         const char*             id;
         int64_t                 delayMs;
         const char*             typeName;
-    } task_data_t;
+    } evt_task_t;
 
     /* Async worker thread callback function signatures */
     typedef void (EVTSDK_LIBABI_CDECL *task_callback_fn_t)(const char* /*taskId*/);
-    typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_queue_fn_t)(task_data_t*, task_callback_fn_t);
+    typedef void(EVTSDK_LIBABI_CDECL* task_dispatcher_queue_fn_t)(evt_task_t*, task_callback_fn_t);
     typedef bool (EVTSDK_LIBABI_CDECL *task_dispatcher_cancel_fn_t)(const char* /*taskId*/);
     typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_join_fn_t)();
 
