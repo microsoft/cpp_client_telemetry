@@ -30,7 +30,7 @@ namespace PAL_NS_BEGIN {
             {
                 this->TypeName = TYPENAME(call);
                 this->Type = Task::Call;
-                this->TargetTime = -1;
+                this->TargetTime = 0;
             }
 
             TaskCall(TCall& call, int64_t targetTime) :

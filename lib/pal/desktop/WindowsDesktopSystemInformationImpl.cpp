@@ -52,8 +52,13 @@ namespace PAL_NS_BEGIN {
         do
         {
             curExeFullPathBuffer.resize(curBufferLength);
-
-            DWORD result = GetModuleFileName(GetModuleHandle(NULL), &curExeFullPathBuffer[0], curBufferLength);
+            HMODULE handle = nullptr;
+            if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) == FALSE)
+            {
+                LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
+                return {};    
+            }
+            DWORD result = ::GetModuleFileName(handle, &curExeFullPathBuffer[0], curBufferLength);
 
             if (result == curBufferLength)
             {
@@ -178,16 +183,24 @@ namespace PAL_NS_BEGIN {
         // Auto-detect the app name - executable name without .exe suffix
         char buff[MAX_PATH] = { 0 };
         std::string appId;
-        if (GetModuleFileNameA(GetModuleHandle(NULL), &buff[0], MAX_PATH) > 0)
+        HMODULE handle = nullptr;
+        if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) != FALSE)
         {
-            std::string  app_name(buff);
-            size_t pos_dot = app_name.rfind(".");
-            size_t pos_slash = app_name.rfind("\\");
-            if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
+            if (::GetModuleFileNameA(handle, &buff[0], MAX_PATH) > 0)
             {
-                app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
+                std::string  app_name(buff);
+                size_t pos_dot = app_name.rfind(".");
+                size_t pos_slash = app_name.rfind("\\");
+                if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
+                {
+                    app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
+                }
+                appId = app_name;
             }
-            appId = app_name;
+        }
+        else 
+        {
+            LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
         }
         return appId;
     }
@@ -202,7 +215,9 @@ namespace PAL_NS_BEGIN {
         m_app_version = getAppVersion();
 
         getOsVersion(m_os_major_version, m_os_full_version);
-
+#ifdef WIN_DESKTOP
+        m_device_class = "Windows";
+#else
         HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
         typedef HRESULT NTSTATUS;
         typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*, unsigned long*, PWSTR, PWSTR);
@@ -225,6 +240,7 @@ namespace PAL_NS_BEGIN {
                 m_device_class = str;
             }
         }
+#endif
 
         m_commercial_id = getCommercialId();
     }
