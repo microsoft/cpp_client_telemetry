@@ -6,6 +6,8 @@
 
 #include <limits>
 
+#define ABS64(a,b)    ((a>b)?(a-b):(b-a))
+
 namespace ARIASDK_NS_BEGIN {
 
     int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
@@ -73,8 +75,8 @@ namespace ARIASDK_NS_BEGIN {
                 // Allow lower priority (normal) events to get thru in the next batch
                 m_runningLatency = latency;
             }
-            uint64_t now = PAL::getMonotonicTimeMs();
-            uint64_t delta = (m_scheduledUploadTime >= now) ? m_scheduledUploadTime - now : 0;
+            auto now = PAL::getMonotonicTimeMs();
+            auto delta = ABS64(m_scheduledUploadTime, now);
             if (delta <= static_cast<uint64_t>(delayInMs))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
