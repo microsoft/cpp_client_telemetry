@@ -107,7 +107,7 @@ namespace PAL_NS_BEGIN {
         auto ownedItem = std::unique_ptr<Task>(task);
 
         // Create task
-        task_t capiTask;
+        evt_task_t capiTask;
         std::string taskId = GetNextTaskId();
         capiTask.id = taskId.c_str();
         capiTask.typeName = ownedItem->TypeName.c_str();
