@@ -43,6 +43,7 @@
 #include <sys/syslimits.h>
 #include <libgen.h>
 #include "TargetConditionals.h"
+#include "sysinfo_utils_apple.hpp"
 
 #ifdef TARGET_MAC_OS 
 
@@ -224,14 +225,14 @@ public:
         // FIXME: [MG] - This is not the most elegant way of obtaining it
         cache["devMake"] = "Apple";
 #if TARGET_OS_IPHONE
-        cache["devModel"] = get_device_model();
+        cache["devModel"] = GetDeviceModel();
 #else
         cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
 #endif // TARGET_OS_IPHONE
-        cache["osName"]  = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductName");
-        cache["osVer"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductVersion");
-        cache["osRel"]   = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductUserVisibleVersion");
-        cache["osBuild"] = Exec("defaults read /System/Library/CoreServices/SystemVersion ProductBuildVersion");
+        cache["osName"] = GetDeviceOsName();
+        cache["osVer"] = GetDeviceOsVersion();
+        cache["osRel"] = GetDeviceOsRelease();
+        cache["osBuild"] = GetDeviceOsBuild();
 
         // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
         CFTimeZoneRef tz = CFTimeZoneCopySystem();
@@ -277,7 +278,7 @@ public:
 #ifdef __APPLE__
 #if TARGET_OS_IPHONE
             cache["devId"] = "i:";
-            std::string contents = get_device_id();
+            std::string contents = GetDeviceId();
 #else
             // Microsoft Edge bug 21528330
             // We were unable to use get_platform_uuid to obtain Device Id

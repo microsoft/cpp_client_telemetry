@@ -18,12 +18,15 @@ namespace
         void SetShouldExecute(bool shouldExecute) { m_shouldExecute = shouldExecute; }
         bool ShouldExecute() { return m_shouldExecute; }
 
-        void SetQueueValidation(std::function<void(task_t*)> fn) { m_validateQueueFn = fn; }
+        void SetQueueValidation(std::function<void(evt_task_t*)> fn)
+        {
+            m_validateQueueFn = fn;
+        }
         void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
         void SetJoinValidation(std::function<void()> fn) { m_validateJoinFn = fn; }
         void SetCallbackValidation(std::function<void(int, int)> fn) { m_validateCallbackFn = fn; }
 
-        void OnQueue(task_t* task)
+        void OnQueue(evt_task_t* task)
         {
             if (m_validateQueueFn)
                 m_validateQueueFn(task);
@@ -50,7 +53,7 @@ namespace
 
     private:
         bool m_shouldExecute = false;
-        std::function<void(task_t*)> m_validateQueueFn;
+     std::function<void(evt_task_t*)> m_validateQueueFn;
         std::function<void(const char*)> m_validateCancelFn;
         std::function<void()> m_validateJoinFn;
         std::function<void(int, int)> m_validateCallbackFn;
@@ -83,7 +86,7 @@ namespace
     };
 } // namespace
 
-void EVTSDK_LIBABI_CDECL OnTaskDispatcherQueue(task_t* task, task_callback_fn_t callback)
+void EVTSDK_LIBABI_CDECL OnTaskDispatcherQueue(evt_task_t* task, task_callback_fn_t callback)
 {
     s_testHelper->OnQueue(task);
 
@@ -101,7 +104,7 @@ void EVTSDK_LIBABI_CDECL OnTaskDispatcherJoin()
     s_testHelper->OnJoin();
 }
 
-void CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task_t* task) noexcept
+void CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(evt_task_t* task) noexcept
 {
    std::string typeName { task->typeName };
 #if HAS_RTTI
@@ -120,7 +123,7 @@ TEST(TaskDispatcherCAPITests, Execute)
 
     // Validate C++ -> C transformation of task
     bool wasQueued = false;
-    testHelper->SetQueueValidation([&wasQueued](task_t* task) {
+    testHelper->SetQueueValidation([&wasQueued](evt_task_t* task) {
         wasQueued = true;
         EXPECT_EQ(task->delayMs, 0);
         CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task);
@@ -149,7 +152,7 @@ TEST(TaskDispatcherCAPITests, Schedule)
 
     // Validate C++ -> C transformation of task
     bool wasQueued = false;
-    testHelper->SetQueueValidation([&wasQueued](task_t* task) {
+    testHelper->SetQueueValidation([&wasQueued](evt_task_t* task) {
         wasQueued = true;
         EXPECT_NE(task->delayMs, 0);
         CheckTaskTypeNameIsExpectedOrEmptyIfRTTIIsEnabled(task);
@@ -179,7 +182,7 @@ TEST(TaskDispatcherCAPITests, Cancel)
     // Validate C++ -> C transformation of task
     string taskIdStr;
     bool wasQueued = false;
-    testHelper->SetQueueValidation([&wasQueued, &taskIdStr](task_t* task) {
+    testHelper->SetQueueValidation([&wasQueued, &taskIdStr](evt_task_t* task) {
         wasQueued = true;
         taskIdStr = task->id;
         EXPECT_NE(task->delayMs, 0);
