@@ -4,14 +4,23 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-std::string get_device_model()
+std::string GetDeviceModel()
 {
     std::string deviceModel { [[[UIDevice currentDevice] model] UTF8String] };
     return deviceModel;
 }
 
-std::string get_device_id()
+std::string GetDeviceId()
 {
-    std::string deviceId { [[[[UIDevice currentDevice] identifierForVendor] UUIDString] UTF8String] };
-    return deviceId;
+    NSUUID *nsuuid = [[UIDevice currentDevice] identifierForVendor];
+    if (nsuuid)
+    {
+        std::string deviceId { [[nsuuid UUIDString] UTF8String] };
+        return deviceId;
+    }
+    else
+    {
+        std::string emptyString;
+        return emptyString;
+    }
 }
