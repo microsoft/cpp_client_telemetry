@@ -384,7 +384,7 @@ namespace PAL_NS_BEGIN {
      * - PAL WorkItem scheduler
      * - SQLiteWrapper perf counter
      */
-    int64_t getMonotonicTimeMs()
+    uint64_t getMonotonicTimeMs()
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
@@ -401,7 +401,7 @@ namespace PAL_NS_BEGIN {
 
         LARGE_INTEGER now;
         ::QueryPerformanceCounter(&now);
-        return now.QuadPart / ticksPerMillisecond;
+        return static_cast<uint64_t>(now.QuadPart / ticksPerMillisecond);
 #else
         /* Cross-platform C++11 implementation */
         return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);

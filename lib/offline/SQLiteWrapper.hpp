@@ -671,7 +671,7 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 
-            int64_t startTime = PAL::getMonotonicTimeMs();
+            auto startTime = PAL::getMonotonicTimeMs();
             LOG_DEBUG("=== [%p] execute2 step...", m_stmt);
             int result = g_sqlite3Proxy->sqlite3_step(m_stmt);
             m_duration = static_cast<unsigned>(PAL::getMonotonicTimeMs() - startTime);
