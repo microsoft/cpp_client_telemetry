@@ -92,7 +92,7 @@ namespace PAL_NS_BEGIN
     /**
      * Return the monotonic system clock time in milliseconds (since unspecified point).
      */
-    extern int64_t getMonotonicTimeMs();
+    extern uint64_t getMonotonicTimeMs();
 
     /**
      * Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
