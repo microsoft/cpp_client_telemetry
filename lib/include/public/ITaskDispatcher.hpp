@@ -46,7 +46,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The time (in milliseconds since epoch) when this work item should be executed
         /// </summary>
-        int64_t TargetTime;
+        uint64_t TargetTime;
 
         /// <summary>
         /// The Task class destructor.
