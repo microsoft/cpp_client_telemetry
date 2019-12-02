@@ -42,9 +42,9 @@ namespace ARIASDK_NS_BEGIN {
 #endif
 #elif defined(MATSDK_PAL_CPP11)
 #if defined(IOS_HTTP)
-    std::unique_ptr<IHttpClient> HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_iOS");
-        return std::unique_ptr<IHttpClient>(new HttpClient_iOS());
+        return std::shared_ptr<IHttpClient>(new HttpClient_iOS());
     }
 #else
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
