@@ -97,9 +97,9 @@ namespace PAL_NS_BEGIN {
         bool isLoggingInited = false;
         
 #ifdef HAVE_MAT_LOGGING
-        std::recursive_mutex debugLogMutex;
-        std::string          debugLogPath;
-        std::unique_ptr<std::fstream>        debugLogStream;
+        std::recursive_mutex          debugLogMutex;
+        std::string                   debugLogPath;
+        std::unique_ptr<std::fstream> debugLogStream;
         
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
