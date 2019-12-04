@@ -216,6 +216,11 @@ namespace ARIASDK_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient.reset(HttpClientFactory::Create());
+#ifdef HAVE_MAT_WININET_HTTP_CLIENT
+            /* Allow WinInet HTTP client to obtain its parent ILogManager configuration */
+            HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
+            client->SetParentLogManager(this);
+#endif
         }
         else
         {
