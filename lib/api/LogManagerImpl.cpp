@@ -215,7 +215,7 @@ namespace ARIASDK_NS_BEGIN
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr)
         {
-            m_httpClient.reset(HttpClientFactory::Create());
+            m_httpClient = HttpClientFactory::Create();
         }
         else
         {
