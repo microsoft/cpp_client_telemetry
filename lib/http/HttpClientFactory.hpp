@@ -12,7 +12,7 @@ namespace ARIASDK_NS_BEGIN {
 class HttpClientFactory
 {
 public:
-    static IHttpClient* Create();
+    static std::shared_ptr<IHttpClient> Create();
 
 private:
     MATSDK_LOG_DECL_COMPONENT_CLASS();

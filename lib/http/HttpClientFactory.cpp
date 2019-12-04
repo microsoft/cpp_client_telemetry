@@ -28,15 +28,15 @@ namespace ARIASDK_NS_BEGIN {
 
 #if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL
-    IHttpClient* HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinRt");
-        return new HttpClient_WinRt();
+        return std::make_shared<HttpClient_WinRt>();
     }
 
 #else
-    IHttpClient* HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinInet");
-        return new HttpClient_WinInet();
+        return std::make_shared<HttpClient_WinInet>();
     }
 
 #endif
@@ -44,12 +44,12 @@ namespace ARIASDK_NS_BEGIN {
 #if defined(APPLE_HTTP)
     IHttpClient* HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Apple");
-        return new HttpClient_Apple();
+        return std::make_shared<HttpClient_Apple>();
     }
 #else
-    IHttpClient* HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Curl");
-        return new HttpClient_Curl();
+        return std::make_shared<HttpClient_Curl>();
     }
 #endif
 #else

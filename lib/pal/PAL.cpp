@@ -97,9 +97,9 @@ namespace PAL_NS_BEGIN {
         bool isLoggingInited = false;
         
 #ifdef HAVE_MAT_LOGGING
-        std::recursive_mutex debugLogMutex;
-        std::string          debugLogPath;
-        std::ostream*        debugLogStream = nullptr;
+        std::recursive_mutex          debugLogMutex;
+        std::string                   debugLogPath;
+        std::unique_ptr<std::fstream> debugLogStream;
         
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
@@ -120,15 +120,14 @@ namespace PAL_NS_BEGIN {
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
 
-            std::fstream *debugFileStream = new std::fstream();
-            debugFileStream->open(debugLogPath, std::fstream::out);
-            if (!debugFileStream->is_open())
+            debugLogStream = std::unique_ptr<std::fstream>(new std::fstream());
+            debugLogStream->open(debugLogPath, std::fstream::out);
+            if (!debugLogStream->is_open())
             {
                 // If file cannot be created, log to /dev/null
-                debugFileStream->open(DEBUG_LOG_NULL);
+                debugLogStream->open(DEBUG_LOG_NULL);
                 result = false;
             }
-            debugLogStream = debugFileStream;
             debugLogMutex.unlock();
             return result;
         }
@@ -138,7 +137,6 @@ namespace PAL_NS_BEGIN {
             debugLogMutex.lock();
             if (debugLogStream)
             {
-                delete debugLogStream;
                 debugLogStream = nullptr;
                 isLoggingInited = false;
             }
