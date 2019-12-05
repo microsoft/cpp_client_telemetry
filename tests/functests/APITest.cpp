@@ -384,6 +384,8 @@ static void CleanStorage()
     std::remove(GetStoragePath().c_str());
 }
 
+#if 0
+/* TODO: [maxgolov] - Issue #150: test needs to be reworked. Invalid tokens might noe get sporadically 'black-holed' with 200 OK */
 TEST(APITest, LogManager_KilledEventsAreDropped)
 {
     constexpr static unsigned MAX_ITERATIONS = 100;
@@ -434,6 +436,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
+#endif
 
 TEST(APITest, LogManager_Initialize_DebugEventListener)
 {
