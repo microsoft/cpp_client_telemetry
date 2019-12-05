@@ -301,7 +301,7 @@ int main()
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
     // Code snippet showing how to perform MS Root certificate check for v10 end-point.
-    // Most other nd-points are Baltimore CA-rooted, but this one is MS CA-rooted.
+    // Most other end-points are Baltimore CA-rooted. But v10 is MS CA-rooted.
     config["http"]["msRootCheck"] = true;
     config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
     logger = LogManager::Initialize(API_KEY);
