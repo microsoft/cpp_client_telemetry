@@ -94,7 +94,7 @@ class WinInetRequestWrapper
                 LOG_WARN("CertVerifyCertificateChainPolicy() failed: unable to verify");
                 return false;
             }
-            // Non-MS rooted cert chaine
+            // Non-MS rooted cert chain
             if (pps.dwError != ERROR_SUCCESS)
             {
                 LOG_WARN("CertVerifyCertificateChainPolicy() failed: invalid root CA - %d", pps.dwError);
@@ -103,7 +103,8 @@ class WinInetRequestWrapper
         }
         else
         {
-            LOG_WARN("InternetQueryOption() failed to obtain cert chain");
+            // Downlevel OS prior to Win 7 and Win 2008 Server R2 do not support cert chain retrieval
+            LOG_TRACE("InternetQueryOption() failed to obtain cert chain");
         }
         return true;
     }
@@ -158,11 +159,9 @@ class WinInetRequestWrapper
         }
 
         /* Perform optional MS Root certificate check for certain end-point URLs */
-        if (m_parent.m_logManager != nullptr)
+        if (m_parent.IsMsRootCheckRequired())
         {
-            auto config = m_parent.m_logManager->GetLogConfiguration();
-            bool isMsRootCheckReqd = config["http"]["msRootCheck"];
-            if (isMsRootCheckReqd && !isMsRootCert())
+            if (!isMsRootCert())
             {
                 onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
                 return;
@@ -359,7 +358,7 @@ class WinInetRequestWrapper
 unsigned HttpClient_WinInet::s_nextRequestId = 0;
 
 HttpClient_WinInet::HttpClient_WinInet() :
-    m_logManager(nullptr)
+    m_msRootCheck(false)
 {
     m_hInternet = ::InternetOpen(NULL, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_ASYNC);
 }
@@ -431,10 +430,24 @@ void HttpClient_WinInet::CancelAllRequests()
     }
 };
 
-/* This internal helper method may optionally be called shortly after HTTP client creation */
-void HttpClient_WinInet::SetParentLogManager(ILogManager* logManager)
+/// <summary>
+/// Enforces MS-root server certificate check.
+/// </summary>
+/// <param name="enforceMsRoot">if set to <c>true</c> [enforce verification that server cert is MS-Rooted].</param>
+void HttpClient_WinInet::SetMsRootCheck(bool enforceMsRoot)
 {
-    m_logManager = logManager;
+    m_msRootCheck = enforceMsRoot;
+}
+
+/// <summary>
+/// Determines whether MS-Roted server cert check required.
+/// </summary>
+/// <returns>
+///   <c>true</c> if [MS-Rooted server cert check required]; otherwise, <c>false</c>.
+/// </returns>
+bool HttpClient_WinInet::IsMsRootCheckRequired()
+{
+    return m_msRootCheck;
 }
 
 } ARIASDK_NS_END

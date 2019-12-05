@@ -9,8 +9,7 @@
 #if defined(MATSDK_PAL_WIN32)
   #ifdef _WINRT_DLL
     #include "http/HttpClient_WinRt.hpp"
-  #endif
-  #ifdef HAVE_MAT_WININET_HTTP_CLIENT
+  #elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
@@ -29,28 +28,29 @@ namespace ARIASDK_NS_BEGIN {
 
 #if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL
-    IHttpClient* HttpClientFactory::Create() {
+    /* Win 10 HTTP client */
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinRt");
-        return new HttpClient_WinRt();
+        return std::make_shared<HttpClient_WinRt>();
     }
-#endif
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-    IHttpClient* HttpClientFactory::Create() {
+#elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    /* Win32 WinInet HTTP client */
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinInet");
-        return new HttpClient_WinInet();
+        return std::make_shared<HttpClient_WinInet>();
     }
 
 #endif
 #elif defined(MATSDK_PAL_CPP11)
 #if defined(IOS_HTTP)
-    IHttpClient* HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_iOS");
-        return new HttpClient_iOS();
+        return std::make_shared<HttpClient_iOS>();
     }
 #else
-    IHttpClient* HttpClientFactory::Create() {
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Curl");
-        return new HttpClient_Curl();
+        return std::make_shared<HttpClient_Curl>();
     }
 #endif
 #else
