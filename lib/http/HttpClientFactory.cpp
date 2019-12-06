@@ -9,7 +9,7 @@
 #if defined(MATSDK_PAL_WIN32)
   #ifdef _WINRT_DLL
     #include "http/HttpClient_WinRt.hpp"
-  #else
+  #elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
@@ -28,12 +28,13 @@ namespace ARIASDK_NS_BEGIN {
 
 #if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL
+    /* Win 10 HTTP client */
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinRt");
         return std::make_shared<HttpClient_WinRt>();
     }
-
-#else
+#elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    /* Win32 WinInet HTTP client */
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinInet");
         return std::make_shared<HttpClient_WinInet>();
