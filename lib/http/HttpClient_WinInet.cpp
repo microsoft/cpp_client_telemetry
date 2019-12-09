@@ -61,6 +61,54 @@ class WinInetRequestWrapper
         }
     }
 
+    /**
+     * Verify that the server end-point certificate is MS-Rooted
+     */
+    bool isMsRootCert()
+    {
+        // Pointer to certificate chain obtained via InternetQueryOption :
+        // Ref. https://blogs.msdn.microsoft.com/alejacma/2012/01/18/how-to-use-internet_option_server_cert_chain_context-with-internetqueryoption-in-c/
+        PCCERT_CHAIN_CONTEXT pCertCtx = nullptr;
+        DWORD dwCertChainContextSize = sizeof(PCCERT_CHAIN_CONTEXT);
+        // Proceed to process the result if API call succeeds. That option is available in MSIE 8.x+ since Windows 7.1 and Win Server 2008 R2.
+        // In case if API call fails, then proceed without cert validation. This behavior is identical to default old behavior to avoid
+        // regressions for downlevel OS.
+        if (::InternetQueryOption(m_hWinInetRequest, INTERNET_OPTION_SERVER_CERT_CHAIN_CONTEXT, (LPVOID)&pCertCtx, &dwCertChainContextSize))
+        {
+            CERT_CHAIN_POLICY_STATUS pps = {0};
+            pps.cbSize = sizeof(pps);
+            // Verify that the cert chain roots up to the Microsoft application root at top level
+            CERT_CHAIN_POLICY_PARA policyPara = {0};
+            policyPara.cbSize = sizeof(policyPara);
+            policyPara.dwFlags = MICROSOFT_ROOT_CERT_CHAIN_POLICY_CHECK_APPLICATION_ROOT_FLAG;
+            policyPara.pvExtraPolicyPara = nullptr;
+
+            BOOL policyChecked = CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_MICROSOFT_ROOT, pCertCtx, &policyPara, &pps);
+            if (pCertCtx != nullptr)
+            {
+                CertFreeCertificateChain(pCertCtx);
+            }
+            // Unable to verify the chain
+            if (!policyChecked)
+            {
+                LOG_WARN("CertVerifyCertificateChainPolicy() failed: unable to verify");
+                return false;
+            }
+            // Non-MS rooted cert chain
+            if (pps.dwError != ERROR_SUCCESS)
+            {
+                LOG_WARN("CertVerifyCertificateChainPolicy() failed: invalid root CA - %d", pps.dwError);
+                return false;
+            }
+        }
+        else
+        {
+            // Downlevel OS prior to Win 7 and Win 2008 Server R2 do not support cert chain retrieval
+            LOG_TRACE("InternetQueryOption() failed to obtain cert chain");
+        }
+        return true;
+    }
+
     void send(IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
@@ -108,6 +156,16 @@ class WinInetRequestWrapper
             LOG_WARN("HttpOpenRequest() failed: %d", dwError);
             onRequestComplete(dwError);
             return;
+        }
+
+        /* Perform optional MS Root certificate check for certain end-point URLs */
+        if (m_parent.IsMsRootCheckRequired())
+        {
+            if (!isMsRootCert())
+            {
+                onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
+                return;
+            }
         }
 
         ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
@@ -299,7 +357,8 @@ class WinInetRequestWrapper
 
 unsigned HttpClient_WinInet::s_nextRequestId = 0;
 
-HttpClient_WinInet::HttpClient_WinInet()
+HttpClient_WinInet::HttpClient_WinInet() :
+    m_msRootCheck(false)
 {
     m_hInternet = ::InternetOpen(NULL, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_ASYNC);
 }
@@ -370,6 +429,26 @@ void HttpClient_WinInet::CancelAllRequests()
         std::this_thread::yield();
     }
 };
+
+/// <summary>
+/// Enforces MS-root server certificate check.
+/// </summary>
+/// <param name="enforceMsRoot">if set to <c>true</c> [enforce verification that server cert is MS-Rooted].</param>
+void HttpClient_WinInet::SetMsRootCheck(bool enforceMsRoot)
+{
+    m_msRootCheck = enforceMsRoot;
+}
+
+/// <summary>
+/// Determines whether MS-Roted server cert check required.
+/// </summary>
+/// <returns>
+///   <c>true</c> if [MS-Rooted server cert check required]; otherwise, <c>false</c>.
+/// </returns>
+bool HttpClient_WinInet::IsMsRootCheckRequired()
+{
+    return m_msRootCheck;
+}
 
 } ARIASDK_NS_END
 
