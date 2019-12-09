@@ -112,7 +112,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IHttpRequest class destructor.
         /// </summary>
-        virtual ~IHttpRequest() noexcept {}
+        virtual ~IHttpRequest() noexcept = default;
 
         /// <summary>
         /// Gets the request ID.
@@ -176,7 +176,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IHttpResponse class destructor.
         /// </summary>
-        virtual ~IHttpResponse() noexcept {}
+        virtual ~IHttpResponse() noexcept = default;
 
         /// <summary>
         /// Gets the response ID.
@@ -258,14 +258,6 @@ namespace ARIASDK_NS_BEGIN
             : m_id(id),
             m_method("GET"),
             m_latency(EventLatency_Unspecified)
-        {
-        }
-
-
-        /// <summary>
-        /// The SimpleHttpRequest destructor.
-        /// </summary>
-        virtual ~SimpleHttpRequest() noexcept
         {
         }
 
@@ -387,13 +379,6 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// The SimpleHttpResponse class destructor.
-        /// </summary>
-       virtual ~SimpleHttpResponse() noexcept
-       {
-       }
-
-        /// <summary>
         /// Gets the HTTP response message Id.
         /// </summary>
         /// <returns>A string that contains the response message ID.</returns>
@@ -481,7 +466,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The IHttpResponseCallback class destructor.
         /// </summary>
-        virtual ~IHttpResponseCallback() {}
+        virtual ~IHttpResponseCallback() noexcept = default;
 
         /// <summary>
         /// Called when an HTTP request completes.
@@ -515,7 +500,7 @@ namespace ARIASDK_NS_BEGIN
     class IHttpClient : public IModule
     {
     public:
-        virtual ~IHttpClient() noexcept {}
+        virtual ~IHttpClient() noexcept = default;
 
         /// <summary>
         /// Creates an empty HTTP request object.
