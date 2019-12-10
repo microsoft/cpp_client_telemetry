@@ -16,6 +16,7 @@
  */
 
 #include "pal/PAL.hpp"
+#include "utils/Utils.hpp"
 
 #include <Windows.h>
 
@@ -46,7 +47,7 @@ namespace PAL_NS_BEGIN {
         DWORD curBufferLength = MAX_PATH;
         bool getFileNameSucceeded = false;
 
-        std::vector<TCHAR> curExeFullPathBuffer(curBufferLength);
+        std::vector<wchar_t> curExeFullPathBuffer(curBufferLength);
 
         // Try increasing buffer size until it work or until we reach the maximum size of 0x7fff (32 Kb)
         do
@@ -81,7 +82,7 @@ namespace PAL_NS_BEGIN {
 
         if (getFileNameSucceeded)
         {
-            return std::wstring(curExeFullPathBuffer.begin(), curExeFullPathBuffer.end());
+            return std::wstring{curExeFullPathBuffer.cbegin(), curExeFullPathBuffer.cend()};
         }
 
         return{};
@@ -236,8 +237,7 @@ namespace PAL_NS_BEGIN {
                 pRtlConvertDeviceFamilyInfoToString(&platformBufferSize, &deviceClassBufferSize, platformString.get(), deviceString.get());
                 std::wstring temp;
                 temp.assign(platformString.get());
-                std::string str(temp.begin(), temp.end());
-                m_device_class = str;
+                m_device_class = to_utf8_string(temp);
             }
         }
 #endif

@@ -43,8 +43,7 @@ namespace ARIASDK_NS_BEGIN
             UINT32 length;
             PCWSTR rawString = name->GetRawBuffer(&length);
             std::wstring wide(rawString);
-            std::string str(wide.begin(), wide.end());
-            return str;
+            return to_utf8_string(wide);
         }
 
         /// <summary>
