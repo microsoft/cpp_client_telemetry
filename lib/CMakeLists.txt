@@ -87,9 +87,17 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   )
 
   if(APPLE)
-    list(APPEND SRCS
-      http/HttpClient_Apple.mm
-    )
+    if(BUILD_APPLE_HTTP OR BUILD_IOS)
+      list(APPEND SRCS
+        http/HttpClient_Apple.mm
+      )
+    else()
+      list(APPEND SRCS
+        http/HttpClient_Curl.cpp
+        http/HttpClient_Curl.hpp
+      )
+    endif()
+
     if(BUILD_IOS)
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm

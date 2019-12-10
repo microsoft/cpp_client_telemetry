@@ -6,6 +6,10 @@
 #include "HttpClientFactory.hpp"
 #include "pal/PAL.hpp"
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #if defined(MATSDK_PAL_WIN32)
   #ifdef _WINRT_DLL
     #include "http/HttpClient_WinRt.hpp"
@@ -13,7 +17,7 @@
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
-  #if defined(APPLE_HTTP)
+  #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
     #include "http/HttpClient_Apple.hpp"
   #else
     #include "http/HttpClient_Curl.hpp"
@@ -41,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
 
 #endif
 #elif defined(MATSDK_PAL_CPP11)
-#if defined(APPLE_HTTP)
+#if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Apple");
         return std::make_shared<HttpClient_Apple>();
