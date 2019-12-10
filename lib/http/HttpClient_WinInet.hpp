@@ -7,6 +7,8 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
+#include "ILogManager.hpp"
+
 namespace ARIASDK_NS_BEGIN {
 
 #ifndef _WININET_
@@ -17,12 +19,17 @@ class WinInetRequestWrapper;
 
 class HttpClient_WinInet : public IHttpClient {
   public:
+    // Common IHttpClient methods
     HttpClient_WinInet();
     virtual ~HttpClient_WinInet();
     virtual IHttpRequest* CreateRequest() override;
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
     virtual void CancelAllRequests() override;
+
+    // Methods unique to WinInet implementation.
+    void SetMsRootCheck(bool enforceMsRoot);
+    bool IsMsRootCheckRequired();
 
   protected:
     void erase(std::string const& id);
@@ -32,7 +39,7 @@ class HttpClient_WinInet : public IHttpClient {
     std::mutex                                                       m_requestsMutex;
     std::map<std::string, WinInetRequestWrapper*>                    m_requests;
     static unsigned                                                  s_nextRequestId;
-
+    bool                                                             m_msRootCheck;
     friend class WinInetRequestWrapper;
 };
 
