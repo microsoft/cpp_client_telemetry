@@ -22,7 +22,7 @@ namespace PAL_NS_BEGIN {
     class Win32NetworkInformation : public NetworkInformationImpl
     {
 #ifdef HAVE_MAT_NETDETECT
-        MATW::NetworkDetector *networkDetector;
+        std::unique_ptr<MATW::NetworkDetector> networkDetector;
 #endif
         std::string m_network_provider;
 
@@ -97,7 +97,7 @@ namespace PAL_NS_BEGIN {
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
         if (isNetDetectEnabled) {
-            networkDetector = new MATW::NetworkDetector(); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
+            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector()); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
             networkDetector->AddRef();
             networkDetector->Start();
         }
@@ -111,7 +111,6 @@ namespace PAL_NS_BEGIN {
         if (m_isNetDetectEnabled) {
             networkDetector->Stop();
             networkDetector->Release();
-            delete networkDetector;
         }
 #endif
     }

@@ -52,6 +52,9 @@ namespace ARIASDK_NS_BEGIN {
 #else
                 { "compress",            false }
 #endif
+            ,
+                /* Optional parameter to require Microsoft Root CA */
+                { "msRootCheck",         false }
             }
         },
         { "tpm",

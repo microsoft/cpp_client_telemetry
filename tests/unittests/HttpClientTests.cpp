@@ -24,7 +24,7 @@ class HttpClientTests : public ::testing::Test,
     HttpServer                           _server;
     int                                  _port;
     std::string                          _hostname;
-    std::unique_ptr<IHttpClient>         _client;
+    std::shared_ptr<IHttpClient>         _client;
     std::vector<IHttpResponse*>          _responses;
 
     enum RequestState { Planned, Sent, Processed, Done };
@@ -34,7 +34,7 @@ class HttpClientTests : public ::testing::Test,
   public:
     HttpClientTests()
     {
-        _client.reset(HttpClientFactory::Create());
+        _client = HttpClientFactory::Create();
     }
 
     void Clear()
