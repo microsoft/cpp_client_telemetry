@@ -6,6 +6,7 @@
 #include "HttpClient_WinInet.hpp"
 #include "utils/Utils.hpp"
 
+#include <Wincrypt.h>
 #include <WinInet.h>
 
 #include <algorithm>
