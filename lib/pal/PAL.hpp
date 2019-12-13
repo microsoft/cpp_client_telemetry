@@ -70,21 +70,21 @@ namespace PAL_NS_BEGIN
     class PlatformAbstractionLayer
     {
     public:
-        void sleep(unsigned delayMs);
+        void sleep(unsigned delayMs) const noexcept;
 
-        const std::string& getSdkVersion();
+        const std::string& getSdkVersion() const;
 
-        std::string generateUuidString();
+        std::string generateUuidString() const;
 
-        uint64_t getMonotonicTimeMs();
+        uint64_t getMonotonicTimeMs() const;
 
-        int64_t getUtcSystemTimeMs();
+        int64_t getUtcSystemTimeMs() const;
 
-        int64_t getUtcSystemTimeinTicks();
+        int64_t getUtcSystemTimeinTicks() const;
 
-        int64_t getUtcSystemTime();
+        int64_t getUtcSystemTime() const;
 
-        std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
+        std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs) const;
 
         void registerSemanticContext(MAT::ISemanticContext* context);
 
@@ -94,15 +94,15 @@ namespace PAL_NS_BEGIN
 
         void shutdown();
         
-        INetworkInformation* GetNetworkInformation();
-        IDeviceInformation* GetDeviceInformation();
-        ISystemInformation* GetSystemInformation();
+        INetworkInformation* GetNetworkInformation() const noexcept;
+        IDeviceInformation* GetDeviceInformation() const noexcept;
+        ISystemInformation* GetSystemInformation() const noexcept;
 
-        bool IsUtcRegistrationEnabledinWindows();
+        bool IsUtcRegistrationEnabledinWindows() const noexcept;
 
         bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
 
-        MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
+        MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
         volatile std::atomic<long> m_palStarted { 0 };
@@ -117,7 +117,7 @@ namespace PAL_NS_BEGIN
     /**
      * Sleep for certain duration of milliseconds
      */
-    inline void sleep(unsigned delayMs)
+    inline void sleep(unsigned delayMs) noexcept
     {
         GetPAL().sleep(delayMs);
     }
@@ -209,15 +209,15 @@ namespace PAL_NS_BEGIN
         GetPAL().shutdown();
     }
 
-    inline INetworkInformation* GetNetworkInformation()
+    inline INetworkInformation* GetNetworkInformation() noexcept
     {
         return GetPAL().GetNetworkInformation();
     }
-    inline IDeviceInformation* GetDeviceInformation()
+    inline IDeviceInformation* GetDeviceInformation() noexcept
     {
         return GetPAL().GetDeviceInformation();
     }
-    inline ISystemInformation* GetSystemInformation()
+    inline ISystemInformation* GetSystemInformation() noexcept
     {
         return GetPAL().GetSystemInformation();
     }
@@ -245,7 +245,7 @@ namespace PAL_NS_BEGIN
     };
 
     /* Optional UTC channel mode for Windows 10 */
-    inline bool IsUtcRegistrationEnabledinWindows()
+    inline bool IsUtcRegistrationEnabledinWindows() noexcept
     {
         return GetPAL().IsUtcRegistrationEnabledinWindows();
     }
