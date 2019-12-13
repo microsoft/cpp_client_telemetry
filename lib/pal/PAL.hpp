@@ -105,6 +105,7 @@ namespace PAL_NS_BEGIN
         MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
 
     private:
+        volatile std::atomic<long> m_palStarted { 0 };
         std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
         ISystemInformation* m_SystemInformation;
         INetworkInformation* m_NetworkInformation;
