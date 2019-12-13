@@ -63,77 +63,157 @@ namespace ARIASDK_NS_BEGIN
 
 namespace PAL_NS_BEGIN
 {
+    class INetworkInformation;
+    class IDeviceInformation;
+    class ISystemInformation;
+
+    class PlatformAbstractionLayer
+    {
+    public:
+        void sleep(unsigned delayMs);
+
+        const std::string& getSdkVersion();
+
+        std::string generateUuidString();
+
+        uint64_t getMonotonicTimeMs();
+
+        int64_t getUtcSystemTimeMs();
+
+        int64_t getUtcSystemTimeinTicks();
+
+        int64_t getUtcSystemTime();
+
+        std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
+
+        void registerSemanticContext(MAT::ISemanticContext* context);
+
+        std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher();
+
+        void initialize(IRuntimeConfig& configuration);
+
+        void shutdown();
+        
+        INetworkInformation* GetNetworkInformation();
+        IDeviceInformation* GetDeviceInformation();
+        ISystemInformation* GetSystemInformation();
+
+        bool IsUtcRegistrationEnabledinWindows();
+
+        bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
+
+		  MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
+    };
+
+    PlatformAbstractionLayer& GetPAL() noexcept;
 
     /**
      * Sleep for certain duration of milliseconds
      */
     inline void sleep(unsigned delayMs)
     {
-#ifdef _WIN32
-        ::Sleep(delayMs);
-#else
-        std::this_thread::sleep_for(ms(delayMs));
-#endif
+        GetPAL().sleep(delayMs);
     }
 
-    const char * getMATSDKLogComponent();
+    inline const char* getMATSDKLogComponent()
+    {
+        return GetPAL().getMATSDKLogComponent();
+    }
 
     /**
      * Return SDK version in format "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
      */
-    const std::string& getSdkVersion();
+    inline const std::string& getSdkVersion()
+    {
+        return GetPAL().getSdkVersion();
+    }
 
     /**
      * Returns a new random UUID in a lowercase hexadecimal format with dashes,
      * but without curly braces, e.g. "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
      */
-    std::string generateUuidString();
+    inline std::string generateUuidString()
+    {
+        return GetPAL().generateUuidString();
+    }
 
     /**
      * Return the monotonic system clock time in milliseconds (since unspecified point).
      */
-    extern uint64_t getMonotonicTimeMs();
+    inline uint64_t getMonotonicTimeMs()
+    {
+        return GetPAL().getMonotonicTimeMs();
+    }
 
     /**
      * Return the current system time in milliseconds (since the UNIX epoch - Jan 1, 1970).
      */
-    int64_t getUtcSystemTimeMs();
+    inline int64_t getUtcSystemTimeMs()
+    {
+        return GetPAL().getUtcSystemTimeMs();
+    }
 
     /**
      * Return the current system time in .NET ticks
      */
-    int64_t getUtcSystemTimeinTicks();
+    inline int64_t getUtcSystemTimeinTicks()
+    {
+        return GetPAL().getUtcSystemTimeinTicks();
+    }
 
-    int64_t getUtcSystemTime();
+    inline int64_t getUtcSystemTime()
+    {
+        return GetPAL().getUtcSystemTime();
+    }
 
     /**
      * Convert given system timestamp in milliseconds to a string in ISO 8601 format
      */
-    std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs);
+    inline std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
+    {
+        return GetPAL().formatUtcTimestampMsAsISO8601(timestampMs);
+    }
 
     /**
      * Populate per-platform fields in ISemanticContext and keep them updated during runtime.
      */
-    void registerSemanticContext(MAT::ISemanticContext * context);
+    inline void registerSemanticContext(MAT::ISemanticContext* context)
+    {
+        GetPAL().registerSemanticContext(context);
+    }
 
     /**
      * Get default PAL-owned worker thread
      */
-    std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher();
-
-    class INetworkInformation;
-    class IDeviceInformation;
-    class ISystemInformation;
+    inline std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher()
+    {
+        return GetPAL().getDefaultTaskDispatcher();
+    }
 
     //
     // Startup/shutdown
     //
-    void initialize(IRuntimeConfig& configuration);
-    void shutdown();
+    inline void initialize(IRuntimeConfig& configuration)
+    {
+        GetPAL().initialize(configuration);
+    }
+    inline void shutdown()
+    {
+        GetPAL().shutdown();
+    }
 
-    INetworkInformation* GetNetworkInformation();
-    IDeviceInformation* GetDeviceInformation();
-    ISystemInformation* GetSystemInformation();
+    inline INetworkInformation* GetNetworkInformation()
+    {
+        return GetPAL().GetNetworkInformation();
+    }
+    inline IDeviceInformation* GetDeviceInformation()
+    {
+        return GetPAL().GetDeviceInformation();
+    }
+    inline ISystemInformation* GetSystemInformation()
+    {
+        return GetPAL().GetSystemInformation();
+    }
 
     // Pseudo-random number generator (not for cryptographic usage).
     // The instances are not thread-safe, serialize access externally if needed.
@@ -158,9 +238,15 @@ namespace PAL_NS_BEGIN
     };
 
     /* Optional UTC channel mode for Windows 10 */
-    bool IsUtcRegistrationEnabledinWindows();
+    inline bool IsUtcRegistrationEnabledinWindows()
+    {
+        return GetPAL().IsUtcRegistrationEnabledinWindows();
+    }
 
-    bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
+    inline bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize)
+    {
+        return GetPAL().RegisterIkeyWithWindowsTelemetry(ikeyin, storageSize, uploadQuotaSize);
+    }
 
 } PAL_NS_END
 
