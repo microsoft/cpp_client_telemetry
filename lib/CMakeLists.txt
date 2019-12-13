@@ -86,12 +86,28 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     pal/posix/sysinfo_sources.cpp
   )
 
-  if(BUILD_IOS)
-    list(APPEND SRCS
-      http/HttpClient_iOS.mm
-      pal/posix/NetworkInformationImpl.mm
-      pal/posix/Reachability.m
-    )
+  if(APPLE)
+    if(BUILD_APPLE_HTTP OR BUILD_IOS)
+      list(APPEND SRCS
+        http/HttpClient_Apple.mm
+      )
+    else()
+      list(APPEND SRCS
+        http/HttpClient_Curl.cpp
+        http/HttpClient_Curl.hpp
+      )
+    endif()
+
+    if(BUILD_IOS)
+      list(APPEND SRCS
+        pal/posix/NetworkInformationImpl.mm
+        pal/posix/Reachability.m
+      )
+    else()
+      list(APPEND SRCS
+        pal/posix/NetworkInformationImpl.cpp
+      )
+    endif()
   else()
     list(APPEND SRCS
       http/HttpClient_Curl.cpp

@@ -315,7 +315,7 @@ namespace ARIASDK_NS_BEGIN {
     std::string from_platform_string(Platform::String ^ ps)
     {
         std::wstring wcontent(ps->Data());
-        return std::string(wcontent.begin(), wcontent.end());
+        return to_utf8_string(wcontent);
     }
 #endif
 

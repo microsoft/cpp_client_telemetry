@@ -473,10 +473,9 @@ namespace PAL_NS_BEGIN {
     #define OS_NAME     "Unknown"
 #endif
 
-    static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
-
     const std::string& getSdkVersion()
     {
+        static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
         return sdkVersion;
     }
 
