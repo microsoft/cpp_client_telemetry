@@ -45,14 +45,6 @@
 
 namespace PAL_NS_BEGIN {
 
-    std::map<std::string, std::tuple<
-        // size_t, size_t, size_t, size_t
-        std::atomic<size_t>,        // newCount
-        std::atomic<size_t>,        // incCount
-        std::atomic<size_t>,        // decCount
-        std::atomic<size_t>         // delCount
-    > > refCountedTracker;
-
     PlatformAbstractionLayer& GetPAL() noexcept
     {
         static PlatformAbstractionLayer pal;
@@ -68,29 +60,6 @@ namespace PAL_NS_BEGIN {
         ::Sleep(delayMs);
 #else
         std::this_thread::sleep_for(ms(delayMs));
-#endif
-    }
-
-    void dumpRefCounted()
-    {
-#ifdef USE_DUMP_REFCOUNTER
-        for (auto &kv : refCountedTracker)
-        {
-            std::string key = kv.first;
-            MAT::replace(key, "Microsoft::Applications::Telemetry::", "MAT::");
-            MAT::replace(key, "Microsoft::Applications::Telemetry::PAL::", "PAL::");
-            auto newCount = std::get<0>(kv.second).load();
-            auto incCount = std::get<1>(kv.second).load();
-            auto decCount = std::get<2>(kv.second).load();
-            auto delCount = std::get<3>(kv.second).load();
-            fprintf(stderr, "%64s\t-%8u-%8u-%8u-%8u\n",
-                key.c_str(),
-                newCount,
-                incCount,
-                decCount,
-                delCount
-            );
-        }
 #endif
     }
 
@@ -540,8 +509,6 @@ namespace PAL_NS_BEGIN {
         {
             LOG_ERROR("Shutting down: %d", g_palStarted.load());
         }
-
-        dumpRefCounted();
     }
 
 #ifndef HAVE_MAT_UTC
