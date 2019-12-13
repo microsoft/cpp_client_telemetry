@@ -458,11 +458,9 @@ namespace PAL_NS_BEGIN {
         return sdkVersion;
     }
 
-    static volatile std::atomic<long> g_palStarted(0);
-
     void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
     {
-        if (g_palStarted.fetch_add(1) == 0)
+        if (m_palStarted.fetch_add(1) == 0)
         {
             std::string traceFolderPath = MAT::GetTempDirectory();
             if (configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH))
@@ -479,7 +477,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Already initialized: %d", g_palStarted.load());
+            LOG_ERROR("Already initialized: %d", m_palStarted.load());
         }
     }
 
@@ -489,13 +487,13 @@ namespace PAL_NS_BEGIN {
 
     void PlatformAbstractionLayer::shutdown()
     {
-        if (g_palStarted == 0)
+        if (m_palStarted == 0)
         {
             LOG_ERROR("PAL is already shutdown!");
             return;
         }
 
-        if (g_palStarted.fetch_sub(1) == 1)
+        if (m_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
             if (m_taskDispatcher) { m_taskDispatcher = nullptr; }
@@ -507,7 +505,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Shutting down: %d", g_palStarted.load());
+            LOG_ERROR("Shutting down: %d", m_palStarted.load());
         }
     }
 
