@@ -51,10 +51,12 @@ namespace PAL_NS_BEGIN {
         return pal;
     }
 
+	 MATSDK_LOG_INST_COMPONENT_CLASS(PlatformAbstractionLayer, "MATSDK.PAL", "MSTel client - platform abstraction layer")
+
     /**
      * Sleep for certain duration of milliseconds
      */
-    void PlatformAbstractionLayer::sleep(unsigned delayMs)
+    void PlatformAbstractionLayer::sleep(unsigned delayMs) const noexcept
     {
 #ifdef _WIN32
         ::Sleep(delayMs);
@@ -254,7 +256,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(push)
 #pragma warning(disable:6031)
 #endif
-    std::string PlatformAbstractionLayer::generateUuidString()
+    std::string PlatformAbstractionLayer::generateUuidString() const
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
@@ -289,7 +291,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(pop)
 #endif
 
-    int64_t PlatformAbstractionLayer::getUtcSystemTimeMs()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {
 #ifdef _WIN32
         ULARGE_INTEGER now;
@@ -300,12 +302,12 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    int64_t PlatformAbstractionLayer::getUtcSystemTime()
+    int64_t PlatformAbstractionLayer::getUtcSystemTime() const
     {
         return getUtcSystemTimeMs() / 1000;
     }
 
-    int64_t PlatformAbstractionLayer::getUtcSystemTimeinTicks()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeinTicks() const
     {
 #ifdef _WIN32
         FILETIME tocks;
@@ -321,7 +323,7 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    std::string PlatformAbstractionLayer::formatUtcTimestampMsAsISO8601(int64_t timestampMs)
+    std::string PlatformAbstractionLayer::formatUtcTimestampMsAsISO8601(int64_t timestampMs) const
     {
 #ifdef _WIN32
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
@@ -365,7 +367,7 @@ namespace PAL_NS_BEGIN {
      * - PAL WorkItem scheduler
      * - SQLiteWrapper perf counter
      */
-    uint64_t PlatformAbstractionLayer::getMonotonicTimeMs()
+    uint64_t PlatformAbstractionLayer::getMonotonicTimeMs() const
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
@@ -452,7 +454,7 @@ namespace PAL_NS_BEGIN {
     #define OS_NAME     "Unknown"
 #endif
 
-    const std::string& PlatformAbstractionLayer::getSdkVersion()
+    const std::string& PlatformAbstractionLayer::getSdkVersion() const
     {
         static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
         return sdkVersion;
@@ -481,9 +483,9 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    INetworkInformation* PlatformAbstractionLayer::GetNetworkInformation() { return m_NetworkInformation; }
-    IDeviceInformation* PlatformAbstractionLayer::GetDeviceInformation() { return m_DeviceInformation; }
-    ISystemInformation* PlatformAbstractionLayer::GetSystemInformation() { return m_SystemInformation; }
+    INetworkInformation* PlatformAbstractionLayer::GetNetworkInformation() const noexcept { return m_NetworkInformation; }
+    IDeviceInformation* PlatformAbstractionLayer::GetDeviceInformation() const noexcept   { return m_DeviceInformation; }
+    ISystemInformation* PlatformAbstractionLayer::GetSystemInformation() const noexcept   { return m_SystemInformation; }
 
     void PlatformAbstractionLayer::shutdown()
     {
