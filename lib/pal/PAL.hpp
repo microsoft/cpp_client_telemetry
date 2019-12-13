@@ -103,6 +103,12 @@ namespace PAL_NS_BEGIN
         bool RegisterIkeyWithWindowsTelemetry(std::string const& ikeyin, int storageSize, int uploadQuotaSize);
 
         MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
+
+    private:
+        std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
+        ISystemInformation* m_SystemInformation;
+        INetworkInformation* m_NetworkInformation;
+        IDeviceInformation* m_DeviceInformation;
     };
 
     PlatformAbstractionLayer& GetPAL() noexcept;
