@@ -53,6 +53,24 @@ namespace PAL_NS_BEGIN {
         std::atomic<size_t>         // delCount
     > > refCountedTracker;
 
+	 PlatformAbstractionLayer& GetPAL() noexcept
+    {
+        static PlatformAbstractionLayer pal;
+        return pal;
+    }
+
+	 /**
+     * Sleep for certain duration of milliseconds
+     */
+    void PlatformAbstractionLayer::sleep(unsigned delayMs)
+    {
+#ifdef _WIN32
+        ::Sleep(delayMs);
+#else
+        std::this_thread::sleep_for(ms(delayMs));
+#endif
+    }
+
     void dumpRefCounted()
     {
 #ifdef USE_DUMP_REFCOUNTER
@@ -75,8 +93,6 @@ namespace PAL_NS_BEGIN {
         }
 #endif
     }
-
-    MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
 
     namespace detail {
 
@@ -256,7 +272,7 @@ namespace PAL_NS_BEGIN {
 
     static std::shared_ptr<ITaskDispatcher> g_taskDispatcher = nullptr;
 
-    std::shared_ptr<ITaskDispatcher> getDefaultTaskDispatcher()
+    std::shared_ptr<ITaskDispatcher> PlatformAbstractionLayer::getDefaultTaskDispatcher()
     {
         if (g_taskDispatcher == nullptr)
         {
@@ -271,7 +287,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(push)
 #pragma warning(disable:6031)
 #endif
-    std::string generateUuidString()
+    std::string PlatformAbstractionLayer::generateUuidString()
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
@@ -306,7 +322,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(pop)
 #endif
 
-    int64_t getUtcSystemTimeMs()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeMs()
     {
 #ifdef _WIN32
         ULARGE_INTEGER now;
@@ -317,12 +333,12 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    int64_t getUtcSystemTime()
+    int64_t PlatformAbstractionLayer::getUtcSystemTime()
     {
         return getUtcSystemTimeMs() / 1000;
     }
 
-    int64_t getUtcSystemTimeinTicks()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeinTicks()
     {
 #ifdef _WIN32
         FILETIME tocks;
@@ -338,7 +354,7 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
+    std::string PlatformAbstractionLayer::formatUtcTimestampMsAsISO8601(int64_t timestampMs)
     {
 #ifdef _WIN32
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
@@ -382,7 +398,7 @@ namespace PAL_NS_BEGIN {
      * - PAL WorkItem scheduler
      * - SQLiteWrapper perf counter
      */
-    uint64_t getMonotonicTimeMs()
+    uint64_t PlatformAbstractionLayer::getMonotonicTimeMs()
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
@@ -410,7 +426,7 @@ namespace PAL_NS_BEGIN {
     static INetworkInformation* g_NetworkInformation;
     static IDeviceInformation*  g_DeviceInformation;
 
-    void registerSemanticContext(ISemanticContext* context)
+    void PlatformAbstractionLayer::registerSemanticContext(ISemanticContext* context)
     {
         if (g_DeviceInformation != nullptr)
         {
@@ -473,7 +489,7 @@ namespace PAL_NS_BEGIN {
     #define OS_NAME     "Unknown"
 #endif
 
-    const std::string& getSdkVersion()
+    const std::string& PlatformAbstractionLayer::getSdkVersion()
     {
         static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
         return sdkVersion;
@@ -481,7 +497,7 @@ namespace PAL_NS_BEGIN {
 
     static volatile std::atomic<long> g_palStarted(0);
 
-    void initialize(IRuntimeConfig& configuration)
+    void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
     {
         if (g_palStarted.fetch_add(1) == 0)
         {
@@ -504,11 +520,11 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    INetworkInformation* GetNetworkInformation() { return g_NetworkInformation; }
-    IDeviceInformation* GetDeviceInformation() { return g_DeviceInformation; }
-    ISystemInformation* GetSystemInformation() { return g_SystemInformation; }
+    INetworkInformation* PlatformAbstractionLayer::GetNetworkInformation() { return g_NetworkInformation; }
+    IDeviceInformation* PlatformAbstractionLayer::GetDeviceInformation() { return g_DeviceInformation; }
+    ISystemInformation* PlatformAbstractionLayer::GetSystemInformation() { return g_SystemInformation; }
 
-    void shutdown()
+    void PlatformAbstractionLayer::shutdown()
     {
         if (g_palStarted == 0)
         {
@@ -535,12 +551,12 @@ namespace PAL_NS_BEGIN {
     }
 
 #ifndef HAVE_MAT_UTC
-    bool IsUtcRegistrationEnabledinWindows()
+    bool PlatformAbstractionLayer::IsUtcRegistrationEnabledinWindows()
     {
         return false;
     }
 
-    bool RegisterIkeyWithWindowsTelemetry(std::string const&, int, int)
+    bool PlatformAbstractionLayer::RegisterIkeyWithWindowsTelemetry(std::string const&, int, int)
     {
         return false;
     }
