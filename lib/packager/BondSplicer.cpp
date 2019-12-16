@@ -4,6 +4,8 @@
 #include "bond/All.hpp"
 #include "bond/generated/CsProtocol_writers.hpp"
 #include <assert.h>
+#include <numeric>
+#include <vector>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -64,6 +66,14 @@ std::vector<uint8_t> BondSplicer::splice() const
     if (!m_packages.empty()) {
         //writer.WriteFieldBegin(bond_lite::BT_MAP, 3, nullptr);
         //writer.WriteMapContainerBegin(m_packages.size(), bond_lite::BT_STRING, bond_lite::BT_LIST);
+
+       size_t cumulativePackageSizeEstimate = std::accumulate<std::vector<PackageInfo>::const_iterator, size_t>(m_packages.cbegin(), m_packages.cend(), 0, [](size_t currentSize, const PackageInfo& packageContent) {
+            return std::accumulate<std::list<Span>::const_iterator, size_t>(packageContent.records.begin(), packageContent.records.end(), currentSize, [](size_t currentCalculatedSize, const Span& currentRecord) {
+                                 return currentCalculatedSize + currentRecord.length;
+                             });
+        });
+
+       output.reserve(cumulativePackageSizeEstimate);
 
         for (PackageInfo const& package : m_packages) {
             // Key (string)
