@@ -102,17 +102,19 @@ namespace ARIASDK_NS_BEGIN {
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
             result = tmp;
-        }
+        } 
         else {
 #ifdef P_tmpdir
             if (P_tmpdir != NULL)
                 result = P_tmpdir;
 #endif
         }
+#ifdef _PATH_TMP
         if (result.empty())
         {
             result = _PATH_TMP;
         }
+#endif
         if (result.empty())
         {
             result = "/tmp";
