@@ -3,7 +3,7 @@
 #define BACKOFF_JITTER_HPP
 
 #include "backoff/IBackoff.hpp"
-#include "pal/PAL.hpp"
+#include "pal/PseudoRandomGenerator.hpp"
 
 #include <algorithm>
 #include <assert.h>
