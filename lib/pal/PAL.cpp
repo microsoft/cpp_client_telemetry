@@ -45,38 +45,25 @@
 
 namespace PAL_NS_BEGIN {
 
-    std::map<std::string, std::tuple<
-        // size_t, size_t, size_t, size_t
-        std::atomic<size_t>,        // newCount
-        std::atomic<size_t>,        // incCount
-        std::atomic<size_t>,        // decCount
-        std::atomic<size_t>         // delCount
-    > > refCountedTracker;
-
-    void dumpRefCounted()
+    PlatformAbstractionLayer& GetPAL() noexcept
     {
-#ifdef USE_DUMP_REFCOUNTER
-        for (auto &kv : refCountedTracker)
-        {
-            std::string key = kv.first;
-            MAT::replace(key, "Microsoft::Applications::Telemetry::", "MAT::");
-            MAT::replace(key, "Microsoft::Applications::Telemetry::PAL::", "PAL::");
-            auto newCount = std::get<0>(kv.second).load();
-            auto incCount = std::get<1>(kv.second).load();
-            auto decCount = std::get<2>(kv.second).load();
-            auto delCount = std::get<3>(kv.second).load();
-            fprintf(stderr, "%64s\t-%8u-%8u-%8u-%8u\n",
-                key.c_str(),
-                newCount,
-                incCount,
-                decCount,
-                delCount
-            );
-        }
-#endif
+        static PlatformAbstractionLayer pal;
+        return pal;
     }
 
-    MATSDK_LOG_INST_COMPONENT_NS("MATSDK.PAL", "MSTel client - platform abstraction layer");
+	 MATSDK_LOG_INST_COMPONENT_CLASS(PlatformAbstractionLayer, "MATSDK.PAL", "MSTel client - platform abstraction layer")
+
+    /**
+     * Sleep for certain duration of milliseconds
+     */
+    void PlatformAbstractionLayer::sleep(unsigned delayMs) const noexcept
+    {
+#ifdef _WIN32
+        ::Sleep(delayMs);
+#else
+        std::this_thread::sleep_for(ms(delayMs));
+#endif
+    }
 
     namespace detail {
 
@@ -254,24 +241,22 @@ namespace PAL_NS_BEGIN {
 
     } // namespace detail
 
-    static std::shared_ptr<ITaskDispatcher> g_taskDispatcher = nullptr;
-
-    std::shared_ptr<ITaskDispatcher> getDefaultTaskDispatcher()
+    std::shared_ptr<ITaskDispatcher> PlatformAbstractionLayer::getDefaultTaskDispatcher()
     {
-        if (g_taskDispatcher == nullptr)
+        if (m_taskDispatcher == nullptr)
         {
             // Default implementation of task dispatcher is a single-threaded worker thread task queue
             LOG_TRACE("Initializing PAL worker thread");
-            g_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
+            m_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
         }
-        return g_taskDispatcher;
+        return m_taskDispatcher;
     }
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:6031)
 #endif
-    std::string generateUuidString()
+    std::string PlatformAbstractionLayer::generateUuidString() const
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
@@ -306,7 +291,7 @@ namespace PAL_NS_BEGIN {
 #pragma warning(pop)
 #endif
 
-    int64_t getUtcSystemTimeMs()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {
 #ifdef _WIN32
         ULARGE_INTEGER now;
@@ -317,12 +302,12 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    int64_t getUtcSystemTime()
+    int64_t PlatformAbstractionLayer::getUtcSystemTime() const
     {
         return getUtcSystemTimeMs() / 1000;
     }
 
-    int64_t getUtcSystemTimeinTicks()
+    int64_t PlatformAbstractionLayer::getUtcSystemTimeinTicks() const
     {
 #ifdef _WIN32
         FILETIME tocks;
@@ -338,7 +323,7 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    std::string formatUtcTimestampMsAsISO8601(int64_t timestampMs)
+    std::string PlatformAbstractionLayer::formatUtcTimestampMsAsISO8601(int64_t timestampMs) const
     {
 #ifdef _WIN32
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
@@ -382,7 +367,7 @@ namespace PAL_NS_BEGIN {
      * - PAL WorkItem scheduler
      * - SQLiteWrapper perf counter
      */
-    uint64_t getMonotonicTimeMs()
+    uint64_t PlatformAbstractionLayer::getMonotonicTimeMs() const
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
@@ -406,45 +391,41 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    static ISystemInformation* g_SystemInformation;
-    static INetworkInformation* g_NetworkInformation;
-    static IDeviceInformation*  g_DeviceInformation;
-
-    void registerSemanticContext(ISemanticContext* context)
+    void PlatformAbstractionLayer::registerSemanticContext(ISemanticContext* context)
     {
-        if (g_DeviceInformation != nullptr)
+        if (m_DeviceInformation != nullptr)
         {
-            context->SetDeviceId(g_DeviceInformation->GetDeviceId());
-            context->SetDeviceModel(g_DeviceInformation->GetModel());
-            context->SetDeviceMake(g_DeviceInformation->GetManufacturer());
+            context->SetDeviceId(m_DeviceInformation->GetDeviceId());
+            context->SetDeviceModel(m_DeviceInformation->GetModel());
+            context->SetDeviceMake(m_DeviceInformation->GetManufacturer());
         }
 
-        if (g_SystemInformation != nullptr)
+        if (m_SystemInformation != nullptr)
         {
             // Get SystemInfo common fields
-            context->SetOsVersion(g_SystemInformation->GetOsMajorVersion());
-            context->SetOsName(g_SystemInformation->GetOsName());
-            context->SetOsBuild(g_SystemInformation->GetOsFullVersion());
-            context->SetDeviceClass(g_SystemInformation->GetDeviceClass());
+            context->SetOsVersion(m_SystemInformation->GetOsMajorVersion());
+            context->SetOsName(m_SystemInformation->GetOsName());
+            context->SetOsBuild(m_SystemInformation->GetOsFullVersion());
+            context->SetDeviceClass(m_SystemInformation->GetDeviceClass());
 
             // AppInfo fields
-            context->SetAppId(g_SystemInformation->GetAppId());
-            context->SetAppVersion(g_SystemInformation->GetAppVersion());
-            context->SetAppLanguage(g_SystemInformation->GetAppLanguage());
+            context->SetAppId(m_SystemInformation->GetAppId());
+            context->SetAppVersion(m_SystemInformation->GetAppVersion());
+            context->SetAppLanguage(m_SystemInformation->GetAppLanguage());
 
             // UserInfo fields.
-            context->SetUserLanguage(g_SystemInformation->GetUserLanguage());
-            context->SetUserTimeZone(g_SystemInformation->GetUserTimeZone());
-            //context->SetUserAdvertisingId(g_SystemInformation->GetUserAdvertisingId());
+            context->SetUserLanguage(m_SystemInformation->GetUserLanguage());
+            context->SetUserTimeZone(m_SystemInformation->GetUserTimeZone());
+            //context->SetUserAdvertisingId(m_SystemInformation->GetUserAdvertisingId());
 
-            context->SetCommercialId(g_SystemInformation->GetCommercialId());
+            context->SetCommercialId(m_SystemInformation->GetCommercialId());
         }
-        if (g_NetworkInformation != nullptr)
+        if (m_NetworkInformation != nullptr)
         {
             // Get NetworkInfo common fields
-            context->SetNetworkProvider(g_NetworkInformation->GetNetworkProvider());
-            context->SetNetworkCost(g_NetworkInformation->GetNetworkCost());
-            context->SetNetworkType(g_NetworkInformation->GetNetworkType());
+            context->SetNetworkProvider(m_NetworkInformation->GetNetworkProvider());
+            context->SetNetworkCost(m_NetworkInformation->GetNetworkCost());
+            context->SetNetworkType(m_NetworkInformation->GetNetworkType());
         }
     }
 
@@ -473,17 +454,15 @@ namespace PAL_NS_BEGIN {
     #define OS_NAME     "Unknown"
 #endif
 
-    const std::string& getSdkVersion()
+    const std::string& PlatformAbstractionLayer::getSdkVersion() const
     {
         static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
         return sdkVersion;
     }
 
-    static volatile std::atomic<long> g_palStarted(0);
-
-    void initialize(IRuntimeConfig& configuration)
+    void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
     {
-        if (g_palStarted.fetch_add(1) == 0)
+        if (m_palStarted.fetch_add(1) == 0)
         {
             std::string traceFolderPath = MAT::GetTempDirectory();
             if (configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH))
@@ -493,54 +472,52 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            g_SystemInformation = SystemInformationImpl::Create();
-            g_DeviceInformation = DeviceInformationImpl::Create();
-            g_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
+            m_SystemInformation = SystemInformationImpl::Create();
+            m_DeviceInformation = DeviceInformationImpl::Create();
+            m_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
             LOG_INFO("Initialized");
         }
         else
         {
-            LOG_ERROR("Already initialized: %d", g_palStarted.load());
+            LOG_ERROR("Already initialized: %d", m_palStarted.load());
         }
     }
 
-    INetworkInformation* GetNetworkInformation() { return g_NetworkInformation; }
-    IDeviceInformation* GetDeviceInformation() { return g_DeviceInformation; }
-    ISystemInformation* GetSystemInformation() { return g_SystemInformation; }
+    INetworkInformation* PlatformAbstractionLayer::GetNetworkInformation() const noexcept { return m_NetworkInformation; }
+    IDeviceInformation* PlatformAbstractionLayer::GetDeviceInformation() const noexcept   { return m_DeviceInformation; }
+    ISystemInformation* PlatformAbstractionLayer::GetSystemInformation() const noexcept   { return m_SystemInformation; }
 
-    void shutdown()
+    void PlatformAbstractionLayer::shutdown()
     {
-        if (g_palStarted == 0)
+        if (m_palStarted == 0)
         {
             LOG_ERROR("PAL is already shutdown!");
             return;
         }
 
-        if (g_palStarted.fetch_sub(1) == 1)
+        if (m_palStarted.fetch_sub(1) == 1)
         {
             LOG_TRACE("Shutting down...");
-            if (g_taskDispatcher) { g_taskDispatcher = nullptr; }
-            if (g_SystemInformation) { delete g_SystemInformation; g_SystemInformation = nullptr; }
-            if (g_DeviceInformation) { delete g_DeviceInformation; g_DeviceInformation = nullptr; }
-            if (g_NetworkInformation) { delete g_NetworkInformation; g_NetworkInformation = nullptr; }
+            if (m_taskDispatcher) { m_taskDispatcher = nullptr; }
+            if (m_SystemInformation) { delete m_SystemInformation; m_SystemInformation = nullptr; }
+            if (m_DeviceInformation) { delete m_DeviceInformation; m_DeviceInformation = nullptr; }
+            if (m_NetworkInformation) { delete m_NetworkInformation; m_NetworkInformation = nullptr; }
             LOG_INFO("Shut down");
             detail::log_done();
         }
         else
         {
-            LOG_ERROR("Shutting down: %d", g_palStarted.load());
+            LOG_ERROR("Shutting down: %d", m_palStarted.load());
         }
-
-        dumpRefCounted();
     }
 
 #ifndef HAVE_MAT_UTC
-    bool IsUtcRegistrationEnabledinWindows()
+    bool PlatformAbstractionLayer::IsUtcRegistrationEnabledinWindows() const noexcept
     {
         return false;
     }
 
-    bool RegisterIkeyWithWindowsTelemetry(std::string const&, int, int)
+    bool PlatformAbstractionLayer::RegisterIkeyWithWindowsTelemetry(std::string const&, int, int)
     {
         return false;
     }
