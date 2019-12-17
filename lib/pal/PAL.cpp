@@ -512,7 +512,7 @@ namespace PAL_NS_BEGIN {
     }
 
 #ifndef HAVE_MAT_UTC
-    bool PlatformAbstractionLayer::IsUtcRegistrationEnabledinWindows()
+    bool PlatformAbstractionLayer::IsUtcRegistrationEnabledinWindows() const noexcept
     {
         return false;
     }
