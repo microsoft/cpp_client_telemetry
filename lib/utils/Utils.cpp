@@ -2,6 +2,9 @@
 #include "pal/PAL.hpp"
 
 #include "Utils.hpp"
+#ifdef ANDROID
+#include "http/HttpClient_Android.hpp"
+#endif
 
 #include <algorithm>
 #include <string>
@@ -99,6 +102,13 @@ namespace ARIASDK_NS_BEGIN {
         return path;
 #else
         std::string result;
+#ifdef ANDROID
+        result = HttpClient_Android::GetCacheFilePath();
+        if (result.empty())
+        {
+           result = "/data/local/tmp";
+        }
+#else
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
             result = tmp;
@@ -119,6 +129,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             result = "/tmp";
         }
+#endif
         result += "/";
         return result;
 #endif

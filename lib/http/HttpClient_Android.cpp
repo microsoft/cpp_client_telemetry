@@ -369,6 +369,16 @@ void HttpClient_Android::DeleteClientInstance(JNIEnv* env)
 	s_client.reset();
 }
 
+void HttpClient_Android::SetCacheFilePath(std::string&& path)
+{
+	s_cache_file_path = std::move(path);
+}
+
+const std::string& HttpClient_Android::GetCacheFilePath()
+{
+	return s_cache_file_path;
+}
+
 JavaVM* HttpClient_Android::s_java_vm = nullptr;
 
 std::shared_ptr<HttpClient_Android>
@@ -378,7 +388,7 @@ HttpClient_Android::GetClientInstance()
 }
 
 std::shared_ptr<HttpClient_Android> HttpClient_Android::s_client;
-std::mutex HttpClient_Android::s_client_mutex;
+std::string HttpClient_Android::s_cache_file_path;
 
 } ARIASDK_NS_END
 
@@ -399,6 +409,20 @@ JNICALL
 Java_com_microsoft_office_ariasdk_httpClient_deleteClientInstance(JNIEnv* env)
 {
 	Microsoft::Applications::Events::HttpClient_Android::DeleteClientInstance(env);
+}
+
+extern "C"
+JNIEXPORT void
+
+JNICALL
+Java_com_microsoft_office_ariasdk_httpClient_setCacheFilePath(JNIEnv* env,
+	jobject /* this */,
+	jstring path)
+{
+	auto utf = env->GetStringUTFChars(path, nullptr);
+	std::string converted(utf);
+	env->ReleaseStringUTFChars(path, utf);
+	Microsoft::Applications::Events::HttpClient_Android::SetCacheFilePath(std::move(converted));
 }
 
 extern "C"

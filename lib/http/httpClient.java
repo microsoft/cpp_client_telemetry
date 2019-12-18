@@ -3,6 +3,7 @@ package com.microsoft.office.ariasdk;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.System;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -138,6 +139,8 @@ class Request implements Runnable {
 public class httpClient{
     public httpClient(int n_threads)
     {
+        String path = System.getProperty("java.io.tmpdir");
+        setCacheFilePath(path);
         m_executor = Executors.newFixedThreadPool(n_threads);
         createClientInstance();
     }
@@ -150,6 +153,7 @@ public class httpClient{
 
     public native void createClientInstance();
     public native void deleteClientInstance();
+    public native void setCacheFilePath(String path);
     public FutureTask<Boolean> createTask(String url,
                                 String method,
                                 byte[] body,
