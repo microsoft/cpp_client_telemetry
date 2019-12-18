@@ -73,7 +73,7 @@ HttpClient_Android::~HttpClient_Android()
 
 IHttpRequest* HttpClient_Android::CreateRequest()
 {
-	HttpRequest * local_request(new HttpRequest(*this));
+	HttpRequest* local_request(new HttpRequest(*this));
 	std::lock_guard<std::mutex> lock(m_requestsMutex);
 	m_requests.push_back(std::move(local_request));
 	return local_request;
@@ -121,6 +121,8 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 		total_size += u.first.length() + u.second.length();
 	}
 
+	static constexpr int FrameSize = 16; // at most 16 local refs in the frame
+	auto pushed = env->PushLocalFrame(FrameSize);
 	auto header_buffer = env->NewByteArray(static_cast<jsize>(total_size));
 	size_t offset = 0;
 	std::vector<jint> index_buffer;
@@ -149,13 +151,20 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 	env->SetByteArrayRegion(body, 0, r->m_body.size(),
 		reinterpret_cast<const jbyte*>(r->m_body.data()));
 	auto java_id = env->NewStringUTF(request->GetId().c_str());
+	auto url_id = env->NewStringUTF(r->m_url.c_str());
+	auto method_id = env->NewStringUTF(r->m_method.c_str());
 	auto result = env->CallObjectMethod(m_client, m_create_id,
-		env->NewStringUTF(r->m_url.c_str()),
-		env->NewStringUTF(r->m_method.c_str()),
+		url_id,
+		method_id,
 		body,
 		java_id,
 		header_lengths,
 		header_buffer);
+	if (pushed == JNI_OK)
+	{
+        result = env->PopLocalFrame(result);
+	}
+
 	HttpRequest* cancel_me = nullptr;
 	{
 		std::lock_guard<std::mutex> lock(m_requestsMutex);
