@@ -67,7 +67,7 @@ A PR is considered to be **ready to merge** when:
   reasonable time to review.
 * Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for one day.
 * Urgent fix can take exception as long as it has been actively communicated.
-* Any dependent subm-module changes have updated the sub-module commit id (`git add lib/modules`)
+* Any dependent sub-module changes have updated the sub-module commit id (`git add lib/modules`)
 
 Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
 
