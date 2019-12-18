@@ -101,7 +101,7 @@ public:
             }
             else
             {
-                LOG_TRACE("HTTP response error code: %l", errorCode);
+                LOG_TRACE("HTTP response error code: %li", errorCode);
                 simpleResponse->m_result = HttpResult_NetworkFailure;
             }
         }

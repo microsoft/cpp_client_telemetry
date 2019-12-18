@@ -601,6 +601,8 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp">
       <Filter>include\public</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PseudoRandomGenerator.hpp">
+      <Filter>pal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

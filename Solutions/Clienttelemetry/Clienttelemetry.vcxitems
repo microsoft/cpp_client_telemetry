@@ -168,6 +168,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\InformationProviderImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\NetworkInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PAL.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PseudoRandomGenerator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\SystemInformationImpl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\TaskDispatcher_CAPI.hpp" />
