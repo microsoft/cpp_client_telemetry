@@ -170,6 +170,8 @@ public:
 	static void CreateClientInstance(JNIEnv* env,
 		jobject java_client);
 	static void DeleteClientInstance(JNIEnv* env);
+	static void SetCacheFilePath(std::string&& path);
+	static const std::string& GetCacheFilePath();
 	static std::shared_ptr<HttpClient_Android> GetClientInstance();
 	void CallbackForCancel(JNIEnv* env, HttpRequest * t);
 	static void SetJavaVM(JavaVM * vm);
@@ -186,7 +188,7 @@ protected:
 	static JavaVM *s_java_vm;
 	std::atomic<uint64_t> m_id;
 	static std::shared_ptr<HttpClient_Android> s_client;
-	static std::mutex s_client_mutex;
+	static std::string s_cache_file_path;
 
 };
 
