@@ -73,7 +73,7 @@ namespace ARIASDK_NS_BEGIN {
         // Convert to set of integer values
         unsigned long p0;
         unsigned int p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
-        if (11 == sscanf_s(str,
+        if (11 == sscanf_s (str,
             "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
             &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10))
         {
