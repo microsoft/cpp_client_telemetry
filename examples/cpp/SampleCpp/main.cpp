@@ -365,6 +365,10 @@ int main()
                 { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
             });
         logger->LogEvent(event2);
+        
+        EventProperties eventInRam("MyEvent.NeverStore");
+        eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStore);
+        logger->LogEvent(eventInRam); // this event should not go to disk
     }
 
     // Default transmission timers:
