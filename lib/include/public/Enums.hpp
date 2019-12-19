@@ -462,6 +462,9 @@ namespace ARIASDK_NS_BEGIN
 
         /// Critical
         EventPersistence_Critical = 2,
+
+        /// Do not store
+        EventPersistence_DoNotStore = 3
     };
 
     typedef struct
