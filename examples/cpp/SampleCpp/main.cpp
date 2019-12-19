@@ -131,7 +131,7 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
-#define MAX_EVENTS_TO_LOG       100L 
+#define MAX_EVENTS_TO_LOG       1000L 
 
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
@@ -218,7 +218,20 @@ void logPiiMark()
     event1.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
     logger->LogEvent(event1);
 }
- 
+
+void logDoNotStore()
+{
+#if 1 /* Quick test for DoNotStore tag */
+    auto logger = LogManager::GetLogger();
+    LogManager::PauseTransmission();
+    EventProperties eventInRam("MyEvent.NeverStore");
+    eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStore);
+    logger->LogEvent(eventInRam); // this event should not go to disk
+    LogManager::FlushAndTeardown();
+    if (1) abort();
+#endif
+}
+
 int main()
 {
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
@@ -306,6 +319,7 @@ int main()
     config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
     logger = LogManager::Initialize(API_KEY);
 
+    logDoNotStore(); // quick test for a do-not-store tag
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
@@ -344,7 +358,6 @@ int main()
         eventName += std::to_string((unsigned)latency);
 
         EventProperties event(eventName);
-
         std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
         event.SetName("MyProduct.TaggedEvent");
         event.SetType(evtType);
@@ -365,10 +378,6 @@ int main()
                 { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
             });
         logger->LogEvent(event2);
-        
-        EventProperties eventInRam("MyEvent.NeverStore");
-        eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStore);
-        logger->LogEvent(eventInRam); // this event should not go to disk
     }
 
     // Default transmission timers:
