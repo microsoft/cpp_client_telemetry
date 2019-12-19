@@ -45,10 +45,6 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-#ifdef ANDROID
-    extern ILogManager* g_jniLogManager;
-#endif
-
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         // LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -268,11 +264,6 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Started up and running");
         m_alive = true;
 
-#ifdef ANDROID
-        if (g_jniLogManager == nullptr) {
-            g_jniLogManager = this;
-        }
-#endif
     }
     
     /// <summary>
@@ -334,11 +325,7 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutdown complete in %lld ms", shutTime);
 
         m_alive = false;
-#ifdef ANDROID
-        if (g_jniLogManager == this) {
-            g_jniLogManager = nullptr;
-        }
-#endif
+
     }
 
     status_t LogManagerImpl::Flush()
