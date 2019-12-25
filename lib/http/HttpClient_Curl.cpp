@@ -75,15 +75,8 @@ namespace ARIASDK_NS_BEGIN {
         curlRequest->SetOperation(curlOperation);
         auto operationLifetime = std::weak_ptr<CurlHttpOperation>(curlOperation);
         
-        // Make sure 'curlOperation' is valid before executing the lambda. 
-        // The liftime of curlOperation is guarnteed by the curlRequest.  
-        curlOperation->SendAsync([this, operationLifetime, callback, requestId](CurlHttpOperation& operation) {
-            auto curlOperation = operationLifetime.lock();
-            if (!curlOperation)
-            {
-                LOG_WARN("The curl operation no longer exists.");
-                return;
-            }
+        // The liftime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
+        curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
             this->EraseRequest(requestId);
 
             auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));
