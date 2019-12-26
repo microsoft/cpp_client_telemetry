@@ -4,13 +4,15 @@
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
+#ifndef ANDROID
 #include "http/HttpClient_CAPI.hpp"
+#endif
 #include "LogManagerProvider.hpp"
 #include "mat.h"
 #include "pal/TaskDispatcher_CAPI.hpp"
 #include "utils/Utils.hpp"
 
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 
 #include "CommonFields.h"
 
@@ -128,6 +130,7 @@ evt_status_t mat_open_core(
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
+#ifndef ANDROID
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
@@ -142,7 +145,7 @@ evt_status_t mat_open_core(
             return EFAULT;
         }
     }
-
+#endif
     // Create custom worker thread
     if (taskDispatcherQueueFn != nullptr && taskDispatcherCancelFn != nullptr && taskDispatcherJoinFn != nullptr)
     {
