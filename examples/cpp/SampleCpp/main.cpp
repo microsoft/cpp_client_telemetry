@@ -221,15 +221,10 @@ void logPiiMark()
 
 void logDoNotStore()
 {
-#if 1 /* Quick test for DoNotStore tag */
     auto logger = LogManager::GetLogger();
-    LogManager::PauseTransmission();
     EventProperties eventInRam("MyEvent.NeverStore");
     eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStore);
     logger->LogEvent(eventInRam); // this event should not go to disk
-    LogManager::FlushAndTeardown();
-    if (1) abort();
-#endif
 }
 
 int main()
