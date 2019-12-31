@@ -18,7 +18,7 @@ class DeviceStateHandler
     : public PAL::IPropertyChangedCallback
 {
 public:
-	DeviceStateHandler();
+    DeviceStateHandler() noexcept;
 
     void Start();
     void Stop();
@@ -39,18 +39,18 @@ private:
 
 private:
 
-    std::mutex                      m_lock_sendEvent;
+    std::mutex                 m_lock_sendEvent;
 
     NetworkType                m_networkType;
-    NetworkCost                m_networkCost;
-    PowerSource                m_powerSource;
+    NetworkCost                m_networkCost { NetworkCost_Unmetered };
+    PowerSource                m_powerSource { PowerSource_Charging };
     
     // Platform network, power, device info changes
-    PAL::INetworkInformation       *m_networkInformation;
-    int                             m_networkInformationToken;
+    PAL::INetworkInformation  *m_networkInformation;
+    int                        m_networkInformationToken;
 
-    PAL::IDeviceInformation        *m_deviceInformation;
-    int                             m_deviceInformationToken;
+    PAL::IDeviceInformation   *m_deviceInformation;
+    int                        m_deviceInformationToken;
 
 };
 
