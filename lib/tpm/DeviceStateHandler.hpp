@@ -29,9 +29,6 @@ private:
     void _UpdateDeviceCondition();
 
 private:
-
-    std::mutex                 m_lock_sendEvent;
-
     NetworkType                m_networkType;
     NetworkCost                m_networkCost { NetworkCost_Unmetered };
     PowerSource                m_powerSource { PowerSource_Charging };
