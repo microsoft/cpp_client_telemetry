@@ -13,20 +13,6 @@ namespace ARIASDK_NS_BEGIN {
 using namespace std;
 using namespace PAL;
 
-
-/******************************************************************************
-* DeviceStateHandler::DeviceStateHandler
-*
-* C'tor
-*
-******************************************************************************/
-DeviceStateHandler::DeviceStateHandler()
-{
-	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
-    m_networkCost = NetworkCost_Unmetered;
-	m_powerSource = PowerSource_Charging;
-}
-
 /******************************************************************************
 * DeviceStateHandler::Start
 *
