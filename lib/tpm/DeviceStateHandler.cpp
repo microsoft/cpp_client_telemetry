@@ -111,7 +111,7 @@ void DeviceStateHandler::OnChanged(
  * Update device condition such as power state and network connectivity changes
  *
  ******************************************************************************/
- bool DeviceStateHandler::_UpdateDeviceCondition()
+ void DeviceStateHandler::_UpdateDeviceCondition()
 {
 #ifdef _WIN32
      if (m_networkInformation != nullptr)
@@ -137,11 +137,9 @@ void DeviceStateHandler::OnChanged(
      //m_networkCost, NetworkCostNames[m_networkCost].c_str(),
      //m_powerSource, PowerSourceNames[m_powerSource].c_str());
 
-     bool result = false;
      TransmitProfiles::updateStates(m_networkCost, m_powerSource);
 
 	 //do we need to stop current timer?? and restart
-     return result;
  }
  
 } ARIASDK_NS_END
