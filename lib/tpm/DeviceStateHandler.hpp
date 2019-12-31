@@ -13,27 +13,6 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-static const std::string NetworkCostNames[] = {
-    "Unknown",
-    "Unmetered",
-    "Metered",
-    "Roaming",
-    // Reserved network costs
-    "Reserved",
-    "Reserved",
-    "Reserved"
-};
-
-static const std::string PowerSourceNames[] = {
-    "Unknown",
-    "Battery",
-    "Charging",
-    // Reserved power states
-    "Reserved",
-    "Reserved",
-    "Reserved"
-};
-
 class DeviceStateHandler 
     : public PAL::IPropertyChangedCallback
 {
@@ -54,19 +33,19 @@ private:
     void _HandlePowerCallback();
     bool _UpdateDeviceCondition();
 
-	static unsigned int _MapNetworkTypeToDefaultCostUInt(NetworkType networkType);
+    static unsigned int _MapNetworkTypeToDefaultCostUInt(NetworkType networkType);
     static unsigned int _MapNetworkCostToUInt(NetworkCost networkCost, NetworkType networkType);
     static unsigned int _MapPowerSourceToUInt(PowerSource powerSource);
 
 private:
 
     std::mutex                      m_lock_sendEvent;
-		
-	NetworkType                m_networkType;
+
+    NetworkType                m_networkType;
     NetworkCost                m_networkCost;
     PowerSource                m_powerSource;
     
-	// Platform network, power, device info changes
+    // Platform network, power, device info changes
     PAL::INetworkInformation       *m_networkInformation;
     int                             m_networkInformationToken;
 
