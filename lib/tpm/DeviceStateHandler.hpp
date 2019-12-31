@@ -29,7 +29,7 @@ private:
 
     void _HandleNetworkCallback();
     void _HandlePowerCallback();
-    bool _UpdateDeviceCondition();
+    void _UpdateDeviceCondition();
 
     static unsigned int _MapNetworkTypeToDefaultCostUInt(NetworkType networkType);
     static unsigned int _MapNetworkCostToUInt(NetworkCost networkCost, NetworkType networkType);
