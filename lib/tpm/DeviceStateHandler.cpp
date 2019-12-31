@@ -28,17 +28,6 @@ DeviceStateHandler::DeviceStateHandler()
 }
 
 /******************************************************************************
-* DeviceStateHandler::~DeviceStateHandler
-*
-* D'tor
-*
-******************************************************************************/
-DeviceStateHandler::~DeviceStateHandler()
-{
-	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
-}
-
-/******************************************************************************
 * DeviceStateHandler::Start
 *
 * Initialize and start the DeviceStateHandler

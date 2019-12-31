@@ -19,7 +19,6 @@ class DeviceStateHandler
 {
 public:
 	DeviceStateHandler();
-    virtual ~DeviceStateHandler();
 
     void Start();
     void Stop();
