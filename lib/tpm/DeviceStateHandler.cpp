@@ -24,7 +24,7 @@ void DeviceStateHandler::Start()
 	// TRACE("_RetrieveAndRegisterForDeviceConditionChange");
 
 	m_networkInformation = PAL::GetNetworkInformation();
-	if (m_networkInformation != NULL)
+	if (m_networkInformation != nullptr)
 	{
 		m_networkType = m_networkInformation->GetNetworkType();
 		m_networkCost = m_networkInformation->GetNetworkCost();
@@ -36,7 +36,7 @@ void DeviceStateHandler::Start()
 	}
 
 	m_deviceInformation = PAL::GetDeviceInformation();
-	if (m_deviceInformation != NULL)
+	if (m_deviceInformation != nullptr)
 	{
 		m_powerSource = m_deviceInformation->GetPowerSource();
 
@@ -114,7 +114,7 @@ void DeviceStateHandler::OnChanged(
  bool DeviceStateHandler::_UpdateDeviceCondition()
 {
 #ifdef _WIN32
-     if (m_networkInformation != NULL)
+     if (m_networkInformation != nullptr)
      {
          m_networkType = m_networkInformation->GetNetworkType();
          m_networkCost = m_networkInformation->GetNetworkCost();
@@ -124,7 +124,7 @@ void DeviceStateHandler::OnChanged(
          m_networkCost = NetworkCost_Unknown;
      }
 
-     if (m_deviceInformation != NULL)
+     if (m_deviceInformation != nullptr)
      {
          m_powerSource = m_deviceInformation->GetPowerSource();
      }
