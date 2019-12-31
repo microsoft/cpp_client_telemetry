@@ -91,16 +91,16 @@ void DeviceStateHandler::OnChanged(
     
     if (propertyName.compare(NETWORK_TYPE) == 0)
     {
-		m_networkType = (NetworkType)strtol(propertyValue.c_str(), NULL, 10);
+        m_networkType = static_cast<NetworkType>(strtol(propertyValue.c_str(), NULL, 10));
     }
     else if (propertyName.compare(NETWORK_COST) == 0)
     {
-		m_networkCost = (NetworkCost)strtol(propertyValue.c_str(), NULL, 10);
+        m_networkCost = static_cast<NetworkCost>(strtol(propertyValue.c_str(), NULL, 10));
     }
-	else if (propertyName.compare(POWER_SOURCE) == 0)
-	{
-		m_powerSource = (PowerSource)strtol(propertyValue.c_str(), NULL, 10);
-	}
+    else if (propertyName.compare(POWER_SOURCE) == 0)
+    {
+        m_powerSource = static_cast<PowerSource>(strtol(propertyValue.c_str(), NULL, 10));
+    }
 
 	_UpdateDeviceCondition();
 }
