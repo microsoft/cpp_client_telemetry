@@ -427,6 +427,7 @@
     <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />
