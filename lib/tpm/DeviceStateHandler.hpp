@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DEVICESTATEHANDLER_HPP
+#define DEVICESTATEHANDLER_HPP
 #include "Enums.hpp"
 #include "IPropertyChangedCallback.hpp"
 #include "pal/SystemInformationImpl.hpp"
@@ -56,3 +57,4 @@ private:
 
 } ARIASDK_NS_END
 
+#endif // DEVICESTATEHANDLER_HPP
