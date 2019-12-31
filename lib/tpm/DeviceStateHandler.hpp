@@ -26,14 +26,7 @@ public:
     virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) override;
 
 private:
-
-    void _HandleNetworkCallback();
-    void _HandlePowerCallback();
     void _UpdateDeviceCondition();
-
-    static unsigned int _MapNetworkTypeToDefaultCostUInt(NetworkType networkType);
-    static unsigned int _MapNetworkCostToUInt(NetworkCost networkCost, NetworkType networkType);
-    static unsigned int _MapPowerSourceToUInt(PowerSource powerSource);
 
 private:
 
