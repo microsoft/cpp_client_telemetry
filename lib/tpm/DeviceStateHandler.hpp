@@ -18,8 +18,6 @@ class DeviceStateHandler
     : public PAL::IPropertyChangedCallback
 {
 public:
-    DeviceStateHandler() noexcept;
-
     void Start();
     void Stop();
 
