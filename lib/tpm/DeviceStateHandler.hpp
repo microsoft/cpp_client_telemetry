@@ -25,13 +25,14 @@ public:
     // IPropertyChangedCallback::OnChanged from platform on any connectivity, power, device system changes
     virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) override;
 
-private:
-    void _UpdateDeviceCondition();
+protected:
+    NetworkType m_networkType;
+    NetworkCost m_networkCost { NetworkCost_Unmetered };
+    PowerSource m_powerSource { PowerSource_Charging };
+
+    virtual void _UpdateDeviceCondition();
 
 private:
-    NetworkType                m_networkType;
-    NetworkCost                m_networkCost { NetworkCost_Unmetered };
-    PowerSource                m_powerSource { PowerSource_Charging };
     
     // Platform network, power, device info changes
     PAL::INetworkInformation  *m_networkInformation;

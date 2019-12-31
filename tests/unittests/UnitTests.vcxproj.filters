@@ -47,6 +47,7 @@
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
+    <ClCompile Include="DeviceStateHandlerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
