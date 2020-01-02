@@ -460,10 +460,10 @@ namespace ARIASDK_NS_BEGIN
         /// Normal
         EventPersistence_Normal = 1,
 
-        /// Critical
+        /// Critical: priority upload and last to be evicted from offline storage
         EventPersistence_Critical = 2,
 
-        /// Do not store
+        /// DoNotStore: do not store event in offline storage
         EventPersistence_DoNotStore = 3
     };
 
