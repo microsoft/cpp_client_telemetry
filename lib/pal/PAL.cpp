@@ -429,11 +429,6 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    void unregisterSemanticContext(ISemanticContext* context)
-    {
-        UNREFERENCED_PARAMETER(context);
-    }
-
 #undef OS_NAME
 #if defined(_WIN32)
     #define OS_NAME     "Windows"
