@@ -463,8 +463,8 @@ namespace ARIASDK_NS_BEGIN
         /// Critical: priority upload and last to be evicted from offline storage
         EventPersistence_Critical = 2,
 
-        /// DoNotStore: do not store event in offline storage
-        EventPersistence_DoNotStore = 3
+        /// DoNotStoreOnDisk: do not store event in offline storage
+        EventPersistence_DoNotStoreOnDisk = 3
     };
 
     typedef struct
