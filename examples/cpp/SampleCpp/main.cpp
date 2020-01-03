@@ -314,7 +314,6 @@ int main()
     config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
     logger = LogManager::Initialize(API_KEY);
 
-    logDoNotStore(); // quick test for a do-not-store tag
     logPiiMark();   // Direct upload
 
     // This global context variable will not be seen by C API client
@@ -343,6 +342,9 @@ int main()
 #endif
 
     LogManager::SetTransmitProfile(TransmitProfile::TransmitProfile_NearRealTime);
+
+    logDoNotStore();
+    LogManager::UploadNow();
 
     // Ingest events of various latencies
     printf("Starting stress-test...\n");
