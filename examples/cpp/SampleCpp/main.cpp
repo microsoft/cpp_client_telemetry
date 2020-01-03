@@ -223,7 +223,7 @@ void logDoNotStore()
 {
     auto logger = LogManager::GetLogger();
     EventProperties eventInRam("MyEvent.NeverStore");
-    eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStore);
+    eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStoreOnDisk);
     logger->LogEvent(eventInRam); // this event should not go to disk
 }
 
