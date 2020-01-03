@@ -30,11 +30,6 @@ namespace ARIASDK_NS_BEGIN {
     bool StorageObserver::handleStoreRecord(IncomingEventContextPtr const& ctx)
     {
         ctx->record.timestamp = PAL::getUtcSystemTimeMs();
-        if (ctx->record.persistence == EventPersistence::EventPersistence_DoNotStoreOnDisk) {
-            // This is not an error. We do not store those records to storage. Report OK and drop.
-            // Maybe we should report this as DROPPED or FILTERED?
-            return true;
-        }
         if (!m_offlineStorage.StoreRecord(ctx->record)) {
             // stats implementation must trigger a failure notification
             storeRecordFailed(ctx);
