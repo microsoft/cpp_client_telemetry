@@ -9,7 +9,7 @@ Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone t
 
 ### Ubuntu and other Debian-based distros
 
-Run `build.sh` script in the root folder of the source tree. This will fetch the necessary build tools and build the SDK. You may be prompted for root password in order to install the build package.
+Run `build.sh` script in the root folder of the source tree. This will fetch the necessary build tools and build the SDK. You will be prompted to enter your root password in order to install the necessary build tools and the resulting SDK package.
 
 ### RedHat / CentOS distros
 
