@@ -59,10 +59,6 @@ logging system by adding the following statements to your main() function.
     LogManager::FlushAndTeardown();
     ```
 
-    **Note** For more advanced usage (control of the telemetry system), use *LogManagerProvider**.
-    {: .bg-info }
+You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
-    **Important!** Replace the place-holder application key value with the actual value of your application key.
-    {: .bg-info }
-
-*You're done! You can now compile and run your app, and it will send a telemetry event.*
+Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). All of our SDK samples require CMake build system, but you may consume the SDK using any other alternate build system of your choice (GNU Make, gn, etc.).
