@@ -3,7 +3,7 @@ This tutorial guides you through the process of integrating the 1DS SDK into you
 
 ## 1. Clone the repository
 
-Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo. You will be asked your credentials to clone the repo. Use your username and GitHub token.
+Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo. You will be prompted to enter your credentials to clone. Use your MSFT GitHub username and GitHub token.
 
 ## 2. Build all
 
