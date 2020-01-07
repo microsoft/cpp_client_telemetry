@@ -137,12 +137,12 @@ class Request implements Runnable {
 }
 
 public class httpClient{
-    private static final int Max_Threads = 2; // Collector wants no more than 2 at a time
-    public httpClient(int n_threads)
+    private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
+    public httpClient()
     {
         String path = System.getProperty("java.io.tmpdir");
         setCacheFilePath(path);
-        m_executor = Executors.newFixedThreadPool(Max_Threads);
+        m_executor = Executors.newFixedThreadPool(MAX_HTTP_THREADS);
         createClientInstance();
     }
 
