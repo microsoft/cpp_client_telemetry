@@ -175,9 +175,12 @@ namespace ARIASDK_NS_BEGIN {
 
             while (records.size())
             {
-                ids.push_back(records.back().id);
-                if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
-                    totalSaved++;
+                if (records.back().persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
+                {
+                    ids.push_back(records.back().id);
+                    if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
+                        totalSaved++;
+                }
                 records.pop_back();
             }
 
@@ -185,7 +188,7 @@ namespace ARIASDK_NS_BEGIN {
             //            if (sqlite)
             //                sqlite->Execute("END");
 
-                        // Delete records from reserved on flush
+            // Delete records from reserved on flush
             HttpHeaders dummy;
             bool fromMemory = true;
             m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
@@ -264,7 +267,10 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (m_offlineStorageDisk != nullptr)
             {
-                m_offlineStorageDisk->StoreRecord(record);
+                if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
+                {
+                    m_offlineStorageDisk->StoreRecord(record);
+                }
             }
         }
 
