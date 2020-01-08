@@ -14,6 +14,12 @@
 #include <Windows.h>
 #endif
 
+#ifdef __clang__
+#define PACKED_STRUCT __attribute__((packed))
+#else
+#define PACKED_STRUCT
+#endif
+
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600)
 /* Visual Studio 2010 */
 typedef	__int64				int64_t;
@@ -114,7 +120,7 @@ extern "C" {
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct
+    typedef struct PACKED_STRUCT
     {
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
