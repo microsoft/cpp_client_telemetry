@@ -4,24 +4,27 @@ project(SampleCpp)
 # Uncomment for building i386 binary on x86_64 system
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 
+if (NOT TARGET_ARCH)
+  set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
 # For ARM / Raspberry Pi 3 cross-compile
 # set(MAT_SDK_LIB       /usr/local/lib/armv7l-linux-gnu)
 
-# Point example to SDK dirs for x86_64 Desktop
-if(EXISTS "/usr/local/lib/libmat.a")
-# Use local libmat.a
-set(MAT_SDK_LIB	/usr/local/lib/)
-else()
-# Use architecture-specific libmat.a
-set(MAT_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+# Search for static lib first
+find_path(MAT_SDK_LIB_PATH NAMES libmat.a PATHS /usr/lib /usr/local/lib /usr/local/lib/${TARGET_ARCH}-linux-gnu)
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  # Search for .dylib on Mac OS X
+  find_path(MAT_SDK_DYLIB_PATH NAMES libmat.dylib PATHS /usr/lib /usr/local/lib)
 endif()
+find_library(LIBMAT NAMES libmat.a libmat.dylib HINTS ${MAT_SDK_LIB_PATH} ${MAT_SDK_DYLIB_PATH})
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
 
 find_package (Threads)
 
-set(MAT_SDK_INCLUDE	/usr/local/include/mat)
+set(MAT_SDK_INCLUDE /usr/local/include/mat)
 
 # Aria SDK to include dirs
 include_directories( . ${MAT_SDK_INCLUDE} )
@@ -32,9 +35,9 @@ source_group(" " REGULAR_EXPRESSION "")
 
 # Prefer linking to more recent local sqlite3
 if(EXISTS "/usr/local/lib/libsqlite3.a")
-set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+  set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
 else()
-set (SQLITE3_LIB "sqlite3")
+  set (SQLITE3_LIB "sqlite3")
 endif()
 
 set (PLATFORM_LIBS "")
@@ -51,4 +54,6 @@ endif()
 #tcmalloc turned off by default
 #target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
 
-target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
+# Static:
+# target_link_libraries(SampleCpp ${MAT_SDK_LIB_STATIC} curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
+target_link_libraries(SampleCpp ${LIBMAT} curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
