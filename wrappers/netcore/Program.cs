@@ -23,24 +23,23 @@ namespace EventSender
         EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
     }
 
-    // [StructLayout(LayoutKind.Sequential)]
-    [StructLayout(LayoutKind.Explicit, Size=32, CharSet=CharSet.Ansi)]
+    [StructLayout(LayoutKind.Explicit, Size = 24, CharSet = CharSet.Ansi)]
     public struct EventCallContext
     {
-        [FieldOffset(0)]public UInt32 call;
-        [FieldOffset(4)]public ulong handle;
-        [FieldOffset(12)]public IntPtr data;
-        [FieldOffset(16)]public UInt32 result;
-        [FieldOffset(20)]public UInt32 size;
+        [FieldOffset(0)] public UInt32 call;
+        [FieldOffset(4)] public ulong handle;
+        [FieldOffset(12)] public IntPtr data;
+        [FieldOffset(16)] public UInt32 result;
+        [FieldOffset(20)] public UInt32 size;
     }
 
     internal static class NativeMethods
     {
-        [DllImport("libmat", EntryPoint = "evt_api_call_default" /*  , CallingConvention = CallingConvention.Cdecl */)]
+        // Conditional compilation: pass different library name depending on target OS?
+        const string SDK_LIBRARY_NAME = "libmat";
+
+        [DllImport(SDK_LIBRARY_NAME, EntryPoint = "evt_api_call_default")]
         public static extern UInt32 evt_api_call([In, Out] ref EventCallContext context);
-        // public static extern UInt32 evt_api_call(ref EventCallContext context);
-        // Alternatives:
-        // [MarshalAs(UnmanagedType.LPStruct)]
     }
 
     class Program
@@ -59,20 +58,12 @@ namespace EventSender
 
         static ulong evt_open(string cfg)
         {
-        /*
-            byte[] data = Encoding.ASCII.GetBytes(cfg);
-            var nativeDataPtr = Marshal.AllocHGlobal(data.Length+1);
-            Marshal.Copy(data, 0, nativeDataPtr, data.Length);
-            Marshal.WriteByte(nativeDataPtr+data.Length, 0);
-         */
-            var nativeDataPtr = Marshal.StringToHGlobalAnsi(cfg);
             EventCallContext context = new EventCallContext
             {
                 call = (Byte)EventCallType.EVT_OP_OPEN,
-                data = nativeDataPtr
+                data = Marshal.StringToHGlobalAnsi(cfg)
             };
             NativeMethods.evt_api_call(ref context);
-            // Marshal.Release(nativeDataPtr);
             return context.handle;
         }
 
@@ -89,35 +80,37 @@ namespace EventSender
         static string evt_version()
         {
             byte[] data = Encoding.ASCII.GetBytes(SDK_VERSION);
-            var nativeDataPtr = Marshal.AllocHGlobal(data.Length+1);
+            var nativeDataPtr = Marshal.AllocHGlobal(data.Length + 1);
             Marshal.Copy(data, 0, nativeDataPtr, data.Length);
-            Marshal.WriteByte(nativeDataPtr+data.Length, 0);
+            Marshal.WriteByte(nativeDataPtr + data.Length, 0);
             EventCallContext context = new EventCallContext
             {
                 call = (Byte)EventCallType.EVT_OP_VERSION,
                 data = nativeDataPtr
             };
             NativeMethods.evt_api_call(ref context);
-            return Marshal.PtrToStringAnsi(context.data); // x.y.z
-            // PtrToStringAnsi(context.data);
+            return Marshal.PtrToStringAnsi(context.data);
         }
 
         static void Main(string[] args)
         {
-            // Environment.SetEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH", "/usr/local/lib");
-
-            Console.WriteLine("Reading configuration...");      
+            Console.WriteLine("Reading configuration...");
             string cfg = ReadConfiguration("sdk-config.json");
-            // Parse to verify it is valid and print it out
-            JsonObject jsonDoc = (JsonObject)JsonObject.Parse(cfg);
-            Console.WriteLine("configuration:\n{0}", jsonDoc.ToString());
 
+            // Parse to verify it is valid and print it out..
+            // Parser should throw if config is invalid.
+            JsonObject jsonDoc = (JsonObject)JsonObject.Parse(cfg);
+            Console.WriteLine("SDK configuration:\n{0}", jsonDoc.ToString());
+
+            // Obtain SDK version from native library
             Console.WriteLine("SDK version: {0}", evt_version());
 
+            // Initialize
             Console.WriteLine("evt_open...");
             var handle = evt_open(cfg);
             Console.WriteLine("handle={0}", handle);
 
+            // FlushAndTeardown
             Console.WriteLine("evt_close...");
             var result = evt_close(handle);
             Console.WriteLine("result={0}", result);
