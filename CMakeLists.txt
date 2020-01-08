@@ -191,7 +191,7 @@ option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
+  option(BUILD_APPLE_HTTP "Build Apple HTTP client" NO)
 endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
