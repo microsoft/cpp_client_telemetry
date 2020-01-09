@@ -330,11 +330,8 @@ void test_ProfileSwitch(ILogger *logger)
 static auto& configuration = LogManager::GetLogConfiguration();
 
 ILogger* init() {
-    configuration[CFG_STR_CACHE_FILE_PATH]   = "offlinestorage.db";
-    configuration[CFG_INT_CACHE_FILE_SIZE]   = 50000000;
-    configuration[CFG_INT_RAM_QUEUE_SIZE]    = 2000000;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS; /* or UTC mode: SdkModeTypes_UTCBackCompat; */
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_UTCCommonSchema;
 
     // OTEL profile example
     const char* transmitProfileDefinitions = R"(
@@ -503,20 +500,6 @@ public:
 
 };
 
-void testReinitialize()
-{
-    for (size_t i = 0; i < MAX_REINIT_COUNT; i++)
-    {
-        printf("Initialize %u ... \n", i);
-        auto cTenantToken = TOKEN;
-        auto logger = LogManager::Initialize(cTenantToken);
-        EventProperties eventProperties("testName");
-        eventProperties.SetProperty("key", "value");
-        logger->LogEvent(eventProperties);
-        LogManager::FlushAndTeardown();
-    }
-}
-
 void resetCounters()
 {
     testStartMs = 0;
@@ -534,7 +517,6 @@ void resetCounters()
 int testRun()
 {
     resetCounters();
-    testReinitialize();
 
     std::vector<std::thread> workers;
     std::thread t[MAX_STRESS_THREADS];
