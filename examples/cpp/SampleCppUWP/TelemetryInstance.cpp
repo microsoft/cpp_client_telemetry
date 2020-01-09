@@ -25,27 +25,28 @@ static ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 
 void TelemetryInitialize()
 {
-    configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db";
-    configuration[CFG_INT_CACHE_FILE_SIZE] = 50000000;
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 2000000;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 20;
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS; /* or UTC mode: SdkModeTypes_UTCBackCompat; */
-
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_UTCCommonSchema;
     ILogger *logger = LogManager::Initialize(TOKEN);
     LogManager::GetSemanticContext()->SetAppId("SampleCppUWP");
-    logger->LogSession(Session_Started, EventProperties("AppSession"));
-    logger->LogEvent("Event_Simple");
+    // Example event that should not get sampled by UTC
+    EventProperties props("Microsoft.SampleCppUWP.AppSession");
+    props.SetPriority(EventPriority_Immediate);
+    props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA|MICROSOFT_EVENTTAG_REALTIME_LATENCY|MICROSOFT_KEYWORD_CRITICAL_DATA);
+    logger->LogSession(Session_Started, props);
+    logger->LogEvent("Microsoft.SampleCppUWP.EventSimple");
 }
 
 void TelemetryTeardown()
 {
-
     ILogger *logger = LogManager::GetLogger("shutdown");
     ISemanticContext *context = LogManager::GetSemanticContext();
-    logger->LogSession(Session_Ended, EventProperties("AppSession"));
-
+    // Example event that should not get sampled by UTC
+    EventProperties props("Microsoft.SampleCppUWP.AppSession");
+    props.SetPriority(EventPriority_Immediate);
+    props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA|MICROSOFT_EVENTTAG_REALTIME_LATENCY|MICROSOFT_KEYWORD_CRITICAL_DATA);
+    logger->LogSession(Session_Ended, props);
     LogManager::FlushAndTeardown();
 }
 
@@ -68,4 +69,4 @@ struct TelemetryInstance {
 
 };
 
-static TelemetryInstance aria;
+static TelemetryInstance sdkSingleton;
