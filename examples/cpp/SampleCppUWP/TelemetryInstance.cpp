@@ -25,27 +25,20 @@ static ILogConfiguration& configuration = LogManager::GetLogConfiguration();
 
 void TelemetryInitialize()
 {
-    configuration[CFG_STR_CACHE_FILE_PATH] = "offlinestorage.db";
-    configuration[CFG_INT_CACHE_FILE_SIZE] = 50000000;
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 2000000;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 20;
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS; /* or UTC mode: SdkModeTypes_UTCBackCompat; */
-
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes_UTCCommonSchema;
     ILogger *logger = LogManager::Initialize(TOKEN);
     LogManager::GetSemanticContext()->SetAppId("SampleCppUWP");
-    logger->LogSession(Session_Started, EventProperties("AppSession"));
-    logger->LogEvent("Event_Simple");
+    logger->LogSession(Session_Started, EventProperties("Microsoft.SampleCppUWP.AppSession"));
+    logger->LogEvent("Microsoft.SampleCppUWP.EventSimple");
 }
 
 void TelemetryTeardown()
 {
-
     ILogger *logger = LogManager::GetLogger("shutdown");
     ISemanticContext *context = LogManager::GetSemanticContext();
-    logger->LogSession(Session_Ended, EventProperties("AppSession"));
-
+    logger->LogSession(Session_Ended, EventProperties("Microsoft.SampleCppUWP.AppSession"));
     LogManager::FlushAndTeardown();
 }
 
@@ -68,4 +61,4 @@ struct TelemetryInstance {
 
 };
 
-static TelemetryInstance aria;
+static TelemetryInstance sdkSingleton;
