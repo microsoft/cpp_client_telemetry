@@ -158,6 +158,7 @@ public:
     virtual ~CurlHttpOperation()
     {
         // Given the request has not been aborted we should wait for completion here
+        // This gurantees the lifetime of this request.
         if (result.valid())
         {
             result.wait();

@@ -1,15 +1,23 @@
 
-This tutorial guides you through the process of integrating the 1DS SDK (Beta) into your existing C++ Linux app or service.
+This tutorial guides you through the process of integrating the 1DS SDK into your existing C++ Linux app or service.
 
-## 1. Linux Prerequisites for building from source
+## 1. Clone the repository
 
-{% include_relative linux-setup-build.md %}
+Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo. You will be prompted to enter your credentials to clone. Use your MSFT GitHub username and GitHub token.
 
-## 2. Clone the repository
+## 2. Build all
 
-1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+### Ubuntu and other Debian-based distros
 
-2. You will be asked your credentials to clone the repo, use your username and GitHub token.	
+Run `build.sh` script in the root folder of the source tree. This will fetch the necessary build tools and build the SDK. You will be prompted to enter your root password in order to install the necessary build tools and the resulting SDK package.
+
+### RedHat / CentOS distros
+
+Run `source build-rhel.sh` then run `build.sh`. Older versions of RedHat require devtoolset-7 or above. devtoolset-7 - Developer Toolset is designed for developers working on CentOS or Red Hat Enterprise Linux platform. It provides current versions of the GNU Compiler Collection, GNU Debugger, and other development, debugging, and performance monitoring tools.
+
+### Using Docker for builds
+
+Docker on Windows can be used to build SDK in Docker image. Please refer to `build-docker.cmd` for details.
 
 ## 3. Integrate the SDK into your C++ project
 
@@ -51,10 +59,6 @@ logging system by adding the following statements to your main() function.
     LogManager::FlushAndTeardown();
     ```
 
-    **Note** For more advanced usage (control of the telemetry system), use *LogManagerProvider**.
-    {: .bg-info }
+You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
-    **Important!** Replace the place-holder application key value with the actual value of your application key.
-    {: .bg-info }
-
-*You're done! You can now compile and run your app, and it will send a telemetry event.*
+Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). All of our SDK samples require CMake build system, but you may consume the SDK using any other alternate build system of your choice (GNU Make, gn, etc.).
