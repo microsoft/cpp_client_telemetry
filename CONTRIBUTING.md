@@ -24,8 +24,8 @@ Platform specific build instructions:
 - Android... We don't have instructions yet, feel free to contribute :)
 
 Other resources to learn how to setup the build system:
-- review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
-- check the build scripts located in workspace root
+- Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
+- Check the build scripts located in workspace root
 
 ## Issues and Feature Requests
 
