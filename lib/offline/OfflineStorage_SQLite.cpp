@@ -823,7 +823,7 @@ namespace ARIASDK_NS_BEGIN {
             return false;
         }
 
-        auto eventsDropped = 0;
+        size_t eventsDropped = 0;
         m_DbSizeEstimate = GetSize();
         if (m_DbSizeEstimate <= m_DbSizeLimit)
             return false;
