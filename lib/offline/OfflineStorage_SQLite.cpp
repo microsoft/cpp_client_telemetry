@@ -185,11 +185,15 @@ namespace ARIASDK_NS_BEGIN {
 
         if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate>m_DbSizeLimit))
         {
-            LOCKGUARD(m_resizeLock);
-            if (!m_resizedPending)
+            auto shouldResize = m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL];
+            if (shouldResize)
             {
-                ResizeDb();
-                m_resizedPending = false;
+                LOCKGUARD(m_resizeLock);
+                if (!m_resizedPending)
+                {
+                    ResizeDb();
+                    m_resizedPending = false;
+                }
             }
         }
 
