@@ -44,13 +44,16 @@ namespace PAL_NS_BEGIN {
         std::string m_model;
         std::string m_deviceTicket;
         OsArchitectureType m_os_architecture;
+    protected:
         PowerSource m_powerSource;
         InformatonProviderImpl m_info_helper;
+    private:
         int m_registredCount;
         // Disable copy constructor and assignment operator.
         DeviceInformationImpl(DeviceInformationImpl const& other);
         DeviceInformationImpl& operator=(DeviceInformationImpl const& other);
 
+        protected:
         DeviceInformationImpl();
         virtual ~DeviceInformationImpl();
     };
