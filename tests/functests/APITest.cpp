@@ -448,6 +448,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+    configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = false;
     configuration["stats"]["interval"] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
