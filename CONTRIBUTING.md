@@ -13,6 +13,20 @@ If you want to propose topics, please append them to the agenda.
 To request edit access, please contact [1ds.sdk.cpp@service.microsoft.com](mailto:1ds.sdk.cpp@service.microsoft.com)
 or ping us on [Teams](https://teams.microsoft.com/l/channel/19%3a50d8ce341e12455fa3bbfba72b2ba2b5%40thread.skype/General?groupId=d0d4e6fc-48e6-4e38-bb62-bec0fc26b520&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
 
+## How to build the SDK
+
+Platform specific build instructions:
+- [Windows](docs/cpp-start-windows.md)
+- [Windows/clang](build-cmake-clang.cmd)
+- [Mac](docs/cpp-start-macosx.md)
+- [Linux](docs/cpp-start-linux.md). Docker can also be used to build for varios distros. Refer to [build-docker.cmd](build-docker.cmd).
+- [iOS/iPadOS](build-ios.sh)
+- Android... We don't have instructions yet, feel free to contribute :)
+
+Other resources to learn how to setup the build system:
+- Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
+- Check the build scripts located in workspace root
+
 ## Issues and Feature Requests
 
 Issues and feature requests are tracked on [GitHub](https://github.com/microsoft/cpp_client_telemetry/issues).
