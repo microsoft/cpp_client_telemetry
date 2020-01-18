@@ -6,7 +6,7 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION	"3.1.0"
+#define TELEMETRY_EVENTS_VERSION	"3.3.0"
 
 #include "ctmacros.hpp"
 
