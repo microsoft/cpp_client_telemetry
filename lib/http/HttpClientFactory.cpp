@@ -6,14 +6,26 @@
 #include "HttpClientFactory.hpp"
 #include "pal/PAL.hpp"
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #if defined(MATSDK_PAL_WIN32)
   #ifdef _WINRT_DLL
     #include "http/HttpClient_WinRt.hpp"
-  #else
+  #elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
     #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
-  #include "http/HttpClient.hpp"
+  #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
+    #include "http/HttpClient_Apple.hpp"
+  #else
+  #ifdef ANDROID
+    #include "http/HttpClient_Android.hpp"
+  #else
+    #include "http/HttpClient_Curl.hpp"
+  #endif
+  #endif
 #else
   #error The library cannot work without an HTTP client implementation.
 #endif
@@ -24,24 +36,37 @@ namespace ARIASDK_NS_BEGIN {
 
 #if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL
-    IHttpClient* HttpClientFactory::Create() {
+    /* Win 10 HTTP client */
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinRt");
-        return new HttpClient_WinRt();
+        return std::make_shared<HttpClient_WinRt>();
     }
-
-#else
-    IHttpClient* HttpClientFactory::Create() {
+#elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    /* Win32 WinInet HTTP client */
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_WinInet");
-        return new HttpClient_WinInet();
+        return std::make_shared<HttpClient_WinInet>();
     }
 
 #endif
 #elif defined(MATSDK_PAL_CPP11)
-    IHttpClient* HttpClientFactory::Create() {
-        LOG_TRACE("Creating generic HttpClient");
-        return new HttpClient();
+#if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        LOG_TRACE("Creating HttpClient_Apple");
+        return std::make_shared<HttpClient_Apple>();
     }
-
+#else
+#ifdef ANDROID
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        return HttpClient_Android::GetClientInstance();
+    }
+#else
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        LOG_TRACE("Creating HttpClient_Curl");
+        return std::make_shared<HttpClient_Curl>();
+    }
+#endif
+#endif
 #else
 #error The library cannot work without an HTTP client implementation.
 #endif

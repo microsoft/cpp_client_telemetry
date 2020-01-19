@@ -9,6 +9,7 @@ set(SRCS
   CorrelationVectorTests.cpp
   DataViewerCollectionTests.cpp
   DebugEventSourceTests.cpp
+  DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
   EventPropertiesStorageTests.cpp
