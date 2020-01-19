@@ -19,6 +19,10 @@ endif()
 option(BUILD_IOS           "Build for iOS"               NO)
 option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
 
+# Begin Uncomment for iOS Device build
+#set(BUILD_SIMULATOR NO)
+# End of iOS Device build
+
 if(BUILD_IOS)
   set(TARGET_ARCH "APPLE")
   set(IOS True)
@@ -42,6 +46,8 @@ if(BUILD_IOS)
   message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
 endif()
 
+message("-- BUILD_IOS:              ${BUILD_IOS}")
+message("-- BUILD_SIMULATOR:        ${BUILD_SIMULATOR}")
 message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
 message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -181,7 +187,12 @@ option(BUILD_TEST_TOOL    "Build console test tool" YES)
 option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
 option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
+option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
+endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     message("Adding gtest")
@@ -194,6 +205,10 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
 #    message("Building gmock")
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
+endif()
+
+if(BUILD_APPLE_HTTP)
+  add_definitions(-DAPPLE_HTTP=1)
 endif()
 
 # Bond Lite subdirectories

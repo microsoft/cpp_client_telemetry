@@ -93,8 +93,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <PackageCertificateKeyFile>TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>8E0B7DDB34A9A10024A12ACE6EAB0CCF5AD3CD4B</PackageCertificateThumbprint>
+    <!-- PackageCertificateKeyFile>TestApp.pfx</PackageCertificateKeyFile -->
+    <PackageCertificateThumbprint>C810DAF81A74B3834A3FB2F4B720F9AA24C30701</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -227,6 +228,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="TestApp.pfx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Solutions\win10-dll\win10-dll.vcxproj">

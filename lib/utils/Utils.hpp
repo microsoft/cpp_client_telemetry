@@ -33,7 +33,9 @@ namespace std
 #endif
 
 #ifdef __unix__
+#ifndef ANDROID
 #include <execinfo.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #endif

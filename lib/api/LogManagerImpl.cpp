@@ -45,10 +45,6 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-#ifdef ANDROID
-    extern ILogManager* g_jniLogManager;
-#endif
-
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         // LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -217,7 +213,14 @@ namespace ARIASDK_NS_BEGIN
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr)
         {
-            m_httpClient.reset(HttpClientFactory::Create());
+            m_httpClient = HttpClientFactory::Create();
+#ifdef HAVE_MAT_WININET_HTTP_CLIENT
+            HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
+            if (client != nullptr)
+            {
+                client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
+            }
+#endif
         }
         else
         {
@@ -263,18 +266,21 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Started up and running");
         m_alive = true;
 
-#ifdef ANDROID
-        if (g_jniLogManager == nullptr) {
-            g_jniLogManager = this;
-        }
-#endif
     }
-
+    
+    /// <summary>
+    /// Reconfigure this ILogManager instance using current snapshot of ILogConfiguration
+    /// </summary>
     void LogManagerImpl::Configure()
     {
-        // TODO: [MG] - this API should allow to reconfigure the instance
-        // at runtime using customer-provided instance of ILogConfiguration object
-        // without having to restart the instance.
+        // TODO: [maxgolov] - add other config params.
+#ifdef HAVE_MAT_WININET_HTTP_CLIENT
+        HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
+        if (client != nullptr)
+        {
+            client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
+        }
+#endif
     };
 
 
@@ -321,11 +327,7 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutdown complete in %lld ms", shutTime);
 
         m_alive = false;
-#ifdef ANDROID
-        if (g_jniLogManager == this) {
-            g_jniLogManager = nullptr;
-        }
-#endif
+
     }
 
     status_t LogManagerImpl::Flush()
