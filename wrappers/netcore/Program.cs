@@ -57,8 +57,8 @@ namespace EventSender
                 var props = new EventProperties() {
                     { "strKey", "value1" },
                     { "intKey", 12345 },
-                    { "dblKey", 0.12345 }
-//                  , { "guidKey", new Guid("73e21739-9d4e-497d-9c66-8e399a532ec9") }
+                    { "dblKey", 0.12345 } ,
+                    { "guidKey", new Guid("73e21739-9d4e-497d-9c66-8e399a532ec9") }
                 };
                 EventNativeAPI.evt_log(handle, ref props);
             }
