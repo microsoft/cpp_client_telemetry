@@ -6,13 +6,13 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-
-    class BondSerializer: public ISerializer
+    class BondSerializer : public ISerializer
     {
-    protected:
+       protected:
         virtual bool handleSerialize(IncomingEventContextPtr const& ctx) override;
     };
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 
 #endif

@@ -15,26 +15,25 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-
     class BaseDecorator : public IDecorator
     {
-
-    public:
+       public:
         BaseDecorator(ILogManager& owner);
-        virtual ~BaseDecorator() {};
+        virtual ~BaseDecorator(){};
         bool decorate(CsProtocol::Record& record);
 
-    protected:
-        ILogManager&            m_owner;
-        std::string             m_source;
-        std::string             m_initId;
-        uint64_t                m_sequenceId;
+       protected:
+        ILogManager& m_owner;
+        std::string m_source;
+        std::string m_initId;
+        uint64_t m_sequenceId;
 
         bool checkNotEmpty(std::string const& value, char const* desc)
         {
             UNREFERENCED_PARAMETER(desc);
 
-            if (!value.empty()) {
+            if (!value.empty())
+            {
                 return true;
             }
 
@@ -107,25 +106,28 @@ namespace ARIASDK_NS_BEGIN
             dest[key] = temp;
         }
 
-        struct EnumValueName {
+        struct EnumValueName
+        {
             char const* name;
-            std::ptrdiff_t   value;
+            std::ptrdiff_t value;
         };
 
-        template<size_t N>
+        template <size_t N>
         void setEnumValue(std::map<std::string, CsProtocol::Value>& dest, std::string const& key, ptrdiff_t value, EnumValueName const (&names)[N])
         {
-            for (EnumValueName const& item : names) {
-                if (item.value == value) {
+            for (EnumValueName const& item : names)
+            {
+                if (item.value == value)
+                {
                     setIfNotEmpty(dest, key, item.name);
                     return;
                 }
             }
             assert(!"unknown enum value");
         }
-
     };
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 
 #endif

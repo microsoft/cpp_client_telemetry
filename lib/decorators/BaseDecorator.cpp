@@ -1,9 +1,9 @@
+// Copyright (c) Microsoft. All rights reserved.
 #include "BaseDecorator.hpp"
 
-namespace ARIASDK_NS_BEGIN {
-
-    BaseDecorator::BaseDecorator(ILogManager& owner)
-        :
+namespace ARIASDK_NS_BEGIN
+{
+    BaseDecorator::BaseDecorator(ILogManager& owner) :
         m_owner(owner),
         // TODO: populate m_source
         m_initId(PAL::generateUuidString()),
@@ -59,4 +59,5 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END

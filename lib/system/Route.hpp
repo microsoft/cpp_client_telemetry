@@ -7,78 +7,80 @@
 #include <assert.h>
 #include <vector>
 
-//
-// XXX: [MG] - This is pneumonoultramicroscopicsilicovolcanoconiosis..
-//
-namespace ARIASDK_NS_BEGIN {
-
+namespace ARIASDK_NS_BEGIN
+{
     //! Interface for generic route sink (incoming data handler)
-    template<typename... TArgs>
-    class IRouteSink {
-    public:
-        virtual ~IRouteSink() {}
+    template <typename... TArgs>
+    class IRouteSink
+    {
+       public:
+        virtual ~IRouteSink()
+        {
+        }
         virtual void operator()(TArgs... args) = 0;
         using ReturnType = void;
     };
 
-
     //! Interface for generic route pass-through (returns false to stop the flow)
-    template<typename... TArgs>
-    class IRoutePassThrough {
-    public:
-        virtual ~IRoutePassThrough() {}
+    template <typename... TArgs>
+    class IRoutePassThrough
+    {
+       public:
+        virtual ~IRoutePassThrough()
+        {
+        }
         virtual bool operator()(TArgs... args) = 0;
         using ReturnType = bool;
     };
 
-
     //! Helper - IRouteSink/IRoutePassThrough implementation over member functor
-    template<typename TParent, typename TOwner, typename... TArgs>
-    class RouteHandlerT : public TParent {
-    public:
-        RouteHandlerT(TOwner* owner, typename TParent::ReturnType(TOwner::* handler)(TArgs...))
-            : m_owner(owner),
+    template <typename TParent, typename TOwner, typename... TArgs>
+    class RouteHandlerT : public TParent
+    {
+       public:
+        RouteHandlerT(TOwner* owner, typename TParent::ReturnType (TOwner::*handler)(TArgs...)) :
+            m_owner(owner),
             m_handler(handler)
         {
         }
 
         virtual typename TParent::ReturnType operator()(TArgs... args) override
         {
-            return (m_owner->*m_handler)(std::forward<TArgs>(args) ...);
+            return (m_owner->*m_handler)(std::forward<TArgs>(args)...);
         }
 
-    protected:
-        TOwner * m_owner;
-        typename TParent::ReturnType(TOwner::* m_handler)(TArgs...);
+        virtual ~RouteHandlerT(){};
+
+       protected:
+        TOwner* m_owner;
+        typename TParent::ReturnType (TOwner::*m_handler)(TArgs...);
     };
 
-
     //! Default route sink - calls the handler, does not continue the flow
-    template<typename TOwner, typename... TArgs>
+    template <typename TOwner, typename... TArgs>
     using RouteSink = RouteHandlerT<IRouteSink<TArgs...>, TOwner, TArgs...>;
 
-
     //! Default route pass-through - calls the handler, then continues or stops
-    template<typename TOwner, typename... TArgs>
+    template <typename TOwner, typename... TArgs>
     using RoutePassThrough = RouteHandlerT<IRoutePassThrough<TArgs...>, TOwner, TArgs...>;
 
-
-    template<typename... TArgs>
+    template <typename... TArgs>
     class RouteBuilder;
 
-
     //! Route source - call like a function to send data downstream
-    template<typename... TArgs>
-    class RouteSource {
-    public:
-        RouteSource()
-            : m_target(nullptr)
+    template <typename... TArgs>
+    class RouteSource
+    {
+       public:
+        RouteSource() :
+            m_target(nullptr)
         {
         }
 
         RouteBuilder<TArgs...> operator>>(IRoutePassThrough<TArgs...>& target)
         {
-            if (m_target != nullptr || !m_passthroughs.empty()) {
+            if (m_target != nullptr || !m_passthroughs.empty())
+            {
                 assert(!"Source already bound");
             }
             return RouteBuilder<TArgs...>(*this, target);
@@ -86,7 +88,8 @@ namespace ARIASDK_NS_BEGIN {
 
         RouteBuilder<TArgs...> operator>>(IRouteSink<TArgs...>& target)
         {
-            if (m_target != nullptr || !m_passthroughs.empty()) {
+            if (m_target != nullptr || !m_passthroughs.empty())
+            {
                 assert(!"Source already bound");
             }
             return RouteBuilder<TArgs...>(*this, target);
@@ -98,37 +101,40 @@ namespace ARIASDK_NS_BEGIN {
             m_target = sink;
         }
 
-        template<typename... TRealArgs>
-        void operator()(TRealArgs&& ... args) const
+        template <typename... TRealArgs>
+        void operator()(TRealArgs&&... args) const
         {
-            for (IRoutePassThrough<TArgs...>* target : m_passthroughs) {
-                if (!(*target)(std::forward<TRealArgs>(args) ...)) {
+            for (IRoutePassThrough<TArgs...>* target : m_passthroughs)
+            {
+                if (!(*target)(std::forward<TRealArgs>(args)...))
+                {
                     return;
                 }
             }
-            if (m_target) {
-                (*m_target)(std::forward<TRealArgs>(args) ...);
+            if (m_target)
+            {
+                (*m_target)(std::forward<TRealArgs>(args)...);
             }
         }
 
-    protected:
+       protected:
         std::vector<IRoutePassThrough<TArgs...>*> m_passthroughs;
-        IRouteSink<TArgs...>*                     m_target;
+        IRouteSink<TArgs...>* m_target;
     };
 
-
     //! Helper - builds route flows with operator >>
-    template<typename... TArgs>
-    class RouteBuilder {
-    public:
-        RouteBuilder(RouteSource<TArgs...>& source, IRoutePassThrough<TArgs...>& target)
-            : m_source(&source),
+    template <typename... TArgs>
+    class RouteBuilder
+    {
+       public:
+        RouteBuilder(RouteSource<TArgs...>& source, IRoutePassThrough<TArgs...>& target) :
+            m_source(&source),
             m_passthroughs(1, &target)
         {
         }
 
-        RouteBuilder(RouteSource<TArgs...>& source, IRouteSink<TArgs...>& target)
-            : m_source(nullptr)
+        RouteBuilder(RouteSource<TArgs...>& source, IRouteSink<TArgs...>& target) :
+            m_source(nullptr)
         {
             source.connect({}, &target);
         }
@@ -136,8 +142,8 @@ namespace ARIASDK_NS_BEGIN {
         RouteBuilder(RouteBuilder const&) = delete;
         RouteBuilder& operator=(RouteBuilder const&) = delete;
 
-        RouteBuilder(RouteBuilder&& other)
-            : m_source(std::move(other.m_source)),
+        RouteBuilder(RouteBuilder&& other) :
+            m_source(std::move(other.m_source)),
             m_passthroughs(std::move(other.m_passthroughs))
         {
             other.m_source = nullptr;
@@ -153,11 +159,13 @@ namespace ARIASDK_NS_BEGIN {
 
         RouteBuilder<TArgs...> operator>>(IRouteSink<TArgs...>& target)
         {
-            if (m_source != nullptr) {
+            if (m_source != nullptr)
+            {
                 m_source->connect(std::move(m_passthroughs), &target);
                 m_source = nullptr;
             }
-            else {
+            else
+            {
                 assert(!"Builder instance inactive (wrong temporary) or already finished (bound to a sink)");
             }
             return std::move(*this);
@@ -165,10 +173,12 @@ namespace ARIASDK_NS_BEGIN {
 
         RouteBuilder<TArgs...> operator>>(IRoutePassThrough<TArgs...>& target)
         {
-            if (m_source != nullptr) {
+            if (m_source != nullptr)
+            {
                 m_passthroughs.push_back(&target);
             }
-            else {
+            else
+            {
                 assert(!"Builder instance inactive (wrong temporary) or already finished (bound to a sink)");
             }
             return std::move(*this);
@@ -176,15 +186,17 @@ namespace ARIASDK_NS_BEGIN {
 
         ~RouteBuilder()
         {
-            if (m_source != nullptr) {
+            if (m_source != nullptr)
+            {
                 m_source->connect(std::move(m_passthroughs), nullptr);
             }
         }
 
-    protected:
-        RouteSource<TArgs...>*                    m_source;
+       protected:
+        RouteSource<TArgs...>* m_source;
         std::vector<IRoutePassThrough<TArgs...>*> m_passthroughs;
     };
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 #endif

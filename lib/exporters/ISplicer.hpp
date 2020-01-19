@@ -31,18 +31,9 @@ namespace ARIASDK_NS_BEGIN
         size_t m_overheadEstimate;
 
        public:
-
-        enum Type
-        {
-            CSBond,
-            CSJSON,
-            AIJSON,
-            MsgPack,
-            gRPC,
-            Custom
-        };
-
-        ISplicer() noexcept : m_requestRetryCount(0), m_overheadEstimate(0){};
+        ISplicer() noexcept :
+            m_requestRetryCount(0),
+            m_overheadEstimate(0){};
         virtual ~ISplicer(){};
 
         virtual size_t addDataPackage(std::string const& tenantToken) = 0;
@@ -52,6 +43,6 @@ namespace ARIASDK_NS_BEGIN
         virtual void clear() = 0;
     };
 
-}  // namespace ARIASDK_NS_BEGIN
+}
 ARIASDK_NS_END
 #endif

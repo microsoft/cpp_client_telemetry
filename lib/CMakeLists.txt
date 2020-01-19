@@ -1,11 +1,10 @@
 include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
-  packager/BondSplicer.cpp
   packager/Packager.cpp
   callbacks/DebugSource.cpp
   bond/BondSerializer.cpp
-  exporters/ISerializer.cpp
+  bond/BondSplicer.cpp
   filter/EventFilterCollection.cpp
   tpm/TransmitProfiles.cpp
   tpm/TransmissionPolicyManager.cpp
