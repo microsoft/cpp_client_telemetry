@@ -4,9 +4,6 @@
 #include "IHttpClient.hpp"
 #include "IOfflineStorage.hpp"
 
-#include "exporters/ISplicer.hpp"
-#include "packager/BondSplicer.hpp"
-
 #include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
 
@@ -17,59 +14,46 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    static std::unique_ptr<ISplicer>
-    GetSplicerForType(ISplicer::Type splicerType)
+    struct IncomingEventContext : ObjCounter
     {
-        switch (splicerType)
-        {
-        case ISplicer::Type::CSBond:
-        {
-            auto uniqPtr = std::make_unique<BondSplicer>();
-            return uniqPtr;
-        }
-        break;
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-    class IncomingEventContext
-    {
-       public:
         ::CsProtocol::Record* source;
         StorageRecord record;
         std::uint64_t policyBitFlags;
 
-       public:
-        IncomingEventContext() : source(nullptr), policyBitFlags(0) {}
+        IncomingEventContext() :
+            source(nullptr),
+            policyBitFlags(0)
+        {
+            objCount(+1);
+        }
 
-        IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source) : source(source), record{id, tenantToken, latency, persistence}, policyBitFlags(0) {}
+        IncomingEventContext(
+            std::string const& id,
+            std::string const& tenantToken,
+            EventLatency latency,
+            EventPersistence persistence,
+            ::CsProtocol::Record* source) :
+            source(source),
+            record{id, tenantToken, latency, persistence},
+            policyBitFlags(0)
+        {
+            objCount(+1);
+        }
 
-        virtual ~IncomingEventContext() {}
+        virtual ~IncomingEventContext()
+        {
+            objCount(-1);
+        }
     };
 
     typedef IncomingEventContext* IncomingEventContextPtr;
 
-    //---
-
-    class EventsUploadContext
+    struct EventsUploadContext : ObjCounter
     {
-       public:
-        // Track # of outstanding EventUploadContext objects
-        long
-        objCount(long delta = 0)
-        {
-            static std::atomic<long> seq(0);
-            seq += delta;
-            return seq;
-        }
-
         /**
          * Release unmanaged pointers associated with EventsUploadContext
          */
-        void
-        clear()
+        void clear()
         {
 #ifndef _WIN32  // FIXME: [MG] - confirm that this behaviour is correct
             if (httpRequest != nullptr)
@@ -93,8 +77,6 @@ namespace ARIASDK_NS_BEGIN
         EventLatency requestedMinLatency = EventLatency_Unspecified;
         unsigned requestedMaxCount = 0;
 
-        // Packaging
-        std::unique_ptr<ISplicer> splicer;
         unsigned maxUploadSize = 0;
         EventLatency latency = EventLatency_Unspecified;
         std::map<std::string, size_t> packageIds;
@@ -117,11 +99,10 @@ namespace ARIASDK_NS_BEGIN
         bool fromMemory;
 
         // clang-format off
-        EventsUploadContext(ISplicer::Type splicerType = ISplicer::Type::CSBond) :
+        EventsUploadContext() :
             httpRequest(nullptr),
             httpResponse(nullptr),
-            fromMemory(false),
-            splicer(GetSplicerForType(splicerType))
+            fromMemory(false)
         {
             objCount(+1);
         }
@@ -142,5 +123,5 @@ namespace ARIASDK_NS_BEGIN
         std::map<std::string, size_t> countonTenant;
     };
 
-}  // namespace ARIASDK_NS_BEGIN
+}
 ARIASDK_NS_END

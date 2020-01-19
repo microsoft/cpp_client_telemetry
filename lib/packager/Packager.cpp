@@ -5,9 +5,20 @@
 #include "utils/Utils.hpp"
 #include <algorithm>
 
+#include "bond/BondSplicer.hpp"
+
 namespace ARIASDK_NS_BEGIN
 {
-    Packager::Packager(IRuntimeConfig& runtimeConfig) : m_config(runtimeConfig)
+
+    static ISplicer& GetSplicer()
+    {
+        static BondSplicer bondSplicer;
+        return bondSplicer;
+    }
+
+    Packager::Packager(IRuntimeConfig& runtimeConfig) :
+            m_config(runtimeConfig),
+            m_splicer(GetSplicer())
     {
         const char* forcedTenantToken = runtimeConfig["forcedTenantToken"];
         if (forcedTenantToken != nullptr)
@@ -26,7 +37,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
             }
-            if (ctx->splicer->getSizeEstimate() + record.blob.size() > ctx->maxUploadSize)
+            if (m_splicer.getSizeEstimate() + record.blob.size() > ctx->maxUploadSize)
             {
                 wantMore = false;
                 if (!ctx->recordIdsAndTenantIds.empty())
@@ -52,10 +63,10 @@ namespace ARIASDK_NS_BEGIN
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)
             {
-                it = ctx->packageIds.insert(it, {tenantToken, ctx->splicer->addDataPackage(tenantToken)});
+                it = ctx->packageIds.insert(it, {tenantToken, m_splicer.addDataPackage(tenantToken)});
             }
 
-            ctx->splicer->addRecord(it->second, record.blob);
+            m_splicer.addRecord(it->second, record.blob);
 
             ctx->recordIdsAndTenantIds[record.id] = record.tenantToken;
             ctx->recordTimestamps.push_back(record.timestamp);
@@ -76,8 +87,8 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
 
-        ctx->body = ctx->splicer->splice();
-        ctx->splicer->clear();
+        ctx->body = m_splicer.splice();
+        m_splicer.clear();
 
         packagedEvents(ctx);
     }

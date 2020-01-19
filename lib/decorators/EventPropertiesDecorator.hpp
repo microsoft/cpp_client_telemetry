@@ -2,17 +2,17 @@
 #ifndef EVENTPROPERTIESDECORATOR_HPP
 #define EVENTPROPERTIESDECORATOR_HPP
 
-#include "IDecorator.hpp"
-#include "EventProperties.hpp"
 #include "CorrelationVector.hpp"
+#include "EventProperties.hpp"
+#include "IDecorator.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
 #include <map>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
-
+namespace ARIASDK_NS_BEGIN
+{
 // Bit remapping has to happen on bits passed via API surface.
 // Ref CS2.1+ : https://osgwiki.com/wiki/CommonSchema/flags
 // #define MICROSOFT_EVENTTAG_MARK_PII 0x08000000
@@ -25,14 +25,15 @@ namespace ARIASDK_NS_BEGIN {
     class EventPropertiesDecorator : public IDecorator
     {
         std::string randomLocalId;
-    protected:
+
+       protected:
         ILogManager& m_owner;
         bool decorate(::CsProtocol::Record&) override
         {
             return false;
         }
 
-    public:
+       public:
         EventPropertiesDecorator(ILogManager& owner) :
             m_owner(owner)
         {
@@ -48,7 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             // engagement metrics, estimating their population size using that field.
             //
             randomLocalId = "r:";
-            randomLocalId+= PAL::generateUuidString();
+            randomLocalId += PAL::generateUuidString();
         };
 
         void dropPiiPartA(::CsProtocol::Record& record)
@@ -88,13 +89,15 @@ namespace ARIASDK_NS_BEGIN {
             if (latency == EventLatency_Unspecified)
                 latency = EventLatency_Normal;
 
-            if (eventProperties.GetName().empty()) {
+            if (eventProperties.GetName().empty())
+            {
                 // OK, using some default set by earlier decorator.
             }
             else
             {
                 EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
-                if (isValidEventName != REJECTED_REASON_OK) {
+                if (isValidEventName != REJECTED_REASON_OK)
+                {
                     LOG_ERROR("Invalid event properties!");
                     DebugEvent evt;
                     evt.type = DebugEventType::EVT_REJECTED;
@@ -150,8 +153,8 @@ namespace ARIASDK_NS_BEGIN {
             std::map<std::string, ::CsProtocol::Value>& ext = record.data[0].properties;
             std::map<std::string, ::CsProtocol::Value> extPartB;
 
-            for (auto &kv : eventProperties.GetProperties()) {
-
+            for (auto& kv : eventProperties.GetProperties())
+            {
                 EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
                 if (isValidPropertyName != REJECTED_REASON_OK)
                 {
@@ -161,8 +164,8 @@ namespace ARIASDK_NS_BEGIN {
                     m_owner.DispatchEvent(evt);
                     return false;
                 }
-                const auto &k = kv.first;
-                const auto &v = kv.second;
+                const auto& k = kv.first;
+                const auto& v = kv.second;
                 if (v.piiKind != PiiKind_None)
                 {
                     if (v.piiKind == PiiKind::CustomerContentKind_GenericData)
@@ -184,17 +187,15 @@ namespace ARIASDK_NS_BEGIN {
                         {
                             ext[k] = temp;
                         }
-
                     }
                     else
-                    { //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
+                    {  //LOG_TRACE("PIIExtensions: %s=%s (PiiKind=%u)", k.c_str(), v.to_string().c_str(), v.piiKind);
                         CsProtocol::PII pii;
                         pii.Kind = static_cast<CsProtocol::PIIKind>(v.piiKind);
                         CsProtocol::Value temp;
 
                         CsProtocol::Attributes attrib;
                         attrib.pii.push_back(pii);
-
 
                         temp.attributes.push_back(attrib);
                         temp.stringValue = v.to_string();
@@ -230,9 +231,10 @@ namespace ARIASDK_NS_BEGIN {
 #endif
                     }
                 }
-                else {
+                else
+                {
                     std::vector<uint8_t> guid;
-                    uint8_t guid_bytes[16] = { 0 };
+                    uint8_t guid_bytes[16] = {0};
 
                     switch (v.type)
                     {
@@ -445,8 +447,8 @@ namespace ARIASDK_NS_BEGIN {
             }
             return true;
         }
-
     };
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 #endif
