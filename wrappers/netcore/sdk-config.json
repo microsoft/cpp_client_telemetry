@@ -4,9 +4,9 @@
 	"version": "1.0.0",
 	"cacheFileFullNotificationPercentage": 75,
 	"cacheFilePath": "/tmp/storage.db",
-	"cacheFileSizeLimitInBytes": 3145728,
+	"cacheFileSizeLimitInBytes": 13145728,
 	"cacheMemoryFullNotificationPercentage": 75,
-	"cacheMemorySizeLimitInBytes": 524288,
+	"cacheMemorySizeLimitInBytes": 32768000,
 	"compat": {
 		"dotType": true
 	},
@@ -19,7 +19,7 @@
 	"maxDBFlushQueues": 3,
 	"maxPendingHTTPRequests": 4,
 	"maxTeardownUploadTimeInSec": 1,
-	"minimumTraceLevel": 1,
+	"minimumTraceLevel": 5,
 	"multiTenantEnabled": true,
 	"primaryToken": "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322",
 	"sample": {
@@ -39,7 +39,7 @@
 		"maxBlobSize": 2097152,
 		"maxRetryCount": 5
 	},
-	"traceLevelMask": 268435455,
+	"traceLevelMask": 0,
 	"utc": {
 		"providerGroupId": "780dddc8-18a1-5781-895a-a690464fa89c"
 	}
