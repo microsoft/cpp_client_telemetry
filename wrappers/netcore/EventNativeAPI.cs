@@ -351,8 +351,11 @@ namespace Microsoft
 
                 public EventProperty(Guid guidValue)
                 {
-                    type = EventPropertyType.TYPE_GUID;
-                    objValue = guidValue;
+                    // TODO: compact GUID on wire is not implemented!
+                    // Currently we flatten it to string.
+                    // type = EventPropertyType.TYPE_GUID;
+                    type = EventPropertyType.TYPE_STRING;
+                    objValue = guidValue.ToString();
                 }
 
                 public EventProperty(Int64 intValue)
@@ -382,7 +385,7 @@ namespace Microsoft
                 public static implicit operator EventProperty(string v) => new EventProperty(v);
                 public static implicit operator EventProperty(int v) => new EventProperty(v);
                 public static implicit operator EventProperty(double v) => new EventProperty(v);
-
+                public static implicit operator EventProperty(Guid v) => new EventProperty(v);
             };
 
             public static class EventNativeAPI
