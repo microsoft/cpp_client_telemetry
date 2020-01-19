@@ -10,32 +10,32 @@
 using namespace testing;
 using namespace MAT;
 
-namespace testing {
-
-    void ExpandVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+namespace testing
+{
+    void ExpandVector(std::vector<uint8_t>& in, std::vector<uint8_t>& out)
     {
         size_t destLen = out.size();
         std::cout << "size=" << destLen << std::endl;
-        char *buffer = nullptr;
+        char* buffer = nullptr;
         EXPECT_THAT(Expand((const char*)(in.data()), in.size(), &buffer, destLen, false), true);
         out = std::vector<uint8_t>(buffer, buffer + destLen);
         if (buffer)
             delete[] buffer;
-
     }
 
-    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
+    void InflateVector(std::vector<uint8_t>& in, std::vector<uint8_t>& out)
     {
         z_stream zs;
         memset(&zs, 0, sizeof(zs));
         // [MG]: must call inflateInit2 with -9 because otherwise
         // it'd be searching for non-existing gzip header...
         EXPECT_EQ(inflateInit2(&zs, -9), Z_OK);
-        zs.next_in = (Bytef *)in.data();
+        zs.next_in = (Bytef*)in.data();
         zs.avail_in = (uInt)in.size();
         int ret;
-        char outbuffer[32768] = { 0 };
-        do {
+        char outbuffer[32768] = {0};
+        do
+        {
             zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
             zs.avail_out = sizeof(outbuffer);
             ret = inflate(&zs, Z_NO_FLUSH);
@@ -47,29 +47,30 @@ namespace testing {
 
 }
 
-class HttpDeflateCompressionTests : public StrictMock<Test> {
-  protected:
-    ILogConfiguration                                                     logConfig;
-    RuntimeConfig_Default                                                 config;
-    HttpDeflateCompression                                                compression;
-    RouteSource<EventsUploadContextPtr const&>                            input;
+class HttpDeflateCompressionTests : public StrictMock<Test>
+{
+   protected:
+    ILogConfiguration logConfig;
+    RuntimeConfig_Default config;
+    HttpDeflateCompression compression;
+    RouteSource<EventsUploadContextPtr const&> input;
     RouteSink<HttpDeflateCompressionTests, EventsUploadContextPtr const&> succeeded{this, &HttpDeflateCompressionTests::resultSucceeded};
     RouteSink<HttpDeflateCompressionTests, EventsUploadContextPtr const&> failed{this, &HttpDeflateCompressionTests::resultFailed};
 
-  protected:
+   protected:
     HttpDeflateCompressionTests() :
         config(logConfig),
         compression(config)
     {
-        input                            >> compression.compress >> succeeded;
-        compression.compressionFailed    >> failed;
+        input >> compression.compress >> succeeded;
+        compression.compressionFailed >> failed;
     }
 
-    MOCK_METHOD1(resultSucceeded, void(EventsUploadContextPtr const &));
-    MOCK_METHOD1(resultFailed,    void(EventsUploadContextPtr const &));
+    MOCK_METHOD1(resultSucceeded, void(EventsUploadContextPtr const&));
+    MOCK_METHOD1(resultFailed, void(EventsUploadContextPtr const&));
 };
 
-static std::vector<uint8_t> testPayload = { 1, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
+static std::vector<uint8_t> testPayload = {1, 2, 3, 3, 3, 3, 3, 3, 3, 3};
 
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
@@ -141,13 +142,12 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     }
 }
 
+#ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable:4125)
+#pragma warning(disable : 4125)
+#endif
 TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 {
-#pragma warning( push )
-#pragma warning(disable: 4125)
-
     static char const bond[] =
         "+\n\001I\003sct\215\t\t\001\nservice_id\0011\251$772bcee2-8c19-454b-9af7-99b97ae4afde\321"
         "\006\262\305\361\313\364T\320\a\004\313\b\n\001)$0ac61ae4-ce84-430e-98d3-81adfb88c6a0q"
@@ -161,7 +161,7 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
         "ay\016act_sent_count\0010 act_sent_failure_and_retry_count\0010\016act_session_id$39d9160"
         "f-396d-4427-ad76-9dedc5dea386\reventpriority\0012\315\036\t\n\001\020VideoPublisherIdP\02"
         "4i\t123456789\000\000\000\000";
-#pragma warning( pop ) 
+
     size_t const size = sizeof(bond) - 1;
 
     EventsUploadContextPtr event = new EventsUploadContext();
@@ -172,4 +172,6 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
     EXPECT_THAT(event->body, SizeIs(Lt(size * 70 / 100)));
     EXPECT_THAT(event->compressed, true);
 }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif

@@ -8,19 +8,19 @@
 #include "system/Contexts.hpp"
 #include "system/Route.hpp"
 
+#include "exporters/ISplicer.hpp"
+
 namespace ARIASDK_NS_BEGIN
 {
-    /// <summary>
-    ///
-    /// </summary>
     class ISerializer
     {
        protected:
         virtual bool handleSerialize(IncomingEventContextPtr const& ctx) = 0;
+        std::unique_ptr<ISplicer> splicer;
 
        public:
-        ISerializer() noexcept;
-        virtual ~ISerializer();
+        ISerializer() = default;
+        virtual ~ISerializer() = default;
         RoutePassThrough<ISerializer, IncomingEventContextPtr const&> serialize{this, &ISerializer::handleSerialize};
     };
 
