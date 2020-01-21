@@ -73,7 +73,7 @@ namespace ARIASDK_NS_BEGIN {
         bool                        m_isOpened {};
 
         std::mutex                  m_resizeLock{};
-        bool                        m_resizedPending = false;
+        std::atomic<bool>           m_resizing = false;
 
         size_t                      m_stmtBeginTransaction {};
         size_t                      m_stmtCommitTransaction {};
