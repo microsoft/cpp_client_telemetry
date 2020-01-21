@@ -183,17 +183,18 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate>m_DbSizeLimit))
+        if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate > m_DbSizeLimit))
         {
-            auto shouldResize = m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL];
+            auto shouldResize = m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] && !m_resizing;
             if (shouldResize)
             {
-                LOCKGUARD(m_resizeLock);
-                if (!m_resizedPending)
+                LOCKGUARD(m_resizeLock); //Serialize resize operations
+                m_resizing = true;
+                if (m_DbSizeEstimate > m_DbSizeLimit)
                 {
                     ResizeDb();
-                    m_resizedPending = false;
                 }
+                m_resizing = false;
             }
         }
 
