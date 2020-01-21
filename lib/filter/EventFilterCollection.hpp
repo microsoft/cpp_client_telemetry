@@ -23,7 +23,7 @@ namespace ARIASDK_NS_BEGIN
         virtual bool Empty() const noexcept override;
 
     protected:
-        std::atomic<size_t> m_size;
+        std::atomic<size_t> m_size = 0;
         mutable std::mutex m_filterLock;
         std::vector<std::unique_ptr<IEventFilter>> m_filters;
     };
