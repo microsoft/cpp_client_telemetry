@@ -3,6 +3,8 @@
 #import "ODWLogger.h"
 #import "ODWEventProperties.h"
 
+LOGMANAGER_INSTANCE
+
 int main(int argc, char** argv){
     @autoreleasepool{
         // 1DSCppSdkTest sandbox key. Replace with your own iKey!

@@ -1,4 +1,5 @@
 #include "objc_begin.h"
+#include "LogManager.hpp"
 
 NS_ASSUME_NONNULL_BEGIN
 
