@@ -41,9 +41,11 @@ namespace ARIASDK_NS_BEGIN
 
     enum DataCategory
     {
+        //Values should be in sync with Java enum com.microsoft.applications.events.DataCategory
         DataCategory_PartC = 0, //This is default transmission mode
         DataCategory_PartB = 1,
         DataCategory_MAX = 2
+        //Values should be in sync with Java enum com.microsoft.applications.events.DataCategory
     };
 
 
@@ -383,7 +385,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>The device is roaming.</summary>
         NetworkCost_Roaming = 3,
         /// <summary>[deprecated]: Do no use this value.</summary>
-        NetworkCost_OverDataLimit = 3
+        NetworkCost_OverDataLimit = 4
     };
 
     /// <summary>
