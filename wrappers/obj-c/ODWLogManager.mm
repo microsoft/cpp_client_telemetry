@@ -6,6 +6,8 @@
 using namespace MAT;
 using namespace Microsoft::Applications::Events;
 
+LOGMANAGER_INSTANCE
+
 @implementation ODWLogManager
 
 +(nullable id)loggerWithTenant:(nonnull NSString *)tenantToken
