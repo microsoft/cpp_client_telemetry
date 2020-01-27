@@ -105,7 +105,7 @@ JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_native
         JNIEnv* env,
         jclass /* this */) {
     std::string profileName = Microsoft::Applications::Events::LogManager::GetTransmitProfileName();
-    return static_cast<jlong>(Microsoft::Applications::Events::LogManager::GetSemanticContext());
+    return reinterpret_cast<jlong>(Microsoft::Applications::Events::LogManager::GetSemanticContext());
 }
 
 JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContext(
