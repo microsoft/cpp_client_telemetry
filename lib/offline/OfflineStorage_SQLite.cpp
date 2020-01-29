@@ -168,7 +168,7 @@ namespace ARIASDK_NS_BEGIN {
             m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
         }
 
-        if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
+        if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate>m_DbSizeLimit))
         {
             auto now = PAL::getMonotonicTimeMs();
             if (std::abs(static_cast<long>(now-m_isStorageFullNotificationSendTime)) > static_cast<long>(DB_FULL_CHECK_TIME_MS))
@@ -180,21 +180,6 @@ namespace ARIASDK_NS_BEGIN {
                 evt.type = DebugEventType::EVT_STORAGE_FULL;
                 evt.param1 = (100 * m_DbSizeEstimate) / m_DbSizeLimit;
                 m_logManager.DispatchEvent(evt);
-            }
-        }
-
-        if ((m_DbSizeLimit != 0) && (m_DbSizeEstimate > m_DbSizeLimit))
-        {
-            auto shouldResize = m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] && !m_resizing;
-            if (shouldResize)
-            {
-                LOCKGUARD(m_resizeLock); //Serialize resize operations
-                m_resizing = true;
-                if (m_DbSizeEstimate > m_DbSizeLimit)
-                {
-                    ResizeDb();
-                }
-                m_resizing = false;
             }
         }
 
@@ -790,8 +775,14 @@ namespace ARIASDK_NS_BEGIN {
         return pageCount * m_pageSize;
     }
 
-    size_t OfflineStorage_SQLite::GetRecordCountUnsafe(EventLatency latency) const
+    size_t OfflineStorage_SQLite::GetRecordCount(EventLatency latency = EventLatency_Unspecified) const
     {
+        if (!m_db) {
+            LOG_ERROR("Failed to get DB size: database is not open");
+            return 0;
+        }
+
+        LOCKGUARD(m_lock);
         int count = 0;
         if (latency == EventLatency_Unspecified)
         {
@@ -810,17 +801,6 @@ namespace ARIASDK_NS_BEGIN {
         return count;
     }
 
-    size_t OfflineStorage_SQLite::GetRecordCount(EventLatency latency = EventLatency_Unspecified) const
-    {
-        if (!m_db) {
-            LOG_ERROR("Failed to get DB size: database is not open");
-            return 0;
-        }
-
-        LOCKGUARD(m_lock);
-        return OfflineStorage_SQLite::GetRecordCountUnsafe(latency);
-    }
-
     bool OfflineStorage_SQLite::ResizeDb()
     {
         if (!m_db) {
@@ -828,7 +808,6 @@ namespace ARIASDK_NS_BEGIN {
             return false;
         }
 
-        size_t eventsDropped = 0;
         m_DbSizeEstimate = GetSize();
         if (m_DbSizeEstimate <= m_DbSizeLimit)
             return false;
@@ -843,7 +822,6 @@ namespace ARIASDK_NS_BEGIN {
                 return false;
             }
 #endif
-            auto count = GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
             if (m_DbSizeEstimate > 2 * m_DbSizeLimit)
             {
                 LOG_TRACE("DB is too big, deleting...");
@@ -859,17 +837,8 @@ namespace ARIASDK_NS_BEGIN {
                 LOG_TRACE("Evict all non-critical");
                 Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
             }
-            eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
-            LOG_TRACE("Db resized, events dropeed: %d", eventsDropped);
             trimStmt.reset();
         }
-
-        m_DbSizeEstimate = GetSize();
-        DebugEvent evt(DebugEventType::EVT_DROPPED);
-        evt.param1 = eventsDropped;
-        evt.size = eventsDropped;
-        m_logManager.DispatchEvent(evt);
-
         return true;
     }
 

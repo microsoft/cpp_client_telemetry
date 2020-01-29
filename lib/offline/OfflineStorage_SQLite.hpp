@@ -72,9 +72,6 @@ namespace ARIASDK_NS_BEGIN {
         bool                        m_skipInitAndShutdown {};
         bool                        m_isOpened {};
 
-        std::mutex                  m_resizeLock{};
-        std::atomic<bool>           m_resizing{false};
-
         size_t                      m_stmtBeginTransaction {};
         size_t                      m_stmtCommitTransaction {};
         size_t                      m_stmtRollbackTransaction {};
@@ -101,14 +98,11 @@ namespace ARIASDK_NS_BEGIN {
         unsigned                    m_DbSizeNotificationLimit {};
         size_t                      m_DbSizeHeapLimit {};
         size_t                      m_DbSizeLimit {};
-        std::atomic<size_t>         m_DbSizeEstimate {};
+        size_t                      m_DbSizeEstimate {};
         uint64_t                    m_isStorageFullNotificationSendTime {};
 
     protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
-
-    private:
-        size_t GetRecordCountUnsafe(EventLatency latency) const;
     };
 
 
