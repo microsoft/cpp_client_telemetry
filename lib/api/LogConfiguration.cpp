@@ -16,6 +16,7 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_CACHE_FILE_SIZE,          3145728 },
         { CFG_INT_RAM_QUEUE_SIZE,           524288 },
         { CFG_BOOL_ENABLE_MULTITENANT,      true },
+        { CFG_BOOL_ENABLE_DB_DROP_IF_FULL,  false },
         { CFG_INT_MAX_TEARDOWN_TIME,        0 },
         { CFG_INT_MAX_PENDING_REQ,          4 },
         { CFG_INT_RAM_QUEUE_BUFFERS,        3 },

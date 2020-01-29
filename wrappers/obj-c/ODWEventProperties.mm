@@ -9,7 +9,7 @@ NSMutableDictionary<NSString *, id> * _properties;
 
 -(instancetype)initWithName:(nonnull NSString *)name
 {
-    return [self initWithName:name aproperties:[[NSMutableDictionary alloc] init]];
+    return [self initWithName:name properties:[[NSMutableDictionary alloc] init]];
 }
 
 -(instancetype)initWithName:(nonnull NSString *)name

@@ -27,7 +27,6 @@
 #include "pal/PAL.hpp"
 
 #define HTTP_CONN_TIMEOUT       5L
-#define HTTP_READ_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
 #define HTTP_HEADER_REGEXP      "(.*)\\: (.*)\\n*"
 
@@ -84,8 +83,7 @@ public:
             const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
             // Default connectivity and response size options
             bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
-            size_t httpReadTimeout                                   = HTTP_READ_TIMEOUT) :
+            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
 
             //
             m_method(method),
@@ -98,7 +96,6 @@ public:
             // Optional connection params
             rawResponse(rawResponse),
             httpConnTimeout(httpConnTimeout),
-            httpReadTimeout(httpReadTimeout),
             // Result
             res(CURLE_OK),
             sockfd(0),
@@ -257,7 +254,8 @@ public:
             goto cleanup;
         }
 
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, httpReadTimeout);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 4096);
         DispatchEvent(OnSending);
         res = curl_easy_perform(curl);
         if(CURLE_OK != res)
@@ -405,7 +403,6 @@ cleanup:
 protected:
     const bool   rawResponse;       // Do not split response headers from response body
     const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
-    const size_t httpReadTimeout;   // Timeout for read.     Default: 5s
 
     CURL *curl;                     // Local curl instance
     CURLcode res;                   // Curl result OR HTTP status code if successful
