@@ -83,6 +83,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_HMAC = "enableHMAC";
 
     /// <summary>
+    /// Enable dropping events if DB file size exceeds its limit.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_DB_DROP_IF_FULL = "enableDbDropIfFull";
+
+    /// <summary>
     /// Enable database compression.
     /// </summary>
     static constexpr const char* const CFG_BOOL_ENABLE_DB_COMPRESS = "enableDBCompression";
