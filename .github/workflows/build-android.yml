@@ -1,0 +1,20 @@
+name: Build for Android
+
+on:
+  push:
+    branches:
+      maharrim/*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build for Android
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      uses: ./docker/android-base-image
+    - uses: actions/upload-artifact@v1
+      with:
+        name: build
+        path: artifacts.tar

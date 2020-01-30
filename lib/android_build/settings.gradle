@@ -1,0 +1,2 @@
+include ':app', ':ariasdk'
+rootProject.name='AriaTest'
