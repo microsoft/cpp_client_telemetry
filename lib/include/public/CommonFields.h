@@ -3,6 +3,7 @@
 #define MAT_COMMONFIELDS_H
 
 #define EVENTRECORD_TYPE_CUSTOM_EVENT                        "custom"
+#define EVENTRECORD_TYPE_ONECOLLECTOR_EVENT                  "onecollector"
 
 #define COMMONFIELDS_IKEY                                    "iKey"
 
