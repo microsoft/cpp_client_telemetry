@@ -1,0 +1,5 @@
+name: 'Build for Android'
+description: 'Build SDK libraries for Android'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
