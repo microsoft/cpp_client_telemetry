@@ -355,18 +355,21 @@ namespace ARIASDK_NS_BEGIN
     bool Logger::applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
     {
         record.name = properties.GetName();
-        record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
+        record.baseType = EVENTRECORD_TYPE_ONECOLLECTOR_EVENT;
 
         std::string evtType = properties.GetType();
         if (!evtType.empty())
         {
-            record.baseType.append(".");
-            if (!m_allowDotsInType)
+            if (evtType != EVENTRECORD_TYPE_ONECOLLECTOR_EVENT)
             {
-                std::replace(evtType.begin(), evtType.end(), '.', '_');
+                record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
+                record.baseType.append(".");
+                if (!m_allowDotsInType)
+                {
+                    std::replace(evtType.begin(), evtType.end(), '.', '_');
+                }
+                record.baseType.append(evtType);
             }
-            record.baseType.append(evtType);
-
         }
 
         if (record.name.empty())
