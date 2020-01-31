@@ -20,37 +20,37 @@ namespace ARIASDK_NS_BEGIN
     class IHttpClient;
 
     /// Default collector url to send events to
-    static constexpr const char* COLLECTOR_URL_PROD            = "https://self.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the United States collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_UNITED_STATES   = "https://noam.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_UNITED_STATES = "https://noam.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the German collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_GERMANY         = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_GERMANY = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Australian collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_AUSTRALIA       = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_AUSTRALIA = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Japanese collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_JAPAN           = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_JAPAN = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the European collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_EUROPE          = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_EUROPE = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The real-time transmit profile.
     /// </summary>
-    static constexpr const char* const TRANSMITPROFILE_REALTIME     = "REAL_TIME";
+    static constexpr const char* const TRANSMITPROFILE_REALTIME = "REAL_TIME";
 
     /// <summary>
     /// The near real-time transmit profile.
@@ -60,17 +60,17 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The best effort transmit profile.
     /// </summary>
-    static constexpr const char* const TRANSMITPROFILE_BESTEFFORT   = "BEST_EFFORT";
+    static constexpr const char* const TRANSMITPROFILE_BESTEFFORT = "BEST_EFFORT";
 
     /// <summary>
     /// Enable analytics.
     /// </summary>
-    static constexpr const char* const CFG_BOOL_ENABLE_ANALYTICS    = "enableLifecycleSession";
+    static constexpr const char* const CFG_BOOL_ENABLE_ANALYTICS = "enableLifecycleSession";
 
     /// <summary>
     /// Enable multitenant.
     /// </summary>
-    static constexpr const char* const CFG_BOOL_ENABLE_MULTITENANT  = "multiTenantEnabled";
+    static constexpr const char* const CFG_BOOL_ENABLE_MULTITENANT = "multiTenantEnabled";
 
     /// <summary>
     /// Enable CRC-32 check.
@@ -217,12 +217,12 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// Parameter that allows to apply custom transmit profile on SDK start
     /// </summary>
-    static constexpr const char* const CFG_STR_START_PROFILE_NAME  = "startProfileName";
+    static constexpr const char* const CFG_STR_START_PROFILE_NAME = "startProfileName";
 
     /// <summary>
     /// Parameter that allows to load a set of custom transmit profile on SDK start
     /// </summary>
-    static constexpr const char* const CFG_STR_TRANSMIT_PROFILES   = "transmitProfiles";
+    static constexpr const char* const CFG_STR_TRANSMIT_PROFILES = "transmitProfiles";
 
     /// <summary>
     /// IHttpClient override module
@@ -239,17 +239,21 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
 
+    /// <summary>
+    /// IHttpPinger override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_HTTP_PINGER = "httpPinger";
 
 #ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable: 4251 )
+#pragma warning(push)
+#pragma warning(disable : 4251)
 #endif
     /// <summary>
     /// The ILogConfiguration class contains LogManager-specific configuration settings
     /// </summary>
     class MATSDK_LIBABI ILogConfiguration
     {
-    public:
+       public:
         /// <summary>
         /// Construct an empty configuration
         /// </summary>
@@ -299,13 +303,14 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         VariantMap& operator*();
 
-    private:
+       private:
         VariantMap m_configs;
         std::map<std::string, std::shared_ptr<IModule>> m_modules;
     };
 #ifdef _MSC_VER
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 
-} ARIASDK_NS_END
-#endif 
+}
+ARIASDK_NS_END
+#endif

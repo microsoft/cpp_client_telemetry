@@ -23,13 +23,13 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>
         /// Initializes the module.
-        /// Invoked as part of parent ILogManager is constructed.
+        /// Invoked when its owner ILogManager::Initialize() method is called.
         /// </summary>
         virtual void Initialize(ILogManager*) noexcept {};
 
         /// <summary>
         /// Tears down the module.
-        /// Invoked as part of parent ILogManager's FlushAndTeardown() method.
+        /// Invoked when its owner ILogManager::FlushAndTeardown() method is called.
         /// </summary>
         virtual void Teardown() noexcept {};
     };

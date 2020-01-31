@@ -6,6 +6,7 @@
 
 #include "ILogger.hpp"
 #include "ILogConfiguration.hpp"
+#include "IModule.hpp"
 
 #include <string>
 #include <map>
@@ -19,6 +20,7 @@ namespace ARIASDK_NS_BEGIN
     public:
 
         virtual Variant & operator[](const char* key) = 0;
+
         virtual bool HasConfig(const char* key) = 0;
 
         /// <summary>
@@ -183,7 +185,20 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
 
+        /// <summary>
+        /// Get a module by name
+        /// </summary>
+        /// <param name="key">Module name</param>
+        /// <returns>Module instance if set, else null</returns>
+        virtual std::shared_ptr<IModule> GetModule(const char* key) = 0;
+
+        /// <summary>
+        /// Access underlying modules mpa
+        /// </summary>
+        virtual std::map<std::string, std::shared_ptr<IModule>>& GetModules() = 0;
+
         virtual ~IRuntimeConfig() {};
+
     };
 
     /// @endcond

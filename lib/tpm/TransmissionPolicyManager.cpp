@@ -5,17 +5,18 @@
 #include "utils/Utils.hpp"
 
 #include <limits>
+#include <memory>
 
-#define ABS64(a,b)    ((a>b)?(a-b):(b-a))
+#define ABS64(a, b) ((a > b) ? (a - b) : (b - a))
 
-namespace ARIASDK_NS_BEGIN {
-
-    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
+namespace ARIASDK_NS_BEGIN
+{
+    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000;  // 2 sec
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
-    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
-        : m_lock(),
+    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
+        m_lock(),
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
@@ -30,6 +31,7 @@ namespace ARIASDK_NS_BEGIN {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
+        m_pinger = std::static_pointer_cast<IHttpPinger>(m_config.GetModule(CFG_MODULE_HTTP_PINGER));
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
@@ -40,12 +42,15 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::checkBackoffConfigUpdate()
     {
         std::string config = m_config.GetUploadRetryBackoffConfig();
-        if (config != m_backoffConfig) {
+        if (config != m_backoffConfig)
+        {
             std::unique_ptr<IBackoff> backoff = IBackoff::createFromConfig(config);
-            if (!backoff) {
+            if (!backoff)
+            {
                 LOG_WARN("The new backoff configuration is invalid, continuing to use current settings");
             }
-            else {
+            else
+            {
                 m_backoff = std::move(backoff);
                 m_backoffConfig = config;
             }
@@ -56,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
     // The duration delayInMs passed to that function must be always >= 0 ms
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
-        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
+        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]))
         {
             LOG_TRACE("Maximum number of HTTP requests reached");
             return;
@@ -68,7 +73,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        if ((!force)&&(m_isUploadScheduled))
+        if ((!force) && (m_isUploadScheduled))
         {
             if (m_runningLatency > latency)
             {
@@ -109,29 +114,59 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
-        m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
+        m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
-        if (m_isPaused) {
+        if (m_pinger)
+        {
+            if (m_pinger->GetLastResult() != HttpPingResult_OK)
+            {
+                // This call blocks the worker thread task queue until ping is successful
+                m_pinger->Ping();
+                if (m_pinger->GetLastResult() != HttpPingResult_OK)
+                {
+                    // We tried and we failed miserably
+                    EventsUploadContextPtr ctx = new EventsUploadContext();
+                    handleEventsUploadFailed(ctx);
+                    // TODO: make some smarter m_backoff adjustment here
+                    LOG_TRACE("Connection failed, not uploading anything.");
+                    // If there is another pending upload task, kill it
+                    cancelUploadTask();
+                    // At this point we need to decide on what's the best behavior:
+                    // - should we simply retry the ping on another incoming event
+                    // - should we keep pinging with exp-backoff
+                    // - should we use fixed configurable ping retry interval (e.g. 5 min)
+                    // - should we count our failures and set a threshold when we determine
+                    //   that we got permanently 'banned' (blocked by firewall or anti-telemetry)
+                    return;
+                }
+            }
+        }
+
+        if (m_isPaused)
+        {
             LOG_TRACE("Paused, not uploading anything until resumed");
-            cancelUploadTask();    // If there is a pending upload task, kill it
+            cancelUploadTask();  // If there is a pending upload task, kill it
             return;
         }
 
-#ifdef ENABLE_BW_CONTROLLER   /* Bandwidth controller is not currently supported */
-        if (m_bandwidthController) {
+#ifdef ENABLE_BW_CONTROLLER /* Bandwidth controller is not currently supported */
+        if (m_bandwidthController)
+        {
             unsigned proposedBandwidthBps = m_bandwidthController->GetProposedBandwidthBps();
             unsigned minimumBandwidthBps = m_config.GetMinimumUploadBandwidthBps();
-            if (proposedBandwidthBps >= minimumBandwidthBps) {
+            if (proposedBandwidthBps >= minimumBandwidthBps)
+            {
                 LOG_TRACE("Bandwidth controller proposed sufficient bandwidth %u bytes/sec (minimum accepted is %u)",
-                    proposedBandwidthBps, minimumBandwidthBps);
+                          proposedBandwidthBps, minimumBandwidthBps);
             }
-            else {
+            else
+            {
                 unsigned delayMs = 1000;
                 LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
-                    proposedBandwidthBps, minimumBandwidthBps, delayMs);
-                scheduleUpload(delayMs, latency); // reschedule uploadAsync to run again 1000 ms later
+                         proposedBandwidthBps, minimumBandwidthBps, delayMs);
+                scheduleUpload(delayMs, latency);  // reschedule uploadAsync to run again 1000 ms later
                 return;
             }
         }
@@ -156,7 +191,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
+            scheduleUpload(nextUploadInMs, proposed);  // reschedule uploadAsync again
         }
     }
 
@@ -202,19 +237,21 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
         pauseAllUploads();
-        allUploadsFinished();   // calls stats.onStop >> this->flushTaskDispatcher;
+        allUploadsFinished();  // calls stats.onStop >> this->flushTaskDispatcher;
     }
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
     {
-        if (m_isPaused) {
+        if (m_isPaused)
+        {
             return;
         }
         bool forceTimerRestart = false;
 
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
-        if (event->record.latency > EventLatency_RealTime) {
+        if (event->record.latency > EventLatency_RealTime)
+        {
             EventsUploadContextPtr ctx = new EventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
@@ -316,5 +353,5 @@ namespace ARIASDK_NS_BEGIN {
         finishUpload(ctx, -1);
     }
 
-
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
