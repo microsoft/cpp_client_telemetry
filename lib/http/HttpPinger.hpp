@@ -9,6 +9,7 @@
 
 #include "http/HttpClientFactory.hpp"
 
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <mutex>
@@ -18,12 +19,14 @@ namespace ARIASDK_NS_BEGIN
     class HttpPinger : public IHttpPinger
     {
        protected:
+        std::atomic<HttpPingResult> m_lastResult{HttpPingResult_Unknown};
         std::shared_ptr<IHttpClient> m_httpClient{nullptr};
         std::string m_pingUrl;
-        PAL::Event m_event;
         std::mutex m_pingMtx;
+        std::atomic<bool> m_isRunning{false};
 
        public:
+
         /**
          *
          */
@@ -81,12 +84,10 @@ namespace ARIASDK_NS_BEGIN
             LOCKGUARD(m_pingMtx);
             if (IsInitialized())
             {
-                m_event.Reset();
                 auto req = m_httpClient->CreateRequest();
                 req->SetMethod("GET");
                 req->SetUrl(m_pingUrl);
                 m_httpClient->SendRequestAsync(req, this);
-                m_event.wait();
             }
             return m_lastResult;
         }
@@ -123,7 +124,10 @@ namespace ARIASDK_NS_BEGIN
                 }
             }
             delete response;
-            m_event.post();
+            if (OnPingCompleted!=nullptr)
+            {
+                OnPingCompleted(m_lastResult);
+            }
         }
 
         /**
@@ -154,6 +158,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void Teardown() noexcept override
         {
             m_httpClient = nullptr;
+            OnPingCompleted = nullptr;
         }
 
         virtual void Initialize(ILogManager* owner) noexcept override

@@ -39,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
         bool handlePause();
         bool handleStop();
         void handleFinishAllUploads();
-
+        void handlePingCompleted(HttpPingResult);
         void handleEventArrived(IncomingEventContextPtr const& event);
 
         void handleNothingToUpload(EventsUploadContextPtr const& ctx);
