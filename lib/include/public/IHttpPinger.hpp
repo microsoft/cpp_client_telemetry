@@ -63,14 +63,14 @@ namespace ARIASDK_NS_BEGIN
         /// Some systems may rely on external reachability code. Thus the method
         /// has a default no-op implementation.
         /// </summary>
-        virtual void OnHttpResponse(IHttpResponse* response) override{};
+        virtual void OnHttpResponse(IHttpResponse*) override{};
 
         /// <summary>
         /// Optional callback for systems that require an instance of HTTP stack.
         /// Some systems may rely on external reachability code, thus the method
         /// has a default no-op implementation.
         /// </summary>
-        virtual void OnHttpStateEvent(HttpStateEvent state, void* data, size_t size) override{};
+        virtual void OnHttpStateEvent(HttpStateEvent, void*, size_t) override{};
 
         /// <summary>
         /// Initialize is called on LogManager::Initialize.
