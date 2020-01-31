@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "IBandwidthController.hpp"
+#include "IHttpPinger.hpp"
 #include "api/AuthTokensController.hpp"
 #include "filter/EventFilterCollection.hpp"
 #include "api/DataViewerCollection.hpp"
@@ -282,6 +283,8 @@ protected:
         EventFilterCollection                                  m_filters;
         std::vector<std::unique_ptr<IModule>>                  m_modules;
         DataViewerCollection                                   m_dataViewerCollection;
+
+        friend class IHttpPinger;
     };
 
 

@@ -1,50 +1,54 @@
 // Copyright (c) Microsoft. All rights reserved.
 #ifdef _MSC_VER
 // evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning( disable : 4459 )
+#pragma warning(disable : 4459)
 #endif
-#include "mat/config.h"
 #include "LogManagerImpl.hpp"
+#include "mat/config.h"
 
 #include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
-#include "utils/Utils.hpp"
-#include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
+#include "TransmitProfiles.hpp"
+
 #include "http/HttpClientFactory.hpp"
+#include "http/HttpPinger.hpp"
+
 #include "pal/TaskDispatcher.hpp"
+#include "utils/Utils.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
-#  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
-#    include "modules/utc/UtcTelemetrySystem.hpp"
-#  else
-   /* Compiling without UTC support because UTC private header is unavailable */
-#  undef HAVE_MAT_UTC
-#  endif
-#  else
+#if __has_include("modules/utc/UtcTelemetrySystem.hpp")
+#include "modules/utc/UtcTelemetrySystem.hpp"
+#else
+/* Compiling without UTC support because UTC private header is unavailable */
+#undef HAVE_MAT_UTC
+#endif
+#else
 #include "modules/utc/UtcTelemetrySystem.hpp"
 #endif
 #endif
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
-#  if __has_include ("modules/filter/CompliantByDefaultEventFilterModule.hpp")
-#    include "modules/filter/CompliantByDefaultEventFilterModule.hpp"
-#  else
-   /* Compiling without Filtering support because Filtering private header is unavailable */
-#  undef HAVE_MAT_DEFAULT_FILTER
-#  endif
-#  else
+#if __has_include("modules/filter/CompliantByDefaultEventFilterModule.hpp")
+#include "modules/filter/CompliantByDefaultEventFilterModule.hpp"
+#else
+/* Compiling without Filtering support because Filtering private header is unavailable */
+#undef HAVE_MAT_DEFAULT_FILTER
+#endif
+#else
 #include "modules/filter/LevelChececkingEventFilter.hpp"
 #endif
-#endif // HAVE_MAT_DEFAULT_FILTER
+#endif  // HAVE_MAT_DEFAULT_FILTER
+
+#include <memory>
 
 namespace ARIASDK_NS_BEGIN
 {
-
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         // LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -91,13 +95,13 @@ namespace ARIASDK_NS_BEGIN
     }
 #endif
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration)
-       : LogManagerImpl(configuration, false /*deferSystemStart*/)
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration) :
+        LogManagerImpl(configuration, false /*deferSystemStart*/)
     {
     }
 
-    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
-        : m_bandwidthController(nullptr),
+    LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart) :
+        m_bandwidthController(nullptr),
         m_offlineStorage(nullptr),
         m_logConfiguration(configuration)
     {
@@ -105,6 +109,18 @@ namespace ARIASDK_NS_BEGIN
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
+
+        auto m_pinger = std::static_pointer_cast<IHttpPinger>(configuration.GetModule(CFG_MODULE_HTTP_PINGER));
+        if (m_pinger == nullptr)
+        {
+            bool isPingEnabled = static_cast<bool>(m_logConfiguration["http"]["ping"]);
+            if (isPingEnabled)
+            {
+                // Create default pinger that is being used by TPM
+                configuration.AddModule(CFG_MODULE_HTTP_PINGER, std::unique_ptr<IHttpPinger>(new HttpPinger()));
+            }
+        }
+
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
@@ -112,12 +128,12 @@ namespace ARIASDK_NS_BEGIN
         PAL::registerSemanticContext(&m_context);
 
         std::string cacheFilePath = MAT::GetAppLocalTempDirectory();
-        if ( !m_logConfiguration.HasConfig(CFG_STR_CACHE_FILE_PATH) ||
-            (const char *)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
+        if (!m_logConfiguration.HasConfig(CFG_STR_CACHE_FILE_PATH) ||
+            (const char*)(m_logConfiguration[CFG_STR_CACHE_FILE_PATH]) == nullptr)
         {
             if (m_logConfiguration.HasConfig(CFG_STR_PRIMARY_TOKEN))
             {
-                std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
+                std::string tenantId = (const char*)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
 
                 cacheFilePath += tenantId;
@@ -131,7 +147,7 @@ namespace ARIASDK_NS_BEGIN
         }
         else
         {
-            std::string filename = (const char *)m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
+            std::string filename = (const char*)m_logConfiguration[CFG_STR_CACHE_FILE_PATH];
             if (filename.find(PATH_SEPARATOR_CHAR) == std::string::npos)
             {
                 cacheFilePath += filename;
@@ -168,7 +184,8 @@ namespace ARIASDK_NS_BEGIN
         if (m_dataViewer != nullptr)
         {
             m_dataViewerCollection.RegisterViewer(m_dataViewer);
-        } else 
+        }
+        else
         {
             // TODO: [MG] - register default data viewer implementation if enabled?
         }
@@ -199,8 +216,8 @@ namespace ARIASDK_NS_BEGIN
             m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
             if (!deferSystemStart)
             {
-               m_system->start();
-               m_isSystemStarted = true;
+                m_system->start();
+                m_isSystemStarted = true;
             }
             m_alive = true;
             LOG_INFO("Started up and running in UTC mode");
@@ -213,7 +230,7 @@ namespace ARIASDK_NS_BEGIN
         {
             m_httpClient = HttpClientFactory::Create();
 #ifdef HAVE_MAT_WININET_HTTP_CLIENT
-            HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
+            HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
             if (client != nullptr)
             {
                 client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
@@ -227,12 +244,13 @@ namespace ARIASDK_NS_BEGIN
 #else
         if (m_httpClient == nullptr)
         {
-           LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
-           MATSDK_THROW(std::invalid_argument("configuration"));
+            LOG_ERROR("No valid IHTTPClient passed to LogManagerImpl's ILogConfiguration.");
+            MATSDK_THROW(std::invalid_argument("configuration"));
         }
 #endif
 
-        if (m_bandwidthController == nullptr) {
+        if (m_bandwidthController == nullptr)
+        {
             m_bandwidthController = m_ownBandwidthController.get();
         }
         else
@@ -256,16 +274,15 @@ namespace ARIASDK_NS_BEGIN
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
         m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
-#endif // HAVE_MAT_DEFAULT_FILTER
+#endif  // HAVE_MAT_DEFAULT_FILTER
 
         LOG_INFO("Initializing Modules");
         InitializeModules();
 
         LOG_INFO("Started up and running");
         m_alive = true;
-
     }
-    
+
     /// <summary>
     /// Reconfigure this ILogManager instance using current snapshot of ILogConfiguration
     /// </summary>
@@ -273,14 +290,13 @@ namespace ARIASDK_NS_BEGIN
     {
         // TODO: [maxgolov] - add other config params.
 #ifdef HAVE_MAT_WININET_HTTP_CLIENT
-        HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
+        HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
         if (client != nullptr)
         {
             client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
         }
 #endif
     };
-
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
@@ -325,7 +341,6 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutdown complete in %lld ms", shutTime);
 
         m_alive = false;
-
     }
 
     status_t LogManagerImpl::Flush()
@@ -340,7 +355,7 @@ namespace ARIASDK_NS_BEGIN
     {
         if (GetSystem())
         {
-           GetSystem()->upload();
+            GetSystem()->upload();
         }
         // FIXME: [MG] - make sure m_system->upload returns a status
         return STATUS_SUCCESS;
@@ -351,7 +366,7 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
         if (GetSystem())
         {
-           GetSystem()->pause();
+            GetSystem()->pause();
         }
         // FIXME: [MG] - make sure m_system->pause returns a status
         return STATUS_SUCCESS;
@@ -362,7 +377,7 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Resuming transmission...");
         if (GetSystem())
         {
-           GetSystem()->resume();
+            GetSystem()->resume();
         }
         // FIXME: [MG] - make sure m_system->resume returns a status
         return STATUS_SUCCESS;
@@ -506,13 +521,12 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// Obtain current ILogConfiguration instance associated with the LogManager
     /// </summary>
-    ILogConfiguration & LogManagerImpl::GetLogConfiguration()
+    ILogConfiguration& LogManagerImpl::GetLogConfiguration()
     {
         return m_logConfiguration;
     }
 
-
-    ILogger* LogManagerImpl::GetLogger(const std::string & tenantToken, const std::string & source, const std::string & scope)
+    ILogger* LogManagerImpl::GetLogger(const std::string& tenantToken, const std::string& source, const std::string& scope)
     {
         if (m_alive)
         {
@@ -531,7 +545,7 @@ namespace ARIASDK_NS_BEGIN
                     *this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
-            if (level != DIAG_LEVEL_DEFAULT) 
+            if (level != DIAG_LEVEL_DEFAULT)
             {
                 m_loggers[hash]->SetLevel(level);
             }
@@ -545,7 +559,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     /// <param name="type">The type.</param>
     /// <param name="listener">The listener.</param>
-    void LogManagerImpl::AddEventListener(DebugEventType type, DebugEventListener &listener)
+    void LogManagerImpl::AddEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.AddEventListener(type, listener);
     };
@@ -555,7 +569,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     /// <param name="type">The type.</param>
     /// <param name="listener">The listener.</param>
-    void LogManagerImpl::RemoveEventListener(DebugEventType type, DebugEventListener &listener)
+    void LogManagerImpl::RemoveEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.RemoveEventListener(type, listener);
     };
@@ -571,13 +585,13 @@ namespace ARIASDK_NS_BEGIN
     };
 
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
-    bool LogManagerImpl::AttachEventSource(DebugEventSource & other)
+    bool LogManagerImpl::AttachEventSource(DebugEventSource& other)
     {
         return m_debugEventSource.AttachEventSource(other);
     }
 
     /// <summary>Detach cascaded DebugEventSource to forward all events to</summary>
-    bool LogManagerImpl::DetachEventSource(DebugEventSource & other)
+    bool LogManagerImpl::DetachEventSource(DebugEventSource& other)
     {
         return m_debugEventSource.DetachEventSource(other);
     }
@@ -586,7 +600,7 @@ namespace ARIASDK_NS_BEGIN
     {
         if (GetSystem())
         {
-           GetSystem()->sendEvent(event);
+            GetSystem()->sendEvent(event);
         }
     }
 
@@ -634,7 +648,7 @@ namespace ARIASDK_NS_BEGIN
     {
         LOCKGUARD(m_lock);
         if (m_system == nullptr || m_isSystemStarted)
-           return m_system;
+            return m_system;
 
         m_system->start();
         m_isSystemStarted = true;
@@ -668,4 +682,5 @@ namespace ARIASDK_NS_BEGIN
         return m_dataViewerCollection;
     }
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END

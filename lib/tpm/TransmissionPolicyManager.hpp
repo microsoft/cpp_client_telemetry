@@ -13,6 +13,7 @@
 
 #include "DeviceStateHandler.hpp"
 #include "pal/TaskDispatcher.hpp"
+#include "IHttpPinger.hpp"
 
 #include <set>
 #include <atomic>
@@ -55,6 +56,7 @@ namespace ARIASDK_NS_BEGIN {
         ITelemetrySystem&                m_system;
         ITaskDispatcher&                 m_taskDispatcher;
         IRuntimeConfig&                  m_config;
+        std::shared_ptr<IHttpPinger>     m_pinger { nullptr };
         IBandwidthController*            m_bandwidthController;
 
         std::string                      m_backoffConfig;           // TODO: [MG] - move to config

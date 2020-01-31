@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
+// clang-format off
 #include "mat/config.h"
 
 #pragma once
 #include "api/IRuntimeConfig.hpp"
 
+#include "IModule.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -56,6 +58,9 @@ namespace ARIASDK_NS_BEGIN {
             ,
                 /* Optional parameter to require Microsoft Root CA */
                 { "msRootCheck",         false }
+            ,
+                /* Collector HTTP /ping connectivity check is on by default */
+                { "ping",                true  }
             }
         },
         { "tpm",
@@ -80,7 +85,7 @@ namespace ARIASDK_NS_BEGIN {
     };
 
     // TODO: [MG] - add ability to re-Configure with new custom config on-demand
-    
+
 /// <summary>
 /// This class overlays a custom configuration provided by the customer
 /// on top of default configuration above (defaultRuntimeConfig)
@@ -206,6 +211,25 @@ namespace ARIASDK_NS_BEGIN {
             return config.HasConfig(key);
         }
 
+        /// <summary>
+        /// Get a module by name
+        /// </summary>
+        /// <param name="key">Module name</param>
+        /// <returns>Module instance if set, else null</returns>
+        virtual std::shared_ptr<IModule> GetModule(const char* key) override
+        {
+            return config.GetModule(key);
+        }
+
+        /// <summary>
+        /// Access underlying modules mpa
+        /// </summary>
+        virtual std::map<std::string, std::shared_ptr<IModule>>& GetModules() override
+        {
+            return config.GetModules();
+        }
+
     };
 
 } ARIASDK_NS_END
+// clang-format on
