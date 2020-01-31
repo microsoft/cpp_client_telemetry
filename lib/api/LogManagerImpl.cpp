@@ -110,17 +110,6 @@ namespace ARIASDK_NS_BEGIN
         m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
 
-        auto m_pinger = std::static_pointer_cast<IHttpPinger>(configuration.GetModule(CFG_MODULE_HTTP_PINGER));
-        if (m_pinger == nullptr)
-        {
-            bool isPingEnabled = static_cast<bool>(m_logConfiguration["http"]["ping"]);
-            if (isPingEnabled)
-            {
-                // Create default pinger that is being used by TPM
-                configuration.AddModule(CFG_MODULE_HTTP_PINGER, std::unique_ptr<IHttpPinger>(new HttpPinger()));
-            }
-        }
-
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
 
@@ -661,6 +650,21 @@ namespace ARIASDK_NS_BEGIN
         {
             module->Initialize(this);
         }
+
+        // m_modules above is a vector<unique_ptr>. In case of IHttpPinger:
+        // - either create a default IModule - store it in customer's ILogConfiguration. That way TPM can access it.
+        // - or or obtain the existing customer-provided pinger from the ILogConfiguration shared_ptr object
+        bool isPingEnabled = static_cast<bool>(m_logConfiguration["http"]["ping"]);
+        if (isPingEnabled)
+        {
+            m_pinger = std::static_pointer_cast<IHttpPinger>(m_logConfiguration.GetModule(CFG_MODULE_HTTP_PINGER));
+            if (m_pinger == nullptr)
+            {
+                m_pinger.reset(new HttpPinger());
+                m_logConfiguration.AddModule(CFG_MODULE_HTTP_PINGER, m_pinger);
+            }
+            m_pinger->Initialize(this);
+        }
     }
 
     void LogManagerImpl::TeardownModules() noexcept
@@ -668,6 +672,10 @@ namespace ARIASDK_NS_BEGIN
         for (const auto& module : m_modules)
         {
             module->Teardown();
+        }
+        if (m_pinger != nullptr)
+        {
+            m_pinger->Teardown();
         }
         std::vector<std::unique_ptr<IModule>>{}.swap(m_modules);
     }
