@@ -16,6 +16,9 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    ///
+    /// Implementation of HTTP GET /ping - collector connectivity checker
+    ///
     class HttpPinger : public IHttpPinger
     {
        protected:
@@ -26,9 +29,9 @@ namespace ARIASDK_NS_BEGIN
         std::atomic<bool> m_isRunning{false};
 
        public:
-        /**
-         *
-         */
+        ///
+        /// Constructor
+        ///
         HttpPinger() :
             IHttpPinger()
         {
@@ -72,12 +75,9 @@ namespace ARIASDK_NS_BEGIN
             return (m_httpClient != nullptr);
         }
 
-        /**
-         * Performs sync ping of a default URL passed to HttpPinger constructor.
-         *
-         * Returns HttpResult_OK if ping is successful.
-         *
-         */
+        ///
+        /// Performs async ping collector endpoint
+        ///
         virtual void Ping() override
         {
             LOCKGUARD(m_pingMtx);
@@ -99,6 +99,9 @@ namespace ARIASDK_NS_BEGIN
             return m_lastResult;
         }
 
+        ///
+        /// Reset last cached ping result
+        ///
         virtual void Reset() override
         {
             m_lastResult = HttpPingResult_Unknown;
@@ -110,10 +113,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void OnHttpResponse(IHttpResponse* response) override
         {
             assert(response != nullptr);
-            m_lastResult = (
-                (response->GetResult() == HttpResult_OK) && (response->GetStatusCode() == 200)) ?
-                HttpPingResult_OK :
-                HttpPingResult_ConnFailed;
+            m_lastResult = ((response->GetResult() == HttpResult_OK) && (response->GetStatusCode() == 200)) ? HttpPingResult_OK : HttpPingResult_ConnFailed;
             if (m_lastResult == HttpPingResult_OK)
             {
                 auto v = response->GetBody();
@@ -136,9 +136,9 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        /**
-         *
-         */
+        ///
+        /// Method that may inspect HTTP state events
+        ///
         virtual void OnHttpStateEvent(HttpStateEvent state, void* data, size_t size) override
         {
             std::ignore = data;
@@ -161,12 +161,18 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
+        ///
+        /// Detach HTTP pinger from its owner LogManager
+        ///
         virtual void Teardown() noexcept override
         {
             m_httpClient = nullptr;
             OnPingCompleted = nullptr;
         }
 
+        ///
+        /// Attach HTTP pinger to its owner LogManager
+        ///
         virtual void Initialize(ILogManager* owner) noexcept override
         {
             IHttpPinger::Initialize(owner);
