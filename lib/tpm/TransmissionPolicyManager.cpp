@@ -31,7 +31,33 @@ namespace ARIASDK_NS_BEGIN
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
+
+        // Consider moving this into separate method
         m_pinger = std::static_pointer_cast<IHttpPinger>(m_config.GetModule(CFG_MODULE_HTTP_PINGER));
+        if (m_pinger != nullptr)
+        {
+            m_pinger->OnPingCompleted = [this](HttpPingResult result) {
+                if (m_pinger->GetLastResult() != HttpPingResult_OK)
+                {
+                    // We tried and we failed miserably
+                    EventsUploadContextPtr ctx = new EventsUploadContext();
+                    handleEventsUploadFailed(ctx);
+                    // TODO: make some smarter m_backoff adjustment here
+                    LOG_TRACE("Connection failed, not uploading anything.");
+                    // If there is another pending upload task, kill it
+                    cancelUploadTask();
+                    // At this point we need to decide on what's the best behavior:
+                    // - should we simply retry the ping on another incoming event
+                    // - should we keep pinging with exp-backoff
+                    // - should we use fixed configurable ping retry interval (e.g. 5 min)
+                    // - should we count our failures and set a threshold when we determine
+                    //   that we got permanently 'banned' (blocked by firewall or anti-telemetry)
+                    return;
+                };
+                // resume the upload
+                uploadAsync(m_runningLatency);
+            };
+        }
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
@@ -122,25 +148,9 @@ namespace ARIASDK_NS_BEGIN
         {
             if (m_pinger->GetLastResult() != HttpPingResult_OK)
             {
-                // This call blocks the worker thread task queue until ping is successful
                 m_pinger->Ping();
-                if (m_pinger->GetLastResult() != HttpPingResult_OK)
-                {
-                    // We tried and we failed miserably
-                    EventsUploadContextPtr ctx = new EventsUploadContext();
-                    handleEventsUploadFailed(ctx);
-                    // TODO: make some smarter m_backoff adjustment here
-                    LOG_TRACE("Connection failed, not uploading anything.");
-                    // If there is another pending upload task, kill it
-                    cancelUploadTask();
-                    // At this point we need to decide on what's the best behavior:
-                    // - should we simply retry the ping on another incoming event
-                    // - should we keep pinging with exp-backoff
-                    // - should we use fixed configurable ping retry interval (e.g. 5 min)
-                    // - should we count our failures and set a threshold when we determine
-                    //   that we got permanently 'banned' (blocked by firewall or anti-telemetry)
-                    return;
-                }
+                // We well come back async here with HttpPingResult_OK
+                return;
             }
         }
 

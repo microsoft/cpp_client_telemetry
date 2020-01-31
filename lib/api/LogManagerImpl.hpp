@@ -261,6 +261,7 @@ protected:
         std::shared_ptr<IHttpClient>                           m_httpClient;
         std::shared_ptr<ITaskDispatcher>                       m_taskDispatcher;
         std::shared_ptr<IDataViewer>                           m_dataViewer;
+        std::shared_ptr<IHttpPinger>                           m_pinger;
 
         std::unique_ptr<IRuntimeConfig>                        m_config;
         ILogConfiguration&                                     m_logConfiguration;
