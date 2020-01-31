@@ -32,56 +32,59 @@ namespace ARIASDK_NS_BEGIN
        public:
         std::function<void(HttpPingResult)> OnPingCompleted{nullptr};
 
-        /**
-       * Construct connectivity checker.
-       */
+        /// <summary>
+        /// Construct HTTP ping connectivity checker.
+        /// </summary>
         IHttpPinger() = default;
 
-        /**
-       * Destroy connectivity checker.
-       */
+        /// <summary>
+        /// Destroy HTTP ping connectivity checker.
+        /// </summary>
         virtual ~IHttpPinger(){};
 
-        /**
-       * Performs sync ping of a default URL passed to HttpPinger constructor.
-       * This method would block if there is a Ping pending.
-       * Returns HttpResult_OK if ping is successful.
-       */
-        virtual HttpPingResult Ping() = 0;
+        /// <summary>
+        /// Performs async ping of a collector URL.
+        /// </summary>
+        virtual void Ping() = 0;
 
-        /**
-       * Thread-safe way to obtain the last ping result.
-       * This method would block if there is a Ping pending.
-       */
+        /// <summary>
+        /// Thread-safe way to obtain the last ping result.
+        /// This method would block if there is a Ping result pending.
+        /// </summary>
         virtual HttpPingResult GetLastResult() = 0;
 
-        /**
-       * Optional callback for systems that require an instance of HTTP stack.
-       * Some systems may rely on external reachability code, thus the method
-       * has a default no-op implementation.
-       */
+        /// <summary>
+        /// Reset last result to force another ping
+        /// </summary>
+        virtual void Reset() = 0;
+
+        /// <summary>
+        /// Optional callback for systems that require an instance of HTTP stack.
+        /// Some systems may rely on external reachability code. Thus the method
+        /// has a default no-op implementation.
+        /// </summary>
         virtual void OnHttpResponse(IHttpResponse* response) override{};
 
-        /**
-       * Optional callback for systems that require an instance of HTTP stack.
-       * Some systems may rely on external reachability code, thus the method
-       * has a default no-op implementation.
-       */
+        /// <summary>
+        /// Optional callback for systems that require an instance of HTTP stack.
+        /// Some systems may rely on external reachability code, thus the method
+        /// has a default no-op implementation.
+        /// </summary>
         virtual void OnHttpStateEvent(HttpStateEvent state, void* data, size_t size) override{};
 
-        /**
-       * Initialize is called on LogManager::Initialize.
-       * Cannot use Pinger until its owner is inited.
-       */
+        /// <summary>
+        /// Initialize is called on LogManager::Initialize.
+        /// Cannot use Pinger until its owner is inited.
+        /// </summary>
         virtual void Initialize(ILogManager* owner) noexcept override
         {
             m_owner = owner;
         }
 
-        /**
-       * Teardown must be called on LogManager::FlushAndTeardown
-       * when all pending pings have been consolidated in TPM stop.
-       */
+        /// <summary>
+        /// Teardown must be called on LogManager::FlushAndTeardown
+        /// when all pending pings have been consolidated in TPM stop.
+        /// </summary>
         virtual void Teardown() noexcept override
         {
             m_owner = nullptr;

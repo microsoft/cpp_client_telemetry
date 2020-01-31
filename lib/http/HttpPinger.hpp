@@ -26,7 +26,6 @@ namespace ARIASDK_NS_BEGIN
         std::atomic<bool> m_isRunning{false};
 
        public:
-
         /**
          *
          */
@@ -35,9 +34,9 @@ namespace ARIASDK_NS_BEGIN
         {
         }
 
-        /**
-         * Check if HTTP client is initialized. Lazily create Http client when needed.
-         */
+        ///
+        /// Check if HTTP client is initialized. Lazily create Http client as-needed.
+        ///
         bool IsInitialized()
         {
             if (m_httpClient == nullptr)
@@ -79,7 +78,7 @@ namespace ARIASDK_NS_BEGIN
          * Returns HttpResult_OK if ping is successful.
          *
          */
-        virtual HttpPingResult Ping() override
+        virtual void Ping() override
         {
             LOCKGUARD(m_pingMtx);
             if (IsInitialized())
@@ -89,25 +88,32 @@ namespace ARIASDK_NS_BEGIN
                 req->SetUrl(m_pingUrl);
                 m_httpClient->SendRequestAsync(req, this);
             }
-            return m_lastResult;
         }
 
-        /**
-         * Thread
-         */
+        ///
+        /// Get last cached ping result
+        ///
         virtual HttpPingResult GetLastResult() override
         {
             LOCKGUARD(m_pingMtx);
             return m_lastResult;
         }
 
-        /**
-         *
-         */
+        virtual void Reset() override
+        {
+            m_lastResult = HttpPingResult_Unknown;
+        }
+
+        ///
+        /// Method is invoked when HTTP GET /ping response is ready
+        ///
         virtual void OnHttpResponse(IHttpResponse* response) override
         {
             assert(response != nullptr);
-            m_lastResult = ((response->GetResult() == HttpResult_OK) && (response->GetStatusCode() == 200)) ? HttpPingResult_OK : HttpPingResult_ConnFailed;
+            m_lastResult = (
+                (response->GetResult() == HttpResult_OK) && (response->GetStatusCode() == 200)) ?
+                HttpPingResult_OK :
+                HttpPingResult_ConnFailed;
             if (m_lastResult == HttpPingResult_OK)
             {
                 auto v = response->GetBody();
@@ -124,7 +130,7 @@ namespace ARIASDK_NS_BEGIN
                 }
             }
             delete response;
-            if (OnPingCompleted!=nullptr)
+            if (OnPingCompleted != nullptr)
             {
                 OnPingCompleted(m_lastResult);
             }

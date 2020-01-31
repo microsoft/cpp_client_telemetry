@@ -140,7 +140,6 @@ namespace ARIASDK_NS_BEGIN
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
-        m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
@@ -149,10 +148,12 @@ namespace ARIASDK_NS_BEGIN
             if (m_pinger->GetLastResult() != HttpPingResult_OK)
             {
                 m_pinger->Ping();
-                // We well come back async here with HttpPingResult_OK
+                // We well come back async here if we get HttpPingResult_OK
                 return;
             }
         }
+
+        m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
 
         if (m_isPaused)
         {
@@ -354,13 +355,20 @@ namespace ARIASDK_NS_BEGIN
         checkBackoffConfigUpdate();
         int delayMs = m_backoff->getValue();
         m_backoff->increase();
-
         finishUpload(ctx, delayMs);
+        if (m_pinger)
+        {
+            m_pinger->Reset();
+        }
     }
 
     void TransmissionPolicyManager::handleEventsUploadAborted(EventsUploadContextPtr const& ctx)
     {
         finishUpload(ctx, -1);
+        if (m_pinger)
+        {
+            m_pinger->Reset();
+        }
     }
 
 }
