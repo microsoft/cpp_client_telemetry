@@ -24,6 +24,7 @@ namespace ARIASDK_NS_BEGIN {
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
+        m_flushPending(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -31,8 +32,7 @@ namespace ARIASDK_NS_BEGIN {
         m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
-        m_isStorageFullNotificationSend(false),
-        m_flushPending(false)
+        m_isStorageFullNotificationSend(false)
     {
         // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
