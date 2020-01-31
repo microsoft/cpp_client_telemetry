@@ -54,7 +54,7 @@ namespace ARIASDK_NS_BEGIN {
             int64_t stopTimes[5] = { 0, 0, 0, 0, 0 };
 
             // Perform upload only if not paused
-            if ((timeoutInSec > 0) && (!tpm.isPaused()))
+            if ((timeoutInSec > 0) && (!tpm.isPaused()) && (tpm.isConnected()))
             {
                 // perform uploads if required
                 stopTimes[0] = GetUptimeMs();

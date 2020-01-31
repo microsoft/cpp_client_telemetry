@@ -8,27 +8,26 @@
 #include "pal/PAL.hpp"
 
 #include "system/Contexts.hpp"
-#include "system/Route.hpp"
 #include "system/ITelemetrySystem.hpp"
+#include "system/Route.hpp"
 
 #include "DeviceStateHandler.hpp"
-#include "pal/TaskDispatcher.hpp"
 #include "IHttpPinger.hpp"
+#include "pal/TaskDispatcher.hpp"
 
-#include <set>
 #include <atomic>
+#include <set>
 
-namespace ARIASDK_NS_BEGIN {
-
+namespace ARIASDK_NS_BEGIN
+{
     class TransmissionPolicyManager
     {
-
-    public:
+       public:
         TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController);
         virtual ~TransmissionPolicyManager();
         virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
 
-    protected:
+       protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
         void checkBackoffConfigUpdate();
 
@@ -51,26 +50,26 @@ namespace ARIASDK_NS_BEGIN {
 
         EventLatency calculateNewPriority();
 
-        std::mutex                       m_lock;
+        std::mutex m_lock;
 
-        ITelemetrySystem&                m_system;
-        ITaskDispatcher&                 m_taskDispatcher;
-        IRuntimeConfig&                  m_config;
-        std::shared_ptr<IHttpPinger>     m_pinger { nullptr };
-        IBandwidthController*            m_bandwidthController;
+        ITelemetrySystem& m_system;
+        ITaskDispatcher& m_taskDispatcher;
+        IRuntimeConfig& m_config;
+        std::shared_ptr<IHttpPinger> m_pinger{nullptr};
+        IBandwidthController* m_bandwidthController;
 
-        std::string                      m_backoffConfig;           // TODO: [MG] - move to config
-        std::unique_ptr<IBackoff>        m_backoff;
-        DeviceStateHandler               m_deviceStateHandler;
+        std::string m_backoffConfig;  // TODO: [MG] - move to config
+        std::unique_ptr<IBackoff> m_backoff;
+        DeviceStateHandler m_deviceStateHandler;
 
-        std::atomic<bool>                m_isPaused;
-        std::atomic<bool>                m_isUploadScheduled;
-        uint64_t                         m_scheduledUploadTime;
-        PAL::DeferredCallbackHandle      m_scheduledUpload;
+        std::atomic<bool> m_isPaused;
+        std::atomic<bool> m_isUploadScheduled;
+        uint64_t m_scheduledUploadTime;
+        PAL::DeferredCallbackHandle m_scheduledUpload;
 
-        std::mutex                       m_activeUploads_lock;
+        std::mutex m_activeUploads_lock;
         std::set<EventsUploadContextPtr> m_activeUploads;
-        
+
         /// <summary>
         /// Thread-safe method to add the upload to active uploads.
         /// </summary>
@@ -80,7 +79,7 @@ namespace ARIASDK_NS_BEGIN {
             LOCKGUARD(m_activeUploads_lock);
             m_activeUploads.insert(ctx);
         }
-        
+
         /// <summary>
         /// Thread-safe method to remove the upload from active uploads.
         /// </summary>
@@ -99,7 +98,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             return false;
         }
-        
+
         /// <summary>
         /// Cancel pending upload task and stop scheduling further uploads.
         /// </summary>
@@ -108,7 +107,7 @@ namespace ARIASDK_NS_BEGIN {
             m_isPaused = true;
             cancelUploadTask();
         }
-        
+
         /// <summary>
         /// Cancels pending upload task.
         /// </summary>
@@ -118,7 +117,7 @@ namespace ARIASDK_NS_BEGIN {
             m_isUploadScheduled.exchange(false);
             return result;
         }
-        
+
         /// <summary>
         /// Calculate the number of pending upload contexts.
         /// </summary>
@@ -129,26 +128,26 @@ namespace ARIASDK_NS_BEGIN {
             return m_activeUploads.size();
         }
 
-        int                              m_timerdelay;
-        EventLatency                     m_runningLatency;
-        std::vector<int>                 m_timers;
+        int m_timerdelay;
+        EventLatency m_runningLatency;
+        std::vector<int> m_timers;
 
-    public:
-        RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };
-        RoutePassThrough<TransmissionPolicyManager>                          pause{ this, &TransmissionPolicyManager::handlePause };
-        RoutePassThrough<TransmissionPolicyManager>                          stop{ this, &TransmissionPolicyManager::handleStop };
-        RouteSink<TransmissionPolicyManager>                                 finishAllUploads{ this, &TransmissionPolicyManager::handleFinishAllUploads };
-        RouteSource<>                                                        allUploadsFinished;
+       public:
+        RoutePassThrough<TransmissionPolicyManager> start{this, &TransmissionPolicyManager::handleStart};
+        RoutePassThrough<TransmissionPolicyManager> pause{this, &TransmissionPolicyManager::handlePause};
+        RoutePassThrough<TransmissionPolicyManager> stop{this, &TransmissionPolicyManager::handleStop};
+        RouteSink<TransmissionPolicyManager> finishAllUploads{this, &TransmissionPolicyManager::handleFinishAllUploads};
+        RouteSource<> allUploadsFinished;
 
-        RouteSink<TransmissionPolicyManager, IncomingEventContextPtr const&> eventArrived{ this, &TransmissionPolicyManager::handleEventArrived };
+        RouteSink<TransmissionPolicyManager, IncomingEventContextPtr const&> eventArrived{this, &TransmissionPolicyManager::handleEventArrived};
 
-        RouteSource<EventsUploadContextPtr const&>                           initiateUpload;
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  nothingToUpload{ this, &TransmissionPolicyManager::handleNothingToUpload };
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  packagingFailed{ this, &TransmissionPolicyManager::handlePackagingFailed };
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadSuccessful{ this, &TransmissionPolicyManager::handleEventsUploadSuccessful };
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadRejected{ this, &TransmissionPolicyManager::handleEventsUploadRejected };
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{ this, &TransmissionPolicyManager::handleEventsUploadFailed };
-        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{ this, &TransmissionPolicyManager::handleEventsUploadAborted };
+        RouteSource<EventsUploadContextPtr const&> initiateUpload;
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> nothingToUpload{this, &TransmissionPolicyManager::handleNothingToUpload};
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> packagingFailed{this, &TransmissionPolicyManager::handlePackagingFailed};
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> eventsUploadSuccessful{this, &TransmissionPolicyManager::handleEventsUploadSuccessful};
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> eventsUploadRejected{this, &TransmissionPolicyManager::handleEventsUploadRejected};
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> eventsUploadFailed{this, &TransmissionPolicyManager::handleEventsUploadFailed};
+        RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&> eventsUploadAborted{this, &TransmissionPolicyManager::handleEventsUploadAborted};
 
         virtual bool isUploadInProgress()
         {
@@ -161,7 +160,20 @@ namespace ARIASDK_NS_BEGIN {
             return m_isPaused;
         }
 
+        ///
+        /// Returns our best-guess state of connectivity. This method currently relies
+        /// on a presence of HTTP pinger, but may be augmented with additional features,
+        /// like reachability framework check, etc.
+        virtual bool isConnected()
+        {
+            if (m_pinger != nullptr)
+            {
+                return (m_pinger->GetLastResult() == HttpPingResult_OK);
+            }
+            // If pinger is not available, we should try to upload anyways.
+            return true;
+        }
     };
 
-
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
