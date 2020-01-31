@@ -37,6 +37,18 @@ TEST(EventFilterCollectionTests, Constructor_DefaultConstructed_NoRegisteredFilt
     EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
 }
 
+TEST(EventFilterCollectionTests, Empty_ZeroRegisteredFilters_ReturnsTrue)
+{
+    EventFilterCollection collection;
+    EXPECT_TRUE(collection.Empty());
+}
+
+TEST(EventFilterCollectionTests, Size_ZeroRegisteredFilters_ReturnsZero)
+{
+    EventFilterCollection collection;
+    EXPECT_EQ(collection.Size(), size_t{0});
+}
+
 TEST(EventFilterCollectionTests, RegisterEventFilter_NullptrFilter_ThrowsArgumentException)
 {
     TestEventFilterCollection collection;
