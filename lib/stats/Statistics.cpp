@@ -10,11 +10,11 @@
 namespace ARIASDK_NS_BEGIN {
 
     Statistics::Statistics(ITelemetrySystem& telemetrySystem, ITaskDispatcher& taskDispatcher) :
+        m_metaStats(telemetrySystem.getConfig()),
         m_iTelemetrySystem(telemetrySystem),
         m_taskDispatcher(taskDispatcher),
-        m_logManager(telemetrySystem.getLogManager()),
-        m_metaStats(telemetrySystem.getConfig()),
         m_config(telemetrySystem.getConfig()),
+        m_logManager(telemetrySystem.getLogManager()),
         m_baseDecorator(m_logManager),
         m_semanticContextDecorator(m_logManager),
         m_isStarted(false)
