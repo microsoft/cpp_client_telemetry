@@ -5,7 +5,7 @@
 #include "mat/config.h"
 
 #ifdef _MSC_VER
-#pragma warning (disable : 4389)
+#pragma warning(disable : 4389)
 #endif
 
 //#include "gtest/gtest.h"
@@ -13,9 +13,9 @@
 
 #include "bond/generated/CsProtocol_types.hpp"
 
+#include <LogManager.hpp>
 #include <atomic>
 #include <cassert>
-#include <LogManager.hpp>
 
 #include "PayloadDecoder.hpp"
 
@@ -36,30 +36,30 @@ using namespace MAT;
 LOGMANAGER_INSTANCE
 
 // 1DSCppSdkTest sandbox key
-#define TEST_TOKEN      "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
+#define TEST_TOKEN "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
 
-#define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
-#define TEST_TOKEN2     "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
+#define KILLED_TOKEN "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define TEST_TOKEN2 "0ae6cd22d8264818933f4857dd3c1472-eea5f30e-e0ed-4ab0-8ed0-4dc0f5e156e0-7385"
 
-class TestDebugEventListener : public DebugEventListener {
+class TestDebugEventListener : public DebugEventListener
+{
+   public:
+    std::atomic<bool> netChanged;
+    std::atomic<unsigned> eps;
+    std::atomic<unsigned> numLogged0;
+    std::atomic<unsigned> numLogged;
+    std::atomic<unsigned> numSent;
+    std::atomic<unsigned> numDropped;
+    std::atomic<unsigned> numReject;
+    std::atomic<unsigned> numHttpError;
+    std::atomic<unsigned> numHttpOK;
+    std::atomic<unsigned> numCached;
+    std::atomic<unsigned> numFiltered;
+    std::atomic<unsigned> logLatMin;
+    std::atomic<unsigned> logLatMax;
+    std::atomic<unsigned> storageFullPct;
 
-public:
-    std::atomic<bool>       netChanged;
-    std::atomic<unsigned>   eps;
-    std::atomic<unsigned>   numLogged0;
-    std::atomic<unsigned>   numLogged;
-    std::atomic<unsigned>   numSent;
-    std::atomic<unsigned>   numDropped;
-    std::atomic<unsigned>   numReject;
-    std::atomic<unsigned>   numHttpError;
-    std::atomic<unsigned>   numHttpOK;
-    std::atomic<unsigned>   numCached;
-    std::atomic<unsigned>   numFiltered;
-    std::atomic<unsigned>   logLatMin;
-    std::atomic<unsigned>   logLatMax;
-    std::atomic<unsigned>   storageFullPct;
-
-    std::function<void(::CsProtocol::Record &)> OnLogX;
+    std::function<void(::CsProtocol::Record&)> OnLogX;
 
     TestDebugEventListener() :
         netChanged(false),
@@ -99,22 +99,21 @@ public:
         resetOnLogX();
     }
 
-    virtual void OnLogXDefault(::CsProtocol::Record &)
-    {
+    virtual void OnLogXDefault(::CsProtocol::Record&){
 
     };
 
     void resetOnLogX()
     {
-        OnLogX = [this](::CsProtocol::Record & record)
-        {
+        OnLogX = [this](::CsProtocol::Record& record) {
             OnLogXDefault(record);
         };
     }
 
-    virtual void OnDebugEvent(DebugEvent &evt)
+    virtual void OnDebugEvent(DebugEvent& evt)
     {
-        switch (evt.type) {
+        switch (evt.type)
+        {
         case EVT_LOG_EVENT:
         case EVT_LOG_LIFECYCLE:
         case EVT_LOG_FAILURE:
@@ -125,13 +124,13 @@ public:
         case EVT_LOG_TRACE:
         case EVT_LOG_USERSTATE:
         case EVT_LOG_SESSION:
-            {
-                /* Test-only code */
-                ::CsProtocol::Record & record = *static_cast<::CsProtocol::Record *>(evt.data);
-                numLogged++;
-                OnLogX(record);
-            }
-            break;
+        {
+            /* Test-only code */
+            ::CsProtocol::Record& record = *static_cast<::CsProtocol::Record*>(evt.data);
+            numLogged++;
+            OnLogX(record);
+        }
+        break;
 
         case EVT_REJECTED:
             numReject++;
@@ -186,7 +185,6 @@ public:
         default:
             break;
         };
-
     };
 
     void printStats()
@@ -202,14 +200,13 @@ public:
     }
 };
 
-
 /// <summary>
 /// Create sample event of a given priority
 /// </summary>
 /// <param name="name">event name</param>
 /// <param name="prio">priority</param>
 /// <returns></returns>
-EventProperties CreateSampleEvent(const char *name, EventPriority prio)
+EventProperties CreateSampleEvent(const char* name, EventPriority prio)
 {
 #ifdef _WIN32
     /* Test for Win32 GUID type, specific to Windows only */
@@ -230,14 +227,13 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
         0x05, 0x04,
         0x07, 0x06,
         0x08, 0x09,
-        0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+        0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
 
     GUID_t guid_c(
         0x00010203,
         0x0405,
         0x0607,
-        { 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-    );
+        {0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F});
 
     const GUID_t guid_d;
 
@@ -247,39 +243,39 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
 
     /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
     EventProperties props(name,
-        {
-    #ifdef _MSC_VER
-            { "_MSC_VER", _MSC_VER },
-    #endif
-            { "piiKind.None",               EventProperty("jackfrost",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-            { "piiKind.GenericData",        EventProperty("jackfrost",  PiiKind_GenericData) },
-            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
-            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
-            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
-            { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
-            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-            { "piiKind.SipAddress",         EventProperty("sip:jackfrost@microsoft.com", PiiKind_SipAddress) },
-            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@microsoft.com>", PiiKind_SmtpAddress) },
-            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
-            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
-            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
+                          {
+#ifdef _MSC_VER
+                              {"_MSC_VER", _MSC_VER},
+#endif
+                              {"piiKind.None", EventProperty("jackfrost", PiiKind_None)},
+                              {"piiKind.DistinguishedName", EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM", PiiKind_DistinguishedName)},
+                              {"piiKind.GenericData", EventProperty("jackfrost", PiiKind_GenericData)},
+                              {"piiKind.IPv4Address", EventProperty("127.0.0.1", PiiKind_IPv4Address)},
+                              {"piiKind.IPv6Address", EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address)},
+                              {"piiKind.MailSubject", EventProperty("RE: test", PiiKind_MailSubject)},
+                              {"piiKind.PhoneNumber", EventProperty("+1-613-866-6960", PiiKind_PhoneNumber)},
+                              {"piiKind.QueryString", EventProperty("a=1&b=2&c=3", PiiKind_QueryString)},
+                              {"piiKind.SipAddress", EventProperty("sip:jackfrost@microsoft.com", PiiKind_SipAddress)},
+                              {"piiKind.SmtpAddress", EventProperty("Jack Frost <jackfrost@microsoft.com>", PiiKind_SmtpAddress)},
+                              {"piiKind.Identity", EventProperty("Jack Frost", PiiKind_Identity)},
+                              {"piiKind.Uri", EventProperty("http://www.microsoft.com", PiiKind_Uri)},
+                              {"piiKind.Fqdn", EventProperty("www.microsoft.com", PiiKind_Fqdn)},
 
-            { "strKey",   "hello" },
-            { "strKey2",  "hello2" },
-            { "int64Key", (int64_t)1L },
-            { "dblKey",   3.14 },
-            { "boolKey",  false },
+                              {"strKey", "hello"},
+                              {"strKey2", "hello2"},
+                              {"int64Key", (int64_t)1L},
+                              {"dblKey", 3.14},
+                              {"boolKey", false},
 
-            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
-            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey2", GUID_t(guid_b) },
-            { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey4", GUID_t(guid_c) },
+                              {"guidKey0", GUID_t("00000000-0000-0000-0000-000000000000")},
+                              {"guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F")},
+                              {"guidKey2", GUID_t(guid_b)},
+                              {"guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F")},
+                              {"guidKey4", GUID_t(guid_c)},
 
-            { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
-            { "timeKey2",  time_ticks_t(&t) }               // seconds precision
-        });
+                              {"timeKey1", time_ticks_t((uint64_t)0)},  // ticks   precision
+                              {"timeKey2", time_ticks_t(&t)}            // seconds precision
+                          });
 #ifdef _WIN32
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
@@ -343,7 +339,7 @@ void removeAllListeners(DebugEventListener& listener)
 /// <returns></returns>
 TEST(APITest, LogManager_Initialize_Default_Test)
 {
-    ILogger *result = LogManager::Initialize(TEST_TOKEN);
+    ILogger* result = LogManager::Initialize(TEST_TOKEN);
     EXPECT_EQ(true, (result != NULL));
     LogManager::FlushAndTeardown();
 }
@@ -356,16 +352,16 @@ TEST(APITest, LogManager_Initialize_Default_Test)
 /// <returns></returns>
 TEST(APITest, LogManager_Initialize_Custom)
 {
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+    auto& configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;  // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     configuration[CFG_STR_COLLECTOR_URL] = "https://127.0.0.1/";
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
+    ILogger* result = LogManager::Initialize(TEST_TOKEN, configuration);
     EXPECT_EQ(true, (result != NULL));
     LogManager::FlushAndTeardown();
 }
 
-#define TEST_STORAGE_FILENAME   "offlinestorage.db"
+#define TEST_STORAGE_FILENAME "offlinestorage.db"
 
 static std::string GetStoragePath()
 {
@@ -444,29 +440,31 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
 
     TestDebugEventListener debugListener;
 
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
+    auto& configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;   // API calls + Global mask for general messages - less SQL
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;  // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration["stats"]["interval"] = 0;  // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
-    configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
+    configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000;  // 1MB
 
-    EventProperties eventToLog{ "foo1" };
+    EventProperties eventToLog{"foo1"};
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
 
     CleanStorage();
     addAllListeners(debugListener);
     {
+        const size_t MAX_EVENTS = MAX_ITERATIONS * 2000;  // 200K events
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::PauseTransmission();
-        size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
+        size_t numIterations = MAX_EVENTS;
         while (numIterations--)
         {
             LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
+        EXPECT_EQ(debugListener.numCached.load(), MAX_EVENTS);
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
         LogManager::FlushAndTeardown();
 
@@ -474,14 +472,13 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::FlushAndTeardown();
         EXPECT_EQ(debugListener.storageFullPct.load(), 0);
-
     }
     debugListener.numCached = 0;
-    debugListener.numSent   = 0;
+    debugListener.numSent = 0;
     debugListener.numLogged = 0;
 
     CleanStorage();
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
+    ILogger* result = LogManager::Initialize(TEST_TOKEN, configuration);
 
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
@@ -492,16 +489,16 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0, debugListener.numDropped);
     EXPECT_EQ(0, debugListener.numReject);
 
-    LogManager::UploadNow();             // Try to upload whatever we got
-    PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0, debugListener.numSent); // Some posts must succeed within 500ms
-    LogManager::PauseTransmission();     // There could still be some pending at this point
-    LogManager::Flush();                 // Save all pending to disk
+    LogManager::UploadNow();              // Try to upload whatever we got
+    PAL::sleep(1000);                     // Give enough time to upload at least one event
+    EXPECT_NE(0, debugListener.numSent);  // Some posts must succeed within 500ms
+    LogManager::PauseTransmission();      // There could still be some pending at this point
+    LogManager::Flush();                  // Save all pending to disk
 
     numIterations = MAX_ITERATIONS;
-    debugListener.numLogged = 0;         // Reset the logged counter
-    debugListener.numCached = 0;         // Reset the flush counter
-    EventProperties eventToStore{ "bar2" };
+    debugListener.numLogged = 0;  // Reset the logged counter
+    debugListener.numCached = 0;  // Reset the flush counter
+    EventProperties eventToStore{"bar2"};
     eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
         result->LogEvent(eventToStore);  // New events go straight to offline storage
@@ -521,18 +518,19 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     removeAllListeners(debugListener);
 }
 
-TEST(APITest, LogManager_UTCSingleEventSent) {
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
+TEST(APITest, LogManager_UTCSingleEventSent)
+{
+    auto& configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;  // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration["stats"]["interval"] = 0;  // avoid sending stats for this test
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
     EventProperties event;
 
-    std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
+    std::string evtType = "My.Record.BaseType";  // default v1 legacy behaviour: custom.my_record_basetype
     event.SetName("MyProduct.TaggedEvent");
     event.SetType(evtType);
     event.SetProperty("result", "Success");
@@ -542,7 +540,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetLatency(EventLatency_Normal);
     event.SetLevel(DIAG_LEVEL_REQUIRED);
 
-    ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
+    ILogger* logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
     LogManager::FlushAndTeardown();
 }
@@ -552,7 +550,7 @@ TEST(APITest, LogManager_SemanticAPI)
     bool failed = false;
     try
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN);
+        ILogger* result = LogManager::Initialize(TEST_TOKEN);
         // ISemanticContext *context = result->GetSemanticContext();
 
         {
@@ -598,7 +596,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+    ILogger* result = LogManager::Initialize(TEST_TOKEN, config);
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
     {
@@ -615,7 +613,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
 
 TEST(APITest, LogManager_Stress_SingleThreaded)
 {
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
@@ -638,15 +636,14 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
     while (numIterations--)
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        ILogger* result = LogManager::Initialize(TEST_TOKEN, config);
         // Keep spawning UploadNow threads while the main thread is trying to perform
         // Initialize and Teardown, but no more than MAX_THREADS at a time.
         for (size_t i = 0; i < MAX_THREADS; i++)
         {
             if (threadCount++ < MAX_THREADS)
             {
-                auto t = std::thread([&]()
-                {
+                auto t = std::thread([&]() {
                     std::this_thread::yield();
                     LogManager::UploadNow();
                     const auto randTimeSub2ms = std::rand() % 2;
@@ -665,27 +662,26 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
 TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 {
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
     StressUploadLockMultiThreaded(config);
     // Basic expectation here is just that we do not crash..
     // We can add memory utilization metric in here as well.
 }
 
-
 TEST(APITest, LogManager_Reinitialize_Test)
 {
     size_t numIterations = 5;
     while (numIterations--)
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN);
+        ILogger* result = LogManager::Initialize(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
         LogManager::FlushAndTeardown();
     }
 }
 
-#define EVENT_NAME_PURE_C   "Event.Name.Pure.C"
-#define JSON_CONFIG(...)    #__VA_ARGS__
+#define EVENT_NAME_PURE_C "Event.Name.Pure.C"
+#define JSON_CONFIG(...) #__VA_ARGS__
 TEST(APITest, C_API_Test)
 {
     TestDebugEventListener debugListener;
@@ -697,12 +693,12 @@ TEST(APITest, C_API_Test)
     // that isn't avail in C99
     const char* config = JSON_CONFIG(
         {
-            "cacheFilePath": "MyOfflineStorage.db",
+            "cacheFilePath" : "MyOfflineStorage.db",
             "config" : {
-                "host": "*"
+                "host" : "*"
             },
             "stats" : {
-                "interval": 0
+                "interval" : 0
             },
             "name" : "C-API-Client-0",
             "version" : "1.0.0",
@@ -711,14 +707,12 @@ TEST(APITest, C_API_Test)
             "hostMode" : false,
             "minimumTraceLevel" : 0,
             "sdkmode" : 0
-        }
-    );
+        });
 
     std::time_t now = time(0);
     MAT::time_ticks_t ticks(&now);
 
-    evt_prop event[] = TELEMETRY_EVENT
-    (
+    evt_prop event[] = TELEMETRY_EVENT(
         // Part A/B fields
         _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
         _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
@@ -733,22 +727,20 @@ TEST(APITest, C_API_Test)
         _INT("intKey", 12345),
         _DBL("dblKey", 3.14),
         _BOOL("boolKey", true),
-        _GUID("guidKey", "{01020304-0506-0708-090a-0b0c0d0e0f00}" ),
-        _TIME("timeKey", ticks.ticks),                          // .NET ticks
+        _GUID("guidKey", "{01020304-0506-0708-090a-0b0c0d0e0f00}"),
+        _TIME("timeKey", ticks.ticks),  // .NET ticks
         // All Pii types get treated as strings by the backend
-        PII_STR("piiKey", "secret", (int)PiiKind_Identity)
-    );
+        PII_STR("piiKey", "secret", (int)PiiKind_Identity));
     // event[2].value.as_double = 100.0f;
 
     unsigned totalEvents = 0;
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
-    {
+    debugListener.OnLogX = [&](::CsProtocol::Record& record) {
         totalEvents++;
         // Verify event name
-        EXPECT_EQ(record.name,  EVENT_NAME_PURE_C);
+        EXPECT_EQ(record.name, EVENT_NAME_PURE_C);
         // Verify event time
         auto recordTimeTicks = MAT::time_ticks_t(record.time);
-        EXPECT_EQ(record.time, int64_t(recordTimeTicks.ticks) );
+        EXPECT_EQ(record.time, int64_t(recordTimeTicks.ticks));
         // Verify event iKey
         std::string iToken_o = "o:";
         iToken_o += TEST_TOKEN;
@@ -773,7 +765,7 @@ TEST(APITest, C_API_Test)
     evt_handle_t handle = evt_open(config);
     ASSERT_NE(handle, 0);
 
-    capi_client *client = capi_get_client(handle);
+    capi_client* client = capi_get_client(handle);
     ASSERT_NE(client, nullptr);
     ASSERT_NE(client->logmanager, nullptr);
 
@@ -824,8 +816,7 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
     auto logger = LogManager::Initialize(TEST_TOKEN);
     unsigned totalEvents = 0;
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
-    {
+    debugListener.OnLogX = [&](::CsProtocol::Record& record) {
         totalEvents++;
         // Verify event name
         EXPECT_EQ(record.name, "MyProduct.UtcEvent");
@@ -858,8 +849,7 @@ TEST(APITest, UTC_Callback_Test)
         printf(
             "*************************************** Event %u ***************************************\n%s\n",
             totalEvents,
-            s.c_str()
-        );
+            s.c_str());
     };
 
     // Ingest 3 events via C++ API in UTC mode. Callback function above intercepts
@@ -867,14 +857,12 @@ TEST(APITest, UTC_Callback_Test)
     for (size_t i = 0; i < 3; i++)
     {
         EventProperties event("MyProduct.UtcEvent",
-        {
-            { "strKey", "value1" },
-            { "intKey", 12345 },
-            { "dblKey", 3.14 },
-            { "boolKey", true },
-            { "guidKey", GUID_t("{01020304-0506-0708-090a-0b0c0d0e0f00}") },
-            { "timeKey", ticks }
-        });
+                              {{"strKey", "value1"},
+                               {"intKey", 12345},
+                               {"dblKey", 3.14},
+                               {"boolKey", true},
+                               {"guidKey", GUID_t("{01020304-0506-0708-090a-0b0c0d0e0f00}")},
+                               {"timeKey", ticks}});
         event.SetTimestamp((int64_t)(now * 1000L));
         logger->LogEvent(event);
     }
@@ -899,8 +887,7 @@ TEST(APITest, Pii_DROP_Test)
 
     // verify that we get one regular event with real device id,
     // as well as more events with anonymous random device id.
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
-    {
+    debugListener.OnLogX = [&](::CsProtocol::Record& record) {
         totalEvents++;
         if (record.name == "Regular.Event")
         {
@@ -944,9 +931,7 @@ TEST(APITest, Pii_DROP_Test)
     for (size_t i = 0; i < 3; i++)
     {
         EventProperties event("PiiDrop.Event",
-        {
-            { "strKey", "some string" }
-        });
+                              {{"strKey", "some string"}});
 
         event.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
         event.SetProperty(CorrelationVector::PropertyName, curCV);
@@ -956,12 +941,11 @@ TEST(APITest, Pii_DROP_Test)
     LogManager::FlushAndTeardown();
     ASSERT_EQ(totalEvents, 4);
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
-
 }
 
 #endif
 
-static void logBenchMark(const char * label)
+static void logBenchMark(const char* label)
 {
 #ifdef DEBUG_PERF
     static int64_t lastTime = GetUptimeMs();
@@ -978,9 +962,9 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
     size_t numIterations = 10;
-    const size_t shutdownSec = 20; // Must complete 10 runs in 20 seconds on Release
-                                   // Max teardown time is ~1s per run, maybe up to 2s
-                                   // This time may be longer on a slow box, e.g. build server
+    const size_t shutdownSec = 20;  // Must complete 10 runs in 20 seconds on Release
+                                    // Max teardown time is ~1s per run, maybe up to 2s
+                                    // This time may be longer on a slow box, e.g. build server
 
     bool flipFlop = true;
     while (numIterations--)
@@ -996,7 +980,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         logBenchMark("config ");
 
-        ILogger *logger = LogManager::Initialize(TEST_TOKEN, config);
+        ILogger* logger = LogManager::Initialize(TEST_TOKEN, config);
         logBenchMark("inited ");
 
         logger->LogEvent("test");
@@ -1034,34 +1018,33 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
-    auto &config = LogManager::GetLogConfiguration();
-    config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;  // API calls + Global mask for general messages - less SQL
     config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
 
     std::vector<std::string> paths =
-    {
+        {
 #ifdef _WIN32
-        "T:\\invalid\\file\\path",               // This fails - no offline storage
-        u8"C:\\неправильный\\каталог\\utf-8",    // This fails - no offline storage
-        u8"C:\\Проверка-проверка 1 2 3\\файл.db" // This should pass if dir exists
+            "T:\\invalid\\file\\path",                // This fails - no offline storage
+            u8"C:\\неправильный\\каталог\\utf-8",     // This fails - no offline storage
+            u8"C:\\Проверка-проверка 1 2 3\\файл.db"  // This should pass if dir exists
 #else
-        "/invalid/file/path",
-        u8"/неправильный/каталог/utf-8",         // This fails - no offline storage
-        u8"/Проверка-проверка 1 2 3/файл.db"     // This should pass if dir exists
+            "/invalid/file/path",
+            u8"/неправильный/каталог/utf-8",      // This fails - no offline storage
+            u8"/Проверка-проверка 1 2 3/файл.db"  // This should pass if dir exists
 #endif
-    };
+        };
 
-    for (const auto &path : paths)
+    for (const auto& path : paths)
     {
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
-        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        ILogger* result = LogManager::Initialize(TEST_TOKEN, config);
         EXPECT_EQ(true, (result != NULL));
         result->LogEvent("test");
         LogManager::Flush();
         LogManager::FlushAndTeardown();
     }
-
 }
 
 TEST(APITest, LogManager_BadNetwork_Test)
@@ -1069,7 +1052,7 @@ TEST(APITest, LogManager_BadNetwork_Test)
     auto& config = LogManager::GetLogConfiguration();
 
     // Clean temp file first
-    const char *cacheFilePath = "bad-network.db";
+    const char* cacheFilePath = "bad-network.db";
     std::string fileName = MAT::GetTempDirectory();
     fileName += "\\";
     fileName += cacheFilePath;
@@ -1081,9 +1064,9 @@ TEST(APITest, LogManager_BadNetwork_Test)
         "https://0.0.0.0/",
         "https://127.0.0.1/",
 #endif
-        "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
-        "https://invalid.host.name.microsoft.com/"
-        })
+             "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
+                 "https://invalid.host.name.microsoft.com/"
+         })
     {
         printf("--- trying %s", url);
         config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
@@ -1108,23 +1091,23 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
 {
     TestDebugEventListener debugListener;
     std::list<std::tuple<std::string, bool, unsigned>> testParams =
-    {
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  false, 1}, // MS-Rooted, no MS-Root check:     post succeeds
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  true,  1}, // MS-Rooted, MS-Root check:        post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1}, // Non-MS rooted, no MS-Root check: post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", true,  0}  // Non-MS rooted, MS-Root check:    post fails
-    };
+        {
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
+        };
 
     // 4 test runs
-    for (const auto &params : testParams)
+    for (const auto& params : testParams)
     {
         CleanStorage();
 
         auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;                     // avoid sending stats for this test, just customer events
+        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
         config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params); // MS root check depends on what URL we are sending to
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;               // up to 1s wait to perform HTTP post on teardown
+        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
         config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
         auto expectedHttpCount = std::get<2>(params);
 
@@ -1179,7 +1162,7 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
         }));
     }
     // Wait for completion
-    for (auto &thread : threads)
+    for (auto& thread : threads)
         thread.join();
     logBenchMark("destroyed");
     LogManager::FlushAndTeardown();
@@ -1207,14 +1190,14 @@ TEST(APITest, LogManager_DiagLevels)
     // set diagnostic level to a custom value
     auto logger3 = LogManager::GetLogger("my_custom_source");
     logger3->SetLevel(5);
-    
-    std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
-    std::set<uint8_t> logAll   = { };
-    std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
-    auto filters = { logNone, logAll, logRequired };
+    std::set<uint8_t> logNone = {DIAG_LEVEL_NONE};
+    std::set<uint8_t> logAll = {};
+    std::set<uint8_t> logRequired = {DIAG_LEVEL_REQUIRED};
 
-    size_t expectedCounts[] = { 12, 0, 8 };
+    auto filters = {logNone, logAll, logRequired};
+
+    size_t expectedCounts[] = {12, 0, 8};
 
     addAllListeners(eventListener);
 
@@ -1224,14 +1207,14 @@ TEST(APITest, LogManager_DiagLevels)
     {
         // Specify diagnostic level filter
         LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
-        for (auto logger : { logger0, logger1, logger2, logger3 })
+        for (auto logger : {logger0, logger1, logger2, logger3})
         {
             EventProperties defLevelEvent("My.DefaultLevelEvent");
-            logger->LogEvent(defLevelEvent);   // inherit from logger
+            logger->LogEvent(defLevelEvent);  // inherit from logger
 
             EventProperties requiredEvent("My.RequiredEvent");
             requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
-            logger->LogEvent(requiredEvent);   // required
+            logger->LogEvent(requiredEvent);  // required
 
             EventProperties customEvent("My.CustomEvent");
             customEvent.SetLevel(5);
@@ -1251,36 +1234,36 @@ TEST(APITest, Pii_Kind_E2E_Test)
     LogManager::Initialize(TEST_TOKEN, config);
     // Log detailed event with various properties
     EventProperties detailed_event("MyApp.DetailedEvent.Pii",
-        {
+                                   {
 #ifdef _MSC_VER
-            // Log compiler version
-            { "_MSC_VER", _MSC_VER },
+                                       // Log compiler version
+                                       {"_MSC_VER", _MSC_VER},
 #endif
-            // Pii-typed fields
-            { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-            { "piiKind.GenericData",        EventProperty("generic_data",  PiiKind_GenericData) },
-            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
-            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
-            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
-            { "piiKind.PhoneNumber",        EventProperty("+1-425-829-5875", PiiKind_PhoneNumber) },
-            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-            { "piiKind.SipAddress",         EventProperty("sip:info@microsoft.com", PiiKind_SipAddress) },
-            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@fabrikam.com>", PiiKind_SmtpAddress) },
-            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
-            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
-            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
-            // Various typed key-values
-            { "strKey1",  "hello1" },
-            { "strKey2",  "hello2" },
-            { "int64Key", (int64_t)1L },
-            { "dblKey",   3.14 },
-            { "boolKey",  false },
-            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
-            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
-        });
+                                       // Pii-typed fields
+                                       {"piiKind.None", EventProperty("field_value", PiiKind_None)},
+                                       {"piiKind.DistinguishedName", EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM", PiiKind_DistinguishedName)},
+                                       {"piiKind.GenericData", EventProperty("generic_data", PiiKind_GenericData)},
+                                       {"piiKind.IPv4Address", EventProperty("127.0.0.1", PiiKind_IPv4Address)},
+                                       {"piiKind.IPv6Address", EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address)},
+                                       {"piiKind.MailSubject", EventProperty("RE: test", PiiKind_MailSubject)},
+                                       {"piiKind.PhoneNumber", EventProperty("+1-425-829-5875", PiiKind_PhoneNumber)},
+                                       {"piiKind.QueryString", EventProperty("a=1&b=2&c=3", PiiKind_QueryString)},
+                                       {"piiKind.SipAddress", EventProperty("sip:info@microsoft.com", PiiKind_SipAddress)},
+                                       {"piiKind.SmtpAddress", EventProperty("Jack Frost <jackfrost@fabrikam.com>", PiiKind_SmtpAddress)},
+                                       {"piiKind.Identity", EventProperty("Jack Frost", PiiKind_Identity)},
+                                       {"piiKind.Uri", EventProperty("http://www.microsoft.com", PiiKind_Uri)},
+                                       {"piiKind.Fqdn", EventProperty("www.microsoft.com", PiiKind_Fqdn)},
+                                       // Various typed key-values
+                                       {"strKey1", "hello1"},
+                                       {"strKey2", "hello2"},
+                                       {"int64Key", (int64_t)1L},
+                                       {"dblKey", 3.14},
+                                       {"boolKey", false},
+                                       {"guidKey0", GUID_t("00000000-0000-0000-0000-000000000000")},
+                                       {"guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F")},
+                                       {"guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F")},
+                                       {"timeKey1", time_ticks_t((uint64_t)0)},  // time in .NET ticks
+                                   });
     auto logger = LogManager::GetLogger();
     EXPECT_NE(logger, nullptr);
     logger->LogEvent(detailed_event);
@@ -1288,6 +1271,6 @@ TEST(APITest, Pii_Kind_E2E_Test)
     // Verify that contents get hashed by server
 }
 
-#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+#endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
