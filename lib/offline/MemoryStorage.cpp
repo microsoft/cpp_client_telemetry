@@ -8,9 +8,9 @@ namespace ARIASDK_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(MemoryStorage, "EventsSDK.MemoryStorage", "Events telemetry client - MemoryStorage class");
 
     MemoryStorage::MemoryStorage(ILogManager & logManager, IRuntimeConfig & runtimeConfig) :
+        m_observer(nullptr),
         m_config(runtimeConfig),
         m_logManager(logManager),
-        m_observer(nullptr),
         m_size(0),
         m_lastReadCount(0)
     {
