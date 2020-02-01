@@ -60,7 +60,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "msRootCheck",         false }
             ,
                 /* Collector HTTP /ping connectivity check is on by default */
-                { "ping",                true  }
+                { "ping",                false }
             }
         },
         { "tpm",
@@ -206,7 +206,10 @@ namespace ARIASDK_NS_BEGIN {
             return config[key]; // FIXME: [MG] - Error #116: LEAK 32 bytes
         }
 
-        virtual bool HasConfig(const char* key) override
+        /// <summary>
+        /// Check if config map has an item for a given config key
+        /// </summary>
+        virtual bool HasConfig(const char* key) const override
         {
             return config.HasConfig(key);
         }
@@ -216,13 +219,13 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="key">Module name</param>
         /// <returns>Module instance if set, else null</returns>
-        virtual std::shared_ptr<IModule> GetModule(const char* key) override
+        virtual std::shared_ptr<IModule> GetModule(const char* key) const override
         {
             return config.GetModule(key);
         }
 
         /// <summary>
-        /// Access underlying modules mpa
+        /// Access underlying modules map
         /// </summary>
         virtual std::map<std::string, std::shared_ptr<IModule>>& GetModules() override
         {

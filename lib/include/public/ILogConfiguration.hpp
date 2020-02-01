@@ -277,7 +277,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="key">Module name</param>
         /// <returns>Module instance if set, else null</returns>
-        std::shared_ptr<IModule> GetModule(const char* key);
+        std::shared_ptr<IModule> GetModule(const char* key) const;
 
         /// <summary>
         /// Access underlying modules mpa
@@ -289,7 +289,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="key">Config name</param>
         /// <returns>True if config value exists, else false</returns>
-        bool HasConfig(const char* key);
+        bool HasConfig(const char* key) const;
 
         /// <summary>
         /// Get a config value by name, creating a new value if one doesn't already exist
