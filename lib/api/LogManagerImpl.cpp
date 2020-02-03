@@ -97,9 +97,9 @@ namespace ARIASDK_NS_BEGIN
     }
 
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
-        : m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr),
-        m_logConfiguration(configuration)
+        : m_logConfiguration(configuration),
+        m_bandwidthController(nullptr),
+        m_offlineStorage(nullptr)
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
