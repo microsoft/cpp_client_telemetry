@@ -68,11 +68,11 @@ namespace PAL_NS_BEGIN {
             m_task(h.m_task),
             m_taskDispatcher(h.m_taskDispatcher) { };
 
-        bool Cancel()
+        bool Cancel(uint64_t waitTime = 0)
         {
             if (m_task)
             {
-                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task));
+                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, waitTime));
                 m_task = nullptr;
                 m_taskDispatcher = nullptr;
                 return result;

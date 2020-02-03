@@ -6,6 +6,9 @@
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
 #define MAX_FUTURE_DELTA_MS (60 * 60 * 1000)
 
+/* Polling interval for task cancellation */
+#define TASK_CANCEL_WAIT_MS 100
+
 namespace PAL_NS_BEGIN {
 
     class WorkerThreadShutdownItem : public Task
@@ -88,11 +91,27 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        bool Cancel(MAT::Task* item) override
+        bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
-            if ((m_itemInProgress == item)||(item==nullptr))
+            if (item == nullptr)
             {
                 return false;
+            }
+
+            if (m_itemInProgress == item)
+            {
+                /* Can't recursively wait on completion of our own thread */
+                if (m_hThread.get_id() != std::this_thread::get_id())
+                {
+                    LOCKGUARD(m_lock);
+                    while ((waitTime > TASK_CANCEL_WAIT_MS) && (m_itemInProgress == item))
+                    {
+                        PAL::sleep(TASK_CANCEL_WAIT_MS);
+                        waitTime -= TASK_CANCEL_WAIT_MS;
+                    }
+                    /* Either waited long enough or the task is still executing */
+                }
+                return (m_itemInProgress == item);
             }
 
             {
