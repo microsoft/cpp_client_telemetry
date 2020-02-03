@@ -13,6 +13,8 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <mutex>
+
 #include <oacr.h>
 
 namespace ARIASDK_NS_BEGIN {
@@ -27,12 +29,16 @@ class WinInetRequestWrapper
     HINTERNET              m_hWinInetRequest {};
     SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {};
+    std::recursive_mutex   m_connectingMutex;
+    bool                   isAborted;
 
   public:
     WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
+        m_id(request->GetId()),
+        m_hWinInetRequest(nullptr),
         m_request(request),
-        m_id(request->GetId())
+        isAborted(false)
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -55,10 +61,12 @@ class WinInetRequestWrapper
      */
     void cancel()
     {
+        LOCKGUARD(m_connectingMutex);
         if (m_hWinInetRequest != nullptr)
         {
+            isAborted = true;
             ::InternetCloseHandle(m_hWinInetRequest);
-            // don't wait for request callback
+            ::InternetCloseHandle(m_hWinInetSession);
         }
     }
 
@@ -112,11 +120,18 @@ class WinInetRequestWrapper
 
     void send(IHttpResponseCallback* callback)
     {
+        LOCKGUARD(m_connectingMutex);
         m_appCallback = callback;
 
         {
             std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
             m_parent.m_requests[m_id] = this;
+        }
+        if (isAborted)
+        {
+            // Request aborted before being created
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
         }
 
         URL_COMPONENTSA urlc;
@@ -175,7 +190,14 @@ class WinInetRequestWrapper
         for (auto const& header : m_request->m_headers) {
             os << header.first << ": " << header.second << "\r\n";
         }
-        ::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE);
+
+        if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
+        {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
+            onRequestComplete(dwError);
+            return;
+        }
 
         void *data = static_cast<void *>(m_request->m_body.data());
         DWORD size = static_cast<DWORD>(m_request->m_body.size());
@@ -207,9 +229,13 @@ class WinInetRequestWrapper
                 return;
             }
 
+            case INTERNET_STATUS_HANDLE_CLOSING:
+                //nobreak
             case INTERNET_STATUS_REQUEST_COMPLETE: {
                 assert(dwStatusInformationLength >= sizeof(INTERNET_ASYNC_RESULT));
                 INTERNET_ASYNC_RESULT& result = *static_cast<INTERNET_ASYNC_RESULT*>(lpvStatusInformation);
+                if (dwInternetStatus==INTERNET_STATUS_HANDLE_CLOSING)
+                    result.dwError = ERROR_INTERNET_OPERATION_CANCELLED;
                 assert(hInternet == self->m_hWinInetRequest);
                 if ((self != nullptr) && (self->m_hWinInetRequest != nullptr)) {
                     self->onRequestComplete(result.dwError);

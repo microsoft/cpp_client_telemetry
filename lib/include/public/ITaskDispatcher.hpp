@@ -40,7 +40,11 @@ namespace ARIASDK_NS_BEGIN
             /// <summary>
             /// A Done item is an item that has been marked by the worker thread as already completed.
             /// </summary>
-            Done
+            Done,
+            /// <summary>
+            /// A Cancelled item is an item that has been marked by the worker thread as Cancelled.
+            /// </summary>
+            Cancelled
         } Type;
 
         /// <summary>
@@ -92,8 +96,9 @@ namespace ARIASDK_NS_BEGIN
         /// Cancel a previously queued tasks
         /// </summary>
         /// <param name="task">Task to be cancelled</param>
+        /// <param name="waitTime">Amount of time to wait for if the task is currently executing</param>
         /// <returns>True if successfully cancelled, else false</returns>
-        virtual bool Cancel(Task* task) = 0;
+        virtual bool Cancel(Task* task, uint64_t waitTime = 0) = 0;
     };
 
     /// @endcond

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+ // Copyright (c) Microsoft. All rights reserved.
 #ifdef _MSC_VER
 // evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
 #pragma warning( disable : 4459 )
@@ -307,7 +307,10 @@ namespace ARIASDK_NS_BEGIN
             m_system = nullptr;
 
             m_loggers.clear();
-
+#if 0
+            /* TODO: [maxgolov] - need to instrument a mock to test the slow shutdown vs. UploadNow interactions */
+            MAT::sleep(1000);
+#endif
             m_offlineStorage.reset();
             m_ownBandwidthController.reset();
             m_bandwidthController = nullptr;
