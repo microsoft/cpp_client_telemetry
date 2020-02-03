@@ -1,3 +1,4 @@
+// clang-format off
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 
@@ -11,6 +12,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <vector>
 #include <oacr.h>
@@ -22,17 +24,21 @@ class WinInetRequestWrapper
   protected:
     HttpClient_WinInet&    m_parent;
     std::string            m_id;
-    IHttpResponseCallback* m_appCallback {};
-    HINTERNET              m_hWinInetSession {};
-    HINTERNET              m_hWinInetRequest {};
+    IHttpResponseCallback* m_appCallback{ nullptr };
+    HINTERNET              m_hWinInetSession { nullptr };
+    HINTERNET              m_hWinInetRequest { nullptr };
     SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {};
+    std::recursive_mutex   m_connectingMutex;
+    bool                   isAborted { false };
+    bool                   isCallbackCalled { false };
 
   public:
     WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
-        m_request(request),
-        m_id(request->GetId())
+        m_id(request->GetId()),
+        m_hWinInetRequest(nullptr),
+        m_request(request)
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -55,10 +61,11 @@ class WinInetRequestWrapper
      */
     void cancel()
     {
+        LOCKGUARD(m_connectingMutex);
         if (m_hWinInetRequest != nullptr)
         {
+            isAborted = true;
             ::InternetCloseHandle(m_hWinInetRequest);
-            // don't wait for request callback
         }
     }
 
@@ -119,6 +126,17 @@ class WinInetRequestWrapper
             m_parent.m_requests[m_id] = this;
         }
 
+        m_connectingMutex.lock();
+        if (isAborted)
+        {
+            // Request aborted before being created
+            m_connectingMutex.unlock();
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            // Note that at this point the object just self-destroyed.
+            return;
+        }
+        m_connectingMutex.unlock();
+
         URL_COMPONENTSA urlc;
         memset(&urlc, 0, sizeof(urlc));
         urlc.dwStructSize = sizeof(urlc);
@@ -131,7 +149,7 @@ class WinInetRequestWrapper
         if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc)) {
             DWORD dwError = ::GetLastError();
             LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
-            onRequestComplete(dwError);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
             return;
         }
 
@@ -140,10 +158,11 @@ class WinInetRequestWrapper
         if (m_hWinInetSession == NULL) {
             DWORD dwError = ::GetLastError();
             LOG_WARN("InternetConnect() failed: %d", dwError);
-            onRequestComplete(dwError);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
             return;
         }
         // TODO: Session handle for the same target should be cached across requests to enable keep-alive.
+        DispatchEvent(OnConnecting);
 
         PCSTR szAcceptTypes[] = {"*/*", NULL};
         m_hWinInetRequest = ::HttpOpenRequestA(
@@ -155,9 +174,10 @@ class WinInetRequestWrapper
         if (m_hWinInetRequest == NULL) {
             DWORD dwError = ::GetLastError();
             LOG_WARN("HttpOpenRequest() failed: %d", dwError);
-            onRequestComplete(dwError);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
             return;
         }
+        DispatchEvent(OnCreated);
 
         /* Perform optional MS Root certificate check for certain end-point URLs */
         if (m_parent.IsMsRootCheckRequired())
@@ -175,7 +195,13 @@ class WinInetRequestWrapper
         for (auto const& header : m_request->m_headers) {
             os << header.first << ": " << header.second << "\r\n";
         }
-        ::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE);
+        if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
+        {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
+        }
 
         void *data = static_cast<void *>(m_request->m_body.data());
         DWORD size = static_cast<DWORD>(m_request->m_body.size());
@@ -185,7 +211,8 @@ class WinInetRequestWrapper
         if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
             dwError = ::GetLastError();
             LOG_WARN("HttpSendRequest() failed: %d", dwError);
-            onRequestComplete(dwError);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
         }
     }
 
@@ -207,6 +234,9 @@ class WinInetRequestWrapper
                 return;
             }
 
+            case INTERNET_STATUS_HANDLE_CLOSING:
+                break;
+
             case INTERNET_STATUS_REQUEST_COMPLETE: {
                 assert(dwStatusInformationLength >= sizeof(INTERNET_ASYNC_RESULT));
                 INTERNET_ASYNC_RESULT& result = *static_cast<INTERNET_ASYNC_RESULT*>(lpvStatusInformation);
@@ -219,6 +249,14 @@ class WinInetRequestWrapper
 
             default:
                 return;
+        }
+    }
+
+    void DispatchEvent(HttpStateEvent type)
+    {
+        if (m_appCallback != nullptr)
+        {
+            m_appCallback->OnHttpStateEvent(type, static_cast<void*>(m_hWinInetRequest), 0);
         }
     }
 
@@ -348,9 +386,16 @@ class WinInetRequestWrapper
             }
         }
 
-        // 'response' gets released in EventsUploadContext.clear()
-        m_appCallback->OnHttpResponse(response.release());
-        m_parent.erase(m_id);
+        assert(isCallbackCalled==false);
+        if (!isCallbackCalled)
+        {
+            // 'response' gets released in EventsUploadContext.clear()
+            ::InternetSetStatusCallback(m_hWinInetRequest, nullptr);
+            isCallbackCalled = true;
+            m_appCallback->OnHttpResponse(response.release());
+            // parent is destroying the request object by id
+            m_parent.erase(m_id);
+        }
     }
 };
 
@@ -454,3 +499,4 @@ bool HttpClient_WinInet::IsMsRootCheckRequired()
 } ARIASDK_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+// clang-format on

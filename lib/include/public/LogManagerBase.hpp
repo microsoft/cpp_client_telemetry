@@ -304,6 +304,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static status_t UploadNow()
         {
+            LM_LOCKGUARD(stateLock());
             if (isHost())
                 LM_SAFE_CALL(GetLogController()->UploadNow);
             return STATUS_EPERM; // Permission denied
