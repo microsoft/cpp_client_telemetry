@@ -243,13 +243,15 @@ namespace PAL_NS_BEGIN {
 
     std::shared_ptr<ITaskDispatcher> PlatformAbstractionLayer::getDefaultTaskDispatcher()
     {
-        if (m_taskDispatcher == nullptr)
-        {
-            // Default implementation of task dispatcher is a single-threaded worker thread task queue
-            LOG_TRACE("Initializing PAL worker thread");
-            m_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
-        }
-        return m_taskDispatcher;
+        // if (m_taskDispatcher == nullptr)
+        // {
+        //     // Default implementation of task dispatcher is a single-threaded worker thread task queue
+        //     LOG_TRACE("Initializing PAL worker thread");
+        //     m_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
+        // }
+        // return m_taskDispatcher;
+
+        return std::shared_ptr<ITaskDispatcher>(PAL::WorkerThreadFactory::Create());
     }
 
 #ifdef _MSC_VER
