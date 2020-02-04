@@ -11,4 +11,131 @@ std::string JStringToStdString(JNIEnv* env, jstring jstr) {
     return str;
 }
 
+EventProperty GetEventProperty(JNIEnv* env, jobject jEventProperty) {
+    jclass jEventPropertyClass = env->GetObjectClass(jEventProperty);
+    jmethodID getEventPropertyValueMethodID = env->GetMethodID(jEventPropertyClass, "getEventPropertyValue", "()Lcom/microsoft/applications/events/EventPropertyValue;");
+    jobject jEventPropertyValue = env->CallObjectMethod(jEventProperty, getEventPropertyValueMethodID);
+
+    jclass jEventPropertyValueClass = env->GetObjectClass(jEventPropertyValue);
+    jmethodID getTypeMethodID = env->GetMethodID(jEventPropertyValueClass, "getType", "()I");
+    jint type = env->CallIntMethod(jEventPropertyValueClass, getTypeMethodID);
+
+    jmethodID methodIdToGetValueForDataTypes;
+    EventProperty eventProperty;
+    switch(static_cast<int>(type))
+    {
+        case EventProperty::TYPE_STRING : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getString", "()Ljava/lang/String;");
+            auto jValue = static_cast<jstring>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            eventProperty = JStringToStdString(env, jValue);
+            env->DeleteGlobalRef(jValue);
+            break;
+        }
+
+        case EventProperty::TYPE_INT64: {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getLong", "()J");
+            auto jValue = env->CallLongMethod(jEventPropertyValue, methodIdToGetValueForDataTypes);
+            eventProperty = static_cast<int64_t>(jValue);
+            break;
+        }
+
+        case EventProperty::TYPE_DOUBLE: {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getDouble", "()D");
+            auto jValue = env->CallDoubleMethod(jEventPropertyValue, methodIdToGetValueForDataTypes);
+            eventProperty = static_cast<double>(jValue);
+            break;
+        }
+
+        case EventProperty::TYPE_TIME : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getTimeTicks", "()J");
+            auto jValue = env->CallLongMethod(jEventPropertyValue, methodIdToGetValueForDataTypes);
+            eventProperty = time_ticks_t(static_cast<long>(jValue));
+            break;
+        }
+
+        case EventProperty::TYPE_BOOLEAN : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getBoolean", "()Z");
+            auto jValue = env->CallBooleanMethod(jEventPropertyValue, methodIdToGetValueForDataTypes);
+            eventProperty = static_cast<bool>(jValue);
+            break;
+        }
+
+        case EventProperty::TYPE_GUID : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getGuid", "()Ljava/lang/String;");
+            auto jValue = static_cast<jstring>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            auto value = JStringToStdString(env, jValue);
+            eventProperty = GUID_t(value.c_str());
+            env->DeleteLocalRef(jValue);
+            break;
+        }
+
+        case EventProperty::TYPE_STRING_ARRAY : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getStringArray", "()[Ljava/lang/String;");
+            auto jObjArray = static_cast<jobjectArray>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            std::vector<std::string> vectorOfProperties;
+            for(int i = 0; i < env->GetArrayLength(jObjArray); ++i) {
+                auto jValue = static_cast<jstring>(env->GetObjectArrayElement(jObjArray, i));
+                auto value = JStringToStdString(env, jValue);
+                vectorOfProperties.push_back(value);
+                env->DeleteLocalRef(jValue);
+            }
+            eventProperty = vectorOfProperties;
+            env->DeleteLocalRef(jObjArray);
+            break;
+        }
+
+        case EventProperty::TYPE_INT64_ARRAY : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getLongArray", "()[J");
+            auto jArrayOfElements = static_cast<jlongArray>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            auto elements = env->GetLongArrayElements(jArrayOfElements, JNI_FALSE);
+            std::vector<int64_t> vectorOfProperties;
+            for(int i=0; i < env->GetArrayLength(jArrayOfElements); ++i) {
+                vectorOfProperties.push_back(static_cast<int64_t>(elements[i]));
+            }
+            eventProperty = vectorOfProperties;
+            env->ReleaseLongArrayElements(jArrayOfElements, elements, 0);
+            env->DeleteLocalRef(jArrayOfElements);
+            break;
+        }
+
+        case EventProperty::TYPE_DOUBLE_ARRAY : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getDoubleArray", "()[D");
+            auto jArrayOfElements = static_cast<jdoubleArray>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            auto elements = env->GetDoubleArrayElements(jArrayOfElements, JNI_FALSE);
+            std::vector<double> vectorOfProperties;
+            for(int i=0; i < env->GetArrayLength(jArrayOfElements); ++i) {
+                vectorOfProperties.push_back(static_cast<double>(elements[i]));
+            }
+            eventProperty = vectorOfProperties;
+            env->ReleaseDoubleArrayElements(jArrayOfElements, elements, 0);
+            env->DeleteLocalRef(jArrayOfElements);
+            break;
+        }
+
+        case EventProperty::TYPE_GUID_ARRAY : {
+            methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getGuidArray", "()[Ljava/lang/String;");
+            auto jObjArray = static_cast<jobjectArray>(env->CallObjectMethod(jEventPropertyValue, methodIdToGetValueForDataTypes));
+            std::vector<GUID_t> vectorOfProperties;
+            for(int i = 0; i < env->GetArrayLength(jObjArray); ++i) {
+                auto jValue = static_cast<jstring>(env->GetObjectArrayElement(jObjArray, i));
+                auto value = JStringToStdString(env, jValue);
+                vectorOfProperties.push_back(GUID_t(value.c_str()));
+                env->DeleteLocalRef(jValue);
+            }
+            eventProperty = vectorOfProperties;
+            env->DeleteLocalRef(jObjArray);
+            break;
+        }
+
+        default :
+            throw "Unsupported EventPropertyType = " + std::to_string(type);
+    }
+
+    env->DeleteLocalRef(jEventPropertyValueClass);
+    env->DeleteLocalRef(jEventPropertyValue);
+    env->DeleteLocalRef(jEventPropertyClass);
+
+    return (eventProperty);
+}
+
 } ARIASDK_NS_END

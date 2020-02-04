@@ -19,14 +19,16 @@ public class EventProperty {
         return m_category;
     }
 
-    EventPropertyValue getEventPropertyValue() {
+    public EventPropertyValue getEventPropertyValue() {
         return m_eventPropertyValue;
     }
 
     /**
      * The EventProperty constructor, taking a string, and the kind of personal identifiable information.
+     * and tags the property with default DataCategory_PartC.
      * @param value A string.
-     */    public EventProperty(final String value) {
+     */
+    public EventProperty(final String value) {
         this(value, PiiKind.PiiKind_None, DataCategory.DataCategory_PartC);
     }
 
@@ -36,7 +38,14 @@ public class EventProperty {
      * @param piiKind The kind of personal identifiable information.
      * @param category DataCategory of the event
      */
-    public EventProperty(String value, PiiKind piiKind, DataCategory category) {
+    public EventProperty(final String value, final PiiKind piiKind, final DataCategory category) {
+        if (value == null || value.trim().isEmpty())
+            throw new IllegalArgumentException("value is null or empty");
+        if (piiKind == null)
+            throw new IllegalArgumentException("piiKind is null");
+        if (category == null)
+            throw new IllegalArgumentException("category is null");
+
         m_piiKind = piiKind;
         m_category = category;
         m_eventPropertyValue = new EventPropertyStringValue(value);
@@ -54,7 +63,7 @@ public class EventProperty {
     //    eventPropertyValue = new EventPropertyBooleanValue(value);
     //}
     //
-    //public EventProperty(final ChronoZonedDateTime value) {
+    //public EventProperty(final time_ticks_t value) {
     //    eventPropertyValue = new EventPropertyTimeTicksValue(value);
     //}
     //

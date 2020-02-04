@@ -104,7 +104,7 @@ public class ISemanticContext {
         nativeSetUserId(m_nativeISemanticContextPtr, userId, piiKind_Identity.getValue());
     }
 
-    private native void nativeSetCommonStringField(long nativeISemanticContextPtr, String name, int piiKind, int category, String eventPropertyValue);
+    private native void nativeSetCommonField(long nativeISemanticContextPtr, String name, EventProperty value);
 
     /**
      * Sets the common Part A/B field.
@@ -117,36 +117,10 @@ public class ISemanticContext {
         if (value == null)
             throw new IllegalArgumentException("value is null");
 
-        EventPropertyValue eventPropertyValue = value.getEventPropertyValue();
-        PiiKind piiKind = value.getPiiKind();
-        DataCategory category = value.getDataCategory();
-
-        switch(eventPropertyValue.getType()) {
-            case STRING :
-                nativeSetCommonStringField(m_nativeISemanticContextPtr, name, piiKind.getValue(), category.getValue(), eventPropertyValue.getString());
-                break;
-            case LONG :
-                break;
-            case DOUBLE :
-                break;
-            case TIME :
-                break;
-            case BOOLEAN :
-                break;
-            case GUID :
-                break;
-            case STRING_ARRAY :
-                break;
-            case LONG_ARRAY :
-                break;
-            case DOUBLE_ARRAY :
-                break;
-            case GUID_ARRAY :
-                break;
-        }
+        nativeSetCommonField(m_nativeISemanticContextPtr, name, value);
     }
 
-    private native void nativeSetCustomStringField(long nativeISemanticContextPtr, String name, int piiKind, int category, String eventPropertyValue);
+    private native void nativeSetCustomField(long nativeISemanticContextPtr, String name, EventProperty value);
     /**
      * Sets the custom Part C field.
      * @param name Field name
@@ -158,33 +132,8 @@ public class ISemanticContext {
         if (value == null)
             throw new IllegalArgumentException("value is null");
 
-        EventPropertyValue eventPropertyValue = value.getEventPropertyValue();
-        PiiKind piiKind = value.getPiiKind();
-        DataCategory category = value.getDataCategory();
 
-        switch(eventPropertyValue.getType()) {
-            case STRING :
-                nativeSetCustomStringField(m_nativeISemanticContextPtr, name, piiKind.getValue(), category.getValue(), eventPropertyValue.getString());
-                break;
-            case LONG :
-                break;
-            case DOUBLE :
-                break;
-            case TIME :
-                break;
-            case BOOLEAN :
-                break;
-            case GUID :
-                break;
-            case STRING_ARRAY :
-                break;
-            case LONG_ARRAY :
-                break;
-            case DOUBLE_ARRAY :
-                break;
-            case GUID_ARRAY :
-                break;
-        }
+        nativeSetCustomField(m_nativeISemanticContextPtr, name, value);
     }
 
     private native void nativeSetTicket(long nativeISemanticContextPtr, int ticketType, String ticketValue);

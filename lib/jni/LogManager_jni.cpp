@@ -1,12 +1,12 @@
-#include "http/HttpClient_Android.hpp"
+//#include "http/HttpClient_Android.hpp"
 #include "LogManagerBase.hpp"
 #include "LogManager.hpp"
 #include "ILogger.hpp"
 #include "JniUtils.hpp"
-#include <algorithm>
-#include <cstdio>
-#include <sstream>
-#include <vector>
+//#include <algorithm>
+//#include <cstdio>
+//#include <sstream>
+//#include <vector>
 
 //constexpr static auto Tag = "LogManagerBase_jni";
 using namespace MAT;
@@ -18,7 +18,7 @@ extern "C"
 JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_initalizeWithoutTenantToken(
         JNIEnv* /* env */,
         jclass /* this */) {
-    ILogger *logger = Microsoft::Applications::Events::LogManager::Initialize();
+    ILogger* logger = Microsoft::Applications::Events::LogManager::Initialize();
     return reinterpret_cast<jlong>(logger);
 }
 
@@ -104,11 +104,10 @@ JNIEXPORT jstring JNICALL Java_com_microsoft_applications_events_LogManager_getT
 JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetSemanticContext(
         JNIEnv* env,
         jclass /* this */) {
-    std::string profileName = Microsoft::Applications::Events::LogManager::GetTransmitProfileName();
     return reinterpret_cast<jlong>(Microsoft::Applications::Events::LogManager::GetSemanticContext());
 }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContext(
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextStringValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
@@ -116,10 +115,69 @@ JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_native
         jint piiKind) {
     auto name = JStringToStdString(env, jstrName);
     auto value = JStringToStdString(env, jstrValue);
-
-    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, value, static_cast<PiiKind >(piiKind)));
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, value, static_cast<PiiKind>(piiKind)));
 }
 
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextIntValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jint jValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, static_cast<int32_t>(jValue), static_cast<PiiKind>(piiKind)));
+}
+
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextLongValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jlong jValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, static_cast<int64_t>(jValue), static_cast<PiiKind>(piiKind)));
+}
+
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextDoubleValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jdouble jValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, static_cast<double>(jValue), static_cast<PiiKind>(piiKind)));
+}
+
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextBoolValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jboolean jValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, static_cast<bool>(jValue), static_cast<PiiKind>(piiKind)));
+}
+
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextTimeTicksValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jlong jValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, time_ticks_t(static_cast<uint64_t>(jValue)), static_cast<PiiKind>(piiKind)));
+}
+
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextGuidValue(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName,
+        jstring jstrValue,
+        jint piiKind) {
+    auto name = JStringToStdString(env, jstrName);
+    auto value = JStringToStdString(env, jstrValue);
+    return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetContext(name, GUID_t(value.c_str()), static_cast<PiiKind>(piiKind)));
+}
 
 JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLogger(
         JNIEnv* /* env */,
