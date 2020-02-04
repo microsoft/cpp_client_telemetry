@@ -17,26 +17,30 @@ endif()
 
 # iOS build options
 option(BUILD_IOS           "Build for iOS"               NO)
-option(BUILD_SIMULATOR     "Build using simulator SDK"   NO)
-
-# Begin Uncomment for iOS Device build
-#set(BUILD_SIMULATOR NO)
-# End of iOS Device build
 
 if(BUILD_IOS)
   set(TARGET_ARCH "APPLE")
   set(IOS True)
   set(APPLE True)
-  set (CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
 
-  if(BUILD_SIMULATOR)
+  if(${IOS_ARCH} STREQUAL "x86_64")
     set(IOS_PLATFORM "iphonesimulator")
     set(CMAKE_SYSTEM_PROCESSOR x86_64)
-  else()
+  elseif(${IOS_ARCH} STREQUAL "arm64")
     set(IOS_PLATFORM "iphoneos")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
     set(CMAKE_SYSTEM_PROCESSOR arm64)
+  elseif(${IOS_ARCH} STREQUAL "arm64e")
+    set(IOS_PLATFORM "iphoneos")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
+    set(CMAKE_SYSTEM_PROCESSOR arm64e)
+  else()
+    message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
   endif()
 
   execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} Path
@@ -47,7 +51,7 @@ if(BUILD_IOS)
 endif()
 
 message("-- BUILD_IOS:              ${BUILD_IOS}")
-message("-- BUILD_SIMULATOR:        ${BUILD_SIMULATOR}")
+message("-- IOS_ARCH:               ${IOS_ARCH}")
 message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
 message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
