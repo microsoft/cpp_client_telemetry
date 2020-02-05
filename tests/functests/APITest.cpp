@@ -419,7 +419,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
             // TODO: it is possible that collector would return 503 here, in that case we may not get the 'kill-tokens' hint.
             // If it ever happens, the test would fail because the second iteration might try to upload.
-            EXPECT_EQ(1, debugListener.numHttpError);
+            EXPECT_EQ(1u, debugListener.numHttpError);
             debugListener.numCached = 0;
         }
         if (i == 1)
@@ -427,12 +427,12 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             // At this point we should get the error response from collector because we ingested with invalid tokens.
             // Collector should have also asked us to ban that token... Check the counts
             EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
-            EXPECT_EQ(0, debugListener.numCached);
+            EXPECT_EQ(0u, debugListener.numCached);
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numDropped);
         }
     }
     LogManager::FlushAndTeardown();
-    EXPECT_EQ(0, debugListener.numCached);
+    EXPECT_EQ(0u, debugListener.numCached);
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
@@ -473,7 +473,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         debugListener.storageFullPct = 0;
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::FlushAndTeardown();
-        EXPECT_EQ(debugListener.storageFullPct.load(), 0);
+        EXPECT_EQ(debugListener.storageFullPct.load(), 0u);
 
     }
     debugListener.numCached = 0;
@@ -489,12 +489,12 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
-    EXPECT_EQ(0, debugListener.numDropped);
-    EXPECT_EQ(0, debugListener.numReject);
+    EXPECT_EQ(0u, debugListener.numDropped);
+    EXPECT_EQ(0u, debugListener.numReject);
 
     LogManager::UploadNow();             // Try to upload whatever we got
     PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0, debugListener.numSent); // Some posts must succeed within 500ms
+    EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
     LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
 
