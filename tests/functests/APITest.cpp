@@ -767,7 +767,7 @@ TEST(APITest, C_API_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
     };
 
     evt_handle_t handle = evt_open(config);
@@ -788,7 +788,7 @@ TEST(APITest, C_API_Test)
     {
         evt_log(handle, event);
     }
-    EXPECT_EQ(totalEvents, 5);
+    EXPECT_EQ(totalEvents, 5u);
 
     evt_flush(handle);
     evt_upload(handle);
@@ -850,7 +850,7 @@ TEST(APITest, UTC_Callback_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
 
         // Transform to JSON and print
         std::string s;
@@ -910,7 +910,7 @@ TEST(APITest, Pii_DROP_Test)
             return;
         }
 
-        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0ul);
         // more events with random device id
         EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
         EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
@@ -954,7 +954,7 @@ TEST(APITest, Pii_DROP_Test)
     }
 
     LogManager::FlushAndTeardown();
-    ASSERT_EQ(totalEvents, 4);
+    ASSERT_EQ(totalEvents, 4u);
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 
 }
