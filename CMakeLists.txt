@@ -15,6 +15,11 @@ if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
+# Enable ARC for obj-c on Apple
+if(APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
+endif()
+
 # iOS build options
 option(BUILD_IOS           "Build for iOS"               NO)
 
