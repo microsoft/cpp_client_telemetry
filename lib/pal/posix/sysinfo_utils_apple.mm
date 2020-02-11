@@ -23,7 +23,7 @@ NSDictionary* copy_system_plist_dictionary(void)
 
 NSString* get_system_value(NSString* key)
 {
-    NSDictionary* systemProperties = copy_system_plist_dictionary();
+    static NSDictionary* systemProperties = copy_system_plist_dictionary();
     if (systemProperties)
     {
         NSString* propertyValue = [systemProperties objectForKey:key];
