@@ -24,6 +24,7 @@ namespace ARIASDK_NS_BEGIN {
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
+        m_flushPending(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -31,8 +32,7 @@ namespace ARIASDK_NS_BEGIN {
         m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
-        m_isStorageFullNotificationSend(false),
-        m_flushPending(false)
+        m_isStorageFullNotificationSend(false)
     {
         // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
@@ -175,9 +175,12 @@ namespace ARIASDK_NS_BEGIN {
 
             while (records.size())
             {
-                ids.push_back(records.back().id);
-                if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
-                    totalSaved++;
+                if (records.back().persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
+                {
+                    ids.push_back(records.back().id);
+                    if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
+                        totalSaved++;
+                }
                 records.pop_back();
             }
 
@@ -185,7 +188,7 @@ namespace ARIASDK_NS_BEGIN {
             //            if (sqlite)
             //                sqlite->Execute("END");
 
-                        // Delete records from reserved on flush
+            // Delete records from reserved on flush
             HttpHeaders dummy;
             bool fromMemory = true;
             m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
@@ -264,7 +267,10 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (m_offlineStorageDisk != nullptr)
             {
-                m_offlineStorageDisk->StoreRecord(record);
+                if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
+                {
+                    m_offlineStorageDisk->StoreRecord(record);
+                }
             }
         }
 

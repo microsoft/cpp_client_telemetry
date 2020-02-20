@@ -2,6 +2,9 @@
 #include "pal/PAL.hpp"
 
 #include "Utils.hpp"
+#ifdef ANDROID
+#include "http/HttpClient_Android.hpp"
+#endif
 
 #include <algorithm>
 #include <string>
@@ -99,24 +102,34 @@ namespace ARIASDK_NS_BEGIN {
         return path;
 #else
         std::string result;
+#ifdef ANDROID
+        result = HttpClient_Android::GetCacheFilePath();
+        if (result.empty())
+        {
+           result = "/data/local/tmp";
+        }
+#else
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
             result = tmp;
-        }
+        } 
         else {
 #ifdef P_tmpdir
             if (P_tmpdir != NULL)
                 result = P_tmpdir;
 #endif
         }
+#ifdef _PATH_TMP
         if (result.empty())
         {
             result = _PATH_TMP;
         }
+#endif
         if (result.empty())
         {
             result = "/tmp";
         }
+#endif
         result += "/";
         return result;
 #endif
@@ -287,22 +300,6 @@ namespace ARIASDK_NS_BEGIN {
         buf[35] = inttoHex[test];
         buf[36] = 0;
         return std::string(buf);
-    }
-
-    /** \brief Convert UTF-8 to UTF-16
-    */
-    std::wstring to_utf16_string(const std::string& in)
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-        return converter.from_bytes(in);
-    }
-
-    /** \brief Convert UTF-16 to UTF-8
-    */
-    std::string to_utf8_string(const std::wstring& in)
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-        return converter.to_bytes(in);
     }
 
 #ifdef _WINRT
