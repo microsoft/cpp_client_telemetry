@@ -45,10 +45,6 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-#ifdef ANDROID
-    extern ILogManager* g_jniLogManager;
-#endif
-
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         // LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -101,9 +97,9 @@ namespace ARIASDK_NS_BEGIN
     }
 
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
-        : m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr),
-        m_logConfiguration(configuration)
+        : m_logConfiguration(configuration),
+        m_bandwidthController(nullptr),
+        m_offlineStorage(nullptr)
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
@@ -268,11 +264,6 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Started up and running");
         m_alive = true;
 
-#ifdef ANDROID
-        if (g_jniLogManager == nullptr) {
-            g_jniLogManager = this;
-        }
-#endif
     }
     
     /// <summary>
@@ -334,11 +325,7 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Shutdown complete in %lld ms", shutTime);
 
         m_alive = false;
-#ifdef ANDROID
-        if (g_jniLogManager == this) {
-            g_jniLogManager = nullptr;
-        }
-#endif
+
     }
 
     status_t LogManagerImpl::Flush()

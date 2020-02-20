@@ -20,7 +20,11 @@
   #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
     #include "http/HttpClient_Apple.hpp"
   #else
+  #ifdef ANDROID
+    #include "http/HttpClient_Android.hpp"
+  #else
     #include "http/HttpClient_Curl.hpp"
+  #endif
   #endif
 #else
   #error The library cannot work without an HTTP client implementation.
@@ -52,10 +56,16 @@ namespace ARIASDK_NS_BEGIN {
         return std::make_shared<HttpClient_Apple>();
     }
 #else
+#ifdef ANDROID
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        return HttpClient_Android::GetClientInstance();
+    }
+#else
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Curl");
         return std::make_shared<HttpClient_Curl>();
     }
+#endif
 #endif
 #else
 #error The library cannot work without an HTTP client implementation.

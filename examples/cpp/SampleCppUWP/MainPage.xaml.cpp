@@ -109,7 +109,7 @@ void MainPage::SimpleTestClick(Platform::Object^ sender, Windows::UI::Xaml::Rout
 
     ILogger *logger = LogManager::GetLogger("myModuleLogger");
 
-    EventProperties props("HelloTelemetrySample",
+    EventProperties props("Microsoft.SampleCppUWP.HelloTelemetrySample",
     {
         { "_MSC_VER", _MSC_VER },
 

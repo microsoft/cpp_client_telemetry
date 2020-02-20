@@ -73,9 +73,9 @@ namespace ARIASDK_NS_BEGIN {
 
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body);
         curlRequest->SetOperation(curlOperation);
-
-        // Hold on to 'curlOperation' in lambda to ensure its lifetime until operation completes
-        curlOperation->SendAsync([this, curlOperation, callback, requestId](CurlHttpOperation& operation) {
+        
+        // The liftime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
+        curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
             this->EraseRequest(requestId);
 
             auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));

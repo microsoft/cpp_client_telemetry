@@ -12,6 +12,11 @@ namespace PAL_NS_BEGIN {
     {
     public:
         /// <summary>
+        /// Destructor.
+        /// </summary>
+        virtual ~IPropertyChangedCallback() noexcept = default;
+
+        /// <summary>
         /// Called when a property value changes.
         /// </summary>
         /// <param name="propertyName">The name of the property</param>
