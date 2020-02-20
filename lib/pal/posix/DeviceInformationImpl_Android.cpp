@@ -133,7 +133,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_onPowerChange(JNIEnv* env,
+Java_com_microsoft_applications_events_httpClient_onPowerChange(JNIEnv* env,
 	jobject /* java_client */,
     jboolean isCharging, 
     jboolean isLow)
