@@ -1,0 +1,29 @@
+name: Build for Android
+
+on:
+  push:
+    branches:
+      maharrim/*
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build for Android
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Chocolatey
+      run: |
+        choco install --no-progress -y android-ndk
+        choco install --no-progress -y android-sdk
+        choco install --no-progress -y ninja
+    - name: Gradle Build
+      run: |
+        cd "$Env:GITHUB_WORKSPACE\lib\android_build"
+        .\gradlew.bat assemble
+        dir maesdk\build\outputs
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: maesdk
+        path: lib\android_build\maesdk\build\outputs\aar
