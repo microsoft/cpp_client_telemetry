@@ -51,7 +51,7 @@ NS_ASSUME_NONNULL_BEGIN
  @brief Logs a page action event.
  @param identifier A string that contains that uniquely identifies the page view.
  @param pageName The page name.
- @param properties Properties of the page action event, encapsulated within an ODWEventProperties object.
+ @param properties Properties of the page action event, encapsulated within an ODWEventProperties object. Properties could be used to log the action name.
  */
 -(void)logPageViewWithId:(NSString *)identifier
                  pageName:(NSString *)pageName
@@ -64,7 +64,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param category A string that contains the name of the category this page belongs to.
  @param uri A string that contains the URI of this page.
  @param referrerUri A string that contains the URI that refers to this page.
- @param properties Properties of the page action event, encapsulated within an ODWEventProperties object.
+ @param properties Properties of the page action event, encapsulated within an ODWEventProperties object. Properties could be used to log the action name.
  */
 -(void)logPageViewWithId:(NSString *)identifier
                  pageName:(NSString *)pageName
