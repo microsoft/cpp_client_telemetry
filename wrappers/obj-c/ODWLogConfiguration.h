@@ -11,6 +11,17 @@
 */
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
 
+/*!
+@brief Sets if tracing is enabled.
+@param enableTrace True if tracing is enabled.
+*/
++(void)setEnableTrace:(bool)enableTrace;
+
+/*!
+@brief Returns true if tracing is enabled.
+*/
++(bool)enableTrace;
+
 @end
 
 #include "objc_end.h"
