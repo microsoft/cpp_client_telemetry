@@ -85,7 +85,7 @@ for more details.
 * Please refer to the supported [platforms](#build), anything not in the list
   should be treated as a feature request.
 * Only C and C++ API surface is supported - any other language wrappers are
-  provided as-is, and not recommended.
+  provided as-is, and not supported.
 * Build issues are in general out of the support scope due to the unlimited
   number of build flags combinations.
 
