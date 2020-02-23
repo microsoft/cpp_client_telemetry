@@ -3,8 +3,13 @@ name: Build for Android
 on:
   push:
     branches:
-      maharrim/*
-
+    - master
+    - release/*
+    - buildme/*
+    - maharrim/*
+  pull_request:
+    branches:
+    - master
 jobs:
   build:
     runs-on: windows-latest
@@ -21,7 +26,13 @@ jobs:
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
-        dir maesdk\build\outputs
+        .\gradlew.bat maesdk:test
+    - name: Upload Reports
+      if: failure()
+      uses: actions/upload-artifact@v1
+      with:
+        name: reports
+        path: lib\android_build\maesdk\build\reports
     - name: Upload Artifacts
       uses: actions/upload-artifact@v1
       with:
