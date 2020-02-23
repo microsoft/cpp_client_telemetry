@@ -75,9 +75,10 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
 
 class Request implements Runnable {
 
-    Request(String url, String method, byte[] body, String request_id, int[] header_length, byte[] header_buffer)
+    Request(httpClient parent, String url, String method, byte[] body, String request_id, int[] header_length, byte[] header_buffer)
             throws java.net.MalformedURLException, java.io.IOException {
-        m_url = new URL(url);
+        m_parent = parent;
+        m_url = parent.newUrl(url);
         m_connection = (HttpURLConnection) m_url.openConnection();
         m_connection.setRequestMethod(method);
         m_body = body;
@@ -150,21 +151,14 @@ class Request implements Runnable {
         } finally {
             m_connection.disconnect();
         }
-        dispatchCallback(m_request_id, response, headerArray, body);
+        m_parent.dispatchCallback(m_request_id, response, headerArray, body);
     }
-
-    public void dispatchCallback(String id, int response, Object[] headers, byte[] body) {
-        // this stub makes it easier to mock this method in
-        // Java unit tests.
-        nativeDispatchCallback(id, response, headers, body);
-    }
-
-    public native void nativeDispatchCallback(String id, int response, Object[] headers, byte[] body);
 
     private URL m_url;
     private HttpURLConnection m_connection;
     private byte[] m_body = {};
     public String m_request_id;
+    protected httpClient m_parent;
 }
 
 public class httpClient {
@@ -174,10 +168,10 @@ public class httpClient {
         m_context = context;
         String path = System.getProperty("java.io.tmpdir");
         setCacheFilePath(path);
-        m_executor = Executors.newFixedThreadPool(MAX_HTTP_THREADS);
+        m_executor = createExecutor();
         createClientInstance();
         // We need API 24 to follow changes in network status
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (hasConnectivityManager()) {
             m_connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             boolean is_metered = m_connectivityManager.isActiveNetworkMetered();
             m_callback = new ConnectivityCallback(this, is_metered);
@@ -190,6 +184,16 @@ public class httpClient {
         m_power_receiver.onReceive(context, status);
     }
 
+    protected ExecutorService createExecutor()
+    {
+        return Executors.newFixedThreadPool(MAX_HTTP_THREADS);
+    }
+
+    protected boolean hasConnectivityManager()
+    {
+        return Build.VERSION.SDK_INT >= 24;
+    }
+    
     public void finalize() {
         if (m_callback != null) {
             m_connectivityManager.unregisterNetworkCallback(m_callback);
@@ -199,6 +203,11 @@ public class httpClient {
         m_power_receiver = null;
         deleteClientInstance();
         m_executor.shutdown();
+    }
+
+    public URL newUrl(String url) throws java.net.MalformedURLException
+    {
+        return new URL(url);
     }
 
     public native void createClientInstance();
@@ -211,12 +220,13 @@ public class httpClient {
 
     public native void onPowerChange(boolean isCharging, boolean isLow);
 
+    public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
+
     public FutureTask<Boolean> createTask(String url, String method, byte[] body, String request_id, int[] header_index,
             byte[] header_buffer) {
         try {
-            Request r = new Request(url, method, body, request_id, header_index, header_buffer);
+            Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
             FutureTask<Boolean> t = new FutureTask<Boolean>(r, true);
-            m_executor.execute(t);
             return t;
         } catch (Exception e) {
             return null;

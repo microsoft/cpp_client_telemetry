@@ -438,7 +438,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_applications_events_Request_nativeDispatchCallback(
+Java_com_microsoft_applications_events_httpClient_dispatchCallback(
 	JNIEnv* env,
 	jobject /* this */,
 	jstring id,
