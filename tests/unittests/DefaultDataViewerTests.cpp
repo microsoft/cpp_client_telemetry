@@ -291,7 +291,6 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeaders
     ASSERT_EQ(requestToValidate->GetHeaders().get("Machine-Identifier"), "Test");
     ASSERT_EQ(requestToValidate->GetHeaders().get("Content-Type"), "Application/bond-compact-binary");
     ASSERT_FALSE(requestToValidate->GetHeaders().get("App-Name").empty());
-    ASSERT_FALSE(requestToValidate->GetHeaders().get("App-Platform").empty());
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacketToClient)
