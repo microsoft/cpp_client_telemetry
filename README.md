@@ -75,7 +75,7 @@ the test results.
 
 # Getting Support
 
-We recommend [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues)
+We recommend [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
 as the communication channel for both feature requests and issues.
 
 We are also available on email and community meeting, please refer to [CONTRIBUTING.md](CONTRIBUTING.md)
