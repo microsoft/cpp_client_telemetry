@@ -405,7 +405,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_createClientInstance(JNIEnv* env,
+Java_com_microsoft_applications_events_httpClient_createClientInstance(JNIEnv* env,
 	jobject java_client)
 {
 	Microsoft::Applications::Events::HttpClient_Android::CreateClientInstance(env, java_client);
@@ -415,7 +415,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_deleteClientInstance(JNIEnv* env)
+Java_com_microsoft_applications_events_httpClient_deleteClientInstance(JNIEnv* env)
 {
 	Microsoft::Applications::Events::HttpClient_Android::DeleteClientInstance(env);
 }
@@ -424,7 +424,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_setCacheFilePath(JNIEnv* env,
+Java_com_microsoft_applications_events_httpClient_setCacheFilePath(JNIEnv* env,
 	jobject /* this */,
 	jstring path)
 {
@@ -438,7 +438,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_Request_nativeDispatchCallback(
+Java_com_microsoft_applications_events_httpClient_dispatchCallback(
 	JNIEnv* env,
 	jobject /* this */,
 	jstring id,
