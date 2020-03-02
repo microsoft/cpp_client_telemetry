@@ -69,8 +69,8 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
         }
     }
 
-    final httpClient m_parent;
-    boolean m_metered;
+    private final httpClient m_parent;
+    private boolean m_metered;
 }
 
 class Request implements Runnable {
@@ -78,8 +78,7 @@ class Request implements Runnable {
     Request(httpClient parent, String url, String method, byte[] body, String request_id, int[] header_length, byte[] header_buffer)
             throws java.net.MalformedURLException, java.io.IOException {
         m_parent = parent;
-        m_url = parent.newUrl(url);
-        m_connection = (HttpURLConnection) m_url.openConnection();
+        m_connection = (HttpURLConnection) parent.newUrl(url).openConnection();
         m_connection.setRequestMethod(method);
         m_body = body;
         if (body.length > 0) {
@@ -154,9 +153,8 @@ class Request implements Runnable {
         m_parent.dispatchCallback(m_request_id, response, headerArray, body);
     }
 
-    private URL m_url;
-    private HttpURLConnection m_connection;
-    private byte[] m_body = {};
+   private HttpURLConnection m_connection;
+    private byte[] m_body;
     public String m_request_id;
     protected httpClient m_parent;
 }
@@ -173,15 +171,19 @@ public class httpClient {
         // We need API 24 to follow changes in network status
         if (hasConnectivityManager()) {
             m_connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            boolean is_metered = m_connectivityManager.isActiveNetworkMetered();
-            m_callback = new ConnectivityCallback(this, is_metered);
-            onCostChange(is_metered); // set initial value in C++ side
-            m_connectivityManager.registerDefaultNetworkCallback(m_callback);
+            if (m_connectivityManager != null) {
+                boolean is_metered = m_connectivityManager.isActiveNetworkMetered();
+                m_callback = new ConnectivityCallback(this, is_metered);
+                onCostChange(is_metered); // set initial value in C++ side
+                m_connectivityManager.registerDefaultNetworkCallback(m_callback);
+            }
         }
         m_power_receiver = new PowerReceiver(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent status = context.registerReceiver(m_power_receiver, filter);
-        m_power_receiver.onReceive(context, status);
+        if (status != null) {
+            m_power_receiver.onReceive(context, status);
+        }
     }
 
     protected ExecutorService createExecutor()
@@ -226,8 +228,7 @@ public class httpClient {
             byte[] header_buffer) {
         try {
             Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
-            FutureTask<Boolean> t = new FutureTask<Boolean>(r, true);
-            return t;
+            return new FutureTask<Boolean>(r, true);
         } catch (Exception e) {
             return null;
         }
