@@ -420,7 +420,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
             // TODO: it is possible that collector would return 503 here, in that case we may not get the 'kill-tokens' hint.
             // If it ever happens, the test would fail because the second iteration might try to upload.
-            EXPECT_EQ(1, debugListener.numHttpError);
+            EXPECT_EQ(1u, debugListener.numHttpError);
             debugListener.numCached = 0;
         }
         if (i == 1)
@@ -428,12 +428,12 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             // At this point we should get the error response from collector because we ingested with invalid tokens.
             // Collector should have also asked us to ban that token... Check the counts
             EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
-            EXPECT_EQ(0, debugListener.numCached);
+            EXPECT_EQ(0u, debugListener.numCached);
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numDropped);
         }
     }
     LogManager::FlushAndTeardown();
-    EXPECT_EQ(0, debugListener.numCached);
+    EXPECT_EQ(0u, debugListener.numCached);
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
@@ -474,7 +474,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         debugListener.storageFullPct = 0;
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::FlushAndTeardown();
-        EXPECT_EQ(debugListener.storageFullPct.load(), 0);
+        EXPECT_EQ(debugListener.storageFullPct.load(), 0u);
 
     }
     debugListener.numCached = 0;
@@ -490,12 +490,12 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
-    EXPECT_EQ(0, debugListener.numDropped);
-    EXPECT_EQ(0, debugListener.numReject);
+    EXPECT_EQ(0u, debugListener.numDropped);
+    EXPECT_EQ(0u, debugListener.numReject);
 
     LogManager::UploadNow();             // Try to upload whatever we got
     PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0, debugListener.numSent); // Some posts must succeed within 500ms
+    EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
     LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
 
@@ -628,7 +628,7 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(std::time(nullptr));
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
@@ -768,7 +768,7 @@ TEST(APITest, C_API_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
     };
 
     evt_handle_t handle = evt_open(config);
@@ -789,7 +789,7 @@ TEST(APITest, C_API_Test)
     {
         evt_log(handle, event);
     }
-    EXPECT_EQ(totalEvents, 5);
+    EXPECT_EQ(totalEvents, 5u);
 
     evt_flush(handle);
     evt_upload(handle);
@@ -851,7 +851,7 @@ TEST(APITest, UTC_Callback_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
 
         // Transform to JSON and print
         std::string s;
@@ -911,7 +911,7 @@ TEST(APITest, Pii_DROP_Test)
             return;
         }
 
-        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0ul);
         // more events with random device id
         EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
         EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
@@ -955,7 +955,7 @@ TEST(APITest, Pii_DROP_Test)
     }
 
     LogManager::FlushAndTeardown();
-    ASSERT_EQ(totalEvents, 4);
+    ASSERT_EQ(totalEvents, 4u);
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 
 }
