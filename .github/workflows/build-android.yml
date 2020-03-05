@@ -26,6 +26,9 @@ jobs:
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
+    - name: Java unit tests
+      run: |
+        cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat maesdk:test
     - name: Upload Reports
       if: failure()
@@ -33,9 +36,8 @@ jobs:
       with:
         name: reports
         path: lib\android_build\maesdk\build\reports
-        
-#    - name: Upload Artifacts
-#      uses: actions/upload-artifact@v1
-#      with:
-#        name: maesdk
-#        path: lib\android_build\maesdk\build\outputs\aar
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: maesdk
+        path: lib\android_build\maesdk\build\outputs\aar
