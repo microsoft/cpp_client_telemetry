@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static uint64_t GetNewTid()
         {
-            std::atomic<uint64_t> lastTid;
+            static std::atomic<uint64_t> lastTid;
             return lastTid.fetch_add(1);
         }
 
