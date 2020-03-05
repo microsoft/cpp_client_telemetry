@@ -128,8 +128,8 @@ namespace PAL_NS_BEGIN {
                     }
                 }
                 /* Either waited long enough or the task is still executing. Return:
-                  - true    - if new item in progress is another new item
-                  - false   - if the item in progress is still the item we were waiting on
+                 *  true    - if item in progress is different than item (other task)
+                 *  false   - if item in progress is still the same (didn't wait long enough)
                  */
                 return (m_itemInProgress != item);
             }
