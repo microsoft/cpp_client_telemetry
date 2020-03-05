@@ -40,7 +40,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::checkBackoffConfigUpdate()
     {
-        LOCKGUARD(m_backoff_lock);
+        LOCKGUARD(m_backoffMutex);
         std::string config = m_config.GetUploadRetryBackoffConfig();
         if (config != m_backoffConfig)
         {
@@ -59,7 +59,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::resetBackoff()
     {
-        LOCKGUARD(m_backoff_lock);
+        LOCKGUARD(m_backoffMutex);
         if (m_backoff)
             m_backoff->reset();
     }
@@ -67,7 +67,7 @@ namespace ARIASDK_NS_BEGIN {
     int TransmissionPolicyManager::increaseBackoff()
     {
         int delayMs = 0;
-        LOCKGUARD(m_backoff_lock);
+        LOCKGUARD(m_backoffMutex);
         checkBackoffConfigUpdate();
         if (m_backoff)
         {
