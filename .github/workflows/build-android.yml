@@ -33,8 +33,9 @@ jobs:
       with:
         name: reports
         path: lib\android_build\maesdk\build\reports
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: maesdk
-        path: lib\android_build\maesdk\build\outputs\aar
+        
+#    - name: Upload Artifacts
+#      uses: actions/upload-artifact@v1
+#      with:
+#        name: maesdk
+#        path: lib\android_build\maesdk\build\outputs\aar
