@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <mutex>
 #include <sstream>
 #include <vector>
 #include <oacr.h>
@@ -24,21 +23,18 @@ class WinInetRequestWrapper
   protected:
     HttpClient_WinInet&    m_parent;
     std::string            m_id;
-    IHttpResponseCallback* m_appCallback{ nullptr };
-    HINTERNET              m_hWinInetSession { nullptr };
-    HINTERNET              m_hWinInetRequest { nullptr };
+    IHttpResponseCallback* m_appCallback {nullptr};
+    HINTERNET              m_hWinInetSession {nullptr};
+    HINTERNET              m_hWinInetRequest {nullptr};
     SimpleHttpRequest*     m_request;
-    BYTE                   m_buffer[1024] {};
-    std::recursive_mutex   m_connectingMutex;
-    bool                   isAborted { false };
-    bool                   isCallbackCalled { false };
-
+    BYTE                   m_buffer[1024] {0};
+    bool                   isCallbackCalled {false};
+    bool                   isAborted {false};
   public:
     WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
-        m_id(request->GetId()),
-        m_hWinInetRequest(nullptr),
-        m_request(request)
+        m_request(request),
+        m_id(request->GetId())
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -56,18 +52,32 @@ class WinInetRequestWrapper
         }
     }
 
-    /**
-     * Async cancel pending request 
-     */
+    /// <summary>
+    /// Asynchronously cancel pending request. This method is not directly calling
+    /// the object destructor, but rather hints the implementation to speed-up the
+    /// destruction.
+    ///
+    /// Two possible outcomes:.
+    ////
+    /// - set isAborted to true: cancel request without sending to WinInet stack,
+    ///   in case if request has not been sent to WinInet stack yet.
+    ////
+    /// - close m_hWinInetRequest handle: WinInet fails all subsequent attempts to
+    /// use invalidated handle and aborts all pending WinInet worker threads on it.
+    /// In that case we complete with ERROR_INTERNET_OPERATION_CANCELLED.
+    ///
+    /// It may happen that we get some feedback from WinInet, i.e. we are canceling
+    /// at that same moment when the request is complete. In that case we process
+    /// completion in the callback (INTERNET_STATUS_REQUEST_COMPLETE).
+    /// </summary>
     void cancel()
     {
-        LOCKGUARD(m_connectingMutex);
-        // Cover the case where m_hWinInetRequest handle hasn't been created yet:
+        LOCKGUARD(m_parent.m_requestsMutex);
         isAborted = true;
-        // Cover the case where m_hWinInetRequest handle is created and has a callback registered:
         if (m_hWinInetRequest != nullptr)
         {
             ::InternetCloseHandle(m_hWinInetRequest);
+            // async request callback destroys the object
         }
     }
 
@@ -119,112 +129,111 @@ class WinInetRequestWrapper
         return true;
     }
 
+    // Asynchronously send HTTP request and invoke response callback.
+    // Onwership semantics: send(...) method self-destroys *this* upon
+    // receiving WinInet callback. There must be absolutely no methods
+    // that attempt to use the object after triggering send on it.
+    // Send operation on request may be issued no more than once.
+    //
+    // Implementation details:
+    //
+    // lockguard around m_requestsMutex covers the following stages:
+    // - request added to map
+    // - URL parsed
+    // - DNS lookup performed, socket opened, SSL handshake
+    // - MS-Root SSL cert validation (if requested)
+    // - populating HTTP request headers
+    // - scheduling async(!) upload of HTTP post body
+    //
+    // Note that if any of the stages above fails, we invoke onRequestComplete(...).
+    // That method destroys "this" request object and in order to avoid
+    // any corruption we immediately return after invoking onRequestComplete(...).
+    //
     void send(IHttpResponseCallback* callback)
     {
+        LOCKGUARD(m_parent.m_requestsMutex);
         // Register app callback and request in HttpClient map
         m_appCallback = callback;
+        m_parent.m_requests[m_id] = this;
 
+        // If outside code asked us to abort that request before we could proceed with
+        // creating a WinInet handle, then clean it right away before proceeding with
+        // any async WinInet API calls.
+        if (isAborted)
         {
-            std::lock_guard<std::mutex> lock(m_parent.m_requestsMutex);
-            m_parent.m_requests[m_id] = this;
+            // Request force-aborted before creating a WinInet handle.
+            DispatchEvent(OnConnectFailed);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
         }
 
-        {   // Section of code that uses m_connectingMutex lock without a LOCKGUARD macro:
-            // - don't forget to unlock the mutex before calling "onRequestComplete" which destroys this object
-            // - don't access any object members after "onRequestComplete" (object is dead at this point)
-            m_connectingMutex.lock();
-
-            // If outside code asked us to abort that request before we could proceed with creating a WinInet
-            // handle on it, then clean it right away before proceeding with any async WinInet API calls.
-            if (isAborted)
-            {
-                // Request force-aborted before creating a WinInet handle.
-                DispatchEvent(OnConnectFailed);
-                m_connectingMutex.unlock();
-                onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-                return;
-            }
-
-            DispatchEvent(OnConnecting);
-
-            URL_COMPONENTSA urlc;
-            memset(&urlc, 0, sizeof(urlc));
-            urlc.dwStructSize = sizeof(urlc);
-            char hostname[256];
-            urlc.lpszHostName = hostname;
-            urlc.dwHostNameLength = sizeof(hostname);
-            char path[1024];
-            urlc.lpszUrlPath = path;
-            urlc.dwUrlPathLength = sizeof(path);
-            if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
-            {
-                DWORD dwError = ::GetLastError();
-                LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
-                // Invalid URL passed to WinInet API
-                DispatchEvent(OnConnectFailed);
-                m_connectingMutex.unlock();
-                onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-                return;
-            }
-
-            m_hWinInetSession = ::InternetConnectA(m_parent.m_hInternet, hostname, urlc.nPort,
-                NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
-            if (m_hWinInetSession == NULL)
-            {
-                DWORD dwError = ::GetLastError();
-                LOG_WARN("InternetConnect() failed: %d", dwError);
-                // Cannot connect to host
-                DispatchEvent(OnConnectFailed);
-                m_connectingMutex.unlock();
-                onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-                return;
-            }
-            // TODO: Session handle for the same target should be cached across requests to enable keep-alive.
-
-            PCSTR szAcceptTypes[] = {"*/*", NULL};
-            m_hWinInetRequest = ::HttpOpenRequestA(
-                m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
-                INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
-                INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
-                INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
-                reinterpret_cast<DWORD_PTR>(this));
-            if (m_hWinInetRequest == NULL)
-            {
-                DWORD dwError = ::GetLastError();
-                LOG_WARN("HttpOpenRequest() failed: %d", dwError);
-                // Request cannot be opened to given URL because of some connectivity issue
-                DispatchEvent(OnConnectFailed);
-                m_connectingMutex.unlock();
-                onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-                return;
-            }
-
-            /* Perform optional MS Root certificate check for certain end-point URLs */
-            if (m_parent.IsMsRootCheckRequired())
-            {
-                if (!isMsRootCert())
-                {
-                    // Request cannot be completed: end-point certificate is not MS-Rooted.
-                    DispatchEvent(OnConnectFailed);
-                    m_connectingMutex.unlock();
-                    onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
-                    return;
-                }
-            }
-
-            ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
-            // At this point this->cancel() is able to async-destroy the request object by calling
-            // ::InternetCloseHandle(...) : winInetCallback is invoked in context of WinInet thread
-            // pool worker thread, which subsequently calls onRequestComplete(...) to destroy.
-            m_connectingMutex.unlock();
+        DispatchEvent(OnConnecting);
+        URL_COMPONENTSA urlc;
+        memset(&urlc, 0, sizeof(urlc));
+        urlc.dwStructSize = sizeof(urlc);
+        char hostname[256] = { 0 };
+        urlc.lpszHostName = hostname;
+        urlc.dwHostNameLength = sizeof(hostname);
+        char path[1024] = { 0 };
+        urlc.lpszUrlPath = path;
+        urlc.dwUrlPathLength = sizeof(path);
+        if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
+        {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
+            // Invalid URL passed to WinInet API
+            DispatchEvent(OnConnectFailed);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
         }
-        // End of section of code that uses m_connectingMutex lock
+
+        m_hWinInetSession = ::InternetConnectA(m_parent.m_hInternet, hostname, urlc.nPort,
+            NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
+        if (m_hWinInetSession == NULL) {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("InternetConnect() failed: %d", dwError);
+            // Cannot connect to host
+            DispatchEvent(OnConnectFailed);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
+        }
+        // TODO: Session handle for the same target should be cached across requests to enable keep-alive.
+
+        PCSTR szAcceptTypes[] = {"*/*", NULL};
+        m_hWinInetRequest = ::HttpOpenRequestA(
+            m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
+            INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
+            INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
+            INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
+            reinterpret_cast<DWORD_PTR>(this));
+        if (m_hWinInetRequest == NULL) {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("HttpOpenRequest() failed: %d", dwError);
+            // Request cannot be opened to given URL because of some connectivity issue
+            DispatchEvent(OnConnectFailed);
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+            return;
+        }
+
+        /* Perform optional MS Root certificate check for certain end-point URLs */
+        if (m_parent.IsMsRootCheckRequired())
+        {
+            if (!isMsRootCert())
+            {
+                // Request cannot be completed: end-point certificate is not MS-Rooted
+                DispatchEvent(OnConnectFailed);
+                onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
+                return;
+            }
+        }
+
+        ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
 
         std::ostringstream os;
-        for (auto const& header : m_request->m_headers)
-        {
+        for (auto const& header : m_request->m_headers) {
             os << header.first << ": " << header.second << "\r\n";
         }
+
         if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
         {
             DWORD dwError = ::GetLastError();
@@ -273,7 +282,7 @@ class WinInetRequestWrapper
             }
 
             case INTERNET_STATUS_HANDLE_CLOSING:
-                // HANDLE_CLOSING should always come after REQUEST_COMPLETE/. When (and if)
+                // HANDLE_CLOSING should always come after REQUEST_COMPLETE. When (and if)
                 // it (ever) happens, WinInetRequestWrapper* self pointer may point to object
                 // that has been already destroyed. We do not perform any actions on it.
                 return;
@@ -392,6 +401,7 @@ class WinInetRequestWrapper
             // We may still invoke OnHttpResponse(...) below for this positive as well as other negative
             // cases where there was a short-read, connection failuire or timeout on reading the response.
             DispatchEvent(OnResponse);
+
         } else {
             switch (dwError) {
                 case ERROR_INTERNET_OPERATION_CANCELLED:
@@ -431,7 +441,7 @@ class WinInetRequestWrapper
             }
         }
 
-        assert(isCallbackCalled==false);
+        assert(isCallbackCalled == false);
         if (!isCallbackCalled)
         {
             // Only one WinInet worker thread may invoke async callback for a given request at any given moment of time.
@@ -462,9 +472,13 @@ HttpClient_WinInet::~HttpClient_WinInet()
     ::InternetCloseHandle(m_hInternet);
 }
 
+/**
+ * This method is called exclusively from onRequestComplete .
+ * No other code paths that lead to request destruction.
+ */
 void HttpClient_WinInet::erase(std::string const& id)
 {
-    std::lock_guard<std::mutex> lock(m_requestsMutex);
+    LOCKGUARD(m_requestsMutex);
     auto it = m_requests.find(id);
     if (it != m_requests.end()) {
         auto req = it->second;
@@ -489,11 +503,10 @@ void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCa
 
 void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
 {
-    WinInetRequestWrapper* request = nullptr;
     LOCKGUARD(m_requestsMutex);
     auto it = m_requests.find(id);
     if (it != m_requests.end()) {
-        request = it->second;
+        auto request = it->second;
         if (request) {
             request->cancel();
         }
@@ -506,7 +519,7 @@ void HttpClient_WinInet::CancelAllRequests()
     // vector of all request IDs
     std::vector<std::string> ids;
     {
-        std::lock_guard<std::mutex> lock(m_requestsMutex);
+        LOCKGUARD(m_requestsMutex);
         for (auto const& item : m_requests) {
             ids.push_back(item.first);
         }

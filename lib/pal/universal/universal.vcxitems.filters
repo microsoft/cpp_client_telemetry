@@ -6,7 +6,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
-  </ItemGroup>  
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />

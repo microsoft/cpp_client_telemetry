@@ -2,9 +2,9 @@
 #ifndef PAL_HPP
 #define PAL_HPP
 
-#include "DebugTrace.hpp"
-#include "Version.hpp"
 #include "mat/config.h"
+#include "Version.hpp"
+#include "DebugTrace.hpp"
 
 #ifdef HAVE_MAT_EXP
 #define ECS_SUPP "ECS"
@@ -12,9 +12,9 @@
 #define ECS_SUPP "No"
 #endif
 
-#include "DeviceInformationImpl.hpp"
-#include "NetworkInformationImpl.hpp"
 #include "SystemInformationImpl.hpp"
+#include "NetworkInformationImpl.hpp"
+#include "DeviceInformationImpl.hpp"
 
 #include "ISemanticContext.hpp"
 
@@ -26,8 +26,8 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <Rpc.h>
 #include <Windows.h>
+#include <Rpc.h>
 #else
 /* POSIX */
 #define PATH_SEPARATOR_CHAR '/'
@@ -39,28 +39,27 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <atomic>
-#include <chrono>
-#include <climits>
-#include <condition_variable>
 #include <functional>
 #include <list>
 #include <map>
-#include <mutex>
 #include <random>
 #include <string>
-#include <thread>
 #include <type_traits>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <climits>
+#include <chrono>
+#include <thread>
 
-#include "WorkerThread.hpp"
 #include "api/IRuntimeConfig.hpp"
 #include "typename.hpp"
+#include "WorkerThread.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
     void print_backtrace();
-}
-ARIASDK_NS_END
+} ARIASDK_NS_END
 
 namespace PAL_NS_BEGIN
 {
@@ -71,9 +70,8 @@ namespace PAL_NS_BEGIN
 
     class PlatformAbstractionLayer
     {
-        friend class PALTest;
-
-       public:
+    friend class PALTest;
+    public:
         void sleep(unsigned delayMs) const noexcept;
 
         const std::string& getSdkVersion() const;
@@ -97,7 +95,7 @@ namespace PAL_NS_BEGIN
         void initialize(IRuntimeConfig& configuration);
 
         void shutdown();
-
+        
         INetworkInformation* GetNetworkInformation() const noexcept;
         IDeviceInformation* GetDeviceInformation() const noexcept;
         ISystemInformation* GetSystemInformation() const noexcept;
@@ -108,8 +106,8 @@ namespace PAL_NS_BEGIN
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-       private:
-        volatile std::atomic<long> m_palStarted{0};
+    private:
+        volatile std::atomic<long> m_palStarted { 0 };
         std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
         ISystemInformation* m_SystemInformation;
         INetworkInformation* m_NetworkInformation;
@@ -237,7 +235,6 @@ namespace PAL_NS_BEGIN
         return GetPAL().RegisterIkeyWithWindowsTelemetry(ikeyin, storageSize, uploadQuotaSize);
     }
 
-}
-PAL_NS_END
+} PAL_NS_END
 
 #endif

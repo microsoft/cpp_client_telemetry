@@ -1,3 +1,4 @@
+// clang-format off
 #ifndef TASK_DISPATCHER_HPP
 #define TASK_DISPATCHER_HPP
 

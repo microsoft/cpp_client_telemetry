@@ -1,3 +1,4 @@
+// clang-format off
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
 
@@ -6,15 +7,18 @@
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
 #define MAX_FUTURE_DELTA_MS (60 * 60 * 1000)
 
-/* Polling interval for task cancellation */
-#define TASK_CANCEL_WAIT_MS 100
+// Polling interval for task cancellation can be customized at compile-time
+#ifndef TASK_CANCEL_WAIT_MS
+#define TASK_CANCEL_WAIT_MS 50
+#endif
 
 namespace PAL_NS_BEGIN {
 
     class WorkerThreadShutdownItem : public Task
     {
     public:
-        WorkerThreadShutdownItem()
+        WorkerThreadShutdownItem() :
+            Task()
         {
             Type = MAT::Task::Shutdown;
         }
@@ -91,6 +95,19 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
+        // TODO: [maxgolov] - method has to be refactored to allow cancellation by Task tid.
+        // Otherwise we may run into a situation where we wait on a 'wrong task' completion.
+        // In case if the task we were supposed to be waiting on is done running and destroyed,
+        // but while we idle-wait for TASK_CANCEL_WAIT_MS - a new task obj got allocated on
+        // heap with the same exact raw ptr. The chance of that collision is slim and the only
+        // side-effect is we'd idle-wait slightly longer until the new task is done.
+        //
+        // It would also make sense to return the following cancellation status:
+        // - task not found
+        // - task found and cancelled
+        // - task found, but not cancelled - ran to completion.
+        // - task found, but not cancelled - still running.
+        //
         bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
             if (item == nullptr)
@@ -109,9 +126,12 @@ namespace PAL_NS_BEGIN {
                         PAL::sleep(TASK_CANCEL_WAIT_MS);
                         waitTime -= TASK_CANCEL_WAIT_MS;
                     }
-                    /* Either waited long enough or the task is still executing */
                 }
-                return (m_itemInProgress == item);
+                /* Either waited long enough or the task is still executing. Return:
+                  - true    - if new item in progress is another new item
+                  - false   - if the item in progress is still the item we were waiting on
+                 */
+                return (m_itemInProgress != item);
             }
 
             {
