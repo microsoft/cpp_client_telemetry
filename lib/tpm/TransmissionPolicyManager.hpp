@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN {
         IRuntimeConfig&                  m_config;
         IBandwidthController*            m_bandwidthController;
 
-        std::recursive_mutex             m_backoff_lock;
+        std::recursive_mutex             m_backoffMutex;
         std::string                      m_backoffConfig;           // TODO: [MG] - move to config
         std::unique_ptr<IBackoff>        m_backoff;
         DeviceStateHandler               m_deviceStateHandler;
