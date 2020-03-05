@@ -627,7 +627,7 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(std::time(nullptr));
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
