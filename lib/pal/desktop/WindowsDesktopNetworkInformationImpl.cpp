@@ -55,6 +55,7 @@ namespace PAL_NS_BEGIN {
         virtual NetworkType GetNetworkType() override
         {
             m_type = NetworkType_Unknown;
+#if 0 // TODO: implement more robust network type detection logic
             DWORD flags;
             DWORD reserved = 0;
             if (::InternetGetConnectedState(&flags, reserved)) {
@@ -68,6 +69,7 @@ namespace PAL_NS_BEGIN {
                     break;
                 }
             }
+#endif
             return m_type;
         }
 
