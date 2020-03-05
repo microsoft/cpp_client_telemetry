@@ -45,7 +45,7 @@ void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds 
             {
                 // Key-values
                 { "strKey",  "hello" },
-                { "int64Key", 1LL },
+                { "int64Key", int64_t { 1 } },
                 { "dblKey",   3.14 },
                 { "boolKey",  false },
                 { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
