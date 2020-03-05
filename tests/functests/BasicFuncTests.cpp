@@ -1,28 +1,29 @@
+// clang-format off
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN  // Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
-#include "api/LogManagerImpl.hpp"
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "utils/Utils.hpp"
+#include "api/LogManagerImpl.hpp"
 
-#include "LogManager.hpp"
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_readers.hpp"
 #include "bond/generated/CsProtocol_types.hpp"
+#include "bond/generated/CsProtocol_readers.hpp"
+#include "LogManager.hpp"
 
 #include "CompliantByDefaultFilterApi.hpp"
 
-#include <assert.h>
-#include <atomic>
-#include <chrono>
-#include <condition_variable>
 #include <fstream>
+#include <atomic>
+#include <assert.h>
+#include <condition_variable>
 #include <thread>
+#include <chrono>
 #include <vector>
 
 #include "PayloadDecoder.hpp"
@@ -89,40 +90,40 @@ ARIASDK_NS_END
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
 // 1DSCppSdktest sandbox key
-#define TEST_TOKEN "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
+#define TEST_TOKEN      "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
 
-#define KILLED_TOKEN "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
-#define HTTP_PORT 19000
+#define KILLED_TOKEN    "deadbeefdeadbeefdeadbeefdeadbeef-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322"
+#define HTTP_PORT       19000
 
 #undef LOCKGUARD
-#define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__)(macro_mutex);
+#define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
 class HttpPostListener : public DebugEventListener
 {
-   public:
-    virtual void OnDebugEvent(DebugEvent& evt)
+public:
+    virtual void OnDebugEvent(DebugEvent &evt)
     {
         static unsigned seq = 0;
         switch (evt.type)
         {
         case EVT_HTTP_OK:
-        {
-            seq++;
-            std::string out;
-            std::vector<uint8_t> reqBody((unsigned char*)evt.data, (unsigned char*)(evt.data) + evt.size);
-            MAT::exporters::DecodeRequest(reqBody, out, false);
-            printf(">>>> REQUEST [%u]:%s\n", seq, out.c_str());
-        }
-        break;
+            {
+                seq++;
+                std::string out;
+                std::vector<uint8_t> reqBody((unsigned char *)evt.data, (unsigned char *)(evt.data) + evt.size);
+                MAT::exporters::DecodeRequest(reqBody, out, false);
+                printf(">>>> REQUEST [%u]:%s\n", seq, out.c_str());
+            }
+            break;
         default:
             break;
         };
     };
 };
 class BasicFuncTests : public ::testing::Test,
-                       public HttpServer::Callback
+    public HttpServer::Callback
 {
-   protected:
-    std::mutex mtx_requests;
+protected:
+    std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
     HttpServer server;
@@ -135,11 +136,12 @@ class BasicFuncTests : public ::testing::Test,
 
     std::condition_variable cv_gotEvents;
     std::mutex cv_m;
+public:
 
-   public:
     BasicFuncTests() :
-        isSetup(false),
-        isRunning(false){};
+        isSetup(false) ,
+        isRunning(false)
+    {};
 
     virtual void SetUp() override
     {
@@ -155,7 +157,7 @@ class BasicFuncTests : public ::testing::Test,
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
         server.addHandler("/503/", *this);
-        server.setKeepalive(false);  // This test doesn't work well with keep-alive enabled
+        server.setKeepalive(false); // This test doesn't work well with keep-alive enabled
         server.start();
         isRunning = true;
     }
@@ -191,20 +193,20 @@ class BasicFuncTests : public ::testing::Test,
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;  // 2 seconds wait on shutdown
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-        configuration["http"]["compress"] = false;     // disable compression for now
-        configuration["stats"]["interval"] = 30 * 60;  // 30 mins
+        configuration["http"]["compress"] = false;      // disable compression for now
+        configuration["stats"]["interval"] = 30 * 60;   // 30 mins
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
-        configuration["config"] = {{"host", __FILE__}};  // Host instance
+        configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, {DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX});
+        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
         LogManager::ResumeTransmission();
 
-        logger = LogManager::GetLogger(TEST_TOKEN, "source1");
+        logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
         logger2 = LogManager::GetLogger(TEST_TOKEN, "source2");
     }
 
@@ -215,13 +217,11 @@ class BasicFuncTests : public ::testing::Test,
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
-        if (request.uri.compare(0, 5, "/503/") == 0)
-        {
+        if (request.uri.compare(0, 5, "/503/") == 0) {
             return 503;
         }
 
-        if (request.uri.compare(0, 6, "/slow/") == 0)
-        {
+        if (request.uri.compare(0, 6, "/slow/") == 0) {
             PAL::sleep(static_cast<unsigned int>(request.content.size() / DELAY_FACTOR_FOR_SERVER));
         }
 
@@ -251,7 +251,7 @@ class BasicFuncTests : public ::testing::Test,
         unsigned receivedEvents = 0;
         auto start = PAL::getUtcSystemTimeMs();
         size_t lastIdx = 0;
-        while (((PAL::getUtcSystemTimeMs() - start) < (1000 * timeOutSec)) && (receivedEvents != expected_count))
+        while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
             /* Give time for our friendly HTTP server thread to processs incoming request */
             std::this_thread::yield();
@@ -266,7 +266,7 @@ class BasicFuncTests : public ::testing::Test,
                     {
                         auto request = receivedRequests.at(index);
                         auto payload = decodeRequest(request, false);
-                        receivedEvents += (unsigned)payload.size();
+                        receivedEvents+= (unsigned)payload.size();
                     }
                     lastIdx = size;
                 }
@@ -321,6 +321,7 @@ class BasicFuncTests : public ::testing::Test,
             EXPECT_THAT(bond_lite::Deserialize(reader, result), true);
             data += index - 1;
             vector.push_back(result);
+
         }
 
         return vector;
@@ -373,7 +374,7 @@ class BasicFuncTests : public ::testing::Test,
                     }
                     case ::CsProtocol::ValueGuid:
                     {
-                        uint8_t guid_bytes[16] = {0};
+                        uint8_t guid_bytes[16] = { 0 };
                         prop.second.as_guid.to_bytes(guid_bytes);
                         std::vector<uint8_t> guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
 
@@ -436,7 +437,7 @@ class BasicFuncTests : public ::testing::Test,
                         EXPECT_THAT(vectror.size(), prop.second.as_guidArray->size());
                         for (size_t index = 0; index < prop.second.as_guidArray->size(); index++)
                         {
-                            uint8_t guid_bytes[16] = {0};
+                            uint8_t guid_bytes[16] = { 0 };
                             prop.second.as_guidArray->at(index).to_bytes(guid_bytes);
                             std::vector<uint8_t> guid = std::vector<uint8_t>(guid_bytes, guid_bytes + sizeof(guid_bytes) / sizeof(guid_bytes[0]));
 
@@ -487,11 +488,11 @@ class BasicFuncTests : public ::testing::Test,
         std::vector<CsProtocol::Record> result;
         if (receivedRequests.size())
         {
-            for (auto& request : receivedRequests)
+            for (auto &request : receivedRequests)
             {
                 // TODO: [MG] - add compression support
                 auto payload = decodeRequest(request, false);
-                for (auto& record : payload)
+                for (auto &record : payload)
                 {
                     result.push_back(std::move(record));
                 }
@@ -507,11 +508,11 @@ class BasicFuncTests : public ::testing::Test,
         result.name = "";
         if (receivedRequests.size())
         {
-            for (auto& request : receivedRequests)
+            for (auto &request : receivedRequests)
             {
                 // TODO: [MG] - add compression support
                 auto payload = decodeRequest(request, false);
-                for (auto& record : payload)
+                for (auto &record : payload)
                 {
                     if (record.name == name)
                     {
@@ -525,6 +526,7 @@ class BasicFuncTests : public ::testing::Test,
     }
 };
 
+
 TEST_F(BasicFuncTests, doNothing)
 {
 }
@@ -537,7 +539,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     FlushAndTeardown();
-    EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
+    EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
 }
 
 TEST_F(BasicFuncTests, sendNoPriorityEvents)
@@ -564,9 +566,10 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 
     if (receivedRequests.size() >= 1)
     {
-        verifyEvent(event, find("first_event"));
+        verifyEvent(event,  find("first_event"));
         verifyEvent(event2, find("second_event"));
     }
+
 }
 
 TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
@@ -604,7 +607,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     logger->LogEvent(event2);
 
     waitForEvents(2, 3);
-    for (const auto& evt : {event, event2})
+    for (const auto &evt : { event, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
     }
@@ -640,6 +643,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
 
+
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -649,12 +653,13 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
 
+
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
     waitForEvents(1, 3);
 
-    for (const auto& evt : {event, event2})
+    for (const auto &evt : { event, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
     }
@@ -699,12 +704,13 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     LogManager::UploadNow();
     waitForEvents(1, 3);
-    for (const auto& evt : {event1, event2})
+    for (const auto &evt : { event1, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
     }
 
     FlushAndTeardown();
+
 }
 
 TEST_F(BasicFuncTests, configDecorations)
@@ -727,7 +733,7 @@ TEST_F(BasicFuncTests, configDecorations)
     LogManager::UploadNow();
     waitForEvents(2, 5);
 
-    for (const auto& evt : {event1, event2, event3, event4})
+    for (const auto &evt : { event1, event2, event3, event4 })
     {
         verifyEvent(evt, find(evt.GetName()));
     }
@@ -764,7 +770,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::UploadNow();
 
         // 1st request for realtime event
-        waitForEvents(3, 7);  // start, first_event, second_event, ongoing, stop, start, fooEvent
+        waitForEvents(3, 7); // start, first_event, second_event, ongoing, stop, start, fooEvent
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
         {
@@ -785,7 +791,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         */
 }
 
-#if 0  // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
+#if 0 // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
     CleanStorage();
@@ -867,18 +873,18 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 
     auto r1 = records();
-    ASSERT_EQ(r1.size(), size_t{0});
+    ASSERT_EQ(r1.size(), size_t { 0 });
 
     // Check
     Initialize();
-    LogManager::ResumeTransmission();  // ?
+    LogManager::ResumeTransmission(); // ?
     LogManager::UploadNow();
     PAL::sleep(2000);
 
     auto r2 = records();
-    ASSERT_GE(r2.size(), (size_t)4);  // (start + stop) + (2 events + start)
+    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
 
-    for (const auto& evt : {event1, event2})
+    for (const auto &evt : { event1, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
     }
@@ -890,7 +896,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 {
     CleanStorage();
     Initialize();
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, {DIAG_LEVEL_REQUIRED});
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     EventProperties eventWithoutLevel("EventWithoutLevel");
     logger->LogEvent(eventWithoutLevel);
 
@@ -905,7 +911,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     LogManager::UploadNow();
     waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
 
-    ASSERT_EQ(records().size(), static_cast<size_t>(2));  // Start and EventWithAllowedLevel
+    ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
 
     verifyEvent(eventWithAllowedLevel, find(eventWithAllowedLevel.GetName()));
 
@@ -939,34 +945,34 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     CleanStorage();
     Initialize();
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, {DIAG_LEVEL_REQUIRED});
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, {DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED});
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();
-    waitForEvents(2 /*timeout*/, 4 /*expected count*/);  // Start and EventWithAllowedLevel
+    waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
 
     auto sentRecords = records();
-    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4));  // Start and EventWithAllowedLevel
-    ASSERT_EQ(GetEventsWithName("EventWithOptionalLevel", sentRecords).size(), size_t{1});
-    ASSERT_EQ(GetEventsWithName("EventWithRequiredLevel", sentRecords).size(), size_t{2});
+    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
+    ASSERT_EQ(GetEventsWithName("EventWithOptionalLevel", sentRecords).size(), size_t{ 1 });
+    ASSERT_EQ(GetEventsWithName("EventWithRequiredLevel", sentRecords).size(), size_t{ 2 });
 
     FlushAndTeardown();
 }
 
 class RequestMonitor : public DebugEventListener
 {
-    const size_t IDX_OK = 0;
-    const size_t IDX_ERR = 1;
+    const size_t IDX_OK   = 0;
+    const size_t IDX_ERR  = 1;
     const size_t IDX_ABRT = 2;
 
     std::atomic<size_t> counts[3];
 
-   public:
-    RequestMonitor() :
-        DebugEventListener()
+public:
+
+    RequestMonitor() : DebugEventListener()
     {
         reset();
     }
@@ -978,7 +984,7 @@ class RequestMonitor : public DebugEventListener
         counts[IDX_ABRT] = 0;
     }
 
-    virtual void OnDebugEvent(DebugEvent& evt)
+    virtual void OnDebugEvent(DebugEvent &evt)
     {
         switch (evt.type)
         {
@@ -1008,17 +1014,16 @@ class RequestMonitor : public DebugEventListener
     }
 };
 
-class KillSwitchListener : public DebugEventListener
-{
-   public:
-    std::atomic<unsigned> numLogged;
-    std::atomic<unsigned> numSent;
-    std::atomic<unsigned> numDropped;
-    std::atomic<unsigned> numReject;
-    std::atomic<unsigned> numHttpError;
-    std::atomic<unsigned> numHttpOK;
-    std::atomic<unsigned> numHttpFailure;
-    std::atomic<unsigned> numCached;
+class KillSwitchListener : public DebugEventListener {
+public :
+    std::atomic<unsigned>   numLogged;
+    std::atomic<unsigned>   numSent;
+    std::atomic<unsigned>   numDropped;
+    std::atomic<unsigned>   numReject;
+    std::atomic<unsigned>   numHttpError;
+    std::atomic<unsigned>   numHttpOK;
+    std::atomic<unsigned>   numHttpFailure;
+    std::atomic<unsigned>   numCached;
 
     KillSwitchListener() :
         numLogged(0),
@@ -1028,48 +1033,45 @@ class KillSwitchListener : public DebugEventListener
         numHttpError(0),
         numHttpOK(0),
         numHttpFailure(0),
-        numCached(0)
+        numCached(0) 
     {
     }
 
-    virtual void OnDebugEvent(DebugEvent& evt)
-    {
-        switch (evt.type)
-        {
-        case EVT_LOG_SESSION:
-            numLogged++;
-            break;
-        case EVT_REJECTED:
-            numReject++;
-            break;
-        case EVT_ADDED:
-            break;
-        /* Event counts below would never overflow the size of unsigned int */
-        case EVT_CACHED:
-            numCached += (unsigned int)evt.param1;
-            break;
-        case EVT_DROPPED:
-            numDropped += (unsigned int)evt.param1;
-            break;
-        case EVT_SENT:
-            numSent += (unsigned int)evt.param1;
-            break;
-        case EVT_HTTP_FAILURE:
-            numHttpFailure++;
-            break;
-        case EVT_HTTP_ERROR:
-            numHttpError++;
-            break;
-        case EVT_HTTP_OK:
-            numHttpOK++;
-            break;
-        case EVT_UNKNOWN:
-        default:
+    virtual void OnDebugEvent(DebugEvent &evt) {
+        switch (evt.type) {
+            case EVT_LOG_SESSION:
+                numLogged++;
+                break;
+            case EVT_REJECTED:
+                numReject++;
+                break;
+            case EVT_ADDED:
+                break;
+            /* Event counts below would never overflow the size of unsigned int */
+            case EVT_CACHED:
+                numCached += (unsigned int)evt.param1;
+                break;
+            case EVT_DROPPED:
+                numDropped += (unsigned int)evt.param1;
+                break;
+            case EVT_SENT:
+                numSent += (unsigned int)evt.param1;
+                break;
+            case EVT_HTTP_FAILURE:
+                numHttpFailure++;
+                break;
+            case EVT_HTTP_ERROR:
+                numHttpError++;
+                break;
+            case EVT_HTTP_OK:
+                numHttpOK++;
+                break;
+            case EVT_UNKNOWN:
+            default:
             break;
         };
     }
-    void printStats()
-    {
+    void printStats(){
         std::cerr << "[          ] numLogged        = " << numLogged << std::endl;
         std::cerr << "[          ] numSent          = " << numSent << std::endl;
         std::cerr << "[          ] numDropped       = " << numDropped << std::endl;
@@ -1081,8 +1083,7 @@ class KillSwitchListener : public DebugEventListener
     }
 };
 
-void addListeners(DebugEventListener& listener)
-{
+void addListeners(DebugEventListener &listener) {
     LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
     LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
     LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
@@ -1093,8 +1094,7 @@ void addListeners(DebugEventListener& listener)
     LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
 }
 
-void removeListeners(DebugEventListener& listener)
-{
+void removeListeners(DebugEventListener &listener) {
     LogManager::RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
     LogManager::RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
     LogManager::RemoveEventListener(DebugEventType::EVT_SENT, listener);
@@ -1117,14 +1117,14 @@ TEST_F(BasicFuncTests, killSwitchWorks)
 
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;  // 2 seconds wait on shutdown
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration["http"]["compress"] = false;     // disable compression for now
-    configuration["stats"]["interval"] = 30 * 60;  // 30 mins
+    configuration["http"]["compress"] = false;      // disable compression for now
+    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
-    configuration["config"] = {{"host", __FILE__}};  // Host instance
+    configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 6384);
@@ -1132,15 +1132,13 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     addListeners(listener);
     // Log 100 events from valid and invalid 4 times
     int repetitions = 4;
-    for (int i = 0; i < repetitions; i++)
-    {
+    for (int i = 0; i < repetitions; i++) {
         // Initialize the logger for the valid token and log 100 events
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::ResumeTransmission();
         auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
         int numIterations = 100;
-        while (numIterations--)
-        {
+        while (numIterations--) {
             EventProperties event1("fooEvent");
             event1.SetProperty("property", "value");
             myLogger->LogEvent(event1);
@@ -1150,8 +1148,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         LogManager::ResumeTransmission();
         myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
         numIterations = 100;
-        while (numIterations--)
-        {
+        while (numIterations--) {
             EventProperties event2("failEvent");
             event2.SetProperty("property", "value");
             myLogger->LogEvent(event2);
@@ -1166,8 +1163,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     LogManager::ResumeTransmission();
     auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
     int numIterations = 100;
-    while (numIterations--)
-    {
+    while (numIterations--) {
         EventProperties event1("fooEvent");
         event1.SetProperty("property", "value");
         myLogger->LogEvent(event1);
@@ -1177,14 +1173,13 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     LogManager::ResumeTransmission();
     myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
     numIterations = 100;
-    while (numIterations--)
-    {
+    while (numIterations--) {
         EventProperties event2("failEvent");
         event2.SetProperty("property", "value");
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
-    EXPECT_EQ(uint32_t{100}, listener.numDropped);
+    EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
     listener.printStats();
@@ -1192,7 +1187,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     server.clearKilledTokens();
 }
 
-TEST_F(BasicFuncTests, killIsTemporary)
+TEST_F(BasicFuncTests, killIsTemporary) 
 {
     CleanStorage();
     // Create the configuration to send to fake server
@@ -1204,30 +1199,28 @@ TEST_F(BasicFuncTests, killIsTemporary)
 
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;  // 2 seconds wait on shutdown
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration["http"]["compress"] = false;     // disable compression for now
-    configuration["stats"]["interval"] = 30 * 60;  // 30 mins
+    configuration["http"]["compress"] = false;      // disable compression for now
+    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
-    configuration["config"] = {{"host", __FILE__}};  // Host instance
-
+    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 10);
     KillSwitchListener listener;
     addListeners(listener);
     // Log 100 events from valid and invalid 4 times
     int repetitions = 4;
-    for (int i = 0; i < repetitions; i++)
-    {
+    for (int i = 0; i < repetitions; i++) {
         // Initialize the logger for the valid token and log 100 events
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::ResumeTransmission();
         auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
         int numIterations = 100;
-        while (numIterations--)
-        {
+        while (numIterations--) {
             EventProperties event1("fooEvent");
             event1.SetProperty("property", "value");
             myLogger->LogEvent(event1);
@@ -1237,8 +1230,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
         LogManager::ResumeTransmission();
         myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
         numIterations = 100;
-        while (numIterations--)
-        {
+        while (numIterations--) {
             EventProperties event2("failEvent");
             event2.SetProperty("property", "value");
             myLogger->LogEvent(event2);
@@ -1255,8 +1247,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     LogManager::ResumeTransmission();
     auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
     int numIterations = 100;
-    while (numIterations--)
-    {
+    while (numIterations--) {
         EventProperties event1("fooEvent");
         event1.SetProperty("property", "value");
         myLogger->LogEvent(event1);
@@ -1266,14 +1257,13 @@ TEST_F(BasicFuncTests, killIsTemporary)
     LogManager::ResumeTransmission();
     myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
     numIterations = 100;
-    while (numIterations--)
-    {
+    while (numIterations--) {
         EventProperties event2("failEvent");
         event2.SetProperty("property", "value");
         myLogger->LogEvent(event2);
     }
     // Expect to 0 events to be dropped
-    EXPECT_EQ(uint32_t{0}, listener.numDropped);
+    EXPECT_EQ(uint32_t { 0 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
     listener.printStats();
@@ -1291,7 +1281,8 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
     auto eventsList = {
         DebugEventType::EVT_HTTP_OK,
         DebugEventType::EVT_HTTP_ERROR,
-        DebugEventType::EVT_HTTP_FAILURE};
+        DebugEventType::EVT_HTTP_FAILURE
+    };
     // Add event listeners
     for (auto evt : eventsList)
     {
@@ -1300,7 +1291,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 
     for (size_t i = 0; i < 20; i++)
     {
-        auto& configuration = LogManager::GetLogConfiguration();
+        auto &configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration["http"]["compress"] = true;
@@ -1440,10 +1431,11 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
         LogManagerB::RemoveEventListener(evt, listener);
         LogManagerA::RemoveEventListener(evt, listener);
     }
+    CleanStorage();
 }
 #endif
 
-#if 0  // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
+#if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
 {
@@ -1478,7 +1470,7 @@ TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
 }
 #endif
 
-#if 0  // TODO: [MG] - re-enable this long-haul test
+#if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 {
     CleanStorage();
@@ -1530,4 +1522,4 @@ TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
     }
 }
 #endif
-#endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

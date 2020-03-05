@@ -6,16 +6,16 @@
 
 #include <limits>
 
-#define ABS64(a, b) ((a > b) ? (a - b) : (b - a))
+#define ABS64(a,b)    ((a>b)?(a-b):(b-a))
 
-namespace ARIASDK_NS_BEGIN
-{
-    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000;  // 2 sec
+namespace ARIASDK_NS_BEGIN {
+
+    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
-    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
-        m_lock(),
+    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
+        : m_lock(),
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
@@ -86,7 +86,7 @@ namespace ARIASDK_NS_BEGIN
         {
             return;
         }
-        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]))
+        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
         {
             LOG_TRACE("Maximum number of HTTP requests reached");
             return;
@@ -98,7 +98,7 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
 
-        if ((!force) && (m_isUploadScheduled))
+        if ((!force)&&(m_isUploadScheduled))
         {
             if (m_runningLatency > latency)
             {
@@ -139,7 +139,7 @@ namespace ARIASDK_NS_BEGIN
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
-        m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
+        m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
@@ -153,22 +153,19 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-#ifdef ENABLE_BW_CONTROLLER /* Bandwidth controller is not currently supported */
-        if (m_bandwidthController)
-        {
+#ifdef ENABLE_BW_CONTROLLER   /* Bandwidth controller is not currently supported */
+        if (m_bandwidthController) {
             unsigned proposedBandwidthBps = m_bandwidthController->GetProposedBandwidthBps();
             unsigned minimumBandwidthBps = m_config.GetMinimumUploadBandwidthBps();
-            if (proposedBandwidthBps >= minimumBandwidthBps)
-            {
+            if (proposedBandwidthBps >= minimumBandwidthBps) {
                 LOG_TRACE("Bandwidth controller proposed sufficient bandwidth %u bytes/sec (minimum accepted is %u)",
-                          proposedBandwidthBps, minimumBandwidthBps);
+                    proposedBandwidthBps, minimumBandwidthBps);
             }
-            else
-            {
+            else {
                 unsigned delayMs = 1000;
                 LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
-                         proposedBandwidthBps, minimumBandwidthBps, delayMs);
-                scheduleUpload(delayMs, latency);  // reschedule uploadAsync to run again 1000 ms later
+                    proposedBandwidthBps, minimumBandwidthBps, delayMs);
+                scheduleUpload(delayMs, latency); // reschedule uploadAsync to run again 1000 ms later
                 return;
             }
         }
@@ -193,7 +190,7 @@ namespace ARIASDK_NS_BEGIN
         {
             LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(nextUploadInMs, proposed);  // reschedule uploadAsync again
+            scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
         }
     }
 
@@ -248,21 +245,19 @@ namespace ARIASDK_NS_BEGIN
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
         pauseAllUploads();
-        allUploadsFinished();  // calls stats.onStop >> this->flushTaskDispatcher;
+        allUploadsFinished();   // calls stats.onStop >> this->flushTaskDispatcher;
     }
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
     {
-        if (m_isPaused)
-        {
+        if (m_isPaused) {
             return;
         }
         bool forceTimerRestart = false;
 
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
-        if (event->record.latency > EventLatency_RealTime)
-        {
+        if (event->record.latency > EventLatency_RealTime) {
             EventsUploadContextPtr ctx = new EventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
@@ -356,5 +351,5 @@ namespace ARIASDK_NS_BEGIN
         finishUpload(ctx, -1);
     }
 
-}
-ARIASDK_NS_END
+
+} ARIASDK_NS_END

@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
-#ifndef ITASKDISPATHER_HPP
-#define ITASKDISPATHER_HPP
+#ifndef ITASKDISPATCHER_HPP
+#define ITASKDISPATCHER_HPP
 
 #include "IModule.hpp"
 #include "Version.hpp"
 #include "ctmacros.hpp"
 
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,15 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     class Task
     {
+        /// <summary>
+        /// Atomic counter that returns sequentially incrementing unique Task ID
+        /// </summary>
+        static uint64_t GetNewTid()
+        {
+            std::atomic<uint64_t> lastTid;
+            return lastTid.fetch_add(1);
+        }
+
     public:
         /// <summary>
         /// Type of work item
@@ -47,10 +57,20 @@ namespace ARIASDK_NS_BEGIN
             Cancelled
         } Type;
 
+        Task() :
+            tid(GetNewTid())
+        {};
+
         /// <summary>
         /// The time (in milliseconds since epoch) when this work item should be executed
         /// </summary>
         uint64_t TargetTime;
+
+        /// <summary>
+        /// Unique Task Id.
+        /// TODO: [maxgolov] - use this Task Id for task cancellation instead of raw ptr
+        /// </summary>
+        uint64_t tid;
 
         /// <summary>
         /// The Task class destructor.
@@ -105,4 +125,4 @@ namespace ARIASDK_NS_BEGIN
 
 } ARIASDK_NS_END
 
-#endif // ITASKDISPATHER_HPP
+#endif // ITASKDISPATCHER_HPP

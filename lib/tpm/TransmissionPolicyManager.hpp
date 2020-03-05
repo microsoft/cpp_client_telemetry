@@ -18,6 +18,14 @@
 #include <atomic>
 #include <cstdint>
 
+// This macro allows to specify max upload task cancellation wait time at compile-time,
+// addressing the case when a task that we are trying to cancel is currently running.
+// Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
+// Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
+#ifndef UPLOAD_TASK_CANCEL_TIME_MS
+#define UPLOAD_TASK_CANCEL_TIME_MS      500
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
     class TransmissionPolicyManager
@@ -68,7 +76,6 @@ namespace ARIASDK_NS_BEGIN {
         std::atomic<bool>                m_isPaused;
         std::atomic<bool>                m_isUploadScheduled;
         uint64_t                         m_scheduledUploadTime;
-
         std::mutex                       m_scheduledUploadMutex;
         PAL::DeferredCallbackHandle      m_scheduledUpload;
         bool                             m_scheduledUploadAborted;
@@ -119,7 +126,7 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         bool cancelUploadTask()
         {
-            uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UINT64_MAX : 0;
+            uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
             bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
             m_isUploadScheduled.exchange(false);
             return result;
