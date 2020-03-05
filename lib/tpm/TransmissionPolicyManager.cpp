@@ -147,7 +147,7 @@ namespace ARIASDK_NS_BEGIN {
             LOCKGUARD(m_scheduledUploadMutex);
             if ((m_isPaused) || (m_scheduledUploadAborted))
             {
-                LOG_TRACE("Paused, not uploading anything until resumed");
+                LOG_TRACE("Paused or upload aborted: cancel pending upload task.");
                 cancelUploadTask();  // If there is a pending upload task, kill it
                 return;
             }
