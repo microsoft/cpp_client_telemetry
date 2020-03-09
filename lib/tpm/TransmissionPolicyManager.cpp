@@ -228,10 +228,10 @@ namespace ARIASDK_NS_BEGIN {
             LOCKGUARD(m_scheduledUploadMutex);
             // Prevent execution of all upload tasks
             m_scheduledUploadAborted = true;
+            // Make sure we wait for completion of the upload scheduling task that may be running
+            cancelUploadTask();
         }
 
-        // Make sure we wait for completion on the upload scheduling task that may be running
-        cancelUploadTask();
         // Make sure we wait for all active upload callbacks to finish
         while (uploadCount() > 0)
         {

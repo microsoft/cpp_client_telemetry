@@ -42,6 +42,7 @@ namespace PAL_NS_BEGIN {
 
         WorkerThread()
         {
+            m_itemInProgress = nullptr;
             m_hThread = std::thread(WorkerThread::threadFunc, static_cast<void*>(this));
             LOG_INFO("Started new thread %u", m_hThread.get_id());
         }
@@ -95,21 +96,34 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        // TODO: [maxgolov] - method has to be refactored to allow cancellation by Task tid.
-        // Otherwise we may run into a situation where we wait on a 'wrong task' completion.
-        // In case if the task we were supposed to be waiting on is done running and destroyed,
-        // but while we idle-wait for TASK_CANCEL_WAIT_MS - a new task obj got allocated on
-        // heap with the same exact raw ptr. The chance of that collision is slim and the only
-        // side-effect is we'd idle-wait slightly longer until the new task is done.
+        // Cancel a task or wait for task completion for up to waitTime ms:
         //
-        // It would also make sense to return the following cancellation status:
-        // - task not found
-        // - task found and cancelled
-        // - task found, but not cancelled - ran to completion.
-        // - task found, but not cancelled - still running.
+        // - acquire the m_lock to prevent a new task from getting scheduled.
+        //   This may block the scheduling of a new task in queue for up to
+        //   TASK_CANCEL_WAIT_MS=50 ms in case if the task being canceled
+        //   is the one being executed right now.
+        //
+        // - if currently executing task is the one we are trying to cancel,
+        //   then verify for recursion: if the current thread is the same
+        //   we're waiting on, prevent the recursion (we can't cancel our own
+        //   thread task). If it's different thread, then idle-poll-wait for
+        //   task completion for up to waitTime ms. m_itemInProgress is nullptr
+        //   once the item is done executing. Method may fail and return if
+        //   waitTime given was insufficient to wait for completion.
+        //
+        // - if task being cancelled is not executing yet, then erase it from
+        //   timer queue without any wait.
+        //
+        // TODO: current callers of this API do not check the status code.
+        // Refactor this code to return the following cancellation status:
+        // - TASK_NOTFOUND  - task not found
+        // - TASK_CANCELLED - task found and cancelled without execution 
+        // - TASK_COMPLETED - task found and ran to completion
+        // - TASK_RUNNING   - task is still running (insufficient waitTime)
         //
         bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
+            LOCKGUARD(m_lock);
             if (item == nullptr)
             {
                 return false;
@@ -120,7 +134,6 @@ namespace PAL_NS_BEGIN {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_hThread.get_id() != std::this_thread::get_id())
                 {
-                    LOCKGUARD(m_lock);
                     while ((waitTime > TASK_CANCEL_WAIT_MS) && (m_itemInProgress == item))
                     {
                         PAL::sleep(TASK_CANCEL_WAIT_MS);
@@ -135,7 +148,6 @@ namespace PAL_NS_BEGIN {
             }
 
             {
-                LOCKGUARD(m_lock);
                 auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
                 if (it != m_timerQueue.end()) {
                     // Still in the queue
@@ -199,6 +211,10 @@ namespace PAL_NS_BEGIN {
                         item = std::unique_ptr<MAT::Task>(self->m_queue.front());
                         self->m_queue.pop_front();
                     }
+
+                    if (item) {
+                        self->m_itemInProgress = item.get();
+                    }
                 }
 
                 if (!item) {
@@ -209,11 +225,11 @@ namespace PAL_NS_BEGIN {
 
                 if (item->Type == MAT::Task::Shutdown) {
                     item.reset();
+                    self->m_itemInProgress = nullptr;
                     break;
                 }
                 
                 LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
-                self->m_itemInProgress = item.get();
                 (*item)();
                 self->m_itemInProgress = nullptr;
 
