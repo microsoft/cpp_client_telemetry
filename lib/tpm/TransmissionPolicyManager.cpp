@@ -139,12 +139,12 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
-        m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
         {
             LOCKGUARD(m_scheduledUploadMutex);
+            m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
             if ((m_isPaused) || (m_scheduledUploadAborted))
             {
                 LOG_TRACE("Paused or upload aborted: cancel pending upload task.");
