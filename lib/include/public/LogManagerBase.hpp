@@ -90,7 +90,7 @@ public:
     }
 
 #ifdef _MANAGED
-#define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
+#define LM_LOCKGUARD(macro_mutex) msclr::lock TOKENPASTE2(__guard_, __LINE__)(LogManagerLock::lock);
 #else
 #define LM_LOCKGUARD(macro_mutex)                   \
     std::lock_guard<std::recursive_mutex> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);

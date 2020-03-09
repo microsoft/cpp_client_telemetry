@@ -11,6 +11,7 @@
 #include <condition_variable>
 #include <climits>
 #include <algorithm>
+#include <atomic>
 
 #include "ITaskDispatcher.hpp"
 #include "Version.hpp"
@@ -58,7 +59,7 @@ namespace PAL_NS_BEGIN {
     class DeferredCallbackHandle
     {
     public:
-        MAT::Task* m_task;
+        std::atomic<MAT::Task*> m_task;
         MAT::ITaskDispatcher* m_taskDispatcher;
 
         DeferredCallbackHandle(MAT::Task* task, MAT::ITaskDispatcher* taskDispatcher) :
@@ -66,16 +67,22 @@ namespace PAL_NS_BEGIN {
             m_taskDispatcher(taskDispatcher) { };
         DeferredCallbackHandle() : m_task(nullptr), m_taskDispatcher(nullptr) {};
         DeferredCallbackHandle(const DeferredCallbackHandle& h) :
-            m_task(h.m_task),
+            m_task(h.m_task.load()),
             m_taskDispatcher(h.m_taskDispatcher) { };
+
+        DeferredCallbackHandle& operator=(DeferredCallbackHandle other)
+        {
+            m_task = other.m_task.load();
+            m_taskDispatcher = other.m_taskDispatcher;
+            return *this;
+        }
 
         bool Cancel(uint64_t waitTime = 0)
         {
-            if (m_task)
+            MAT::Task* m_current_task = m_task.exchange(nullptr);
+            if (m_current_task)
             {
-                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, waitTime));
-                m_task = nullptr;
-                m_taskDispatcher = nullptr;
+                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_current_task, waitTime));
                 return result;
             }
             return false;
