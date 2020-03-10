@@ -1,3 +1,4 @@
+// clang-format off
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 
@@ -31,6 +32,60 @@ using namespace testing;
 using namespace MAT;
 
 // LOGMANAGER_INSTANCE
+
+namespace PAL_NS_BEGIN
+{
+    class PALTest
+    {
+       public:
+
+        static long GetPalRefCount()
+        {
+            return PAL::GetPAL().m_palStarted.load();
+        };
+
+        static std::shared_ptr<ITaskDispatcher> GetTaskDispatcher()
+        {
+            return PAL::GetPAL().m_taskDispatcher;
+        };
+
+        static ISystemInformation* GetSystemInformation()
+        {
+            return PAL::GetPAL().m_SystemInformation;
+        }
+
+        static INetworkInformation* GetNetworkInformation()
+        {
+            return PAL::GetPAL().m_NetworkInformation;
+        }
+
+        static IDeviceInformation* GetDeviceInformation()
+        {
+            return PAL::GetPAL().m_DeviceInformation;
+        }
+    };
+}
+PAL_NS_END;
+
+namespace ARIASDK_NS_BEGIN
+{
+    class ModuleA : public ILogConfiguration
+    {
+    };
+    class LogManagerA : public LogManagerBase<ModuleA>
+    {
+    };
+    class ModuleB : public ILogConfiguration
+    {
+    };
+    class LogManagerB : public LogManagerBase<ModuleB>
+    {
+    };
+    // Two distinct LogManagerX 'singelton' instances
+    DEFINE_LOGMANAGER(LogManagerB, ModuleB);
+    DEFINE_LOGMANAGER(LogManagerA, ModuleA);
+}
+ARIASDK_NS_END
 
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
@@ -83,10 +138,10 @@ protected:
     std::mutex cv_m;
 public:
 
-	BasicFuncTests() :
+    BasicFuncTests() :
         isSetup(false) ,
         isRunning(false)
-	{};
+    {};
 
     virtual void SetUp() override
     {
@@ -172,7 +227,7 @@ public:
 
         {
             LOCKGUARD(mtx_requests);
-        receivedRequests.push_back(request);
+            receivedRequests.push_back(request);
         }
 
         response.headers["Content-Type"] = "text/plain";
@@ -1278,6 +1333,105 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
     {
         LogManager::RemoveEventListener(evt, listener);
     }
+}
+
+#define MAX_TEST_RETRIES 10
+
+TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
+{
+    CleanStorage();
+
+    RequestMonitor listener;
+    auto eventsList = {
+        DebugEventType::EVT_HTTP_OK,
+        DebugEventType::EVT_HTTP_ERROR,
+        DebugEventType::EVT_HTTP_FAILURE};
+    // Add event listeners
+    for (auto evt : eventsList)
+    {
+        LogManagerA::AddEventListener(evt, listener);
+        LogManagerB::AddEventListener(evt, listener);
+    };
+
+    // string values in ILogConfiguration must stay immutable for the duration of the run
+    {   // LogManager A
+        auto& configuration = LogManagerA::GetLogConfiguration();
+        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        configuration["http"]["compress"] = true;
+        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
+        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        configuration["name"] = "LogManagerA";
+        configuration["version"] = "1.0.0";
+        configuration["config"]["host"] = "LogManagerA";
+    }
+    {   // LogManager B
+        auto& configuration = LogManagerB::GetLogConfiguration();
+        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        configuration["http"]["compress"] = true;
+        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
+        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        configuration["name"] = "LogManagerB";
+        configuration["version"] = "1.0.0";
+        configuration["config"]["host"] = "LogManagerB";
+    }
+
+    std::atomic<bool> testRunning(true);
+    auto t = std::thread([&]() {
+        while (testRunning)
+        {
+            // Abuse LogManagerA and LogManagerB badly.
+            // Both may or may not have a valid implementation instance.
+            // PAL could be dead while this abuse is happening.
+            LogManagerA::UploadNow();
+            LogManagerB::UploadNow();
+        }
+    });
+
+    for (size_t i = 0; i < MAX_TEST_RETRIES; i++)
+    {
+        auto loggerA = LogManagerA::Initialize(TEST_TOKEN);
+        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
+
+        auto loggerB = LogManagerB::Initialize(TEST_TOKEN);
+        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 2);
+
+        EventProperties evtCritical("BasicFuncTests.stress_test_critical_A");
+        evtCritical.SetPriority(EventPriority_Immediate);
+        evtCritical.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY | MICROSOFT_KEYWORD_CRITICAL_DATA);
+        loggerA->LogEvent("BasicFuncTests.stress_test_A");
+        LogManagerA::UploadNow();
+
+        loggerB->LogEvent("BasicFuncTests.stress_test_B");
+        LogManagerB::UploadNow();
+
+        EXPECT_EQ(LogManagerB::FlushAndTeardown(), STATUS_SUCCESS);
+        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
+
+        EXPECT_EQ(LogManagerA::FlushAndTeardown(), STATUS_SUCCESS);
+        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 0);
+    }
+
+    testRunning = false;
+    try
+    {
+        t.join();
+    }
+    catch (std::exception)
+    {
+        // catch exception if can't join because the thread is already gone
+    };
+    listener.dump();
+    // Remove event listeners
+    for (auto evt : eventsList)
+    {
+        LogManagerB::RemoveEventListener(evt, listener);
+        LogManagerA::RemoveEventListener(evt, listener);
+    }
+    CleanStorage();
 }
 #endif
 
