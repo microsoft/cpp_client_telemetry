@@ -131,7 +131,7 @@ class WinInetRequestWrapper
     }
 
     // Asynchronously send HTTP request and invoke response callback.
-    // Onwership semantics: send(...) method self-destroys *this* upon
+    // Ownership semantics: send(...) method self-destroys *this* upon
     // receiving WinInet callback. There must be absolutely no methods
     // that attempt to use the object after triggering send on it.
     // Send operation on request may be issued no more than once.
