@@ -3,8 +3,8 @@
 #define MAT_VERSION_HPP
 // WARNING: DO NOT MODIFY THIS FILE!
 // This file has been automatically generated, manual changes will be lost.
-#define BUILD_VERSION_STR "3.3.8.1"
-#define BUILD_VERSION 3,3,8,1
+#define BUILD_VERSION_STR "3.3.64.1"
+#define BUILD_VERSION 3,3,64,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include <stdint.h>
@@ -30,8 +30,8 @@ namespace ARIASDK_NS_BEGIN {
 uint64_t const Version =
     ((uint64_t)3 << 48) |
     ((uint64_t)3 << 32) |
-    ((uint64_t)8 << 16) |
-    ((uint64_t)1);
+    ((uint64_t)64 << 16) |
+    ((uint64_t)1);
 
 } ARIASDK_NS_END
 
