@@ -261,7 +261,7 @@ class WinInetRequestWrapper
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
             return;
         }
-        // Async request has been  queued in WinInet thread pool
+        // Async request has been queued in WinInet thread pool
     }
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
