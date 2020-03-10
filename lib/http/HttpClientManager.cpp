@@ -106,6 +106,7 @@ namespace ARIASDK_NS_BEGIN {
         PAL::scheduleTask(&m_taskDispatcher, 0, this, &HttpClientManager::onHttpResponse, callback);
     }
 
+    /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
         EventsUploadContextPtr &ctx = callback->m_ctx;

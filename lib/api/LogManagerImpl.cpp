@@ -292,10 +292,9 @@ namespace ARIASDK_NS_BEGIN
     void LogManagerImpl::FlushAndTeardown()
     {
         LOG_INFO("Shutting down...");
-
+        LOCKGUARD(m_lock);
+        if (m_alive)
         {
-            LOCKGUARD(m_lock);
-
             LOG_INFO("Tearing down modules");
             TeardownModules();
 
@@ -315,15 +314,14 @@ namespace ARIASDK_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
+
+            m_filters.UnregisterAllFilters();
+
+            auto shutTime = GetUptimeMs();
+            PAL::shutdown();
+            shutTime = GetUptimeMs() - shutTime;
+            LOG_INFO("Shutdown complete in %lld ms", shutTime);
         }
-
-        m_filters.UnregisterAllFilters();
-
-        auto shutTime = GetUptimeMs();
-        PAL::shutdown();
-        shutTime = GetUptimeMs() - shutTime;
-        LOG_INFO("Shutdown complete in %lld ms", shutTime);
-
         m_alive = false;
 
     }
