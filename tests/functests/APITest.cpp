@@ -1065,6 +1065,47 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 }
 
+#ifdef HAVE_MAT_WININET_HTTP_CLIENT
+/* This test requires WinInet HTTP client */
+TEST(APITest, LogConfiguration_MsRoot_Check)
+{
+    TestDebugEventListener debugListener;
+    std::list<std::tuple<std::string, bool, unsigned>> testParams =
+        {
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
+        };
+
+    // 4 test runs
+    for (const auto& params : testParams)
+    {
+        CleanStorage();
+
+        auto& config = LogManager::GetLogConfiguration();
+        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
+        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
+        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
+        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
+        auto expectedHttpCount = std::get<2>(params);
+
+        auto logger = LogManager::Initialize(TEST_TOKEN, config);
+
+        debugListener.reset();
+        addAllListeners(debugListener);
+        logger->LogEvent("fooBar");
+        LogManager::FlushAndTeardown();
+        removeAllListeners(debugListener);
+
+        // Connection is a best-effort, occasionally we can't connect,
+        // but we MUST NOT connect to end-point that doesn't have the
+        // right cert.
+        EXPECT_LE(debugListener.numHttpOK, expectedHttpCount);
+    }
+}
+#endif
 TEST(APITest, LogManager_BadNetwork_Test)
 {
     auto& config = LogManager::GetLogConfiguration();
@@ -1102,45 +1143,6 @@ TEST(APITest, LogManager_BadNetwork_Test)
         printf("\n");
     }
 }
-
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-/* This test requires WinInet HTTP client */
-TEST(APITest, LogConfiguration_MsRoot_Check)
-{
-    TestDebugEventListener debugListener;
-    std::list<std::tuple<std::string, bool, unsigned>> testParams =
-    {
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  false, 1}, // MS-Rooted, no MS-Root check:     post succeeds
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  true,  1}, // MS-Rooted, MS-Root check:        post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1}, // Non-MS rooted, no MS-Root check: post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", true,  0}  // Non-MS rooted, MS-Root check:    post fails
-    };
-
-    // 4 test runs
-    for (const auto &params : testParams)
-    {
-        CleanStorage();
-
-        auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;                     // avoid sending stats for this test, just customer events
-        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params); // MS root check depends on what URL we are sending to
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;               // up to 1s wait to perform HTTP post on teardown
-        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
-        auto expectedHttpCount = std::get<2>(params);
-
-        auto logger = LogManager::Initialize(TEST_TOKEN, config);
-
-        debugListener.reset();
-        addAllListeners(debugListener);
-        logger->LogEvent("fooBar");
-        LogManager::FlushAndTeardown();
-        removeAllListeners(debugListener);
-
-        EXPECT_EQ(debugListener.numHttpOK, expectedHttpCount);
-    }
-}
-#endif
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
 {
