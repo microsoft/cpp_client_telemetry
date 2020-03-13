@@ -1,5 +1,8 @@
 # 1DS C/C++ SDK
 
+[![Join](https://img.shields.io/badge/Join%20the%20project-brightgreen)](https://repos.opensource.microsoft.com/microsoft/teams/client-telemetry-sdk/join/)
+[![spellcheck](https://github.com/microsoft/cpp_client_telemetry/workflows/spellcheck/badge.svg)](https://github.com/microsoft/cpp_client_telemetry/actions?query=workflow%3Aspellcheck)
+
 **1DS C/C++ SDK** enables cross-platform telemetry collection from various
 Microsoft products. It enables data / telemetry upload to Collector++.
 
