@@ -150,7 +150,7 @@ C++ code
          -   Use [std::weak_ptr<T>](https://en.cppreference.com/w/cpp/memory/weak_ptr)
              to avoid reference cycles.
      -   Only pass smart pointers (unique_ptr, shared_ptr, weak_ptr) as parameters to
-         explicitly expresss lifetime semantics.
+         explicitly express lifetime semantics.
      -   If required by a platform (e.g, Microsoft COM), use the appropriate
          ref-counted type, but do not expose those types to platform agnostic code, 
          prefer to use an abstraction.
