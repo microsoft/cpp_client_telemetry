@@ -20,4 +20,8 @@ jobs:
         sh ./install-misspell.sh
 
     - name: run misspell
-      run: ./bin/misspell -error ./**/*.md
+      run: |
+        ./bin/misspell -error ./**/*.c ./**/*.cc ./**/*.cpp
+        ./bin/misspell -error ./**/*.h ./**/*.hpp
+        ./bin/misspell -error ./**/*.md
+        ./bin/misspell -error ./**/*.txt
