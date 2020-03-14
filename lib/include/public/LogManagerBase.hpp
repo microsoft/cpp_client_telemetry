@@ -196,7 +196,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Initializes the telemetry logging system with default configuraiton and HTTPClient.
+        /// Initializes the telemetry logging system with default configuration and HTTPClient.
         /// </summary>
         /// <returns>A logger instance instantiated with the default tenantToken.</returns>
         static ILogger* Initialize()
