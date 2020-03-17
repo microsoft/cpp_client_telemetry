@@ -95,10 +95,10 @@
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\mat.h" />
-    <ClInclude Include="include\CAPIClient.hpp" />
-    <ClInclude Include="include\ctmacros.hpp" />
-    <ClInclude Include="include\Version.h" />
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\mat.h" />
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\CAPIClient.hpp" />
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\ctmacros.hpp" />
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\Version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="deploy-dll.cmd" />
