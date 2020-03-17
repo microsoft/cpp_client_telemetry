@@ -253,7 +253,7 @@ public:
         size_t lastIdx = 0;
         while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
-            /* Give time for our friendly HTTP server thread to processs incoming request */
+            /* Give time for our friendly HTTP server thread to process incoming request */
             std::this_thread::yield();
             {
                 LOCKGUARD(mtx_requests);
