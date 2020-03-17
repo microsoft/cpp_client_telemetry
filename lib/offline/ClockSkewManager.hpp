@@ -47,7 +47,7 @@ namespace ARIASDK_NS_BEGIN {
             if (!m_deltaReceived && m_pingSent)
             {
                int64_t timeSincePing = PAL::getUtcSystemTime() - m_pingSendTime;
-               if (timeSincePing > 30) //30 secs have passed sinse ping was sent, soemthing went wrong, disable clock skew
+               if (timeSincePing > 30) //30 secs have passed since ping was sent, something went wrong, disable clock skew
                {
                   SetDelta("");
                   return false;
