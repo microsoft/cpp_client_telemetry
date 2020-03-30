@@ -155,7 +155,7 @@ struct App
     [Description("Name the client application")]
     8: optional string name = nothing;
 
-	[Description("Identifier to mark session. Unless overriden, a session cookie will be used to set this value based on 30 min inactivity")]
+	[Description("Identifier to mark session. Unless overridden, a session cookie will be used to set this value based on 30 min inactivity")]
     9: optional string sesId = nothing;
 }
 
