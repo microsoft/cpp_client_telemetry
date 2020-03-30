@@ -22,7 +22,7 @@ namespace PAL_NS_BEGIN {
         virtual std::string const& GetAppId() const = 0;
 
         /// <summary>
-        /// Gets the App verison.
+        /// Gets the App version.
         /// </summary>
         /// <returns>The App version</returns>
         virtual std::string const& GetAppVersion() const = 0;
@@ -33,15 +33,15 @@ namespace PAL_NS_BEGIN {
         virtual std::string const& GetAppLanguage() const = 0;
 
         /// <summary>
-        /// Gets the OS Full verison for the current device
+        /// Gets the OS Full version for the current device
         /// </summary>
-        /// <returns>The OS full verison for the current device</returns>
+        /// <returns>The OS full version for the current device</returns>
         virtual std::string const& GetOsFullVersion() const = 0;
 
         /// <summary>
-        /// Gets the OS major verison for the current device
+        /// Gets the OS major version for the current device
         /// </summary>
-        /// <returns>The OS major verison for the current device</returns>
+        /// <returns>The OS major version for the current device</returns>
         virtual std::string const& GetOsMajorVersion() const = 0;
 
         /// <summary>
