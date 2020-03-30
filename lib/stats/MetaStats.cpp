@@ -61,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     /// <summary>
-    /// Update the occurence within the corresponding group of Map distribution
+    /// Update the occurrence within the corresponding group of Map distribution
     /// </summary>
     /// <param name="distribution">a distribution to be updated</param>
     /// <param name="value">unsigned int, sample value, must be in some group of the given distribution</param>

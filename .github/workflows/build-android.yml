@@ -22,11 +22,16 @@ jobs:
         choco install --no-progress -y android-ndk
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
+        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
+        gci -r -i "CMake*" C:\Android
+        echo $Env:PATH
     - name: Gradle Build
       run: |
+        $Env:PATH = "C:\Android\android-sdk\cmake\3.10.2.4988404\bin;" + $Env:PATH
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
-    - name: Java unit tests
+    - name: Java Unit test
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat maesdk:test
@@ -36,8 +41,3 @@ jobs:
       with:
         name: reports
         path: lib\android_build\maesdk\build\reports
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: maesdk
-        path: lib\android_build\maesdk\build\outputs\aar

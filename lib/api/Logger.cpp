@@ -89,7 +89,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         // Always overwrite the stored value. 
-        // Empty string is alowed to remove the previously set value.
+        // Empty string is allowed to remove the previously set value.
         // If the value is empty, the context will not be added to event.
         m_context.SetCustomField(name, prop);
     }
