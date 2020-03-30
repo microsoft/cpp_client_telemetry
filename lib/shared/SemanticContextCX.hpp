@@ -105,6 +105,11 @@ namespace Microsoft {
                 public:
 
                     // Inherited via ISemanticContext
+                    property String ^ AppEnv {
+                         virtual void set(String ^ appEnv);
+                    }
+
+                    // Inherited via ISemanticContext
                     property String^ AppId
                     {
                         virtual void set(String^ appId);
