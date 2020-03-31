@@ -125,7 +125,8 @@ namespace PAL_NS_BEGIN {
         m_queueFn(&capiTask, &OnAsyncTaskCallback);
     }
 
-    bool TaskDispatcher_CAPI::Cancel(Task* task)
+    // TODO: currently shutdown wait on task cancellation is not implemented for C API Task Dispatcher
+    bool TaskDispatcher_CAPI::Cancel(Task* task, uint64_t)
     {
         std::string taskId;
 
