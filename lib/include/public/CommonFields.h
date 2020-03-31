@@ -6,6 +6,7 @@
 
 #define COMMONFIELDS_IKEY                                    "iKey"
 
+#define COMMONFIELDS_APP_ENV                                 "AppInfo.Env"
 #define COMMONFIELDS_APP_ID                                  "AppInfo.Id"
 #define COMMONFIELDS_APP_NAME                                "AppInfo.Name"
 #define COMMONFIELDS_APP_VERSION                             "AppInfo.Version"

@@ -51,7 +51,7 @@ class HttpClientManager
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        std::mutex                m_httpCallbacksMtx;
+        std::recursive_mutex      m_httpCallbacksMtx;
         std::list<HttpCallback*>  m_httpCallbacks;
 };
 
