@@ -41,7 +41,7 @@ namespace ARIASDK_NS_BEGIN
         /// Returns whether or not the event satisfies all registered IEventFilter's conditions
         /// </summary>
         /// <param name="properties">The full set of event properties that may be sent</param>
-        /// <returns>True if the event satisifes the all the registered ondtitions, false otherwise.</returns>
+        /// <returns>True if the event satisfies the all the registered ondtitions, false otherwise.</returns>
         virtual bool CanEventPropertiesBeSent(const EventProperties& properties) const noexcept = 0;
 
         /// <summary>

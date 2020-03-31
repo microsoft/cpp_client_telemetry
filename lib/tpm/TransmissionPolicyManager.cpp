@@ -24,7 +24,8 @@ namespace ARIASDK_NS_BEGIN {
         m_isUploadScheduled(false),
         m_scheduledUploadTime(std::numeric_limits<uint64_t>::max()),
         m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-        m_runningLatency(EventLatency_RealTime)
+        m_runningLatency(EventLatency_RealTime),
+        m_scheduledUploadAborted(false)
     {
         m_backoffConfig = "E,3000,300000,2,1";
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
@@ -39,23 +40,52 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::checkBackoffConfigUpdate()
     {
+        LOCKGUARD(m_backoffMutex);
         std::string config = m_config.GetUploadRetryBackoffConfig();
-        if (config != m_backoffConfig) {
+        if (config != m_backoffConfig)
+        {
             std::unique_ptr<IBackoff> backoff = IBackoff::createFromConfig(config);
-            if (!backoff) {
+            if (!backoff)
+            {
                 LOG_WARN("The new backoff configuration is invalid, continuing to use current settings");
             }
-            else {
+            else
+            {
                 m_backoff = std::move(backoff);
                 m_backoffConfig = config;
             }
         }
     }
 
+    void TransmissionPolicyManager::resetBackoff()
+    {
+        LOCKGUARD(m_backoffMutex);
+        if (m_backoff)
+            m_backoff->reset();
+    }
+
+    int TransmissionPolicyManager::increaseBackoff()
+    {
+        int delayMs = 0;
+        LOCKGUARD(m_backoffMutex);
+        checkBackoffConfigUpdate();
+        if (m_backoff)
+        {
+            delayMs = m_backoff->getValue();
+            m_backoff->increase();
+        }
+        return delayMs;
+    }
+
     // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
     // The duration delayInMs passed to that function must be always >= 0 ms
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
+        LOCKGUARD(m_scheduledUploadMutex);
+        if (m_scheduledUploadAborted)
+        {
+            return;
+        }
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
         {
             LOG_TRACE("Maximum number of HTTP requests reached");
@@ -109,14 +139,18 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
-        m_isUploadScheduled = false;    // Allow to schedule another uploadAsync
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
-        if (m_isPaused) {
-            LOG_TRACE("Paused, not uploading anything until resumed");
-            cancelUploadTask();    // If there is a pending upload task, kill it
-            return;
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
+            if ((m_isPaused) || (m_scheduledUploadAborted))
+            {
+                LOG_TRACE("Paused or upload aborted: cancel pending upload task.");
+                cancelUploadTask();  // If there is a pending upload task, kill it
+                return;
+            }
         }
 
 #ifdef ENABLE_BW_CONTROLLER   /* Bandwidth controller is not currently supported */
@@ -190,6 +224,15 @@ namespace ARIASDK_NS_BEGIN {
      */
     bool TransmissionPolicyManager::handleStop()
     {
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            // Prevent execution of all upload tasks
+            m_scheduledUploadAborted = true;
+            // Make sure we wait for completion of the upload scheduling task that may be running
+            cancelUploadTask();
+        }
+
+        // Make sure we wait for all active upload callbacks to finish
         while (uploadCount() > 0)
         {
             std::this_thread::yield();
@@ -271,7 +314,7 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::handleNothingToUpload(EventsUploadContextPtr const& ctx)
     {
         LOG_TRACE("No stored events to send at the moment");
-        m_backoff->reset();
+        resetBackoff();
         if (ctx->requestedMinLatency == EventLatency_Normal)
         {
             finishUpload(ctx, -1);
@@ -289,26 +332,18 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx)
     {
-        m_backoff->reset();
+        resetBackoff();
         finishUpload(ctx, 0);
     }
 
     void TransmissionPolicyManager::handleEventsUploadRejected(EventsUploadContextPtr const& ctx)
     {
-        checkBackoffConfigUpdate();
-        int delayMs = m_backoff->getValue();
-        m_backoff->increase();
-
-        finishUpload(ctx, delayMs);
+        finishUpload(ctx, increaseBackoff());
     }
 
     void TransmissionPolicyManager::handleEventsUploadFailed(EventsUploadContextPtr const& ctx)
     {
-        checkBackoffConfigUpdate();
-        int delayMs = m_backoff->getValue();
-        m_backoff->increase();
-
-        finishUpload(ctx, delayMs);
+        finishUpload(ctx, increaseBackoff());
     }
 
     void TransmissionPolicyManager::handleEventsUploadAborted(EventsUploadContextPtr const& ctx)

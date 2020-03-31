@@ -88,7 +88,7 @@ namespace PAL_NS_BEGIN {
                                 // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
                                 auto powerSource = GetCurrentPowerSource();
                                 //LOG_TRACE("Power source changed to %d", powerSource);
-                                // No need for the lock here - the event is called syncronously.
+                                // No need for the lock here - the event is called synchronously.
                                 if (m_powerSource != powerSource)
                                 {
                                     m_powerSource = powerSource;

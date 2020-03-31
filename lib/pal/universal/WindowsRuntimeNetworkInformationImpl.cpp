@@ -96,7 +96,7 @@ namespace PAL_NS_BEGIN {
                                     networkType = GetNetworkTypeForProfile(profile);
                                     networkCost = GetNetworkCostForProfile(profile);
                                 }
-                                // No need for the lock here - the event is called syncronously.
+                                // No need for the lock here - the event is called synchronously.
                                 if (m_type != networkType)
                                 {
                                     m_type = networkType;

@@ -66,9 +66,11 @@ namespace PAL_NS_BEGIN
     class INetworkInformation;
     class IDeviceInformation;
     class ISystemInformation;
+    class PALTest;
 
     class PlatformAbstractionLayer
     {
+    friend class PALTest;
     public:
         void sleep(unsigned delayMs) const noexcept;
 

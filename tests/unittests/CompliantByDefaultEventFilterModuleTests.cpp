@@ -12,7 +12,7 @@ class CompliantByDefaultEventFilterModuleTests : public CompliantByDefaultEventF
 {
 public:
     CompliantByDefaultEventFilterModuleTests() noexcept
-        : m_logManager(m_logConfiguration, nullptr) { }
+        : m_logManager(m_logConfiguration, static_cast<bool>(nullptr)) { }
     ILogConfiguration m_logConfiguration;
     LogManagerImpl m_logManager;
 
