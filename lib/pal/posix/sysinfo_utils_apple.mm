@@ -9,6 +9,11 @@ NSDictionary* copy_system_plist_dictionary(void)
     NSData *versionData = nil;
     NSString *systemVersFile = @"/System/Library/CoreServices/SystemVersion.plist";
     NSString *serverVersFile = @"/System/Library/CoreServices/ServerVersion.plist";
+#if TARGET_IPHONE_SIMULATOR
+    NSString *simulatorRoot = NSProcessInfo.processInfo.environment[@"IPHONE_SIMULATOR_ROOT"] ?: @"";
+    systemVersFile = [simulatorRoot stringByAppendingPathComponent:systemVersFile];
+    serverVersFile = [simulatorRoot stringByAppendingPathComponent:serverVersFile];
+#endif
     
     if([fileManager isReadableFileAtPath:systemVersFile])
         versionData = [NSData dataWithContentsOfFile:systemVersFile];
@@ -50,7 +55,11 @@ std::string GetDeviceOsVersion()
 
 std::string GetDeviceOsRelease()
 {
+#if TARGET_OS_IPHONE
+    NSString* value = get_system_value(@"ProductVersion");
+#else
     NSString* value = get_system_value(@"ProductUserVisibleVersion");
+#endif
     return std::string([value UTF8String]);
 }
 
