@@ -10,6 +10,11 @@ namespace Microsoft {
             {
                 public interface class ISemanticContext
                 {
+                    property String^ AppEnv
+                    {
+                        virtual void set(String^ appEnv) = 0;
+                    }
+
                     property String^ AppId
                     {
                         virtual void set(String^ appId) = 0;
@@ -98,6 +103,11 @@ namespace Microsoft {
                 ref class SemanticContextImpl sealed : ISemanticContext
                 {
                 public:
+
+                    // Inherited via ISemanticContext
+                    property String ^ AppEnv {
+                         virtual void set(String ^ appEnv);
+                    }
 
                     // Inherited via ISemanticContext
                     property String^ AppId
