@@ -310,13 +310,13 @@ class Socket
     {
         assert(m_sock != Invalid);
         int flags = 0;
-        return ::recv(m_sock, reinterpret_cast<char*>(buffer), size, flags);
+        return static_cast<int>(::recv(m_sock, reinterpret_cast<char*>(buffer), size, flags));
     }
 
     int send(void const* buffer, unsigned size)
     {
         assert(m_sock != Invalid);
-        return ::send(m_sock, reinterpret_cast<char const*>(buffer), size, 0);
+        return static_cast<int>(::send(m_sock, reinterpret_cast<char const*>(buffer), size, 0));
     }
 
     bool bind(SocketAddr const& addr)

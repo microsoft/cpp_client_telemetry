@@ -3,13 +3,12 @@
 #import <Foundation/Foundation.h>
 #include "sysinfo_utils_apple.hpp"
 
-CFDictionaryRef copy_system_plist_dictionary(void)
+NSDictionary* copy_system_plist_dictionary(void)
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSData *versionData = nil;
     NSString *systemVersFile = @"/System/Library/CoreServices/SystemVersion.plist";
     NSString *serverVersFile = @"/System/Library/CoreServices/ServerVersion.plist";
-    NSDictionary *properties = nil;
     
     if([fileManager isReadableFileAtPath:systemVersFile])
         versionData = [NSData dataWithContentsOfFile:systemVersFile];
@@ -19,23 +18,19 @@ CFDictionaryRef copy_system_plist_dictionary(void)
     if(versionData == nil)
         return nil;
     
-    properties = [NSPropertyListSerialization propertyListWithData:versionData options:NSPropertyListImmutable format:nil error:nil];
-    
-    return (CFDictionaryRef) [properties retain];
+    return [NSPropertyListSerialization propertyListWithData:versionData options:NSPropertyListImmutable format:nil error:nil];
 }
 
-NSString* get_system_value(CFStringRef key)
+NSString* get_system_value(NSString* key)
 {
-    CFDictionaryRef systemProperties = copy_system_plist_dictionary();
+    static NSDictionary* systemProperties = copy_system_plist_dictionary();
     if (systemProperties)
     {
-        CFStringRef propertyValue = (CFStringRef) CFDictionaryGetValue(systemProperties, key);
+        NSString* propertyValue = [systemProperties objectForKey:key];
         if (propertyValue)
         {
-            return (NSString *)propertyValue;
+            return propertyValue;
         }
-        
-        CFRelease(systemProperties);
     }
     
     return @"";
@@ -43,24 +38,24 @@ NSString* get_system_value(CFStringRef key)
 
 std::string GetDeviceOsName()
 {
-    NSString* value = get_system_value(CFSTR("ProductName"));
+    NSString* value = get_system_value(@"ProductName");
     return std::string([value UTF8String]);
 }
 
 std::string GetDeviceOsVersion()
 {
-    NSString* value = get_system_value(CFSTR("ProductVersion"));
+    NSString* value = get_system_value(@"ProductVersion");
     return std::string([value UTF8String]);
 }
 
 std::string GetDeviceOsRelease()
 {
-    NSString* value = get_system_value(CFSTR("ProductUserVisibleVersion"));
+    NSString* value = get_system_value(@"ProductUserVisibleVersion");
     return std::string([value UTF8String]);
 }
 
 std::string GetDeviceOsBuild()
 {
-    NSString* value = get_system_value(CFSTR("ProductBuildVersion"));
+    NSString* value = get_system_value(@"ProductBuildVersion");
     return std::string([value UTF8String]);
 }

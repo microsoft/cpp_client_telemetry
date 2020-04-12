@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.microsoft.applications.events" >
+
+    <uses-permission android:name="android.permission.ACCCESS_NETWORK_STATE" />
+</manifest>
