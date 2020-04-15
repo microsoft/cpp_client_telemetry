@@ -44,7 +44,7 @@ namespace PAL_NS_BEGIN {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl() :m_registredCount(0),
+                DeviceInformationImpl::DeviceInformationImpl() :m_registeredCount(0),
                     m_info_helper()
                 {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
@@ -82,7 +82,7 @@ namespace PAL_NS_BEGIN {
                     {
                         try
                         {
-                            if (m_registredCount > 0)
+                            if (m_registeredCount > 0)
                             {
                                 // No need to use WeakReference as this is not ref counted.
                                 // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
