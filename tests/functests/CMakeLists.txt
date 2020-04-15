@@ -55,9 +55,11 @@ else()
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework SystemConfiguration -framework Foundation")
+    set (PLATFORM_LIBS "-framework CoreFoundation -framework Foundation")
     if(BUILD_IOS)
-      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit")
+      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit -framework Network -framework SystemConfiguration")
+    else()
+      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit")
     endif()
   endif()
 
