@@ -17,7 +17,7 @@ IOS_ARCH="x86_64"
 fi
 
 # Set target iOS minver
-IOS_DEPLOYMENT_TARGET=10.10
+IOS_DEPLOYMENT_TARGET=10.0
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
