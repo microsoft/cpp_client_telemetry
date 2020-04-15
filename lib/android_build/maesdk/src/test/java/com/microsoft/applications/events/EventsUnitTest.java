@@ -1,20 +1,21 @@
 package com.microsoft.applications.events;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import static org.mockito.Mockito.*;
-
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,17 +23,28 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import com.microsoft.applications.events.httpClient;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -65,6 +77,15 @@ public class EventsUnitTest {
     @Mock
     NetworkCapabilities mockCapabilities;
 
+    @Mock
+    PackageManager mockPackageManager;
+
+    @Mock
+    Resources mockResources;
+
+    @Mock
+    Configuration mockConfiguration;
+
     static private byte[] body_bytes;
     static final private AtomicInteger dispatchCount  = new AtomicInteger(0);
     static private boolean expectedMetered = false;
@@ -72,7 +93,7 @@ public class EventsUnitTest {
     static private ConnectivityManager.NetworkCallback callback = null;
     static private int expectedResponse = 200;
 
-    class Stubby extends httpClient {
+    class Stubby extends HttpClient {
 
         Stubby(Context context) throws java.io.IOException {
             super(context);
@@ -133,6 +154,30 @@ public class EventsUnitTest {
         {
             return mockExecutor;
         }
+
+        @Override
+        public void setDeviceInfo(String id, String manufacturer, String model)
+        {
+            assertNotNull(id);
+            assertNull(manufacturer);
+            assertNull(model);
+        }
+
+        @Override
+        public void setSystemInfo(
+            String app_id,
+            String app_version,
+            String app_language,
+            String os_major_version,
+            String os_full_version
+        )
+        {
+            assertNull(app_id);
+            assertEquals("", app_version);
+            assertEquals("foobar", app_language);
+            assertNull(os_major_version);
+            assertEquals("null null", os_full_version);
+        }
     }
 
     class StubbyAllow extends Stubby {
@@ -146,12 +191,19 @@ public class EventsUnitTest {
         }
     }
 
+    public void connectMocks() throws PackageManager.NameNotFoundException {
+        when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
+        when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
+        when(mockContext.getResources()).thenReturn(mockResources);
+        mockConfiguration.locale = new Locale("foobar");
+        when(mockResources.getConfiguration()).thenReturn(mockConfiguration);
+    }
     @Test
-    public void canInstantiate() throws java.io.IOException {
+    public void canInstantiate() throws java.io.IOException, PackageManager.NameNotFoundException {
         int previousDispatch = dispatchCount.get();
         int previousCostChange = costChangeCount.get();
+        connectMocks();
         callback = null;
-        when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
         Stubby stubs = new Stubby(mockContext);
         /* Stubby should not attempt to access the CONNECTIVITY_SERVICE */
         verify(mockContext, times(0)).getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -164,11 +216,11 @@ public class EventsUnitTest {
     }
 
     @Test
-    public void canInstantiateWithConnectivity() throws java.io.IOException {
+    public void canInstantiateWithConnectivity() throws java.io.IOException, PackageManager.NameNotFoundException {
         int previousDispatch = dispatchCount.get();
         int previousCostChange = costChangeCount.get();
         callback = null;
-        when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
+        connectMocks();
         doAnswer(new org.mockito.stubbing.Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
@@ -191,7 +243,7 @@ public class EventsUnitTest {
     }
 
     @Test
-    public void canCreateTask() throws java.io.IOException {
+    public void canCreateTask() throws java.io.IOException, PackageManager.NameNotFoundException {
         final List<String> someValue = new Vector<String>();
         someValue.add("bar");
         final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
@@ -206,7 +258,7 @@ public class EventsUnitTest {
         when(mockConnection.getHeaderFields()).thenReturn(headerMap);
         when(mockConnection.getResponseCode()).thenReturn(200);
         when(mockConnection.getInputStream()).thenReturn(bodyStream);
-        when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
+        connectMocks();
 
         int previousDispatch = dispatchCount.get();
         Stubby stubs = new Stubby(mockContext);
@@ -235,7 +287,7 @@ public class EventsUnitTest {
     }
 
     @Test
-    public void errorResponseCode() throws java.io.IOException {
+    public void errorResponseCode() throws java.io.IOException, PackageManager.NameNotFoundException {
         final List<String> someValue = new Vector<String>();
         someValue.add("bar");
         final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
@@ -249,6 +301,7 @@ public class EventsUnitTest {
         when(mockConnection.getHeaderFields()).thenReturn(headerMap);
         when(mockConnection.getResponseCode()).thenReturn(300);
         when(mockConnection.getErrorStream()).thenReturn(bodyStream);
+        connectMocks();
         when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
 
         int previousDispatch = dispatchCount.get();
@@ -277,7 +330,7 @@ public class EventsUnitTest {
     }
 
     @Test
-    public void requestException() throws java.io.IOException {
+    public void requestException() throws java.io.IOException, PackageManager.NameNotFoundException {
         final List<String> someValue = new Vector<String>();
         someValue.add("bar");
         final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
@@ -289,8 +342,7 @@ public class EventsUnitTest {
         when(mockUrl.openConnection()).thenReturn(mockConnection);
         when(mockConnection.getOutputStream()).thenReturn(mockBodyStream);
         when(mockConnection.getResponseCode()).thenThrow(new IOException("Space Aliens"));
-        when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
-
+        connectMocks();
         int previousDispatch = dispatchCount.get();
         Stubby stubs = new Stubby(mockContext);
         final String url = "https://www.contoso.com";
