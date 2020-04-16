@@ -20,6 +20,7 @@
 #endif
 
 #include "DebugCallback.hpp"
+
 LOGMANAGER_INSTANCE
 
 #include "DefaultApiKey.h"
