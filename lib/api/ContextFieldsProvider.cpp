@@ -150,6 +150,13 @@ namespace ARIASDK_NS_BEGIN
                     record.extApp[0].id = iter->second.as_string;
                 }
 
+                iter = m_commonContextFields.find(COMMONFIELDS_APP_ENV);
+                bool hasAppEnv = (iter != m_commonContextFields.end());
+                if (hasAppEnv)
+                {
+                    record.extApp[0].env = iter->second.as_string;
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_APP_NAME);
                 if (iter != m_commonContextFields.end())
                 {
@@ -186,6 +193,7 @@ namespace ARIASDK_NS_BEGIN
                     {
                         size_t len = strlen(deviceId);
                         if (len >= 2 && deviceId[1] == ':' && (
+                            deviceId[0] == 'c' || // c: Custom identifier
                             deviceId[0] == 'u' || // u: Mac OS X UUID
                             deviceId[0] == 'a' || // a: Android ID
                             deviceId[0] == 's' || // s: SQM ID

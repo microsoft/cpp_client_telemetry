@@ -13,7 +13,7 @@ namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
         m_info_helper(),
-        m_registredCount(0),
+        m_registeredCount(0),
         m_cost(NetworkCost_Unmetered),
         m_isNetDetectEnabled(isNetDetectEnabled)
     { };

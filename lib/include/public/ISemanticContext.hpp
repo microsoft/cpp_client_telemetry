@@ -25,6 +25,12 @@ namespace ARIASDK_NS_BEGIN
         virtual  ~ISemanticContext() {};
 
         /// <summary>
+        /// Set the application environment context information of telemetry event.
+        /// </summary>
+        /// <param name="appEnv">Environment from which this event originated</param>
+        DECLARE_COMMONFIELD(AppEnv, COMMONFIELDS_APP_ENV);
+
+        /// <summary>
         /// Set the application identifier context information of telemetry event.
         /// </summary>
         /// <param name="appId">Id that uniquely identifies the user-facing application from which this event originated</param>
