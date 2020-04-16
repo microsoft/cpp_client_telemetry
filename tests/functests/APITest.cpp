@@ -962,6 +962,90 @@ TEST(APITest, Pii_DROP_Test)
 
 #endif
 
+TEST(APITest, SemanticContext_Test)
+{
+    TestDebugEventListener debugListener;
+
+    auto config = LogManager::GetLogConfiguration();
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
+
+    // register a listener
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+
+    CleanStorage();
+    auto logger = LogManager::Initialize(TEST_TOKEN);
+    unsigned totalEvents = 0;
+
+    // Verify that semantic context fields have been set on record
+    debugListener.OnLogX = [&](::CsProtocol::Record& record) {
+        totalEvents++;
+        if (record.name == "LoggerContext.Event")
+        {
+            // App extension
+            EXPECT_STREQ(record.extApp[0].env.c_str(), "dev");
+            EXPECT_STREQ(record.extApp[0].id.c_str(), "myAppId");
+            EXPECT_STREQ(record.extApp[0].locale.c_str(), "en-US");
+            EXPECT_STREQ(record.extApp[0].name.c_str(), "myAppName");
+            EXPECT_STREQ(record.extApp[0].ver.c_str(), "1.2.3");
+            // Device extension
+            EXPECT_STREQ(record.extDevice[0].deviceClass.c_str(), "Custom.Desktop");
+            EXPECT_STREQ(record.extDevice[0].localId.c_str(), "c:1234567890");
+            // Legacy schema quirk that forces SDK to send devMake and devModel under protocol extension
+            EXPECT_STREQ(record.extProtocol[0].devMake.c_str(), "Make");
+            EXPECT_STREQ(record.extProtocol[0].devModel.c_str(), "Model");
+            // Commercial Id
+            EXPECT_STREQ(record.extM365a[0].enrolledTenantId.c_str(), "1-2-3-4-5");
+            // Network extension
+            EXPECT_STREQ(record.extNet[0].cost.c_str(), "Unmetered");
+            EXPECT_STREQ(record.extNet[0].provider.c_str(), "Provider");
+            EXPECT_STREQ(record.extNet[0].type.c_str(), "Wifi");
+            // OS extension. 1DS SDK maps OS Build semantic context field to ext.os.ver
+            EXPECT_STREQ(record.extOs[0].ver.c_str(), "os-build");
+            EXPECT_STREQ(record.extOs[0].name.c_str(), "os-name");
+            // User extension
+            EXPECT_STREQ(record.extUser[0].localId.c_str(), "localUserId");
+            EXPECT_STREQ(record.extUser[0].locale.c_str(), "en-US");
+            EXPECT_STREQ(record.extLoc[0].timezone.c_str(), "+01:00");
+        }
+    };
+
+    auto context = logger->GetSemanticContext();
+    // App extension
+    context->SetAppEnv("dev");
+    context->SetAppId("myAppId");
+    context->SetAppLanguage("en-US");
+    context->SetAppName("myAppName");
+    context->SetAppVersion("1.2.3");
+    // Device extension
+    context->SetDeviceClass("Custom.Desktop");
+    context->SetDeviceId("c:1234567890");
+    context->SetDeviceMake("Make");
+    context->SetDeviceModel("Model");
+    // Commercial Id aka. Office Enrolled Tenant Id
+    context->SetCommercialId("1-2-3-4-5");
+    // Network extension
+    context->SetNetworkCost(NetworkCost_Unmetered);
+    context->SetNetworkProvider("Provider");
+    context->SetNetworkType(NetworkType_Wifi);
+    // OS extension
+    context->SetOsBuild("os-build");
+    context->SetOsName("os-name");
+    context->SetOsVersion("1.0.0");
+    // User extension
+    context->SetUserId("localUserId");
+    context->SetUserLanguage("en-US");
+    context->SetUserTimeZone("+01:00");
+
+    logger->LogEvent("LoggerContext.Event");
+
+    LogManager::FlushAndTeardown();
+
+    ASSERT_EQ(totalEvents, 1u);
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+}
+
 static void logBenchMark(const char * label)
 {
 #ifdef DEBUG_PERF
