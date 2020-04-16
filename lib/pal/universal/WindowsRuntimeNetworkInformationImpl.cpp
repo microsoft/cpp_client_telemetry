@@ -62,7 +62,7 @@ namespace PAL_NS_BEGIN {
 
                 NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
                     m_info_helper(),
-                    m_registredCount(0),
+                    m_registeredCount(0),
                     m_isNetDetectEnabled(isNetDetectEnabled)
                 {
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
@@ -86,7 +86,7 @@ namespace PAL_NS_BEGIN {
                         // No need to use WeakReference as this is not ref counted.
                         // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
                         try {
-                            if (m_registredCount > 0)
+                            if (m_registeredCount > 0)
                             {
                                 auto profile = NetworkInformation::GetInternetConnectionProfile();
                                 NetworkType networkType = NetworkType_Unknown;

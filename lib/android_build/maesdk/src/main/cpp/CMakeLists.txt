@@ -66,7 +66,7 @@ set(SRCS
   ${SDK_ROOT}/lib/pal/WorkerThread.cpp
         ${SDK_ROOT}/lib/pal/posix/NetworkInformationImpl_Android.cpp
         ${SDK_ROOT}/lib/pal/posix/DeviceInformationImpl_Android.cpp
-        ${SDK_ROOT}/lib/pal/posix/SystemInformationImpl.cpp
+        ${SDK_ROOT}/lib/pal/posix/SystemInformationImpl_Android.cpp
         ${SDK_ROOT}/lib/pal/posix/sysinfo_sources.cpp
 )
 

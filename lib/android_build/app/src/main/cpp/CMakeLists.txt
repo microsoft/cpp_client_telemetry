@@ -4,6 +4,17 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.4.1)
+set(CMAKE_CXX_STANDARD 11)
+
+string(REPLACE "/lib/android_build/app/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
+
+include_directories(AFTER
+        ${SDK_ROOT}/lib
+        ${SDK_ROOT}/lib/include/public
+        ${SDK_ROOT}/lib/include
+        ${SDK_ROOT}/lib/include/mat
+        ${SDK_ROOT}/sqlite
+        ${SDK_ROOT}lib/pal)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -18,6 +29,12 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         native-lib.cpp)
+
+add_library(maesdk SHARED IMPORTED)
+set_target_properties(maesdk PROPERTIES
+        IMPORTED_LOCATION "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so"
+        IMPORTED_LOCATION_Release "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so")
+
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -38,7 +55,7 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
         native-lib
-
+        maesdk
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

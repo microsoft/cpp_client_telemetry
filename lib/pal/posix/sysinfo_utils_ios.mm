@@ -3,11 +3,18 @@
 #include "sysinfo_utils_ios.hpp"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#include <sys/utsname.h>
 
 std::string GetDeviceModel()
 {
-    std::string deviceModel { [[[UIDevice currentDevice] model] UTF8String] };
-    return deviceModel;
+#if TARGET_IPHONE_SIMULATOR
+    NSString* modelId = NSProcessInfo.processInfo.environment[@"SIMULATOR_MODEL_IDENTIFIER"];
+    return std::string([modelId UTF8String]);
+#else
+    utsname name;
+    uname(&name);
+    return std::string(name.machine);
+#endif
 }
 
 std::string GetDeviceId()

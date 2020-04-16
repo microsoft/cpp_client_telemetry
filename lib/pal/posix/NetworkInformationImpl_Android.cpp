@@ -147,7 +147,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_applications_events_httpClient_onCostChange(JNIEnv* env,
+Java_com_microsoft_applications_events_HttpClient_onCostChange(JNIEnv* env,
 	jobject /* java_client */,
     jboolean isMetered)
 {
