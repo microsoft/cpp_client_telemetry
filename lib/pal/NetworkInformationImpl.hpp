@@ -21,8 +21,8 @@ namespace PAL_NS_BEGIN {
         static INetworkInformation* Create(bool isNetDetectEnabled);
 
         // IInformationProvider API
-        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
-        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
+        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registeredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registeredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
 
         // INetworkInformation API
         virtual std::string const& GetNetworkProvider() { return m_provider; };
@@ -42,7 +42,7 @@ namespace PAL_NS_BEGIN {
         NetworkCost m_cost;
 
         InformatonProviderImpl m_info_helper;
-        int m_registredCount;
+        int m_registeredCount;
         bool m_isNetDetectEnabled;
 
         // Disable copy constructor and assignment operator.

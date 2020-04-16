@@ -15,7 +15,7 @@
 
 namespace PAL_NS_BEGIN {
 
-    InformatonProviderImpl::InformatonProviderImpl() :m_registredCount(0)
+    InformatonProviderImpl::InformatonProviderImpl() :m_registeredCount(0)
     {
     }
 
@@ -31,7 +31,7 @@ namespace PAL_NS_BEGIN {
         // Use (index + 1) as the token.
         m_callbacks.push_back(pCallback);
         int token = (int)m_callbacks.size();
-        m_registredCount++;
+        m_registeredCount++;
         return token;
     }
 
@@ -46,7 +46,7 @@ namespace PAL_NS_BEGIN {
             // Don't ever delete the item from the vector.
             // Just set it to NULL.
             m_callbacks[index] = NULL;
-            --m_registredCount;
+            --m_registeredCount;
         }
     }
 
@@ -64,7 +64,7 @@ namespace PAL_NS_BEGIN {
             // be deleted.  The current design is that IPropertyChangedCallback is
             // not refcount'ed.  Should we refcount it?
 
-            if (m_registredCount > 0)
+            if (m_registeredCount > 0)
             {
                 std::vector<IPropertyChangedCallback*> local_callbacks;
                 {
