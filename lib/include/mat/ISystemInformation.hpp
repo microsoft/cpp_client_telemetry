@@ -71,7 +71,7 @@ namespace PAL_NS_BEGIN {
         /// <summary>
         /// Gets the Device class like desktop, tablet, phone, xbox.
         /// </summary>
-        /// <returns>Advertising Id</returns>
+        /// <returns>Device class (string)</returns>
         virtual std::string const& GetDeviceClass() const = 0;
 
         /// <summary>
