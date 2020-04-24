@@ -24,6 +24,8 @@ class sysinfo_sources : public std::multimap<std::string, sysinfo_source_t> {
 
 protected:
     std::map<std::string, std::string> cache;
+    std::function<void(const sysinfo_sources&)> initializer;
+    bool initialized;
 
     /**
      * Read node value, preprocess it using regexp and store result in cache
@@ -32,6 +34,16 @@ protected:
      * @return          true if field value is found and saved in cache
      */
     bool fetch(std::string key);
+
+    /**
+     * Internal value retrieval function, only called by "get" or "initialization" methods
+     * Retrieve value by key from sysinfo_sources. Try to fetch from cache,
+     * if not found, then fetch from filesystem and save to in-ram cache.
+     *
+     * @param key
+     * @return
+     */
+    const std::string& get_from_cache(std::string key);
 
 public:
 
@@ -52,7 +64,7 @@ public:
      * @param key
      * @return
      */
-    const std::string& get(std::string key);
+    virtual const std::string& get(std::string key);
 
 };
 

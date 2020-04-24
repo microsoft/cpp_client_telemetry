@@ -6,7 +6,9 @@
 using namespace MAT;
 
 @implementation ODWLogger
+{
     ILogger* _wrappedLogger;
+}
 
 -(instancetype)initWithILogger:(ILogger*)logger
 {

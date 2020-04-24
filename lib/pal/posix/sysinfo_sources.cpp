@@ -176,6 +176,7 @@ void sysinfo_sources::add(const std::string& key, const sysinfo_source_t& val)
 sysinfo_sources::sysinfo_sources() :
         std::multimap<std::string, sysinfo_source_t>()
 {
+    initialized = false;
 }
 
 /**
@@ -187,6 +188,25 @@ sysinfo_sources::sysinfo_sources() :
  */
 const std::string& sysinfo_sources::get(std::string key)
 {
+    if(!initialized && initializer)
+    {
+        // Initialize cache if not done already and there is an initializer wired up
+        initializer(*this);
+    }
+
+    return get_from_cache(key);
+}
+
+/**
+ * Internal value retrieval function, only called by "get" or "initialization" methods
+ * Retrieve value by key from sysinfo_sources. Try to fetch from cache,
+ * if not found, then fetch from filesystem and save to in-ram cache.
+ *
+ * @param key
+ * @return
+ */
+const std::string& sysinfo_sources::get_from_cache(std::string key)
+{
     if(cache.find(key) == cache.end())
         fetch(key);
     return cache[key];
@@ -197,10 +217,27 @@ class sysinfo_sources_impl: public sysinfo_sources {
 public:
 
     /**
-     * Obtain system hardware and application information
+     * Basic object construction
      */
     sysinfo_sources_impl() : sysinfo_sources()
     {
+        // bind lazy initializer
+        initializer = std::bind(&sysinfo_sources_impl::initialize, *this);
+    }
+
+    /**
+     * Obtain system hardware and application information
+     */
+    void initialize()
+    {
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> initializationLock(mutex);
+        if(initialized)
+        {
+            // No-op if already initialized
+            return;
+        }
+
         struct utsname buf;
         uname(&buf);
 #if defined(__linux__)
@@ -252,17 +289,17 @@ public:
 #endif
 
         // Fallback to uname if above methods failed
-        if (!get("osVer").compare(""))
+        if (!get_from_cache("osVer").compare(""))
         {
             cache["osVer"]  = (const char *)(buf.version);
         }
 
-        if (!get("osName").compare(""))
+        if (!get_from_cache("osName").compare(""))
         {
             cache["osName"] = (const char *)(buf.sysname);
         }
 
-        if (!get("osRel").compare(""))
+        if (!get_from_cache("osRel").compare(""))
         {
             cache["osRel"]  = (const char *)(buf.release);
         }
@@ -273,7 +310,7 @@ public:
        cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
 #endif
 
-        if (!get("devId").compare(""))
+        if (!get_from_cache("devId").compare(""))
         {
 #ifdef __APPLE__
 #if TARGET_OS_IPHONE
@@ -305,7 +342,8 @@ public:
 #endif
         }
 
-    }
+        initialized = true;
+	}
 
 };
 
