@@ -13,7 +13,7 @@ public:
     /**
      * Get instance for serving all singleton calls
      */
-    static sysinfo_sources_impl GetSysInfo()
+    static sysinfo_sources_impl& GetSysInfo()
     {
         static sysinfo_sources_impl instance;
         return instance;

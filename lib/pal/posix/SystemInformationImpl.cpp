@@ -10,11 +10,12 @@ namespace PAL_NS_BEGIN {
 
     SystemInformationImpl::SystemInformationImpl() : m_info_helper()
     {
-        m_user_timezone = sysinfo_sources_impl::GetSysInfo().get("tz");
-        m_app_id = sysinfo_sources_impl::GetSysInfo().get("appId");
-        m_os_name = sysinfo_sources_impl::GetSysInfo().get("osName");
-        m_os_major_version = sysinfo_sources_impl::GetSysInfo().get("osVer");
-        m_os_full_version = sysinfo_sources_impl::GetSysInfo().get("osRel");
+        auto sysInfo = sysinfo_sources_impl::GetSysInfo();
+        m_user_timezone = sysInfo.get("tz");
+        m_app_id = sysInfo.get("appId");
+        m_os_name = sysInfo.get("osName");
+        m_os_major_version = sysInfo.get("osVer");
+        m_os_full_version = sysInfo.get("osRel");
     }
 
     SystemInformationImpl::~SystemInformationImpl()
