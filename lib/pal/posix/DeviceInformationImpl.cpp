@@ -36,12 +36,13 @@ namespace PAL_NS_BEGIN {
         m_os_architecture = OsArchitectureType_Unknown;
 #endif
 
-        std::string devId = sysinfo_sources_impl::GetSysInfo().get("devId");
+        auto sysInfo = sysinfo_sources_impl::GetSysInfo();
+        std::string devId = sysInfo.get("devId");
         m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
 
-        m_manufacturer = sysinfo_sources_impl::GetSysInfo().get("devMake");
+        m_manufacturer = sysInfo.get("devMake");
 
-        m_model = sysinfo_sources_impl::GetSysInfo().get("devModel");
+        m_model = sysInfo.get("devModel");
 
         m_powerSource = GetCurrentPowerSource();
 
