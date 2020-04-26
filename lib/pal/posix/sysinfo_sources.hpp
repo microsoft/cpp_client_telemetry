@@ -56,6 +56,4 @@ public:
 
 };
 
-extern sysinfo_sources aria_hwinfo;
-
 #endif /* LIB_PAL_POSIX_SYSINFO_SOURCES_HPP_ */
