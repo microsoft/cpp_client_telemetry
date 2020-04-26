@@ -3,18 +3,19 @@
 #include "pal/SystemInformationImpl.hpp"
 
 #include <sys/utsname.h>
-#include "sysinfo_sources.hpp"
+#include "sysinfo_sources_impl.hpp"
 #include <string>
 
 namespace PAL_NS_BEGIN {
 
     SystemInformationImpl::SystemInformationImpl() : m_info_helper()
     {
-        m_user_timezone = aria_hwinfo.get("tz");
-        m_app_id = aria_hwinfo.get("appId");
-        m_os_name = aria_hwinfo.get("osName");
-        m_os_major_version = aria_hwinfo.get("osVer");
-        m_os_full_version = aria_hwinfo.get("osRel");
+        auto sysInfo = sysinfo_sources_impl::GetSysInfo();
+        m_user_timezone = sysInfo.get("tz");
+        m_app_id = sysInfo.get("appId");
+        m_os_name = sysInfo.get("osName");
+        m_os_major_version = sysInfo.get("osVer");
+        m_os_full_version = sysInfo.get("osRel");
     }
 
     SystemInformationImpl::~SystemInformationImpl()
