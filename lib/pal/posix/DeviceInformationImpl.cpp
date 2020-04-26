@@ -10,7 +10,7 @@
 #include <locale>
 #include <codecvt>
 
-#include "sysinfo_sources.hpp"
+#include "sysinfo_sources_impl.hpp"
 
 #define DEFAULT_DEVICE_ID       "{deadbeef-fade-dead-c0de-cafebabefeed}"
 
@@ -36,12 +36,13 @@ namespace PAL_NS_BEGIN {
         m_os_architecture = OsArchitectureType_Unknown;
 #endif
 
-        std::string devId = aria_hwinfo.get("devId");
+        auto sysInfo = sysinfo_sources_impl::GetSysInfo();
+        std::string devId = sysInfo.get("devId");
         m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
 
-        m_manufacturer = aria_hwinfo.get("devMake");
+        m_manufacturer = sysInfo.get("devMake");
 
-        m_model = aria_hwinfo.get("devModel");
+        m_model = sysInfo.get("devModel");
 
         m_powerSource = GetCurrentPowerSource();
 
