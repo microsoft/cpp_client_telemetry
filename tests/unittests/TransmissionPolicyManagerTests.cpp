@@ -6,6 +6,7 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include "common/MockIBandwidthController.hpp"
 #include "tpm/TransmissionPolicyManager.hpp"
+#include "TransmitProfiles.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -41,6 +42,11 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
+
+    void NotMockScheduleUpload(int delay, EventLatency latency, bool force)
+    {
+        TransmissionPolicyManager::scheduleUpload(delay, latency, force);
+    }
 };
 
 class TransmissionPolicyManagerTests : public StrictMock<Test> {
@@ -136,9 +142,24 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
 {
     tpm.paused(false);
 
+    std::string customProfile = R"(
+        [
+            {
+                "name": "Fred",
+                "rules": [
+                    {"timers": [ 4, 2, 1 ]}
+                ]
+            }
+        ]
+    )";
+    EXPECT_TRUE(TransmitProfiles::load(customProfile));
+    EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
+
     auto event = new IncomingEventContext();
     event->record.latency = EventLatency_Normal;
-    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal,true))
+
+    
+    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, true))
         .WillOnce(Return());
     tpm.eventArrived(event);
 }
@@ -162,8 +183,7 @@ TEST_F(TransmissionPolicyManagerTests, ProfileAffectsSchedule)
 
     auto event = new IncomingEventContext();
     event->record.latency = EventLatency_Normal;
-    EXPECT_CALL(tpm, scheduleUpload(-1000, EventLatency_RealTime, true))
-        .WillOnce(Return());
+    EXPECT_CALL(tpm, scheduleUpload(_, _, _)).Times(0);
     tpm.eventArrived(event);
     TransmitProfiles::reset();
 }
@@ -187,8 +207,7 @@ TEST_F(TransmissionPolicyManagerTests, NoUploadForNegative)
 
     auto event = new IncomingEventContext();
     event->record.latency = EventLatency_Normal;
-    EXPECT_CALL(tpm, scheduleUpload(-1000, EventLatency_RealTime, true))
-        .WillOnce(Return());
+    EXPECT_CALL(tpm, scheduleUpload(_, _, _)).Times(0);
     tpm.eventArrived(event);
     EXPECT_CALL(tpm, uploadAsync(_)).Times(0);
     tpm.scheduleUploadParent(-1000, EventLatency_RealTime, true);
@@ -422,4 +441,29 @@ TEST_F(TransmissionPolicyManagerTests, FinishAllUploads)
     EXPECT_CALL(*this, resultAllUploadsFinished())
         .WillOnce(Return());
     tpm.stop();
+}
+
+TEST_F(TransmissionPolicyManagerTests, FredProfile)
+{
+    const char* fredProfile = R"(
+[{
+    "name": "Fred_Profile",
+    "rules": [
+    { "netCost": "restricted", "timers": [  -1,  -1,  -1 ] },
+    { "netCost": "high",       "timers": [  -1,  -1,  -1 ] },
+    { "netCost": "low",        "timers": [  -1,  -1,  -1 ] },
+    { "netCost": "unknown",    "timers": [  -1,  -1,  -1 ] },
+    {                          "timers": [  -1,  -1,  -1 ] }
+    ]
+}]
+)";
+    EXPECT_TRUE(TransmitProfiles::load(fredProfile));
+    EXPECT_TRUE(TransmitProfiles::setProfile("Fred_Profile"));
+    tpm.paused(false);
+
+    auto event = new IncomingEventContext();
+    event->record.latency = EventLatency_Normal;
+    EXPECT_CALL(tpm, scheduleUpload(_, _, _))
+        .Times(0);
+    tpm.eventArrived(event);
 }
