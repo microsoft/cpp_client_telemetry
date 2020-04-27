@@ -397,6 +397,13 @@ namespace ARIASDK_NS_BEGIN
         return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
+    status_t LogManagerImpl::LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept
+    {
+        LOG_INFO("LoadTransmitProfiles");
+        bool result = TransmitProfiles::load(profiles);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
+    }
+
     /// <summary>
     /// Reset transmission profiles to default settings
     /// </summary>
