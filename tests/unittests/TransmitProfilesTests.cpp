@@ -141,9 +141,7 @@ R"([{
 /*
    The following tests probably should not pass.
    But they do.
-   Because enforcing contracts in code is hard and unnecessary since callers will always pass the right thing.
-
-   This block of tests exists to spur future refactoring and fixing of this abomination.
+   Right now these are useful as pinning tests.
 */
 
 TEST_F(TransmitProfilesTests, load_Json_ProfileWithInvalidTimers_ReturnsTrue)
