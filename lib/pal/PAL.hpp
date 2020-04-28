@@ -51,6 +51,7 @@
 #include <climits>
 #include <chrono>
 #include <thread>
+#include <memory>
 
 #include "api/IRuntimeConfig.hpp"
 #include "typename.hpp"
@@ -95,10 +96,10 @@ namespace PAL_NS_BEGIN
         void initialize(IRuntimeConfig& configuration);
 
         void shutdown();
-        
-        INetworkInformation* GetNetworkInformation() const noexcept;
-        IDeviceInformation* GetDeviceInformation() const noexcept;
-        ISystemInformation* GetSystemInformation() const noexcept;
+
+        std::shared_ptr<INetworkInformation> GetNetworkInformation() const noexcept;
+        std::shared_ptr<IDeviceInformation> GetDeviceInformation() const noexcept;
+        std::shared_ptr<ISystemInformation> GetSystemInformation() const noexcept;
 
         bool IsUtcRegistrationEnabledinWindows() const noexcept;
 
@@ -109,9 +110,9 @@ namespace PAL_NS_BEGIN
     private:
         volatile std::atomic<long> m_palStarted { 0 };
         std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
-        ISystemInformation* m_SystemInformation;
-        INetworkInformation* m_NetworkInformation;
-        IDeviceInformation* m_DeviceInformation;
+        std::shared_ptr<ISystemInformation> m_SystemInformation;
+        std::shared_ptr<INetworkInformation> m_NetworkInformation;
+        std::shared_ptr<IDeviceInformation> m_DeviceInformation;
     };
 
     PlatformAbstractionLayer& GetPAL() noexcept;
@@ -211,15 +212,15 @@ namespace PAL_NS_BEGIN
         GetPAL().shutdown();
     }
 
-    inline INetworkInformation* GetNetworkInformation() noexcept
+    inline std::shared_ptr<INetworkInformation> GetNetworkInformation() noexcept
     {
         return GetPAL().GetNetworkInformation();
     }
-    inline IDeviceInformation* GetDeviceInformation() noexcept
+    inline std::shared_ptr<IDeviceInformation> GetDeviceInformation() noexcept
     {
         return GetPAL().GetDeviceInformation();
     }
-    inline ISystemInformation* GetSystemInformation() noexcept
+    inline std::shared_ptr<ISystemInformation> GetSystemInformation() noexcept
     {
         return GetPAL().GetSystemInformation();
     }
