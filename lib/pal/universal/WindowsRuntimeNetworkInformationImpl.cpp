@@ -1,6 +1,6 @@
 #include <windows.h>
 #include "pal/NetworkInformationImpl.hpp"
-#include <exception>  
+#include <exception>
 
 using namespace ::Windows::Networking::Connectivity;
 
@@ -122,14 +122,14 @@ namespace PAL_NS_BEGIN {
 
                 }
 
-                NetworkInformationImpl::~NetworkInformationImpl() 
+                NetworkInformationImpl::~NetworkInformationImpl()
                 {
                     NetworkInformation::NetworkStatusChanged -= token;
                 };
 
-                INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+                std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
                 {
-                    return new NetworkInformationImpl(isNetDetectEnabled);
+                    return std::make_shared<NetworkInformationImpl>(isNetDetectEnabled);
                 }
 
 } PAL_NS_END
