@@ -21,7 +21,7 @@ using nlohmann::json;
 /// <summary>
 /// Default JSON config for Transmit Profiles
 /// </summary>
-static string defaultProfiles = R"(
+static const char* const defaultProfiles = R"(
 [{
     "name": "REAL_TIME",
     "rules": [
