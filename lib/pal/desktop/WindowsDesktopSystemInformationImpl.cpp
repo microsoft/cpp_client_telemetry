@@ -10,7 +10,7 @@
 /* Ref. https://docs.microsoft.com/en-us/windows/desktop/apiindex/windows-8-api-sets
  *
  * Compatibility with Windows 7, Windows Server 2008 R2 and older operating systems:
- * Binaries that link to MinCore.lib or MinCore_Downlevel.lib are not designed to work 
+ * Binaries that link to MinCore.lib or MinCore_Downlevel.lib are not designed to work
  * on Windows 7, Windows Server 2008 R2 or earlier. Binaries that need to run on earlier
  * versions of Windows or Windows Server must not use either MinCore.lib or MinCore_Downlevel.lib.
  */
@@ -33,9 +33,9 @@ namespace PAL_NS_BEGIN {
 
     const std::string WindowsOSName = "Windows Desktop";
 
-    ISystemInformation* SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
     {
-        return  new SystemInformationImpl();
+        return std::make_shared<SystemInformationImpl>();
     }
 
     /**
@@ -57,7 +57,7 @@ namespace PAL_NS_BEGIN {
             if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) == FALSE)
             {
                 LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
-                return {};    
+                return {};
             }
             DWORD result = ::GetModuleFileName(handle, &curExeFullPathBuffer[0], curBufferLength);
 
@@ -102,7 +102,7 @@ namespace PAL_NS_BEGIN {
         // Get the filename of the current process
         std::wstring applicationFullPath = getAppFullPath();
 
-        // Get the product version information from the current process filename 
+        // Get the product version information from the current process filename
         dwVersionInfoSize = GetFileVersionInfoSize(applicationFullPath.data(), &dwUnused);
 
         if (dwVersionInfoSize == 0)
@@ -199,7 +199,7 @@ namespace PAL_NS_BEGIN {
                 appId = app_name;
             }
         }
-        else 
+        else
         {
             LOG_ERROR("Failed to get module handle with error: %d", ::GetLastError());
         }

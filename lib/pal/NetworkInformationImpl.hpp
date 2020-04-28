@@ -18,7 +18,7 @@ namespace PAL_NS_BEGIN {
     class NetworkInformationImpl : public INetworkInformation
     {
     public:
-        static INetworkInformation* Create(bool isNetDetectEnabled);
+        static std::shared_ptr<INetworkInformation> Create(bool isNetDetectEnabled);
 
         // IInformationProvider API
         virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registeredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
@@ -36,6 +36,10 @@ namespace PAL_NS_BEGIN {
         NetworkInformationImpl(bool isNetDetectEnabled);
         virtual ~NetworkInformationImpl();
 
+        // Disable copy constructor and assignment operator.
+        NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
+        NetworkInformationImpl& operator=(NetworkInformationImpl const& other) = delete;
+
     protected:
         std::string m_provider;
         NetworkType m_type;
@@ -44,10 +48,6 @@ namespace PAL_NS_BEGIN {
         InformatonProviderImpl m_info_helper;
         int m_registeredCount;
         bool m_isNetDetectEnabled;
-
-        // Disable copy constructor and assignment operator.
-        NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
-        NetworkInformationImpl& operator=(NetworkInformationImpl const& other) = delete;
     };
 
 } PAL_NS_END
