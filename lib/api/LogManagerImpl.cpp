@@ -336,6 +336,7 @@ namespace ARIASDK_NS_BEGIN
 
     status_t LogManagerImpl::UploadNow()
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->upload();
@@ -347,6 +348,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->pause();
@@ -358,6 +360,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::ResumeTransmission()
     {
         LOG_INFO("Resuming transmission...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->resume();
@@ -582,6 +585,7 @@ namespace ARIASDK_NS_BEGIN
 
     void LogManagerImpl::sendEvent(IncomingEventContextPtr const& event)
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->sendEvent(event);
@@ -630,7 +634,6 @@ namespace ARIASDK_NS_BEGIN
 
     std::unique_ptr<ITelemetrySystem>& LogManagerImpl::GetSystem()
     {
-        LOCKGUARD(m_lock);
         if (m_system == nullptr || m_isSystemStarted)
            return m_system;
 
