@@ -317,9 +317,9 @@ namespace OneDSInspector
             }
             catch (Exception ex)
             {
-			    // Failed to parse JSON for indented view:
-				// Well, something went wrong...
-				// Uncheck the pretty-printing checkbox.
+                // Failed to parse JSON for indented view:
+                // Well, something went wrong...
+                // Uncheck the pretty-printing checkbox.
                 json = ex.Message;
                 json += ex.StackTrace;
             }
