@@ -19,7 +19,7 @@ Please build and deploy to *%LOCALAPPDATA%\Programs\Fiddler\Inspectors*
 
 # Fiddler.exe.config
 
-You may occasionally encounter a Newtonsoft assembly loading issue with a specific version of Newtonsoft/Fiddler.
+You may occasionally encounter a `Newtonsoft.JSON` assembly loading issue with a specific version of Newtonsoft/Fiddler.
 If and when that happens - 1DS inspector should show an exception in the decoded output window. 
 This could happen when a more recent Fiddler is installed with a version of Newtonsoft that differs from the one used by 1DS Bond Inspector plugin.
 
