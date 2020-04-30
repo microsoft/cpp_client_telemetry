@@ -32,9 +32,9 @@ namespace PAL_NS_BEGIN {
         m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
     }
 
-    ISystemInformation* SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
     {
-        return new SystemInformationImpl();
+        return std::make_shared<SystemInformationImpl>();
     }
 
 } PAL_NS_END

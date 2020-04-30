@@ -136,9 +136,9 @@ namespace PAL_NS_BEGIN {
         AndroidNetcostConnector::UnregisterNI(*this);
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new NetworkInformation(isNetDetectEnabled);
+        return std::make_shared<NetworkInformation>(isNetDetectEnabled);
     }
 
 } PAL_NS_END
