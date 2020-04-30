@@ -2,7 +2,7 @@
 
 This is 1DS Common Schema / Bond decoder for Fiddler.
 
-Please build and deploy to %LOCALAPPDATA%\Programs\Fiddler\Inspectors
+Please build and deploy to *%LOCALAPPDATA%\Programs\Fiddler\Inspectors*
 
 # How to use
 
@@ -19,11 +19,13 @@ Please build and deploy to %LOCALAPPDATA%\Programs\Fiddler\Inspectors
 
 # Fiddler.exe.config
 
-You may occasionally encounter Newtonsoft assembly loading issue with a specific version of Newtonsoft/Fiddler.
+You may occasionally encounter a Newtonsoft assembly loading issue with a specific version of Newtonsoft/Fiddler.
+If and when that happens - 1DS inspector should show an exception in the decoded output window. 
+This could happen when a more recent Fiddler is installed with a version of Newtonsoft that differs from the one used by 1DS Bond Inspector plugin.
 
-More recent Fiddler may prefer a version other than used by 1DS Bond Inspector plugin.
+Exit Fiddler first.
 
-Please use Binding Redirect as follows in *Fiddler.exe.config* as follows:
+Then use the Binding Redirect feature as follows in *Fiddler.exe.config* to redirect to the currently deployed version:
 
 ```
 <?xml version="1.0" encoding="utf-8" ?>
@@ -42,9 +44,9 @@ Please use Binding Redirect as follows in *Fiddler.exe.config* as follows:
   </appSettings>
 </configuration>
 ```
+In example above - we redirected the Newtonsoft.Json assembly version from 0-12 to 11 used by Fiddler.
+Please make sure you redirect to version employed by your Fiddler installation.
+Place this file above (Fiddler.exe.config) to %LOCALAPPDATA%\Programs\Fiddler\ next to Fiddler.exe
+Then restart Fiddler.exe . This should solve the Newtonsoft loading issue.
 
-In example above - we redirected the Newtonsoft.Json version from 0-12 to 11 preferred by Fiddler v5.0.
-
-Place this file to %LOCALAPPDATA%\Programs\Fiddler\ - next to Fiddler.exe
-
-Older Fiddler versions may require a different binding redirect.
+Happy Fiddling!
