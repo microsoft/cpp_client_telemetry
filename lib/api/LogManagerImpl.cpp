@@ -119,7 +119,11 @@ namespace ARIASDK_NS_BEGIN
             {
                 std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
-
+                if ((!cacheFilePath.empty()) && (cacheFilePath.back() != PATH_SEPARATOR_CHAR))
+                {
+                    // append path separator if required 
+                    cacheFilePath += PATH_SEPARATOR_CHAR;
+                }
                 cacheFilePath += tenantId;
                 cacheFilePath += ".db";
             }
