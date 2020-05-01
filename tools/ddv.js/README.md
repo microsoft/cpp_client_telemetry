@@ -4,7 +4,8 @@ This is a standalone implementation of Diagnostic Data Viewer in Javascript extr
 
 # How to start
 
-Use 'run.sh' or 'npm start' to start.
+- Use 'run.sh' or 'npm start' to start.
+- Navigate to http://localhost:8080/data_viewer/data_viewer.html to see the Diagnostic Data Viewer UI.
 
 # data_viewer/cr-custom.js
 
