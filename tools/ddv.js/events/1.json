@@ -1,0 +1,592 @@
+{
+    "baseType" : "custom",
+    "cV" : "",
+    "data" : {
+       "AppInfo.ETag" : "\"ONCz6DbEIi7do4V56DtzguIZRjlOPGTbJEZDPs/WgVk=\"",
+       "Channel" : 4,
+       "ConnectionType" : "WiFi",
+       "Etag" : "\"ONCz6DbEIi7do4V56DtzguIZRjlOPGTbJEZDPs/WgVk=\"",
+       "EventInfo.Level" : 2,
+       "PayloadBase64" : {
+          "client_id" : "15120331680906626512",
+          "histogram_event" : [
+             {
+                "bucket" : [
+                   {
+                      "count" : "2",
+                      "max" : "1"
+                   }
+                ],
+                "name_hash" : "8525599276529190324"
+             },
+             {
+                "bucket" : [
+                   {
+                      "count" : "2",
+                      "max" : "1"
+                   }
+                ],
+                "name_hash" : "11422533101158034929"
+             },
+             {
+                "bucket" : [
+                   {
+                      "count" : "2",
+                      "max" : "1"
+                   }
+                ],
+                "name_hash" : "3318555878029384828"
+             },
+             {
+                "bucket" : [
+                   {
+                      "count" : "3",
+                      "min" : "1"
+                   },
+                   {
+                      "count" : "4",
+                      "min" : "2"
+                   },
+                   {
+                      "count" : "3",
+                      "min" : "3"
+                   },
+                   {
+                      "count" : "2",
+                      "max" : "5"
+                   },
+                   {
+                      "count" : "2",
+                      "max" : "7"
+                   }
+                ],
+                "name_hash" : "12783499220691827568",
+                "sum" : "40"
+             },
+             {
+                "bucket" : [
+                   {
+                      "min" : "539"
+                   },
+                   {
+                      "count" : "2",
+                      "min" : "730"
+                   },
+                   {
+                      "count" : "2",
+                      "max" : "1340",
+                      "min" : "989"
+                   },
+                   {
+                      "count" : "3",
+                      "min" : "1816"
+                   },
+                   {
+                      "count" : "2",
+                      "min" : "2460"
+                   },
+                   {
+                      "count" : "2",
+                      "min" : "3333"
+                   },
+                   {
+                      "count" : "2",
+                      "max" : "6118",
+                      "min" : "4516"
+                   }
+                ],
+                "name_hash" : "5712723863923997780",
+                "sum" : "34327"
+             },
+             {
+                "bucket" : [
+                   {
+                      "max" : "561",
+                      "min" : "386"
+                   },
+                   {
+                      "count" : "3",
+                      "min" : "815"
+                   },
+                   {
+                      "min" : "1184"
+                   },
+                   {
+                      "count" : "3",
+                      "min" : "1720"
+                   },
+                   {
+                      "count" : "3",
+                      "min" : "2498"
+                   },
+                   {
+                      "count" : "3",
+                      "max" : "5270",
+                      "min" : "3628"
+                   }
+                ],
+                "name_hash" : "16514370738806107601",
+                "sum" : "34327"
+             },
+             {
+                "bucket" : [
+                   {
+                      "max" : "305"
+                   }
+                ],
+                "name_hash" : "9661179978895180426",
+                "sum" : "304"
+             }
+          ],
+          "session_id" : 0,
+          "system_profile" : {
+             "app_version" : "81.0.416.68-64",
+             "application_locale" : "en-US",
+             "brand_code" : "",
+             "build_timestamp" : "1588062755",
+             "channel" : 4,
+             "chrome_component" : [
+                {
+                   "component_id" : 11,
+                   "omaha_fingerprint" : 3773468497,
+                   "version" : "9.12.0.0"
+                }
+             ],
+             "extension_install" : [
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 0,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 0,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 0,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 1,
+                   "type" : 4,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 6,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 0,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                },
+                {
+                   "action_type" : 0,
+                   "background_script_type" : 2,
+                   "blacklist_state" : 0,
+                   "has_file_access" : false,
+                   "has_incognito_access" : false,
+                   "install_location" : 5,
+                   "installed_in_this_sample_period" : false,
+                   "is_converted_from_user_script" : false,
+                   "is_default_installed" : false,
+                   "is_from_bookmark" : false,
+                   "is_from_store" : false,
+                   "is_oem_installed" : false,
+                   "manifest_version" : 2,
+                   "type" : 1,
+                   "updates_from_store" : false
+                }
+             ],
+             "field_trial" : [
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1667577839
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1651181400
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1691823122
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1373056315
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 3412214859
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1465147439
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1165887997
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 664702777
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 144320866
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 3638257670
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 2503605406
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 2330925832
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 446088192
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 3543714937
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 261461857
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 1226101879
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 3175459616
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 2893398797
+                },
+                {
+                   "group_id" : 3637669726,
+                   "name_id" : 937357992
+                },
+                {
+                   "group_id" : 1028125940,
+                   "name_id" : 206934065
+                }
+             ],
+             "hardware" : {
+                "app_drive" : {
+                   "has_seek_penalty" : false
+                },
+                "cpu" : {
+                   "is_hypervisor" : false,
+                   "num_cores" : 8,
+                   "signature" : 263777,
+                   "vendor_name" : "GenuineIntel"
+                },
+                "cpu_architecture" : "x86_64",
+                "gpu" : {
+                   "device_id" : 3366,
+                   "driver_version" : "12.10.12",
+                   "gl_renderer" : "Intel Iris Pro OpenGL Engine",
+                   "gl_vendor" : "Intel Inc.",
+                   "vendor_id" : 32902
+                },
+                "hardware_class" : "MacBookPro11,4",
+                "primary_screen_height" : 1800,
+                "primary_screen_scale_factor" : 2,
+                "primary_screen_width" : 2880,
+                "screen_count" : 1,
+                "system_ram_mb" : "16384",
+                "user_data_drive" : {
+                   "has_seek_penalty" : false
+                }
+             },
+             "install_date" : "1588312800",
+             "low_entropy_source" : 4253,
+             "msedge" : {
+                "enterprise" : {
+                   "has_policies_configured" : false,
+                   "is_device_managed" : false
+                },
+                "identity" : {
+                   "account_type" : 3
+                },
+                "sync" : {
+                   "sync_server_env" : "edge.activity-v1"
+                },
+                "user_preferences" : {
+                   "default_search_provider" : {
+                      "type" : 8
+                   },
+                   "new_tab_page" : {
+                      "feed_display" : 3
+                   },
+                   "session_startup" : {
+                      "action" : 1
+                   }
+                }
+             },
+             "network" : {
+                "connection_type" : 2,
+                "connection_type_is_ambiguous" : false,
+                "max_effective_connection_type" : 6,
+                "min_effective_connection_type" : 6,
+                "wifi_phy_layer_protocol" : 6,
+                "wifi_phy_layer_protocol_is_ambiguous" : false
+             },
+             "occupied_extension_bucket" : [ 197, 434, 461, 529, 675, 715, 733, 785, 842, 1000 ],
+             "offstore_extensions_state" : 0,
+             "old_low_entropy_source" : -1,
+             "os" : {
+                "name" : "Mac OS X",
+                "version" : "10.14.6"
+             },
+             "plugin" : [
+                {
+                   "filename" : "\"ONCz6DbEIi7do4V56DtzguIZRjlOPGTbJEZDPs/WgVk=\"",
+                   "name" : "variations_seed_etag"
+                },
+                {
+                   "filename" : "mhjfbmdgcfjbbpaeojofohoefgiehjai",
+                   "is_disabled" : false,
+                   "is_pepper" : false,
+                   "name" : "Microsoft Edge PDF Viewer",
+                   "version" : ""
+                },
+                {
+                   "filename" : "internal-not-yet-present",
+                   "is_disabled" : false,
+                   "is_pepper" : true,
+                   "name" : "Shockwave Flash",
+                   "version" : "32.0.0.255"
+                },
+                {
+                   "filename" : "internal-nacl-plugin",
+                   "is_disabled" : false,
+                   "is_pepper" : true,
+                   "name" : "Native Client",
+                   "version" : ""
+                },
+                {
+                   "filename" : "internal-pdf-viewer",
+                   "is_disabled" : false,
+                   "is_pepper" : true,
+                   "name" : "Microsoft Edge PDF Plugin",
+                   "version" : ""
+                },
+                {
+                   "filename" : "2",
+                   "name" : "telemetry_client.metrics_log_type"
+                }
+             ],
+             "stability" : {
+                "incremental_uptime_sec" : "1800",
+                "page_load_count" : 2,
+                "uptime_sec" : "14411"
+             },
+             "uma_enabled_date" : "1588312800"
+          }
+       },
+       "PayloadClass" : "UMA",
+       "PayloadGUID" : "01c18382-b255-4712-a0be-9c48095e6111",
+       "PayloadLogType" : 2,
+       "PayloadSequence" : 7,
+       "PayloadSize" : 1534,
+       "app_version" : "81.0.416.68-64",
+       "client_id" : -3326412392802925104,
+       "pop_sample" : 100.0,
+       "session_id" : 0,
+       "utc_flags" : 140737488355328
+    },
+    "ext" : {
+       "app" : {
+          "asId" : 0,
+          "env" : "",
+          "expId" : "",
+          "id" : "M:com.microsoft.edgemac_81.0.416.68_x86_64!Microsoft Edge",
+          "locale" : "",
+          "name" : "",
+          "userId" : "",
+          "ver" : "81.0.416.68"
+       },
+       "device" : {
+          "authId" : "",
+          "authSecId" : "",
+          "deviceClass" : "",
+          "id" : "",
+          "localId" : "c:15120331680906626512",
+          "make" : "",
+          "model" : ""
+       },
+       "net" : {
+          "cost" : "Unmetered",
+          "provider" : "",
+          "type" : "Wired"
+       },
+       "os" : {
+          "bootId" : 0,
+          "expId" : "",
+          "locale" : "",
+          "name" : "Mac OS X",
+          "ver" : "10.14.6"
+       },
+       "protocol" : {
+          "devMake" : "Apple",
+          "devModel" : "MacBookPro11,4",
+          "metadataCrc" : 0,
+          "ticketKeys" : []
+       },
+       "sdk" : {
+          "epoch" : "1f32148c-f9bc-dc94-a42a-922fff0a5074",
+          "installId" : "c1055407-caaf-a814-9f22-e521ad1f8c87",
+          "libVer" : "EVT-MacOSX-C++-No-3.3.8.1"
+       },
+       "user" : {
+          "authId" : "",
+          "id" : "",
+          "localId" : "",
+          "locale" : ""
+       }
+    },
+    "flags" : 257,
+    "iKey" : "o:7005b72804a64fa4b2138faab88f877b",
+    "name" : "Microsoft.WebBrowser.Protobuf.UMA.Histograms.Group1",
+    "popSample" : 100.0,
+    "tags" : {},
+    "time" : 637239246450000000,
+    "ver" : "3.0"
+ }
+ 

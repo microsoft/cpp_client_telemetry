@@ -4,15 +4,8 @@
 
 'use strict';
 
-var i = 0;
-var loadTimeData = {
-  getString: function (param) {
-    i++;
-    return param + i;
-  }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
+
   // Query data from backend
   const dataModel = {
     // Must match DataViewerRequest in
@@ -51,8 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     initCategoryList: () => {
-      Object.assign(dataModel, window.dataModelSource);
-      /*
       for (const provider of dataModel.base_events['Providers']) {
         for (const event of provider['Events']) {
           const tags = [];
@@ -66,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
           dataModel.category_list.events[name] = tags;
         }
       }
-      */
     },
 
     requestHtml: (id, param, done) => {
@@ -78,15 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     requestJson: (id, param, done) => {
-      var j = { "name":"Max", "age":41, "car":"Honda" };
-      dataModel.onJson(id, j, done);
-/*
-      cr.sendWithPromise(
-        'requestDataViewerData', dataModel.id_to_enum[id], param)
+      cr.sendWithPromise('requestDataViewerData', dataModel.id_to_enum[id], param)
       .then((json) => {
         dataModel.onJson(id, json, done);
       });
-*/
     },
 
     onHtml: (id, html, done) => {
@@ -945,4 +930,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial refresh
     refreshDataViewer();
   });
+
 });
