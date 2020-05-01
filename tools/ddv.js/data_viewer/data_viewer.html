@@ -1,0 +1,76 @@
+<!-- Copyright (C) Microsoft Corporation. All rights reserved.
+   Use of this source code is governed by a BSD-style license that can be
+   found in the LICENSE file.-->
+<!doctype html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/resources/css/chrome_shared.css">
+  <link rel="stylesheet" href="data_viewer.css">
+  <script src="/resources/js/cr.js"></script>
+  <!-- script src="/resources/js/promise_resolver.js"></script -->
+  <!-- script src="/resources/js/load_time_data.js"></script -->
+  <script src="/resources/js/util.js"></script>
+  <!-- script src="strings.js"></script -->
+  <!-- script src="base_events.js"></script -->
+  <script src="data_model.js"></script>
+  <script src="data_viewer.js"></script>
+  <title>$i18n{dataViewerPageTitle}</title>
+</head>
+<body>
+  <p>Hello, Diagnostic Data Viewer!</p>
+  <div id="page" class="hidden-page">
+    <div class="container event-list-container">
+      <div class="event-list-header">
+        <input type="text" id="event-name-filter" class="focusable"
+          role="textbox" aria-label="$i18n{labelEventNameFilter}"
+          data-tabindex="1">
+        <div id="refresh-icon" class="icon refresh focusable" role="button"
+          title="$i18n{labelRefreshIcon}" aria-label="$i18n{labelRefreshIcon}"
+          data-tabindex="2">
+        </div>
+        <div id="filter-icon" class="icon filter focusable" role="button"
+          title="$i18n{labelFilterIcon}" aria-label="$i18n{labelFilterIcon}"
+          data-tabindex="3">
+        </div>
+      </div>
+      <div id="filter-menu-overlay" class="menu-overlay hidden-overlay">
+        <div class="filter-menu" aria-label="$i18n{labelFilterMenu}"
+          role="menu">
+          <div id="filter-menu-category-list"></div>
+          <div class="separator"></div>
+          <div class="menu-item clear-toggles focusable" data-tabindex="20"
+            role="menuitem">$i18n{filterMenuClearSelection}</div>
+        </div>
+      </div>
+      <div id="event-list" class="focusable" role="listbox" data-tabindex="21"
+        aria-label="$i18n{labelEventList}" data-initial-load="true">
+      </div>
+    </div>
+    <div class="container payload-view-container" id="payload-view-container">
+      <div class="payload-view-header">
+        <div id="notification" role="alert"></div>
+        <div class="links">
+          <a class="link focusable" target="_blank" data-tabindex="40"
+            href="//settings/privacy/" role="link">$i18n{linksSettings}</a>
+          <a class="link focusable" target="_blank" data-tabindex="41"
+            href="//settings/help/" role="link">$i18n{linksAbout}</a>
+        </div>
+      </div>
+      <div id="event-category-list" role="listbox" aria-multiselectable="true"
+        aria-label="$i18n{labelEventCategoryList}">
+      </div>
+      <textarea id="payload-view" class="focusable" role="text"
+        aria-label="$i18n{labelPayloadView}" data-tabindex="22" readonly>
+      </textarea>
+    </div>
+  </div>
+  <div class="messages">
+    <div id="should-use-utc" class="message hidden-message"
+      role="alert"></div>
+    <div id="not-registered" class="message hidden-message"
+      role="alert">$i18n{notRegistered}</div>
+  </div>
+</body>
+</html>
