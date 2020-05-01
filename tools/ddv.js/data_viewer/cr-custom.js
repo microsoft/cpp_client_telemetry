@@ -17,6 +17,7 @@ function mockEvent()
   result ='<div class="event" data-index="'+seq+'" role="option">';
   result+='<div class="event-name">'+eventNames[i]+'</div>';
   result+='<div class="event-time">'+d.toISOString()+'</div>';
+  result+='</div>'
   return result;
 };
 
