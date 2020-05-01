@@ -1,0 +1,29 @@
+<div class="event" data-index="0" role="option">
+<div class="event-name">Microsoft.WebBrowser.Protobuf.UKM.Stats.LogComplete</div>
+<div class="event-time">2020-05-01 02:25:11</div>
+</div>
+
+<div class="event" data-index="1" role="option">
+<div class="event-name">Microsoft.WebBrowser.Protobuf.UKM.Aggregates</div>
+<div class="event-time">2020-05-01 02:25:11</div>
+</div>
+
+<div class="event" data-index="2" role="option">
+<div class="event-name">Microsoft.WebBrowser.Protobuf.UKM.Report</div>
+<div class="event-time">2020-05-01 02:25:11</div>
+</div>
+
+<div class="event" data-index="3" role="option">
+<div class="event-name">Microsoft.WebBrowser.Protobuf.UKM.Stats.LogStart</div>
+<div class="event-time">2020-05-01 02:25:11</div>
+</div>
+
+<div class="event" data-index="4" role="option">
+<div class="event-name">Microsoft.WebBrowser.Mats.TransactionMicrosoftEdgeMac</div>
+<div class="event-time">2020-05-01 02:25:04</div>
+</div>
+
+<div class="event" data-index="5" role="option">
+<div class="event-name">Microsoft.WebBrowser.Mats.ActionMicrosoftEdgeMac</div>
+<div class="event-time">2020-05-01 02:25:04</div>
+</div>

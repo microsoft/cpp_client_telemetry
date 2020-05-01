@@ -97,39 +97,41 @@ var httpServer = http.createServer(function (request, response) {
         default:
     }
 
-    if (pathname.substr(1) == "") {
+    var filename = pathname.substr(1);
+
+    if (filename == "") {
         response.writeHead(302, { 'Location': '/index.html' });
         response.end();
         return;
     }
 
-    var lastError = false;
-    fs.readFile(pathname.substr(1), function (err, data) {
-        if (!err) {
-            headers = { 'Content-Type': 'text/html' };
-            if (pathname.endsWith('.css')) {
-                headers = { 'Content-Type': 'text/css' };
-            } else
-                if (pathname.endsWith('.js')) {
-                    headers = { 'Content-Type': 'application/javascript' };
-                } else
-                    if (pathname.endsWith('.png')) {
-                        headers = { 'Content-Type': 'image/png' };
-                    }
-            response.writeHead(200, headers);
-            response.write(data.toString());
-            // Send the response body 
+    fs.exists(filename, (exists) => {
+        if (!exists) {
+            response.writeHead(404, { 'Content-Type': 'text/html' });
+            response.write("Not Found");
             response.end();
             return;
         }
-        lastError = err;
+        fs.readFile(filename, function (err, data) {
+            if (!err) {
+                headers = { 'Content-Type': 'text/html' };
+                if (filename.endsWith('.css')) {
+                    headers = { 'Content-Type': 'text/css' };
+                } else
+                    if (filename.endsWith('.js')) {
+                        headers = { 'Content-Type': 'application/javascript' };
+                    } else
+                        if (filename.endsWith('.png')) {
+                            headers = { 'Content-Type': 'image/png' };
+                        }
+                response.writeHead(200, headers);
+                response.write(data.toString());
+                // Send the response body 
+                response.end();
+                return;
+            }
+        });
     });
-
-    if (lastError) {
-        console_log(lastError);
-        response.writeHead(404, { 'Content-Type': 'text/html' });
-        response.end();
-    }
 
 });
 

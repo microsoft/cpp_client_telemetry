@@ -1,0 +1,86 @@
+{
+    "baseType" : "custom",
+    "cV" : "",
+    "data" : {
+       "AppInfo.ETag" : "",
+       "Channel" : 4,
+       "ConnectionType" : "WiFi",
+       "DroppedEvents" : 0,
+       "EventInfo.Level" : 2,
+       "PayloadBase64" : "",
+       "PayloadClass" : "UMA",
+       "PayloadCounts" : "{\n   \"HistogramCount\": 719,\n   \"MemoryLeakCount\": 0,\n   \"OmniboxCount\": 2,\n   \"PerfDataCount\": 0,\n   \"PrinterEventCount\": 0,\n   \"SampledProfileCount\": 0,\n   \"TranslateEventCount\": 4,\n   \"UserActionCount\": 22\n}\n",
+       "PayloadGUID" : "01c18382-b255-4712-a0be-9c48095e6111",
+       "PayloadLogCounter" : 9,
+       "PayloadLogHash" : "FFE145A0BF9A22394C362763F4327FD800C081CF",
+       "PayloadLogSize" : 32658,
+       "PayloadLogTime" : "2020-05-01 10:10:42.000 UTC",
+       "PayloadLogType" : 2,
+       "PayloadResult" : 0,
+       "PayloadSequence" : 8,
+       "app_version" : "81.0.416.68-64",
+       "client_id" : -3326412392802925104,
+       "payloadBrowserSessionId" : 0,
+       "pop_sample" : 100.0,
+       "session_id" : 0,
+       "utc_flags" : 70368744177664
+    },
+    "ext" : {
+       "app" : {
+          "asId" : 0,
+          "env" : "",
+          "expId" : "",
+          "id" : "M:com.microsoft.edgemac_81.0.416.68_x86_64!Microsoft Edge",
+          "locale" : "",
+          "name" : "",
+          "userId" : "",
+          "ver" : "81.0.416.68"
+       },
+       "device" : {
+          "authId" : "",
+          "authSecId" : "",
+          "deviceClass" : "",
+          "id" : "",
+          "localId" : "c:15120331680906626512",
+          "make" : "",
+          "model" : ""
+       },
+       "net" : {
+          "cost" : "Unmetered",
+          "provider" : "",
+          "type" : "Wired"
+       },
+       "os" : {
+          "bootId" : 0,
+          "expId" : "",
+          "locale" : "",
+          "name" : "Mac OS X",
+          "ver" : "10.14.6"
+       },
+       "protocol" : {
+          "devMake" : "Apple",
+          "devModel" : "MacBookPro11,4",
+          "metadataCrc" : 0,
+          "ticketKeys" : []
+       },
+       "sdk" : {
+          "epoch" : "1f32148c-f9bc-dc94-a42a-922fff0a5074",
+          "installId" : "c1055407-caaf-a814-9f22-e521ad1f8c87",
+          "libVer" : "EVT-MacOSX-C++-No-3.3.8.1"
+       },
+       "user" : {
+          "authId" : "",
+          "id" : "",
+          "localId" : "",
+          "locale" : ""
+       }
+    },
+    "flags" : 257,
+    "iKey" : "o:7005b72804a64fa4b2138faab88f877b",
+    "name" : "Microsoft.WebBrowser.Protobuf.UMA.Stats.LogComplete",
+    "popSample" : 100.0,
+    "tags" : {},
+    "time" : 637239246450000000,
+    "ver" : "3.0"
+ }
+ 
