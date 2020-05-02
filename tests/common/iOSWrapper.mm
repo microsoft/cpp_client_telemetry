@@ -63,7 +63,7 @@ private:
 }
 
 - (void)testAll {
-    (void)RUN_ALL_TESTS();
+    XCTAssert(RUN_ALL_TESTS() == 0);
 }
 
 @end
