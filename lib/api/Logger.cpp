@@ -355,6 +355,7 @@ namespace ARIASDK_NS_BEGIN
     bool Logger::applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
     {
         record.name = properties.GetName();
+        /* Other 1DS SDK, e.g. App Insights 1DS C# channel use this record baseType */
         record.baseType = EVENTRECORD_TYPE_ONECOLLECTOR_EVENT;
 
         std::string evtType = properties.GetType();
