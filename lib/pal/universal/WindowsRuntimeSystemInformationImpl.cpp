@@ -21,9 +21,9 @@ namespace PAL_NS_BEGIN {
     const string WindowsPhoneOSName = "Windows for Phones";
     const string DeviceFamily_Mobile = "Windows.Mobile";
 
-    ISystemInformation* SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
     {
-        return new SystemInformationImpl();
+        return std::make_shared<SystemInformationImpl>();
     }
 
     SystemInformationImpl::SystemInformationImpl()

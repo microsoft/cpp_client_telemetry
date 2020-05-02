@@ -13,7 +13,7 @@ namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
         m_info_helper(),
-        m_registredCount(0),
+        m_registeredCount(0),
         m_cost(NetworkCost_Unmetered),
         m_isNetDetectEnabled(isNetDetectEnabled)
     { };
@@ -115,10 +115,9 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new Win32NetworkInformation(isNetDetectEnabled);
+        return std::make_shared<Win32NetworkInformation>(isNetDetectEnabled);
     }
 } PAL_NS_END
 #endif
-

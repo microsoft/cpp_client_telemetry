@@ -67,6 +67,11 @@ Open a pull request against the main `cpp_client_telemetry` repo.
   as `work-in-progress`, or mark it as [`draft`](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 * Make sure CLA is signed and CI is clear.
 
+### Making Changes to Modules
+* Navigate to lib/modules
+* Check out a branch of [the modules repository.](https://github.com/microsoft/cpp_client_telemetry_modules/)
+* Create a PR from your branch to cpp_client_telemetry's master branch.
+
 ### How to Get PR Merged
 
 A PR is considered to be **ready to merge** when:
@@ -76,6 +81,7 @@ A PR is considered to be **ready to merge** when:
   reasonable time to review.
 * Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for one day.
 * Urgent fix can take exception as long as it has been actively communicated.
+* Any dependent submodule changes have updated the submodule commit id (`git add lib/modules`)
 
 Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
 

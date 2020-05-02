@@ -136,9 +136,9 @@ namespace PAL_NS_BEGIN {
         AndroidNetcostConnector::UnregisterNI(*this);
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new NetworkInformation(isNetDetectEnabled);
+        return std::make_shared<NetworkInformation>(isNetDetectEnabled);
     }
 
 } PAL_NS_END
@@ -147,7 +147,7 @@ extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_onCostChange(JNIEnv* env,
+Java_com_microsoft_applications_events_HttpClient_onCostChange(JNIEnv* env,
 	jobject /* java_client */,
     jboolean isMetered)
 {

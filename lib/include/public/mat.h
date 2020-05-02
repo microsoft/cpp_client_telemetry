@@ -430,11 +430,12 @@ extern "C" {
         int32_t paramsCount)
     {
         evt_open_with_params_data_t data;
+        evt_context_t ctx;
+
         data.config = config;
         data.params = params;
         data.paramsCount = paramsCount;
 
-        evt_context_t ctx;
         ctx.call = EVT_OP_OPEN_WITH_PARAMS;
         ctx.data = (void *)(&data);
         evt_api_call(&ctx);

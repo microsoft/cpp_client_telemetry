@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <climits>
 #include <algorithm>
+#include <memory>
 
 #include "ITaskDispatcher.hpp"
 #include "Version.hpp"
@@ -74,7 +75,7 @@ namespace PAL_NS_BEGIN {
     };
 
     namespace WorkerThreadFactory {
-        MAT::ITaskDispatcher* Create();
+        std::shared_ptr<MAT::ITaskDispatcher> Create();
     }
 
 } PAL_NS_END

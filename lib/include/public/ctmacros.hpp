@@ -94,7 +94,7 @@
 #endif
 
 #if defined(__arm__) || defined(_M_ARM) || defined(_M_ARMT)
-/* TODO: add suport for 64-bit aarch64 */
+/* TODO: add support for 64-bit aarch64 */
 #define ARCH_ARM
 #endif
 

@@ -23,6 +23,11 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
         TransmissionPolicyManager::uploadAsync(latency);
     }
 
+    void scheduleUploadParent(int delay, EventLatency latency, bool force)
+    {
+        TransmissionPolicyManager::scheduleUpload(delay, latency, force);
+    }
+
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
     MOCK_METHOD1(removeUpload, void(EventsUploadContextPtr));
@@ -136,6 +141,58 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
     EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal,true))
         .WillOnce(Return());
     tpm.eventArrived(event);
+}
+
+TEST_F(TransmissionPolicyManagerTests, ProfileAffectsSchedule)
+{
+    tpm.paused(false);
+
+    std::string customProfile = R"(
+        [
+            {
+                "name": "Fred",
+                "rules": [
+                    {"timers": [ -1, -1, -1 ]}
+                ]
+            }
+        ]
+    )";
+    EXPECT_TRUE(TransmitProfiles::load(customProfile));
+    EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
+
+    auto event = new IncomingEventContext();
+    event->record.latency = EventLatency_Normal;
+    EXPECT_CALL(tpm, scheduleUpload(-1000, EventLatency_RealTime, true))
+        .WillOnce(Return());
+    tpm.eventArrived(event);
+    TransmitProfiles::reset();
+}
+
+TEST_F(TransmissionPolicyManagerTests, NoUploadForNegative)
+{
+    tpm.paused(false);
+
+    std::string customProfile = R"(
+        [
+            {
+                "name": "Fred",
+                "rules": [
+                    {"timers": [ -1, -1, -1 ]}
+                ]
+            }
+        ]
+    )";
+    EXPECT_TRUE(TransmitProfiles::load(customProfile));
+    EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
+
+    auto event = new IncomingEventContext();
+    event->record.latency = EventLatency_Normal;
+    EXPECT_CALL(tpm, scheduleUpload(-1000, EventLatency_RealTime, true))
+        .WillOnce(Return());
+    tpm.eventArrived(event);
+    EXPECT_CALL(tpm, uploadAsync(_)).Times(0);
+    tpm.scheduleUploadParent(-1000, EventLatency_RealTime, true);
+    TransmitProfiles::reset();
 }
 
 TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmediately)

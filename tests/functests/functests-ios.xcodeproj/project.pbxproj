@@ -25,6 +25,7 @@
 		43010317235E6B6400836D50 /* BasicFuncTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 430102ED235E678400836D50 /* BasicFuncTests.cpp */; };
 		4301031A235E6B7300836D50 /* LogSessionDataFuncTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 430102EC235E678400836D50 /* LogSessionDataFuncTests.cpp */; };
 		4301031B235E6B7700836D50 /* MultipleLogManagersTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 430102EE235E678400836D50 /* MultipleLogManagersTests.cpp */; };
+		FE51D93F243ED8D200E54890 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE51D93E243ED8D200E54890 /* Network.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +67,7 @@
 		43010310235E6AB000836D50 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		43010312235E6AE200836D50 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
 		43010314235E6B1600836D50 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
+		FE51D93E243ED8D200E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FE51D93F243ED8D200E54890 /* Network.framework in Frameworks */,
 				43010311235E6AB000836D50 /* UIKit.framework in Frameworks */,
 				43010313235E6AE200836D50 /* libgmock.a in Frameworks */,
 				4301030F235E6AA800836D50 /* SystemConfiguration.framework in Frameworks */,
@@ -133,6 +136,7 @@
 		43010309235E6A8300836D50 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FE51D93E243ED8D200E54890 /* Network.framework */,
 				43010310235E6AB000836D50 /* UIKit.framework */,
 				4301030E235E6AA800836D50 /* SystemConfiguration.framework */,
 				4301030C235E6A8B00836D50 /* libz.tbd */,

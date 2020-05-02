@@ -84,7 +84,7 @@ TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToE
     ConstructSesFile(SessionFile, validSessionFirstTime, validSkuId);
     LogSessionData logSessionData{ SessionFileArgument };
 
-    ASSERT_EQ(logSessionData.getSessionFirstTime(), 123456);
+    ASSERT_EQ(logSessionData.getSessionFirstTime(), 123456ull);
     ASSERT_EQ(logSessionData.getSessionSDKUid(), validSkuId);
 }
 
@@ -95,7 +95,7 @@ TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRege
     ConstructSesFile(SessionFile, invalidSessionFirstTime, validSkuId);
     LogSessionData logSessionData{ SessionFileArgument };
 
-    ASSERT_NE(logSessionData.getSessionFirstTime(), 123456);
+    ASSERT_NE(logSessionData.getSessionFirstTime(), 123456ull);
     ASSERT_NE(logSessionData.getSessionSDKUid(), validSkuId);
 }
 

@@ -56,8 +56,8 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     OfflineStorage_SQLite::OfflineStorage_SQLite(ILogManager & logManager, IRuntimeConfig& runtimeConfig, bool inMemory)
-        : m_logManager(logManager),
-        m_config(runtimeConfig)
+        : m_config(runtimeConfig)
+        , m_logManager(logManager)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
         m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE]) : static_cast<uint32_t>(m_config[CFG_INT_CACHE_FILE_SIZE]);

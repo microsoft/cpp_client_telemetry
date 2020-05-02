@@ -111,7 +111,7 @@ This example shows how to use EVT_TRACE event emitted by SDK and sent to DebugEv
             evtCount++;
             // It is not the best idea to printf, as it is done synchronously within SDK thread.
             // This code logic is for illustration purposes only.
-            // Print severity of event, file name and line number where it occured.
+            // Print severity of event, file name and line number where it occurred.
             printf("[%d] %s:%d\n", evt.param1, (const char *)evt.data, evt.param2);
         }
     
@@ -131,7 +131,7 @@ This example shows how to use EVT_TRACE event emitted by SDK and sent to DebugEv
         config.minimumTraceLevel = ACTTraceLevel_Trace;
         config.SetProperty(CFG_INT_DBG_TRACE_PROVIDER, "1");      // log to file
         config.SetProperty(CFG_INT_DBG_TRACE_SIZE, "30000000");   // set max log file size to 30MB
-        // This event listener is goign to print an error (filename:linenumber) whenever SDK internally experiences any error, warning or fatal event
+        // This event listener is going to print an error (filename:linenumber) whenever SDK internally experiences any error, warning or fatal event
         LogManager::AddEventListener(EVT_TRACE, traceListener);   // add event listener prior to initialize
         LogManager::Initialize(CUSTOMER_TOKEN, config);
         LogManager::GetLogger()->LogEvent("going-nowhere");       // 'going-nowhere' is invalid event name. SDK triggers an error notification to the customer

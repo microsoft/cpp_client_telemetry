@@ -31,6 +31,7 @@ namespace OneDSInspector
     using Bond;
     using Bond.Protocols;
     using Bond.IO.Safe;
+    using Fiddler.WebFormats;
 
     public class EventInspector : Inspector2, IRequestInspector2
     {
@@ -201,11 +202,11 @@ namespace OneDSInspector
                         String[] headerKeyAndValue = header.Split('=');
                         if (headerKeyAndValue.Length == 2)
                         {
-                            if (headerKeyAndValue[0].Equals("client-id"))
+                            if (headerKeyAndValue[0].Equals("client-id", StringComparison.OrdinalIgnoreCase))
                             {
                                 this.ClientId = headerKeyAndValue[1];
                             }
-                            else if (headerKeyAndValue[0].Equals("content-type"))
+                            else if (headerKeyAndValue[0].Equals("content-type", StringComparison.OrdinalIgnoreCase))
                             {
                                 this.ContentType = Uri.UnescapeDataString(headerKeyAndValue[1]);
                             }
@@ -276,9 +277,16 @@ namespace OneDSInspector
                     outputBuffer.SetLength(0);
                 } while (true);
             }
-            catch (Exception)
+            catch (EndOfStreamException)
             {
-                // end of input
+                // That's OK, we no longer have anything to decode.
+            }
+            catch (Exception ex)
+            {
+                // Decoding failed: show the message in decoder
+                jsonList.Add(ex.Message);
+                jsonList.Add(ex.StackTrace);
+                return jsonList;
             }
 
             // consider sending jsonList one-by-one over UDP to remote monitor
@@ -307,9 +315,13 @@ namespace OneDSInspector
                     json = JToken.Parse(json).ToString(Formatting.Indented);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignore invalid JSON contents here
+                // Failed to parse JSON for indented view:
+                // Well, something went wrong...
+                // Uncheck the pretty-printing checkbox.
+                json = ex.Message;
+                json += ex.StackTrace;
             }
             return json.Split(new string[] { Environment.NewLine }, StringSplitOptions.None).ToList();
         }

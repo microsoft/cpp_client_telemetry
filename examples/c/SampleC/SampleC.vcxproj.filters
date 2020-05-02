@@ -20,16 +20,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\mat.h">
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\CAPIClient.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CAPIClient.hpp">
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\ctmacros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\ctmacros.hpp">
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\mat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Version.h">
+    <ClInclude Include="$(SolutionDir)\..\lib\include\public\include\Version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
