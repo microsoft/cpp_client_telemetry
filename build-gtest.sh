@@ -17,10 +17,10 @@ env | sort
 rm -rf build
 mkdir -p build || true
 cd build
-cmake -Dgtest_build_samples=ON \
-      -Dgmock_build_samples=ON \
-      -Dgtest_build_tests=ON \
-      -Dgmock_build_tests=ON \
+cmake -Dgtest_build_samples=OFF \
+      -Dgmock_build_samples=OFF \
+      -Dgtest_build_tests=OFF \
+      -Dgmock_build_tests=OFF \
       -DCMAKE_CXX_FLAGS="-fPIC $CXX_FLAGS" \
       ..
 make
