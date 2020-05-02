@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -39,6 +40,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.isA;
@@ -85,6 +87,9 @@ public class EventsUnitTest {
 
     @Mock
     Configuration mockConfiguration;
+
+    @Mock
+    PackageInfo mockPackageInfo;
 
     static private byte[] body_bytes;
     static final private AtomicInteger dispatchCount  = new AtomicInteger(0);
@@ -172,11 +177,11 @@ public class EventsUnitTest {
             String os_full_version
         )
         {
-            assertNull(app_id);
-            assertEquals("", app_version);
+            assertEquals("A:com.microsoft.nemotronics.doodad", app_id);
+            assertEquals("FunTimes.3", app_version);
             assertEquals("foobar", app_language);
-            assertNull(os_major_version);
-            assertEquals("null null", os_full_version);
+            assertEquals("GECOS III", os_major_version);
+            assertEquals("GECOS III null", os_full_version);
         }
     }
 
@@ -192,12 +197,19 @@ public class EventsUnitTest {
     }
 
     public void connectMocks() throws PackageManager.NameNotFoundException {
+        when(mockContext.getPackageName()).thenReturn("com.microsoft.nemotronics.doodad");
         when(mockContext.registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class))).thenReturn(mockIntent);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
+        when(mockPackageManager.getPackageInfo(isA(String.class), anyInt())).thenReturn(mockPackageInfo);
+        mockPackageInfo.versionName = "FunTimes.3";
         when(mockContext.getResources()).thenReturn(mockResources);
         mockConfiguration.locale = new Locale("foobar");
         when(mockResources.getConfiguration()).thenReturn(mockConfiguration);
+        assertEquals(mockPackageManager, mockContext.getPackageManager());
+        assertEquals(mockPackageInfo, mockPackageManager.getPackageInfo("foobar", 0));
+        assertEquals("FunTimes.3", mockPackageInfo.versionName);
     }
+
     @Test
     public void canInstantiate() throws java.io.IOException, PackageManager.NameNotFoundException {
         int previousDispatch = dispatchCount.get();

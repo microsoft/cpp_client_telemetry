@@ -37,7 +37,7 @@ namespace PAL_NS_BEGIN {
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
         int count = 0;
-    
+
     public:
 
         WorkerThread()
@@ -117,7 +117,7 @@ namespace PAL_NS_BEGIN {
         // TODO: current callers of this API do not check the status code.
         // Refactor this code to return the following cancellation status:
         // - TASK_NOTFOUND  - task not found
-        // - TASK_CANCELLED - task found and cancelled without execution 
+        // - TASK_CANCELLED - task found and cancelled without execution
         // - TASK_COMPLETED - task found and ran to completion
         // - TASK_RUNNING   - task is still running (insufficient waitTime)
         //
@@ -228,7 +228,7 @@ namespace PAL_NS_BEGIN {
                     self->m_itemInProgress = nullptr;
                     break;
                 }
-                
+
                 LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                 (*item)();
                 self->m_itemInProgress = nullptr;
@@ -242,9 +242,9 @@ namespace PAL_NS_BEGIN {
     };
 
     namespace WorkerThreadFactory {
-        ITaskDispatcher* Create()
+        std::shared_ptr<ITaskDispatcher> Create()
         {
-            return new WorkerThread();
+            return std::make_shared<WorkerThread>();
         }
     }
 

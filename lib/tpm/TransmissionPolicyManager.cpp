@@ -86,6 +86,10 @@ namespace ARIASDK_NS_BEGIN {
         {
             return;
         }
+        if (delayInMs < 0 || m_timerdelay < 0) {
+            LOG_TRACE("Negative delayInMs or m_timerdelay, no upload");
+            return; // transmission prohibited by profile
+        }
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
         {
             LOG_TRACE("Maximum number of HTTP requests reached");
@@ -96,6 +100,10 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOG_TRACE("Paused, not uploading anything until resumed");
             return;
+        }
+
+        if (m_timers.size() > 2 && m_timers[0] < 0) {
+            latency = std::max(latency, EventLatency_RealTime); // low priority disabled by profile
         }
 
         if ((!force)&&(m_isUploadScheduled))
@@ -282,33 +290,30 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+    // We do only Normal if too few values or timers[0] == timers[2]
+    // We do only RealTime if timers[0] < 0 (do not transmit)
+    // We alternate RealTime and Normal otherwise (timers differ)
     EventLatency TransmissionPolicyManager::calculateNewPriority()
     {
-        EventLatency proposed = m_runningLatency;
-        if (m_timers.size() > 2)
-        {
-            if (m_timers[0] == m_timers[2])
-            {
-                proposed = EventLatency_Normal;
-            }
-            else
-            {
-                if (m_runningLatency == EventLatency_RealTime)
-                {
-                    proposed = EventLatency_Normal;
-                }
-                else if (m_runningLatency == EventLatency_Normal)
-                {
-                    proposed = EventLatency_RealTime;
-                }
-            }
-        }
-        else
-        {
-            proposed = EventLatency_Normal;
+        if (m_timers.size() < 3) {
+            return EventLatency_Normal;
         }
 
-        return proposed;
+        if (m_timers[0] < 0) {
+            return EventLatency_RealTime;
+        }
+
+         if (m_timers[0] == m_timers[2])
+        {
+            return EventLatency_Normal;
+        }
+
+       if (m_runningLatency == EventLatency_RealTime)
+        {
+            return EventLatency_Normal;
+        }
+
+        return EventLatency_RealTime;
     }
 
     void TransmissionPolicyManager::handleNothingToUpload(EventsUploadContextPtr const& ctx)

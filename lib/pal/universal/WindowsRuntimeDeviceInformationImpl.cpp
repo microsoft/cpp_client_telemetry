@@ -6,7 +6,7 @@
 #include "pal/desktop/WindowsEnvironmentInfo.hpp"
 #include "PlatformHelpers.h"
 
-#include <exception>  
+#include <exception>
 
 #define LOG_MODULE DBG_PAL
 
@@ -119,9 +119,9 @@ namespace PAL_NS_BEGIN {
                      ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
                 }
 
-                IDeviceInformation* DeviceInformationImpl::Create()
+                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
                 {
-                    return new DeviceInformationImpl();
+                    return std::make_shared<DeviceInformationImpl>();
                 }
 
 } PAL_NS_END

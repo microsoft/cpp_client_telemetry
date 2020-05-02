@@ -14,7 +14,8 @@ namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
-    class NetworkInformation : public NetworkInformationImpl
+    class NetworkInformation : public NetworkInformationImpl,
+                               public std::enable_shared_from_this<NetworkInformation>
     {
     public:
         /// <summary>
@@ -52,6 +53,12 @@ namespace PAL_NS_BEGIN {
             return m_cost;
         }
 
+        /// <summary>
+        /// Setup initial network information and start net monitor if requested.
+        /// This cannot be put in constructor because we need to use shared_from_this.
+        /// </summary>
+        void SetupNetDetect();
+
     private:
         void UpdateType(NetworkType type) noexcept;
         void UpdateCost(NetworkCost cost) noexcept;
@@ -70,6 +77,30 @@ namespace PAL_NS_BEGIN {
     {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
+    }
+
+    NetworkInformation::~NetworkInformation() noexcept
+    {
+        if (@available(iOS 12.0, *))
+        {
+            if (m_isNetDetectEnabled)
+            {
+                nw_path_monitor_cancel(m_monitor);
+            }
+        }
+        else
+        {
+            if (m_isNetDetectEnabled)
+            {
+                [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
+                [m_reach stopNotifier];
+            }
+        }
+    }
+
+    void NetworkInformation::SetupNetDetect()
+    {
+        auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
 
         if (@available(iOS 12.0, *))
         {
@@ -77,6 +108,12 @@ namespace PAL_NS_BEGIN {
             nw_path_monitor_set_queue(m_monitor, dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0));
             nw_path_monitor_set_update_handler(m_monitor, ^(nw_path_t path)
             {
+                auto strong_this = weak_this.lock();
+                if (!strong_this)
+                {
+                    return;
+                }
+
                 NetworkType type = NetworkType_Unknown;
                 NetworkCost cost = NetworkCost_Unknown;
                 nw_path_status_t status = nw_path_get_status(path);
@@ -104,15 +141,15 @@ namespace PAL_NS_BEGIN {
                         }
                     }
                 }
-                UpdateType(type);
-                UpdateCost(cost);
+                strong_this->UpdateType(type);
+                strong_this->UpdateCost(cost);
             });
             nw_path_monitor_start(m_monitor);
 
             // nw_path_monitor_start will invoke the callback for once. So if
             // we don't want to listen for changes, we can just start the
             // monitor and stop it right away.
-            if (!isNetDetectEnabled)
+            if (!m_isNetDetectEnabled)
             {
                 nw_path_monitor_cancel(m_monitor);
             }
@@ -122,26 +159,32 @@ namespace PAL_NS_BEGIN {
             m_reach = [Reachability reachabilityForInternetConnection];
             void (^block)(NSNotification*) = ^(NSNotification*)
             {
+                auto strong_this = weak_this.lock();
+                if (!strong_this)
+                {
+                    return;
+                }
+
                 // NetworkCost information is not available until iOS 12.
                 // Just make the best guess here.
                 switch (m_reach.currentReachabilityStatus)
                 {
                     case NotReachable:
-                        UpdateType(NetworkType_Unknown);
-                        UpdateCost(NetworkCost_Unknown);
+                        strong_this->UpdateType(NetworkType_Unknown);
+                        strong_this->UpdateCost(NetworkCost_Unknown);
                         break;
                     case ReachableViaWiFi:
-                        UpdateType(NetworkType_Wifi);
-                        UpdateCost(NetworkCost_Unmetered);
+                        strong_this->UpdateType(NetworkType_Wifi);
+                        strong_this->UpdateCost(NetworkCost_Unmetered);
                         break;
                     case ReachableViaWWAN:
-                        UpdateType(NetworkType_WWAN);
-                        UpdateCost(NetworkCost_Metered);
+                        strong_this->UpdateType(NetworkType_WWAN);
+                        strong_this->UpdateCost(NetworkCost_Metered);
                         break;
                 }
             };
             block(nil); // Update the initial status.
-            if (isNetDetectEnabled)
+            if (m_isNetDetectEnabled)
             {
                 m_notificationId =
                     [[NSNotificationCenter defaultCenter]
@@ -150,25 +193,6 @@ namespace PAL_NS_BEGIN {
                     queue: nil
                     usingBlock: block];
                 [m_reach startNotifier];
-            }
-        }
-    }
-
-    NetworkInformation::~NetworkInformation() noexcept
-    {
-        if (@available(iOS 12.0, *))
-        {
-            if (m_isNetDetectEnabled)
-            {
-                nw_path_monitor_cancel(m_monitor);
-            }
-        }
-        else
-        {
-            if (m_isNetDetectEnabled)
-            {
-                [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
-                [m_reach stopNotifier];
             }
         }
     }
@@ -191,9 +215,11 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
     {
-        return new NetworkInformation(isNetDetectEnabled);
+        auto networkInformation = std::make_shared<NetworkInformation>(isNetDetectEnabled);
+        networkInformation->SetupNetDetect();
+        return networkInformation;
     }
 
 } PAL_NS_END

@@ -143,10 +143,9 @@ namespace PAL_NS_BEGIN {
     {
     }
 
-    IDeviceInformation* DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
     {
-        return new DeviceInformationImpl();
+        return std::make_shared<DeviceInformationImpl>();
     }
 
 } PAL_NS_END
-

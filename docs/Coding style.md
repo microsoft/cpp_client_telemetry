@@ -177,7 +177,7 @@ Markdown documentation
 -   GitHub Flavored Markdown
 -   Trailing white space (two spaces at end of line) is allowed as an
     official means to insert a hard line break.
--   Everything in English, with clear full sentences, without colloquial
+-   Everything is in English, with clear full sentences and without colloquial
     phrases.  
 -   See existing .md files for reference.
 

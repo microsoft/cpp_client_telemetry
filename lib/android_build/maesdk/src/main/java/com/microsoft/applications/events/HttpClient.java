@@ -215,8 +215,11 @@ public class HttpClient {
         String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
         String os_major_version = Build.VERSION.RELEASE;
-        String os_full_version = os_major_version + " " + Build.VERSION.INCREMENTAL;
-        setSystemInfo(app_id, app_version, app_language, os_major_version, os_full_version);
+        if (os_major_version == null) {
+            os_major_version = "GECOS III"; // unexpected except in Java unit tests
+        }
+        String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
+        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version);
     }
 
     private String calculateID(android.content.Context context)

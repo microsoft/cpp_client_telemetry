@@ -11,7 +11,7 @@
 #include <locale>
 #include <codecvt>
 
-#include "sysinfo_sources.hpp"
+#include "sysinfo_sources_impl.hpp"
 
 #define DEFAULT_DEVICE_ID       "{deadbeef-fade-dead-c0de-cafebabefeed}"
 
@@ -28,7 +28,7 @@ namespace PAL_NS_BEGIN {
         static std::string s_model;
         static std::mutex s_registered_mutex;
         static std::vector<AndroidDeviceInformation *> s_registered;
-        
+
         public:
 
         static void registerDI(AndroidDeviceInformation &di);
@@ -90,9 +90,9 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    IDeviceInformation* DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
     {
-        return new AndroidDeviceInformation();
+        return std::make_shared<AndroidDeviceInformation>();
     }
 
     DeviceInformationImpl::~DeviceInformationImpl() {}
@@ -154,7 +154,7 @@ JNIEXPORT void
 JNICALL
 Java_com_microsoft_applications_events_HttpClient_onPowerChange(JNIEnv* env,
 	jobject /* java_client */,
-    jboolean isCharging, 
+    jboolean isCharging,
     jboolean isLow)
     {
         PowerSource new_power_source = PowerSource_Charging;

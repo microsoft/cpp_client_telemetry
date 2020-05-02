@@ -17,7 +17,7 @@ namespace PAL_NS_BEGIN {
     class SystemInformationImpl : public ISystemInformation
     {
     public:
-        static ISystemInformation* Create();
+        static std::shared_ptr<ISystemInformation> Create();
 
         // IInformationProvider API
         virtual int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) override;
@@ -39,6 +39,13 @@ namespace PAL_NS_BEGIN {
         virtual std::string const& GetDeviceClass() const override { return m_device_class; };
         virtual std::string const& GetCommercialId() const override { return m_commercial_id; };
 
+        SystemInformationImpl();
+        ~SystemInformationImpl() override;
+
+        // Disable copy constructor and assignment operator.
+        SystemInformationImpl(SystemInformationImpl const& other);
+        SystemInformationImpl& operator=(SystemInformationImpl const& other);
+
     private:
         std::string m_app_id;
         std::string m_app_version;
@@ -56,13 +63,6 @@ namespace PAL_NS_BEGIN {
         std::string m_commercial_id;
 
         InformatonProviderImpl m_info_helper;
-
-        // Disable copy constructor and assignment operator.
-        SystemInformationImpl(SystemInformationImpl const& other);
-        SystemInformationImpl& operator=(SystemInformationImpl const& other);
-
-        SystemInformationImpl();
-        ~SystemInformationImpl();
     };
 
 } PAL_NS_END
