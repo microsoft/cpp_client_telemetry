@@ -19,8 +19,9 @@ REM choco install -y windows-sdk-10.1
 REM choco install -y windows-sdk-7.1
 
 REM Install nuget for packaging
-REM call download.cmd "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+call download.cmd "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
 REM Install Python needed for Emscripten SDK and others
-REM call download.cmd "https://www.python.org/ftp/python/3.7.4/python-3.7.4-amd64.exe"
-IF NOT EXIST Python3.7 python-3.7.4-amd64.exe /quiet InstallAllUsers=0 Include_launcher=0 Include_test=0 SimpleInstall=1 TargetDir="%CD%\Python3.7"
+call download.cmd "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip"
+IF NOT EXIST Python3.7 MKDIR "%CD%\Python3.7"
+powershell -command "Expand-Archive -LiteralPath python-3.7.4-embed-amd64.zip -DestinationPath Python3.7"
