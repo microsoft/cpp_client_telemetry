@@ -1,1 +1,2 @@
-node.exe server.js
+call npm install
+call npm start

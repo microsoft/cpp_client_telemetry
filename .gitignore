@@ -364,6 +364,8 @@ ASALocalRun/
 /tests/curltests/HttpClient_Curl.hpp
 /tests/curltests/out/*
 /tests/ecs/node_modules
+/tools/emsdk/
+/tools/Python3.7/
 3.5.1
 CMakeCache.txt
 CMakeFiles
