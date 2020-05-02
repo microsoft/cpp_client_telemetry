@@ -11,35 +11,49 @@ LOGMANAGER_INSTANCE
 
 +(nullable id)loggerWithTenant:(nonnull NSString *)tenantToken
 {
-    ILogger* logger = [ODWLogManager initializeLogManager:tenantToken];
-    if(!logger) return nil;
-    
-    return [[ODWLogger alloc] initWithILogger: logger];
+    return [ODWLogManager loggerWithTenant:tenantToken source:@""];
 }
 
 +(nullable id)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
-    ILogger* logger = [ODWLogManager initializeLogManager:tenantToken];
-    if(!logger) return nil;
+    static const BOOL initialized = [ODWLogManager initializeLogManager:tenantToken];
+    if(!initialized) return nil;
     
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
-    logger = LogManager::GetLogger(strToken, strSource);
+    ILogger* logger = LogManager::GetLogger(strToken, strSource);
     if(!logger) return nil;
+
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
-+(ILogger *)initializeLogManager:(nonnull NSString *)tenantToken
++(BOOL)initializeLogManager:(nonnull NSString *)tenantToken
 {
+    // Turn off statistics
+    auto& config = LogManager::GetLogConfiguration();
+    config["stats"]["interval"] = 0;
+
+    // Initialize SDK Log Manager
     std::string strToken = std::string([tenantToken UTF8String]);
     ILogger* logger = LogManager::Initialize(strToken);
     
     // Obtain semantics values
     NSBundle* bundle = [NSBundle mainBundle];
     std::string strUserLocale = std::string([[[NSLocale currentLocale] localeIdentifier] UTF8String]);
-    std::string strBundleVersion = std::string([[bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] UTF8String]);
-    NSString* appLanguage = [[bundle preferredLocalizations] firstObject];
+    NSString* bundleVersion = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    std::string strBundleVersion = bundleVersion == nil ? std::string {} : std::string([bundleVersion UTF8String]);
+    NSArray<NSString *> *localizations = [bundle preferredLocalizations];
+    NSString* appLanguage;
+    if ((localizations != nil) && ([localizations count] > 0))
+    {
+        appLanguage = [localizations firstObject];
+    }
+    else
+    {
+        appLanguage = [[NSLocale preferredLanguages] firstObject];
+    }
+    
     NSString* appCountry = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     std::string strBundleLocale = std::string([[NSString stringWithFormat:@"%@-%@", appLanguage, appCountry] UTF8String]);
 
@@ -49,7 +63,7 @@ LOGMANAGER_INSTANCE
     semanticContext->SetAppLanguage(strBundleLocale);
     semanticContext->SetUserLanguage(strUserLocale);
     
-    return logger;
+    return logger != NULL;
 }
 
 +(nullable id)loggerForSource:(nonnull NSString *)source

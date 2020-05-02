@@ -11,7 +11,7 @@
 #include <locale>
 #include <codecvt>
 
-#include "sysinfo_sources.hpp"
+#include "sysinfo_sources_impl.hpp"
 
 #define DEFAULT_DEVICE_ID       "{deadbeef-fade-dead-c0de-cafebabefeed}"
 
@@ -19,41 +19,38 @@ namespace PAL_NS_BEGIN {
 
     class AndroidDeviceInformation;
 
-    class AndroidPowerSourceConnector {
+    class AndroidDeviceInformationConnector {
         private:
 
         static PowerSource s_power_source;
+        static std::string s_device_id;
+        static std::string s_manufacturer;
+        static std::string s_model;
         static std::mutex s_registered_mutex;
         static std::vector<AndroidDeviceInformation *> s_registered;
-        
+
         public:
 
         static void registerDI(AndroidDeviceInformation &di);
         static void unregisterDI(AndroidDeviceInformation &di);
         static void updatePowerSource(PowerSource new_power_source);
+        static void setDeviceId(std::string && id);
+        static void setManufacturer(std::string && manufacturer);
+        static void setModel(std::string && model);
     };
 
-    PowerSource AndroidPowerSourceConnector::s_power_source = PowerSource_Unknown;
-    std::mutex AndroidPowerSourceConnector::s_registered_mutex;
-    std::vector<AndroidDeviceInformation *> AndroidPowerSourceConnector::s_registered;
+    PowerSource AndroidDeviceInformationConnector::s_power_source = PowerSource_Unknown;
+    std::string AndroidDeviceInformationConnector::s_device_id;
+    std::string AndroidDeviceInformationConnector::s_manufacturer;
+    std::string AndroidDeviceInformationConnector::s_model;
+    std::mutex AndroidDeviceInformationConnector::s_registered_mutex;
+    std::vector<AndroidDeviceInformation *> AndroidDeviceInformationConnector::s_registered;
 
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl() :
-                                m_info_helper()
-    {
-        // Since nothing looks at this, let's just say unknown
-        m_os_architecture = OsArchitectureType_Unknown;
-
-        std::string devId = aria_hwinfo.get("devId");
-        m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
-
-        m_manufacturer = aria_hwinfo.get("devMake");
-
-        m_model = aria_hwinfo.get("devModel");
-
-        m_powerSource = PowerSource_Battery;
-
-    }
+        m_info_helper(),
+        m_powerSource(PowerSource_Battery)
+    {}
 
     std::string DeviceInformationImpl::GetDeviceTicket() const
     {
@@ -71,12 +68,12 @@ namespace PAL_NS_BEGIN {
         public:
         AndroidDeviceInformation()
         {
-            AndroidPowerSourceConnector::registerDI(*this);
+            AndroidDeviceInformationConnector::registerDI(*this);
         }
 
         ~AndroidDeviceInformation()
         {
-            AndroidPowerSourceConnector::unregisterDI(*this);
+            AndroidDeviceInformationConnector::unregisterDI(*this);
         }
 
         void UpdatePowerSource(PowerSource new_power_source)
@@ -84,16 +81,23 @@ namespace PAL_NS_BEGIN {
             m_powerSource = new_power_source;
             m_info_helper.OnChanged(POWER_SOURCE, std::to_string(m_powerSource));
         }
+
+        void SetDeviceInfo(std::string id, std::string manufacturer, std::string model)
+        {
+            m_device_id = id;
+            m_manufacturer = manufacturer;
+            m_model = model;
+        }
     };
 
-    IDeviceInformation* DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
     {
-        return new AndroidDeviceInformation();
+        return std::make_shared<AndroidDeviceInformation>();
     }
 
     DeviceInformationImpl::~DeviceInformationImpl() {}
 
-    void AndroidPowerSourceConnector::registerDI(AndroidDeviceInformation &di)
+    void AndroidDeviceInformationConnector::registerDI(AndroidDeviceInformation &di)
     {
         std::lock_guard<std::mutex> lock(s_registered_mutex);
         for (auto&& e : s_registered)
@@ -106,9 +110,10 @@ namespace PAL_NS_BEGIN {
         }
         s_registered.push_back(&di);
         di.UpdatePowerSource(s_power_source);
+        di.SetDeviceInfo(s_device_id, s_manufacturer, s_model);
     }
 
-    void AndroidPowerSourceConnector::unregisterDI(AndroidDeviceInformation &di)
+    void AndroidDeviceInformationConnector::unregisterDI(AndroidDeviceInformation &di)
     {
         std::lock_guard<std::mutex> lock(s_registered_mutex);
         auto new_end = std::remove_if(s_registered.begin(), s_registered.end(), [&di] (AndroidDeviceInformation *r)->bool
@@ -118,7 +123,7 @@ namespace PAL_NS_BEGIN {
         s_registered.erase(new_end, s_registered.end());
     }
 
-    void AndroidPowerSourceConnector::updatePowerSource(PowerSource new_power_source)
+    void AndroidDeviceInformationConnector::updatePowerSource(PowerSource new_power_source)
     {
         std::lock_guard<std::mutex> lock(s_registered_mutex);
         s_power_source = new_power_source;
@@ -126,16 +131,30 @@ namespace PAL_NS_BEGIN {
             di->UpdatePowerSource(s_power_source);
         }
     }
-    
+
+    void AndroidDeviceInformationConnector::setDeviceId(std::string&& id)
+    {
+        s_device_id = std::move(id);
+    }
+
+    void AndroidDeviceInformationConnector::setManufacturer(std::string&& manufacturer)
+    {
+        s_manufacturer = std::move(manufacturer);
+    }
+
+    void AndroidDeviceInformationConnector::setModel(std::string&& model)
+    {
+        s_model = std::move(model);
+    }
 } PAL_NS_END
 
 extern "C"
 JNIEXPORT void
 
 JNICALL
-Java_com_microsoft_office_ariasdk_httpClient_onPowerChange(JNIEnv* env,
+Java_com_microsoft_applications_events_HttpClient_onPowerChange(JNIEnv* env,
 	jobject /* java_client */,
-    jboolean isCharging, 
+    jboolean isCharging,
     jboolean isLow)
     {
         PowerSource new_power_source = PowerSource_Charging;
@@ -149,6 +168,30 @@ Java_com_microsoft_office_ariasdk_httpClient_onPowerChange(JNIEnv* env,
             {
                 new_power_source = PowerSource_Battery;
             }
-            PAL::AndroidPowerSourceConnector::updatePowerSource(new_power_source);
+            PAL::AndroidDeviceInformationConnector::updatePowerSource(new_power_source);
         }
+    }
+
+    extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpClient_setDeviceInfo(
+        JNIEnv *env,
+        jobject /* java_client */,
+        jstring id,
+        jstring manufacturer,
+        jstring model
+    )
+    {
+        auto start = env->GetStringUTFChars(id, nullptr);
+        auto end = start + env->GetStringUTFLength(id);
+        PAL::AndroidDeviceInformationConnector::setDeviceId(std::string(start, end));
+        env->ReleaseStringUTFChars(id, start);
+
+        start = env->GetStringUTFChars(manufacturer, nullptr);
+        end = start + env->GetStringUTFLength(manufacturer);
+        PAL::AndroidDeviceInformationConnector::setManufacturer(std::string(start, end));
+        env->ReleaseStringUTFChars(manufacturer, start);
+
+        start = env->GetStringUTFChars(model, nullptr);
+        end = start + env->GetStringUTFLength(model);
+        PAL::AndroidDeviceInformationConnector::setModel(std::string(start, end));
+        env->ReleaseStringUTFChars(model, start);
     }
