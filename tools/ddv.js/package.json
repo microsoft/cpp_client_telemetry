@@ -4,7 +4,9 @@
   "description": "Diagnostic Data Viewer",
   "main": "server.js",
   "dependencies": {
+    "env": "0.0.2",
     "hashmap": "^2.4.0",
+    "inline-webassembly": "^1.0.6",
     "tmp": "^0.2.1",
     "websocket": "^1.0.31"
   },
