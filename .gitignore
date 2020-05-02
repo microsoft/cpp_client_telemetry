@@ -353,6 +353,7 @@ ASALocalRun/
 /dist/
 /docs/out
 /examples/.vs/samples/v15/Server/sqlite3
+/googletest
 /lib/Makefile
 /lib/cmake_install.cmake
 /lib/include/Makefile
