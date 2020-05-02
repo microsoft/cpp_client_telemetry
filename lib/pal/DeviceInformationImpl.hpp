@@ -16,7 +16,7 @@ namespace PAL_NS_BEGIN {
     class DeviceInformationImpl : public IDeviceInformation
     {
     public:
-        static IDeviceInformation* Create();
+        static std::shared_ptr<IDeviceInformation> Create();
 
         virtual int RegisterInformationChangedCallback(PAL::IPropertyChangedCallback* pCallback) override
         {
@@ -38,6 +38,10 @@ namespace PAL_NS_BEGIN {
         virtual PowerSource GetPowerSource() const override { return m_powerSource; }
         virtual std::string GetDeviceTicket() const override;
 
+        DeviceInformationImpl();
+        virtual ~DeviceInformationImpl();
+
+        // Disable copy constructor and assignment operator.
         DeviceInformationImpl(DeviceInformationImpl const& other) = delete;
         DeviceInformationImpl& operator=(DeviceInformationImpl const& other) = delete;
 
@@ -52,10 +56,6 @@ namespace PAL_NS_BEGIN {
         std::string m_model;
     private:
         size_t m_registeredCount;
-
-    protected:
-        DeviceInformationImpl();
-        virtual ~DeviceInformationImpl();
     };
 
 } PAL_NS_END
