@@ -2,6 +2,15 @@
 cd %~dp0
 if "%~1"=="" goto help
 
+WHERE choco >NUL 2>NUL
+IF %ERRORLEVEL% NEQ 0 call tools\setup-choco.cmd
+
+WHERE docker >NUL 2>NUL
+IF "%ERRORLEVEL%"=="0" goto docker_ok
+choco install -y docker-desktop
+choco install -y docker-cli
+:docker_ok
+
 del .buildtools 2>NUL
 docker info
 docker version
