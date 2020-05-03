@@ -11,6 +11,7 @@ React apps without native code dependency.
 - llvm clang toolchain
 - emscripten
 - knowledge of how C++ compilers and cmake works
+- be prepared for a failure.. and know how to overcome it
 
 # How to build
 
@@ -25,6 +26,13 @@ Resulting output consists of two files:
 - build/decoder.wasm   - web assembly module
 
 Launch it as:
+
 ```
 node decoder.js
 ```
+
+# Additional scripts
+
+In order to debug the tool 'locally' without emscripten cross-compiling:
+- build-gcc-mac.sh     - compile the tool with brew gcc on Mac OS X
+- build.sh             - build with the platform-standard compiler (gcc or clang)
