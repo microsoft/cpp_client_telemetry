@@ -15,4 +15,5 @@ cd zlib
 build-emcc.sh
 
 cd $WORKSPACE/tools/ddv.js/decoder
+rm -rf build
 build-emcc.sh
