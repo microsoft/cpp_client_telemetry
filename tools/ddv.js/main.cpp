@@ -10,33 +10,57 @@
 
 using namespace std;
 
-extern "C" void console_log(const char *s, uint16_t len);
-extern "C" void native_ready();
-
 EMSCRIPTEN_KEEPALIVE
 extern "C" void sayHello()
 {
-    printf("Hello printf!\n");
+    printf("printf: up and running\n");
     fflush(stdout);
 }
 
-EM_JS(void, sayHelloJS, (const char* str), {
-  console.log('Hello console.log! ' + UTF8ToString(str));
-});
+EM_JS(void, console_log, (const char* str), { console.log(UTF8ToString(str)); });
 
 EMSCRIPTEN_KEEPALIVE
-extern "C" void getHello()
+void console_log_string(const std::string& msg)
 {
-  std::string hi = "Hello from C++ to JS!\n";
-  console_log(hi.c_str(), strlen(hi.c_str()));
+  // Call JS function using EM_ASM
+  EM_ASM({console_log($0, $1)}, msg.c_str(), msg.length() );
+}
+
+EMSCRIPTEN_KEEPALIVE
+void console_log_strdup(const std::string& msg)
+{
+  char *s = strdup(msg.c_str());
+  // Call JS function using EM_ASM
+  EM_ASM({console_log($0, $1)}, s, msg.length() );
+  free(s);
+}
+
+EMSCRIPTEN_KEEPALIVE
+extern "C" void sendBuffer(char* buffer, size_t size)
+{
+  for(size_t i=0; i<size; i++)
+  {
+    printf("%02x ", buffer[i]);
+  }
+  printf("\n");
 }
 
 int main(int argc, char *argv[])
 {
-  // native_ready();
+  // Notify Javascript that we're ready
+  EM_ASM({onEmInit()});
+
   sayHello();
-  sayHelloJS("[some const char*]");
-  // getHello();
+
+  console_log("some [const char*]");
+
+  // allocated on stack or heap?
+  std::string s1 = "some [std::string]";
+  console_log_string(s1); // log original
+
+  std::string s2 = "some [std::string] copy";
+  console_log_strdup(s2); // log HEAP copy
+
   fflush(stdout);
 
   int i = 0;
@@ -46,4 +70,6 @@ int main(int argc, char *argv[])
      std::this_thread::sleep_for(std::chrono::seconds(1));
      i++;
   }
+
+  EM_ASM({onEmDone()});
 }
