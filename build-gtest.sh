@@ -6,6 +6,8 @@ if [ -f /etc/os-release ]; then
   source /etc/os-release
   # Use new Google Test on latest Ubuntu 20.04 : old one no longer compiles on 20
   if [ "$VERSION_ID" == "20.04" ]; then
+    echo Running on Ubuntu 20.04
+    echo Clone googletest from google/googletest:master ...
     rm -rf googletest
     git clone https://github.com/google/googletest
   fi
