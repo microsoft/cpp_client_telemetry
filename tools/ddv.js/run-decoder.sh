@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir -p sandbox
-#node --trace-warnings --experimental-wasi-unstable-preview1 --experimental-wasm-bigint main.js
-./build.sh
-node --trace-warnings --experimental-wasm-bigint main.js
-
+# Invoke build-emcc.sh script from top-level directory
+( cd ../../; ./build-emcc.sh )
+# Start node from current directory
+node --trace-warnings --experimental-wasm-bigint --experimental-wasm-threads --experimental-wasm-bulk-memory main.js
