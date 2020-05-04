@@ -1,5 +1,10 @@
 #!/usr/bin/env node
-
+// (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// Standalone implementation of Common Schema/Bond decoder.
+//
+// Author: Max Golovanov <maxgolov@microsoft.com>
+//
 'use strict';
 const fs = require('fs');
 const http = require('http');
@@ -66,6 +71,9 @@ global.onRequestDecoded = (buffer, size) => {
   console.log("Request decoded: ", buffer, size);
   // Print decoded body
   console.log(native.UTF8ToString(buffer, size));
+  // TODO: this callback has to be configurable:
+  // - if used in test server, send this to response
+  // - if used in Data Viewer, forward to Azure Table or to local client UX via WebSocket
 };
 
 // Called when C++ shuts down
