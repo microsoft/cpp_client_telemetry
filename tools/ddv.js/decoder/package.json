@@ -11,6 +11,7 @@
   "license": "BSD",
   "dependencies": {
     "env": "0.0.2",
-    "inline-webassembly": "^1.0.6"
+    "inline-webassembly": "^1.0.6",
+    "json-colorizer": "^2.2.2"
   }
 }
