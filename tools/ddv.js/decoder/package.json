@@ -1,0 +1,16 @@
+{
+  "name": "decoder",
+  "version": "1.0.0",
+  "description": "This project contains the files needed to build 1DS C++ SDK Bond protocol decoder for Javascript sandbox environments, such as web browsers and node. Possible scenarios are embedding of decoder in cross-platform Javascript, node, browser extensions Electron, React apps without native code dependency.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Max Golovanov",
+  "license": "BSD",
+  "dependencies": {
+    "env": "0.0.2",
+    "inline-webassembly": "^1.0.6"
+  }
+}
