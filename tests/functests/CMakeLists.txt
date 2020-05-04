@@ -78,6 +78,7 @@ else()
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+    /usr/local/lib/
   )
 
   find_file(LIBGMOCK
@@ -85,6 +86,7 @@ else()
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+    /usr/local/lib
   )
 
   target_link_libraries(FuncTests 
