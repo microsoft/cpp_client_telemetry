@@ -10,6 +10,9 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 
+// TOTALLY OPTIONAL, BUT LOOKS NICE!
+const colorize = require('json-colorizer');
+
 // Pointers to Emscripten heap are populated when 'native' Module is run
 let native_HEAPU8 = null;
 let native_HEAPU16 = null;
@@ -66,22 +69,37 @@ function decodeRequest(contentType, contentEncoding, body) {
   free(emContentEncoding);
 };
 
+global.decodeRequest = decodeRequest;
+
+let onRequestDecodedCallback = null;
+
+//
+// Request decoder callback receives UTF-8 string that contains JSON array (package) of JSON objects (events)
+//
+const registerOnRequestDecoded = (handler) =>
+{
+  onRequestDecodedCallback = handler;
+};
+
 // Invoked when decoded result is ready
 global.onRequestDecoded = (buffer, size) => {
   console.log("Request decoded: ", buffer, size);
-  // Print decoded body
-  console.log(native.UTF8ToString(buffer, size));
-  // TODO: this callback has to be configurable:
-  // - if used in test server, send this to response
-  // - if used in Data Viewer, forward to Azure Table or to local client UX via WebSocket
+  if (onRequestDecodedCallback != null)
+  {
+    onRequestDecodedCallback(native.UTF8ToString(buffer, size));
+  }
 };
 
+//
 // Called when C++ shuts down
+//
 global.onEmDone = () => {
   console.log("EM C++ code stopping...");
 };
 
+//
 // Pass strings from C++ to Javascript console
+//
 global.console_log = (offset, length) => {
   // TODO: can also use UTF8ToString
   const bytes = new Uint8Array(native_HEAPU8.buffer, offset, length);
@@ -93,7 +111,9 @@ global.console_log = (offset, length) => {
 // for buffer passing from node.js scope to WebAssembly for decoding
 console.log("WebAssembly starting...");
 
+//
 // Periodic heartbeat in Javascript
+//
 var seq = 0;
 const heartbeat = () => {
   // Uncomment to debug JS hearbeats:
@@ -102,16 +122,48 @@ const heartbeat = () => {
   setTimeout(heartbeat, 1000);
 };
 
-// Invoked async after onEmInit 
+//
+// Invoked async after onEmInit
+//
 const onEmReady = () => {
   console.log("onEmReady");
   heartbeat();
 }
 
-module.exports = { decodeRequest };
-
-global.decodeRequest = decodeRequest;
-
-// TODO: add configuration parameter to avoid starting our own server
 const server = require('./server.js');
-server.startServer();
+
+//
+// TODO: respect params
+//
+const startServer = (params) =>
+{
+  server.startServer();
+};
+
+module.exports = {
+
+  decodeRequest,            // decode request into UTF-8 JSON string
+
+  registerOnRequestDecoded, // register callback to invoke when the string is ready
+
+  startServer,              // start our internal OneCollector server
+
+  getRequestListner:        // obtain implementation of request listener:
+    function()
+    {
+      return server.getRequestListener;
+    }
+};
+
+//
+// Simple example that illustrates how to use the module
+//
+if (require.main === module) {
+  // register decoder callback
+  registerOnRequestDecoded((json) =>
+  {
+    console.log(colorize(json));
+  });
+  // Start our own standalone server
+  startServer();
+}
