@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export WORKSPACE=`pwd`
-export PATH=`pwd`/tools:$PATH
+export PATH=$WORKSPACE/tools:$PATH
+export SYSROOT=$WORKSPACE/out/emscripten
 
-export SYSROOT=`pwd`/out/emscripten
 if [ ! -d $SYSROOT ];
 then
   mkdir -p $SYSROOT
@@ -15,5 +15,6 @@ cd zlib
 build-emcc.sh
 
 cd $WORKSPACE/tools/ddv.js/decoder
+# Always perform clean build
 rm -rf build
 build-emcc.sh

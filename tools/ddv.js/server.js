@@ -7,7 +7,7 @@ var W3CWebSocket = require('websocket').w3cwebsocket;
 var HashMap = require('hashmap');
 var http = require('http');
 var fs = require('fs');
-var url = require('url')
+var url = require('url');
 
 var tmp = require('tmp');
 
@@ -70,12 +70,15 @@ var httpServer = http.createServer(function (request, response) {
     var q = url.parse(request.url, true).query;
     var pathname = url.parse(request.url).pathname;
 
-    console_log("GET " + pathname);
+    console_log(request.method + " " + pathname);
 
     var headers;
 
     // hardcoded list of special urls
     switch (pathname) {
+        case "/OneCollector/1.0/":
+            break;
+
         case "/export.csv":
             fs.readFile(tmpFile.name, function (err, data) {
                 if (!err) {
