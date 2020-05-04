@@ -26,7 +26,7 @@ global.onEmInit = () => {
 };
 
 // TODO: binplace decoder.js and decoder.wasm to same dir as main.js
-const native = require('./decoder/build/decoder.js');
+const native = require('./build/decoder.js');
 
 // Allocate block on EM HEAP
 const malloc = (size) => { return { "ptr": native._malloc(size), "size": size }; };
