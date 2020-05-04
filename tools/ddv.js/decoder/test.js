@@ -1,3 +1,7 @@
+// Simple test to verify that inline WebAssembly works on your version of node.
+// Run:       node test.js
+// Expected:  Hello, World!
+//
 const iw = require('inline-webassembly');
 
 const memory = new WebAssembly.Memory({ initial: 1 });
