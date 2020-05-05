@@ -17,7 +17,7 @@ namespace PAL_NS_BEGIN {
     class SystemInformationImpl : public ISystemInformation
     {
     public:
-        static std::shared_ptr<ISystemInformation> Create();
+        static std::shared_ptr<ISystemInformation> Create(IRuntimeConfig& configuration);
 
         // IInformationProvider API
         virtual int RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) override;

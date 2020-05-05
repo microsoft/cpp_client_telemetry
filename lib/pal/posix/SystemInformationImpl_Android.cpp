@@ -35,7 +35,7 @@ namespace PAL_NS_BEGIN {
     std::string AndroidSystemInformationConnector::s_os_full_version;
     std::string AndroidSystemInformationConnector::s_os_name;
 
-    SystemInformationImpl::SystemInformationImpl() :
+    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
         m_app_id(AndroidSystemInformationConnector::s_app_id),
         m_app_version(AndroidSystemInformationConnector::s_app_version),
@@ -60,9 +60,9 @@ namespace PAL_NS_BEGIN {
         m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
     }
 
-    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<SystemInformationImpl>();
+        return std::make_shared<SystemInformationImpl>(configuration);
     }
 
 } PAL_NS_END
