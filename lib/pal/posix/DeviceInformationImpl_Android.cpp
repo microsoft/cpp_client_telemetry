@@ -66,7 +66,7 @@ namespace PAL_NS_BEGIN {
 
     class AndroidDeviceInformation : public DeviceInformationImpl {
         public:
-        AndroidDeviceInformation()
+        AndroidDeviceInformation(IRuntimeConfig& configuration)
         {
             AndroidDeviceInformationConnector::registerDI(*this);
         }
@@ -90,9 +90,9 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<AndroidDeviceInformation>();
+        return std::make_shared<AndroidDeviceInformation>(configuration);
     }
 
     DeviceInformationImpl::~DeviceInformationImpl() {}

@@ -70,6 +70,8 @@ namespace PAL_NS_BEGIN
     class PALTest;
 
     class PlatformAbstractionLayer
+
+    class PlatformAbstractionLayer
     {
     friend class PALTest;
     public:

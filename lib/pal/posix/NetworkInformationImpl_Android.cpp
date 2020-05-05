@@ -38,10 +38,10 @@ namespace PAL_NS_BEGIN {
     std::mutex AndroidNetcostConnector::s_registered_mutex;
     NetworkCost AndroidNetcostConnector::s_cost = NetworkCost_Unknown;
 
-    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+    NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
         m_cost(NetworkCost_Unknown),
-        m_isNetDetectEnabled(isNetDetectEnabled){};
+        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]){};
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
@@ -54,7 +54,7 @@ namespace PAL_NS_BEGIN {
         ///
         /// </summary>
         /// <param name="isNetDetectEnabled"></param>
-        NetworkInformation(bool isNetDetectEnabled);
+        NetworkInformation(IRuntimeConfig& configuration);
 
         /// <summary>
         ///
@@ -125,8 +125,8 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    NetworkInformation::NetworkInformation(bool isNetDetectEnabled) :
-        NetworkInformationImpl(isNetDetectEnabled)
+    NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
+        NetworkInformationImpl(IRuntimeConfig& configuration)
     {
         AndroidNetcostConnector::RegisterNI(*this);
     }
@@ -136,9 +136,9 @@ namespace PAL_NS_BEGIN {
         AndroidNetcostConnector::UnregisterNI(*this);
     }
 
-    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<NetworkInformation>(isNetDetectEnabled);
+        return std::make_shared<NetworkInformation>(configuration);
     }
 
 } PAL_NS_END
