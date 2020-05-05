@@ -126,7 +126,7 @@ namespace PAL_NS_BEGIN {
     }
 
     NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
-        NetworkInformationImpl(IRuntimeConfig& configuration)
+        NetworkInformationImpl(configuration)
     {
         AndroidNetcostConnector::RegisterNI(*this);
     }
