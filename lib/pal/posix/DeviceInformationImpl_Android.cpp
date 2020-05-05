@@ -47,7 +47,7 @@ namespace PAL_NS_BEGIN {
     std::vector<AndroidDeviceInformation *> AndroidDeviceInformationConnector::s_registered;
 
     ///// IDeviceInformation API
-    DeviceInformationImpl::DeviceInformationImpl() :
+    DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
         m_powerSource(PowerSource_Battery)
     {}
@@ -66,7 +66,7 @@ namespace PAL_NS_BEGIN {
 
     class AndroidDeviceInformation : public DeviceInformationImpl {
         public:
-        AndroidDeviceInformation(IRuntimeConfig& configuration)
+        AndroidDeviceInformation(IRuntimeConfig& configuration) : DeviceInformationImpl(configuration)
         {
             AndroidDeviceInformationConnector::registerDI(*this);
         }

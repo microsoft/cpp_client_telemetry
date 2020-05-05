@@ -18,7 +18,7 @@ namespace PAL_NS_BEGIN {
     class NetworkInformationImpl : public INetworkInformation
     {
     public:
-        static std::shared_ptr<INetworkInformation> Create(IRuntimeConfig& configuration);
+        static std::shared_ptr<INetworkInformation> Create(MAT::IRuntimeConfig& configuration);
 
         // IInformationProvider API
         virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registeredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
@@ -33,7 +33,7 @@ namespace PAL_NS_BEGIN {
         virtual bool IsWifiAvailable() { return false; }
         virtual bool IsWwanAvailable() { return false; }
 
-        NetworkInformationImpl(IRuntimeConfig& configuration);
+        NetworkInformationImpl(MAT::IRuntimeConfig& configuration);
         virtual ~NetworkInformationImpl();
 
         // Disable copy constructor and assignment operator.
