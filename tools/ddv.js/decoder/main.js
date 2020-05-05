@@ -6,6 +6,19 @@
 // Author: Max Golovanov <maxgolov@microsoft.com>
 //
 'use strict';
+
+// Use environment variable APPINSIGHTS_INSTRUMENTATIONKEY to enable AppInsights export
+let use_ai_logging = false;
+let client = null;
+if (typeof process.env['APPINSIGHTS_INSTRUMENTATIONKEY'] != "undefined")
+{
+  const appInsights = require("applicationinsights");
+  use_ai_logging = true;
+  appInsights.setup();
+  appInsights.start();
+  client = appInsights.defaultClient;
+}
+
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
@@ -162,7 +175,16 @@ if (require.main === module) {
   // register decoder callback
   registerOnRequestDecoded((json) =>
   {
-    console.log(colorize(json));
+    console.log("Common Schema event: ", colorize(json));
+    if (client != null)
+    {
+      let obj = JSON.parse(json);
+      obj.forEach(evt => {
+        let ai_event = {name: evt.name, properties: evt.data, ext: evt.ext};
+        console.log("AppInsights event: ", colorize(ai_event, { pretty: true}));
+        client.trackEvent(ai_event);
+      });
+    }
   });
   // Start our own standalone server
   startServer();
