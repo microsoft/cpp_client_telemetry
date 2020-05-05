@@ -70,7 +70,7 @@ set(SRCS
         ${SDK_ROOT}/lib/pal/posix/sysinfo_sources.cpp
 )
 
-add_library(maesdk SHARED ${SRCS})
+add_library(maesdk ${SRCS})
 
 
 # Creates and names a library, sets it as either STATIC
