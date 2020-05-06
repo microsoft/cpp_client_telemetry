@@ -10,7 +10,7 @@ string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOUR
 
 find_package(CURL REQUIRED)
 
-add_definitions(-DCONFIG_CUSTOM_H="config-compact-min.h")
+add_definitions(-DCONFIG_CUSTOM_H="config-android.h")
 
 include_directories(AFTER
         ${SDK_ROOT}/lib
