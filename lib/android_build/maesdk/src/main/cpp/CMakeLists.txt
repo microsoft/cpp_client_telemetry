@@ -8,13 +8,18 @@ set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
+find_package(CURL REQUIRED)
+
+add_definitions(-DCONFIG_CUSTOM_H="config-compact-min.h")
+
 include_directories(AFTER
         ${SDK_ROOT}/lib
         ${SDK_ROOT}/lib/include/public
         ${SDK_ROOT}/lib/include
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
-        ${SDK_ROOT}lib/pal)
+        ${SDK_ROOT}lib/pal
+        ${CURL_INCLUDE_DIRS})
 
 set(SRCS
         ${SDK_ROOT}/sqlite/sqlite3.c
@@ -53,7 +58,7 @@ set(SRCS
   ${SDK_ROOT}/lib/http/HttpRequestEncoder.cpp
   ${SDK_ROOT}/lib/http/HttpResponseDecoder.cpp
   ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
-        ${SDK_ROOT}/lib/http/HttpClient_Android.cpp
+        ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp
   ${SDK_ROOT}/lib/stats/Statistics.cpp
   ${SDK_ROOT}/lib/stats/MetaStats.cpp
   ${SDK_ROOT}/lib/offline/StorageObserver.cpp
@@ -95,9 +100,9 @@ find_library( # Sets the name of the path variable.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-        maesdk
+target_link_libraries(maesdk PUBLIC
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
+        ${CURL_LIBRARIES}
         )
