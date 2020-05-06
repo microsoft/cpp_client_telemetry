@@ -103,11 +103,7 @@ namespace ARIASDK_NS_BEGIN {
 #else
         std::string result;
 #ifdef ANDROID
-        result = HttpClient_Android::GetCacheFilePath();
-        if (result.empty())
-        {
-           result = "/data/local/tmp";
-        }
+        result = "/data/local/tmp";
 #else
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
