@@ -130,6 +130,10 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static bool         isTimerUpdated;
 
+        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
+
+        static void EnsureDefaultProfiles() noexcept;
+
     public:
 
 
@@ -166,8 +170,15 @@ namespace ARIASDK_NS_BEGIN
         /// Loads customer-supplied transmit profiles.
         /// </summary>
         /// <param name="profiles_json">A string that contains the the transmit profiles in JSON.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
+        /// <returns>A boolean value that indicates success (true) or failure (false) if at least one transmit profile parses correctly.</returns>
         static bool load(const std::string& profiles_json);
+
+        /// <summary>
+        /// Loads caller-supplied transmit profiles.
+        /// </summary>
+        /// <param name="profiles">A map of the caller-supplied profiles.</param>
+        /// <returns>A boolean value that indicates success (true) if all transmit profiles are valid, false otherwise.</returns>
+        static bool load(const std::vector<TransmitProfileRules>& profiles) noexcept;
 
         /// <summary>
         /// Resets transmit profiles to default values.
