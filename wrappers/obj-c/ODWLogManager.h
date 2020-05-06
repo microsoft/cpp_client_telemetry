@@ -1,4 +1,5 @@
 #include "objc_begin.h"
+#import "ODWLogger.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -22,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param tenantToken A string that contains the tenant token.
  @return An ODWLogger instance
  */
-+(nullable id)loggerWithTenant:(NSString *)tenantToken;
++(nullable ODWLogger *)loggerWithTenant:(NSString *)tenantToken;
 
 /*!
  @brief Initializes the telemetry logging system with the default configuration, using the specified tenant token and source.
@@ -30,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param source A string that contains the name of the source of events.
  @return An ODWLogger pointer that points to the logger for the specified tenantToken and source.
  */
-+(nullable id)loggerWithTenant:(NSString *)tenantToken
++(nullable ODWLogger *)loggerWithTenant:(NSString *)tenantToken
                   source:(NSString *)source;
 
 /*!
@@ -38,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param source A string that contains the name of the source of events sent by this logger instance.
  @return An ODWLogger instance that points to the logger for source.
  */
-+(nullable id)loggerForSource:(NSString *)source;
++(nullable ODWLogger *)loggerForSource:(NSString *)source;
 
 /*!
  @brief Attempts to send any pending telemetry events that are currently cached either in memory, or on disk. Use this method if your event can't wait for automatic timed upload

@@ -149,6 +149,7 @@ namespace ARIASDK_NS_BEGIN
         virtual status_t SetTransmitProfile(TransmitProfile profile) override;
         virtual status_t SetTransmitProfile(const std::string& profile) override;
         virtual status_t LoadTransmitProfiles(const std::string& profiles_json) override;
+        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept override;
         virtual status_t ResetTransmitProfiles() override;
         virtual const std::string& GetTransmitProfileName() override;
 

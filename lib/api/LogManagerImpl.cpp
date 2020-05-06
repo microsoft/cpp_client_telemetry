@@ -121,7 +121,11 @@ namespace ARIASDK_NS_BEGIN
             {
                 std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
-
+                if ((!cacheFilePath.empty()) && (cacheFilePath.back() != PATH_SEPARATOR_CHAR))
+                {
+                    // append path separator if required 
+                    cacheFilePath += PATH_SEPARATOR_CHAR;
+                }
                 cacheFilePath += tenantId;
                 cacheFilePath += ".db";
             }
@@ -338,6 +342,7 @@ namespace ARIASDK_NS_BEGIN
 
     status_t LogManagerImpl::UploadNow()
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->upload();
@@ -349,6 +354,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->pause();
@@ -360,6 +366,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::ResumeTransmission()
     {
         LOG_INFO("Resuming transmission...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->resume();
@@ -396,6 +403,13 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_INFO("LoadTransmitProfiles");
         bool result = TransmitProfiles::load(profiles_json);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
+    }
+
+    status_t LogManagerImpl::LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept
+    {
+        LOG_INFO("LoadTransmitProfiles");
+        bool result = TransmitProfiles::load(profiles);
         return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
@@ -584,6 +598,7 @@ namespace ARIASDK_NS_BEGIN
 
     void LogManagerImpl::sendEvent(IncomingEventContextPtr const& event)
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
             if (m_customDecorator)
@@ -636,7 +651,6 @@ namespace ARIASDK_NS_BEGIN
 
     std::unique_ptr<ITelemetrySystem>& LogManagerImpl::GetSystem()
     {
-        LOCKGUARD(m_lock);
         if (m_system == nullptr || m_isSystemStarted)
            return m_system;
 
