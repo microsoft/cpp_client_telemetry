@@ -22,8 +22,8 @@ include_directories(
 if (EMSCRIPTEN)
   # Emscripten target
   set(SYSROOT $ENV{SYSROOT})
-  include_directories(${SYSROOT}/zlib ${SYSROOT}/zlib/build)
-  set(LIBZ ${SYSROOT}/zlib/build/libz.a)
+  include_directories("${SYSROOT}/zlib" "${SYSROOT}/zlib/build")
+  set(LIBZ "${SYSROOT}/zlib/build/libz.a")
   message("-- BUILD_EMSCRIPTEN")
   message("-- SYSROOT=${SYSROOT}")
   message("-- ZLIB=${LIBZ}")
