@@ -10,12 +10,12 @@ LOGMANAGER_INSTANCE
 
 @implementation ODWLogManager
 
-+(nullable id)loggerWithTenant:(nonnull NSString *)tenantToken
++(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
 {
     return [ODWLogManager loggerWithTenant:tenantToken source:@""];
 }
 
-+(nullable id)loggerWithTenant:(nonnull NSString *)tenantToken
++(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
     static const BOOL initialized = [ODWLogManager initializeLogManager:tenantToken];
@@ -67,7 +67,7 @@ LOGMANAGER_INSTANCE
     return logger != NULL;
 }
 
-+(nullable id)loggerForSource:(nonnull NSString *)source
++(nullable ODWLogger *)loggerForSource:(nonnull NSString *)source
 {
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = LogManager::GetLogger(strSource);
