@@ -49,17 +49,17 @@ namespace PAL_NS_BEGIN
             return PAL::GetPAL().m_taskDispatcher;
         };
 
-        static ISystemInformation* GetSystemInformation()
+        static std::shared_ptr<ISystemInformation> GetSystemInformation()
         {
             return PAL::GetPAL().m_SystemInformation;
         }
 
-        static INetworkInformation* GetNetworkInformation()
+        static std::shared_ptr<INetworkInformation> GetNetworkInformation()
         {
             return PAL::GetPAL().m_NetworkInformation;
         }
 
-        static IDeviceInformation* GetDeviceInformation()
+        static std::shared_ptr<IDeviceInformation> GetDeviceInformation()
         {
             return PAL::GetPAL().m_DeviceInformation;
         }
@@ -1038,7 +1038,7 @@ public :
         numHttpError(0),
         numHttpOK(0),
         numHttpFailure(0),
-        numCached(0) 
+        numCached(0)
     {
     }
 
@@ -1192,7 +1192,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     server.clearKilledTokens();
 }
 
-TEST_F(BasicFuncTests, killIsTemporary) 
+TEST_F(BasicFuncTests, killIsTemporary)
 {
     CleanStorage();
     // Create the configuration to send to fake server
@@ -1212,7 +1212,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
     configuration["config"] = { { "host", __FILE__ } }; // Host instance
-    
+
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 10);
     KillSwitchListener listener;
