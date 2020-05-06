@@ -39,13 +39,13 @@ Everyone is welcome to contribute code to `1DS C++ SDK` via GitHub pull requests
 
 Please do not fork. Our CI is setup to accept PRs only from the main *microsoft/cpp_client_telemetry* repo.
 
-To create a new PR, clone the upstream repo:
+To create a new PR, clone the repo:
 
 ```sh
 $ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
-Check out a new branch, make modifications and push the branch on the main repository:
+Check out a new branch, make modifications and push the branch:
 
 ```sh
 $ git checkout -b ${USERNAME}/feature_branch_name
