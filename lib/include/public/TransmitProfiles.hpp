@@ -153,14 +153,6 @@ namespace ARIASDK_NS_BEGIN
         static void dump();
 
         /// <summary>
-        /// Performs timer sanity check and auto-fixes timers if needed.
-        /// <b>Note:</b> This function is not thread safe.
-        /// </summary>
-        /// <param name="rule">The transmit profile rule that contains the timers to adjust.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        static bool adjustTimers(TransmitProfileRule & rule);
-
-        /// <summary>
         /// Removes custom profiles.
         /// This method is called from parse only, and does not require the lock.
         /// <b>Note:</b> This function is not thread safe.

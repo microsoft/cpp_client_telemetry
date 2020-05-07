@@ -160,51 +160,6 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     /// <summary>
-    /// Perform timers sanity check and auto-fix them if necessary
-    /// </summary>
-    /// <param name="rule"></param>
-    bool TransmitProfiles::adjustTimers(TransmitProfileRule &rule) {
-        bool isAutoCorrected = false;
-        // There are always at least 3 entires in the timers vector
-        size_t i = rule.timers.size();
-        int prevTimerValue = rule.timers[i - 1];
-        do {
-            i--;
-            int currTimerValue = rule.timers[i];
-            if (currTimerValue > 0) {
-                if (currTimerValue < prevTimerValue) {
-                    currTimerValue = prevTimerValue;
-                    LOG_WARN("Low-pri timer can't be lower than high-pri: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                    rule.timers[i] = currTimerValue;
-                    isAutoCorrected = true;
-                }
-                else
-                    if (prevTimerValue > 0) {
-                        // Low-pri timer has to be a multiple of high-pri timer
-                        int div = currTimerValue / prevTimerValue;
-                        int mod = currTimerValue % prevTimerValue;
-                        if (mod != 0) {
-                            currTimerValue = prevTimerValue * (div + 1);
-                            LOG_WARN("Low-pri timer must be multiple of high-pri: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                            rule.timers[i] = currTimerValue;
-                            isAutoCorrected = true;
-                        }
-                    }
-                    else {
-                        // curr is positive and more than prev, but prev is zero. This is invalid configuration, so reuse the prev for curr.
-                        currTimerValue = prevTimerValue;
-                        LOG_WARN("Low-pri timer can't be on if high-pri is off: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                        rule.timers[i] = currTimerValue;
-                        isAutoCorrected = true;
-                    }
-            }
-            prevTimerValue = currTimerValue;
-            LOG_TRACE("timers[%d]=%d", i, currTimerValue);
-        } while (i != 0);
-        return isAutoCorrected;
-    }
-
-    /// <summary>
     /// Remove custom profiles. This function is only called from parse and does not require the lock.
     /// </summary>
     void TransmitProfiles::removeCustomProfiles() {
