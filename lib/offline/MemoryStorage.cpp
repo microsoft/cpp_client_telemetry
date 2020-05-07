@@ -150,12 +150,7 @@ namespace ARIASDK_NS_BEGIN {
                 bool wantMore = consumer(std::move(record)); // move to consumer
                 m_records[latency].pop_back();               // destroy in records
 
-                auto currentSize = m_size.load();
-                size_t newSize;
-                do {
-                    newSize = currentSize - std::min(currentSize, recordSize);
-                } while (!m_size.compare_exchange_weak(currentSize, newSize));
-
+                m_size -= std::min(m_size, recordSize);
                 maxCount--;
 
                 // If consumer has no space left for the records, exit
@@ -184,7 +179,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <returns></returns>
     unsigned MemoryStorage::LastReadRecordCount()
     {
-        return static_cast<unsigned>(m_lastReadCount.load());
+        LOCKGUARD(m_records_lock);
+        return static_cast<unsigned>(m_lastReadCount);
     }
 
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
@@ -402,15 +398,8 @@ namespace ARIASDK_NS_BEGIN {
     /// </remarks>
     size_t MemoryStorage::GetSize()
     {
-        size_t totalRecords = GetRecordCount();
-        totalRecords+=GetReservedCount();
-        // Since m_size calculation is approximate - see below,
-        // it may happen that it's slightly off by several bytes.
-        // We audit and clean this up when the number of records
-        // gets down to zero.
-        if (totalRecords==0)
-            m_size = 0;
-        return m_size.load();
+        LOCKGUARD(m_records_lock);
+        return m_size;
     }
 
     /// <summary>
