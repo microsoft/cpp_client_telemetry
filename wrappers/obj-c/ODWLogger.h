@@ -98,8 +98,8 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
 
 /*!
  @brief Logs a diagnostic trace event to help you troubleshoot problems.
- @param aLevel The level of the trace as one of the ::ODWTraceLevel enumeration values.
- @param aMessage A string that contains a description of the trace.
+ @param traceLevel The level of the trace as one of the ::ODWTraceLevel enumeration values.
+ @param message A string that contains a description of the trace.
  @param properties Properties of the trace event, encapsulated within an ODWEventProperties object.
  */
 -(void)logTraceWithTraceLevel:(enum ODWTraceLevel)traceLevel
