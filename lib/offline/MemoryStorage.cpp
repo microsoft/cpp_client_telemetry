@@ -150,14 +150,12 @@ namespace ARIASDK_NS_BEGIN {
                 bool wantMore = consumer(std::move(record)); // move to consumer
                 m_records[latency].pop_back();               // destroy in records
 
-                if (m_size.load() > recordSize)
-                {
-                    m_size -= recordSize;
-                }
-                else
-                {
-                    m_size = 0;
-                }
+                auto currentSize = m_size.load();
+                size_t newSize;
+                do {
+                    newSize = currentSize - std::min(currentSize, recordSize);
+                } while (!m_size.compare_exchange_weak(currentSize, newSize));
+
                 maxCount--;
 
                 // If consumer has no space left for the records, exit
