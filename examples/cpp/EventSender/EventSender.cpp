@@ -88,7 +88,8 @@ int main(int argc, char* argv[])
     // LogManager configuration
     auto& config = LogManager::GetLogConfiguration();
     config = MAT::FromJSON(jsonConfig);
-
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xffffffff;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
 #if 1
     config[CFG_STR_COLLECTOR_URL] = "http://127.0.0.1:8081/OneCollector/1.0/";
 #endif
