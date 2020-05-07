@@ -5,8 +5,12 @@ call tools\gen-version.cmd
 
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
+  echo "Cloning PRIVATE submodules..."
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
+
+echo "Cloning PUBLIC submodules..."
+git submodule update --recursive
 
 echo "Building using Visual Studio 2017 tools"
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
