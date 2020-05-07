@@ -264,7 +264,6 @@ void HttpClient_Android::CancelAllRequests()
 	}
 	jclass request_class = nullptr;
 	jmethodID cancel_method = nullptr;
-	jmethodID get_method = nullptr;
 	for (const auto& u : local_requests)
 	{
 		if (u->m_java_request)
@@ -279,12 +278,6 @@ void HttpClient_Android::CancelAllRequests()
 			}
 			jboolean interrupt_yes = JNI_TRUE;
 			env->CallBooleanMethod(u->m_java_request, cancel_method, interrupt_yes);
-			if (!get_method)
-			{
-				get_method = env->GetMethodID(request_class, "get", "()Z");
-			}
-			// wait for the request to complete
-			env->CallBooleanMethod(u->m_java_request, get_method);
 		}
 		if (u->m_callback)
 		{
