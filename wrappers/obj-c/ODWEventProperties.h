@@ -61,7 +61,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
 /*!
  @brief Event PII (personal identifiable information ) tags. Key is property name, value is ODWPiiKind value.
 */
-@property(readonly, copy, nonatomic) NSDictionary<NSString*, id> * piiTags;
+@property(readonly, copy, nonatomic) NSDictionary<NSString*, NSNumber*> * piiTags;
 
 /*!
  @brief Constructs an ODWEventProperties object, taking an event name.
@@ -88,7 +88,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  */
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
-     piiTags:(NSDictionary<NSString*,id>*) piiTags NS_DESIGNATED_INITIALIZER;
+     piiTags:(NSDictionary<NSString*,NSNumber*>*) piiTags NS_DESIGNATED_INITIALIZER;
 
 -(instancetype)init NS_UNAVAILABLE;
 
