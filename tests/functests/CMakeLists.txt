@@ -72,9 +72,24 @@ else()
   message("--- Linking libraries! ")
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Binary Dir: ${CMAKE_BINARY_DIR}")
+
+  find_file(LIBGTEST
+    NAMES libgtest.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
+  find_file(LIBGMOCK
+    NAMES libgmock.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
   target_link_libraries(FuncTests 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
+    ${LIBGTEST}
+    ${LIBGMOCK}
     mat
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}
