@@ -78,10 +78,13 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
-    // The duration delayInMs passed to that function must be always >= 0 ms
+    // If delayInMs is negative, do not schedule.
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
         LOCKGUARD(m_scheduledUploadMutex);
+        if (delayInMs < 0 || m_timerdelay < 0) {
+            return; // profile: no upload allowed
+        }
         if (m_scheduledUploadAborted)
         {
             return;
@@ -286,7 +289,9 @@ namespace ARIASDK_NS_BEGIN {
                 }
             }
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
+            if (m_timerdelay >= 0) {
+                scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
+            }
         }
     }
 
