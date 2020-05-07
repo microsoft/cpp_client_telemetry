@@ -29,6 +29,10 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_ETW
+#include "system/ETWTelemetrySystem.hpp"
+#endif
+
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
 #  if __has_include ("modules/filter/CompliantByDefaultEventFilterModule.hpp")
@@ -186,28 +190,55 @@ namespace ARIASDK_NS_BEGIN
             LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
-#ifdef HAVE_MAT_UTC
-        // UTC is not active
-        configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
-
-        // UTC functionality is only available on Windows 10 RS2+
-        bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
-        configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
-
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
-        if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
+
+        if ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat)||
+            (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema))
         {
-            // UTC is active
-            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
-            LOG_TRACE("Initializing UTC physical layer...");
-            m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
+#ifdef HAVE_MAT_UTC
+            // UTC is not active
+            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
+
+            // UTC functionality is only available on Windows 10 RS2+
+            bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
+            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
+
+            if (isWindowsUtcClientRegistrationEnable)
+            {
+                // UTC is active
+                configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
+                LOG_TRACE("Initializing UTC physical layer...");
+                m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
+                if (!deferSystemStart)
+                {
+                    m_system->start();
+                    m_isSystemStarted = true;
+                }
+                m_alive = true;
+                LOG_INFO("Started up and running in UTC mode");
+                return;
+            }
+#else
+            LOG_WARN("UTC module is not enabled! Please make sure lib/modules are included in the build.");
+            LOG_WARN("Running in direct upload mode.");
+#endif
+        }
+#ifdef HAVE_MAT_ETW
+        else if ((sdkMode == SdkModeTypes::SdkModeTypes_ETWBackCompat) ||
+                 (sdkMode == SdkModeTypes::SdkModeTypes_ETWCommonSchema))
+        {
+            // UTC is not active
+            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
+            LOG_TRACE("Initializing ETW physical layer...");
+            m_system.reset(new ETWTelemetrySystem(*this, *m_config, *m_taskDispatcher));
             if (!deferSystemStart)
             {
-               m_system->start();
-               m_isSystemStarted = true;
+                m_system->start();
+                m_isSystemStarted = true;
             }
             m_alive = true;
-            LOG_INFO("Started up and running in UTC mode");
+            LOG_INFO("Started up and running in ETW mode");
+            // TODO: do we need to support modules in ETW mode?
             return;
         }
 #endif
