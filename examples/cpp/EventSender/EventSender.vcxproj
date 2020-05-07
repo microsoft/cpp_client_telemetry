@@ -102,6 +102,7 @@
     </Link>
     <PostBuildEvent>
       <Command>
+        <Command>deploy-dll.cmd $(TargetedSDKConfiguration) $(Platform) $(OutDir)</Command>
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
