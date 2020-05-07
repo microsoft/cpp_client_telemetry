@@ -156,19 +156,19 @@ using namespace MAT;
     }
 }
 
--(void) logTraceWithTraceLevel: (enum ODWTraceLevel)aLevel
-                       message: (nonnull NSString *)aMessage
+-(void) logTraceWithTraceLevel: (enum ODWTraceLevel)traceLevel
+                       message: (nonnull NSString *)message
                eventProperties: (nonnull ODWEventProperties *)properties
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
 
-    std::string strMessage = std::string([aMessage UTF8String]);
+    std::string strMessage = std::string([message UTF8String]);
 
-    _wrappedLogger->LogTrace((TraceLevel)aLevel, strMessage, event);
+    _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
     if([ODWLogConfiguration enableTrace])
     {
-        NSLog(@"Log trace with level: %@, message: %@, name: %@", @(aLevel), aMessage, [properties name]);
+        NSLog(@"Log trace with level: %@, message: %@, name: %@", @(traceLevel), message, [properties name]);
     }
 }
 

@@ -102,8 +102,8 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param aMessage A string that contains a description of the trace.
  @param properties Properties of the trace event, encapsulated within an ODWEventProperties object.
  */
--(void) logTraceWithTraceLevel:(enum ODWTraceLevel)aLevel
-                       message:(NSString *)aMessage
+-(void)logTraceWithTraceLevel:(enum ODWTraceLevel)traceLevel
+                       message:(NSString *)message
                eventProperties:(ODWEventProperties *)properties;
 
 /*!
@@ -113,7 +113,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param state The session's state as one of the ::ODWSessionState enumeration values.
  @param properties Properties of the session event, encapsulated within an ODWEventProperties object.
  */
--(void) logSessionWithState:(enum ODWSessionState)state
+-(void)logSessionWithState:(enum ODWSessionState)state
             eventProperties:(ODWEventProperties *)properties;
 
 
