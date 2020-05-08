@@ -168,7 +168,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
 -(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind;
 
 /*!
- @brief Sets a date  property for an event.
+ @brief Sets a date property for an event.
  @param name A string that contains the name of the property.
  @param value A date that contains the property value.
  */
