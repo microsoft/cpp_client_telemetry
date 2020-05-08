@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "ODWEventProperties.h"
 
+
 @implementation ODWEventProperties {
 NSMutableDictionary<NSString *, id> * _properties;
 NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
@@ -59,7 +60,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 -(void)setProperty:(NSString*)name withValue:(id)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withDoubleValue:(double)value
@@ -70,7 +71,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 -(void)setProperty:(NSString*)name withDoubleValue:(double)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withDoubleValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withInt64Value:(int64_t)value
@@ -81,7 +82,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 -(void)setProperty:(NSString*)name withInt64Value:(int64_t)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withInt64Value:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value
@@ -92,7 +93,29 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withBoolValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value
+{
+    [_properties setValue:(value) forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withUUIDValue:value];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value
+{
+    [_properties setValue:(value) forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withDateValue:value];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 @end
