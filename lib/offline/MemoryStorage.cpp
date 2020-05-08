@@ -232,6 +232,8 @@ namespace ARIASDK_NS_BEGIN {
                     auto &v = *it;
                     if (matcher(v, whereFilter))
                     {
+                        size_t recordSize = v.blob.size() + sizeof(v);
+                        m_size -= std::min(m_size, recordSize);
                         it = records.erase(it);
                         continue;
                     }
@@ -296,6 +298,8 @@ namespace ARIASDK_NS_BEGIN {
                         {
                             // record id appears once only, so remove from set
                             idSet.erase(v.id);
+                            size_t recordSize = v.blob.size() + sizeof(v);
+                            m_size -= std::min(m_size, recordSize);
                             it = records.erase(it);
                             continue;
                         }
