@@ -70,7 +70,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             str++;
         }
-        // Convert to set of integer values
+        // Convert to set of integer values - assume UUID with dashes
         unsigned long p0;
         unsigned int p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
         if (11 == sscanf_s (str,
@@ -89,7 +89,25 @@ namespace ARIASDK_NS_BEGIN {
             Data4[6] = static_cast<uint8_t>(p9);
             Data4[7] = static_cast<uint8_t>(p10);
         }
-        else  // Invalid input--use a safe default value
+        // Convert to set of integer values - assume UUID no dashes
+        else if (11 == sscanf_s(str,
+            "%08lX%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X",
+            &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10))
+        {
+            Data1 = static_cast<uint32_t>(p0);
+            Data2 = static_cast<uint16_t>(p1);
+            Data3 = static_cast<uint16_t>(p2);
+            Data4[0] = static_cast<uint8_t>(p3);
+            Data4[1] = static_cast<uint8_t>(p4);
+            Data4[2] = static_cast<uint8_t>(p5);
+            Data4[3] = static_cast<uint8_t>(p6);
+            Data4[4] = static_cast<uint8_t>(p7);
+            Data4[5] = static_cast<uint8_t>(p8);
+            Data4[6] = static_cast<uint8_t>(p9);
+            Data4[7] = static_cast<uint8_t>(p10);
+        }
+        // Invalid input--use a safe default value
+        else 
         {
             Data1 = 0;
             Data2 = 0;

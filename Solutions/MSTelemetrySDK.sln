@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.645
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -149,6 +149,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MacProxy", "MacProxy", "{83
 		..\examples\cpp\MacProxy\HttpEventListener.hpp = ..\examples\cpp\MacProxy\HttpEventListener.hpp
 		..\examples\cpp\MacProxy\main.cpp = ..\examples\cpp\MacProxy\main.cpp
 		..\examples\cpp\MacProxy\run-tests.sh = ..\examples\cpp\MacProxy\run-tests.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solutions", "Solutions", "{F196416B-60E4-4116-9114-73F5EBE789E7}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		before.targets = before.targets
+		build.compact-dll.props = build.compact-dll.props
+		build.compact-exp.props = build.compact-exp.props
+		build.compact-min.props = build.compact-min.props
+		build.compact.props = build.compact.props
+		build.csharp.props = build.csharp.props
+		build.MIP.props = build.MIP.props
+		build.MSIPC.props = build.MSIPC.props
+		build.net40.props = build.net40.props
+		build.props = build.props
+		build.spectr.props = build.spectr.props
+		version.txt = version.txt
+		VersionInfo.rc = VersionInfo.rc
 	EndProjectSection
 EndProject
 Global
