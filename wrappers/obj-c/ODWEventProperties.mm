@@ -97,7 +97,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 
 -(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value
 {
-    [_properties setValue:(value) forKey:name];
+    [_properties setValue:value forKey:name];
 }
 
 -(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind
@@ -108,7 +108,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value
 {
-    [_properties setValue:(value) forKey:name];
+    [_properties setValue:value forKey:name];
 }
 
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind
