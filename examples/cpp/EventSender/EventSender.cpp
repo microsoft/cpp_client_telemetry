@@ -90,6 +90,9 @@ int main(int argc, char *argv[])
     // LogManager configuration
     auto& config = LogManager::GetLogConfiguration();
     config = MAT::FromJSON(jsonConfig);
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xffffffff;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
 
     // LogManager initialization
     ILogger *logger = LogManager::Initialize();

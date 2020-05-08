@@ -203,6 +203,23 @@ namespace ARIASDK_NS_BEGIN
         bool operator<(GUID_t const& other) const;
     };
 
+#ifdef _WIN32
+    static inline void to_GUID(GUID_t from, GUID& to)
+    {
+        to.Data1 = from.Data1;
+        to.Data2 = from.Data2;
+        to.Data3 = from.Data3;
+        to.Data4[0] = from.Data4[0];
+        to.Data4[1] = from.Data4[1];
+        to.Data4[2] = from.Data4[2];
+        to.Data4[3] = from.Data4[3];
+        to.Data4[4] = from.Data4[4];
+        to.Data4[5] = from.Data4[5];
+        to.Data4[6] = from.Data4[6];
+        to.Data4[7] = from.Data4[7];
+    }
+#endif
+
     /// @cond INTERNAL_DOCS
     /// Excluded from public docs
     /// <summary>
