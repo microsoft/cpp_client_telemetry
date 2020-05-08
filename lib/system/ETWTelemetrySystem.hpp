@@ -12,9 +12,21 @@
 #include "system/Contexts.hpp"
 
 #include <map>
+#include <vector>
+
+#include "modules/utc/traceloggingdynamic.h"
+
+using namespace tld;
 
 namespace ARIASDK_NS_BEGIN
 {
+
+    typedef struct
+    {
+        ULONGLONG providerHandle = 0;
+        std::vector<BYTE> providerMetaVector;
+        GUID providerGuid;
+    } ETWProviderData;
 
     class ETWTelemetrySystem : public TelemetrySystemBase
     {
@@ -34,9 +46,22 @@ namespace ARIASDK_NS_BEGIN
 
     protected:
 
+        std::map<std::string, ETWProviderData> providers;
+
         void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override;
 
         int sendEventToETW(IncomingEventContextPtr const& eventCtx);
+
+        ETWProviderData& getProviderForToken(const std::string& token);
+
+        ETWProviderData& registerProviderForTenant(const std::string& tenant);
+
+        status_t unregisterProvider(ETWProviderData& data);
+
+        void PutData(std::vector<::CsProtocol::Data>& ext,
+                     std::vector<std::string>& MD,
+                     tld::EventMetadataBuilder<std::vector<BYTE>>& builder,
+                     tld::EventDataBuilder<std::vector<BYTE>>& dbuilder);
 
     public:
         RouteSink<ETWTelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &ETWTelemetrySystem::handleIncomingEventPrepared };

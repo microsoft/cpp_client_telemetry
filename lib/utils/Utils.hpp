@@ -118,9 +118,23 @@ namespace ARIASDK_NS_BEGIN {
 
     EventRejectedReason validatePropertyName(std::string const& name);
 
+    // Tenant token is a long string that contains ${tenant}-${authKey}
     inline std::string tenantTokenToId(std::string const& tenantToken)
     {
         return tenantToken.substr(0, tenantToken.find('-'));
+    }
+
+    // Helper function allows to extract the tenantId value.
+    // 
+    // tenantKey paraneter is:
+    // - either TenantTtoken:       ${tenantId}-${authKey} or
+    // - plain Tenant Id            ${tenantId}
+    //
+    // Returns: ${tenantId}
+    inline std::string tenantKeyToId(std::string const& tenantKey)
+    {
+        auto pos = tenantKey.find('-');
+        return (pos == std::string::npos) ? tenantKey : tenantKey.substr(0, pos);
     }
 
     inline const char* priorityToStr(EventPriority priority)
