@@ -1,7 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "ODWEventProperties.h"
 
-
 @implementation ODWEventProperties {
 NSMutableDictionary<NSString *, id> * _properties;
 NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
