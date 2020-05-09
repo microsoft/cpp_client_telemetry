@@ -102,8 +102,14 @@ namespace ARIASDK_NS_BEGIN {
         return path;
 #else
         std::string result;
-#ifdef ANDROID
+#ifdef ANDROID && HAVE_MAT_CURL_HTTP_CLIENT
         result = "/data/local/tmp";
+#elif ANDROID
+        result = HttpClient_Android::GetCacheFilePath();
+        if (result.empty())	
+        {	
+           result = "/data/local/tmp";	
+        }
 #else
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
