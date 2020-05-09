@@ -47,20 +47,26 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 #endif
+#elif defined(HAVE_MAT_CURL_HTTP_CLIENT)
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        LOG_TRACE("Creating HttpClient_Curl");
+        return std::make_shared<HttpClient_Curl>();
+    }
 #elif defined(MATSDK_PAL_CPP11)
 #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Apple");
         return std::make_shared<HttpClient_Apple>();
     }
-#elif defined(HAVE_MAT_CURL_HTTP_CLIENT) || !defined(ANDROID)
+#elif defined(ANDROID)
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
-        LOG_TRACE("Creating HttpClient_Curl");
-        return std::make_shared<HttpClient_Curl>();
+        LOG_TRACE("Creating HttpClient_Android");
+        return HttpClient_Android::GetClientInstance();
     }
 #else
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
-        return HttpClient_Android::GetClientInstance();
+        LOG_TRACE("Creating HttpClient_Curl");
+        return std::make_shared<HttpClient_Curl>();
     }
 #endif
 #else
