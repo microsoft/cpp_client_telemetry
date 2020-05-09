@@ -99,6 +99,13 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>A boolean value that indicates success (true) or failure (false) if the configuration is invalid.</returns>
         virtual status_t  LoadTransmitProfiles(const std::string& profiles_json) = 0;
 
+		  /// <summary>
+        /// Loads transmit profiles.
+        /// </summary>
+        /// <param name="profiles">A collection of transmit profiles</param>
+        /// <returns>A boolean value that indicates success (true) or failure (false) if the configuration is invalid.</returns>
+        virtual status_t  LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept = 0;
+
         /// <summary>
         /// Resets transmission profiles to default settings.
         /// </summary>
