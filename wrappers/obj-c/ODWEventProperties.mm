@@ -3,7 +3,7 @@
 
 @implementation ODWEventProperties {
 NSMutableDictionary<NSString *, id> * _properties;
-NSMutableDictionary<NSString*, id> * _piiTags;
+NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 }
 
 @dynamic properties;
@@ -11,18 +11,18 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 
 -(instancetype)initWithName:(nonnull NSString *)name
 {
-    return [self initWithName:name properties:[[NSMutableDictionary<NSString*,id> alloc] init] piiTags:[[NSMutableDictionary<NSString*, id> alloc] init]];
+    return [self initWithName:name properties:[[NSMutableDictionary<NSString*,id> alloc] init] piiTags:[[NSMutableDictionary<NSString*, NSNumber*> alloc] init]];
 }
 
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
 {
-    return [self initWithName:name properties:properties piiTags:[[NSMutableDictionary<NSString*, id> alloc] init]];
+    return [self initWithName:name properties:properties piiTags:[[NSMutableDictionary<NSString*, NSNumber*> alloc] init]];
 }
 
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
-     piiTags:(NSDictionary<NSString*,id>*) piiTags
+     piiTags:(NSDictionary<NSString*,NSNumber*>*) piiTags
 {
     self = [super init];
     if (self)
@@ -41,7 +41,7 @@ NSMutableDictionary<NSString*, id> * _piiTags;
     return [_properties copy];
 }
 
--(NSDictionary<NSString *, id> *)piiTags
+-(NSDictionary<NSString *, NSNumber *> *)piiTags
 {
     return [_piiTags copy];
 }
