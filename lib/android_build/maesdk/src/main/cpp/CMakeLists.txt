@@ -8,7 +8,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
-find_package(CURL REQUIRED)
+if (USE_CURL)
+        add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
+        find_package(CURL REQUIRED)
+endif()
 
 include_directories(AFTER
         ${SDK_ROOT}/lib
@@ -113,6 +116,6 @@ target_link_libraries(maesdk PUBLIC
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
-        ${CURL_LIBRARIES}
         ${zlib}
+        ${CURL_LIBRARIES}
         )
