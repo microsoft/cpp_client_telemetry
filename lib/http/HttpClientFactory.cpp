@@ -19,8 +19,10 @@
 #elif defined(MATSDK_PAL_CPP11)
   #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
     #include "http/HttpClient_Apple.hpp"
-  #else
+  #elif defined(HAVE_MAT_CURL_HTTP_CLIENT) || !defined(ANDROID)
     #include "http/HttpClient_Curl.hpp"
+  #elif defined(ANDROID)
+    #include "http/HttpClient_Android.hpp"
   #endif
 #else
   #error The library cannot work without an HTTP client implementation.
@@ -51,10 +53,14 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("Creating HttpClient_Apple");
         return std::make_shared<HttpClient_Apple>();
     }
-#else
+#elif defined(HAVE_MAT_CURL_HTTP_CLIENT) || !defined(ANDROID)
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
         LOG_TRACE("Creating HttpClient_Curl");
         return std::make_shared<HttpClient_Curl>();
+    }
+#else
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
+        return HttpClient_Android::GetClientInstance();
     }
 #endif
 #else
@@ -63,11 +69,5 @@ namespace ARIASDK_NS_BEGIN {
 
 } ARIASDK_NS_END
 
-// HAVE_MAT_DEFAULT_HTTP_CLIENT
-#elif ANDROID
-    #include "http/HttpClient_Android.hpp"
 
-    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
-        return HttpClient_Android::GetClientInstance();
-    }
 #endif
