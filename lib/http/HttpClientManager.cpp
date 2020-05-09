@@ -112,7 +112,10 @@ namespace ARIASDK_NS_BEGIN {
         EventsUploadContextPtr &ctx = callback->m_ctx;
         {
             LOCKGUARD(m_httpCallbacksMtx);
-            assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
+            auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
+            if (z == m_httpCallbacks.end()) {
+                assert(false);
+            }
 
 #if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
             // Response may be null if request got aborted
