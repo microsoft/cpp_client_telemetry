@@ -155,7 +155,7 @@ namespace PAL_NS_BEGIN {
         s_model = std::move(model);
     }
 
-    void PopulateDeviceInfo(JavaVM* pJVM, const jobject activity)
+    void AndroidDeviceInformationConnector::PopulateDeviceInfo(JavaVM* pJVM, const jobject activity)
     {
         JNIEnv* pEnv;
         if (pJVM->GetEnv(reinterpret_cast<void**>(&pEnv), JNI_VERSION_1_6) != JNI_OK)
