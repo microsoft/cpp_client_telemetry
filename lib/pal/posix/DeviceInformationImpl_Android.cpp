@@ -37,7 +37,7 @@ namespace PAL_NS_BEGIN {
         static void setDeviceId(std::string && id);
         static void setManufacturer(std::string && manufacturer);
         static void setModel(std::string && model);
-        static void PopulateDeviceInfo(JavaVM* pJVM, const jobject activity);
+        static void populateDeviceInfo(JavaVM* pJVM, jobject activity);
     };
 
     PowerSource AndroidDeviceInformationConnector::s_power_source = PowerSource_Unknown;
@@ -71,7 +71,7 @@ namespace PAL_NS_BEGIN {
         {
             if (configuration.HasConfig(CFG_PTR_ANDROID_JVM) && configuration.HasConfig(CFG_JOBJECT_ANDROID_ACTIVITY))
             {
-                AndroidDeviceInformationConnector::PopulateDeviceInfo(
+                AndroidDeviceInformationConnector::populateDeviceInfo(
                     reinterpret_cast<JavaVM*>((void*)configuration[CFG_PTR_ANDROID_JVM]),
                     reinterpret_cast<jobject>((void*)configuration[CFG_JOBJECT_ANDROID_ACTIVITY]));
             }
@@ -155,7 +155,7 @@ namespace PAL_NS_BEGIN {
         s_model = std::move(model);
     }
 
-    void AndroidDeviceInformationConnector::PopulateDeviceInfo(JavaVM* pJVM, const jobject activity)
+    void AndroidDeviceInformationConnector::populateDeviceInfo(JavaVM* pJVM, jobject activity)
     {
         JNIEnv* pEnv;
         if (pJVM->GetEnv(reinterpret_cast<void**>(&pEnv), JNI_VERSION_1_6) != JNI_OK)
