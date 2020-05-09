@@ -77,9 +77,9 @@ set(SRCS
 
 
 if (USE_CURL)
-        list(APPEND ${SRCS} ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
+        list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
 elseif()
-        list(APPEND ${SRCS} ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
+        list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
 endif()
 
 add_library(maesdk ${SRCS})
