@@ -106,9 +106,9 @@ namespace ARIASDK_NS_BEGIN {
         result = "/data/local/tmp";
 #elif ANDROID
         result = HttpClient_Android::GetCacheFilePath();
-        if (result.empty())	
-        {	
-           result = "/data/local/tmp";	
+        if (result.empty())
+        {
+           result = "/data/local/tmp";
         }
 #else
         char *tmp = getenv("TMPDIR");
