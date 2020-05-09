@@ -8,9 +8,9 @@
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+    NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
-        m_isNetDetectEnabled(isNetDetectEnabled) {};
+        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]) {};
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
@@ -22,7 +22,7 @@ namespace PAL_NS_BEGIN {
         ///
         /// </summary>
         /// <param name="isNetDetectEnabled"></param>
-        NetworkInformation(bool isNetDetectEnabled);
+        NetworkInformation(IRuntimeConfig& configuration);
 
         /// <summary>
         ///
@@ -72,8 +72,8 @@ namespace PAL_NS_BEGIN {
         id m_notificationId = nil;
     };
 
-    NetworkInformation::NetworkInformation(bool isNetDetectEnabled) :
-        NetworkInformationImpl(isNetDetectEnabled)
+    NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
+        NetworkInformationImpl(configuration)
     {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
@@ -215,9 +215,9 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        auto networkInformation = std::make_shared<NetworkInformation>(isNetDetectEnabled);
+        auto networkInformation = std::make_shared<NetworkInformation>(configuration);
         networkInformation->SetupNetDetect();
         return networkInformation;
     }
