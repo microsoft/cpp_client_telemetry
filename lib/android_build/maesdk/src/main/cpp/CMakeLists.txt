@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
-if (USE_CURL)
+if (${USE_CURL})
         add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
         find_package(CURL REQUIRED)
 endif()
@@ -76,7 +76,7 @@ set(SRCS
 )
 
 
-if (USE_CURL)
+if (${USE_CURL})
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
 elseif()
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
