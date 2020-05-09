@@ -10,8 +10,6 @@ string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOUR
 
 find_package(CURL REQUIRED)
 
-add_definitions(-DCONFIG_CUSTOM_H="config-android.h")
-
 include_directories(AFTER
         ${SDK_ROOT}/lib
         ${SDK_ROOT}/lib/include/public
@@ -58,7 +56,6 @@ set(SRCS
   ${SDK_ROOT}/lib/http/HttpRequestEncoder.cpp
   ${SDK_ROOT}/lib/http/HttpResponseDecoder.cpp
   ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
-        ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp
   ${SDK_ROOT}/lib/stats/Statistics.cpp
   ${SDK_ROOT}/lib/stats/MetaStats.cpp
   ${SDK_ROOT}/lib/offline/StorageObserver.cpp
@@ -74,6 +71,13 @@ set(SRCS
         ${SDK_ROOT}/lib/pal/posix/SystemInformationImpl_Android.cpp
         ${SDK_ROOT}/lib/pal/posix/sysinfo_sources.cpp
 )
+
+
+if (USE_CURL)
+        list(APPEND ${SRCS} ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
+elseif()
+        list(APPEND ${SRCS} ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
+endif()
 
 add_library(maesdk ${SRCS})
 
