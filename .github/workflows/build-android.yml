@@ -23,12 +23,13 @@ jobs:
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404 ndk;21.1.6352462"
         gci -r -i "CMake*" C:\Android
         echo $Env:PATH
     - name: Gradle Build
       run: |
         $Env:PATH = "C:\Android\android-sdk\cmake\3.10.2.4988404\bin;" + $Env:PATH
+        $Env:ANDROID_NDK = "C:\Android\android-sdk\ndk\21.1.6352462"
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
     - name: Java Unit test
