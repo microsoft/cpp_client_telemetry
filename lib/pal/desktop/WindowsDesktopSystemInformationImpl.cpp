@@ -206,7 +206,7 @@ namespace PAL_NS_BEGIN {
         return appId;
     }
 
-    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration)
+    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& /*configuration*/)
         : m_info_helper()
     {
 
