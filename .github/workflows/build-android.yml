@@ -32,8 +32,8 @@ jobs:
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
       env:
-        ANDROID_NDK: "C:\Android\android-ndk-r21"
-        ANDROID_NDK_HOME: "C:\Android\android-ndk-r21"
+        ANDROID_NDK: "C:\\Android\\android-ndk-r21"
+        ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r21"
     - name: Java Unit test
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
