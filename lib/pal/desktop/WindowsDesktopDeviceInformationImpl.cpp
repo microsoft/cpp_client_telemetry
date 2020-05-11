@@ -109,7 +109,7 @@ namespace PAL_NS_BEGIN {
     }
 
     ///// IDeviceInformation API
-    DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& configuration) :
+    DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
             m_registeredCount(0),
             m_info_helper()
     {
