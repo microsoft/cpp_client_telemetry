@@ -25,11 +25,12 @@ jobs:
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
         echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
         gci -r -i "CMake*" C:\Android
+
+        [System.Environment]::SetEnvironmentVariable('ANDROID_NDK','C:\Android\android-ndk-r21', [System.EnvironmentVariableTarget]::User)
         echo $Env:PATH
     - name: Gradle Build
       run: |
         $Env:PATH = "C:\Android\android-sdk\cmake\3.10.2.4988404\bin;" + $Env:PATH
-        $Env:ANDROID_NDK = "C:\Android\android-ndk-r21"
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
     - name: Java Unit test
