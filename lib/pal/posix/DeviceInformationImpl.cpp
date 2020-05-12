@@ -23,7 +23,7 @@ namespace PAL_NS_BEGIN {
     }
 
     ///// IDeviceInformation API
-    DeviceInformationImpl::DeviceInformationImpl() :
+    DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
                                 m_info_helper()
     {
 #if defined(ARCH_ARM)
@@ -60,9 +60,9 @@ namespace PAL_NS_BEGIN {
     }
 #endif
 
-    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<DeviceInformationImpl>();
+        return std::make_shared<DeviceInformationImpl>(configuration);
     }
 
     DeviceInformationImpl::~DeviceInformationImpl() {}
