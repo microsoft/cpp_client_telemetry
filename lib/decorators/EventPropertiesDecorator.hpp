@@ -26,6 +26,7 @@ namespace ARIASDK_NS_BEGIN {
     {
     protected:
         std::string randomLocalId;
+        bool m_integrity;
 
         ILogManager& m_owner;
         bool decorate(::CsProtocol::Record&) override
@@ -35,7 +36,8 @@ namespace ARIASDK_NS_BEGIN {
 
     public:
         EventPropertiesDecorator(ILogManager& owner) :
-            m_owner(owner)
+            m_owner(owner),
+            m_integrity(true)
         {
             //
             // Random local deviceId must be used for events tagged with Pii DROP EventTag.
@@ -50,6 +52,13 @@ namespace ARIASDK_NS_BEGIN {
             //
             randomLocalId = "r:";
             randomLocalId+= PAL::generateUuidString();
+
+            // Allow to turn off client-side event name and event property name validation
+            auto config = m_owner.GetLogConfiguration();
+            if (config.HasConfig("schema") && (config["schema"]["integrity"].type == MAT::Variant::TYPE_BOOL))
+            {
+                m_integrity = config["schema"]["integrity"];
+            }
         };
 
         void dropPiiPartA(::CsProtocol::Record& record)
@@ -94,14 +103,18 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
-                if (isValidEventName != REJECTED_REASON_OK) {
-                    LOG_ERROR("Invalid event properties!");
-                    DebugEvent evt;
-                    evt.type = DebugEventType::EVT_REJECTED;
-                    evt.param1 = isValidEventName;
-                    m_owner.DispatchEvent(evt);
-                    return false;
+                if (m_integrity)
+                {
+                    EventRejectedReason isValidEventName = validateEventName(eventProperties.GetName());
+                    if (isValidEventName != REJECTED_REASON_OK)
+                    {
+                        LOG_ERROR("Invalid event properties!");
+                        DebugEvent evt;
+                        evt.type = DebugEventType::EVT_REJECTED;
+                        evt.param1 = isValidEventName;
+                        m_owner.DispatchEvent(evt);
+                        return false;
+                    }
                 }
             }
 
@@ -151,16 +164,19 @@ namespace ARIASDK_NS_BEGIN {
             std::map<std::string, ::CsProtocol::Value>& ext = record.data[0].properties;
             std::map<std::string, ::CsProtocol::Value> extPartB;
 
-            for (auto &kv : eventProperties.GetProperties()) {
-
-                EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
-                if (isValidPropertyName != REJECTED_REASON_OK)
+            for (auto &kv : eventProperties.GetProperties())
+            {
+                if (m_integrity)
                 {
-                    DebugEvent evt;
-                    evt.type = DebugEventType::EVT_REJECTED;
-                    evt.param1 = isValidPropertyName;
-                    m_owner.DispatchEvent(evt);
-                    return false;
+                    EventRejectedReason isValidPropertyName = validatePropertyName(kv.first);
+                    if (isValidPropertyName != REJECTED_REASON_OK)
+                    {
+                        DebugEvent evt;
+                        evt.type = DebugEventType::EVT_REJECTED;
+                        evt.param1 = isValidPropertyName;
+                        m_owner.DispatchEvent(evt);
+                        return false;
+                    }
                 }
                 const auto &k = kv.first;
                 const auto &v = kv.second;
