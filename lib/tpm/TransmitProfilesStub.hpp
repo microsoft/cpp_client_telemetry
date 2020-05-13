@@ -1,3 +1,4 @@
+#pragma once
 #include <TransmitProfiles.hpp>
 
 namespace ARIASDK_NS_BEGIN {
