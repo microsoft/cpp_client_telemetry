@@ -2,7 +2,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::load(const std::string&) { return false; };
 
-	 bool TransmitProfiles::load(const std::vector<TransmitProfileRules>&) noexcept { return false; };
+    bool TransmitProfiles::load(const std::vector<TransmitProfileRules>&) noexcept { return false; };
 
     void TransmitProfiles::reset() { };
 
