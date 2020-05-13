@@ -1,5 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <CustomIncludePath>$(SolutionDir)\..\third_party\benchmark\include\;$(CustomIncludePath)</CustomIncludePath>
+    <!-- Currently we support benchmarking on x64 only -->
+    <CUstomLibPath>$(SolutionDir)\..\third_party\benchmark\build\src\$(Configuration)\;$(CustomLibPath)</CUstomLibPath>
   </PropertyGroup>
 </Project>
