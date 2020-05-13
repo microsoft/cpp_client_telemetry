@@ -2,6 +2,8 @@
 #import <Foundation/Foundation.h>
 #import "ODWLogger_private.h"
 #import "ODWLogConfiguration.h"
+#import "ODWSemanticContext.h"
+#import "ODWSemanticContext_private.h"
 
 #include "EventProperties.hpp"
 
@@ -10,6 +12,7 @@ using namespace MAT;
 @implementation ODWLogger
 {
     ILogger* _wrappedLogger;
+    ODWSemanticContext* semanticContext;
 }
 
 -(instancetype)initWithILogger:(ILogger*)logger
@@ -21,6 +24,7 @@ using namespace MAT;
 		{
 	        NSLog(@"Logger initialized successfully");
 		}
+        semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
     }
     return self;
 }
@@ -199,6 +203,11 @@ using namespace MAT;
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
     }
+}
+
+-(ODWSemanticContext*) getSemanticContext
+{
+    return semanticContext;
 }
 
 @end
