@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 
 using namespace MAT;
 
@@ -43,6 +44,12 @@ namespace ARIASDK_NS_BEGIN
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
         m_allowDotsInType = m_config["compat"]["dotType"];
+
+        m_detailLevel.set();
+        if (m_config.HasConfig("schema"))
+        {
+            m_detailLevel = std::bitset<64>((uint64_t)m_config["schema"][CFG_INT_DETAIL_LEVEL]);
+        }
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
         // It allows to detach the logger from its parent context.
@@ -149,9 +156,10 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateAppLifecycleMessage(record, state);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ? m_semanticApiDecorators.decorateAppLifecycleMessage(record, state) : true;
+
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -239,9 +247,10 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id) : true;
 
         if (!decorated)
         {
@@ -283,9 +292,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer) :
+            true;
 
         if (!decorated)
         {
@@ -331,9 +342,12 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData) :
+            true;
+
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
@@ -375,9 +389,14 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        return m_baseDecorator.decorate(record)
-            && m_semanticContextDecorator.decorate(record)
-            && m_eventPropertiesDecorator.decorate(record, latency, properties);
+        bool result = true;
+        // bit 1 toggles on|off the BaseDecorator
+        result &= (m_detailLevel.test(1))?m_baseDecorator.decorate(record):true;
+        // bit 2 toggles on|off the SemanticContextDecorator
+        result &= (m_detailLevel.test(2))?m_semanticContextDecorator.decorate(record):true;
+
+        result &= m_eventPropertiesDecorator.decorate(record, latency, properties);
+        return result;
     }
 
     void Logger::submit(::CsProtocol::Record& record, const EventProperties& props)
@@ -464,9 +483,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId) :
+            true;
 
         if (!decorated)
         {
@@ -514,9 +535,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData) :
+            true;
 
         if (!decorated)
         {
@@ -546,9 +569,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateTraceMessage(record, level, message);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateTraceMessage(record, level, message) :
+            true;
 
         if (!decorated)
         {
@@ -578,9 +603,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
-            applyCommonDecorators(record, properties, latency) &&
-            m_semanticApiDecorators.decorateUserStateMessage(record, state, timeToLiveInMillis);
+        bool decorated = applyCommonDecorators(record, properties, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateUserStateMessage(record, state, timeToLiveInMillis) :
+            true;
 
         if (!decorated)
         {
@@ -658,8 +685,11 @@ namespace ARIASDK_NS_BEGIN
         EventLatency latency = EventLatency_RealTime;
         ::CsProtocol::Record record;
 
-        bool decorated = applyCommonDecorators(record, props, latency) &&
-            m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration);
+        bool decorated = applyCommonDecorators(record, props, latency);
+        // bit 3 toggles on|off the SemanticApiDecorator
+        decorated &= (m_detailLevel.test(3)) ?
+            m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration) :
+            true;
 
         if (!decorated)
         {

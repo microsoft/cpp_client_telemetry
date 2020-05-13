@@ -4,7 +4,7 @@ namespace ARIASDK_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
-        DecoratorBase(owner),
+        m_owner(owner),
         // TODO: populate m_source
         m_initId(PAL::generateUuidString()),
         m_sequenceId(0)
@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         record.time = PAL::getUtcSystemTimeinTicks();
-        record.ver = "3.0";
+        record.ver = ::CsProtocol::CS_VER_STRING;
         if (record.baseType.empty())
         {
             record.baseType = record.name;
