@@ -43,7 +43,7 @@ using namespace MAT;
     {
         event.SetPriority((EventPriority)priority);
     }
-    
+
     NSDictionary* props = [wrappedProperties properties];
     NSDictionary* piiTags = [wrappedProperties piiTags];
     for(NSString* propertyName in props){
@@ -122,7 +122,7 @@ using namespace MAT;
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
-    
+
     std::string strId        = std::string([identifier UTF8String]);
     std::string strPageName  = std::string([pageName UTF8String]);
 
@@ -153,6 +153,34 @@ using namespace MAT;
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log page view with id: %@, page name: %@, category: %@, uri: %@, referrer uri: %@ and name %@", identifier, pageName, category, uri, referrerUri, [properties name]);
+    }
+}
+
+-(void) logTraceWithTraceLevel: (enum ODWTraceLevel)traceLevel
+                       message: (nonnull NSString *)message
+               eventProperties: (nonnull ODWEventProperties *)properties
+{
+    EventProperties event;
+    [self unwrapEventProperties: properties onEvent: event];
+
+    std::string strMessage = std::string([message UTF8String]);
+
+    _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+    if([ODWLogConfiguration enableTrace])
+    {
+        NSLog(@"Log trace with level: %@, message: %@, name: %@", @(traceLevel), message, [properties name]);
+    }
+}
+
+-(void) logSessionWithState: (enum ODWSessionState)state
+            eventProperties: (nonnull ODWEventProperties *)properties
+{
+    EventProperties event;
+    [self unwrapEventProperties: properties onEvent: event];
+    _wrappedLogger->LogSession((SessionState)state, event);
+    if([ODWLogConfiguration enableTrace])
+    {
+        NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
     }
 }
 
