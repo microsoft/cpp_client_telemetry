@@ -3,6 +3,9 @@ cd %~dp0
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
+echo "Update all public submodules..."
+git -c submodule."lib/modules".update=none submodule update --init --recursive
+
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
@@ -18,9 +21,7 @@ set CONFIGURATION=%2
 REM Add path to vs2017 MSBuild.exe
 set "PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\"
 
-REM Try to setup vs2017 Dev environment if possible
-echo Building using Visual Studio 2017 tools
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+call tools\vcvars.cmd
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
