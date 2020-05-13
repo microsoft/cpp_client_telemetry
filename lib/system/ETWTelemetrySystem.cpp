@@ -151,7 +151,6 @@ namespace ARIASDK_NS_BEGIN
 
     int ETWTelemetrySystem::sendEventToETW(IncomingEventContextPtr const& eventCtx)
     {
-        std::string appInfoAppName = eventCtx->source->extApp[0].id;
         ETWProviderData& providerData = getProviderForToken(eventCtx->record.tenantToken);
 
         UINT32 eventTags = MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE;
@@ -175,6 +174,7 @@ namespace ARIASDK_NS_BEGIN
 
         builder.Begin(eventName.c_str(), eventTags);
 
+        // TODO: [MG] - is ext.data mandatory - can event contain no data, just name?
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MAKE);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_DEVICE_MODEL);
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_TIMEZONE);
@@ -204,54 +204,65 @@ namespace ARIASDK_NS_BEGIN
         iKey.append(eventCtx->record.tenantToken);
         dbuilder.AddString(iKey.c_str());
 
-        if (!appInfoAppName.empty())
+        // Optional ext.app extension
+        if (eventCtx->source->extApp.size())
         {
-            builder.AddField(CS_EXT_APP_NAME, TypeUtf8String);
-            dbuilder.AddString(appInfoAppName.c_str());
+            std::string appInfoAppName = eventCtx->source->extApp[0].id;
+            if (!appInfoAppName.empty())
+            {
+                builder.AddField(CS_EXT_APP_NAME, TypeUtf8String);
+                dbuilder.AddString(appInfoAppName.c_str());
+            }
+
+            std::string appInfoExpIds = eventCtx->source->extApp[0].expId;
+            if (!appInfoExpIds.empty())
+            {
+                builder.AddField(UTC_APP_EXPERIMENT_IDS, TypeUtf8String);
+                dbuilder.AddString(appInfoExpIds.c_str());
+            }
         }
 
-        std::string appInfoExpIds = eventCtx->source->extApp[0].expId;
-        if (!appInfoExpIds.empty())
+        if (eventCtx->source->extNet.size())
         {
-            builder.AddField(UTC_APP_EXPERIMENT_IDS, TypeUtf8String);
-            dbuilder.AddString(appInfoExpIds.c_str());
+            std::string deviceInfoNetworkProvider = eventCtx->source->extNet[0].provider;
+            if (!deviceInfoNetworkProvider.empty())
+            {
+                builder.AddField(CS_EXT_NET_PROVIDER, TypeUtf8String);
+                dbuilder.AddString(deviceInfoNetworkProvider.c_str());
+            }
+
+            std::string deviceInfoNetworkCost = eventCtx->source->extNet[0].cost;
+            if (!deviceInfoNetworkCost.empty())
+            {
+                builder.AddField(CS_EXT_NET_COST, TypeUtf8String);
+                dbuilder.AddString(deviceInfoNetworkCost.c_str());
+            }
+
+            std::string deviceInfoNetworkType = eventCtx->source->extNet[0].type;
+            if (!deviceInfoNetworkType.empty())
+            {
+                builder.AddField(CS_EXT_NET_TYPE, TypeUtf8String);
+                dbuilder.AddString(deviceInfoNetworkType.c_str());
+            }
         }
 
-        std::string deviceInfoNetworkProvider = eventCtx->source->extNet[0].provider;
-        if (!deviceInfoNetworkProvider.empty())
+        if (eventCtx->source->extUser.size())
         {
-            builder.AddField(CS_EXT_NET_PROVIDER, TypeUtf8String);
-            dbuilder.AddString(deviceInfoNetworkProvider.c_str());
-        }
+            std::string sdkUserId(eventCtx->source->extUser[0].localId);
+            if (!sdkUserId.empty())
+            {
+                std::string userId("e:");
+                userId.append(sdkUserId);
+                builder.AddField(CS_EXT_APP_USERID, TypeUtf8String);
+                dbuilder.AddString(userId.c_str());
+            }
 
-        std::string deviceInfoNetworkCost = eventCtx->source->extNet[0].cost;
-        if (!deviceInfoNetworkCost.empty())
-        {
-            builder.AddField(CS_EXT_NET_COST, TypeUtf8String);
-            dbuilder.AddString(deviceInfoNetworkCost.c_str());
-        }
-
-        std::string deviceInfoNetworkType = eventCtx->source->extNet[0].type;
-        if (!deviceInfoNetworkType.empty())
-        {
-            builder.AddField(CS_EXT_NET_TYPE, TypeUtf8String);
-            dbuilder.AddString(deviceInfoNetworkType.c_str());
-        }
-
-        std::string sdkUserId(eventCtx->source->extUser[0].localId);
-        if (!sdkUserId.empty())
-        {
-            std::string userId("e:");
-            userId.append(sdkUserId);
-            builder.AddField(CS_EXT_APP_USERID, TypeUtf8String);
-            dbuilder.AddString(userId.c_str());
-        }
-
-        std::string userInfoLanguage = eventCtx->source->extUser[0].locale;
-        if (!userInfoLanguage.empty())
-        {
-            builder.AddField(CS_EXT_OS_LOCALE, TypeUtf8String);
-            dbuilder.AddString(userInfoLanguage.c_str());
+            std::string userInfoLanguage = eventCtx->source->extUser[0].locale;
+            if (!userInfoLanguage.empty())
+            {
+                builder.AddField(CS_EXT_OS_LOCALE, TypeUtf8String);
+                dbuilder.AddString(userInfoLanguage.c_str());
+            }
         }
 
         eventCtx->source->data[0].properties.erase(COMMONFIELDS_USER_MSAID);
