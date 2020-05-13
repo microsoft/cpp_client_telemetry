@@ -1,3 +1,5 @@
+#include <TransmitProfiles.hpp>
+
 namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::load(const std::string&) { return false; };
