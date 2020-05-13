@@ -1,5 +1,6 @@
 #include "objc_begin.h"
 #import "ODWEventProperties.h"
+#import "ODWSemanticContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -115,6 +116,12 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  */
 -(void)logSessionWithState:(enum ODWSessionState)state
             eventProperties:(ODWEventProperties *)properties;
+
+/*!
+@brief Get a pointer to the semantic context for this ODWLogger
+@return A pointer to the semantic context
+ */
+-(ODWSemanticContext*)getSemanticContext;
 
 
 @end
