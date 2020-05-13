@@ -5,6 +5,7 @@
 #include "Version.hpp"
 
 #include "Enums.hpp"
+#include "ctmacros.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -36,7 +37,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The TransmitProfileRule structure contains transmission timer values in particular device states (net+power).
     /// </summary>
-    typedef struct TransmitProfileRule {
+    struct MATSDK_LIBABI TransmitProfileRule {
 
         /// <summary>
         /// The network cost, as one of the MAT::NetworkCost enumeration values.
@@ -76,12 +77,12 @@ namespace ARIASDK_NS_BEGIN
             timers.clear();
         }
 
-    } TransmitProfileRule;
+    };
 
     /// <summary>
     /// A named profile that aggregates a set of transmission rules.
     /// </summary>
-    typedef struct TransmitProfileRules {
+    struct MATSDK_LIBABI TransmitProfileRules {
 
         /// <summary>
         /// A string that contains the profile name.
@@ -92,12 +93,12 @@ namespace ARIASDK_NS_BEGIN
         /// A vector that contains a set of transmit profile rules.
         /// </summary>
         std::vector<TransmitProfileRule> rules; // Transmit profile rules
-    } TransmitProfileRules;
+    };
 
     /// <summary>
     /// The TransmitProfiles class manages transmit profiles.
     /// </summary>
-    class TransmitProfiles {
+    class MATSDK_LIBABI TransmitProfiles {
 
     protected:
         /// <summary>
@@ -130,9 +131,9 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static bool         isTimerUpdated;
 
-        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
+        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles);
 
-        static void EnsureDefaultProfiles() noexcept;
+        static void EnsureDefaultProfiles();
 
     public:
 
@@ -178,7 +179,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="profiles">A map of the caller-supplied profiles.</param>
         /// <returns>A boolean value that indicates success (true) if all transmit profiles are valid, false otherwise.</returns>
-        static bool load(const std::vector<TransmitProfileRules>& profiles) noexcept;
+        static bool load(const std::vector<TransmitProfileRules>& profiles);
 
         /// <summary>
         /// Resets transmit profiles to default values.
