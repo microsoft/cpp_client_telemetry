@@ -11,7 +11,7 @@
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <atomic>
 #include <cassert>

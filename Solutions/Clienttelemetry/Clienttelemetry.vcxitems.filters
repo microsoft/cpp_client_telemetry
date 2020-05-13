@@ -623,6 +623,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\ETWTelemetrySystem.hpp">
       <Filter>system</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticContextDecorator.hpp">
+      <Filter>decorators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template">

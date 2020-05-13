@@ -11,3 +11,7 @@
 	path = third_party/krabsetw
 	url = https://github.com/microsoft/krabsetw
 	branch = master
+
+[submodule "third_party/benchmark"]
+	path = third_party/benchmark
+	url = https://github.com/google/benchmark
