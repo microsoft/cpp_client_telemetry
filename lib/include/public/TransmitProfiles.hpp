@@ -36,7 +36,13 @@ namespace ARIASDK_NS_BEGIN
 
     /// <summary>
     /// The TransmitProfileRule structure contains transmission timer values in particular device states (net+power).
+    /// Avoid using this if there is no guarantee that STL runtime used by dynamic library is matching.
+    /// See: https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4251
     /// </summary>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
     struct MATSDK_LIBABI TransmitProfileRule {
 
         /// <summary>
@@ -76,7 +82,6 @@ namespace ARIASDK_NS_BEGIN
             powerState = PowerSource_Any;
             timers.clear();
         }
-
     };
 
     /// <summary>
@@ -241,6 +246,9 @@ namespace ARIASDK_NS_BEGIN
         static bool updateStates(NetworkCost netCost, PowerSource powState);
 
     };
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 } ARIASDK_NS_END
 
