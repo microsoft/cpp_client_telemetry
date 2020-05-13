@@ -80,13 +80,7 @@ namespace ARIASDK_NS_BEGIN
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher)
     {
-        //
-        // Management
-        //
-        onStart = stats.onStart;
-        onStop = stats.onStop;
-
-        this->sending >> stats.onIncomingEventAccepted >> this->incomingEventPrepared;
+        this->sending >> this->incomingEventPrepared;
     }
 
     ETWTelemetrySystem::~ETWTelemetrySystem()
