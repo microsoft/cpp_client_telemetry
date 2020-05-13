@@ -21,12 +21,12 @@ namespace PAL_NS_BEGIN {
     const string WindowsPhoneOSName = "Windows for Phones";
     const string DeviceFamily_Mobile = "Windows.Mobile";
 
-    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<SystemInformationImpl>();
+        return std::make_shared<SystemInformationImpl>(configuration);
     }
 
-    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration)
+    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& /*configuration*/)
         : m_info_helper()
     {
         auto version = Package::Current->Id->Version;
