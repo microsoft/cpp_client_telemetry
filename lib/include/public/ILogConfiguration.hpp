@@ -239,6 +239,16 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
 
+    /// <summary>
+    /// Pointer to the Android app's JavaVM
+    /// </summary>
+    static constexpr const char* const CFG_PTR_ANDROID_JVM = "android_jvm";
+
+    /// <summary>
+    /// JObject of the Android app's main activity
+    /// </summary>
+    static constexpr const char* const CFG_JOBJECT_ANDROID_ACTIVITY = "android_activity";
+
 
 #ifdef _MSC_VER
 #pragma warning( push )

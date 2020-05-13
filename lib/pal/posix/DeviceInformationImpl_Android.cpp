@@ -37,17 +37,18 @@ namespace PAL_NS_BEGIN {
         static void setDeviceId(std::string && id);
         static void setManufacturer(std::string && manufacturer);
         static void setModel(std::string && model);
+        static void populateDeviceInfo(JavaVM* pJVM, jobject activity);
     };
 
     PowerSource AndroidDeviceInformationConnector::s_power_source = PowerSource_Unknown;
-    std::string AndroidDeviceInformationConnector::s_device_id;
+    std::string AndroidDeviceInformationConnector::s_device_id = DEFAULT_DEVICE_ID;
     std::string AndroidDeviceInformationConnector::s_manufacturer;
     std::string AndroidDeviceInformationConnector::s_model;
     std::mutex AndroidDeviceInformationConnector::s_registered_mutex;
     std::vector<AndroidDeviceInformation *> AndroidDeviceInformationConnector::s_registered;
 
     ///// IDeviceInformation API
-    DeviceInformationImpl::DeviceInformationImpl() :
+    DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
         m_powerSource(PowerSource_Battery)
     {}
@@ -66,8 +67,15 @@ namespace PAL_NS_BEGIN {
 
     class AndroidDeviceInformation : public DeviceInformationImpl {
         public:
-        AndroidDeviceInformation()
+        AndroidDeviceInformation(IRuntimeConfig& configuration) : DeviceInformationImpl(configuration)
         {
+            if (configuration.HasConfig(CFG_PTR_ANDROID_JVM) && configuration.HasConfig(CFG_JOBJECT_ANDROID_ACTIVITY))
+            {
+                AndroidDeviceInformationConnector::populateDeviceInfo(
+                    reinterpret_cast<JavaVM*>((void*)configuration[CFG_PTR_ANDROID_JVM]),
+                    reinterpret_cast<jobject>((void*)configuration[CFG_JOBJECT_ANDROID_ACTIVITY]));
+            }
+
             AndroidDeviceInformationConnector::registerDI(*this);
         }
 
@@ -90,9 +98,9 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
+    std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<AndroidDeviceInformation>();
+        return std::make_shared<AndroidDeviceInformation>(configuration);
     }
 
     DeviceInformationImpl::~DeviceInformationImpl() {}
@@ -145,6 +153,60 @@ namespace PAL_NS_BEGIN {
     void AndroidDeviceInformationConnector::setModel(std::string&& model)
     {
         s_model = std::move(model);
+    }
+
+    void AndroidDeviceInformationConnector::populateDeviceInfo(JavaVM* pJVM, jobject activity)
+    {
+        JNIEnv* pEnv;
+        if (pJVM->GetEnv(reinterpret_cast<void**>(&pEnv), JNI_VERSION_1_6) != JNI_OK)
+        {
+            LOG_ERROR("Failed to get JNIEnv from JavaVM");
+            return;
+        }
+
+        jclass buildClass = pEnv->FindClass("android/os/Build");
+        jclass contextClass = pEnv->FindClass("android/content/Context");
+        jclass secureSettingsClass = pEnv->FindClass("android/provider/Settings$Secure");
+
+        // public static String getString (ContentResolver resolver, String name)
+        jmethodID getStringMid = pEnv->GetStaticMethodID(secureSettingsClass, "getString",
+            "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;");
+
+        // public abstract ContentResolver getContentResolver ()
+        jmethodID getContentResolverMid = pEnv->GetMethodID(contextClass, "getContentResolver",
+            "()Landroid/content/ContentResolver;");
+
+        jfieldID manufacturerFid = pEnv->GetStaticFieldID(buildClass, "MANUFACTURER", "Ljava/lang/String;");
+        jfieldID modelFid = pEnv->GetStaticFieldID(buildClass, "MODEL", "Ljava/lang/String;");
+        jfieldID androidIdSettingFid = pEnv->GetStaticFieldID(secureSettingsClass, "ANDROID_ID", "Ljava/lang/String;");
+        
+        jstring manufacturerJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, manufacturerFid));
+        jstring modelJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, modelFid));
+        jstring androidIdSettingJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(secureSettingsClass, androidIdSettingFid));
+
+        jobject contentResolver = pEnv->CallObjectMethod(activity, getContentResolverMid);
+        jstring androidIdJstr = reinterpret_cast<jstring>(
+            pEnv->CallStaticObjectMethod(secureSettingsClass, getStringMid, contentResolver, androidIdSettingJstr));
+
+        const char* jStr;
+        jboolean isCopy;
+
+        jStr = pEnv->GetStringUTFChars(androidIdJstr, &isCopy);
+        std::string deviceId("a:");
+        deviceId += jStr;
+        pEnv->ReleaseStringUTFChars(androidIdJstr, jStr);
+
+        jStr = pEnv->GetStringUTFChars(manufacturerJstr, &isCopy);
+        std::string manufacturer = jStr;
+        pEnv->ReleaseStringUTFChars(manufacturerJstr, jStr);
+
+        jStr = pEnv->GetStringUTFChars(modelJstr, &isCopy);
+        std::string model = jStr;
+        pEnv->ReleaseStringUTFChars(modelJstr, jStr);
+
+        AndroidDeviceInformationConnector::setDeviceId(std::move(deviceId));
+        AndroidDeviceInformationConnector::setManufacturer(std::move(manufacturer));
+        AndroidDeviceInformationConnector::setModel(std::move(model));
     }
 } PAL_NS_END
 

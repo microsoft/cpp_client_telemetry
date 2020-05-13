@@ -152,6 +152,36 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  */
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind;
 
+/*!
+ @brief Sets a UUID property for an event.
+ @param name A string that contains the name of the property.
+ @param value A UUID that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value;
+
+/*!
+ @brief Sets a UUID property for an event.
+ @param name A string that contains the name of the property.
+ @param value A UUID that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind;
+
+/*!
+ @brief Sets a date property for an event.
+ @param name A string that contains the name of the property.
+ @param value A date that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value;
+
+/*!
+ @brief Sets a date property for an event.
+ @param name A string that contains the name of the property.
+ @param value A date that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind;
+
 @end
 
 NS_ASSUME_NONNULL_END
