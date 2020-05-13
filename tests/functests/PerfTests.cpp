@@ -38,67 +38,77 @@
 
 #include "CorrelationVector.hpp"
 
-static ILogger* logger = nullptr;
-
-static void ETW_Initialize(uint64_t detailLevel)
+class ETWLoggerFixture : public benchmark::Fixture
 {
-    const char* token = "deadbeefdeadbeefdeadbeef00000075";
-    auto& configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
-    configuration["schema"][CFG_INT_DETAIL_LEVEL] = detailLevel;
-    logger = LogManager::Initialize(token, configuration);
-}
+    ILogger* logger;
+    uint64_t m_detailLevel;
 
-static void ETW_Teardown()
-{
-    LogManager::FlushAndTeardown();
-}
+   public:
 
-static void ETW_LogEvent(ILogger* myLogger)
-{
-    EventProperties event;
-    std::string evtType = "My.Record.BaseType";
-    event.SetName("MyProduct.TaggedEvent");
-    event.SetType(evtType);
-    event.SetProperty("result", "Success");
-    event.SetProperty("random", rand());
-    event.SetProperty("secret", 5.6872);
-    event.SetLatency(EventLatency_Normal);
-    event.SetLevel(DIAG_LEVEL_REQUIRED);
-    myLogger->LogEvent(event);
-}
+    ETWLoggerFixture(uint64_t detailLevel) :
+        logger(nullptr)
+    {
+        m_detailLevel = detailLevel;
+    }
 
-void BM_ETW_Writer_0(benchmark::State& state)
-{
-    ETW_Initialize(0);
-    for (auto _ : state)
-        ETW_LogEvent(logger);
-    ETW_Teardown();
-}
+    void SetUp(const ::benchmark::State&)
+    {
+        const char* token = "deadbeefdeadbeefdeadbeef00000075";
+        auto& configuration = LogManager::GetLogConfiguration();
+        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
+        configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
+        configuration["schema"][CFG_INT_DETAIL_LEVEL] = m_detailLevel;
+        configuration["schema"]["integrity"] = false;
+        logger = LogManager::Initialize(token, configuration);
+    }
 
-void BM_ETW_Writer_1(benchmark::State& state)
-{
-    ETW_Initialize(1);
-    for (auto _ : state)
-        ETW_LogEvent(logger);
-    ETW_Teardown();
-}
+    void LogEvent()
+    {
+        EventProperties event(
+            "My.Event.Name",
+            {
+                { "result", "Success" },
+                { "double", 5.6872 }
+            });
+        logger->LogEvent(event);
+    }
 
-void BM_ETW_Writer_3(benchmark::State& state)
-{
-    ETW_Initialize(3);
-    for (auto _ : state)
-        ETW_LogEvent(logger);
-    ETW_Teardown();
-}
+    void TearDown(const ::benchmark::State&)
+    {
+        LogManager::FlushAndTeardown();
+    }
+};
+
+#define ETWLoggerFixtureX(X)                             \
+    class ETWLoggerFixture_##X : public ETWLoggerFixture \
+    {                                                    \
+       public:                                           \
+        ETWLoggerFixture_##X() : ETWLoggerFixture(X){};  \
+    };
+
+#define BENCHMARK_LOGEVENT  \
+    (benchmark::State & st) \
+    {                       \
+        for (auto _ : st)   \
+        {                   \
+            LogEvent();     \
+        }                   \
+    };
+
+// Benchmark various levels of decoration
+ETWLoggerFixtureX(0);
+ETWLoggerFixtureX(1);
+ETWLoggerFixtureX(2);
+ETWLoggerFixtureX(3);
+
+BENCHMARK_F(ETWLoggerFixture_0, LogEvent) BENCHMARK_LOGEVENT
+BENCHMARK_F(ETWLoggerFixture_1, LogEvent) BENCHMARK_LOGEVENT
+BENCHMARK_F(ETWLoggerFixture_2, LogEvent) BENCHMARK_LOGEVENT
+BENCHMARK_F(ETWLoggerFixture_3, LogEvent) BENCHMARK_LOGEVENT
 
 TEST(PerfTests, ETW_Writer)
 {
-    BENCHMARK(BM_ETW_Writer_0);
-    BENCHMARK(BM_ETW_Writer_1);
-    BENCHMARK(BM_ETW_Writer_3);
     // Run the benchmark
     ::benchmark::Initialize(0, {});
     ::benchmark::RunSpecifiedBenchmarks();
