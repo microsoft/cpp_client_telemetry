@@ -44,7 +44,8 @@ namespace PAL_NS_BEGIN {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl() :m_registeredCount(0),
+                DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
+                    m_registeredCount(0),
                     m_info_helper()
                 {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
