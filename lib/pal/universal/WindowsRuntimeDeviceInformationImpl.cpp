@@ -119,9 +119,9 @@ namespace PAL_NS_BEGIN {
                      ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
                 }
 
-                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
+                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
                 {
-                    return std::make_shared<DeviceInformationImpl>();
+                    return std::make_shared<DeviceInformationImpl>(configuration);
                 }
 
 } PAL_NS_END
