@@ -456,24 +456,51 @@ namespace ARIASDK_NS_BEGIN {
     /// Get the current list of priority timers
     /// </summary>
     /// <returns></returns>
-    void TransmitProfiles::getTimers(std::vector<int>& out) {
+    void TransmitProfiles::getTimers(std::array<int, 2>& out) {
         {
-            out.clear();
-            if (profiles.size() == 0) {
+            size_t n_profiles = 0;
+            {
+                LOCK_PROFILES;
+                n_profiles = profiles.size();
+            }
+            if (n_profiles == 0) {
                 // Load default profiles if nothing is loaded yet
+                // This can race and overwrite other profile loads.
                 reset();
             }
             LOCK_PROFILES;
             auto it = profiles.find(currProfileName);
+            // When we can't get timers, we won't set isTimerUpdated to false,
+            // so we will keep calling getTimers from TransmissionPolicyManager.
             if (it == profiles.end()) {
-                for (size_t i = 0; i < MAX_TIMERS_SIZE; i++) {
-                    out.push_back(-1);
-                }
+                out.fill(-1);
                 LOG_WARN("No active profile found, disabling all transmission timers.");
                 return;
             }
-            for (int timer : (it->second).rules[currRule].timers) {
-                out.push_back(timer * 1000);// convert time in milisec
+            if (currRule >= it->second.rules.size()) {
+                out.fill(-1);
+                LOG_ERROR(
+                    "Profile %s current rule %iz >= profile length %iz",
+                    currProfileName.c_str(),
+                    currRule,
+                    it->second.rules.size()
+                );
+                return;
+            }
+            auto const & rule = (it->second).rules[currRule];
+            if (rule.timers.empty()) {
+                out.fill(-1);
+                LOG_ERROR(
+                    "Profile %s rule %iz has no timers",
+                    currProfileName.c_str(),
+                    currRule
+                );
+                return;
+            }
+            out[0] = 1000 * rule.timers[0];
+            out[1] = out[0];
+            if (rule.timers.size() > 2) {
+                out[1] = 1000 * rule.timers[2];
             }
             isTimerUpdated = false;
         }
