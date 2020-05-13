@@ -14,9 +14,10 @@
 #include "DeviceStateHandler.hpp"
 #include "pal/TaskDispatcher.hpp"
 
-#include <set>
+#include <array>
 #include <atomic>
 #include <cstdint>
+#include <set>
 
 // This macro allows to specify max upload task cancellation wait time at compile-time,
 // addressing the case when a task that we are trying to cancel is currently running.
@@ -144,7 +145,7 @@ namespace ARIASDK_NS_BEGIN {
 
         int                              m_timerdelay;
         EventLatency                     m_runningLatency;
-        std::vector<int>                 m_timers;
+        std::array<int, 2>               m_timers;
 
     public:
         RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };

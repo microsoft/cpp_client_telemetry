@@ -203,7 +203,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the current priority timers.
         /// </summary>
         /// <param name="out">A reference to a vector of integers that will contain the current timers.</param>
-        static void getTimers(std::vector<int>& out);
+        static void getTimers(std::array<int, 2>& out);
 
         /// <summary>
         /// Gets the name of the current transmit profile.
