@@ -21,6 +21,8 @@
 
 #include "filter/EventFilterCollection.hpp"
 
+#include <bitset>
+
 namespace ARIASDK_NS_BEGIN {
 
     class BaseDecorator;
@@ -190,6 +192,15 @@ namespace ARIASDK_NS_BEGIN {
         // "<id>"   - allows to rewire this ILogger to alternate semantic context
         std::string               m_scope;
         uint8_t                   m_level;
+
+        // bitset controls verbosity detail of event decorators.
+		// Turning decorators off allows to emit "leaner" event,
+		// then apply "custom" decorator to append extras. Bits:
+		// 1 - toggles on|off BaseDecorator
+		// 2 - toggles on|off SemanticContextDecorator
+		// 3 - toggles on|off SemanticApiDecorator
+		// Other bits are reserved for future use.
+        std::bitset<64>           m_detailLevel;
 
         ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;

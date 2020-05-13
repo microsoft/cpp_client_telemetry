@@ -95,6 +95,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticContextDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientFactory.hpp" />

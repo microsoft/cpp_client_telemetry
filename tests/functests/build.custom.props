@@ -1,5 +1,5 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CustomIncludePath>$(SolutionDir)\..\third_party\krabsetw\krabs;$(CustomIncludePath)</CustomIncludePath>
+    <CustomIncludePath>$(SolutionDir)\..\third_party\benchmark\include\;$(CustomIncludePath)</CustomIncludePath>
   </PropertyGroup>
 </Project>

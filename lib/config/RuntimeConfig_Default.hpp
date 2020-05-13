@@ -3,7 +3,7 @@
 
 #pragma once
 #include "api/IRuntimeConfig.hpp"
-
+#include "CsProtocol_types.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -25,6 +25,13 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_STORAGE_FULL_PCT,         75 },
         { CFG_INT_RAMCACHE_FULL_PCT,        75 },
         { CFG_BOOL_ENABLE_NET_DETECT,       true },
+        {"schema",
+            {
+                { "ver", CsProtocol::CS_VER_STRING},
+                /* Apply 3 levels of decorators */
+                { CFG_INT_DETAIL_LEVEL, 0b00000111 }
+            }
+        },
         { "stats",
             {
                 /* Parameter that allows to split stats events by tenant */

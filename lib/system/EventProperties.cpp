@@ -1,6 +1,6 @@
 #include "pal/PAL.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "EventProperty.hpp"
 #include "EventProperties.hpp"
 #include "EventPropertiesStorage.hpp"

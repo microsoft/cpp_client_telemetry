@@ -225,6 +225,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_STR_TRANSMIT_PROFILES   = "transmitProfiles";
 
     /// <summary>
+    /// Customize event decoration level.
+    /// </summary>
+    static constexpr const char* const CFG_INT_DETAIL_LEVEL = "detailLevel";
+
+    /// <summary>
     /// IHttpClient override module
     /// </summary>
     static constexpr const char* const CFG_MODULE_HTTP_CLIENT = "httpClient";
@@ -239,6 +244,10 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
 
+    /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
 
 #ifdef _MSC_VER
 #pragma warning( push )

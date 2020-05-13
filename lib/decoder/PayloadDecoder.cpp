@@ -21,7 +21,7 @@
 
 /* Bond definition of CsProtocol::Record is auto-generated and could be different for each SDK version */
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
 #include "zlib.h"
@@ -58,7 +58,7 @@ namespace clienttelemetry {
                         {
                             if (j + 2 < length)
                             {
-                                if (test[j + 1] == '3' && test[j + 2] == '.')
+                                if (test[j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[j + 2] == '.')
                                 {
                                     found = true;
                                     break;
