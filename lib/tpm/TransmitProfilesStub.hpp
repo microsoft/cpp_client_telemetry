@@ -25,4 +25,6 @@ namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }
 
+    TransmitProfiles::~TransmitProfiles() {};
+
 } ARIASDK_NS_END
