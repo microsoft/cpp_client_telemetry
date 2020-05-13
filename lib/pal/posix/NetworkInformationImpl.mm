@@ -3,24 +3,26 @@
 #include "pal/PAL.hpp"
 #include "pal/NetworkInformationImpl.hpp"
 
+#import <Network/Network.h>
 #import "Reachability.h"
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+    NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
-        m_isNetDetectEnabled(isNetDetectEnabled) {};
+        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]) {};
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 
-    class NetworkInformation : public NetworkInformationImpl
+    class NetworkInformation : public NetworkInformationImpl,
+                               public std::enable_shared_from_this<NetworkInformation>
     {
     public:
         /// <summary>
         ///
         /// </summary>
         /// <param name="isNetDetectEnabled"></param>
-        NetworkInformation(bool isNetDetectEnabled);
+        NetworkInformation(IRuntimeConfig& configuration);
 
         /// <summary>
         ///
@@ -51,66 +53,173 @@ namespace PAL_NS_BEGIN {
             return m_cost;
         }
 
+        /// <summary>
+        /// Setup initial network information and start net monitor if requested.
+        /// This cannot be put in constructor because we need to use shared_from_this.
+        /// </summary>
+        void SetupNetDetect();
+
     private:
-        NetworkType GetNetworkTypeInternal() noexcept;
+        void UpdateType(NetworkType type) noexcept;
+        void UpdateCost(NetworkCost cost) noexcept;
         std::string m_network_provider {};
-        Reachability* m_reach = [Reachability reachabilityForInternetConnection];
+
+        // iOS 12 and newer
+        nw_path_monitor_t m_monitor = nil;
+
+        // iOS 11 and older
+        Reachability* m_reach = nil;
         id m_notificationId = nil;
     };
 
-    NetworkInformation::NetworkInformation(bool isNetDetectEnabled) :
-        NetworkInformationImpl(isNetDetectEnabled)
+    NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
+        NetworkInformationImpl(configuration)
     {
-        m_type = GetNetworkTypeInternal();
+        m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
-
-        if (isNetDetectEnabled)
-        {
-            m_notificationId =
-                [[NSNotificationCenter defaultCenter]
-                 addObserverForName: kReachabilityChangedNotification
-                 object: nil
-                 queue: nil
-                 usingBlock: ^(NSNotification*){
-                     auto type = GetNetworkTypeInternal();
-                     if (type != m_type)
-                     {
-                         m_type = type;
-                         m_info_helper.OnChanged(NETWORK_TYPE, std::to_string(type));
-                     }
-                }];
-
-            [m_reach startNotifier];
-        }
     }
 
     NetworkInformation::~NetworkInformation() noexcept
     {
-        if (m_isNetDetectEnabled)
+        if (@available(iOS 12.0, *))
         {
-            [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
-            [m_reach stopNotifier];
+            if (m_isNetDetectEnabled)
+            {
+                nw_path_monitor_cancel(m_monitor);
+            }
+        }
+        else
+        {
+            if (m_isNetDetectEnabled)
+            {
+                [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
+                [m_reach stopNotifier];
+            }
         }
     }
 
-    NetworkType NetworkInformation::GetNetworkTypeInternal() noexcept
+    void NetworkInformation::SetupNetDetect()
     {
-        auto status = [m_reach currentReachabilityStatus];
-        if(status == ReachableViaWiFi)
+        auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
+
+        if (@available(iOS 12.0, *))
         {
-            return NetworkType_Wifi;
+            m_monitor = nw_path_monitor_create();
+            nw_path_monitor_set_queue(m_monitor, dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0));
+            nw_path_monitor_set_update_handler(m_monitor, ^(nw_path_t path)
+            {
+                auto strong_this = weak_this.lock();
+                if (!strong_this)
+                {
+                    return;
+                }
+
+                NetworkType type = NetworkType_Unknown;
+                NetworkCost cost = NetworkCost_Unknown;
+                nw_path_status_t status = nw_path_get_status(path);
+                bool connected = status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
+                if (connected)
+                {
+                    if (nw_path_uses_interface_type(path, nw_interface_type_wifi))
+                    {
+                        type = NetworkType_Wifi;
+                    }
+                    else if (nw_path_uses_interface_type(path, nw_interface_type_cellular))
+                    {
+                        type = NetworkType_WWAN;
+                    }
+                    else if (nw_path_uses_interface_type(path, nw_interface_type_wired))
+                    {
+                        type = NetworkType_Wired;
+                    }
+                    cost = nw_path_is_expensive(path) ? NetworkCost_Metered : NetworkCost_Unmetered;
+                    if (@available(iOS 13.0, *))
+                    {
+                        if (nw_path_is_constrained(path))
+                        {
+                            cost = NetworkCost_Roaming;
+                        }
+                    }
+                }
+                strong_this->UpdateType(type);
+                strong_this->UpdateCost(cost);
+            });
+            nw_path_monitor_start(m_monitor);
+
+            // nw_path_monitor_start will invoke the callback for once. So if
+            // we don't want to listen for changes, we can just start the
+            // monitor and stop it right away.
+            if (!m_isNetDetectEnabled)
+            {
+                nw_path_monitor_cancel(m_monitor);
+            }
         }
-        else if (status == ReachableViaWWAN)
+        else
         {
-            return NetworkType_WWAN;
+            m_reach = [Reachability reachabilityForInternetConnection];
+            void (^block)(NSNotification*) = ^(NSNotification*)
+            {
+                auto strong_this = weak_this.lock();
+                if (!strong_this)
+                {
+                    return;
+                }
+
+                // NetworkCost information is not available until iOS 12.
+                // Just make the best guess here.
+                switch (m_reach.currentReachabilityStatus)
+                {
+                    case NotReachable:
+                        strong_this->UpdateType(NetworkType_Unknown);
+                        strong_this->UpdateCost(NetworkCost_Unknown);
+                        break;
+                    case ReachableViaWiFi:
+                        strong_this->UpdateType(NetworkType_Wifi);
+                        strong_this->UpdateCost(NetworkCost_Unmetered);
+                        break;
+                    case ReachableViaWWAN:
+                        strong_this->UpdateType(NetworkType_WWAN);
+                        strong_this->UpdateCost(NetworkCost_Metered);
+                        break;
+                }
+            };
+            block(nil); // Update the initial status.
+            if (m_isNetDetectEnabled)
+            {
+                m_notificationId =
+                    [[NSNotificationCenter defaultCenter]
+                    addObserverForName: kReachabilityChangedNotification
+                    object: nil
+                    queue: nil
+                    usingBlock: block];
+                [m_reach startNotifier];
+            }
         }
-        
-        return NetworkType_Unknown;
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    void NetworkInformation::UpdateType(NetworkType type) noexcept
     {
-        return new NetworkInformation(isNetDetectEnabled);
+        if (type != m_type)
+        {
+            m_type = type;
+            m_info_helper.OnChanged(NETWORK_TYPE, std::to_string(type));
+        }
+    }
+
+    void NetworkInformation::UpdateCost(NetworkCost cost) noexcept
+    {
+        if (cost != m_cost)
+        {
+            m_cost = cost;
+            m_info_helper.OnChanged(NETWORK_COST, std::to_string(cost));
+        }
+    }
+
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
+    {
+        auto networkInformation = std::make_shared<NetworkInformation>(configuration);
+        networkInformation->SetupNetDetect();
+        return networkInformation;
     }
 
 } PAL_NS_END

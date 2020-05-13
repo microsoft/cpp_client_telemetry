@@ -102,7 +102,9 @@ namespace ARIASDK_NS_BEGIN {
         return path;
 #else
         std::string result;
-#ifdef ANDROID
+#if defined(ANDROID) && defined(HAVE_MAT_CURL_HTTP_CLIENT)
+        result = "/data/local/tmp";
+#elif ANDROID
         result = HttpClient_Android::GetCacheFilePath();
         if (result.empty())
         {
@@ -300,22 +302,6 @@ namespace ARIASDK_NS_BEGIN {
         buf[35] = inttoHex[test];
         buf[36] = 0;
         return std::string(buf);
-    }
-
-    /** \brief Convert UTF-8 to UTF-16
-    */
-    std::wstring to_utf16_string(const std::string& in)
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-        return converter.from_bytes(in);
-    }
-
-    /** \brief Convert UTF-16 to UTF-8
-    */
-    std::string to_utf8_string(const std::wstring& in)
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-        return converter.to_bytes(in);
     }
 
 #ifdef _WINRT

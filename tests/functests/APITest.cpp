@@ -420,7 +420,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
             // TODO: it is possible that collector would return 503 here, in that case we may not get the 'kill-tokens' hint.
             // If it ever happens, the test would fail because the second iteration might try to upload.
-            EXPECT_EQ(1, debugListener.numHttpError);
+            EXPECT_EQ(1u, debugListener.numHttpError);
             debugListener.numCached = 0;
         }
         if (i == 1)
@@ -428,12 +428,12 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
             // At this point we should get the error response from collector because we ingested with invalid tokens.
             // Collector should have also asked us to ban that token... Check the counts
             EXPECT_EQ(2 * MAX_ITERATIONS, debugListener.numLogged);
-            EXPECT_EQ(0, debugListener.numCached);
+            EXPECT_EQ(0u, debugListener.numCached);
             EXPECT_EQ(MAX_ITERATIONS, debugListener.numDropped);
         }
     }
     LogManager::FlushAndTeardown();
-    EXPECT_EQ(0, debugListener.numCached);
+    EXPECT_EQ(0u, debugListener.numCached);
     debugListener.printStats();
     removeAllListeners(debugListener);
 }
@@ -474,7 +474,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         debugListener.storageFullPct = 0;
         LogManager::Initialize(TEST_TOKEN, configuration);
         LogManager::FlushAndTeardown();
-        EXPECT_EQ(debugListener.storageFullPct.load(), 0);
+        EXPECT_EQ(debugListener.storageFullPct.load(), 0u);
 
     }
     debugListener.numCached = 0;
@@ -490,12 +490,12 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         result->LogEvent(eventToLog);
     // Check the counts
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
-    EXPECT_EQ(0, debugListener.numDropped);
-    EXPECT_EQ(0, debugListener.numReject);
+    EXPECT_EQ(0u, debugListener.numDropped);
+    EXPECT_EQ(0u, debugListener.numReject);
 
     LogManager::UploadNow();             // Try to upload whatever we got
     PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0, debugListener.numSent); // Some posts must succeed within 500ms
+    EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
     LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
 
@@ -628,7 +628,7 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(std::time(nullptr));
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
@@ -768,7 +768,7 @@ TEST(APITest, C_API_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
     };
 
     evt_handle_t handle = evt_open(config);
@@ -789,7 +789,7 @@ TEST(APITest, C_API_Test)
     {
         evt_log(handle, event);
     }
-    EXPECT_EQ(totalEvents, 5);
+    EXPECT_EQ(totalEvents, 5u);
 
     evt_flush(handle);
     evt_upload(handle);
@@ -851,7 +851,7 @@ TEST(APITest, UTC_Callback_Test)
         std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
         ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());
         // Verify time
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, ticks.ticks);
+        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);
 
         // Transform to JSON and print
         std::string s;
@@ -911,7 +911,7 @@ TEST(APITest, Pii_DROP_Test)
             return;
         }
 
-        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0);
+        ASSERT_EQ(record.extProtocol[0].ticketKeys.size(), 0ul);
         // more events with random device id
         EXPECT_STRNE(record.extDevice[0].localId.c_str(), realDeviceId.c_str());
         EXPECT_STREQ(record.extDevice[0].authId.c_str(), "");
@@ -955,12 +955,96 @@ TEST(APITest, Pii_DROP_Test)
     }
 
     LogManager::FlushAndTeardown();
-    ASSERT_EQ(totalEvents, 4);
+    ASSERT_EQ(totalEvents, 4u);
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 
 }
 
 #endif
+
+TEST(APITest, SemanticContext_Test)
+{
+    TestDebugEventListener debugListener;
+
+    auto config = LogManager::GetLogConfiguration();
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
+
+    // register a listener
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+
+    CleanStorage();
+    auto logger = LogManager::Initialize(TEST_TOKEN);
+    unsigned totalEvents = 0;
+
+    // Verify that semantic context fields have been set on record
+    debugListener.OnLogX = [&](::CsProtocol::Record& record) {
+        totalEvents++;
+        if (record.name == "LoggerContext.Event")
+        {
+            // App extension
+            EXPECT_STREQ(record.extApp[0].env.c_str(), "dev");
+            EXPECT_STREQ(record.extApp[0].id.c_str(), "myAppId");
+            EXPECT_STREQ(record.extApp[0].locale.c_str(), "en-US");
+            EXPECT_STREQ(record.extApp[0].name.c_str(), "myAppName");
+            EXPECT_STREQ(record.extApp[0].ver.c_str(), "1.2.3");
+            // Device extension
+            EXPECT_STREQ(record.extDevice[0].deviceClass.c_str(), "Custom.Desktop");
+            EXPECT_STREQ(record.extDevice[0].localId.c_str(), "c:1234567890");
+            // Legacy schema quirk that forces SDK to send devMake and devModel under protocol extension
+            EXPECT_STREQ(record.extProtocol[0].devMake.c_str(), "Make");
+            EXPECT_STREQ(record.extProtocol[0].devModel.c_str(), "Model");
+            // Commercial Id
+            EXPECT_STREQ(record.extM365a[0].enrolledTenantId.c_str(), "1-2-3-4-5");
+            // Network extension
+            EXPECT_STREQ(record.extNet[0].cost.c_str(), "Unmetered");
+            EXPECT_STREQ(record.extNet[0].provider.c_str(), "Provider");
+            EXPECT_STREQ(record.extNet[0].type.c_str(), "Wifi");
+            // OS extension. 1DS SDK maps OS Build semantic context field to ext.os.ver
+            EXPECT_STREQ(record.extOs[0].ver.c_str(), "os-build");
+            EXPECT_STREQ(record.extOs[0].name.c_str(), "os-name");
+            // User extension
+            EXPECT_STREQ(record.extUser[0].localId.c_str(), "localUserId");
+            EXPECT_STREQ(record.extUser[0].locale.c_str(), "en-US");
+            EXPECT_STREQ(record.extLoc[0].timezone.c_str(), "+01:00");
+        }
+    };
+
+    auto context = logger->GetSemanticContext();
+    // App extension
+    context->SetAppEnv("dev");
+    context->SetAppId("myAppId");
+    context->SetAppLanguage("en-US");
+    context->SetAppName("myAppName");
+    context->SetAppVersion("1.2.3");
+    // Device extension
+    context->SetDeviceClass("Custom.Desktop");
+    context->SetDeviceId("c:1234567890");
+    context->SetDeviceMake("Make");
+    context->SetDeviceModel("Model");
+    // Commercial Id aka. Office Enrolled Tenant Id
+    context->SetCommercialId("1-2-3-4-5");
+    // Network extension
+    context->SetNetworkCost(NetworkCost_Unmetered);
+    context->SetNetworkProvider("Provider");
+    context->SetNetworkType(NetworkType_Wifi);
+    // OS extension
+    context->SetOsBuild("os-build");
+    context->SetOsName("os-name");
+    context->SetOsVersion("1.0.0");
+    // User extension
+    context->SetUserId("localUserId");
+    context->SetUserLanguage("en-US");
+    context->SetUserTimeZone("+01:00");
+
+    logger->LogEvent("LoggerContext.Event");
+
+    LogManager::FlushAndTeardown();
+
+    ASSERT_EQ(totalEvents, 1u);
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+}
 
 static void logBenchMark(const char * label)
 {
@@ -1065,6 +1149,47 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 }
 
+#ifdef HAVE_MAT_WININET_HTTP_CLIENT
+/* This test requires WinInet HTTP client */
+TEST(APITest, LogConfiguration_MsRoot_Check)
+{
+    TestDebugEventListener debugListener;
+    std::list<std::tuple<std::string, bool, unsigned>> testParams =
+        {
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
+            {"https://self.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
+        };
+
+    // 4 test runs
+    for (const auto& params : testParams)
+    {
+        CleanStorage();
+
+        auto& config = LogManager::GetLogConfiguration();
+        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
+        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
+        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
+        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
+        auto expectedHttpCount = std::get<2>(params);
+
+        auto logger = LogManager::Initialize(TEST_TOKEN, config);
+
+        debugListener.reset();
+        addAllListeners(debugListener);
+        logger->LogEvent("fooBar");
+        LogManager::FlushAndTeardown();
+        removeAllListeners(debugListener);
+
+        // Connection is a best-effort, occasionally we can't connect,
+        // but we MUST NOT connect to end-point that doesn't have the
+        // right cert.
+        EXPECT_LE(debugListener.numHttpOK, expectedHttpCount);
+    }
+}
+#endif
 TEST(APITest, LogManager_BadNetwork_Test)
 {
     auto& config = LogManager::GetLogConfiguration();
@@ -1102,45 +1227,6 @@ TEST(APITest, LogManager_BadNetwork_Test)
         printf("\n");
     }
 }
-
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-/* This test requires WinInet HTTP client */
-TEST(APITest, LogConfiguration_MsRoot_Check)
-{
-    TestDebugEventListener debugListener;
-    std::list<std::tuple<std::string, bool, unsigned>> testParams =
-    {
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  false, 1}, // MS-Rooted, no MS-Root check:     post succeeds
-        { "https://v10.events.data.microsoft.com/OneCollector/1.0/",  true,  1}, // MS-Rooted, MS-Root check:        post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1}, // Non-MS rooted, no MS-Root check: post succeeds
-        { "https://self.events.data.microsoft.com/OneCollector/1.0/", true,  0}  // Non-MS rooted, MS-Root check:    post fails
-    };
-
-    // 4 test runs
-    for (const auto &params : testParams)
-    {
-        CleanStorage();
-
-        auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;                     // avoid sending stats for this test, just customer events
-        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params); // MS root check depends on what URL we are sending to
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;               // up to 1s wait to perform HTTP post on teardown
-        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
-        auto expectedHttpCount = std::get<2>(params);
-
-        auto logger = LogManager::Initialize(TEST_TOKEN, config);
-
-        debugListener.reset();
-        addAllListeners(debugListener);
-        logger->LogEvent("fooBar");
-        LogManager::FlushAndTeardown();
-        removeAllListeners(debugListener);
-
-        EXPECT_EQ(debugListener.numHttpOK, expectedHttpCount);
-    }
-}
-#endif
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
 {

@@ -106,12 +106,16 @@ namespace ARIASDK_NS_BEGIN {
         PAL::scheduleTask(&m_taskDispatcher, 0, this, &HttpClientManager::onHttpResponse, callback);
     }
 
+    /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
         EventsUploadContextPtr &ctx = callback->m_ctx;
         {
             LOCKGUARD(m_httpCallbacksMtx);
-            assert(std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback) != m_httpCallbacks.end());
+            auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
+            if (z == m_httpCallbacks.end()) {
+                assert(false);
+            }
 
 #if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
             // Response may be null if request got aborted

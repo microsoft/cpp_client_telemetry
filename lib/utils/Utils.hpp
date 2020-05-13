@@ -8,6 +8,7 @@
 
 #include "Enums.hpp"
 #include "Version.hpp"
+#include "StringConversion.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -186,10 +187,6 @@ namespace ARIASDK_NS_BEGIN
         str.replace(start_pos, from.length(), to);
         return true;
     }
-
-    std::wstring to_utf16_string(const std::string& in);
-
-    std::string to_utf8_string(const std::wstring& in);
 
     inline uint64_t GetUptimeMs()
     {

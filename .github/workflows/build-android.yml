@@ -1,0 +1,46 @@
+name: Build for Android
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+    - maharrim/*
+  pull_request:
+    branches:
+    - master
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build for Android
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Chocolatey
+      run: |
+        choco install --no-progress -y android-ndk
+        choco install --no-progress -y android-sdk
+        choco install --no-progress -y ninja
+        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
+        gci -r -i "CMake*" C:\Android
+        echo $Env:PATH
+    - name: Gradle Build
+      run: |
+        $Env:PATH = "C:\Android\android-sdk\cmake\3.10.2.4988404\bin;" + $Env:PATH
+        cd "$Env:GITHUB_WORKSPACE\lib\android_build"
+        .\gradlew.bat assemble
+      env:
+        ANDROID_NDK: "C:\\Android\\android-ndk-r21"
+        ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r21"
+    - name: Java Unit test
+      run: |
+        cd "$Env:GITHUB_WORKSPACE\lib\android_build"
+        .\gradlew.bat maesdk:test
+    - name: Upload Reports
+      if: failure()
+      uses: actions/upload-artifact@v1
+      with:
+        name: reports
+        path: lib\android_build\maesdk\build\reports

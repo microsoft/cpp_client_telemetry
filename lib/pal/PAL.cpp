@@ -82,12 +82,12 @@ namespace PAL_NS_BEGIN {
 #endif
 
         bool isLoggingInited = false;
-        
+
 #ifdef HAVE_MAT_LOGGING
         std::recursive_mutex          debugLogMutex;
         std::string                   debugLogPath;
         std::unique_ptr<std::fstream> debugLogStream;
-        
+
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
             if (!isTraceEnabled)
@@ -118,7 +118,7 @@ namespace PAL_NS_BEGIN {
             debugLogMutex.unlock();
             return result;
         }
-        
+
         void log_done()
         {
             debugLogMutex.lock();
@@ -243,11 +243,11 @@ namespace PAL_NS_BEGIN {
 
     std::shared_ptr<ITaskDispatcher> PlatformAbstractionLayer::getDefaultTaskDispatcher()
     {
-        if (m_taskDispatcher == nullptr)
+        if (!m_taskDispatcher)
         {
             // Default implementation of task dispatcher is a single-threaded worker thread task queue
             LOG_TRACE("Initializing PAL worker thread");
-            m_taskDispatcher.reset(PAL::WorkerThreadFactory::Create());
+            m_taskDispatcher = PAL::WorkerThreadFactory::Create();
         }
         return m_taskDispatcher;
     }
@@ -443,6 +443,8 @@ namespace PAL_NS_BEGIN {
     #else
         #define OS_NAME    "UnknownApple"
     #endif
+#elif defined(ANDROID) || defined(__ANDROID__)
+    #define OS_NAME "Android"
 #elif defined(__linux__) || defined(LINUX) || defined(linux)
     #define OS_NAME     "Linux"
 #else
@@ -467,9 +469,9 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            m_SystemInformation = SystemInformationImpl::Create();
-            m_DeviceInformation = DeviceInformationImpl::Create();
-            m_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
+            m_SystemInformation = SystemInformationImpl::Create(configuration);
+            m_DeviceInformation = DeviceInformationImpl::Create(configuration);
+            m_NetworkInformation = NetworkInformationImpl::Create(configuration);
             LOG_INFO("Initialized");
         }
         else
@@ -478,9 +480,9 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-    INetworkInformation* PlatformAbstractionLayer::GetNetworkInformation() const noexcept { return m_NetworkInformation; }
-    IDeviceInformation* PlatformAbstractionLayer::GetDeviceInformation() const noexcept   { return m_DeviceInformation; }
-    ISystemInformation* PlatformAbstractionLayer::GetSystemInformation() const noexcept   { return m_SystemInformation; }
+    std::shared_ptr<INetworkInformation> PlatformAbstractionLayer::GetNetworkInformation() const noexcept { return m_NetworkInformation; }
+    std::shared_ptr<IDeviceInformation> PlatformAbstractionLayer::GetDeviceInformation() const noexcept   { return m_DeviceInformation; }
+    std::shared_ptr<ISystemInformation> PlatformAbstractionLayer::GetSystemInformation() const noexcept   { return m_SystemInformation; }
 
     void PlatformAbstractionLayer::shutdown()
     {
@@ -494,9 +496,9 @@ namespace PAL_NS_BEGIN {
         {
             LOG_TRACE("Shutting down...");
             if (m_taskDispatcher) { m_taskDispatcher = nullptr; }
-            if (m_SystemInformation) { delete m_SystemInformation; m_SystemInformation = nullptr; }
-            if (m_DeviceInformation) { delete m_DeviceInformation; m_DeviceInformation = nullptr; }
-            if (m_NetworkInformation) { delete m_NetworkInformation; m_NetworkInformation = nullptr; }
+            if (m_SystemInformation) { m_SystemInformation = nullptr; }
+            if (m_DeviceInformation) { m_DeviceInformation = nullptr; }
+            if (m_NetworkInformation) { m_NetworkInformation = nullptr; }
             LOG_INFO("Shut down");
             detail::log_done();
         }
