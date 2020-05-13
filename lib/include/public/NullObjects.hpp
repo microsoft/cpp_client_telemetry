@@ -203,6 +203,12 @@ namespace ARIASDK_NS_BEGIN
             return STATUS_ENOSYS;
         }
 
+        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept override
+        {
+            UNREFERENCED_PARAMETER(profiles);
+            return STATUS_ENOSYS;
+        }
+
         virtual status_t ResetTransmitProfiles() override
         {
             return STATUS_ENOSYS;

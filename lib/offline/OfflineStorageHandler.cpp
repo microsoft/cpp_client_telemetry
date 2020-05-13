@@ -24,6 +24,7 @@ namespace ARIASDK_NS_BEGIN {
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
+        m_flushPending(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -31,8 +32,7 @@ namespace ARIASDK_NS_BEGIN {
         m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
-        m_isStorageFullNotificationSend(false),
-        m_flushPending(false)
+        m_isStorageFullNotificationSend(false)
     {
         // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
@@ -61,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
+        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task.load());
         m_flushComplete.wait();
     }
 
@@ -164,7 +164,8 @@ namespace ARIASDK_NS_BEGIN {
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-
+            // This will block on and then take a lock for the duration of this move, and
+            // StoreRecord() will then block until the move completes.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
@@ -212,7 +213,6 @@ namespace ARIASDK_NS_BEGIN {
         m_flushPending = false;
     }
 
-    // TODO: [MG] - investigate if StoreRecord is thread-safe if executed simultaneously with Flush
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
         // Don't discard on shutdown because the kill-switch may be temporary.
@@ -242,8 +242,10 @@ namespace ARIASDK_NS_BEGIN {
                     m_isStorageFullNotificationSend = true;
                 }
 #endif
-                // TODO: [MG] - investigate what happens if Flush from memory to disk
-                // is happening concurrently with adding a new in-memory record
+                // During flush, this will block on a mutex while records
+                // are selected and removed from the cache (but will
+                // not block for the subsequent handoff to persistent
+                // storage)
                 m_offlineStorageMemory->StoreRecord(record);
             }
 
@@ -257,7 +259,7 @@ namespace ARIASDK_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task.load());
                     }
                     m_flushLock.unlock();
                 }
