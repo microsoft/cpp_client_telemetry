@@ -16,17 +16,17 @@ namespace PAL_NS_BEGIN {
     class DeviceInformationImpl : public IDeviceInformation
     {
     public:
-        static IDeviceInformation* Create();
+        static std::shared_ptr<IDeviceInformation> Create(MAT::IRuntimeConfig& configuration);
 
         virtual int RegisterInformationChangedCallback(PAL::IPropertyChangedCallback* pCallback) override
         {
-            m_registredCount++;
+            m_registeredCount++;
             return m_info_helper.RegisterInformationChangedCallback(pCallback);
         }
 
         virtual void UnRegisterInformationChangedCallback(int callbackToken) override
         {
-            --m_registredCount;
+            --m_registeredCount;
             m_info_helper.UnRegisterInformationChangedCallback(callbackToken);
         }
 
@@ -38,24 +38,24 @@ namespace PAL_NS_BEGIN {
         virtual PowerSource GetPowerSource() const override { return m_powerSource; }
         virtual std::string GetDeviceTicket() const override;
 
+        DeviceInformationImpl(MAT::IRuntimeConfig& configuration);
+        virtual ~DeviceInformationImpl();
+
+        // Disable copy constructor and assignment operator.
+        DeviceInformationImpl(DeviceInformationImpl const& other) = delete;
+        DeviceInformationImpl& operator=(DeviceInformationImpl const& other) = delete;
+
     private:
-        std::string m_device_id;
-        std::string m_manufacturer;
-        std::string m_model;
         std::string m_deviceTicket;
         OsArchitectureType m_os_architecture;
     protected:
         PowerSource m_powerSource;
         InformatonProviderImpl m_info_helper;
+        std::string m_device_id;
+        std::string m_manufacturer;
+        std::string m_model;
     private:
-        int m_registredCount;
-        // Disable copy constructor and assignment operator.
-        DeviceInformationImpl(DeviceInformationImpl const& other);
-        DeviceInformationImpl& operator=(DeviceInformationImpl const& other);
-
-        protected:
-        DeviceInformationImpl();
-        virtual ~DeviceInformationImpl();
+        size_t m_registeredCount;
     };
 
 } PAL_NS_END

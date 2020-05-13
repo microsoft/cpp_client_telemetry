@@ -92,7 +92,7 @@ ref class LogManagerLock
     }
 
 #ifdef _MANAGED
-#define LM_LOCKGUARD(macro_mutex) msclr::lock l(LogManagerLock::lock);
+#define LM_LOCKGUARD(macro_mutex) msclr::lock TOKENPASTE2(__guard_, __LINE__)(LogManagerLock::lock);
 #else
 #define LM_LOCKGUARD(macro_mutex) \
     std::lock_guard<std::recursive_mutex> TOKENPASTE2(__guard_, __LINE__)(macro_mutex);
@@ -199,7 +199,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Initializes the telemetry logging system with default configuraiton and HTTPClient.
+        /// Initializes the telemetry logging system with default configuration and HTTPClient.
         /// </summary>
         /// <returns>A logger instance instantiated with the default tenantToken.</returns>
         static ILogger* Initialize()
@@ -281,15 +281,20 @@ namespace ARIASDK_NS_BEGIN
             return STATUS_SUCCESS;
 #else  // Less safe approach, but this is in alignment with original v1 behavior \
        // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
-            auto callFTD = []() LM_SAFE_CALL(GetLogController()->FlushAndTeardown);
-            auto result = callFTD();
             if (instance)
             {
+                auto controller = instance->GetLogController();
+                if (controller != nullptr)
+                {
+                    controller->FlushAndTeardown();
+                }
                 ILogConfiguration& currentConfig = GetLogConfiguration();
-                result = LogManagerProvider::Release(currentConfig);
+                auto result = LogManagerProvider::Release(currentConfig);
                 instance = nullptr;
+                return result;
             }
-            return result;
+            // already gone
+            return STATUS_EALREADY;
 #endif
         }
 
@@ -307,6 +312,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static status_t UploadNow()
         {
+            LM_LOCKGUARD(stateLock());
             if (isHost())
                 LM_SAFE_CALL(GetLogController()->UploadNow);
             return STATUS_EPERM;  // Permission denied
@@ -685,8 +691,11 @@ namespace ARIASDK_NS_BEGIN
 // that causes improper global static templated member initialization:
 // https://developercommunity.visualstudio.com/content/problem/134886/initialization-of-template-static-variable-wrong.html
 //
-#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
-    ILogManager* LogManagerClass::instance = nullptr;
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                           \
+    ILogManager*            LogManagerClass::instance      = nullptr;
+#elif defined(__APPLE__) && defined(MAT_USE_WEAK_LOGMANAGER)
+#define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
+    template<> __attribute__((weak)) ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};
 #else
 // ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \

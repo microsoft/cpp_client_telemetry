@@ -21,7 +21,7 @@ using nlohmann::json;
 /// <summary>
 /// Default JSON config for Transmit Profiles
 /// </summary>
-static string defaultProfiles = R"(
+static const char* const defaultProfiles = R"(
 [{
     "name": "REAL_TIME",
     "rules": [
@@ -160,51 +160,6 @@ namespace ARIASDK_NS_BEGIN {
     }
 
     /// <summary>
-    /// Perform timers sanity check and auto-fix them if necessary
-    /// </summary>
-    /// <param name="rule"></param>
-    bool TransmitProfiles::adjustTimers(TransmitProfileRule &rule) {
-        bool isAutoCorrected = false;
-        // There are always at least 3 entires in the timers vector
-        size_t i = rule.timers.size();
-        int prevTimerValue = rule.timers[i - 1];
-        do {
-            i--;
-            int currTimerValue = rule.timers[i];
-            if (currTimerValue > 0) {
-                if (currTimerValue < prevTimerValue) {
-                    currTimerValue = prevTimerValue;
-                    LOG_WARN("Low-pri timer can't be lower than high-pri: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                    rule.timers[i] = currTimerValue;
-                    isAutoCorrected = true;
-                }
-                else
-                    if (prevTimerValue > 0) {
-                        // Low-pri timer has to be a multiple of high-pri timer
-                        int div = currTimerValue / prevTimerValue;
-                        int mod = currTimerValue % prevTimerValue;
-                        if (mod != 0) {
-                            currTimerValue = prevTimerValue * (div + 1);
-                            LOG_WARN("Low-pri timer must be multiple of high-pri: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                            rule.timers[i] = currTimerValue;
-                            isAutoCorrected = true;
-                        }
-                    }
-                    else {
-                        // curr is positive and more than prev, but prev is zero. This is invalid configuration, so reuse the prev for curr.
-                        currTimerValue = prevTimerValue;
-                        LOG_WARN("Low-pri timer can't be on if high-pri is off: timer[%d] adjusted %d=>%d", i, rule.timers[i], currTimerValue);
-                        rule.timers[i] = currTimerValue;
-                        isAutoCorrected = true;
-                    }
-            }
-            prevTimerValue = currTimerValue;
-            LOG_TRACE("timers[%d]=%d", i, currTimerValue);
-        } while (i != 0);
-        return isAutoCorrected;
-    }
-
-    /// <summary>
     /// Remove custom profiles. This function is only called from parse and does not require the lock.
     /// </summary>
     void TransmitProfiles::removeCustomProfiles() {
@@ -218,6 +173,49 @@ namespace ARIASDK_NS_BEGIN {
             it = profiles.erase(it);
         }
     }
+
+    void TransmitProfiles::UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept
+    {
+        {
+            LOCK_PROFILES;
+            removeCustomProfiles();
+            // Add new profiles
+            for (const auto& profile : newProfiles)
+            {
+                profiles[profile.name] = profile;
+            }
+            // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
+            auto it = profiles.find(currProfileName);
+            if (it == profiles.end())
+            {
+                currProfileName = DEFAULT_PROFILE;
+                LOG_TRACE("Switched to profile %s", currProfileName.c_str());
+            }
+
+#ifdef  HAVE_MAT_LOGGING
+            // Print combined list of profiles: default + custom
+            LOG_TRACE("Profiles:");
+            size_t i = 0;
+            for (const auto& kv : profiles)
+            {
+                LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
+                          (!kv.first.compare(currProfileName)) ? " [active]" : "");
+                i++;
+            }
+#endif  
+            currRule = 0;
+        }  // Unlock here because updateStates performs its own LOCK_PROFILES
+        updateStates(currNetCost, currPowState);
+    }
+
+	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
+	 {
+        if (profiles.size() == 0)
+        {
+            LOG_TRACE("Loading default profiles...");
+            reset();
+        }
+	 }
 
     /// <summary>
     /// Parse JSON configration describing transmit profiles
@@ -318,36 +316,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         numProfilesParsed = newProfiles.size();
-        {
-            LOCK_PROFILES;
-            removeCustomProfiles();
-            // Add new profiles
-            for (const auto& profile : newProfiles) {
-                profiles[profile.name] = profile;
-            }
-            // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
-            auto it = profiles.find(currProfileName);
-            if (it == profiles.end()) {
-                currProfileName = DEFAULT_PROFILE;
-                LOG_TRACE("Switched to profile %s", currProfileName.c_str());
-            }
-
-#ifdef HAVE_MAT_LOGGING
-            // Print combined list of profiles: default + custom
-            LOG_TRACE("Profiles:");
-            size_t i = 0;
-            for (const auto &kv : profiles) {
-                LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
-                    (!kv.first.compare(currProfileName)) ?
-                    " [active]" : ""
-                );
-                i++;
-            }
-#endif
-
-            currRule = 0;
-        } // Unlock here because updateStates performs its own LOCK_PROFILES
-        updateStates(currNetCost, currPowState);
+        UpdateProfiles(newProfiles);
         LOG_INFO("JSON parsing completed successfully [%d]", numProfilesParsed);
 
 
@@ -364,16 +333,58 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="profiles_json"></param>
     /// <returns></returns>
     bool TransmitProfiles::load(const std::string& profiles_json) {
-        if (!profiles.size()) {
-            LOG_TRACE("Loading default profiles...");
-            reset();
-        }
+        EnsureDefaultProfiles();
         // Check if custom profile is valid
         LOG_TRACE("Loading custom profiles...");
         bool result = (parse(profiles_json) != 0);
         // Dump the current profile to debug log
         dump();
         return result;
+    }
+
+    /// <summary>
+    /// Load customer supplied transmit profiles
+    /// </summary>
+    /// <param name="profiles"></param>
+    /// <returns></returns>
+    bool TransmitProfiles::load(const std::vector<TransmitProfileRules>& profileCandidates) noexcept
+    {
+        EnsureDefaultProfiles();
+        LOG_TRACE("Loading custom profiles...");
+
+        if (profileCandidates.size() > MAX_TRANSMIT_PROFILES)
+        {
+            LOG_ERROR("Exceeded max transmit profiles %d>%d.", profileCandidates.size(), MAX_TRANSMIT_PROFILES);
+            return false;
+        }
+
+        for (const auto& profile : profileCandidates)
+        {
+            const auto ruleCount = profile.rules.size();
+            if (ruleCount > MAX_TRANSMIT_RULES)
+            {
+                LOG_ERROR("Exceeded max transmit rules %d>%d for profile", ruleCount, MAX_TRANSMIT_RULES);
+                return false;
+            }
+            else if (ruleCount == 0)
+            {
+                LOG_ERROR("Profile must have at least one rule");
+                return false;
+            }
+            for (const auto& rule : profile.rules)
+            {
+                if (rule.timers.size() != 3)
+                {
+                    LOG_ERROR("Rule must have three timer values.");
+                    return false;
+                }
+            }
+        }
+
+        UpdateProfiles(profileCandidates);
+
+        dump();
+        return true;
     }
 
     /// <summary>

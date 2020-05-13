@@ -77,7 +77,7 @@ public:
 
         HttpRequest(HttpClient_Android &parent_)
             : m_parent(parent_)
-            , m_id(std::move(parent_.NextIdString()))
+            , m_id(parent_.NextIdString())
         {}
 
         ~HttpRequest() noexcept;
