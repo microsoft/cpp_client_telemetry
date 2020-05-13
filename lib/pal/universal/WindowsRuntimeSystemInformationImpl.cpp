@@ -26,7 +26,7 @@ namespace PAL_NS_BEGIN {
         return std::make_shared<SystemInformationImpl>();
     }
 
-    SystemInformationImpl::SystemInformationImpl()
+    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration)
         : m_info_helper()
     {
         auto version = Package::Current->Id->Version;

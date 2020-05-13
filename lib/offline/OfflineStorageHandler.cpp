@@ -164,7 +164,8 @@ namespace ARIASDK_NS_BEGIN {
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-
+            // This will block on and then take a lock for the duration of this move, and
+            // StoreRecord() will then block until the move completes.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
             size_t totalSaved = 0;
@@ -212,7 +213,6 @@ namespace ARIASDK_NS_BEGIN {
         m_flushPending = false;
     }
 
-    // TODO: [MG] - investigate if StoreRecord is thread-safe if executed simultaneously with Flush
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
         // Don't discard on shutdown because the kill-switch may be temporary.
@@ -242,8 +242,10 @@ namespace ARIASDK_NS_BEGIN {
                     m_isStorageFullNotificationSend = true;
                 }
 #endif
-                // TODO: [MG] - investigate what happens if Flush from memory to disk
-                // is happening concurrently with adding a new in-memory record
+                // During flush, this will block on a mutex while records
+                // are selected and removed from the cache (but will
+                // not block for the subsequent handoff to persistent
+                // storage)
                 m_offlineStorageMemory->StoreRecord(record);
             }
 
