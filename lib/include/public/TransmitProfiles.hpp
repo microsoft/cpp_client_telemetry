@@ -73,7 +73,6 @@ namespace ARIASDK_NS_BEGIN
             netType = NetworkType_Any;
             netSpeed = 0;
             powerState = PowerSource_Any;
-            timers.clear();
         }
 
     } TransmitProfileRule;
