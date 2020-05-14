@@ -18,13 +18,17 @@ using nlohmann::json;
 #include <excpt.h>
 #endif
 
-static set<string, std::greater<string>> defaultProfileNames = {
-    "REAL_TIME",
-    "NEAR_REAL_TIME",
-    "BEST_EFFORT"
+static const char* const defaultRealTimeProfileName = "REAL_TIME";
+static const char* const defaultNearRealTimeProfileName = "NEAR_REAL_TIME";
+static const char* const defaultBestEffortProfileName = "BEST_EFFORT";
+
+static const set<string, std::greater<string>> defaultProfileNames = {
+    string{defaultRealTimeProfileName},
+    string{defaultNearRealTimeProfileName},
+    string{defaultBestEffortProfileName}
 };
 
-static const char* DEFAULT_PROFILE = "REAL_TIME";
+static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
 /// Compile-time map of text fields to struct fields and their types.
@@ -339,7 +343,7 @@ namespace ARIASDK_NS_BEGIN {
     /// Reset transmit profiles to defaults.
     /// </summary>
     void TransmitProfiles::reset() {
-        const TransmitProfileRules realTimeProfile{ std::string{ "REAL_TIME" },
+        const TransmitProfileRules realTimeProfile{ std::string{ defaultRealTimeProfileName },
         {
             { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
             { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {16, 8, 4} },
@@ -354,7 +358,7 @@ namespace ARIASDK_NS_BEGIN {
             { {-1, -1, -1} }
         }};
 
-        const TransmitProfileRules nearRealTimeProfile{ std::string{ "NEAR_REAL_TIME" },
+        const TransmitProfileRules nearRealTimeProfile{ std::string{ defaultNearRealTimeProfileName },
         {
             { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
             { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 24, 12} },
@@ -369,7 +373,7 @@ namespace ARIASDK_NS_BEGIN {
             { {-1, -1, -1} }
         }};
 
-        const TransmitProfileRules bestEffortProfile{ std::string{ "BEST_EFFORT" },
+        const TransmitProfileRules bestEffortProfile{ std::string{ defaultBestEffortProfileName },
         {
             { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
             { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 72, 36} },
