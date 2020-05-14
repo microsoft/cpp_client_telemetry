@@ -34,22 +34,22 @@ protected:
 
     void ValidateTransmitProfileRule(const TransmitProfileRule& rule, const std::vector<int>& expectedTimers)
     {
-        ASSERT_EQ(rule.timers.size(), expectedTimers.size());
-        ASSERT_EQ(rule.timers[0], expectedTimers[0]);
-        ASSERT_EQ(rule.timers[1], expectedTimers[1]);
-        ASSERT_EQ(rule.timers[2], expectedTimers[2]);
+        ValidateTransmitProfileRule(rule, NetworkCost_Any, expectedTimers);
     }
 
     void ValidateTransmitProfileRule(const TransmitProfileRule& rule, NetworkCost expectedNetCost, const std::vector<int>& expectedTimers)
     {
-        ASSERT_EQ(rule.netCost, expectedNetCost);
-        ValidateTransmitProfileRule(rule, expectedTimers);
+        ValidateTransmitProfileRule(rule, expectedNetCost, PowerSource_Any, expectedTimers);
     }
 
     void ValidateTransmitProfileRule(const TransmitProfileRule& rule, NetworkCost expectedNetCost, PowerSource expectedPowerSource, const std::vector<int>& expectedTimers)
     {
+        ASSERT_EQ(rule.netCost, expectedNetCost);
         ASSERT_EQ(rule.powerState, expectedPowerSource);
-        ValidateTransmitProfileRule(rule, expectedNetCost, expectedTimers);
+        ASSERT_EQ(rule.timers.size(), expectedTimers.size());
+        ASSERT_EQ(rule.timers[0], expectedTimers[0]);
+        ASSERT_EQ(rule.timers[1], expectedTimers[1]);
+        ASSERT_EQ(rule.timers[2], expectedTimers[2]);
     }
 };
 
