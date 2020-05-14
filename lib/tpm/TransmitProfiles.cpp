@@ -11,7 +11,6 @@
 
 using namespace MAT;
 using namespace std;
-using nlohmann::json;
 
 #ifdef _WIN32
 #include <windows.h> // for EXCEPTION_ACCESS_VIOLATION
@@ -181,6 +180,7 @@ namespace ARIASDK_NS_BEGIN {
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
 
+        using nlohmann::json;
         try
         {
             json temp = json::parse(profiles_json.c_str());
