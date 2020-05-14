@@ -70,6 +70,18 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         TransmitProfileRule() noexcept = default;
 
+        TransmitProfileRule(std::vector<int>&& timers)
+           : timers(std::move(timers)) { }
+
+        TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , timers(std::move(timers)) { }
+
+        TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , powerState(powerSource)
+           , timers(std::move(timers)) { }
+
     } TransmitProfileRule;
 
     /// <summary>
