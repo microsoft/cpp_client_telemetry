@@ -61,7 +61,7 @@ namespace ARIASDK_NS_BEGIN
         unsigned         netSpeed = 0;                      // reserved for future use
 
         /// <summary>
-        /// A vector on integers that contain per-priority transmission timers.
+        /// A vector of integers that contain per-priority transmission timers.
         /// </summary>
         std::vector<int> timers;                            // per-priority transmission timers
 
@@ -70,13 +70,28 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         TransmitProfileRule() noexcept = default;
 
+        /// <summary>
+        /// TransmitProfileRule constructor taking a collection of timers.
+        /// </summary>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
         TransmitProfileRule(std::vector<int>&& timers)
            : timers(std::move(timers)) { }
 
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
         TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers)
            : netCost(networkCost)
            , timers(std::move(timers)) { }
 
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost, PowerSource, and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="powerSource">The power state, as one of the MAT::PowerSource enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
         TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers)
            : netCost(networkCost)
            , powerState(powerSource)
