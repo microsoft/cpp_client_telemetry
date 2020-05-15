@@ -6,11 +6,13 @@
 
 #include "Enums.hpp"
 
-#include <cstdint>
-#include <vector>
-#include <string>
-#include <map>
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 
 /// @cond INTERNAL_DOCS
 
@@ -32,6 +34,11 @@ namespace ARIASDK_NS_BEGIN
     /// <b>Note:</b> The size must match <i>EventPriority_MAX-EventPriority_MIN+1</i> in ILogger.hpp.
     /// </summary>
     static const size_t MAX_TIMERS_SIZE = 3;
+
+    /// <summary>
+    /// Type alias for the array of timer values set by getTimers()
+    /// </summary>
+    using TimerArray = std::array<int, 2>;
 
     /// <summary>
     /// The TransmitProfileRule structure contains transmission timer values in particular device states (net+power).
@@ -149,7 +156,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// A boolean value that indicates whether the timer was updated.
         /// </summary>
-        static bool         isTimerUpdated;
+        static std::atomic<bool> isTimerUpdated;
 
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
@@ -224,7 +231,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the current priority timers.
         /// </summary>
         /// <param name="out">A reference to a vector of integers that will contain the current timers.</param>
-        static void getTimers(std::vector<int>& out);
+        static void getTimers(TimerArray& out);
 
         /// <summary>
         /// Gets the name of the current transmit profile.
