@@ -14,7 +14,8 @@
 #include "DeviceStateHandler.hpp"
 #include "pal/TaskDispatcher.hpp"
 
-#include <array>
+#include "TransmitProfiles.hpp"
+
 #include <atomic>
 #include <cstdint>
 #include <set>
@@ -145,7 +146,7 @@ namespace ARIASDK_NS_BEGIN {
 
         int                              m_timerdelay;
         EventLatency                     m_runningLatency;
-        std::array<int, 2>               m_timers;
+        TimerArray                       m_timers;
 
     public:
         RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };
