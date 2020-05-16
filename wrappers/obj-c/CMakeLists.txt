@@ -41,7 +41,7 @@ foreach(dir ${dirs})
     message(STATUS "dir='${dir}'")
 endforeach()
 
-set(PLATFORM_FILES main.mm ODWLogManager.mm ODWLogger.mm ODWEventProperties.mm ODWLogConfiguration.mm)
+set(PLATFORM_FILES main.mm ODWLogManager.mm ODWLogger.mm ODWEventProperties.mm ODWLogConfiguration.mm ODWSemanticContext.mm)
 add_executable( sample ${PLATFORM_FILES} )
 target_link_libraries(sample ${MATSDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
 

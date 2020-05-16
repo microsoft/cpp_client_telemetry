@@ -5,7 +5,6 @@
 #include "Version.hpp"
 
 #include "Enums.hpp"
-#include "ctmacros.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -36,14 +35,8 @@ namespace ARIASDK_NS_BEGIN
 
     /// <summary>
     /// The TransmitProfileRule structure contains transmission timer values in particular device states (net+power).
-    /// Avoid using this if there is no guarantee that STL runtime used by dynamic library is matching.
-    /// See: https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4251
     /// </summary>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
-    struct MATSDK_LIBABI TransmitProfileRule {
+    typedef struct TransmitProfileRule {
 
         /// <summary>
         /// The network cost, as one of the MAT::NetworkCost enumeration values.
@@ -82,12 +75,13 @@ namespace ARIASDK_NS_BEGIN
             powerState = PowerSource_Any;
             timers.clear();
         }
-    };
+
+    } TransmitProfileRule;
 
     /// <summary>
     /// A named profile that aggregates a set of transmission rules.
     /// </summary>
-    struct MATSDK_LIBABI TransmitProfileRules {
+    typedef struct TransmitProfileRules {
 
         /// <summary>
         /// A string that contains the profile name.
@@ -98,12 +92,12 @@ namespace ARIASDK_NS_BEGIN
         /// A vector that contains a set of transmit profile rules.
         /// </summary>
         std::vector<TransmitProfileRule> rules; // Transmit profile rules
-    };
+    } TransmitProfileRules;
 
     /// <summary>
     /// The TransmitProfiles class manages transmit profiles.
     /// </summary>
-    class MATSDK_LIBABI TransmitProfiles {
+    class TransmitProfiles {
 
     protected:
         /// <summary>
@@ -136,9 +130,9 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         static bool         isTimerUpdated;
 
-        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles);
+        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
-        static void EnsureDefaultProfiles();
+        static void EnsureDefaultProfiles() noexcept;
 
     public:
 
@@ -184,7 +178,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="profiles">A map of the caller-supplied profiles.</param>
         /// <returns>A boolean value that indicates success (true) if all transmit profiles are valid, false otherwise.</returns>
-        static bool load(const std::vector<TransmitProfileRules>& profiles);
+        static bool load(const std::vector<TransmitProfileRules>& profiles) noexcept;
 
         /// <summary>
         /// Resets transmit profiles to default values.
@@ -246,9 +240,6 @@ namespace ARIASDK_NS_BEGIN
         static bool updateStates(NetworkCost netCost, PowerSource powState);
 
     };
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 } ARIASDK_NS_END
 
