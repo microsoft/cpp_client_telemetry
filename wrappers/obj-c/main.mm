@@ -38,7 +38,9 @@ int main(int argc, char** argv){
 
         [logger2 logEventWithEventProperties: event2];
 
-        [[logger2 getSemanticContext] setAppId:@"MyAppId"];
+        [[logger2 semanticContext] setAppId:@"MyAppId"];
+        [[logger2 semanticContext] setUserId:@"SampleUserId"];
+        [[logger2 semanticContext] setUserAdvertisingId:@"SampleUserAdvertisingId"];
         ODWEventProperties* event3 = [[ODWEventProperties alloc] initWithName:@"SemanticContext_ObjC_Event"];
         [logger2 logEventWithEventProperties: event3];
 
