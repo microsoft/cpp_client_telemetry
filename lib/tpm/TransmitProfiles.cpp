@@ -174,7 +174,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    void TransmitProfiles::UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles)
+    void TransmitProfiles::UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept
     {
         {
             LOCK_PROFILES;
@@ -208,7 +208,7 @@ namespace ARIASDK_NS_BEGIN {
         updateStates(currNetCost, currPowState);
     }
 
-	 void TransmitProfiles::EnsureDefaultProfiles()
+	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
         if (profiles.size() == 0)
         {
@@ -347,7 +347,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     /// <param name="profiles"></param>
     /// <returns></returns>
-    bool TransmitProfiles::load(const std::vector<TransmitProfileRules>& profileCandidates)
+    bool TransmitProfiles::load(const std::vector<TransmitProfileRules>& profileCandidates) noexcept
     {
         EnsureDefaultProfiles();
         LOG_TRACE("Loading custom profiles...");
