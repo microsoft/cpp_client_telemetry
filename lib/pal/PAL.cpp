@@ -425,7 +425,9 @@ namespace PAL_NS_BEGIN {
             // Get NetworkInfo common fields
             context->SetNetworkProvider(m_NetworkInformation->GetNetworkProvider());
             context->SetNetworkCost(m_NetworkInformation->GetNetworkCost());
+#ifndef _WIN32
             context->SetNetworkType(m_NetworkInformation->GetNetworkType());
+#endif
         }
     }
 
