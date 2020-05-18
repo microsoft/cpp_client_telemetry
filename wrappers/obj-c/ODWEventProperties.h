@@ -39,6 +39,35 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
 };
 
 /*!
+ @enum ODWPDT
+ @brief The <b>ODWPDT</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
+ @remark Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
+ */
+typedef NS_ENUM(long, ODWPDT)
+{
+    ODWPDTBrowsingHistory = 0x0000000000000002u,
+    ODWPDTDeviceConnectivityAndConfiguration = 0x0000000000000800u,
+    ODWPDTInkingTypingAndSpeechUtterance = 0x0000000000020000u,
+    ODWPDTProductAndServicePerformance = 0x0000000001000000u,
+    ODWPDTProductAndServiceUsage = 0x0000000002000000u,
+    ODWPDTSoftwareSetupAndInventory = 0x0000000080000000u
+};
+
+/*!
+ @enum ODWPDL
+ @brief The <b>ODWPDL</b> enumeration contains a set of values that indicate the Privacy Diagnostic Level that an event may be classified as.
+ @remarks By default, in the absence of explicit markup, an event is considered ODWPDLOptionalDiagnosticData. 
+ @remarks Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
+ */
+typedef NS_ENUM(long, ODWPDL)
+{
+    ODWPDLRequiredDiagnosticData = 0x0000000000000001u,
+    ODWPDLOptionalDiagnosticData = 0x0000000000000002u,
+    ODWPDLRequiredServiceData = 0x0000000000000004u,
+    ODWPDLRequiredServiceDataForEssentialServices = 0x0000000000000008u
+};
+
+/*!
  The <b>ODWEventProperties</b> class represents an event's properties.
 */
 @interface ODWEventProperties : NSObject
