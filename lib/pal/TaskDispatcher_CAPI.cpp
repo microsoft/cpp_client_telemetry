@@ -126,7 +126,7 @@ namespace PAL_NS_BEGIN {
     }
 
     // TODO: currently shutdown wait on task cancellation is not implemented for C API Task Dispatcher
-    bool TaskDispatcher_CAPI::Cancel(Task* task, bool)
+    bool TaskDispatcher_CAPI::Cancel(Task* task, uint64_t)
     {
         std::string taskId;
 

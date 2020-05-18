@@ -12,7 +12,7 @@ namespace PAL_NS_BEGIN {
         TaskDispatcher_CAPI(task_dispatcher_queue_fn_t queueFn, task_dispatcher_cancel_fn_t cancelFn, task_dispatcher_join_fn_t joinFn);
         void Join() override;
         void Queue(MAT::Task* task) override;
-        bool Cancel(MAT::Task* task, bool wait_for_cancel = false) override;
+        bool Cancel(MAT::Task* task, uint64_t waitTime = 0) override;
 
     private:
         task_dispatcher_queue_fn_t m_queueFn;
