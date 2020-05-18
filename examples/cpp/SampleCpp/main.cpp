@@ -363,6 +363,7 @@ int main()
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i); 
         event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i+1) );
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, (int64_t)(i+1) );
         event.SetLatency(latency); 
         logger->LogEvent(event);
 
@@ -373,6 +374,7 @@ int main()
                 { "secret", 5.6872 },
                 { "seq", (uint64_t)i },
                 { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
+                { COMMONFIELDS_EVENT_PRIVLEVEL, (int64_t)(i + 1) }
             });
         logger->LogEvent(event2);
     }

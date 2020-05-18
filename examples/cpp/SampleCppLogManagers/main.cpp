@@ -55,6 +55,7 @@ void twoModules_LogManagerTest()
     event2.SetProperty("secret", (double)5.6872);
     event2.SetProperty("seq", (uint64_t)4);
     event2.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    event2.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, PDL_RequiredDiagnosticData);
 
     loggerB->LogEvent(event2);
 }
@@ -106,6 +107,7 @@ void provider_LogManagerTest()
     l2a1p.SetProperty("secret", (double)1.21872);
     l2a1p.SetProperty("seq", (uint64_t)4);
     l2a1p.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    l2a1p.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, PDL_OptionalDiagnosticData);
     l2a->LogEvent(l2a1p);
 
     printf("Logging event through direct logger, source 1 ...\n");
