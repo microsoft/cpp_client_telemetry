@@ -59,12 +59,12 @@ typedef NS_ENUM(long, ODWPDT)
  @remarks By default, in the absence of explicit markup, an event is considered ODWPDLOptionalDiagnosticData. 
  @remarks Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
  */
-typedef NS_ENUM(long, ODWPDL)
+typedef NS_ENUM(NSInteger, ODWPDL)
 {
-    ODWPDLRequiredDiagnosticData = 0x0000000000000001u,
-    ODWPDLOptionalDiagnosticData = 0x0000000000000002u,
-    ODWPDLRequiredServiceData = 0x0000000000000004u,
-    ODWPDLRequiredServiceDataForEssentialServices = 0x0000000000000008u
+    ODWPDLRequiredDiagnosticData = 1,
+    ODWPDLOptionalDiagnosticData = 2,
+    ODWPDLRequiredServiceData = 110,
+    ODWPDLRequiredServiceDataForEssentialServices = 120
 };
 
 /*!
