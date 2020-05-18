@@ -245,7 +245,6 @@ namespace PAL_NS_BEGIN {
                     // Item wasn't cancelled before it could be executed
                     if (self->m_itemInProgress != nullptr) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
-                        PAL::sleep(200);
                         (*item)();
                         self->m_itemInProgress = nullptr;
                     }
