@@ -206,9 +206,4 @@ using namespace MAT;
     }
 }
 
--(ODWSemanticContext*) semanticContext
-{
-    return _semanticContext;
-}
-
 @end
