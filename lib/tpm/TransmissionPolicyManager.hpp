@@ -20,6 +20,14 @@
 #include <cstdint>
 #include <set>
 
+// This macro allows to specify max upload task cancellation wait time at compile-time,
+// addressing the case when a task that we are trying to cancel is currently running.
+// Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
+// Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
+#ifndef UPLOAD_TASK_CANCEL_TIME_MS
+#define UPLOAD_TASK_CANCEL_TIME_MS 500
+#endif
+
 namespace ARIASDK_NS_BEGIN {
 
     class TransmissionPolicyManager
@@ -120,11 +128,12 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         bool cancelUploadTask()
         {
-            bool result = m_scheduledUpload.Cancel(/*wait_for_cancel*/ m_scheduledUploadAborted);
+            uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
+            bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
 
             // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
             //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
-            //       ensure those tasks are canceled when the log manager is destroyed.
+            //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
             if (result)
             {
                 m_isUploadScheduled.exchange(false);

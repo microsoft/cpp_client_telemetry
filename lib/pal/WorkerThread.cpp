@@ -7,14 +7,6 @@
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
 #define MAX_FUTURE_DELTA_MS (60 * 60 * 1000)
 
-// This macro allows to specify max upload task cancellation wait time at compile-time,
-// addressing the case when a task that we are trying to cancel is currently running.
-// Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
-// Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
-#ifndef TASK_CANCEL_TIME_MS
-#define TASK_CANCEL_TIME_MS      500
-#endif
-
 namespace PAL_NS_BEGIN {
 
     class WorkerThreadShutdownItem : public Task
@@ -125,7 +117,7 @@ namespace PAL_NS_BEGIN {
         // - TASK_COMPLETED - task found and ran to completion
         // - TASK_RUNNING   - task is still running (insufficient waitTime)
         //
-        bool Cancel(MAT::Task* item, bool wait_for_cancel) override
+        bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
             LOCKGUARD(m_lock);
             if (item == nullptr)
@@ -138,7 +130,7 @@ namespace PAL_NS_BEGIN {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_hThread.get_id() != std::this_thread::get_id())
                 {
-                    if (wait_for_cancel && m_execution_mutex.try_lock_for(std::chrono::milliseconds(TASK_CANCEL_TIME_MS)))
+                    if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
                     {
                         m_itemInProgress = nullptr;
                         m_execution_mutex.unlock();
@@ -249,9 +241,9 @@ namespace PAL_NS_BEGIN {
                         self->m_itemInProgress = nullptr;
                     }
 
-                    if (item.get()) {
+                    if (item) {
                         item->Type = MAT::Task::Done;
-                        item.reset();
+                        item = nullptr;
                     }
                 }
             }

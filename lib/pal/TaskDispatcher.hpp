@@ -61,13 +61,13 @@ namespace PAL_NS_BEGIN {
     {
     public:
         std::mutex m_mutex;
-        MAT::Task* m_task;
-        MAT::ITaskDispatcher* m_taskDispatcher;
+        MAT::Task* m_task = nullptr;
+        MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
 
         DeferredCallbackHandle(MAT::Task* task, MAT::ITaskDispatcher* taskDispatcher) :
             m_task(task),
             m_taskDispatcher(taskDispatcher) { };
-        DeferredCallbackHandle() : m_task(nullptr), m_taskDispatcher(nullptr) {};
+        DeferredCallbackHandle() {};
         DeferredCallbackHandle(DeferredCallbackHandle&& h)
         {
             *this = std::move(h);
@@ -76,7 +76,7 @@ namespace PAL_NS_BEGIN {
         DeferredCallbackHandle& operator=(DeferredCallbackHandle&& other)
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            std::lock_guard<std::mutex> lock2(other.m_mutex);
+            std::lock_guard<std::mutex> otherLock(other.m_mutex);
             m_task = other.m_task;
             other.m_task = nullptr;
             m_taskDispatcher = other.m_taskDispatcher;
@@ -84,12 +84,12 @@ namespace PAL_NS_BEGIN {
             return *this;
         }
 
-        bool Cancel(bool wait_for_cancel = false)
+        bool Cancel(uint64_t waitTime = 0)
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             if (m_task)
             {
-                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, wait_for_cancel));
+                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, waitTime));
                 return result;
             }
             else {

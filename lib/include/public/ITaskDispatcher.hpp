@@ -118,7 +118,7 @@ namespace ARIASDK_NS_BEGIN
         /// <param name="task">Task to be cancelled</param>
         /// <param name="waitTime">Amount of time to wait for if the task is currently executing</param>
         /// <returns>True if successfully cancelled, else false</returns>
-        virtual bool Cancel(Task* task, bool wait_for_cancel = false) = 0;
+        virtual bool Cancel(Task* task, uint64_t waitTime = 0) = 0;
     };
 
     /// @endcond

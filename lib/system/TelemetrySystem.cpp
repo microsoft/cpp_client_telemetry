@@ -81,8 +81,8 @@ namespace ARIASDK_NS_BEGIN {
 
             // cancel all pending and force-finish all uploads
             stopTimes[1] = GetUptimeMs();
-            // TODO: should this still pause, since the TPM now has abort logic in addition to pause logic?
-            //       it doesn't seem particularly useful
+            // TODO: Should this still pause, since the TPM now has abort logic in addition to pause logic?
+            // hcm.cancelAllRequests is also part of pause, so the logic is definitely redundant. Issue 387
             onPause();
             hcm.cancelAllRequests();
             tpm.finishAllUploads();
