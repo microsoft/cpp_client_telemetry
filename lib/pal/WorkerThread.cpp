@@ -96,7 +96,7 @@ namespace PAL_NS_BEGIN {
         //
         // - acquire the m_lock to prevent a new task from getting scheduled.
         //   This may block the scheduling of a new task in queue for up to
-        //   TASK_CANCEL_TIME_MS in case if the task being canceled
+        //   waitTime in case if the task being canceled
         //   is the one being executed right now.
         //
         // - if currently executing task is the one we are trying to cancel,

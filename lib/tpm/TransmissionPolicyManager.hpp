@@ -25,7 +25,7 @@
 // Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
 // Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
 #ifndef UPLOAD_TASK_CANCEL_TIME_MS
-#define UPLOAD_TASK_CANCEL_TIME_MS 500
+#define UPLOAD_TASK_CANCEL_TIME_MS      500
 #endif
 
 namespace ARIASDK_NS_BEGIN {
