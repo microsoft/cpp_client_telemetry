@@ -255,7 +255,7 @@ namespace ARIASDK_NS_BEGIN {
     // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
-        // TODO: This pause appears to server no practical purpose?
+        // TODO: This pause appears to server no practical purpose? Issue 387
         pauseAllUploads();
         allUploadsFinished();   // calls stats.onStop >> this->flushTaskDispatcher;
     }
