@@ -3,7 +3,7 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-std::string JStringToStdString(JNIEnv* env, jstring jstr) {
+std::string JStringToStdString(JNIEnv* env, const jstring& jstr) {
     size_t jstr_length = env->GetStringUTFLength(jstr);
     auto jstr_utf = env->GetStringUTFChars(jstr, nullptr);
     std::string str(jstr_utf, jstr_utf + jstr_length);
@@ -11,7 +11,7 @@ std::string JStringToStdString(JNIEnv* env, jstring jstr) {
     return str;
 }
 
-EventProperty GetEventProperty(JNIEnv* env, jobject jEventProperty) {
+EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
     jclass jEventPropertyClass = env->GetObjectClass(jEventProperty);
     jmethodID getEventPropertyValueMethodID = env->GetMethodID(jEventPropertyClass, "getEventPropertyValue", "()Lcom/microsoft/applications/events/EventPropertyValue;");
     jobject jEventPropertyValue = env->CallObjectMethod(jEventProperty, getEventPropertyValueMethodID);
@@ -136,6 +136,30 @@ EventProperty GetEventProperty(JNIEnv* env, jobject jEventProperty) {
     env->DeleteLocalRef(jEventPropertyClass);
 
     return (eventProperty);
+}
+
+EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, const jstring& jstrEventType, const jint& jEventLatency,
+        const jint& jEventPersistence, const jdouble& jEventPopSample, const jlong& jEventPolicyBitflags, const jlong& jTimestampInMillis,
+        const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
+    EventProperties eventProperties;
+    eventProperties.SetName(JStringToStdString(env, jstrEventName));
+    eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
+    eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
+    eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
+    eventProperties.SetPolicyBitFlags(static_cast<uint64_t>(jEventPolicyBitflags));
+    eventProperties.SetTimestamp(static_cast<int64_t>(jTimestampInMillis));
+
+    for(int i = 0; i < env->GetArrayLength(jEventPropertyStringKeyArray); ++i) {
+        auto jStringKey = static_cast<jstring>(env->GetObjectArrayElement(jEventPropertyStringKeyArray, i));
+        auto jEventProperty = static_cast<jobject>(env->GetObjectArrayElement(jEventPropertyValueArray, i));
+        auto propValue = GetEventProperty(env, jEventProperty);
+        eventProperties.SetProperty(JStringToStdString(env, jStringKey), propValue);
+        env->DeleteLocalRef(jStringKey);
+        env->DeleteLocalRef(jEventProperty);
+    }
+
+    return eventProperties;
 }
 
 } ARIASDK_NS_END

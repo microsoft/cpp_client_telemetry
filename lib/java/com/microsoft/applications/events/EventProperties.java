@@ -100,8 +100,6 @@ public class EventProperties {
         mStorage.assignProperties(properties);
     }
 
-    //TODO : Update needed
-
     private native boolean nativeIsEventNameValid(String name);
 
     /**
