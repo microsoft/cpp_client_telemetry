@@ -5,7 +5,7 @@ using namespace MAT;
 
 extern "C"
 {
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_Logger_getSemanticContext(
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_Logger_nativeGetSemanticContext(
         JNIEnv* env,
         jclass /* this */,
         jlong nativeLoggerPtr) {
@@ -108,6 +108,34 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeSetCo
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     auto name = JStringToStdString(env, jstrName);
     logger->SetContext(name, GetEventProperty(env, jEventProperty));
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeSetParentContext(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jlong nativeSemanticContextPtr) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto semanticContext = reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr);
+    logger->SetParentContext(semanticContext);
+}
+
+JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_EventProperties_nativeIsEventNameValid(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrName) {
+    auto name = JStringToStdString(env, jstrName);
+    EventProperties properties;
+    return properties.SetName(name);
+}
+
+JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_EventProperties_nativeIsTypeValid(
+        JNIEnv* env,
+        jclass /* this */,
+        jstring jstrRecordType) {
+    auto recordType = JStringToStdString(env, jstrRecordType);
+    EventProperties properties;
+    return properties.SetName(recordType);
 }
 
 };

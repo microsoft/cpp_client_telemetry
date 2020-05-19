@@ -5,88 +5,98 @@ using namespace MAT;
 
 extern "C"
 {
-
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetAppExperimentETag(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetAppExperimentETag(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jstring jstrAppExperimentETag) {
     auto AppExperimentETag = JStringToStdString(env, jstrAppExperimentETag);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetAppExperimentETag(AppExperimentETag);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetAppExperimentETag(AppExperimentETag);
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetEventExperimentIds(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetEventExperimentIds(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jstring jstrEventName,
         jstring jstrExperimentIds) {
     auto eventName = JStringToStdString(env, jstrEventName);
     auto experimentIds = JStringToStdString(env, jstrExperimentIds);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetEventExperimentIds(eventName, experimentIds);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetEventExperimentIds(eventName, experimentIds);
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeClearExperimentIds(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeClearExperimentIds(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr) {
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->ClearExperimentIds();
+        jlong nativeSemanticContextPtr) {
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->ClearExperimentIds();
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetNetworkCost(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetNetworkCost(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jint networkCost) {
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetNetworkCost(static_cast<NetworkCost>(networkCost));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetNetworkCost(static_cast<NetworkCost>(networkCost));
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetNetworkType(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetNetworkType(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jint networkType) {
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetNetworkType(static_cast<NetworkType>(networkType));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetNetworkType(static_cast<NetworkType>(networkType));
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetUserId(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetUserId(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jstring jstrUserId,
         jint PiiKind_Identity) {
     auto userId = JStringToStdString(env, jstrUserId);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetUserId(userId, static_cast<PiiKind>(PiiKind_Identity));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetUserId(userId, static_cast<PiiKind>(PiiKind_Identity));
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetCommonField(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCommonFieldString(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
+        jstring jstrName,
+        jstring jstrValue) {
+    auto name = JStringToStdString(env, jstrName);
+    auto value = JStringToStdString(env, jstrValue);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCommonField(name, value);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCommonField(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong nativeSemanticContextPtr,
         jstring jstrName,
         jobject jEventProperty) {
     auto name = JStringToStdString(env, jstrName);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetCommonField(name, GetEventProperty(env, jEventProperty));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCommonField(name, GetEventProperty(env, jEventProperty));
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetCustomField(
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCustomField(
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jstring jstrName,
         jobject jEventProperty) {
     auto name = JStringToStdString(env, jstrName);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetCustomField(name, GetEventProperty(env, jEventProperty));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCustomField(name, GetEventProperty(env, jEventProperty));
 }
 
-JNIEXPORT void JNICALL Java_com_microsoft_applications_events_ISemanticContext_nativeSetTicket (
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetTicket (
         JNIEnv* env,
         jobject /* this */,
-        jlong nativeISemanticContextPtr,
+        jlong nativeSemanticContextPtr,
         jint ticketType,
         jstring jstrTicketValue) {
     auto ticketValue = JStringToStdString(env, jstrTicketValue);
-    reinterpret_cast<ISemanticContext*>(nativeISemanticContextPtr)->SetTicket(static_cast<TicketType>(ticketType), ticketValue);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetTicket(static_cast<TicketType>(ticketType), ticketValue);
 }
 
 }

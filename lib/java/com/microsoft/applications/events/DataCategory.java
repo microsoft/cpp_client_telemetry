@@ -1,9 +1,9 @@
 package com.microsoft.applications.events;
 
 public enum DataCategory {
-    DataCategory_PartC(0), //This is default transmission mode
-    DataCategory_PartB(1),
-    DataCategory_MAX(2);
+    PartC(0), //This is default transmission mode
+    PartB(1),
+    MAX(2);
 
     private final int m_value;
 

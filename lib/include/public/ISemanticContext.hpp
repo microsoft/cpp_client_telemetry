@@ -51,7 +51,7 @@ namespace ARIASDK_NS_BEGIN
         /// Set the application's experiment IDs information of telemetry event.
         /// The experiment IDs information will be applied to all events unless it is overwritten by that set via SetEventExperimentIds  
         /// </summary>
-        /// <param name="appVersion">list of IDs of experimentations into which the application is enlisted</param>
+        /// <param name="appExperimentIds">list of IDs of experimentations into which the application is enlisted</param>
         DECLARE_COMMONFIELD(AppExperimentIds, COMMONFIELDS_APP_EXPERIMENTIDS);
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Set the application experimentation impression id information of telemetry event.
         /// </summary>
-        /// <param name="appExperimentIds">List of expementation IDs which are app/platform specific</param>
+        /// <param name="appExperimentImpressionId">List of expementation IDs which are app/platform specific</param>
         DECLARE_COMMONFIELD(AppExperimentImpressionId, COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID);
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// Set the system name context information of telemetry event.
         /// </summary>
-        /// <param name="osName">The system anme, retrieved programmatically where possible and is app/platform specific</param>
+        /// <param name="osName">The system name, retrieved programmatically where possible and is app/platform specific</param>
         DECLARE_COMMONFIELD(OsName, COMMONFIELDS_OS_NAME);
 
         /// <summary>

@@ -1,6 +1,6 @@
 package com.microsoft.applications.events;
 
-public class EventPropertyStringValue extends EventPropertyValue{
+class EventPropertyStringValue extends EventPropertyValue{
     private String m_value;
 
     public EventPropertyStringValue(final String value) {
@@ -10,6 +10,7 @@ public class EventPropertyStringValue extends EventPropertyValue{
         m_value = value;
     }
 
+    @Override
     public String getString() {
         return m_value;
     }

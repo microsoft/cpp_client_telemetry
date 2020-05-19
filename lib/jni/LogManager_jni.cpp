@@ -15,7 +15,7 @@ LOGMANAGER_INSTANCE
 extern "C"
 {
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_initalizeWithoutTenantToken(
+JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_initializeWithoutTenantToken(
         JNIEnv* /* env */,
         jclass /* this */) {
     ILogger* logger = Microsoft::Applications::Events::LogManager::Initialize();
@@ -26,11 +26,6 @@ JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_initia
         JNIEnv* env,
         jclass /* this */,
         jstring jTenantToken) {
-    //size_t jTenantToken_length = env->GetStringUTFLength(jTenantToken);
-    //auto jTenantToken_utf = env->GetStringUTFChars(jTenantToken, nullptr);
-    //std::string tenantToken(jTenantToken_utf, jTenantToken_utf + jTenantToken_length);
-    //env->ReleaseStringUTFChars(jTenantToken, jTenantToken_utf);
-
     auto tenantToken = JStringToStdString(env, jTenantToken);
     ILogger* logger = Microsoft::Applications::Events::LogManager::Initialize(tenantToken);
     return reinterpret_cast<jlong>(logger);
@@ -74,14 +69,14 @@ JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_setIntT
             static_cast<TransmitProfile>(jProfile)));
 }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_setTransmitProfile(
+JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_setTransmitProfileString(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrProfile) {
     return static_cast<jint>(Microsoft::Applications::Events::LogManager::SetTransmitProfile(JStringToStdString(env, jstrProfile)));
 }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_loadTransmitProfiles(
+JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_loadTransmitProfilesString(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrProfilesJson) {

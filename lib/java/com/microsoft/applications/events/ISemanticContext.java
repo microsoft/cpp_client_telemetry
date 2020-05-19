@@ -1,26 +1,42 @@
 package com.microsoft.applications.events;
 
-public class ISemanticContext {
-
-    private final long m_nativeISemanticContextPtr;
+public interface ISemanticContext {
 
     /**
-     * Construct java ISemanticContext based on the native ISemanticContext pointer to help the jni method calls.
-     * No consumer of 1DS sdk should have a need to call this constructor.
+     * Set the application identifier context information of telemetry event.
      *
-     * @param nativeISemanticContextPtr
+     * @param appId Id that uniquely identifies the user-facing application from which this event originated
      */
-    ISemanticContext(final long nativeISemanticContextPtr) {
-        m_nativeISemanticContextPtr = nativeISemanticContextPtr;
-    }
+    public void setAppId(String appId);
 
-    private native void nativeSetAppExperimentETag(long nativeISemanticContextPtr, String appExperimentETag);
+    /**
+     * Set the application name context information of telemetry event.
+     *
+     * @param appName Application Name
+     */
+    public void setAppName(String appName);
 
-    /// <summary>
-    /// Set the application version context information of telemetry event.
-    /// Removes previously stored experiment ids set by SetAppExperimentIds.
-    /// </summary>
-    /// <param name="appVersion">ETAG which is a hash of the set of experimentations into which the application is enlisted</param>
+    /**
+     * Set the application version context information of telemetry event.
+     *
+     * @param appVersion Version of the application, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setAppVersion(String appVersion);
+
+    /**
+     * Set the application language context information of telemetry event.
+     *
+     * @param appLanguage Application Language
+     */
+    public void setAppLanguage(String appLanguage);
+
+    /**
+     * Set the application's experiment IDs information of telemetry event.
+     * The experiment IDs information will be applied to all events unless it is overwritten by that set via SetEventExperimentIds
+     *
+     * @param appExperimentIds list of IDs of experiments into which the application is enlisted
+     */
+    public void setAppExperimentIds(String appExperimentIds);
 
     /**
      * Set the application version context information of telemetry event.
@@ -28,14 +44,14 @@ public class ISemanticContext {
      *
      * @param appExperimentETag
      */
-    public void setAppExperimentETag(final String appExperimentETag) {
-        if (appExperimentETag == null || appExperimentETag.trim().isEmpty())
-            throw new IllegalArgumentException("appExperimentETag is null or empty");
+    public void setAppExperimentETag(final String appExperimentETag);
 
-        nativeSetAppExperimentETag(m_nativeISemanticContextPtr, appExperimentETag);
-    }
-
-    private native void nativeSetEventExperimentIds(long nativeISemanticContextPtr, String eventName, String experimentIds);
+    /**
+     * Set the application experimentation impression id information of telemetry event.
+     *
+     * @param appExperimentImpressionId List of experiment IDs which are app/platform specific
+     */
+    public void setAppExperimentImpressionId(String appExperimentImpressionId);
 
     /**
      * Set the experiment IDs information of the specified telemetry event.
@@ -43,111 +59,148 @@ public class ISemanticContext {
      * @param eventName
      * @param experimentIds
      */
-    public void setEventExperimentIds(final String eventName, final String experimentIds) {
-        if (eventName == null || eventName.trim().isEmpty())
-            throw new IllegalArgumentException("eventName is null or empty");
-        if (experimentIds == null || experimentIds.trim().isEmpty())
-            throw new IllegalArgumentException("experimentIds is null or empty");
-
-        nativeSetEventExperimentIds(m_nativeISemanticContextPtr, eventName, experimentIds);
-    }
-
-    private native void nativeClearExperimentIds(long nativeISemanticContextPtr);
+    public void setEventExperimentIds(final String eventName, final String experimentIds);
 
     /**
      * Clear the experiment IDs information.
      */
-    public void clearExperimentIds() {
-        nativeClearExperimentIds(m_nativeISemanticContextPtr);
-    }
+    public void clearExperimentIds();
 
-    private native void nativeSetNetworkCost(long nativeISemanticContextPtr, int networkCost);
+    /**
+     * Set the device identifier context information of telemetry event.
+     *
+     * @param deviceId A unique device identifier, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setDeviceId(String deviceId);
+
+    /**
+     * Set the device identifier context information of telemetry event.
+     *
+     * @param deviceMake The manufacturer of the device, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setDeviceMake(String deviceMake);
+
+    /**
+     * Set the device model context information of telemetry event.
+     *
+     * @param deviceModel The model of the device, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setDeviceModel(String deviceModel);
+
+    /**
+     * Set the device class context information of telemetry event.
+     *
+     * @param deviceClass Device class.
+     */
+    public void setDeviceClass(String deviceClass);
 
     /**
      * Set the network cost context information of telemetry event.
      * @param networkCost The cost of using data traffic on the current network
      */
-    public void setNetworkCost(final NetworkCost networkCost) {
-        if (networkCost == null)
-            throw new IllegalArgumentException("networkCost is null");
+    public void setNetworkCost(final NetworkCost networkCost);
 
-        nativeSetNetworkCost(m_nativeISemanticContextPtr, networkCost.getValue());
-    }
-
-    private native void nativeSetNetworkType(long nativeISemanticContextPtr, int networkType);
+    /**
+     * Set the network provider context information of telemetry event.
+     *
+     * @param networkProvider The provider used to connect to the current network, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setNetworkProvider(String networkProvider);
 
     /**
      * Set the network type context information of telemetry event.
      * @param networkType The type of the current network
      */
-    public void SetNetworkType(final NetworkType networkType) {
-        if (networkType == null)
-            throw new IllegalArgumentException("networkType is null");
+    public void SetNetworkType(final NetworkType networkType);
 
-        nativeSetNetworkType(m_nativeISemanticContextPtr, networkType.getValue());
-    }
+    /**
+     * Set the system name context information of telemetry event.
+     *
+     * @param osName The system name, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setOsName(String osName);
 
+    /**
+     * Set the system version context information of telemetry event.
+     *
+     * @param osVersion The system version, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setOsVersion(String osVersion);
 
-    private native void nativeSetUserId(long nativeISemanticContextPtr, String userId, int PiiKind_Identity);
+    /**
+     * Set the system build number context information of telemetry event.
+     *
+     * @param osBuild The system build, retrieved programmatically where possible and is app/platform specific
+     */
+    public void setOsBuild(String osBuild);
 
     /**
      * Set the userId context information of telemetry event.
      * @param userId Identifier that uniquely identifies a user in the application-specific user namespace
      * @param piiKind_Identity PIIKind of the userId. Default to PiiKind_Identity, set it to PiiKind_None to denote it as non-PII.
      */
-    public void setUserId(final String userId, final PiiKind piiKind_Identity) {
-        if (userId == null || userId.trim().isEmpty())
-            throw new IllegalArgumentException("userId is null or empty");
-        if (piiKind_Identity == null)
-            throw new IllegalArgumentException("piiKind_Identity is null");
+    public void setUserId(final String userId, final PiiKind piiKind_Identity);
 
-        nativeSetUserId(m_nativeISemanticContextPtr, userId, piiKind_Identity.getValue());
-    }
+    /**
+     * Set the user MsaId context information of telemetry event.
+     *
+     * @param userMsaId Msa id that identifies a user in the application-specific user namespace
+     */
+    public void setUserMsaId(String userMsaId);
 
-    private native void nativeSetCommonField(long nativeISemanticContextPtr, String name, EventProperty value);
+    /**
+     * Set the user ANID context information of telemetry event.
+     *
+     * @param userANID ANID that identifies a user in in the application-specific user namespace
+     */
+    public void setUserANID(String userANID);
+
+    /**
+     * Set the advertising Id context information of telemetry event.
+     *
+     * @param userAdvertisingId Advertising Id of a user to use in an application-specific user namespace
+     */
+    public void setUserAdvertisingId(String userAdvertisingId);
+
+    /**
+     * Set the user language context information of telemetry event.
+     *
+     * @param userLanguage user's language in IETF language tag format, as described in RFC 4646.
+     */
+    public void setUserLanguage(String userLanguage);
+
+    /**
+     * Set the user time zone context information of telemetry event.
+     *
+     * @param userTimeZone user's time zone relative to UTC, in ISO 8601 time zone format
+     */
+    public void setUserTimeZone(String userTimeZone);
+
+    /**
+     * Set the Commercial Id context information of telemetry event.
+     *
+     * @param commercialId CommercialId of a machine
+     */
+    public void setCommercialId(String commercialId);
 
     /**
      * Sets the common Part A/B field.
      * @param name Field name
      * @param value Field value
      */
-    public void setCommonField(final String name, final EventProperty value) {
-        if (name == null || name.trim().isEmpty())
-            throw new IllegalArgumentException("name is null or empty");
-        if (value == null)
-            throw new IllegalArgumentException("value is null");
+    public void setCommonField(final String name, final EventProperty value);
 
-        nativeSetCommonField(m_nativeISemanticContextPtr, name, value);
-    }
-
-    private native void nativeSetCustomField(long nativeISemanticContextPtr, String name, EventProperty value);
     /**
      * Sets the custom Part C field.
      * @param name Field name
      * @param value Field value
      */
-    public void setCustomField(final String name, final EventProperty value) {
-        if (name == null || name.trim().isEmpty())
-            throw new IllegalArgumentException("name is null or empty");
-        if (value == null)
-            throw new IllegalArgumentException("value is null");
+    public void setCustomField(final String name, final EventProperty value);
 
-
-        nativeSetCustomField(m_nativeISemanticContextPtr, name, value);
-    }
-
-    private native void nativeSetTicket(long nativeISemanticContextPtr, int ticketType, String ticketValue);
     /**
      * Sets the ticket (device ticket, user id ticket, etc.) for secure token validation.
      * @param ticketType Ticket type
      * @param ticketValue Ticket value
      */
-    public void SetTicket(final TicketType ticketType, final String ticketValue) {
-        if (ticketValue == null || ticketValue.trim().isEmpty())
-            throw new IllegalArgumentException("ticketValue is null or empty");
-        if (ticketType == null)
-            throw new IllegalArgumentException("ticketType is null");
-
-        nativeSetTicket(m_nativeISemanticContextPtr, ticketType.getValue(), ticketValue);
-    }
+    public void SetTicket(final TicketType ticketType, final String ticketValue);
 }
