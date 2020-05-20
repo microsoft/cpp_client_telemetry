@@ -60,10 +60,10 @@ namespace PAL_NS_BEGIN {
                     return NetworkCost_Unknown;
                 }
 
-                NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+                NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
                     m_info_helper(),
                     m_registeredCount(0),
-                    m_isNetDetectEnabled(isNetDetectEnabled)
+                    m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
                 {
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
                     // some unknown scenarios on some Windows versions (Windows API bug),
@@ -127,9 +127,9 @@ namespace PAL_NS_BEGIN {
                     NetworkInformation::NetworkStatusChanged -= token;
                 };
 
-                std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(bool isNetDetectEnabled)
+                std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
                 {
-                    return std::make_shared<NetworkInformationImpl>(isNetDetectEnabled);
+                    return std::make_shared<NetworkInformationImpl>(configuration);
                 }
 
 } PAL_NS_END
