@@ -98,14 +98,14 @@ TEST_F(TransmissionPolicyManagerTests, StopLeavesNoScheduledUploads)
 {
     tpm.paused(false);
 
-    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(1000, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
         .WillOnce(Return());
     tpm.start();
 
     size_t i = 1000;
     while (i--)
     {
-        EXPECT_CALL(tpm, scheduleUpload(_, EventLatency_Normal, false))
+        EXPECT_CALL(tpm, scheduleUpload(_, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
             .Times(3)
             .WillOnce(Return())
             .WillOnce(Return())
