@@ -443,6 +443,8 @@ namespace PAL_NS_BEGIN {
     #else
         #define OS_NAME    "UnknownApple"
     #endif
+#elif defined(ANDROID) || defined(__ANDROID__)
+    #define OS_NAME "Android"
 #elif defined(__linux__) || defined(LINUX) || defined(linux)
     #define OS_NAME     "Linux"
 #else
@@ -467,9 +469,9 @@ namespace PAL_NS_BEGIN {
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
             LOG_TRACE("Initializing...");
-            m_SystemInformation = SystemInformationImpl::Create();
-            m_DeviceInformation = DeviceInformationImpl::Create();
-            m_NetworkInformation = NetworkInformationImpl::Create(configuration[CFG_BOOL_ENABLE_NET_DETECT]);
+            m_SystemInformation = SystemInformationImpl::Create(configuration);
+            m_DeviceInformation = DeviceInformationImpl::Create(configuration);
+            m_NetworkInformation = NetworkInformationImpl::Create(configuration);
             LOG_INFO("Initialized");
         }
         else

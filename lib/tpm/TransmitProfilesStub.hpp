@@ -1,6 +1,13 @@
+// Copyright (c) Microsoft. All rights reserved.
+#ifndef TRANSMITPROFILESSTUB_HPP
+#define TRANSMITPROFILESSTUB_HPP
+#include <TransmitProfiles.hpp>
+
 namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::load(const std::string&) { return false; };
+
+    bool TransmitProfiles::load(const std::vector<TransmitProfileRules>&) noexcept { return false; };
 
     void TransmitProfiles::reset() { };
 
@@ -20,3 +27,5 @@ namespace ARIASDK_NS_BEGIN {
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }
 
 } ARIASDK_NS_END
+
+#endif // TRANSMITPROFILESSTUB_HPP

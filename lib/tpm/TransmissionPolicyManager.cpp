@@ -14,8 +14,8 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
-    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
-        : m_lock(),
+    TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
+        m_lock(),
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
@@ -23,9 +23,9 @@ namespace ARIASDK_NS_BEGIN {
         m_isPaused(true),
         m_isUploadScheduled(false),
         m_scheduledUploadTime(std::numeric_limits<uint64_t>::max()),
+        m_scheduledUploadAborted(false),
         m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-        m_runningLatency(EventLatency_RealTime),
-        m_scheduledUploadAborted(false)
+        m_runningLatency(EventLatency_RealTime)
     {
         m_backoffConfig = "E,3000,300000,2,1";
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
@@ -105,7 +105,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        if (m_timers.size() > 2 && m_timers[0] < 0) {
+        if (m_timers[0] < 0) {
             latency = std::max(latency, EventLatency_RealTime); // low priority disabled by profile
         }
 
@@ -282,11 +282,8 @@ namespace ARIASDK_NS_BEGIN {
             if (TransmitProfiles::isTimerUpdateRequired())
             {
                 TransmitProfiles::getTimers(m_timers);
-                if (m_timers.size() > 2)
-                {
-                    m_timerdelay = m_timers[2];
-                    forceTimerRestart = true;
-                }
+                m_timerdelay = m_timers[1];
+                forceTimerRestart = true;
             }
             EventLatency proposed = calculateNewPriority();
             if (m_timerdelay >= 0) {
@@ -300,20 +297,17 @@ namespace ARIASDK_NS_BEGIN {
     // We alternate RealTime and Normal otherwise (timers differ)
     EventLatency TransmissionPolicyManager::calculateNewPriority()
     {
-        if (m_timers.size() < 3) {
-            return EventLatency_Normal;
-        }
-
-        if (m_timers[0] < 0) {
-            return EventLatency_RealTime;
-        }
-
-         if (m_timers[0] == m_timers[2])
+        if (m_timers[0] == m_timers[1])
         {
             return EventLatency_Normal;
         }
 
-       if (m_runningLatency == EventLatency_RealTime)
+        if (m_timers[0] < 0)
+        {
+            return EventLatency_RealTime;
+        }
+
+        if (m_runningLatency == EventLatency_RealTime)
         {
             return EventLatency_Normal;
         }

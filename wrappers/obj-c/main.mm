@@ -33,9 +33,16 @@ int main(int argc, char** argv){
         [event2 setProperty: @"intVal" withInt64Value: (int64_t)8165];
         [event2 setProperty: @"doubleVal" withDoubleValue: (double)1.24];
         [event2 setProperty: @"wasSuccessful" withBoolValue: YES];
+        [event2 setProperty: @"myDate" withDateValue: [NSDate date]];
+        [event2 setProperty: @"transactionId" withUUIDValue: [[NSUUID alloc] initWithUUIDString:@"DEADBEEF-1234-2345-3456-123456789ABC"]];
 
         [logger2 logEventWithEventProperties: event2];
 
+        [[logger2 getSemanticContext] setAppId:@"MyAppId"];
+        ODWEventProperties* event3 = [[ODWEventProperties alloc] initWithName:@"SemanticContext_ObjC_Event"];
+        [logger2 logEventWithEventProperties: event3];
+
+        [logger2 logEventWithName:@"SemanticContext_EmptyEvent"];
         [ODWLogManager flushAndTeardown];
     }
     return 0;

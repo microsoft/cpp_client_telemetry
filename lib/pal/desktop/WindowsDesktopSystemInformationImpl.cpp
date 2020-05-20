@@ -33,9 +33,9 @@ namespace PAL_NS_BEGIN {
 
     const std::string WindowsOSName = "Windows Desktop";
 
-    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create()
+    std::shared_ptr<ISystemInformation> SystemInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return std::make_shared<SystemInformationImpl>();
+        return std::make_shared<SystemInformationImpl>(configuration);
     }
 
     /**
@@ -206,7 +206,7 @@ namespace PAL_NS_BEGIN {
         return appId;
     }
 
-    SystemInformationImpl::SystemInformationImpl()
+    SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& /*configuration*/)
         : m_info_helper()
     {
 

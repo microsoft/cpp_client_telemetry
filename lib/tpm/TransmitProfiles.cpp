@@ -102,7 +102,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
 };
 
-#define LOCK_PROFILES       std::lock_guard<std::mutex> lock(profiles_mtx)
+#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -110,13 +110,13 @@ namespace ARIASDK_NS_BEGIN {
     static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
     static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
 
-    static std::mutex      profiles_mtx;
+    static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
     string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
-    bool        TransmitProfiles::isTimerUpdated = true;
+    std::atomic<bool> TransmitProfiles::isTimerUpdated(true);
 
     /// <summary>
     /// Get current transmit profile name
@@ -176,40 +176,39 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmitProfiles::UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept
     {
+        LOCK_PROFILES;
+        removeCustomProfiles();
+        // Add new profiles
+        for (const auto& profile : newProfiles)
         {
-            LOCK_PROFILES;
-            removeCustomProfiles();
-            // Add new profiles
-            for (const auto& profile : newProfiles)
-            {
-                profiles[profile.name] = profile;
-            }
-            // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
-            auto it = profiles.find(currProfileName);
-            if (it == profiles.end())
-            {
-                currProfileName = DEFAULT_PROFILE;
-                LOG_TRACE("Switched to profile %s", currProfileName.c_str());
-            }
+            profiles[profile.name] = profile;
+        }
+        // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
+        auto it = profiles.find(currProfileName);
+        if (it == profiles.end())
+        {
+            currProfileName = DEFAULT_PROFILE;
+            LOG_TRACE("Switched to profile %s", currProfileName.c_str());
+        }
 
 #ifdef  HAVE_MAT_LOGGING
-            // Print combined list of profiles: default + custom
-            LOG_TRACE("Profiles:");
-            size_t i = 0;
-            for (const auto& kv : profiles)
-            {
-                LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
-                          (!kv.first.compare(currProfileName)) ? " [active]" : "");
-                i++;
-            }
+        // Print combined list of profiles: default + custom
+        LOG_TRACE("Profiles:");
+        size_t i = 0;
+        for (const auto& kv : profiles)
+        {
+            LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
+                        (!kv.first.compare(currProfileName)) ? " [active]" : "");
+            i++;
+        }
 #endif  
-            currRule = 0;
-        }  // Unlock here because updateStates performs its own LOCK_PROFILES
+        currRule = 0;
         updateStates(currNetCost, currPowState);
     }
 
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
+         LOCK_PROFILES;
         if (profiles.size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
@@ -426,27 +425,18 @@ namespace ARIASDK_NS_BEGIN {
     bool TransmitProfiles::setProfile(const std::string& profileName) {
         bool result = false;
 
-        // We do not lock it here, but it's OK because reset would lock if
-        // needed. We're reading an integer value typically on non-empty
-        // collection and not modifying it without a lock.
-        if (profiles.size() == 0) {
-            // Load default profiles if nothing is loaded yet
-            reset();
+        EnsureDefaultProfiles();
+        LOCK_PROFILES;
+        auto it = profiles.find(profileName);
+        if (it != profiles.end()) {
+            currProfileName = profileName;
+            LOG_INFO("selected profile %s ...", profileName.c_str());
+            result = true;
         }
-
-        {
-            LOCK_PROFILES;
-            auto it = profiles.find(profileName);
-            if (it != profiles.end()) {
-                currProfileName = profileName;
-                LOG_INFO("selected profile %s ...", profileName.c_str());
-                result = true;
-            }
-            else {
-                LOG_WARN("profile %s not found!", profileName.c_str());
-                currProfileName = DEFAULT_PROFILE;
-                LOG_WARN("selected profile %s instead", currProfileName.c_str());
-            }
+        else {
+            LOG_WARN("profile %s not found!", profileName.c_str());
+            currProfileName = DEFAULT_PROFILE;
+            LOG_WARN("selected profile %s instead", currProfileName.c_str());
         }
         updateStates(currNetCost, currPowState);
         return result;
@@ -456,27 +446,44 @@ namespace ARIASDK_NS_BEGIN {
     /// Get the current list of priority timers
     /// </summary>
     /// <returns></returns>
-    void TransmitProfiles::getTimers(std::vector<int>& out) {
-        {
-            out.clear();
-            if (profiles.size() == 0) {
-                // Load default profiles if nothing is loaded yet
-                reset();
-            }
-            LOCK_PROFILES;
-            auto it = profiles.find(currProfileName);
-            if (it == profiles.end()) {
-                for (size_t i = 0; i < MAX_TIMERS_SIZE; i++) {
-                    out.push_back(-1);
-                }
-                LOG_WARN("No active profile found, disabling all transmission timers.");
-                return;
-            }
-            for (int timer : (it->second).rules[currRule].timers) {
-                out.push_back(timer * 1000);// convert time in milisec
-            }
-            isTimerUpdated = false;
+    void TransmitProfiles::getTimers(TimerArray& out) {
+        EnsureDefaultProfiles();
+
+        LOCK_PROFILES;
+        auto it = profiles.find(currProfileName);
+        // When we can't get timers, we won't set isTimerUpdated to false,
+        // so we will keep calling getTimers from TransmissionPolicyManager.
+        if (it == profiles.end()) {
+            out.fill(-1);
+            LOG_WARN("No active profile found, disabling all transmission timers.");
+            return;
         }
+        if (currRule >= it->second.rules.size()) {
+            out.fill(-1);
+            LOG_ERROR(
+                "Profile %s current rule %iz >= profile length %iz",
+                currProfileName.c_str(),
+                currRule,
+                it->second.rules.size()
+            );
+            return;
+        }
+        auto const & rule = (it->second).rules[currRule];
+        if (rule.timers.empty()) {
+            out.fill(-1);
+            LOG_ERROR(
+                "Profile %s rule %iz has no timers",
+                currProfileName.c_str(),
+                currRule
+            );
+            return;
+        }
+        out[0] = 1000 * rule.timers[0];
+        out[1] = out[0];
+        if (rule.timers.size() > 2) {
+            out[1] = 1000 * rule.timers[2];
+        }
+        isTimerUpdated = false;
     }
 
     /// <summary>
@@ -513,30 +520,28 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="powState"></param>
     bool TransmitProfiles::updateStates(NetworkCost netCost, PowerSource powState) {
         bool result = false;
-        // remember the current state in case if profile change happens
+
+        LOCK_PROFILES;
         currNetCost = netCost;
         currPowState = powState;
-        {
-            LOCK_PROFILES;
-            auto it = profiles.find(currProfileName);
-            if (it != profiles.end()) {
-                auto &profile = it->second;
-                // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
-                currRule = 0;
-                for (size_t i = 0; i < profile.rules.size(); i++) {
-                    const auto &rule = profile.rules[i];
-                    if ((
-                        (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
-                        ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))
-                        )
-                    {
-                        currRule = i;
-                        result = true;
-                        break;
-                    }
+        auto it = profiles.find(currProfileName);
+        if (it != profiles.end()) {
+            auto &profile = it->second;
+            // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
+            currRule = 0;
+            for (size_t i = 0; i < profile.rules.size(); i++) {
+                const auto &rule = profile.rules[i];
+                if ((
+                    (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
+                    ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))
+                    )
+                {
+                    currRule = i;
+                    result = true;
+                    break;
                 }
-                onTimersUpdated();
             }
+            onTimersUpdated();
         }
         return result;
     }
