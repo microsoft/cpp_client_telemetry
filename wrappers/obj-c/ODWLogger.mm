@@ -2,12 +2,17 @@
 #import <Foundation/Foundation.h>
 #import "ODWLogger_private.h"
 #import "ODWLogConfiguration.h"
+#import "ODWSemanticContext.h"
+#import "ODWSemanticContext_private.h"
+
+#include "EventProperties.hpp"
 
 using namespace MAT;
 
 @implementation ODWLogger
 {
     ILogger* _wrappedLogger;
+    ODWSemanticContext* semanticContext;
 }
 
 -(instancetype)initWithILogger:(ILogger*)logger
@@ -19,6 +24,7 @@ using namespace MAT;
 		{
 	        NSLog(@"Logger initialized successfully");
 		}
+        semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
     }
     return self;
 }
@@ -48,7 +54,7 @@ using namespace MAT;
     NSDictionary* piiTags = [wrappedProperties piiTags];
     for(NSString* propertyName in props){
         NSObject* value = [props objectForKey: propertyName];
-		PiiKind piiKind = (PiiKind)[[piiTags objectForKey: propertyName] integerValue];
+        PiiKind piiKind = (PiiKind)[[piiTags objectForKey: propertyName] integerValue];
         std::string strPropertyName = std::string([propertyName UTF8String]);
         if([value isKindOfClass: [NSNumber class]]){
             NSNumber* num = (NSNumber*)value;
@@ -60,7 +66,22 @@ using namespace MAT;
             }else{
                 event.SetProperty(strPropertyName, [num floatValue], piiKind);
             }
-        }else{
+        }
+        else if([value isKindOfClass: [NSDate class]])
+        {
+            time_ticks_t ticks { static_cast<uint64_t>((static_cast<NSDate*>(value).timeIntervalSince1970 * ticksPerSecond) + ticksUnixEpoch) };
+            event.SetProperty(strPropertyName, ticks, piiKind);
+        }
+        else if([value isKindOfClass: [NSUUID class]])
+        {
+            uuid_t uuidBytes;
+            NSUUID* nsuuid = (NSUUID*)value;
+            [nsuuid getUUIDBytes:uuidBytes];
+            GUID_t guid { uuidBytes, true /*bigEndian*/ };
+            event.SetProperty(strPropertyName, guid, piiKind);
+        }
+        else
+        {
             NSString* str = (NSString*)value;
             event.SetProperty(strPropertyName, [str UTF8String], piiKind);
         }
@@ -182,6 +203,11 @@ using namespace MAT;
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
     }
+}
+
+-(ODWSemanticContext*) getSemanticContext
+{
+    return semanticContext;
 }
 
 @end

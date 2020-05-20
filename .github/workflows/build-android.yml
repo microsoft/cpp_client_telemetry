@@ -19,11 +19,12 @@ jobs:
       uses: actions/checkout@v2
     - name: Chocolatey
       run: |
-        choco install --no-progress -y android-ndk
+        $Env:ANDROID_SDK_ROOT = "C:\Android\android-sdk"
+        gci env:* | sort-object name
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;20.0.5594570" --sdk_root=$Env:ANDROID_SDK_ROOT
         gci -r -i "CMake*" C:\Android
         echo $Env:PATH
     - name: Gradle Build
@@ -31,10 +32,20 @@ jobs:
         $Env:PATH = "C:\Android\android-sdk\cmake\3.10.2.4988404\bin;" + $Env:PATH
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat assemble
+      env:
+        ANDROID_SDK_ROOT: "C:\\Android\\android-sdk"
+        ANDROID_HOME: "C:\\Android\\android-sdk"
+        ANDROID_NDK: "C:\\Android\\android-ndk-r20"
+        ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r20"
     - name: Java Unit test
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
         .\gradlew.bat maesdk:test
+      env:
+        ANDROID_SDK_ROOT: "C:\\Android\\android-sdk"
+        ANDROID_HOME: "C:\\Android\\android-sdk"
+        ANDROID_NDK: "C:\\Android\\android-ndk-r20"
+        ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r20"
     - name: Upload Reports
       if: failure()
       uses: actions/upload-artifact@v1
