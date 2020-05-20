@@ -6,6 +6,8 @@
 #include <uuid/uuid.h>
 #include <vector>
 
+#define EMPTY_GUID "00000000-0000-0000-0000-000000000000"
+
 std::string GetDeviceModel()
 {
     static const char *query = "hw.model";
@@ -31,11 +33,11 @@ std::string GetDeviceId()
     int hostUUIDResult = gethostuuid(uuidBytes, &spec);
     if (hostUUIDResult == 0)
     {
-        char deviceGuid[37];
+        char deviceGuid[37] = {0};
         uuid_unparse(uuidBytes, deviceGuid);
         std::string deviceId{deviceGuid};
         return deviceId;
     }
 
-    return { };
+    return {EMPTY_GUID};
 }
