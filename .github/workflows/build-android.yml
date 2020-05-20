@@ -19,11 +19,11 @@ jobs:
       uses: actions/checkout@v2
     - name: Chocolatey
       run: |
+        gci env:* | sort-object name
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "ndk-bundle"
-        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "cmake;3.10.2.4988404"
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;20.0.5594570" --sdk_root=$Env:ANDROID_SDK_ROOT
         gci -r -i "CMake*" C:\Android
         echo $Env:PATH
     - name: Gradle Build
