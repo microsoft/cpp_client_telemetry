@@ -44,7 +44,8 @@ namespace PAL_NS_BEGIN {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl() :m_registeredCount(0),
+                DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
+                    m_registeredCount(0),
                     m_info_helper()
                 {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
@@ -119,9 +120,9 @@ namespace PAL_NS_BEGIN {
                      ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
                 }
 
-                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create()
+                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
                 {
-                    return std::make_shared<DeviceInformationImpl>();
+                    return std::make_shared<DeviceInformationImpl>(configuration);
                 }
 
 } PAL_NS_END

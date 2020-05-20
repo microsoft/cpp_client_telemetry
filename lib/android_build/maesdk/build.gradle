@@ -16,7 +16,7 @@ android {
         externalNativeBuild {
             cmake {
                 // Passes optional arguments to CMake.
-                arguments "-DANDROID_STL=c++_shared"
+                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1"
             }
         }
     }
