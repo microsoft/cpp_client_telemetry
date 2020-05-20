@@ -36,6 +36,7 @@ class Variant
         double      dV;
         const char* sV;
         bool        bV;
+        void*       pV;
     };
 
     // Unfortunately keeping object pointers inside the union above causes issues
@@ -59,7 +60,8 @@ public:
         TYPE_STRING2,
         TYPE_BOOL,
         TYPE_OBJ,
-        TYPE_ARR
+        TYPE_ARR,
+        TYPE_PTR
     };
 
     Type type;
@@ -85,6 +87,8 @@ public:
     // All floating point types
     VARIANT_PROP(float, dV, TYPE_DOUBLE);
     VARIANT_PROP(double, dV, TYPE_DOUBLE);
+
+    VARIANT_PROP(void*, pV, TYPE_PTR);
 
     Variant(const char* v) : sV(v), type(TYPE_STRING) {};
 
@@ -156,6 +160,10 @@ public:
 
         case TYPE_BOOL:
             bV = other.bV;
+            break;
+
+        case TYPE_PTR:
+            pV = other.pV;
             break;
 
         case TYPE_OBJ:
