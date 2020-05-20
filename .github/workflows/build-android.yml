@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Chocolatey
       run: |
-        choco install --no-progress -y android-ndk --version=21.2 /InstallationPath:$Env:SystemDrive\Android\
+        choco install --no-progress -y android-ndk --version=20.0 /InstallationPath:$Env:SystemDrive\Android\
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
