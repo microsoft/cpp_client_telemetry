@@ -2,8 +2,9 @@
 
 #include "sysinfo_utils_apple.hpp"
 #include <sys/sysctl.h>
+#include <unistd.h>
+#include <uuid/uuid.h>
 #include <vector>
-#import <Foundation/Foundation.h>
 
 std::string GetDeviceModel()
 {
@@ -25,16 +26,16 @@ std::string GetDeviceModel()
 
 std::string GetDeviceId()
 {
-    @autoreleasepool {
-        uuid_t uuidBytes;
-        const struct timespec spec = {1, 0};
-        int hostUUIDResult = gethostuuid(uuidBytes, &spec);
-        if (hostUUIDResult == 0)
-        {
-            std::string deviceId { [[[[NSUUID alloc] initWithUUIDBytes:uuidBytes] UUIDString] UTF8String] };
-            return deviceId;
-        }
-
-        return { };
+    uuid_t uuidBytes;
+    const struct timespec spec = {1, 0};
+    int hostUUIDResult = gethostuuid(uuidBytes, &spec);
+    if (hostUUIDResult == 0)
+    {
+        char deviceGuid[37];
+        uuid_unparse(uuidBytes, deviceGuid);
+        std::string deviceId{deviceGuid};
+        return deviceId;
     }
+
+    return { };
 }

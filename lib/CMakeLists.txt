@@ -80,7 +80,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     else()
       list(APPEND SRCS
-        pal/posix/sysinfo_utils_mac.mm
+        pal/posix/sysinfo_utils_mac.cpp
       )
     endif()
   endif()
