@@ -1,31 +1,32 @@
 package com.microsoft.applications.events;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-import android.net.ConnectivityManager.NetworkCallback;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.provider.Settings;
+
+import androidx.annotation.RequiresApi;
+
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.System;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -34,12 +35,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Created by maharrim on 8/21/2019.
  */
 
-class PowerReceiver extends android.content.BroadcastReceiver {
-    final httpClient m_parent;
+class PowerInfoReceiver extends android.content.BroadcastReceiver {
+    private final HttpClient m_parent;
     boolean m_charging = true;
     boolean m_low_battery = false;
 
-    PowerReceiver(httpClient parent)
+    PowerInfoReceiver(HttpClient parent)
     {
         m_parent = parent;
     }
@@ -56,7 +57,7 @@ class PowerReceiver extends android.content.BroadcastReceiver {
 // See below: we test build version before instantiating this.
 @TargetApi(24)
 class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallback {
-    ConnectivityCallback(httpClient parent, boolean metered) {
+    ConnectivityCallback(HttpClient parent, boolean metered) {
         m_parent = parent;
         m_metered = metered;
     }
@@ -69,14 +70,14 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
         }
     }
 
-    private final httpClient m_parent;
+    private final HttpClient m_parent;
     private boolean m_metered;
 }
 
 class Request implements Runnable {
 
-    Request(httpClient parent, String url, String method, byte[] body, String request_id, int[] header_length, byte[] header_buffer)
-            throws java.net.MalformedURLException, java.io.IOException {
+    Request(HttpClient parent, String url, String method, byte[] body, String request_id, int[] header_length, byte[] header_buffer)
+            throws java.io.IOException {
         m_parent = parent;
         m_connection = (HttpURLConnection) parent.newUrl(url).openConnection();
         m_connection.setRequestMethod(method);
@@ -107,7 +108,7 @@ class Request implements Runnable {
             }
             response = m_connection.getResponseCode(); // may throw
             Map<String, List<String>> headers = m_connection.getHeaderFields();
-            Vector<String> headerList = new Vector<String>();
+            Vector<String> headerList = new Vector<>();
             for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
                 if (entry.getKey() != null) {
                     for (String v : entry.getValue()) {
@@ -124,7 +125,7 @@ class Request implements Runnable {
                 in = new BufferedInputStream(m_connection.getInputStream());
             }
             byte[] buffer = new byte[1024];
-            Vector<byte[]> buffers = new Vector<byte[]>();
+            Vector<byte[]> buffers = new Vector<>();
             int size = 0;
             while (true) {
                 int n = in.read(buffer, 0, 1024);
@@ -155,17 +156,20 @@ class Request implements Runnable {
 
    private HttpURLConnection m_connection;
     private byte[] m_body;
-    public String m_request_id;
-    protected httpClient m_parent;
+    private String m_request_id;
+    private final HttpClient m_parent;
 }
 
-public class httpClient {
+public class HttpClient {
     private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
 
-    public httpClient(android.content.Context context) {
+    public HttpClient(Context context)
+    {
         m_context = context;
         String path = System.getProperty("java.io.tmpdir");
         setCacheFilePath(path);
+        setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+        calculateAndSetSystemInfo(context);
         m_executor = createExecutor();
         createClientInstance();
         // We need API 24 to follow changes in network status
@@ -178,11 +182,62 @@ public class httpClient {
                 m_connectivityManager.registerDefaultNetworkCallback(m_callback);
             }
         }
-        m_power_receiver = new PowerReceiver(this);
+        m_power_receiver = new PowerInfoReceiver(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent status = context.registerReceiver(m_power_receiver, filter);
         if (status != null) {
             m_power_receiver.onReceive(context, status);
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private static String getLanguageTag(Locale locale)
+    {
+        if (Build.VERSION.SDK_INT >= 21) {
+            return locale.toLanguageTag();
+        }
+        return locale.toString().replace('_', '-');
+    }
+
+    private void calculateAndSetSystemInfo(android.content.Context context)
+    {
+        String app_id = context.getPackageName();
+        PackageInfo pInfo;
+        try {
+            pInfo = context.getPackageManager().getPackageInfo(app_id, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            pInfo = null;
+        }
+        String app_version = "";
+        if (pInfo != null && pInfo.versionName != null) {
+            app_version = pInfo.versionName;
+        }
+        String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
+
+        String os_major_version = Build.VERSION.RELEASE;
+        if (os_major_version == null) {
+            os_major_version = "GECOS III"; // unexpected except in Java unit tests
+        }
+        String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
+        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version);
+    }
+
+    private String calculateID(android.content.Context context)
+    {
+        // The definition of ANDROID_ID changed in API 26.
+        // https://developer.android.com/reference/android/provider/Settings.Secure#ANDROID_ID
+
+        final ContentResolver resolver = context.getContentResolver();
+        String id;
+        try {
+            id = Settings.Secure.getString(resolver, Settings.Secure.ANDROID_ID);
+        } catch (Exception e) {
+            id = e.toString();
+        }
+        if (id == null) {
+            return "";
+        } else {
+            return "a:" + id;
         }
     }
 
@@ -191,11 +246,16 @@ public class httpClient {
         return Executors.newFixedThreadPool(MAX_HTTP_THREADS);
     }
 
+    protected boolean hasAndroidID() {
+        return Build.VERSION.SDK_INT >= 26;
+    }
+    
     protected boolean hasConnectivityManager()
     {
         return Build.VERSION.SDK_INT >= 24;
     }
     
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void finalize() {
         if (m_callback != null) {
             m_connectivityManager.unregisterNetworkCallback(m_callback);
@@ -222,13 +282,23 @@ public class httpClient {
 
     public native void onPowerChange(boolean isCharging, boolean isLow);
 
+    public native void setDeviceInfo(String id, String manufacturer, String model);
+
+    public native void setSystemInfo(
+        String app_id,
+        String app_version,
+        String app_language,
+        String os_major_version,
+        String os_full_version
+    );
+
     public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 
     public FutureTask<Boolean> createTask(String url, String method, byte[] body, String request_id, int[] header_index,
             byte[] header_buffer) {
         try {
             Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
-            return new FutureTask<Boolean>(r, true);
+            return new FutureTask<>(r, true);
         } catch (Exception e) {
             return null;
         }
@@ -238,9 +308,9 @@ public class httpClient {
         m_executor.execute(t);
     }
 
-    ExecutorService m_executor;
-    ConnectivityCallback m_callback;
-    android.net.ConnectivityManager m_connectivityManager;
-    PowerReceiver m_power_receiver;
-    Context m_context;
+    private final ExecutorService m_executor;
+    private ConnectivityCallback m_callback;
+    private android.net.ConnectivityManager m_connectivityManager;
+    private PowerInfoReceiver m_power_receiver;
+    private final Context m_context;
 }

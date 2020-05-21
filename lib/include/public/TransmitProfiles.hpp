@@ -6,11 +6,13 @@
 
 #include "Enums.hpp"
 
-#include <cstdint>
-#include <vector>
-#include <string>
-#include <map>
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 
 /// @cond INTERNAL_DOCS
 
@@ -32,6 +34,11 @@ namespace ARIASDK_NS_BEGIN
     /// <b>Note:</b> The size must match <i>EventPriority_MAX-EventPriority_MIN+1</i> in ILogger.hpp.
     /// </summary>
     static const size_t MAX_TIMERS_SIZE = 3;
+
+    /// <summary>
+    /// Type alias for the array of timer values set by getTimers()
+    /// </summary>
+    using TimerArray = std::array<int, 2>;
 
     /// <summary>
     /// The TransmitProfileRule structure contains transmission timer values in particular device states (net+power).
@@ -128,7 +135,11 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// A boolean value that indicates whether the timer was updated.
         /// </summary>
-        static bool         isTimerUpdated;
+        static std::atomic<bool> isTimerUpdated;
+
+        static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
+
+        static void EnsureDefaultProfiles() noexcept;
 
     public:
 
@@ -149,14 +160,6 @@ namespace ARIASDK_NS_BEGIN
         static void dump();
 
         /// <summary>
-        /// Performs timer sanity check and auto-fixes timers if needed.
-        /// <b>Note:</b> This function is not thread safe.
-        /// </summary>
-        /// <param name="rule">The transmit profile rule that contains the timers to adjust.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
-        static bool adjustTimers(TransmitProfileRule & rule);
-
-        /// <summary>
         /// Removes custom profiles.
         /// This method is called from parse only, and does not require the lock.
         /// <b>Note:</b> This function is not thread safe.
@@ -174,8 +177,15 @@ namespace ARIASDK_NS_BEGIN
         /// Loads customer-supplied transmit profiles.
         /// </summary>
         /// <param name="profiles_json">A string that contains the the transmit profiles in JSON.</param>
-        /// <returns>A boolean value that indicates success (true) or failure (false).</returns>
+        /// <returns>A boolean value that indicates success (true) or failure (false) if at least one transmit profile parses correctly.</returns>
         static bool load(const std::string& profiles_json);
+
+        /// <summary>
+        /// Loads caller-supplied transmit profiles.
+        /// </summary>
+        /// <param name="profiles">A map of the caller-supplied profiles.</param>
+        /// <returns>A boolean value that indicates success (true) if all transmit profiles are valid, false otherwise.</returns>
+        static bool load(const std::vector<TransmitProfileRules>& profiles) noexcept;
 
         /// <summary>
         /// Resets transmit profiles to default values.
@@ -200,7 +210,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the current priority timers.
         /// </summary>
         /// <param name="out">A reference to a vector of integers that will contain the current timers.</param>
-        static void getTimers(std::vector<int>& out);
+        static void getTimers(TimerArray& out);
 
         /// <summary>
         /// Gets the name of the current transmit profile.

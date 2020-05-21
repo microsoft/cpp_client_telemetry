@@ -11,10 +11,9 @@
 #include <map>
 #include <string>
 
-
 namespace ARIASDK_NS_BEGIN {
 
-class DeviceStateHandler 
+class DeviceStateHandler
     : public PAL::IPropertyChangedCallback
 {
 public:
@@ -23,7 +22,7 @@ public:
 
     // Callback functions
     // IPropertyChangedCallback::OnChanged from platform on any connectivity, power, device system changes
-    virtual void OnChanged(std::string const& propertyName, std::string const& propertyValue) override;
+    void OnChanged(std::string const& propertyName, std::string const& propertyValue) override;
 
 protected:
     NetworkType m_networkType;
@@ -33,13 +32,13 @@ protected:
     virtual void _UpdateDeviceCondition();
 
 private:
-    
-    // Platform network, power, device info changes
-    PAL::INetworkInformation  *m_networkInformation;
-    int                        m_networkInformationToken;
 
-    PAL::IDeviceInformation   *m_deviceInformation;
-    int                        m_deviceInformationToken;
+    // Platform network, power, device info changes
+    std::shared_ptr<PAL::INetworkInformation> m_networkInformation;
+    int m_networkInformationToken;
+
+    std::shared_ptr<PAL::IDeviceInformation> m_deviceInformation;
+    int m_deviceInformationToken;
 
 };
 
