@@ -69,12 +69,6 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
 #define PDT_ProductAndServiceUsage              0x0000000002000000u
 #define PDT_SoftwareSetupAndInventory           0x0000000080000000u
 
-// Privacy Diagnostic Levels
-constexpr uint32_t PDL_RequiredDiagnosticData {1};
-constexpr uint32_t PDL_OptionalDiagnosticData {2};
-constexpr uint32_t PDL_RequiredServiceData {110};
-constexpr uint32_t PDL_RequiredServiceDataForEssentialServices {120};
-
 /// <summary>
 /// The PageActionData structure represents the data of a page action event.
 /// </summary>

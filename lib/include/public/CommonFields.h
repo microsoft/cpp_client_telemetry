@@ -48,7 +48,6 @@
 #define COMMONFIELDS_EVENT_INITID                            "EventInfo.InitId"
 #define COMMONFIELDS_EVENT_SEQ                               "EventInfo.Sequence"
 #define COMMONFIELDS_EVENT_PRIVTAGS                          "EventInfo.PrivTags"
-#define COMMONFIELDS_EVENT_PRIVLEVEL                         "EventInfo.PrivLevel"
 #define COMMONFIELDS_EVENT_LEVEL                             "EventInfo.Level"
 #define COMMONFIELDS_EVENT_PRIORITY                          "EventInfo.Priority"
 #define COMMONFIELDS_EVENT_LATENCY                           "EventInfo.Latency"
@@ -85,9 +84,11 @@
 #define DIAG_LEVEL_ENHANCED                             2       /* Additional performance data            */
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
-/* Microsoft Office diagnostic level classification  */
-#define DIAG_LEVEL_REQUIRED                             1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-#define DIAG_LEVEL_OPTIONAL                             2       /* Additional optional data               */
+/* Microsoft NGP diagnostic level classification  */
+#define DIAG_LEVEL_REQUIRED                                 1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+#define DIAG_LEVEL_OPTIONAL                                 2       /* Additional optional data               */
+#define DIAG_LEVEL_REQUIREDSERVICEDATA                      110     /* Data required for services to be able to function properly */
+#define DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120     /* Data required for operation of essential services such as licensing, etc. */
 
 /* Custom SDK configuration allows to override DIAG_LEVEL_DEFAULT_MIN and DIAG_LEVEL_DEFAULT_MAX          */
 #ifndef DIAG_LEVEL_DEFAULT_MIN
