@@ -1,16 +1,23 @@
 #!/bin/sh
 
-if [ "$1" == "release" ]; then
+if [ "$1" == "clean" ]; then
+ rm -f CMakeCache.txt *.cmake
+ rm -rf out
+ rm -rf .buildtools
+# make clean
+fi
+
+if [ "$1" == "release" ] || [ "$2" == "release" ]; then
 BUILD_TYPE="Release"
 else
 BUILD_TYPE="Debug"
 fi
 
-if [ "$2" == "arm64" ]; then
+if [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
 IOS_ARCH="arm64"
-elif [ "$2" == "arm64e" ]; then
+elif [ "$2" == "arm64e" ] || [ "$3" == "arm64e" ]; then
 IOS_ARCH="arm64e"
-elif [ "$2" == "x86_64" ] || "$2" == "simulator" ]; then
+elif [ "$2" == "x86_64" ] || [ "$2" == "simulator" ] || [ "$3" == "x86_64" ] || [ "$3" == "simulator" ]; then
 IOS_ARCH="x86_64"
 else
 IOS_ARCH="x86_64"
@@ -23,7 +30,7 @@ IOS_DEPLOYMENT_TARGET=10.0
 FILE=.buildtools
 OS_NAME=`uname -a`
 if [ ! -f $FILE ]; then
-  tools/setup-buildtools-mac.sh
+  tools/setup-buildtools-apple.sh ios
 # Assume that the build tools have been successfully installed
 echo > $FILE
 fi

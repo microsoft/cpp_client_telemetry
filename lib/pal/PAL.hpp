@@ -12,6 +12,7 @@
 #define ECS_SUPP "No"
 #endif
 
+#include "api/IRuntimeConfig.hpp"
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
@@ -53,7 +54,6 @@
 #include <thread>
 #include <memory>
 
-#include "api/IRuntimeConfig.hpp"
 #include "typename.hpp"
 #include "WorkerThread.hpp"
 
@@ -93,7 +93,7 @@ namespace PAL_NS_BEGIN
 
         std::shared_ptr<MAT::ITaskDispatcher> getDefaultTaskDispatcher();
 
-        void initialize(IRuntimeConfig& configuration);
+        void initialize(MAT::IRuntimeConfig& configuration);
 
         void shutdown();
 

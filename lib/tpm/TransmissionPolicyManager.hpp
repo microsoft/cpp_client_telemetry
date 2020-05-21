@@ -14,9 +14,11 @@
 #include "DeviceStateHandler.hpp"
 #include "pal/TaskDispatcher.hpp"
 
-#include <set>
+#include "TransmitProfiles.hpp"
+
 #include <atomic>
 #include <cstdint>
+#include <set>
 
 // This macro allows to specify max upload task cancellation wait time at compile-time,
 // addressing the case when a task that we are trying to cancel is currently running.
@@ -128,7 +130,14 @@ namespace ARIASDK_NS_BEGIN {
         {
             uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
             bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
-            m_isUploadScheduled.exchange(false);
+
+            // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
+            //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
+            //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+            if (result)
+            {
+                m_isUploadScheduled.exchange(false);
+            }
             return result;
         }
         
@@ -144,7 +153,7 @@ namespace ARIASDK_NS_BEGIN {
 
         int                              m_timerdelay;
         EventLatency                     m_runningLatency;
-        std::vector<int>                 m_timers;
+        TimerArray                       m_timers;
 
     public:
         RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };

@@ -1,7 +1,13 @@
-[submodule "vcpkg"]
-	path = vcpkg
+[submodule "tools/vcpkg"]
+	path = tools/vcpkg
 	url = https://github.com/Microsoft/vcpkg
+
 [submodule "lib/modules"]
 	path = lib/modules
 	url = https://github.com/Microsoft/cpp_client_telemetry_modules.git
+	branch = master
+
+[submodule "third_party/krabsetw"]
+	path = third_party/krabsetw
+	url = https://github.com/microsoft/krabsetw
 	branch = master

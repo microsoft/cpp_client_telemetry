@@ -78,6 +78,10 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       list(APPEND SRCS
         pal/posix/sysinfo_utils_ios.mm
       )
+    else()
+      list(APPEND SRCS
+        pal/posix/sysinfo_utils_mac.cpp
+      )
     endif()
   endif()
   list(APPEND SRCS
@@ -122,6 +126,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 	  ../wrappers/obj-c/ODWLogManager.mm
 	  ../wrappers/obj-c/ODWEventProperties.mm
 	  ../wrappers/obj-c/ODWLogConfiguration.mm
+	  ../wrappers/obj-c/ODWSemanticContext.mm
 	  )
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")

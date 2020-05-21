@@ -37,6 +37,7 @@ set(SRCS
   StringUtilsTests.cpp
   TaskDispatcherCAPITests.cpp
   TransmissionPolicyManagerTests.cpp
+  TransmitProfilesTests.cpp
   UtilsTests.cpp
 )
 
@@ -102,9 +103,23 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  find_file(LIBGTEST
+    NAMES libgtest.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
+  find_file(LIBGMOCK
+    NAMES libgmock.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
   target_link_libraries(UnitTests 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
+    ${LIBGTEST}
+    ${LIBGMOCK}
     mat
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}

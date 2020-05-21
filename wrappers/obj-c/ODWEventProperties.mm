@@ -3,7 +3,7 @@
 
 @implementation ODWEventProperties {
 NSMutableDictionary<NSString *, id> * _properties;
-NSMutableDictionary<NSString*, id> * _piiTags;
+NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 }
 
 @dynamic properties;
@@ -11,18 +11,18 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 
 -(instancetype)initWithName:(nonnull NSString *)name
 {
-    return [self initWithName:name properties:[[NSMutableDictionary<NSString*,id> alloc] init] piiTags:[[NSMutableDictionary<NSString*, id> alloc] init]];
+    return [self initWithName:name properties:[[NSMutableDictionary<NSString*,id> alloc] init] piiTags:[[NSMutableDictionary<NSString*, NSNumber*> alloc] init]];
 }
 
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
 {
-    return [self initWithName:name properties:properties piiTags:[[NSMutableDictionary<NSString*, id> alloc] init]];
+    return [self initWithName:name properties:properties piiTags:[[NSMutableDictionary<NSString*, NSNumber*> alloc] init]];
 }
 
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
-     piiTags:(NSDictionary<NSString*,id>*) piiTags
+     piiTags:(NSDictionary<NSString*,NSNumber*>*) piiTags
 {
     self = [super init];
     if (self)
@@ -41,7 +41,7 @@ NSMutableDictionary<NSString*, id> * _piiTags;
     return [_properties copy];
 }
 
--(NSDictionary<NSString *, id> *)piiTags
+-(NSDictionary<NSString *, NSNumber *> *)piiTags
 {
     return [_piiTags copy];
 }
@@ -59,7 +59,7 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 -(void)setProperty:(NSString*)name withValue:(id)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withDoubleValue:(double)value
@@ -70,7 +70,7 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 -(void)setProperty:(NSString*)name withDoubleValue:(double)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withDoubleValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withInt64Value:(int64_t)value
@@ -81,7 +81,7 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 -(void)setProperty:(NSString*)name withInt64Value:(int64_t)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withInt64Value:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value
@@ -92,7 +92,29 @@ NSMutableDictionary<NSString*, id> * _piiTags;
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind
 {
     [self setProperty:name withBoolValue:value];
-	[self setPiiTag:name withPiiKind:piiKind];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value
+{
+    [_properties setValue:value forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withUUIDValue:value];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value
+{
+    [_properties setValue:value forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withDateValue:value];
+    [self setPiiTag:name withPiiKind:piiKind];
 }
 
 @end
