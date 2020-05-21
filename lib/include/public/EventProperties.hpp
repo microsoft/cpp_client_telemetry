@@ -200,6 +200,17 @@ namespace ARIASDK_NS_BEGIN
             SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
         }
 
+        /// <summary>
+        /// Sets the diagnostic level of an event. This is equivalent to:
+        ///  ...
+        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        ///  ...
+        /// </summary>
+        void SetPrivacyTags(uint64_t privTags)
+        {
+            SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
+        }
+
         ///
         /// TODO: [MG] - can we revisit this, do we need a tuple?
         ///
