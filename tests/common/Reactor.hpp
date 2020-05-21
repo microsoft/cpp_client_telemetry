@@ -60,7 +60,11 @@ class Reactor : protected Thread
     Reactor(Callback& callback) : m_callback(callback)
     {
 #ifdef __linux__
+#ifdef ANDROID
+        m_epollFd = ::epoll_create(0);
+#else
         m_epollFd = ::epoll_create1(0);
+#endif
 #endif
 #ifdef TARGET_OS_MAC
         bzero(&m_events[0], sizeof(m_events));

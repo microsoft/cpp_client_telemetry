@@ -19,9 +19,9 @@ Platform specific build instructions:
 - [Windows](docs/cpp-start-windows.md)
 - [Windows/clang](build-cmake-clang.cmd)
 - [Mac](docs/cpp-start-macosx.md)
-- [Linux](docs/cpp-start-linux.md). Docker can also be used to build for varios distros. Refer to [build-docker.cmd](build-docker.cmd).
+- [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
 - [iOS/iPadOS](build-ios.sh)
-- Android... We don't have instructions yet, feel free to contribute :)
+- [Android](docs/cpp-start-android.md)
 
 Other resources to learn how to setup the build system:
 - Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
@@ -35,31 +35,26 @@ Issues and feature requests are tracked on [GitHub](https://github.com/microsoft
 
 ### How to Send Pull Requests
 
-Everyone is welcome to contribute code to `1DS C++ SDK` via GitHub
-pull requests (PRs).
+Everyone is welcome to contribute code to `1DS C++ SDK` via GitHub pull requests (PRs).
 
-To create a new PR, fork the project in GitHub and clone the upstream repo:
+Please do not fork. Our CI is setup to accept PRs only from the main *microsoft/cpp_client_telemetry* repo.
+
+To create a new PR, clone the repo:
 
 ```sh
 $ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
-Add your fork as an origin:
+Check out a new branch, make modifications and push the branch:
 
 ```sh
-$ git remote add fork https://github.com/YOUR_GITHUB_USERNAME/cpp_client_telemetry.git
-```
-
-Check out a new branch, make modifications and push the branch to your fork:
-
-```sh
-$ git checkout -b feature_branch_name
+$ git checkout -b ${USERNAME}/feature_branch_name
 # edit files
-$ git commit
-$ git push fork feature_branch_name
+$ git commit -m "Description"
+$ git push ${USERNAME}/feature_branch_name
 ```
 
-Open a pull request against the main `cpp_client_telemetry` repo.
+Then open a PR against the main `microsoft/cpp_client_telemetry` repo.
 
 ### How to Receive Comments
 
@@ -75,15 +70,16 @@ Open a pull request against the main `cpp_client_telemetry` repo.
 ### How to Get PR Merged
 
 A PR is considered to be **ready to merge** when:
-* It has received one approval from Maintainers.
+* It has received at least one approval from Maintainers.
 * Major feedbacks are resolved.
-* It has been open for review for at least one working day. This gives people
-  reasonable time to review.
+* It has been open for review for at least one working day. This gives people reasonable time to review.
 * Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for one day.
 * Urgent fix can take exception as long as it has been actively communicated.
 * Any dependent submodule changes have updated the submodule commit id (`git add lib/modules`)
+* Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
+* In exceptional scenarios (build break, privacy issue, GitHub actions failure, CI failure), when other Approvers are unavailable - Administrators may exercise their right to Merge notifying the other Approvers in a comment to PR.
 
-Any Collaborator/Maintainer can merge the PR once it is **ready to merge**.
+Do not push directly to the *master*.
 
 ## Style Guidelines
 
@@ -93,14 +89,15 @@ _Please note that we are rapidly evolving product with many different contributo
 Some modules have been written following platform-specific coding style.
 Please try to keep your changes consistent with the coding style of a module you are modifying._
 
+There is a *.clang-format* file included in the repo. Please use your favourite IDE with Clang Format tooling installed.
+
 ## Become a Collaborator
 
 Collaborators have write access to the repo.
 
 To become a Collaborator:
 * Become an active Contributor by working on PRs.
-* Actively participate in the community meeting, design discussion, PR review
-   and issue discussion.
+* Actively participate in the community meeting, design discussion, PR review and issue discussion.
 * Contact the Maintainers, express the willingness and commitment.
 * Acknowledged and approved by two Maintainers.
 

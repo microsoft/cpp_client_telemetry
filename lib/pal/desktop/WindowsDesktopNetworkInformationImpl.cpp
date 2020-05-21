@@ -11,11 +11,11 @@ using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
-    NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+    NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
-        m_registredCount(0),
+        m_registeredCount(0),
         m_cost(NetworkCost_Unmetered),
-        m_isNetDetectEnabled(isNetDetectEnabled)
+        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
     { };
     NetworkInformationImpl::~NetworkInformationImpl() { };
 
@@ -31,7 +31,7 @@ namespace PAL_NS_BEGIN {
         ///
         /// </summary>
         /// <param name="isNetDetectEnabled"></param>
-        Win32NetworkInformation(bool isNetDetectEnabled);
+        Win32NetworkInformation(IRuntimeConfig& configuration);
 
         /// <summary>
         ///
@@ -92,13 +92,13 @@ namespace PAL_NS_BEGIN {
         }
     };
 
-    Win32NetworkInformation::Win32NetworkInformation(bool isNetDetectEnabled) :
-                            NetworkInformationImpl(isNetDetectEnabled)
+    Win32NetworkInformation::Win32NetworkInformation(IRuntimeConfig& configuration) :
+                            NetworkInformationImpl(configuration)
     {
         m_type = NetworkType_Unknown;
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
-        if (isNetDetectEnabled) {
+        if (m_isNetDetectEnabled) {
             networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector()); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
             networkDetector->AddRef();
             networkDetector->Start();
@@ -117,10 +117,9 @@ namespace PAL_NS_BEGIN {
 #endif
     }
 
-    INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+    std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
     {
-        return new Win32NetworkInformation(isNetDetectEnabled);
+        return std::make_shared<Win32NetworkInformation>(configuration);
     }
 } PAL_NS_END
 #endif
-

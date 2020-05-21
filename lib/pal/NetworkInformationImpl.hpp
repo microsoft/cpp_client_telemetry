@@ -18,11 +18,11 @@ namespace PAL_NS_BEGIN {
     class NetworkInformationImpl : public INetworkInformation
     {
     public:
-        static INetworkInformation* Create(bool isNetDetectEnabled);
+        static std::shared_ptr<INetworkInformation> Create(MAT::IRuntimeConfig& configuration);
 
         // IInformationProvider API
-        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
-        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
+        virtual int  RegisterInformationChangedCallback(IPropertyChangedCallback* pCallback) { m_registeredCount++; return m_info_helper.RegisterInformationChangedCallback(pCallback); }
+        virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registeredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
 
         // INetworkInformation API
         virtual std::string const& GetNetworkProvider() { return m_provider; };
@@ -33,8 +33,12 @@ namespace PAL_NS_BEGIN {
         virtual bool IsWifiAvailable() { return false; }
         virtual bool IsWwanAvailable() { return false; }
 
-        NetworkInformationImpl(bool isNetDetectEnabled);
+        NetworkInformationImpl(MAT::IRuntimeConfig& configuration);
         virtual ~NetworkInformationImpl();
+
+        // Disable copy constructor and assignment operator.
+        NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
+        NetworkInformationImpl& operator=(NetworkInformationImpl const& other) = delete;
 
     protected:
         std::string m_provider;
@@ -42,12 +46,8 @@ namespace PAL_NS_BEGIN {
         NetworkCost m_cost;
 
         InformatonProviderImpl m_info_helper;
-        int m_registredCount;
+        int m_registeredCount;
         bool m_isNetDetectEnabled;
-
-        // Disable copy constructor and assignment operator.
-        NetworkInformationImpl(NetworkInformationImpl const& other) = delete;
-        NetworkInformationImpl& operator=(NetworkInformationImpl const& other) = delete;
     };
 
 } PAL_NS_END

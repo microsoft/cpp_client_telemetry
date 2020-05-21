@@ -6,12 +6,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRuntimeSystemInformationImpl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WindowsRTHelpers.cpp" />
-  </ItemGroup>  
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinRt.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
-  <ItemGroup Condition="exists('$(MSBuildThisFileDirectory)..\..\modules\')">
+  <ItemGroup Condition="exists('$(MSBuildThisFileDirectory)..\..\modules\utc\')">
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\universal\UtcHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\modules\utc\UtcTelemetrySystem.cpp" />
   </ItemGroup>

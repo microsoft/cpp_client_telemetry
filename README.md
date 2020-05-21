@@ -1,5 +1,8 @@
 # 1DS C/C++ SDK
 
+[![Join](https://img.shields.io/badge/Join%20the%20project-brightgreen)](https://repos.opensource.microsoft.com/microsoft/teams/client-telemetry-sdk/join/)
+[![spellcheck](https://github.com/microsoft/cpp_client_telemetry/workflows/spellcheck/badge.svg)](https://github.com/microsoft/cpp_client_telemetry/actions?query=workflow%3Aspellcheck)
+
 **1DS C/C++ SDK** enables cross-platform telemetry collection from various
 Microsoft products. It enables data / telemetry upload to Collector++.
 
@@ -36,6 +39,7 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   | Ubuntu 14.04.* LTS            | GCC 4.8.*, 4.9.4                 |
   | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
   | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
+  | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017               |
 </details>
 
@@ -44,6 +48,7 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
+  | Android                        | partial&dagger;    |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
   | Mac OS X 10.11+                | :white_check_mark: |                    |
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
@@ -58,6 +63,7 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   * **Supported** - these platforms are known to work well with the SDK in
     production.
   * **Covered by CI** - these platforms are tested as part of CI.
+  * &dagger; **Android** - supported for Office applications. oteldiscuss@Microsoft.com is a first point of contact.
 </details>
 
 ## Test

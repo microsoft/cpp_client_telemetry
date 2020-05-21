@@ -8,13 +8,19 @@ set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
+if (USE_CURL)
+        add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
+        find_package(CURL REQUIRED)
+endif()
+
 include_directories(AFTER
         ${SDK_ROOT}/lib
         ${SDK_ROOT}/lib/include/public
         ${SDK_ROOT}/lib/include
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
-        ${SDK_ROOT}lib/pal)
+        ${SDK_ROOT}lib/pal
+        ${CURL_INCLUDE_DIRS})
 
 set(SRCS
         ${SDK_ROOT}/sqlite/sqlite3.c
@@ -53,7 +59,6 @@ set(SRCS
   ${SDK_ROOT}/lib/http/HttpRequestEncoder.cpp
   ${SDK_ROOT}/lib/http/HttpResponseDecoder.cpp
   ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
-        ${SDK_ROOT}/lib/http/HttpClient_Android.cpp
   ${SDK_ROOT}/lib/stats/Statistics.cpp
   ${SDK_ROOT}/lib/stats/MetaStats.cpp
   ${SDK_ROOT}/lib/offline/StorageObserver.cpp
@@ -66,11 +71,18 @@ set(SRCS
   ${SDK_ROOT}/lib/pal/WorkerThread.cpp
         ${SDK_ROOT}/lib/pal/posix/NetworkInformationImpl_Android.cpp
         ${SDK_ROOT}/lib/pal/posix/DeviceInformationImpl_Android.cpp
-        ${SDK_ROOT}/lib/pal/posix/SystemInformationImpl.cpp
+        ${SDK_ROOT}/lib/pal/posix/SystemInformationImpl_Android.cpp
         ${SDK_ROOT}/lib/pal/posix/sysinfo_sources.cpp
 )
 
-add_library(maesdk SHARED ${SRCS})
+
+if (USE_CURL)
+        list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
+else()
+        list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
+endif()
+
+add_library(maesdk ${SRCS})
 
 
 # Creates and names a library, sets it as either STATIC
@@ -91,13 +103,19 @@ find_library( # Sets the name of the path variable.
               # you want CMake to locate.
               log )
 
+find_library(
+        zlib
+        z
+)
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-        maesdk
+target_link_libraries(maesdk PUBLIC
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
+        ${zlib}
+        ${CURL_LIBRARIES}
         )

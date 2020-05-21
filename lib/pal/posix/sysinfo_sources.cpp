@@ -6,7 +6,7 @@
  *      Author: Max Golovanov <maxgolov@microsoft.com>
  */
 
-#include "sysinfo_sources.hpp"
+#include "sysinfo_sources_impl.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -60,12 +60,6 @@ void get_platform_uuid(char * buf, int bufSize)
 }
 
 #endif // TARGET_MAC_OS
-
-#if TARGET_OS_IPHONE
-
-#include "sysinfo_utils_ios.hpp"
-
-#endif // TARGET_OS_IPHONE
 
 std::string get_app_name()
 {
@@ -192,121 +186,105 @@ const std::string& sysinfo_sources::get(std::string key)
     return cache[key];
 }
 
-class sysinfo_sources_impl: public sysinfo_sources {
-
-public:
-
-    /**
-     * Obtain system hardware and application information
-     */
-    sysinfo_sources_impl() : sysinfo_sources()
-    {
-        struct utsname buf;
-        uname(&buf);
+/**
+ * Obtain system hardware and application information
+ */
+sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
+{
+    struct utsname buf;
+    uname(&buf);
 #if defined(__linux__)
-        // Obtain Linux system information from filesystem
-        add("devId", { "/etc/machine-id", "*"});
-        add("osName", {"/etc/os-release", ".*ID=(.*)[\n]+"});
-        add("osVer", {"/etc/os-release", ".*VERSION_ID=\"(.*)\".*"});
-        add("osRel", {"/etc/os-release", ".*VERSION=\"(.*)\".*"});
-        add("osBuild", {"/proc/version", "(.*)[\n]+"});
-        // add("proc_loadavg", {"/proc/loadavg", "(.*)[\n]*"});
-        // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
+    // Obtain Linux system information from filesystem
+    add("devId", { "/etc/machine-id", "*"});
+    add("osName", {"/etc/os-release", ".*ID=(.*)[\n]+"});
+    add("osVer", {"/etc/os-release", ".*VERSION_ID=\"(.*)\".*"});
+    add("osRel", {"/etc/os-release", ".*VERSION=\"(.*)\".*"});
+    add("osBuild", {"/proc/version", "(.*)[\n]+"});
+    // add("proc_loadavg", {"/proc/loadavg", "(.*)[\n]*"});
+    // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
 #endif
 
 #if defined(__MINGW32__) || defined(__MSYS__)
-        // Obtain MinGW Device ID from registry
-        add("devId",    { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/ComputerHardwareId", "*"});
-        add("devMake",  { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemManufacturer", "*"});
-        add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName",  "*"});
+    // Obtain MinGW Device ID from registry
+    add("devId",    { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/ComputerHardwareId", "*"});
+    add("devMake",  { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemManufacturer", "*"});
+    add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName",  "*"});
 #endif
 
 #if defined(__APPLE__)
-        // FIXME: [MG] - This is not the most elegant way of obtaining it
-        cache["devMake"] = "Apple";
-#if TARGET_OS_IPHONE
-        cache["devModel"] = GetDeviceModel();
-#else
-        cache["devModel"] = Exec("sysctl hw.model | awk '{ print $2 }'");
-#endif // TARGET_OS_IPHONE
-        cache["osName"] = GetDeviceOsName();
-        cache["osVer"] = GetDeviceOsVersion();
-        cache["osRel"] = GetDeviceOsRelease();
-        cache["osBuild"] = GetDeviceOsBuild();
+    // FIXME: [MG] - This is not the most elegant way of obtaining it
+    cache["devMake"] = "Apple";
+    cache["devModel"] = GetDeviceModel();
+    cache["osName"] = GetDeviceOsName();
+    cache["osVer"] = GetDeviceOsVersion();
+    cache["osRel"] = GetDeviceOsRelease();
+    cache["osBuild"] = GetDeviceOsBuild();
 
-        // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
-        CFTimeZoneRef tz = CFTimeZoneCopySystem();
-        CFTimeInterval minsFromGMT = CFTimeZoneGetSecondsFromGMT(tz, CFAbsoluteTimeGetCurrent()) / 60.0;
-        CFRelease(tz);
-        std::ostringstream oss;
-        int hh = std::abs((int)minsFromGMT / 60);
-        int mm = std::abs((int)minsFromGMT % 60);
-        if (minsFromGMT<0)
-        {
-            oss << "-";
-        }
-        oss << std::setw(2) << std::setfill('0') << hh;
-        oss << std::setw(1) << ":";
-        oss << std::setw(2) << std::setfill('0') << mm;
-        cache["tz"] = oss.str();
+    // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
+    CFTimeZoneRef tz = CFTimeZoneCopySystem();
+    CFTimeInterval minsFromGMT = CFTimeZoneGetSecondsFromGMT(tz, CFAbsoluteTimeGetCurrent()) / 60.0;
+    CFRelease(tz);
+    std::ostringstream oss;
+    int hh = std::abs((int)minsFromGMT / 60);
+    int mm = std::abs((int)minsFromGMT % 60);
+    if (minsFromGMT<0)
+    {
+        oss << "-";
+    }
+    oss << std::setw(2) << std::setfill('0') << hh;
+    oss << std::setw(1) << ":";
+    oss << std::setw(2) << std::setfill('0') << mm;
+    cache["tz"] = oss.str();
 #endif
 
-        // Fallback to uname if above methods failed
-        if (!get("osVer").compare(""))
-        {
-            cache["osVer"]  = (const char *)(buf.version);
-        }
-
-        if (!get("osName").compare(""))
-        {
-            cache["osName"] = (const char *)(buf.sysname);
-        }
-
-        if (!get("osRel").compare(""))
-        {
-            cache["osRel"]  = (const char *)(buf.release);
-        }
-
-#ifndef __APPLE__
-       add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
-#else
-       cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
-#endif
-
-        if (!get("devId").compare(""))
-        {
-#ifdef __APPLE__
-#if TARGET_OS_IPHONE
-            cache["devId"] = "i:";
-            std::string contents = GetDeviceId();
-#else
-            // Microsoft Edge bug 21528330
-            // We were unable to use get_platform_uuid to obtain Device Id
-            // in render processes.
-            std::string contents = Exec(R"(ioreg -d2 -c IOPlatformExpertDevice | awk -F\" '/IOPlatformUUID/{print $(NF-1)}')");
-            cache["devId"] = "u:";
-#endif // TARGET_OS_IPHONE
-            cache["devId"] += MAT::GUID_t(contents.c_str()).to_string();
-#else
-            // We were unable to obtain Device Id using standard means.
-            // Try to use hash of blkid + hostname instead. Both blkid
-            // and hostname would rarely change, as well as guarantee
-            // at least some protection from cloned VM images.
-            std::string contents = Exec("echo `blkid; hostname`");
-            if (!contents.empty())
-            {
-                uint8_t guid_bytes[16] = { 0 };
-                for(size_t i=0; i<contents.length(); i++)
-                {   // Simple XOR of contents to generate a UUID
-                    guid_bytes[i % 16] ^= contents.at(i);
-                }
-                cache["devId"] = MAT::GUID_t(guid_bytes).to_string();
-            }
-#endif
-        }
-
+    // Fallback to uname if above methods failed
+    if (!get("osVer").compare(""))
+    {
+        cache["osVer"]  = (const char *)(buf.version);
     }
 
-};
+    if (!get("osName").compare(""))
+    {
+        cache["osName"] = (const char *)(buf.sysname);
+    }
 
-sysinfo_sources aria_hwinfo = sysinfo_sources_impl();
+    if (!get("osRel").compare(""))
+    {
+        cache["osRel"]  = (const char *)(buf.release);
+    }
+
+#ifndef __APPLE__
+    add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
+#else
+    cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
+#endif
+
+    if (!get("devId").compare(""))
+    {
+#ifdef __APPLE__
+        std::string contents = GetDeviceId();
+#if TARGET_OS_IPHONE
+        cache["devId"] = "i:";
+#else
+        cache["devId"] = "u:";
+#endif // TARGET_OS_IPHONE
+        cache["devId"] += MAT::GUID_t(contents.c_str()).to_string();
+#else
+        // We were unable to obtain Device Id using standard means.
+        // Try to use hash of blkid + hostname instead. Both blkid
+        // and hostname would rarely change, as well as guarantee
+        // at least some protection from cloned VM images.
+        std::string contents = Exec("echo `blkid; hostname`");
+        if (!contents.empty())
+        {
+            uint8_t guid_bytes[16] = { 0 };
+            for(size_t i=0; i<contents.length(); i++)
+            {   // Simple XOR of contents to generate a UUID
+                guid_bytes[i % 16] ^= contents.at(i);
+            }
+            cache["devId"] = MAT::GUID_t(guid_bytes).to_string();
+        }
+#endif
+    }
+
+}
