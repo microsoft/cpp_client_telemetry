@@ -52,7 +52,7 @@ namespace ARIASDK_NS_BEGIN {
             m_observer->OnStorageFailed("Database is not open");
             return false;
         }
-        return false;
+        return true;
     }
 
     OfflineStorage_SQLite::OfflineStorage_SQLite(ILogManager & logManager, IRuntimeConfig& runtimeConfig, bool inMemory)
@@ -565,7 +565,10 @@ namespace ARIASDK_NS_BEGIN {
             return result;
         }
 
-        IF_CLOSED_RETURN result;
+        if (!isOpen()) {
+            LOG_ERROR("Oddly closed");
+            return result;
+        }
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
