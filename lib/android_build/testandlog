@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+./gradlew app:connectedDebugAndroidTest
+adb logcat -t 2000 MAE:D '*:E' > ./logcat.txt

@@ -61,7 +61,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
 /*!
  @brief Event PII (personal identifiable information ) tags. Key is property name, value is ODWPiiKind value.
 */
-@property(readonly, copy, nonatomic) NSDictionary<NSString*, id> * piiTags;
+@property(readonly, copy, nonatomic) NSDictionary<NSString*, NSNumber*> * piiTags;
 
 /*!
  @brief Constructs an ODWEventProperties object, taking an event name.
@@ -88,7 +88,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  */
 -(instancetype)initWithName:(nonnull NSString *)name
      properties:(NSDictionary<NSString*,id>*) properties
-     piiTags:(NSDictionary<NSString*,id>*) piiTags NS_DESIGNATED_INITIALIZER;
+     piiTags:(NSDictionary<NSString*,NSNumber*>*) piiTags NS_DESIGNATED_INITIALIZER;
 
 -(instancetype)init NS_UNAVAILABLE;
 
@@ -151,6 +151,36 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind;
+
+/*!
+ @brief Sets a UUID property for an event.
+ @param name A string that contains the name of the property.
+ @param value A UUID that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value;
+
+/*!
+ @brief Sets a UUID property for an event.
+ @param name A string that contains the name of the property.
+ @param value A UUID that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withUUIDValue:(NSUUID*)value withPiiKind:(ODWPiiKind)piiKind;
+
+/*!
+ @brief Sets a date property for an event.
+ @param name A string that contains the name of the property.
+ @param value A date that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value;
+
+/*!
+ @brief Sets a date property for an event.
+ @param name A string that contains the name of the property.
+ @param value A date that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind;
 
 @end
 

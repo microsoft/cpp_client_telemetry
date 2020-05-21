@@ -76,9 +76,9 @@ FILE=.buildtools
 OS_NAME=`uname -a`
 if [ ! -f $FILE ]; then
   case "$OS_NAME" in
-    *Darwin*) tools/setup-buildtools-mac.sh ;;
-     *Linux*) [[ -z "$NOROOT" ]] && sudo tools/setup-buildtools.sh || echo "No root: skipping build tools installation." ;;
-           *) echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation." ;;
+    *Darwin*) tools/setup-buildtools-apple.sh ;;
+    *Linux*)  [[ -z "$NOROOT" ]] && sudo tools/setup-buildtools.sh || echo "No root: skipping build tools installation." ;;
+    *)        echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation.."
   esac
   # Assume that the build tools have been successfully installed
   echo > $FILE
