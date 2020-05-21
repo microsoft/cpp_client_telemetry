@@ -10,9 +10,6 @@
 #include <numeric>
 #include <set>
 
-
-#define IF_CLOSED_RETURN      if (!isOpen()) return
-
 namespace ARIASDK_NS_BEGIN {
 
     class DbTransaction {
@@ -328,7 +325,9 @@ namespace ARIASDK_NS_BEGIN {
         std::vector<StorageRecord> records;
         StorageRecord record;
 
-        IF_CLOSED_RETURN records;
+        if (!isOpen()) {
+            return records;
+        }
 
         if (shutdown)
         {
@@ -364,7 +363,9 @@ namespace ARIASDK_NS_BEGIN {
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
         UNREFERENCED_PARAMETER(whereFilter);
-        IF_CLOSED_RETURN;
+        if (!isOpen()) {
+            return;
+        }
 
         LOCKGUARD(m_lock);
         {
