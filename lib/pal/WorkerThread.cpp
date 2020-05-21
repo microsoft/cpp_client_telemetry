@@ -7,11 +7,6 @@
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
 #define MAX_FUTURE_DELTA_MS (60 * 60 * 1000)
 
-// Polling interval for task cancellation can be customized at compile-time
-#ifndef TASK_CANCEL_WAIT_MS
-#define TASK_CANCEL_WAIT_MS 50
-#endif
-
 namespace PAL_NS_BEGIN {
 
     class WorkerThreadShutdownItem : public Task
@@ -31,6 +26,7 @@ namespace PAL_NS_BEGIN {
 
         // TODO: [MG] - investigate all the cases why we need recursive here
         std::recursive_mutex  m_lock;
+        std::timed_mutex      m_execution_mutex;
 
         std::list<MAT::Task*> m_queue;
         std::list<MAT::Task*> m_timerQueue;
@@ -100,7 +96,7 @@ namespace PAL_NS_BEGIN {
         //
         // - acquire the m_lock to prevent a new task from getting scheduled.
         //   This may block the scheduling of a new task in queue for up to
-        //   TASK_CANCEL_WAIT_MS=50 ms in case if the task being canceled
+        //   waitTime in case if the task being canceled
         //   is the one being executed right now.
         //
         // - if currently executing task is the one we are trying to cancel,
@@ -134,12 +130,19 @@ namespace PAL_NS_BEGIN {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_hThread.get_id() != std::this_thread::get_id())
                 {
-                    while ((waitTime > TASK_CANCEL_WAIT_MS) && (m_itemInProgress == item))
+                    if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
                     {
-                        PAL::sleep(TASK_CANCEL_WAIT_MS);
-                        waitTime -= TASK_CANCEL_WAIT_MS;
+                        m_itemInProgress = nullptr;
+                        m_execution_mutex.unlock();
                     }
                 }
+                else
+                {
+                    // The SDK may attempt to cancel itself from within its own task.
+                    // Return true and assume that the current task will finish, and therefore be cancelled.
+                    return true;
+                }
+
                 /* Either waited long enough or the task is still executing. Return:
                  *  true    - if item in progress is different than item (other task)
                  *  false   - if item in progress is still the same (didn't wait long enough)
@@ -153,7 +156,6 @@ namespace PAL_NS_BEGIN {
                     // Still in the queue
                     m_timerQueue.erase(it);
                     delete item;
-                    return true;
                 }
             }
 #if 0
@@ -167,7 +169,7 @@ namespace PAL_NS_BEGIN {
                 Sleep(10);
             }
 #endif
-            return false;
+            return true;
         }
 
     protected:
@@ -229,13 +231,20 @@ namespace PAL_NS_BEGIN {
                     break;
                 }
 
-                LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
-                (*item)();
-                self->m_itemInProgress = nullptr;
+                {
+                    std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
 
-                if (item.get()) {
-                    item->Type = MAT::Task::Done;
-                    item.reset();
+                    // Item wasn't cancelled before it could be executed
+                    if (self->m_itemInProgress != nullptr) {
+                        LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
+                        (*item)();
+                        self->m_itemInProgress = nullptr;
+                    }
+
+                    if (item) {
+                        item->Type = MAT::Task::Done;
+                        item = nullptr;
+                    }
                 }
             }
         }

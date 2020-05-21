@@ -56,3 +56,21 @@ How it works:
 ```
 
 That file is included from **mat/config.h** and propagates the necessary configuration flags to all SDK modules.
+
+## Building custom SDK SKU in Visual Studio
+
+In order to test your custom build configuration in Visual Studio IDE:
+
+1. Set `CUSTOM_PROPS_VS` environment variable in cmd.exe. For example:
+
+```
+set "CUSTOM_PROPS_VS=%~dp0\Solutions\build.compact-min.props"
+```
+
+2. Launch Visual Studio IDE (devenv.exe) from that same shell:
+
+```
+tools\start-ide.cmd
+```
+
+3. Perform selective **Batch build...** of applicable projects. Some projects in solution may not be custom build-friendly. Build only the projects you need.
