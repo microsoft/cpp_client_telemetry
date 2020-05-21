@@ -61,7 +61,7 @@ That file is included from **mat/config.h** and propagates the necessary configu
 
 In order to test your custom build configuration in Visual Studio IDE:
 
-1. set CUSTOM_PROPS_VS variable in cmd.exe . For example:
+1. Set `CUSTOM_PROPS_VS` environment variable in cmd.exe. For example:
 
 ```
 set "CUSTOM_PROPS_VS=%~dp0\Solutions\build.compact-min.props"
