@@ -57,14 +57,13 @@ typedef NS_ENUM(long, ODWPDT)
  @enum ODWPDL
  @brief The <b>ODWPDL</b> enumeration contains a set of values that indicate the Privacy Diagnostic Level that an event may be classified as.
  @remarks By default, in the absence of explicit markup, an event is considered ODWPDLOptionalDiagnosticData. 
- @remarks Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
  */
-typedef NS_ENUM(NSInteger, ODWPDL)
+typedef NS_ENUM(NSInteger, ODWDiagLevel)
 {
-    ODWPDLRequiredDiagnosticData = 1,
-    ODWPDLOptionalDiagnosticData = 2,
-    ODWPDLRequiredServiceData = 110,
-    ODWPDLRequiredServiceDataForEssentialServices = 120
+    ODWDiagLevelRequiredDiagnosticData = 1,
+    ODWDiagLevelOptionalDiagnosticData = 2,
+    ODWDiagLevelRequiredServiceData = 110,
+    ODWDiagLevelRequiredServiceDataForEssentialServices = 120
 };
 
 /*!
@@ -202,6 +201,18 @@ typedef NS_ENUM(NSInteger, ODWPDL)
  @param value A date that contains the property value.
  */
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value;
+
+/*!
+ @brief Sets the privacy data type for an event.
+ @param value Privacy Data Type of the event.
+ */
+-(void)setPrivacyDataType:(long*)value;
+
+/*!
+ @brief Sets the privacy diagnostic level for an event.
+ @param value Privacy Diagnostic Level of the event.
+ */
+-(void)setPrivacyDiagnosticLevel:(NSInteger*)value;
 
 /*!
  @brief Sets a date property for an event.
