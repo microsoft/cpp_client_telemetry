@@ -25,4 +25,16 @@ using namespace MAT;
     _wrappedSemanticContext->SetAppId(strAppId);
 }
 
+-(void)setUserId:(nonnull NSString *)userId
+{
+    std::string strUserId = std::string([userId UTF8String]);
+    _wrappedSemanticContext->SetUserId(strUserId);
+}
+
+-(void)setUserAdvertisingId:(nonnull NSString *)userAdvertisingId
+{
+    std::string strUserAdvertisingId = std::string([userAdvertisingId UTF8String]);
+    _wrappedSemanticContext->SetUserAdvertisingId(strUserAdvertisingId);
+}
+
 @end
