@@ -10,11 +10,13 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
   public:
     virtual void OnTestStart(testing::TestInfo const& test) override
     {
+        std::ignore = test;
         LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
     }
 
     virtual void OnTestEnd(testing::TestInfo const& test) override
     {
+        std::ignore = test;
         LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
     }
 };

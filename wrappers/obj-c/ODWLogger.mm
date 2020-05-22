@@ -12,8 +12,9 @@ using namespace MAT;
 @implementation ODWLogger
 {
     ILogger* _wrappedLogger;
-    ODWSemanticContext* semanticContext;
 }
+
+@synthesize semanticContext = _semanticContext;
 
 -(instancetype)initWithILogger:(ILogger*)logger
 {
@@ -24,7 +25,7 @@ using namespace MAT;
 		{
 	        NSLog(@"Logger initialized successfully");
 		}
-        semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
+        _semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
     }
     return self;
 }
@@ -203,11 +204,6 @@ using namespace MAT;
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
     }
-}
-
--(ODWSemanticContext*) getSemanticContext
-{
-    return semanticContext;
 }
 
 @end

@@ -5,6 +5,10 @@
 
 namespace ARIASDK_NS_BEGIN {
 
+    TransmitProfiles::TransmitProfiles() {};
+
+    TransmitProfiles::~TransmitProfiles() {};
+
     bool TransmitProfiles::load(const std::string&) { return false; };
 
     bool TransmitProfiles::load(const std::vector<TransmitProfileRules>&) noexcept { return false; };
@@ -19,9 +23,11 @@ namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::updateStates(NetworkCost, PowerSource) { return true; };
 
-    void TransmitProfiles::getTimers(std::vector<int>& out)
+    void TransmitProfiles::getTimers(TimerArray& out)
     {
-        out = { 1, 2, 4 };
+        out[0] = 1;
+        out[1] = 2;
+        out[2] = 4;
     }
 
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }

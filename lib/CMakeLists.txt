@@ -78,6 +78,10 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       list(APPEND SRCS
         pal/posix/sysinfo_utils_ios.mm
       )
+    else()
+      list(APPEND SRCS
+        pal/posix/sysinfo_utils_mac.cpp
+      )
     endif()
   endif()
   list(APPEND SRCS

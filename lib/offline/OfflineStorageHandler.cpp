@@ -61,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task.load());
+        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
         m_flushComplete.wait();
     }
 
@@ -259,7 +259,7 @@ namespace ARIASDK_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task.load());
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
                     }
                     m_flushLock.unlock();
                 }

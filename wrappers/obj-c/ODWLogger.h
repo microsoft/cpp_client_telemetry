@@ -118,11 +118,9 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
             eventProperties:(ODWEventProperties *)properties;
 
 /*!
-@brief Get a pointer to the semantic context for this ODWLogger
-@return A pointer to the semantic context
+Semantic context for this ODWLogger
  */
--(ODWSemanticContext*)getSemanticContext;
-
+@property (NS_NONATOMIC_IOSONLY, readonly, strong, nonnull) ODWSemanticContext* semanticContext;
 
 @end
 
