@@ -8,8 +8,15 @@ REM
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
-echo "Building using Visual Studio 2017 tools"
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+echo Update all public submodules...
+git -c submodule."lib/modules".update=none submodule update --init --recursive
+
+if DEFINED GIT_PULL_TOKEN (
+  rd /s /q lib\modules
+  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+)
+
+call tools\vcvars.cmd
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
@@ -28,12 +35,11 @@ msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpu
 msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64 %CUSTOM_PROPS%
 
 REM ARM DLL build
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\vsdevcmd\ext\vcvars.bat" arm
+call tools\vcvars-ext.cmd arm
 msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
 msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
 
 REM ARM64 DLL build
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\vsdevcmd\ext\vcvars.bat" arm64
+call tools\vcvars-ext.cmd arm64
 msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
 msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%
- 
