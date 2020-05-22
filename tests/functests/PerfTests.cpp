@@ -17,6 +17,30 @@
 #endif
 #endif
 
+#include "LogManager.hpp"
+
+using namespace MAT;
+
+class ETWLogConfiguration : public ILogConfiguration
+{
+   public:
+    ETWLogConfiguration() :
+        ILogConfiguration()
+    {
+        (*this)["name"] = "ETWModule";
+        (*this)["version"] = "1.0.0";
+        (*this)[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        (*this)[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
+        (*this)[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
+        (*this)["schema"]["integrity"] = false;
+        (*this)[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    } 
+};
+
+using ETWLogManager = MAT::LogManagerBase<ETWLogConfiguration>;
+
+DEFINE_LOGMANAGER(ETWLogManager, ETWLogConfiguration);
+
 #ifdef HAVE_BENCHMARK
 #include "mat/config.h"
 
@@ -54,13 +78,9 @@ class ETWLoggerFixture : public benchmark::Fixture
     void SetUp(const ::benchmark::State&)
     {
         const char* token = "deadbeefdeadbeefdeadbeef00000075";
-        auto& configuration = LogManager::GetLogConfiguration();
-        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
-        configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
+        auto& configuration = ETWLogManager::GetLogConfiguration();
         configuration["schema"][CFG_INT_DETAIL_LEVEL] = m_detailLevel;
-        configuration["schema"]["integrity"] = false;
-        logger = LogManager::Initialize(token, configuration);
+        logger = ETWLogManager::Initialize(token, configuration);
     }
 
     void LogEvent()
