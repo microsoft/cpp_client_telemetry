@@ -12,4 +12,5 @@
     <OutputPath>$(OutDir)</OutputPath>
     <TargetPath>$(OutDir)$(TargetName)$(TargetExt)</TargetPath>
   </PropertyGroup>
+  <Import Condition="Exists('$(CUSTOM_PROPS_VS)')" Project="$(CUSTOM_PROPS_VS)" />
 </Project>

@@ -12,4 +12,8 @@ std::string GetDeviceOsRelease();
 
 std::string GetDeviceOsBuild();
 
+std::string GetDeviceModel();
+
+std::string GetDeviceId();
+
 #endif /* LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_ */
