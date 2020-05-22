@@ -130,7 +130,19 @@ namespace ARIASDK_NS_BEGIN {
         {
             uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
             bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
-            m_isUploadScheduled.exchange(false);
+
+            // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
+            //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
+            //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+			//
+			// TODO #2: previously we were unconditionally marking that upload is not scheduled, thus
+			// allowing it to be scheduled again. Now we assume it's scheduled. But what about the
+			// case when a task is already gone? It seems like in this case the Cancel(...) above
+			// returns false, thus failing to reset the flag?
+            if (result)
+            {
+                m_isUploadScheduled.exchange(false);
+            }
             return result;
         }
         
