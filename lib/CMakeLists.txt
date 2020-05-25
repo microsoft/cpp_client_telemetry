@@ -62,7 +62,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   )
 endif()
 
-if(EXISTS "modules/dataviewer/")
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
   list(APPEND SRCS
     modules/dataviewer/DefaultDataViewer.cpp
     modules/dataviewer/OnDisableNotificationCollection.cpp
@@ -127,6 +127,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 	  ../wrappers/obj-c/ODWEventProperties.mm
 	  ../wrappers/obj-c/ODWLogConfiguration.mm
 	  ../wrappers/obj-c/ODWSemanticContext.mm
+	  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
 	  )
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
