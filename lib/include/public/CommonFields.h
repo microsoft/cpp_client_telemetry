@@ -86,6 +86,7 @@ constexpr std::uint8_t PDL_NONE                           {0u};          /* Logg
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
 /* Microsoft NGP diagnostic level classification  */
+constexpr std::uint8_t DIAG_LEVEL_REQUIRED                           {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
 constexpr std::uint8_t PDL_REQUIRED                                  {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
 constexpr std::uint8_t PDL_OPTIONAL                                  {2u}; /* Additional optional data               */
 constexpr std::uint8_t PDL_REQUIREDSERVICEDATA                     {110u}; /* Data required for services to be able to function properly */
