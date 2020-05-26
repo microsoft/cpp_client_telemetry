@@ -1,6 +1,6 @@
 [submodule "tools/vcpkg"]
 	path = tools/vcpkg
-	url = ../vcpkg
+	url = https://github.com/Microsoft/vcpkg
 
 [submodule "lib/modules"]
 	path = lib/modules
@@ -9,5 +9,5 @@
 
 [submodule "third_party/krabsetw"]
 	path = third_party/krabsetw
-	url = ../krabsetw
+	url = https://github.com/Microsoft/krabsetw
 	branch = master
