@@ -1,3 +1,7 @@
+> ***NOTE***
+> In the EventProperties class, a `SetPrivacyMetadata` API is provided that allows setting the Privacy Tags
+ and Privacy Diagnostic Level as mentioned below. In absence of an explicitly provided Privac Diagnostic Level,
+ `PDL_Optional` is used. More details below.
 
 # Using Privacy Tags
 
@@ -43,13 +47,13 @@ logger->LogEvent(event2);
 Alternatively, if you want to explicitly set the tags for an event via event property, you can also use this syntax:
 ```cpp
 EventProperties event(eventName);
-event.SetPrivacyTags(PDT_ProductAndServicePerformance);
+event.SetPrivacyMetadata(PDT_ProductAndServicePerformance);
 ``` 
 
 If the event requires multiple tags, you can use the binary `OR` operator:
 ```cpp
 EventProperties event(eventName);
-event.SetPrivacyTags(PDT_ProductAndServicePerformance | PDT_ProductAndServiceUsage);
+event.SetPrivacyMetadata(PDT_ProductAndServicePerformance | PDT_ProductAndServiceUsage);
 ``` 
 
 Here is a list of the privacy flags available are:
@@ -71,6 +75,7 @@ The tag set on your event will show it the field ext.metadata.privTags. In UTC m
 # Diagnostic Level
 
 The C++ SDK provides support for Privacy Diagnostic Level markup for an event. A given event can have only one diagnostic level defined.
+If using the `SetPrivacyMetadata` API and not providing a Diagnostic Level, `PDL_OPTIONAL` value is used.
 
 To set the diagnostic level on an event, you can use the following syntax using the SetProperty method:
 
@@ -106,7 +111,7 @@ logger->LogEvent(event2);
 Alternatively, if you want to explicitly set the tags for an event via event property, you can also use this syntax:
 ```cpp
 EventProperties event(eventName);
-event.SetPrivacyLevel(PDL_REQUIRED);
+event.SetPrivacyMetadata(PDT_ProductAndServiceUsage, PDL_REQUIRED);
 ``` 
 
 The list of diagnostic level available are:
@@ -143,18 +148,18 @@ auto logger1 = LogManager::GetLogger();
 
 // Set diagnostic level to OPTIONAL for logger2
 auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
-logger2->SetPrivacyLevel(PDL_OPTIONAL);
+logger2->SetPrivacyLevel(DIAG_LEVEL_OPTIONAL);
 
 // Set diagnostic level to REQUIRED
 auto logger3 = LogManager::GetLogger("my_required_source");
-logger3->SetPrivacyLevel(PDL_REQUIRED);
+logger3->SetPrivacyLevel(DIAG_LEVEL_REQUIRED);
 
 // A set that specifies that nothing passes through level filter
-std::set<uint8_t> logNone  = { PDL_NONE };
+std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
 // Everything goes through
 std::set<uint8_t> logAll   = { };
 // Only allow REQUIRED level filtering
-std::set<uint8_t> logRequired = { PDL_REQUIRED };
+std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
 auto filters = { logNone, logAll, logBasic };
 
@@ -176,13 +181,13 @@ for (auto filter : filters)
 		// Create an event and set level to REQUIRED 
 		// This overrides the logger level for filtering
 		EventProperties requiredEvent("My.RequiredEvent");
-		requiredEvent.SetPrivacyLevel(PDL_REQUIRED);
+		requiredEvent.SetPrivacyLevel(DIAG_LEVEL_REQUIRED);
 		logger->LogEvent(requiredEvent);
 
 		// Create an event and set level to OPTIONAL 
 		// This overrides the logger level for filtering
 		EventProperties optionalEvent("My.OptionalEvent");
-		optionalEvent.SetPrivacyLevel(PDL_OPTIONAL);
+		optionalEvent.SetPrivacyLevel(DIAG_LEVEL_OPTIONAL);
 		logger->LogEvent(optionalEvent);
 	}
 }
