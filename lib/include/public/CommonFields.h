@@ -1,7 +1,7 @@
 /* Copyright (c) Microsoft. All rights reserved. */
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
-#include <stdint.h>
+#include <cstdint>
 
 #define EVENTRECORD_TYPE_CUSTOM_EVENT                        "custom"
 
@@ -76,9 +76,9 @@
 #define CONTEXT_SCOPE_NONE                              "-"  /* Do not inherit parent context props */
 
 /* Default set of diagnostic level constants. Customers may define their own set. */
-constexpr uint8_t PDL_NOTSET                         {255};
-constexpr uint8_t PDL_DEFAULT                        {PDL_NOTSET}; /* Default level is inherited from parent */
-constexpr uint8_t PDL_NONE                           {0};          /* Logging disabled                       */
+constexpr std::uint8_t PDL_NOTSET                         {255u};
+constexpr std::uint8_t PDL_DEFAULT                        {PDL_NOTSET}; /* Default level is inherited from parent */
+constexpr std::uint8_t PDL_NONE                           {0u};          /* Logging disabled                       */
 
 /* Windows OS diagnostic level classification        */
 #define DIAG_LEVEL_BASIC                                1       /* Basic info                             */
@@ -86,10 +86,10 @@ constexpr uint8_t PDL_NONE                           {0};          /* Logging di
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
 /* Microsoft NGP diagnostic level classification  */
-constexpr uint8_t PDL_REQUIRED                                  {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-constexpr uint8_t PDL_OPTIONAL                                  {2u}; /* Additional optional data               */
-constexpr uint8_t PDL_REQUIREDSERVICEDATA                     {110u}; /* Data required for services to be able to function properly */
-constexpr uint8_t PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES {120u}; /* Data required for operation of essential services such as licensing, etc. */
+constexpr std::uint8_t PDL_REQUIRED                                  {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+constexpr std::uint8_t PDL_OPTIONAL                                  {2u}; /* Additional optional data               */
+constexpr std::uint8_t PDL_REQUIREDSERVICEDATA                     {110u}; /* Data required for services to be able to function properly */
+constexpr std::uint8_t PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES {120u}; /* Data required for operation of essential services such as licensing, etc. */
 
 /* Custom SDK configuration allows to override PDL_DEFAULT_MIN and PDL_DEFAULT_MAX          */
 #ifndef PDL_DEFAULT_MIN
