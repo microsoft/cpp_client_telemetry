@@ -56,7 +56,7 @@ namespace ARIASDK_NS_BEGIN {
     * \param name Event name - must not be empty!
     */
     EventProperties::EventProperties(const string& name)
-        : EventProperties(name, DIAG_LEVEL_OPTIONAL)
+        : EventProperties(name, PDL_OPTIONAL)
     {
     }
 
@@ -76,7 +76,7 @@ namespace ARIASDK_NS_BEGIN {
             SetName(DefaultEventName);
         }
 
-        SetLevel(diagnosticLevel);
+        SetPrivacyLevel(diagnosticLevel);
     }
 
     EventProperties::EventProperties(EventProperties const& copy)
@@ -303,9 +303,9 @@ namespace ARIASDK_NS_BEGIN {
         return m_storage->eventType;
     }
 
-    std::tuple<bool, uint8_t> EventProperties::TryGetLevel() const
+    std::tuple<bool, uint8_t> EventProperties::TryGetPrivacyLevel() const
     {
-        const auto& findResult = GetProperties().find(COMMONFIELDS_EVENT_LEVEL);
+        const auto& findResult = GetProperties().find(COMMONFIELDS_EVENT_PRIVLEVEL);
         if (findResult == GetProperties().cend())
             return std::make_tuple<bool, uint8_t>(false, 0);
         

@@ -38,14 +38,14 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>
         /// Constructs an EventProperties object, taking a string for the property name.
-        /// Sets the diagnostic level of the event to DIAG_LEVEL_OPTIONAL
+        /// Sets the diagnostic level of the event to PDL_OPTIONAL
         /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
         /// </summary>
         EventProperties(const std::string& name);
 
         /// <summary>
         /// Constructs an EventProperties object (the default constructor).
-        /// Sets the diagnostic level of the event to DIAG_LEVEL_OPTIONAL
+        /// Sets the diagnostic level of the event to PDL_OPTIONAL
         /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
         /// </summary>
         EventProperties();
@@ -190,20 +190,20 @@ namespace ARIASDK_NS_BEGIN
         uint64_t GetPolicyBitFlags() const;
 
         /// <summary>
-        /// Sets the diagnostic level of an event. This is equivalent to:
+        /// Sets the privacy diagnostic level of an event. This is equivalent to:
         ///  ...
-        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        ///  SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, pdl);
         ///  ...
         /// </summary>
-        void SetLevel(uint8_t level)
+        void SetPrivacyLevel(uint8_t pdl)
         {
-            SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+            SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, pdl);
         }
 
         /// <summary>
         /// Sets the diagnostic level of an event. This is equivalent to:
         ///  ...
-        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        ///  SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
         ///  ...
         /// </summary>
         void SetPrivacyTags(uint64_t privTags)
@@ -218,7 +218,7 @@ namespace ARIASDK_NS_BEGIN
         /// Attempts to get the diagnostic level for an event.
         /// <return>True and the level, or false if unset, set to the wrong type, or the value is out of bounds.</return>
         /// </summary>
-        std::tuple<bool, uint8_t> TryGetLevel() const;
+        std::tuple<bool, uint8_t> TryGetPrivacyLevel() const;
 
         /// <summary>
         /// Specify a property for an event.

@@ -203,7 +203,7 @@ public:
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
+        LogManager::SetLevelFilter(PDL_OPTIONAL, { PDL_OPTIONAL, PDL_REQUIRED, PDL_REQUIREDSERVICEDATA, PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES });
         LogManager::ResumeTransmission();
 
         logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
@@ -892,20 +892,20 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     FlushAndTeardown();
 }
 
-TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAllowedOneAllowed_OnlyAllowedEventSent)
+TEST_F(BasicFuncTests, PDLRequiredOnly_OneEventWithoutLevelOneWithButNotAllowedOneAllowed_OnlyAllowedEventSent)
 {
     CleanStorage();
     Initialize();
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
+    LogManager::SetLevelFilter(PDL_OPTIONAL, { PDL_REQUIRED });
     EventProperties eventWithoutLevel("EventWithoutLevel");
     logger->LogEvent(eventWithoutLevel);
 
     EventProperties eventWithNotAllowedLevel("EventWithNotAllowedLevel");
-    eventWithNotAllowedLevel.SetLevel(DIAG_LEVEL_OPTIONAL);
+    eventWithNotAllowedLevel.SetPrivacyLevel(PDL_OPTIONAL);
     logger->LogEvent(eventWithNotAllowedLevel);
 
     EventProperties eventWithAllowedLevel("EventWithAllowedLevel");
-    eventWithAllowedLevel.SetLevel(DIAG_LEVEL_REQUIRED);
+    eventWithAllowedLevel.SetPrivacyLevel(PDL_REQUIRED);
     logger->LogEvent(eventWithAllowedLevel);
 
     LogManager::UploadNow();
@@ -921,11 +921,11 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 void SendEventWithOptionalThenRequired(ILogger* logger) noexcept
 {
     EventProperties eventWithOptionalLevel("EventWithOptionalLevel");
-    eventWithOptionalLevel.SetLevel(DIAG_LEVEL_OPTIONAL);
+    eventWithOptionalLevel.SetPrivacyLevel(PDL_OPTIONAL);
     logger->LogEvent(eventWithOptionalLevel);
 
     EventProperties eventWithRequiredLevel("EventWithRequiredLevel");
-    eventWithRequiredLevel.SetLevel(DIAG_LEVEL_REQUIRED);
+    eventWithRequiredLevel.SetPrivacyLevel(PDL_REQUIRED);
     logger->LogEvent(eventWithRequiredLevel);
 }
 
@@ -940,15 +940,15 @@ static std::vector<CsProtocol::Record> GetEventsWithName(const char* name, const
     return results;
 }
 
-TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSendTwoEvents_ThreeEventsSent)
+TEST_F(BasicFuncTests, PDLRequiredOnly_SendTwoEventsUpdateAllowedLevelsSendTwoEvents_ThreeEventsSent)
 {
     CleanStorage();
     Initialize();
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
+    LogManager::SetLevelFilter(PDL_OPTIONAL, { PDL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
+    LogManager::SetLevelFilter(PDL_OPTIONAL, { PDL_OPTIONAL, PDL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
     LogManager::UploadNow();

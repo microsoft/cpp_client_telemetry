@@ -38,9 +38,9 @@ namespace ARIASDK_NS_BEGIN
     class DiagLevelFilter final {
     public:
         DiagLevelFilter():
-            m_levelMin(DIAG_LEVEL_DEFAULT_MIN),
-            m_levelMax(DIAG_LEVEL_DEFAULT_MAX),
-            m_level(DIAG_LEVEL_DEFAULT),
+            m_levelMin(PDL_DEFAULT_MIN),
+            m_levelMax(PDL_DEFAULT_MAX),
+            m_level(PDL_DEFAULT),
             m_levelSet({})
         {
         }
@@ -71,7 +71,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         bool IsLevelFilterEnabled() const
         {
-            return !m_levelSet.empty() || m_levelMin != DIAG_LEVEL_DEFAULT_MIN || m_levelMax != DIAG_LEVEL_DEFAULT_MAX || m_level != DIAG_LEVEL_DEFAULT;
+            return !m_levelSet.empty() || m_levelMin != PDL_DEFAULT_MIN || m_levelMax != PDL_DEFAULT_MAX || m_level != PDL_DEFAULT;
         }
 
         /// <summary>

@@ -27,7 +27,7 @@ namespace ARIASDK_NS_BEGIN
         // TODO: scope parameter can be used to rewire the logger to alternate context.
         // Scope must uniquely identify the "shared context" instance id.
         m_scope(scope),
-        m_level(DIAG_LEVEL_DEFAULT),
+        m_privLevel(PDL_DEFAULT),
         m_logManager(logManager),
         m_context(&parentContext),
         m_config(runtimeConfig),
@@ -389,21 +389,21 @@ namespace ARIASDK_NS_BEGIN
         if (levelFilter.IsLevelFilterEnabled())
         {
             const auto & m_props = props.GetProperties();
-            const auto it = m_props.find(COMMONFIELDS_EVENT_LEVEL);
+            const auto it = m_props.find(COMMONFIELDS_EVENT_PRIVLEVEL);
             //
             // Level policy:
-            // * get level from the COMMONFIELDS_EVENT_LEVEL property if set
+            // * get level from the COMMONFIELDS_EVENT_PRIVLEVEL property if set
             // * if not set, then get level from the ILogger instance
             // * if not set, then get level from the LogManager instance
             // * if still not set (no default assigned at LogManager scope),
             // then prefer to drop. This is user error: user set the range
             // restrition, but didn't specify the defaults.
             //
-            uint8_t level = (it != m_props.cend()) ? static_cast<uint8_t>(it->second.as_int64) : m_level;
-            if (level == DIAG_LEVEL_DEFAULT)
+            uint8_t level = (it != m_props.cend()) ? static_cast<uint8_t>(it->second.as_int64) : m_privLevel;
+            if (level == PDL_DEFAULT)
             {
                 level = levelFilter.GetDefaultLevel();
-                if (level == DIAG_LEVEL_DEFAULT)
+                if (level == PDL_DEFAULT)
                 {
                     // If no default level, but restrictions are in effect, then prefer to drop event
                     LOG_INFO("Event %s/%s dropped: no diagnostic level assigned!",
@@ -707,9 +707,9 @@ namespace ARIASDK_NS_BEGIN
         return m_source;
     }
 
-    void Logger::SetLevel(uint8_t level)
+    void Logger::SetPrivacyLevel(uint8_t level)
     {
-        m_level = level;
+        m_privLevel = level;
     }
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
