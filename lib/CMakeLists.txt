@@ -127,8 +127,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 	  ../wrappers/obj-c/ODWEventProperties.mm
 	  ../wrappers/obj-c/ODWLogConfiguration.mm
 	  ../wrappers/obj-c/ODWSemanticContext.mm
-	  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
 	  )
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+  		list(APPEND SRCS
+		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
+  		)
+	endif()
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
