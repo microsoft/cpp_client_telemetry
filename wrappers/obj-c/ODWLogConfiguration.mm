@@ -6,6 +6,7 @@ using namespace Microsoft::Applications::Events;
 
 @implementation ODWLogConfiguration
     static bool _enableTrace;
+    static bool _surfaceCppExceptions;
 
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec
 {
@@ -23,6 +24,16 @@ using namespace Microsoft::Applications::Events;
 +(bool)enableTrace
 {
     return _enableTrace;
+}
+
++(void)setSurfaceCppExceptions:(bool)surfaceCppExceptions
+{
+    _surfaceCppExceptions = surfaceCppExceptions;
+}
+
++(bool)surfaceCppExceptions
+{
+    return _surfaceCppExceptions;
 }
 
 @end
