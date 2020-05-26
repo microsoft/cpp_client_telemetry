@@ -15,8 +15,8 @@ TEST(EventPropertiesTests, Construction)
     EXPECT_THAT(ep.GetTimestamp(), 0ll);
     EXPECT_THAT(ep.GetProperties(), SizeIs(1));
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
-    EXPECT_TRUE(std::get<0>(ep.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(ep.TryGetLevel()), DIAG_LEVEL_OPTIONAL);
+    EXPECT_TRUE(std::get<0>(ep.TryGetPrivacyLevel()));
+    EXPECT_THAT(std::get<1>(ep.TryGetPrivacyLevel()), PDL_OPTIONAL);
 }
 
 TEST(EventPropertiesTests, Name)
@@ -39,24 +39,24 @@ TEST(EventPropertiesTests, Name)
 
 TEST(EventPropertiesTests, DiagnosticLevel)
 {
-    EventProperties epOptional("Optional", DIAG_LEVEL_OPTIONAL);
+    EventProperties epOptional("Optional", PDL_OPTIONAL);
     EXPECT_THAT(epOptional.GetName(), Eq("Optional"));
-    EXPECT_TRUE(std::get<0>(epOptional.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), DIAG_LEVEL_OPTIONAL);
+    EXPECT_TRUE(std::get<0>(epOptional.TryGetPrivacyLevel()));
+    EXPECT_THAT(std::get<1>(epOptional.TryGetPrivacyLevel()), PDL_OPTIONAL);
 
-    epOptional.SetLevel(DIAG_LEVEL_REQUIRED);
-    EXPECT_TRUE(std::get<0>(epOptional.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), DIAG_LEVEL_REQUIRED);
+    epOptional.SetPrivacyLevel(PDL_REQUIRED);
+    EXPECT_TRUE(std::get<0>(epOptional.TryGetPrivacyLevel()));
+    EXPECT_THAT(std::get<1>(epOptional.TryGetPrivacyLevel()), PDL_REQUIRED);
 
-    EventProperties epRequired("Required", DIAG_LEVEL_REQUIRED);
+    EventProperties epRequired("Required", PDL_REQUIRED);
     EXPECT_THAT(epRequired.GetName(), Eq("Required"));
-    EXPECT_TRUE(std::get<0>(epRequired.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epRequired.TryGetLevel()), DIAG_LEVEL_REQUIRED);
+    EXPECT_TRUE(std::get<0>(epRequired.TryGetPrivacyLevel()));
+    EXPECT_THAT(std::get<1>(epRequired.TryGetPrivacyLevel()), PDL_REQUIRED);
 
     EventProperties epCustom("Custom", 55);
     EXPECT_THAT(epCustom.GetName(), Eq("Custom"));
-    EXPECT_TRUE(std::get<0>(epCustom.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epCustom.TryGetLevel()), 55);
+    EXPECT_TRUE(std::get<0>(epCustom.TryGetPrivacyLevel()));
+    EXPECT_THAT(std::get<1>(epCustom.TryGetPrivacyLevel()), 55);
 }
 
 TEST(EventPropertiesTests, Timestamp)
@@ -164,41 +164,41 @@ TEST(EventPropertiesTests, CustomerContentProperties)
     EXPECT_THAT(ep.GetPiiProperties(), Contains(Pair("customerData", Pair("value", CustomerContentKind_GenericData))));
 }
 
-TEST(EventPropertiesTests, SetLevel_AddsProperty)
+TEST(EventPropertiesTests, SetPrivacyLevel_AddsProperty)
 {
     EventProperties properties;
-    properties.SetLevel(42);
+    properties.SetPrivacyLevel(42);
     EXPECT_THAT(properties.GetProperties(), SizeIs(1));
 }
 
-TEST(EventPropertiesTests, SetLevel_SetsPropertyName)
+TEST(EventPropertiesTests, SetPrivacyLevel_SetsPropertyName)
 {
     EventProperties properties;
-    properties.SetLevel(42);
-    EXPECT_TRUE(properties.GetProperties().find(COMMONFIELDS_EVENT_LEVEL) != properties.GetProperties().cend());
+    properties.SetPrivacyLevel(42);
+    EXPECT_TRUE(properties.GetProperties().find(COMMONFIELDS_EVENT_PRIVLEVEL) != properties.GetProperties().cend());
 }
 
-TEST(EventPropertiesTests, SetLevel_SetsPropertyTypeInt64)
+TEST(EventPropertiesTests, SetPrivacyLevel_SetsPropertyTypeInt64)
 {
     EventProperties properties;
-    properties.SetLevel(42);
-    const auto& property = properties.GetProperties().find(COMMONFIELDS_EVENT_LEVEL)->second;
+    properties.SetPrivacyLevel(42);
+    const auto& property = properties.GetProperties().find(COMMONFIELDS_EVENT_PRIVLEVEL)->second;
     EXPECT_EQ(property.type, TYPE_INT64);
 }
 
-TEST(EventPropertiesTests, SetLevel_SetsValueCorrectly)
+TEST(EventPropertiesTests, SetPrivacyLevel_SetsValueCorrectly)
 {
     EventProperties properties;
-    properties.SetLevel(42);
-    const auto& property = properties.GetProperties().find(COMMONFIELDS_EVENT_LEVEL)->second;
+    properties.SetPrivacyLevel(42);
+    const auto& property = properties.GetProperties().find(COMMONFIELDS_EVENT_PRIVLEVEL)->second;
     EXPECT_EQ(property.as_int64, 42);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_NotTheRightType_ReturnsFalseAndZero)
 {
     EventProperties properties;
-    properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, "Not a number");
-    auto result = properties.TryGetLevel();
+    properties.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, "Not a number");
+    auto result = properties.TryGetPrivacyLevel();
     EXPECT_FALSE(std::get<0>(result));
     EXPECT_EQ(std::get<1>(result), 0);
 }
@@ -206,8 +206,8 @@ TEST(EventPropertiesTests, TryGetLevel_NotTheRightType_ReturnsFalseAndZero)
 TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
 {
     EventProperties properties;
-    properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 257);
-    auto result = properties.TryGetLevel();
+    properties.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, 257);
+    auto result = properties.TryGetPrivacyLevel();
     EXPECT_FALSE(std::get<0>(result));
     EXPECT_EQ(std::get<1>(result), 0);
 }
@@ -215,8 +215,8 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
 TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
 {
     EventProperties properties;
-    properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, -1);
-    auto result = properties.TryGetLevel();
+    properties.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, -1);
+    auto result = properties.TryGetPrivacyLevel();
     EXPECT_FALSE(std::get<0>(result));
     EXPECT_EQ(std::get<1>(result), 0);
 }
@@ -224,17 +224,17 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
 TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
 {
     EventProperties properties;
-    properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 42);
-    auto result = properties.TryGetLevel();
+    properties.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, 42);
+    auto result = properties.TryGetPrivacyLevel();
     EXPECT_TRUE(std::get<0>(result));
     EXPECT_EQ(std::get<1>(result), 42);
 }
 
-TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectValue)
+TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetPrivacyLevel_ReturnsTrueAndCorrectValue)
 {
     EventProperties properties;
-    properties.SetLevel(42);
-    auto result = properties.TryGetLevel();
+    properties.SetPrivacyLevel(42);
+    auto result = properties.TryGetPrivacyLevel();
     EXPECT_TRUE(std::get<0>(result));
     EXPECT_EQ(std::get<1>(result), 42);
 }

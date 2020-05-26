@@ -615,7 +615,7 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
         /// Set default diagnostic level of this logger instance.
         /// </summary>
         /// <param name="level">Diagnostic level.</param>
-        virtual void SetLevel(uint8_t level) = 0;
+        virtual void SetPrivacyLevel(uint8_t level) = 0;
 
         /// <summary>
         /// Get collection of current event filters.
