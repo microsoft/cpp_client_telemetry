@@ -206,4 +206,11 @@ using namespace MAT;
     }
 }
 
++(void)traceException:(const char *)message
+{
+    if([ODWLogConfiguration enableTrace])
+    {
+        NSLog(EXCEPTION_TRACE_FORMAT, message);
+    }
+}
 @end
