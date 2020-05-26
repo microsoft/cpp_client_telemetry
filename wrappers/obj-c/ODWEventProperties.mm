@@ -118,12 +118,12 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 }
 -(void)setPrivacyDataType:(long*)value
 {
-    [_properties setValue: value forKey:@"EventInfo.PrivTags"];
+    [_properties setValue: @(*value) forKey:@"EventInfo.PrivTags"];
 }
 
 -(void)setPrivacyDiagnosticLevel:(NSInteger*)value
 {
-    [_properties setValue: value forKey:@"EventInfo.Level"];
+    [_properties setValue: @(*value) forKey:@"ext.metadata.privLevel"];
 }
 
 @end
