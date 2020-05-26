@@ -1,6 +1,7 @@
 /* Copyright (c) Microsoft. All rights reserved. */
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
+#include <cstdint>
 
 #define EVENTRECORD_TYPE_CUSTOM_EVENT                        "custom"
 
@@ -48,6 +49,7 @@
 #define COMMONFIELDS_EVENT_INITID                            "EventInfo.InitId"
 #define COMMONFIELDS_EVENT_SEQ                               "EventInfo.Sequence"
 #define COMMONFIELDS_EVENT_PRIVTAGS                          "EventInfo.PrivTags"
+#define COMMONFIELDS_EVENT_PRIVLEVEL                         "ext.metadata.privLevel"
 #define COMMONFIELDS_EVENT_LEVEL                             "EventInfo.Level"
 #define COMMONFIELDS_EVENT_PRIORITY                          "EventInfo.Priority"
 #define COMMONFIELDS_EVENT_LATENCY                           "EventInfo.Latency"
@@ -84,11 +86,15 @@
 #define DIAG_LEVEL_ENHANCED                             2       /* Additional performance data            */
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
-/* Microsoft NGP diagnostic level classification  */
+/* Office diagnostic level classification  */
 #define DIAG_LEVEL_REQUIRED                                 1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
 #define DIAG_LEVEL_OPTIONAL                                 2       /* Additional optional data               */
-#define DIAG_LEVEL_REQUIREDSERVICEDATA                      110     /* Data required for services to be able to function properly */
-#define DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120     /* Data required for operation of essential services such as licensing, etc. */
+
+/* Microsoft NGP diagnostic level classification  */
+constexpr std::uint8_t PDL_REQUIRED                                 {1};     /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+constexpr std::uint8_t PDL_OPTIONAL                                 {2};     /* Additional optional data               */
+constexpr std::uint8_t PDL_REQUIREDSERVICEDATA                      {110};   /* Data required for services to be able to function properly */
+constexpr std::uint8_t PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  {120};   /* Data required for operation of essential services such as licensing, etc. */
 
 /* Custom SDK configuration allows to override DIAG_LEVEL_DEFAULT_MIN and DIAG_LEVEL_DEFAULT_MAX          */
 #ifndef DIAG_LEVEL_DEFAULT_MIN

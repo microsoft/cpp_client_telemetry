@@ -201,14 +201,16 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Sets the diagnostic level of an event. This is equivalent to:
+        /// Sets the privacy diagnostic metadata of an event. This is equivalent to:
         ///  ...
-        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
+        ///  SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, privLevel);
+        ///  SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
         ///  ...
         /// </summary>
-        void SetPrivacyTags(uint64_t privTags)
+        void SetPrivacyMetadata(uint64_t privTags, uint8_t privLevel = PDL_OPTIONAL)
         {
             SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
+            SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, privLevel);
         }
 
         ///
