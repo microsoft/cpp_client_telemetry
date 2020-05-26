@@ -51,11 +51,10 @@ std::shared_ptr<DefaultDataViewer> _viewer;
 
 +(bool)enableRemoteViewer:(NSString *)endpoint
 {
-    std::string endpointString = std::string([endpoint UTF8String]);
     bool result = false;
     try
     {
-        result = _viewer->EnableRemoteViewer(endpointString);
+        result = _viewer->EnableRemoteViewer(std::string([endpoint UTF8String]));
         if ([ODWLogConfiguration enableTrace])
         {
             NSLog(@"RemoteDataViewer enabled on endpoint: %@ and result: %@", endpoint, result ? @"success" : @"failure");
@@ -133,29 +132,10 @@ std::shared_ptr<DefaultDataViewer> _viewer;
 +(void)registerOnDisableNotification:(void(^)())callback
 {
     std::function<void()> disableNotification = std::bind(callback);
-    try
+    _viewer->RegisterOnDisableNotification(disableNotification);
+    if ([ODWLogConfiguration enableTrace])
     {
-        _viewer->RegisterOnDisableNotification(disableNotification);
-        if ([ODWLogConfiguration enableTrace])
-        {
-            NSLog(@"Registered OnDisableNotification");
-        }
-    }
-    catch (const std::exception &e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
+        NSLog(@"Registered OnDisableNotification");
     }
 }
 
