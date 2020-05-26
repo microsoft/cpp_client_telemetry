@@ -284,7 +284,7 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio)
     props.SetProperty("win_guid", GUID_t(win_guid));
 #endif
     props.SetPriority(prio);
-    props.SetPrivacyLevel(PDL_REQUIRED);
+    props.SetLevel(DIAG_LEVEL_REQUIRED);
 
     return props;
 }
@@ -409,7 +409,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
         // Log some foo
         size_t numIterations = MAX_ITERATIONS;
         EventProperties eventToLog{ "foo1" };
-        eventToLog.SetPrivacyLevel(PDL_REQUIRED);
+        eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
         while (numIterations--)
             result->LogEvent(eventToLog);
         LogManager::UploadNow();                                    // Try to upload whatever we got
@@ -454,7 +454,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
 
     EventProperties eventToLog{ "foo1" };
-    eventToLog.SetPrivacyLevel(PDL_REQUIRED);
+    eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
 
     CleanStorage();
     addAllListeners(debugListener);
@@ -502,7 +502,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     debugListener.numLogged = 0;         // Reset the logged counter
     debugListener.numCached = 0;         // Reset the flush counter
     EventProperties eventToStore{ "bar2" };
-    eventToStore.SetPrivacyLevel(PDL_REQUIRED);
+    eventToStore.SetLevel(DIAG_LEVEL_REQUIRED);
     while (numIterations--)
         result->LogEvent(eventToStore);  // New events go straight to offline storage
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
@@ -540,7 +540,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetProperty("secret", 5.6872);
     event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
     event.SetLatency(EventLatency_Normal);
-    event.SetPrivacyLevel(PDL_REQUIRED);
+    event.SetLevel(DIAG_LEVEL_REQUIRED);
 
     ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
     logger->LogEvent(event);
@@ -727,7 +727,7 @@ TEST(APITest, C_API_Test)
         _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),                  // UTC policy bitflags (optional)
         _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
         _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
-        _INT(COMMONFIELDS_EVENT_PRIVLEVEL, PDL_REQUIRED),
+        _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
         // Customer Data fields go as part of userdata
         _STR("strKey", "value1"),
         _INT("intKey", 12345),
@@ -1288,15 +1288,15 @@ TEST(APITest, LogManager_DiagLevels)
 
     // set diagnostic level to optional
     auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
-    logger2->SetPrivacyLevel(PDL_OPTIONAL);
+    logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
 
     // set diagnostic level to a custom value
     auto logger3 = LogManager::GetLogger("my_custom_source");
-    logger3->SetPrivacyLevel(5);
+    logger3->SetLevel(5);
     
-    std::set<uint8_t> logNone  = { PDL_NONE };
+    std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
     std::set<uint8_t> logAll   = { };
-    std::set<uint8_t> logRequired = { PDL_REQUIRED };
+    std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
     auto filters = { logNone, logAll, logRequired };
 
@@ -1309,18 +1309,18 @@ TEST(APITest, LogManager_DiagLevels)
     for (auto filter : filters)
     {
         // Specify diagnostic level filter
-        LogManager::SetLevelFilter(PDL_DEFAULT, filter);
+        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
         for (auto logger : { logger0, logger1, logger2, logger3 })
         {
             EventProperties defLevelEvent("My.DefaultLevelEvent");
             logger->LogEvent(defLevelEvent);   // inherit from logger
 
             EventProperties requiredEvent("My.RequiredEvent");
-            requiredEvent.SetPrivacyLevel(PDL_REQUIRED);
+            requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
             logger->LogEvent(requiredEvent);   // required
 
             EventProperties customEvent("My.CustomEvent");
-            customEvent.SetPrivacyLevel(5);
+            customEvent.SetLevel(5);
             logger->LogEvent(customEvent);
         }
         EXPECT_EQ(eventListener.numFiltered, expectedCounts[i]);

@@ -76,7 +76,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void SetContext(const std::string& name, const EventProperty& prop) override;
 
-        virtual void SetPrivacyLevel(uint8_t level) override;
+        virtual void SetLevel(uint8_t level) override;
 
         virtual ISemanticContext*   GetSemanticContext() const override;
 
@@ -189,7 +189,7 @@ namespace ARIASDK_NS_BEGIN {
         // "*"      - allows C API caller to attach their guest ILogger to parent's Host global context
         // "<id>"   - allows to rewire this ILogger to alternate semantic context
         std::string               m_scope;
-        uint8_t                   m_privLevel;
+        uint8_t                   m_level;
 
         ILogManagerInternal&      m_logManager;
         ContextFieldsProvider     m_context;

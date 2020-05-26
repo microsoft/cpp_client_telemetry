@@ -543,9 +543,9 @@ namespace ARIASDK_NS_BEGIN
                     *this, m_context, *m_config));
             }
             uint8_t level = m_diagLevelFilter.GetDefaultLevel();
-            if (level != PDL_DEFAULT) 
+            if (level != DIAG_LEVEL_DEFAULT) 
             {
-                m_loggers[hash]->SetPrivacyLevel(level);
+                m_loggers[hash]->SetLevel(level);
             }
             return m_loggers[hash].get();
         }
