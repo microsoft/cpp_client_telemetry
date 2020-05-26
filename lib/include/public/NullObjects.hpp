@@ -119,7 +119,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual void SetParentContext(ISemanticContext * context) override {};
 
-        virtual void SetPrivacyLevel(uint8_t level) override {};
+        virtual void SetLevel(uint8_t level) override {};
 
     private:
         NullEventFilterCollection m_filters;

@@ -1,7 +1,6 @@
 /* Copyright (c) Microsoft. All rights reserved. */
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
-#include <cstdint>
 
 #define EVENTRECORD_TYPE_CUSTOM_EVENT                        "custom"
 
@@ -49,7 +48,7 @@
 #define COMMONFIELDS_EVENT_INITID                            "EventInfo.InitId"
 #define COMMONFIELDS_EVENT_SEQ                               "EventInfo.Sequence"
 #define COMMONFIELDS_EVENT_PRIVTAGS                          "EventInfo.PrivTags"
-#define COMMONFIELDS_EVENT_PRIVLEVEL                         "ext.metadata.privLevel"
+#define COMMONFIELDS_EVENT_LEVEL                             "EventInfo.Level"
 #define COMMONFIELDS_EVENT_PRIORITY                          "EventInfo.Priority"
 #define COMMONFIELDS_EVENT_LATENCY                           "EventInfo.Latency"
 #define COMMONFIELDS_EVENT_PERSISTENCE                       "EventInfo.Persistence"
@@ -76,9 +75,9 @@
 #define CONTEXT_SCOPE_NONE                              "-"  /* Do not inherit parent context props */
 
 /* Default set of diagnostic level constants. Customers may define their own set. */
-constexpr std::uint8_t PDL_NOTSET                         {255u};
-constexpr std::uint8_t PDL_DEFAULT                        {PDL_NOTSET}; /* Default level is inherited from parent */
-constexpr std::uint8_t PDL_NONE                           {0u};          /* Logging disabled                       */
+#define DIAG_LEVEL_NOTSET                               255
+#define DIAG_LEVEL_DEFAULT                              DIAG_LEVEL_NOTSET     /* Default level is inherited from parent */
+#define DIAG_LEVEL_NONE                                 0       /* Logging disabled                       */
 
 /* Windows OS diagnostic level classification        */
 #define DIAG_LEVEL_BASIC                                1       /* Basic info                             */
@@ -86,19 +85,18 @@ constexpr std::uint8_t PDL_NONE                           {0u};          /* Logg
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
 /* Microsoft NGP diagnostic level classification  */
-constexpr std::uint8_t DIAG_LEVEL_REQUIRED                           {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-constexpr std::uint8_t PDL_REQUIRED                                  {1u}; /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-constexpr std::uint8_t PDL_OPTIONAL                                  {2u}; /* Additional optional data               */
-constexpr std::uint8_t PDL_REQUIREDSERVICEDATA                     {110u}; /* Data required for services to be able to function properly */
-constexpr std::uint8_t PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES {120u}; /* Data required for operation of essential services such as licensing, etc. */
+#define DIAG_LEVEL_REQUIRED                                 1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+#define DIAG_LEVEL_OPTIONAL                                 2       /* Additional optional data               */
+#define DIAG_LEVEL_REQUIREDSERVICEDATA                      110     /* Data required for services to be able to function properly */
+#define DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120     /* Data required for operation of essential services such as licensing, etc. */
 
-/* Custom SDK configuration allows to override PDL_DEFAULT_MIN and PDL_DEFAULT_MAX          */
-#ifndef PDL_DEFAULT_MIN
-#define PDL_DEFAULT_MIN                          PDL_REQUIRED
+/* Custom SDK configuration allows to override DIAG_LEVEL_DEFAULT_MIN and DIAG_LEVEL_DEFAULT_MAX          */
+#ifndef DIAG_LEVEL_DEFAULT_MIN
+#define DIAG_LEVEL_DEFAULT_MIN                          DIAG_LEVEL_REQUIRED
 #endif
 
-#ifndef PDL_DEFAULT_MAX
-#define PDL_DEFAULT_MAX                          PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES
+#ifndef DIAG_LEVEL_DEFAULT_MAX
+#define DIAG_LEVEL_DEFAULT_MAX                          DIAG_LEVEL_OPTIONAL
 #endif
 
 /* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
