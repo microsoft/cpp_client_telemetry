@@ -3,13 +3,11 @@
 
 In order to set privacy tags to an event, the C++ SDK exposes the functionality on it's API.
 
----
 > **_Note:_**
 To be able to send an event on UTC mode you need to set CFG_INT_SDK_MODE flag on the LogManager configuration:
-```cpp
-config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
-```
----
+> ```cpp
+> config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+> ```
 
 To set a tag in code you can use the following syntax using the SetProperty method:
 
@@ -86,7 +84,7 @@ event.SetProperty("result", "Success");
 event.SetProperty("random", rand());
 event.SetProperty("secret", 5.6872);
 event.SetProperty("seq", (uint64_t)i); 
-event.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL);
+event.SetProperty(COMMONFIELDS_EVENT_PRIVLEVEL, PDL_OPTIONAL);
 event.SetLatency(latency); 
 logger->LogEvent(event);
 ```
@@ -100,7 +98,7 @@ EventProperties event2("MyProduct.TaggedEvent2",
         { "random", rand() },
         { "secret", 5.6872 },
         { "seq", (uint64_t)i },
-        { COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL }
+        { COMMONFIELDS_EVENT_PRIVLEVEL, PDL_OPTIONAL }
     });
 logger->LogEvent(event2);
 ```
@@ -108,15 +106,15 @@ logger->LogEvent(event2);
 Alternatively, if you want to explicitly set the tags for an event via event property, you can also use this syntax:
 ```cpp
 EventProperties event(eventName);
-event.SetLevel(DIAG_LEVEL_REQUIRED);
+event.SetPrivacyLevel(PDL_REQUIRED);
 ``` 
 
 The list of diagnostic level available are:
 ```cpp
-DIAG_LEVEL_REQUIRED                                 1
-DIAG_LEVEL_OPTIONAL                                 2
-DIAG_LEVEL_REQUIREDSERVICEDATA                      110
-DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
+PDL_REQUIRED                                 1
+PDL_OPTIONAL                                 2
+PDL_REQUIREDSERVICEDATA                      110
+PDL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
 ```
 
 ## Event Filtering based on Diagnostic Level
@@ -125,7 +123,7 @@ The C++ SDK has an API feature to filter events using the diagnostic level assoc
 There are different ways you can make your diagnostic levels filtering work:
 
 
-You can set a filter for the default LogManager in your application using the `SetLevel()` API to allow events to be sent.
+You can set a filter for the default LogManager in your application using the `SetPrivacyLevel()` API to allow events to be sent.
 An event inherits the Logger level when sent. If you set the event diagnostic level for your event this will override the default level.
 When no level is specified neither at event nor logger, the LogManager level is used for filtering.
 
@@ -145,18 +143,18 @@ auto logger1 = LogManager::GetLogger();
 
 // Set diagnostic level to OPTIONAL for logger2
 auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
-logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
+logger2->SetPrivacyLevel(PDL_OPTIONAL);
 
 // Set diagnostic level to REQUIRED
 auto logger3 = LogManager::GetLogger("my_required_source");
-logger3->SetLevel(DIAG_LEVEL_REQUIRED);
+logger3->SetPrivacyLevel(PDL_REQUIRED);
 
 // A set that specifies that nothing passes through level filter
-std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
+std::set<uint8_t> logNone  = { PDL_NONE };
 // Everything goes through
 std::set<uint8_t> logAll   = { };
 // Only allow REQUIRED level filtering
-std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
+std::set<uint8_t> logRequired = { PDL_REQUIRED };
 
 auto filters = { logNone, logAll, logBasic };
 
@@ -166,7 +164,7 @@ size_t i = 0;
 for (auto filter : filters)
 {
 	// Specify diagnostic level filter for the default LogManager
-	LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
+	LogManager::SetPrivacyLevelFilter(PDL_DEFAULT, filter);
 	// For every logger
 	for (auto logger : { logger0, logger1, logger2, logger3 })
 	{
@@ -178,13 +176,13 @@ for (auto filter : filters)
 		// Create an event and set level to REQUIRED 
 		// This overrides the logger level for filtering
 		EventProperties requiredEvent("My.RequiredEvent");
-		requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+		requiredEvent.SetPrivacyLevel(PDL_REQUIRED);
 		logger->LogEvent(requiredEvent);
 
 		// Create an event and set level to OPTIONAL 
 		// This overrides the logger level for filtering
 		EventProperties optionalEvent("My.OptionalEvent");
-		optionalEvent.SetLevel(DIAG_LEVEL_OPTIONAL);
+		optionalEvent.SetPrivacyLevel(PDL_OPTIONAL);
 		logger->LogEvent(optionalEvent);
 	}
 }
