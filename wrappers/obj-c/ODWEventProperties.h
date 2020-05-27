@@ -43,7 +43,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  @brief The <b>ODWPDT</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
  @remark Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
  */
-typedef NS_ENUM(long, ODWPDT)
+typedef NS_ENUM(uint64_t, ODWPDT)
 {
     ODWPDTBrowsingHistory = 0x0000000000000002u,
     ODWPDTDeviceConnectivityAndConfiguration = 0x0000000000000800u,
@@ -54,11 +54,11 @@ typedef NS_ENUM(long, ODWPDT)
 };
 
 /*!
- @enum ODWPDL
- @brief The <b>ODWPDL</b> enumeration contains a set of values that indicate the Privacy Diagnostic Level that an event may be classified as.
- @remarks By default, in the absence of explicit markup, an event is considered ODWPDLOptionalDiagnosticData. 
+ @enum ODWDiagLevel
+ @brief The <b>ODWDiagLevel</b> enumeration contains a set of values that indicate the Diagnostic Level that an event may be classified as.
+ @remarks By default, in the absence of explicit markup, an event is considered ODWDiagLevelOptionalDiagnosticData.
  */
-typedef NS_ENUM(NSInteger, ODWDiagLevel)
+typedef NS_ENUM(uint8_t, ODWDiagLevel)
 {
     ODWDiagLevelRequiredDiagnosticData = 1,
     ODWDiagLevelOptionalDiagnosticData = 2,
