@@ -20,7 +20,10 @@ jobs:
             config: [release, debug]
             simulator: ["'iPhone 8'", "'iPad Air (3rd generation)'"]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+        token:  ${{ secrets.GIT_PULL_TOKEN }}
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
