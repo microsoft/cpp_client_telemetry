@@ -91,13 +91,6 @@ int main(int argc, char *argv[])
     auto& config = LogManager::GetLogConfiguration();
     config = MAT::FromJSON(jsonConfig);
 
-#if 1
-	// Example that shows how to emit ETW events
-    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
-    config[CFG_INT_TRACE_LEVEL_MASK] = 0xffffffff;
-    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
-#endif
-
     // LogManager initialization
     ILogger *logger = LogManager::Initialize();
     bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
