@@ -145,7 +145,7 @@ namespace ARIASDK_NS_BEGIN
             source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
         }
         if (source->data[0].properties.find(COMMONFIELDS_EVENT_LEVEL) != source->data[0].properties.end()) {
-            ans["ext"]["metadata"]["privLevel"] = source->data[0].properties[COMMONFIELDS_EVENT_LEVEL].longValue;
+            ans["EventInfo"]["Level"] = source->data[0].properties[COMMONFIELDS_EVENT_LEVEL].longValue;
             source->data[0].properties.erase(COMMONFIELDS_EVENT_LEVEL);
         }
         addExtApp(ans, source->extApp);
