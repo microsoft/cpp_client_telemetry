@@ -33,11 +33,12 @@ class ETWLogConfiguration : public ILogConfiguration
         (*this)[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Fatal;
         (*this)[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_ETWBackCompat;
         (*this)["schema"]["integrity"] = false;
-        (*this)[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     } 
 };
 
 using ETWLogManager = MAT::LogManagerBase<ETWLogConfiguration>;
+
+ETWLogConfiguration etwLogConfiguration;
 
 DEFINE_LOGMANAGER(ETWLogManager, ETWLogConfiguration);
 
@@ -78,9 +79,8 @@ class ETWLoggerFixture : public benchmark::Fixture
     void SetUp(const ::benchmark::State&)
     {
         const char* token = "deadbeefdeadbeefdeadbeef00000075";
-        auto& configuration = ETWLogManager::GetLogConfiguration();
-        configuration["schema"][CFG_INT_DETAIL_LEVEL] = m_detailLevel;
-        logger = ETWLogManager::Initialize(token, configuration);
+        etwLogConfiguration["schema"][CFG_INT_DETAIL_LEVEL] = m_detailLevel;
+        logger = ETWLogManager::Initialize(token, etwLogConfiguration);
     }
 
     void LogEvent()
@@ -96,7 +96,7 @@ class ETWLoggerFixture : public benchmark::Fixture
 
     void TearDown(const ::benchmark::State&)
     {
-        LogManager::FlushAndTeardown();
+        ETWLogManager::FlushAndTeardown();
     }
 };
 
