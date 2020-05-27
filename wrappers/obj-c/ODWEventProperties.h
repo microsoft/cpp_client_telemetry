@@ -203,16 +203,11 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value;
 
 /*!
- @brief Sets the privacy data type for an event.
- @param value Privacy Data Type of the event.
- */
--(void)setPrivacyDataType:(long*)value;
-
-/*!
  @brief Sets the privacy diagnostic level for an event.
+ @param value Privacy Data Type of the event.
  @param value Privacy Diagnostic Level of the event.
  */
--(void)setPrivacyDiagnosticLevel:(NSInteger*)value;
+-(void)setPrivacyMetadata:(uint64_t*)privTags withUInt8:(uint8_t*)privLevel;
 
 /*!
  @brief Sets a date property for an event.
