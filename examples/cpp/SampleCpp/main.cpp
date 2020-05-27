@@ -227,6 +227,28 @@ void logDoNotStore()
     logger->LogEvent(eventInRam); // this event should not go to disk
 }
 
+void logArray()
+{
+    auto logger = LogManager::GetLogger();
+    EventProperties evt("MyEvent.EventWithArray");
+    {
+        // Array of string
+        std::vector<std::string> values = {"one", "two", "three"};
+        evt.SetProperty("myArrayString", values);
+    }
+    {
+        // Array of int64_t
+        std::vector<int64_t> values = {1, 2, 3};
+        evt.SetProperty("myArrayInt64", values);
+    }
+    {
+        // Array of double
+        std::vector<double> values = {1.1, 2.2, 3.3};
+        evt.SetProperty("myArrayDouble", values);
+    }
+    logger->LogEvent(evt);
+}
+
 int main()
 {
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
@@ -298,14 +320,19 @@ int main()
 
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
+	// UTC upload
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     logger = LogManager::Initialize(API_KEY);
-    logPiiMark();   // UTC upload
+
+    logPiiMark();
+	logArray();
+
     LogManager::FlushAndTeardown();
 #endif
 
     printf("LogManager::Initialize in direct\n");
     printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
+	// Direct upload
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
     // Code snippet showing how to perform MS Root certificate check for v10 end-point.
@@ -314,7 +341,8 @@ int main()
     config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
     logger = LogManager::Initialize(API_KEY);
 
-    logPiiMark();   // Direct upload
+    logPiiMark();
+    logArray();
 
     // This global context variable will not be seen by C API client
     LogManager::SetContext("GlobalContext.Var", 12345);
