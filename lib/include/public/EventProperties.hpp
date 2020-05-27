@@ -200,19 +200,6 @@ namespace ARIASDK_NS_BEGIN
             SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
         }
 
-        /// <summary>
-        /// Sets the privacy diagnostic metadata of an event. This is equivalent to:
-        ///  ...
-        ///  SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
-        ///  SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
-        ///  ...
-        /// </summary>
-        void SetPrivacyMetadata(uint64_t privTags, uint8_t level = DIAG_LEVEL_OPTIONAL)
-        {
-            SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
-            SetProperty(COMMONFIELDS_EVENT_LEVEL, level);
-        }
-
         ///
         /// TODO: [MG] - can we revisit this, do we need a tuple?
         ///
