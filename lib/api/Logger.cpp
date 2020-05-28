@@ -157,8 +157,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ? m_semanticApiDecorators.decorateAppLifecycleMessage(record, state) : true;
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ? m_semanticApiDecorators.decorateAppLifecycleMessage(record, state) : true;
 
         if (!decorated)
         {
@@ -248,8 +247,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id) : true;
 
         if (!decorated)
@@ -293,8 +291,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer) :
             true;
 
@@ -343,8 +340,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData) :
             true;
 
@@ -390,11 +386,8 @@ namespace ARIASDK_NS_BEGIN
         record.iKey = m_iKey;
 
         bool result = true;
-        // bit 1 toggles on|off the BaseDecorator
-        result &= (m_detailLevel.test(1))?m_baseDecorator.decorate(record):true;
-        // bit 2 toggles on|off the SemanticContextDecorator
-        result &= (m_detailLevel.test(2))?m_semanticContextDecorator.decorate(record):true;
-
+        result &= (m_detailLevel.test(DECOR_LEVEL_BASE)) ? m_baseDecorator.decorate(record) : true;
+        result &= (m_detailLevel.test(DECOR_LEVEL_CONTEXT)) ? m_semanticContextDecorator.decorate(record) : true;
         result &= m_eventPropertiesDecorator.decorate(record, latency, properties);
         return result;
     }
@@ -484,8 +477,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId) :
             true;
 
@@ -536,8 +528,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData) :
             true;
 
@@ -570,8 +561,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateTraceMessage(record, level, message) :
             true;
 
@@ -604,8 +594,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, properties, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateUserStateMessage(record, state, timeToLiveInMillis) :
             true;
 
@@ -686,8 +675,7 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, props, latency);
-        // bit 3 toggles on|off the SemanticApiDecorator
-        decorated &= (m_detailLevel.test(3)) ?
+        decorated &= (m_detailLevel.test(DECOR_LEVEL_API)) ?
             m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration) :
             true;
 
