@@ -61,9 +61,9 @@ typedef NS_ENUM(uint64_t, ODWPrivacyDataType)
  */
 typedef NS_ENUM(uint8_t, ODWDiagLevel)
 {
-    ODWDiagLevelRequiredDiagnosticData = DIAG_LEVEL_REQUIRED,
-    ODWDiagLevelOptionalDiagnosticData = DIAG_LEVEL_OPTIONAL,
-    ODWDiagLevelRequiredServiceData = DIAG_LEVEL_REQUIREDSERVICEDATA,
+    ODWDiagLevelRequiredDiagnosticData                  = DIAG_LEVEL_REQUIRED,
+    ODWDiagLevelOptionalDiagnosticData                  = DIAG_LEVEL_OPTIONAL,
+    ODWDiagLevelRequiredServiceData                     = DIAG_LEVEL_REQUIREDSERVICEDATA,
     ODWDiagLevelRequiredServiceDataForEssentialServices = DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES
 };
 
