@@ -193,13 +193,20 @@ namespace ARIASDK_NS_BEGIN {
         std::string               m_scope;
         uint8_t                   m_level;
 
-        // bitset controls verbosity detail of event decorators.
-		// Turning decorators off allows to emit "leaner" event,
-		// then apply "custom" decorator to append extras. Bits:
-		// 1 - toggles on|off BaseDecorator
-		// 2 - toggles on|off SemanticContextDecorator
-		// 3 - toggles on|off SemanticApiDecorator
+        // m_detailLevel - a bitset that controls verbosity detail of event decorators.
+        //
+		// Turning decorators on|off allows to emit smaller-sized event
+        // with fewer common properties, achieving better performance.
+		// Custom decorator may supplement an event with additional fields.
+        //
+		// Bits defined in CommonFields.h :
+        //
+		// DECOR_LEVEL_BASE     = 1      - toggles on|off base decorator
+		// DECOR_LEVEL_CONTEXT  = 2      - toggles on|off semantic context decorator
+		// DECOR_LEVEL_API      = 3      - toggles on|off semantic API decorator
+        // ...
 		// Other bits are reserved for future use.
+        //
         std::bitset<64>           m_detailLevel;
 
         ILogManagerInternal&      m_logManager;
