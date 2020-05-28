@@ -83,6 +83,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_HMAC = "enableHMAC";
 
     /// <summary>
+    /// Enable dropping events if DB file size exceeds its limit.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_DB_DROP_IF_FULL = "enableDbDropIfFull";
+
+    /// <summary>
     /// Enable database compression.
     /// </summary>
     static constexpr const char* const CFG_BOOL_ENABLE_DB_COMPRESS = "enableDBCompression";
@@ -233,6 +238,16 @@ namespace ARIASDK_NS_BEGIN
     /// IDataViewer override module
     /// </summary>
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
+
+    /// <summary>
+    /// Pointer to the Android app's JavaVM
+    /// </summary>
+    static constexpr const char* const CFG_PTR_ANDROID_JVM = "android_jvm";
+
+    /// <summary>
+    /// JObject of the Android app's main activity
+    /// </summary>
+    static constexpr const char* const CFG_JOBJECT_ANDROID_ACTIVITY = "android_activity";
 
 
 #ifdef _MSC_VER

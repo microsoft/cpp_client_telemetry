@@ -26,6 +26,6 @@ cd $SQLITE_PKG
 cd ..
 
 ## Build Google Test framework
-./build-gtest.sh
+./build-gtest.sh $1
 
 ## Install dotnet for test server

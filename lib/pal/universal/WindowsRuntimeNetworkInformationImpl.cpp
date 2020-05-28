@@ -1,6 +1,6 @@
 #include <windows.h>
 #include "pal/NetworkInformationImpl.hpp"
-#include <exception>  
+#include <exception>
 
 using namespace ::Windows::Networking::Connectivity;
 
@@ -60,10 +60,10 @@ namespace PAL_NS_BEGIN {
                     return NetworkCost_Unknown;
                 }
 
-                NetworkInformationImpl::NetworkInformationImpl(bool isNetDetectEnabled) :
+                NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
                     m_info_helper(),
-                    m_registredCount(0),
-                    m_isNetDetectEnabled(isNetDetectEnabled)
+                    m_registeredCount(0),
+                    m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
                 {
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
                     // some unknown scenarios on some Windows versions (Windows API bug),
@@ -86,7 +86,7 @@ namespace PAL_NS_BEGIN {
                         // No need to use WeakReference as this is not ref counted.
                         // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
                         try {
-                            if (m_registredCount > 0)
+                            if (m_registeredCount > 0)
                             {
                                 auto profile = NetworkInformation::GetInternetConnectionProfile();
                                 NetworkType networkType = NetworkType_Unknown;
@@ -96,7 +96,7 @@ namespace PAL_NS_BEGIN {
                                     networkType = GetNetworkTypeForProfile(profile);
                                     networkCost = GetNetworkCostForProfile(profile);
                                 }
-                                // No need for the lock here - the event is called syncronously.
+                                // No need for the lock here - the event is called synchronously.
                                 if (m_type != networkType)
                                 {
                                     m_type = networkType;
@@ -122,14 +122,14 @@ namespace PAL_NS_BEGIN {
 
                 }
 
-                NetworkInformationImpl::~NetworkInformationImpl() 
+                NetworkInformationImpl::~NetworkInformationImpl()
                 {
                     NetworkInformation::NetworkStatusChanged -= token;
                 };
 
-                INetworkInformation* NetworkInformationImpl::Create(bool isNetDetectEnabled)
+                std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
                 {
-                    return new NetworkInformationImpl(isNetDetectEnabled);
+                    return std::make_shared<NetworkInformationImpl>(configuration);
                 }
 
 } PAL_NS_END
