@@ -93,10 +93,10 @@
 #define DIAG_LEVEL_FULL                                 3       /* Extra activity and enhanced reporting  */
 
 /* Microsoft NGP diagnostic level classification  */
-#define DIAG_LEVEL_REQUIRED                                 1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-#define DIAG_LEVEL_OPTIONAL                                 2       /* Additional optional data               */
-#define DIAG_LEVEL_REQUIREDSERVICEDATA                      110     /* Data required for services to be able to function properly */
-#define DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120     /* Data required for operation of essential services such as licensing, etc. */
+#define DIAG_LEVEL_REQUIRED           1       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+#define DIAG_LEVEL_OPTIONAL           2       /* Additional optional data               */
+#define DIAG_LEVEL_RSD                110     /* Data required for services to be able to function properly */
+#define DIAG_LEVEL_RSDES              120     /* Data required for operation of essential services such as licensing, etc. */
 
 /* Custom SDK configuration allows to override DIAG_LEVEL_DEFAULT_MIN and DIAG_LEVEL_DEFAULT_MAX          */
 #ifndef DIAG_LEVEL_DEFAULT_MIN
