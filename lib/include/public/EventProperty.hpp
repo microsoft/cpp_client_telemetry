@@ -204,6 +204,9 @@ namespace ARIASDK_NS_BEGIN
     };
 
 #ifdef _WIN32
+    /**
+     * Windows-only helper method to convert from GUID_t to Windows.h GUID type
+     */
     static inline void to_GUID(GUID_t from, GUID& to)
     {
         to.Data1 = from.Data1;
