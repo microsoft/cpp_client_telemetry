@@ -159,7 +159,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <remarks>
         /// Event latency set through this API is only a suggestion with the
-        /// lowest latency and might be ignored. It might be overriden by the
+        /// lowest latency and might be ignored. It might be overridden by the
         /// configuration implementation (e.g. based on ECS) and the value set
         /// through this method might have no effect.
         /// </remarks>

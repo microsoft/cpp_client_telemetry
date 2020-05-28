@@ -6,7 +6,7 @@
 #include "pal/desktop/WindowsEnvironmentInfo.hpp"
 #include "PlatformHelpers.h"
 
-#include <exception>  
+#include <exception>
 
 #define LOG_MODULE DBG_PAL
 
@@ -44,7 +44,8 @@ namespace PAL_NS_BEGIN {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl() :m_registredCount(0),
+                DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
+                    m_registeredCount(0),
                     m_info_helper()
                 {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
@@ -82,13 +83,13 @@ namespace PAL_NS_BEGIN {
                     {
                         try
                         {
-                            if (m_registredCount > 0)
+                            if (m_registeredCount > 0)
                             {
                                 // No need to use WeakReference as this is not ref counted.
                                 // See https://msdn.microsoft.com/en-us/library/hh699859.aspx for details.
                                 auto powerSource = GetCurrentPowerSource();
                                 //LOG_TRACE("Power source changed to %d", powerSource);
-                                // No need for the lock here - the event is called syncronously.
+                                // No need for the lock here - the event is called synchronously.
                                 if (m_powerSource != powerSource)
                                 {
                                     m_powerSource = powerSource;
@@ -119,9 +120,9 @@ namespace PAL_NS_BEGIN {
                      ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
                 }
 
-                IDeviceInformation* DeviceInformationImpl::Create()
+                std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)
                 {
-                    return new DeviceInformationImpl();
+                    return std::make_shared<DeviceInformationImpl>(configuration);
                 }
 
 } PAL_NS_END

@@ -90,7 +90,7 @@ namespace MATW_NS_BEGIN {
         bool AddListener(IECSClientCallback^ listener);
 
         /// <summary>
-        /// Remove the listner to stop recieving notification from the ECSClient
+        /// Remove the listner to stop receiving notification from the ECSClient
         /// </summary>
         /// <param name="listener">listener to be removed from the ECSClient</param>
         /// <return>true if listener is removed successfully, false otherwise</return>

@@ -15,6 +15,11 @@ namespace Microsoft {
                 {
                 }
 
+                void SemanticContextImpl::AppEnv::set(String^ appEnv)
+                {
+                    m_semanticContextCore->SetAppEnv(FromPlatformString(appEnv));
+                }
+
                 void SemanticContextImpl::AppId::set(String^ appId)
                 {
                     m_semanticContextCore->SetAppId(FromPlatformString(appId));
