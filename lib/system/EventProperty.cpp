@@ -89,7 +89,7 @@ namespace ARIASDK_NS_BEGIN {
             Data4[6] = static_cast<uint8_t>(p9);
             Data4[7] = static_cast<uint8_t>(p10);
         }
-        // Convert to set of integer values - assume UUID no dashes
+        // Support conversion from UUID with no dashes
         else if (11 == sscanf_s(str,
             "%08lX%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X",
             &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10))

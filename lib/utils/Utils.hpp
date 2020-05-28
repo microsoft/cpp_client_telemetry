@@ -118,13 +118,13 @@ namespace ARIASDK_NS_BEGIN {
 
     EventRejectedReason validatePropertyName(std::string const& name);
 
-    // Tenant token is a long string that contains ${tenant}-${authKey}
+    // Tenant token (ingestion key) is a string containing ${tenant}-${authKey}
     inline std::string tenantTokenToId(std::string const& tenantToken)
     {
         return tenantToken.substr(0, tenantToken.find('-'));
     }
 
-    // Helper function allows to extract the tenantId value.
+    // Helper function to extract tenantId from ingestion key.
     // 
     // tenantKey paraneter is:
     // - either TenantTtoken:       ${tenantId}-${authKey} or

@@ -66,19 +66,16 @@ namespace ARIASDK_NS_BEGIN
         /// Direct upload mode:
         /// <summary>The default transmission mode.</summary>
         SdkModeTypes_CS = 0,
-
         /// Windows 10 Telemetry UTC (DiagTrack) mode:
         /// <summary>Backward compatibility transmission mode.</summary>
-        SdkModeTypes_UTCBackCompat = 1,
+        SdkModeTypes_UTCBackCompat     = 1,
         /// <summary>Common schema transmission mode.</summary>
-        SdkModeTypes_UTCCommonSchema = 2,
-
+        SdkModeTypes_UTCCommonSchema   = 2,
         /// Azure and Generic ETW mode:
-        /// <summary>ETW channel - legacy (MA).</summary>
-        SdkModeTypes_ETWBackCompat = 3,
-        /// <summary>ETW channel - generic Common Schema</summary>
-        SdkModeTypes_ETWCommonSchema = 4
-
+        /// <summary>ETW channel - Common Schema 2.x</summary>
+        SdkModeTypes_ETWBackCompat     = 3,
+        /// <summary>ETW channel - Common Schema 3+</summary>
+        SdkModeTypes_ETWCommonSchema   = 4
     };
 
     /// <summary>
