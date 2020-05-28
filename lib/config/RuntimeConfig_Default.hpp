@@ -27,9 +27,8 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_BOOL_ENABLE_NET_DETECT,       true },
         {"schema",
             {
-                { "ver", CsProtocol::CS_VER_STRING},
-                /* Apply 3 levels of decorators */
-                { CFG_INT_DETAIL_LEVEL, 0b00000111 }
+                { "ver", CsProtocol::CS_VER_STRING },
+                { CFG_INT_DETAIL_LEVEL, 7 }
             }
         },
         { "stats",
