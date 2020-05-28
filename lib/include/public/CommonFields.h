@@ -107,4 +107,8 @@
         SetCommonField(placeholder, x);                     \
     };
 
+#define DECOR_LEVEL_BASE                                1
+#define DECOR_LEVEL_CONTEXT                             2
+#define DECOR_LEVEL_API                                 3
+
 #endif
