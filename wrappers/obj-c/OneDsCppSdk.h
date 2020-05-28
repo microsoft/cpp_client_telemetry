@@ -1,5 +1,5 @@
-#ifndef 1dsCppSdk_h
-#define 1dsCppSdk_h
+#ifndef OneDsCppSdk_h
+#define OneDsCppSdk_h
 
 #import "ODWDiagnosticDataViewer.h"
 #import "ODWEventProperties.h"
