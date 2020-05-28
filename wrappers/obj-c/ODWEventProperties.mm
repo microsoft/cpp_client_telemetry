@@ -142,7 +142,7 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 -(void)setPrivacyMetadata:(ODWPrivacyDataType)privTags withODWDiagLevel:(ODWDiagLevel)privLevel
 {
     [self setProperty:@"EventInfo.PrivTags" withUInt64Value:privTags];
-    [self setProperty:@"ventInfo.Level" withUInt8Value:privLevel];
+    [self setProperty:@"EventInfo.Level" withUInt8Value:privLevel];
 }
 
 @end
