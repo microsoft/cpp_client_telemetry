@@ -75,12 +75,12 @@
 #define CONTEXT_SCOPE_NONE                              "-"  /* Do not inherit parent context props */
 
 // Privacy Tags
-#define PDT_BrowsingHistory 0x0000000000000002u
-#define PDT_DeviceConnectivityAndConfiguration 0x0000000000000800u
-#define PDT_InkingTypingAndSpeechUtterance 0x0000000000020000u
-#define PDT_ProductAndServicePerformance 0x0000000001000000u
-#define PDT_ProductAndServiceUsage 0x0000000002000000u
-#define PDT_SoftwareSetupAndInventory 0x0000000080000000u
+#define PDT_BrowsingHistory                                 0x0000000000000002u
+#define PDT_DeviceConnectivityAndConfiguration              0x0000000000000800u
+#define PDT_InkingTypingAndSpeechUtterance                  0x0000000000020000u
+#define PDT_ProductAndServicePerformance                    0x0000000001000000u
+#define PDT_ProductAndServiceUsage                          0x0000000002000000u
+#define PDT_SoftwareSetupAndInventory                       0x0000000080000000u
 
 /* Default set of diagnostic level constants. Customers may define their own set. */
 #define DIAG_LEVEL_NOTSET                               255
