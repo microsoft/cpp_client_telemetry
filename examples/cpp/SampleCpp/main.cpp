@@ -136,6 +136,9 @@ ILogConfiguration testConfiguration()
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
 
+/**
+ * This example shows how to log event with Pii (privacy) tags
+ */
 void logPiiEvent()
 {
     auto logger = LogManager::GetLogger();
@@ -175,6 +178,10 @@ void logPiiEvent()
     logger->LogEvent(detailed_event);
 }
 
+/**
+ * This example shows how to log event marked as Pii using "policy" flags.
+ * Collector service should treat it in a special way and remove "private" sensitive fields.
+ */
 void logPiiMark()
 {
     auto logger = LogManager::GetLogger();
@@ -219,6 +226,11 @@ void logPiiMark()
     logger->LogEvent(event1);
 }
 
+/**
+ * Example that shows how to log event that is never saved to disk.
+ * Event either goes straight in-flight.
+ * If "Flush" op is invoked before event is sent, then event is dropped. 
+ */
 void logDoNotStore()
 {
     auto logger = LogManager::GetLogger();
@@ -227,6 +239,9 @@ void logDoNotStore()
     logger->LogEvent(eventInRam); // this event should not go to disk
 }
 
+/**
+ * Example that shows how to log event with a property containing an array.
+ */
 void logArray()
 {
     auto logger = LogManager::GetLogger();
@@ -320,19 +335,19 @@ int main()
 
 #ifdef _WIN32
     printf("LogManager::Initialize in UTC\n");
-	// UTC upload
+    // UTC upload
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     logger = LogManager::Initialize(API_KEY);
 
     logPiiMark();
-	logArray();
+    logArray();
 
     LogManager::FlushAndTeardown();
 #endif
 
     printf("LogManager::Initialize in direct\n");
     printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
-	// Direct upload
+    // Direct upload
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
     // Code snippet showing how to perform MS Root certificate check for v10 end-point.
