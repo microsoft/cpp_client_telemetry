@@ -40,9 +40,9 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
 };
 
 /*!
- @enum ODWPDT
- @brief The <b>ODWPDT</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
- @remark Explicitly specified as <b>long</b> as it needs to be able to hold 64-bit values.
+ @enum ODWPrivacyDataType
+ @brief The <b>ODWPrivacytDataType</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
+ @remark Explicitly specified as <b>uint64_t</b> as it needs to be able to hold 64-bit values.
  */
 typedef NS_ENUM(uint64_t, ODWPDT)
 {
