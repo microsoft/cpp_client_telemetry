@@ -105,10 +105,10 @@ namespace ARIASDK_NS_BEGIN
         m_bandwidthController(nullptr),
         m_offlineStorage(nullptr)
     {
-        m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
+        // m_httpClient      - initialized in InitializeHttpClient() for direct upload only
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
-        m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
-        m_customDecorator = std::static_pointer_cast<IDecoratorModule>(configuration.GetModule(CFG_MODULE_DECORATOR));
+        // m_dataViewer      - initialized in InitializeModules()
+        // m_customDecorator - initialized in InitializeModules()
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
@@ -149,101 +149,22 @@ namespace ARIASDK_NS_BEGIN
             // TODO: [MG] - verify that cache file is writeable
         }
 
-        if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
-        {
-            std::string transmitProfiles = m_logConfiguration[CFG_STR_TRANSMIT_PROFILES];
-            if (!transmitProfiles.empty())
-            {
-                LOG_INFO("Loading custom transmit profiles...");
-                LoadTransmitProfiles(transmitProfiles);
-            }
-        }
-
-        if (m_logConfiguration.HasConfig(CFG_STR_START_PROFILE_NAME))
-        {
-            std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
-            if (!transmitProfile.empty())
-            {
-                LOG_INFO("Setting custom transmit profile %s", transmitProfile.c_str());
-                SetTransmitProfile(transmitProfile);
-            }
-        }
-
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
-        if (m_dataViewer != nullptr)
-        {
-            m_dataViewerCollection.RegisterViewer(m_dataViewer);
-        } else 
-        {
-            // TODO: [MG] - register default data viewer implementation if enabled?
-        }
+        InitializeSystem(deferSystemStart);
 
-        if (m_taskDispatcher == nullptr)
-        {
-            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
-        }
-        else
-        {
-            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
-        }
+        InitializeModules();
 
-        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+        LOG_INFO("Started up and running");
+        m_alive = true;
+    }
 
-        if ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat)||
-            (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema))
-        {
-#ifdef HAVE_MAT_UTC
-            // UTC is not active
-            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
-
-            // UTC functionality is only available on Windows 10 RS2+
-            bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
-            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
-
-            if (isWindowsUtcClientRegistrationEnable)
-            {
-                // UTC is active
-                configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
-                LOG_TRACE("Initializing UTC physical layer...");
-                m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
-                if (!deferSystemStart)
-                {
-                    m_system->start();
-                    m_isSystemStarted = true;
-                }
-                m_alive = true;
-                LOG_INFO("Started up and running in UTC mode");
-                return;
-            }
-#else
-            LOG_WARN("UTC module is not enabled! Please make sure lib/modules are included in the build.");
-            LOG_WARN("Running in direct upload mode.");
-#endif
-        }
-#ifdef HAVE_MAT_ETW
-        else if ((sdkMode == SdkModeTypes::SdkModeTypes_ETWBackCompat) ||
-                 (sdkMode == SdkModeTypes::SdkModeTypes_ETWCommonSchema))
-        {
-            // UTC is not active
-            configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
-            LOG_TRACE("Initializing ETW physical layer...");
-            m_system.reset(new ETWTelemetrySystem(*this, *m_config, *m_taskDispatcher));
-            if (!deferSystemStart)
-            {
-                m_system->start();
-                m_isSystemStarted = true;
-            }
-            m_alive = true;
-            LOG_INFO("Started up and running in ETW mode");
-            // TODO: do we need to support modules in ETW mode?
-            return;
-        }
-#endif
-
+    void LogManagerImpl::InitializeHttpClient()
+    {
+        m_httpClient = std::static_pointer_cast<IHttpClient>(m_logConfiguration.GetModule(CFG_MODULE_HTTP_CLIENT));
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
         if (m_httpClient == nullptr)
         {
@@ -267,39 +188,142 @@ namespace ARIASDK_NS_BEGIN
            MATSDK_THROW(std::invalid_argument("configuration"));
         }
 #endif
+    }
 
-        if (m_bandwidthController == nullptr) {
-            m_bandwidthController = m_ownBandwidthController.get();
+    void LogManagerImpl::InitializeStorage()
+    {
+        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
+    }
+
+    void LogManagerImpl::InitializeSystem(bool deferSystemStart)
+    {
+        // TODO: consider initializing task dispatcher only for those systems that require async
+        // processing. This will save CPU cycles for UTC and ETW systems not needing async tasks.
+        m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(m_logConfiguration.GetModule(CFG_MODULE_TASK_DISPATCHER));
+        if (m_taskDispatcher == nullptr)
+        {
+            m_taskDispatcher = PAL::getDefaultTaskDispatcher();
         }
         else
         {
-            LOG_TRACE("BandwidthController: External %p", m_bandwidthController);
+            LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
-        if (m_bandwidthController == nullptr)
+
+        // Determine what transport channel to be initialized based on SDK mode specified
+        int32_t sdkMode = m_logConfiguration[CFG_INT_SDK_MODE];
+        switch (sdkMode)
         {
-            LOG_TRACE("BandwidthController: None");
+        /////////////////////////////////////////// UTC SYSTEM INITIALIZATION ///////////////////////////////////////////
+        case SdkModeTypes::SdkModeTypes_UTCBackCompat:
+            //nobrk
+        case SdkModeTypes::SdkModeTypes_UTCCommonSchema:
+        {
+#ifdef HAVE_MAT_UTC
+            LOG_TRACE("Initializing UTC...");
+            // UTC is not active
+            m_logConfiguration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
+
+            // UTC functionality is only available on Windows 10 RS2+
+            bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
+            m_logConfiguration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
+
+            if (isWindowsUtcClientRegistrationEnable)
+            {
+                // UTC is active
+                m_logConfiguration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
+                m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
+                LOG_INFO("Running in UTC mode.");
+                return;
+            }
+            // UTC registration is not enabled pre-RS2 and on certain server SKUs
+            LOG_TRACE("UTC mode is not supported. Proceeding with Direct HTTP upload...");
+#else
+            LOG_WARN("UTC module is not enabled! Please make sure lib/modules are included in the build.");
+#endif
+        } /* If UTC support is not compiled-in, then fall thru to direct upload mode below */
+        //nobrk
+
+        /////////////////////////////////////////// DIRECT HTTP UPLOAD SYSTEM INITIALIZATION ////////////////////////////
+        case SdkModeTypes::SdkModeTypes_CS:
+        {
+            LOG_TRACE("Initializing Direct HTTP upload...");
+
+            // Configure Transmit Profiles used by Direct upload channel
+            if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
+            {
+                std::string transmitProfiles = m_logConfiguration[CFG_STR_TRANSMIT_PROFILES];
+                if (!transmitProfiles.empty())
+                {
+                    LOG_INFO("Loading custom transmit profiles...");
+                    LoadTransmitProfiles(transmitProfiles);
+                }
+            }
+
+			// Apply custom profile set by configuration prior to system start
+            if (m_logConfiguration.HasConfig(CFG_STR_START_PROFILE_NAME))
+            {
+                std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
+                if (!transmitProfile.empty())
+                {
+                    LOG_INFO("Setting custom transmit profile %s", transmitProfile.c_str());
+                    SetTransmitProfile(transmitProfile);
+                }
+            }
+
+            InitializeHttpClient();
+
+#ifdef HAVE_BANDWIDTH_CONTROLLER
+            /* Bandwidth Controller is not presently supported. Consider deprecating it. */
+            if (m_bandwidthController == nullptr)
+            {
+                m_bandwidthController = m_ownBandwidthController.get();
+            }
+            else
+            {
+                LOG_TRACE("BandwidthController: External %p", m_bandwidthController);
+            }
+            if (m_bandwidthController == nullptr)
+            {
+                LOG_TRACE("BandwidthController: None");
+            }
+#endif
+            InitializeStorage();
+
+            m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
+            LOG_TRACE("Running in Direct HTTP mode.");
+            break;
         }
 
-        m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
+#ifdef HAVE_MAT_ETW
+        /////////////////////////////////////////// DIRECT HTTP UPLOAD SYSTEM INITIALIZATION ////////////////////////////
+        case SdkModeTypes::SdkModeTypes_ETWBackCompat:
+            //nobrk
+        case SdkModeTypes::SdkModeTypes_ETWCommonSchema:
+        {
+            LOG_TRACE("Initializing ETW...");
+            m_logConfiguration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
+            m_system.reset(new ETWTelemetrySystem(*this, *m_config, *m_taskDispatcher));
+            LOG_INFO("Running in ETW mode.");
+            return;
+        }
+#endif
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
-        LOG_TRACE("Telemetry system created, starting up...");
+        default:
+        {
+            /* TODO: extensibility point here to load custom IModule that implements ITelemetrySystem */
+            LOG_ERROR("Invalid SDK mode specified!");
+            MATSDK_THROW(std::invalid_argument("configuration"));
+            return;
+        }
+		
+        } /* end of switch (sdkMode) */
+
         if (m_system && !deferSystemStart)
         {
             m_system->start();
             m_isSystemStarted = true;
+            LOG_INFO("Telemetry System started.");
         }
-
-#ifdef HAVE_MAT_DEFAULT_FILTER
-        m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
-#endif // HAVE_MAT_DEFAULT_FILTER
-
-        LOG_INFO("Initializing Modules");
-        InitializeModules();
-
-        LOG_INFO("Started up and running");
-        m_alive = true;
-
     }
     
     /// <summary>
@@ -694,6 +718,21 @@ namespace ARIASDK_NS_BEGIN
 
     void LogManagerImpl::InitializeModules() noexcept
     {
+        // Data Viewer module
+        m_dataViewer = std::static_pointer_cast<IDataViewer>(m_logConfiguration.GetModule(CFG_MODULE_DATA_VIEWER));
+        if (m_dataViewer != nullptr)
+        {
+            m_dataViewerCollection.RegisterViewer(m_dataViewer);
+        }
+
+#ifdef HAVE_MAT_DEFAULT_FILTER
+        // Event Filter module
+        m_modules.push_back(std::unique_ptr<CompliantByDefaultEventFilterModule>(new CompliantByDefaultEventFilterModule()));
+#endif  // HAVE_MAT_DEFAULT_FILTER
+
+        // Custom Decorator module
+        m_customDecorator = std::static_pointer_cast<IDecoratorModule>(m_logConfiguration.GetModule(CFG_MODULE_DECORATOR));
+
         for (const auto& module : m_modules)
         {
             module->Initialize(this);

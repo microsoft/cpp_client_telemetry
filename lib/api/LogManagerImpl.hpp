@@ -257,6 +257,9 @@ namespace ARIASDK_NS_BEGIN
 protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
         void InitializeModules() noexcept;
+        void InitializeSystem(bool deferSystemStart);
+        void InitializeHttpClient();
+        void InitializeStorage();
         void TeardownModules() noexcept;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
