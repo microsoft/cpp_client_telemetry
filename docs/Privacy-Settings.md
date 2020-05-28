@@ -51,7 +51,7 @@ PDT_ProductAndServiceUsage              0x0000000002000000u
 PDT_SoftwareSetupAndInventory           0x0000000080000000u
 ```
 
-The tag set on your event will show it the field ext.metadata.privTags. You can validate that using [Telemetry Real Time Tool (TRTT)](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT))
+The tag set on your event will show it the field `EventInfo.PrivTags`. You can validate that using [Telemetry Real Time Tool (TRTT)](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT))
 
 ![UTC Privacy Tags example](/docs/images/14154-utc.png)
 
@@ -62,10 +62,10 @@ The C++ SDK has an API feature to filter events using the diagnostic level assoc
 ```cpp
 DIAG_LEVEL_REQUIRED                                 1
 DIAG_LEVEL_OPTIONAL                                 2
-DIAG_LEVEL_REQUIREDSERVICEDATA                      110
-DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
+DIAG_LEVEL_REQUIREDSERVICEDATA                      3
+DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  4
 ```
-
+The level set on your event will show up in the field `EventInfo.Level`.
 
 There are different ways you can make your diagnostic levels filtering work:
 
@@ -119,7 +119,7 @@ for (auto filter : filters)
 		// Create an event and set level to REQUIRED 
 		// This overrides the logger level for filtering
 		EventProperties requiredEvent("My.RequiredEvent");
-		requiredEvent.SetLevel(DIAG_LEVEL_required);
+		requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
 		logger->LogEvent(requiredEvent);
 
 		// Create an event and set level to OPTIONAL 
