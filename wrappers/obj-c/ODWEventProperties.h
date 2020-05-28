@@ -44,7 +44,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  @brief The <b>ODWPrivacytDataType</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
  @remark Explicitly specified as <b>uint64_t</b> as it needs to be able to hold 64-bit values.
  */
-typedef NS_ENUM(uint64_t, ODWPDT)
+typedef NS_ENUM(uint64_t, ODWPrivacyDataType)
 {
     ODWPDTBrowsingHistory                    = PDT_BrowsingHistory,
     ODWPDTDeviceConnectivityAndConfiguration = PDT_DeviceConnectivityAndConfiguration ,
@@ -61,10 +61,10 @@ typedef NS_ENUM(uint64_t, ODWPDT)
  */
 typedef NS_ENUM(uint8_t, ODWDiagLevel)
 {
-    ODWDiagLevelRequiredDiagnosticData = 1,
-    ODWDiagLevelOptionalDiagnosticData = 2,
-    ODWDiagLevelRequiredServiceData = 110,
-    ODWDiagLevelRequiredServiceDataForEssentialServices = 120
+    ODWDiagLevelRequiredDiagnosticData = DIAG_LEVEL_REQUIRED,
+    ODWDiagLevelOptionalDiagnosticData = DIAG_LEVEL_OPTIONAL,
+    ODWDiagLevelRequiredServiceData = DIAG_LEVEL_REQUIREDSERVICEDATA,
+    ODWDiagLevelRequiredServiceDataForEssentialServices = DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES
 };
 
 /*!
@@ -167,6 +167,38 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
 -(void)setProperty:(NSString*)name withInt64Value:(int64_t)value withPiiKind:(ODWPiiKind)piiKind;
 
 /*!
+ @brief Sets an integer property for an event.
+ @param name A string that contains the name of the property.
+ @param value An integer that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withUInt8Value:(uint8_t)value;
+
+/*!
+ @brief Sets an integer property for an event.
+ @param name A string that contains the name of the property.
+ @param value An integer that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withUInt8Value:(uint8_t)value withPiiKind:(ODWPiiKind)piiKind;
+
+
+/*!
+ @brief Sets an integer property for an event.
+ @param name A string that contains the name of the property.
+ @param value An integer that contains the property value.
+ */
+-(void)setProperty:(NSString*)name withUInt64Value:(uint64_t)value;
+
+/*!
+ @brief Sets an integer property for an event.
+ @param name A string that contains the name of the property.
+ @param value An integer that contains the property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setProperty:(NSString*)name withUInt64Value:(uint64_t)value withPiiKind:(ODWPiiKind)piiKind;
+
+
+/*!
  @brief Sets a BOOL property for an event.
  @param name A string that contains the name of the property.
  @param value A BOOL that contains the property value.
@@ -208,7 +240,7 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
  @param privTags Privacy Data Type of the event.
  @param privLevel Privacy Diagnostic Level of the event.
  */
--(void)setPrivacyMetadata:(uint64_t*)privTags withUInt8:(uint8_t*)privLevel;
+-(void)setPrivacyMetadata:(ODWPrivacyDataType)privTags withODWDiagLevel:(ODWDiagLevel)privLevel;
 
 /*!
  @brief Sets a date property for an event.
