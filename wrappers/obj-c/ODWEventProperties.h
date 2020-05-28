@@ -1,5 +1,4 @@
 #include "objc_begin.h"
-#include "CommonFields.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -46,12 +45,12 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  */
 typedef NS_ENUM(uint64_t, ODWPrivacyDataType)
 {
-    ODWPDTBrowsingHistory                    = PDT_BrowsingHistory,
-    ODWPDTDeviceConnectivityAndConfiguration = PDT_DeviceConnectivityAndConfiguration ,
-    ODWPDTInkingTypingAndSpeechUtterance     = PDT_InkingTypingAndSpeechUtterance,
-    ODWPDTProductAndServicePerformance       = PDT_ProductAndServicePerformance,
-    ODWPDTProductAndServiceUsage             = PDT_ProductAndServiceUsage,
-    ODWPDTSoftwareSetupAndInventory          = PDT_SoftwareSetupAndInventory
+    ODWPDTBrowsingHistory                    = 0x0000000000000002u,
+    ODWPDTDeviceConnectivityAndConfiguration = 0x0000000000000800u ,
+    ODWPDTInkingTypingAndSpeechUtterance     = 0x0000000000020000u,
+    ODWPDTProductAndServicePerformance       = 0x0000000001000000u,
+    ODWPDTProductAndServiceUsage             = 0x0000000002000000u,
+    ODWPDTSoftwareSetupAndInventory          = 0x0000000080000000u
 };
 
 /*!
@@ -61,10 +60,10 @@ typedef NS_ENUM(uint64_t, ODWPrivacyDataType)
  */
 typedef NS_ENUM(uint8_t, ODWDiagLevel)
 {
-    ODWDiagLevelRequiredDiagnosticData                  = DIAG_LEVEL_REQUIRED,
-    ODWDiagLevelOptionalDiagnosticData                  = DIAG_LEVEL_OPTIONAL,
-    ODWDiagLevelRequiredServiceData                     = DIAG_LEVEL_REQUIREDSERVICEDATA,
-    ODWDiagLevelRequiredServiceDataForEssentialServices = DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES
+    ODWDiagLevelRequiredDiagnosticData                  = 1,
+    ODWDiagLevelOptionalDiagnosticData                  = 2,
+    ODWDiagLevelRequiredServiceData                     = 110,
+    ODWDiagLevelRequiredServiceDataForEssentialServices = 120
 };
 
 /*!
