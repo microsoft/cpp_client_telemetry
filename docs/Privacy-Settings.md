@@ -62,8 +62,8 @@ The C++ SDK has an API feature to filter events using the diagnostic level assoc
 ```cpp
 DIAG_LEVEL_REQUIRED                                 1
 DIAG_LEVEL_OPTIONAL                                 2
-DIAG_LEVEL_REQUIREDSERVICEDATA                      3
-DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  4
+DIAG_LEVEL_REQUIREDSERVICEDATA                      110
+DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
 ```
 The level set on your event will show up in the field `EventInfo.Level`.
 
