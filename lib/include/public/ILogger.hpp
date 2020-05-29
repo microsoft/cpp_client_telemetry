@@ -61,14 +61,6 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
 #define MICROSOFT_EVENTTAG_HASH_PII             0x04000000
 #define MICROSOFT_EVENTTAG_MARK_PII             0x08000000
 
-// Privacy Tags
-#define PDT_BrowsingHistory                     0x0000000000000002u
-#define PDT_DeviceConnectivityAndConfiguration  0x0000000000000800u
-#define PDT_InkingTypingAndSpeechUtterance      0x0000000000020000u
-#define PDT_ProductAndServicePerformance        0x0000000001000000u
-#define PDT_ProductAndServiceUsage              0x0000000002000000u
-#define PDT_SoftwareSetupAndInventory           0x0000000080000000u
-
 /// <summary>
 /// The PageActionData structure represents the data of a page action event.
 /// </summary>
