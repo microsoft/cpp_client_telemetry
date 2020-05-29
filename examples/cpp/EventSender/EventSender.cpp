@@ -95,15 +95,30 @@ int main(int argc, char *argv[])
     ILogger *logger = LogManager::Initialize();
     bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
 
-    printf("Running in %s mode...\n", (utcActive) ? "UTC" : "direct upload");
-    if (utcActive)
+    switch (static_cast<int64_t>(config[CFG_INT_SDK_MODE]))
     {
-        printf("UTC provider group Id: %s\n", (const char *)(config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID]));
-        printf("UTC large payloads:    %s\n", ((bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_LARGE_PAYLOADS])) ? "supported" : "not supported");
-    }
-    else
-    {
-        printf("Collector URL:         %s\n", (const char *)(config[CFG_STR_COLLECTOR_URL]));
+    case SdkModeTypes_CS:
+        printf("Collector URL:         %s\n", (const char*)(config[CFG_STR_COLLECTOR_URL]));
+        break;
+
+    case SdkModeTypes_UTCBackCompat:
+        //nobrk
+    case SdkModeTypes_UTCCommonSchema:
+        if (utcActive)
+        {
+            printf("Running in UTC mode...\n");
+            printf("UTC provider group Id: %s\n", (const char*)(config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID]));
+            printf("UTC large payloads:    %s\n", ((bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_LARGE_PAYLOADS])) ? "supported" : "not supported");
+        }
+        break;
+
+    case SdkModeTypes_ETWBackCompat:
+        printf("Running in ETW/CS2 mode...\n");
+        break;
+
+    case SdkModeTypes_ETWCommonSchema:
+        printf("Running in ETW/CS4 mode...\n");
+        break;
     }
 
     printf("Token (iKey):          %s\n", (const char *)(config[CFG_STR_PRIMARY_TOKEN]));
