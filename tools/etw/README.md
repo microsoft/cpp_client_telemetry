@@ -1,21 +1,21 @@
 Tools for debugging ETW traffic
 ===============================
 
-#Contents
+# Contents
 
-##scripts
+## scripts
 
 Directory that includes various scripts for capturing ETL traces.
 
-##TraceView
+## TraceView
 
 C# application for reading and printing ETW traces as XML.
 
-##listener
+## listener
 
 Implementation of ETW listener using KrabsETW library.
 
-##Using SilkETW to transform ETW to JSON
+## Using SilkETW to transform ETW to JSON
 
 SilkETW & SilkService are flexible C# wrappers for ETW, they are meant to abstract away the complexities of ETW and give people
 a simple interface to perform research and introspection. While both projects have obvious defensive (and offensive) applications
