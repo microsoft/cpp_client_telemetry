@@ -34,7 +34,9 @@ using namespace MAT;
 {
     std::string eventName = std::string([name UTF8String]);
     EventProperties event(eventName);
-    _wrappedLogger->LogEvent(event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogEvent(event);
+    });
 	if([ODWLogConfiguration enableTrace])
 	{
 	    NSLog(@"Log event with name: %@",name);
@@ -93,7 +95,9 @@ using namespace MAT;
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
-    _wrappedLogger->LogEvent(event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogEvent(event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log event with name: %@",[properties name]);
@@ -110,7 +114,9 @@ using namespace MAT;
     std::string strSignature = std::string([signature UTF8String]);
     std::string strDetail    = std::string([detail UTF8String]);
 
-    _wrappedLogger->LogFailure(strSignature, strDetail, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogFailure(strSignature, strDetail, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log failure with signature: %@, detail: %@ and name: %@",signature, detail, [properties name]);
@@ -131,7 +137,9 @@ using namespace MAT;
     std::string strCategory  = std::string([category UTF8String]);
     std::string strId        = std::string([identifier UTF8String]);
 
-    _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log failure with signature %@, detail %@, category: %@, id: %@ and name: %@",signature, detail, category, identifier, [properties name]);
@@ -148,7 +156,9 @@ using namespace MAT;
     std::string strId        = std::string([identifier UTF8String]);
     std::string strPageName  = std::string([pageName UTF8String]);
 
-    _wrappedLogger->LogPageView(strId, strPageName, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogPageView(strId, strPageName, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log page view with id: %@, page name: %@ and name %@", identifier, pageName, [properties name]);
@@ -171,7 +181,9 @@ using namespace MAT;
     std::string strUri         = std::string([uri UTF8String]);
     std::string strReferrerUri = std::string([referrerUri UTF8String]);
 
-    _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log page view with id: %@, page name: %@, category: %@, uri: %@, referrer uri: %@ and name %@", identifier, pageName, category, uri, referrerUri, [properties name]);
@@ -187,7 +199,9 @@ using namespace MAT;
 
     std::string strMessage = std::string([message UTF8String]);
 
-    _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log trace with level: %@, message: %@, name: %@", @(traceLevel), message, [properties name]);
@@ -199,7 +213,9 @@ using namespace MAT;
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
-    _wrappedLogger->LogSession((SessionState)state, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogSession((SessionState)state, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
@@ -213,4 +229,29 @@ using namespace MAT;
         NSLog(EXCEPTION_TRACE_FORMAT, message);
     }
 }
+
+void PerformActionWithCppExceptionsCatch(void (^block)())
+{
+    try
+    {
+        block();
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e.what()];
+    }
+    catch (const std::exception *e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e->what() ];
+    }
+}
+
 @end
