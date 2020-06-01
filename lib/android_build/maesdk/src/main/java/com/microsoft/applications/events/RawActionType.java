@@ -1,57 +1,137 @@
 package com.microsoft.applications.events;
 
+/**
+ * The RawActionType enumeration contains a set of values that specify the type of physical action that users can perform on a page view.
+ */
 public enum RawActionType {
-    /// <summary>Raw action type unspecified.</summary>
+    /**
+     * Raw action type unspecified.
+     */
     Unspecified(0),
-    /// <summary>Raw action type unknown.</summary>
+
+    /**
+     * Raw action type unknown.
+     */
     Unknown(1),
-    /// <summary>Raw action type other.</summary>
+
+    /**
+     * Raw action type other.
+     */
     Other(2),
-    /// <summary>Left button double-click.</summary>
+
+    /**
+     * Left button double-click.
+     */
     LButtonDoubleClick(11),
-    /// <summary>Left button down.</summary>
+
+    /**
+     * Left button down.
+     */
     LButtonDown(12),
-    /// <summary>Left button up.</summary>
+
+    /**
+     * Left button up.
+     */
     LButtonUp(13),
-    /// <summary>Middle button double-click.</summary>
+
+    /**
+     * Middle button double-click.
+     */
     MButtonDoubleClick(14),
-    /// <summary>Middle button down.</summary>
+
+    /**
+     * Middle button down.
+     */
     MButtonDown(15),
-    /// <summary>Middle button up.</summary>
+
+    /**
+     * Middle button up.
+     */
     MButtonUp(16),
-    /// <summary>Mouse hover.</summary>
+
+    /**
+     * Mouse hover.
+     */
     MouseHover(17),
-    /// <summary>Mouse wheel.</summary>
+
+    /**
+     * Mouse wheel.
+     */
     MouseWheel(18),
-    /// <summary>Mouse move.</summary>
+
+    /**
+     * Mouse move.
+     */
     MouseMove(20),
-    /// <summary>Right button double-click.</summary>
+
+    /**
+     * Right button double-click.
+     */
     RButtonDoubleClick(22),
-    /// <summary>Right button down.</summary>
+
+    /**
+     * Right button down.
+     */
     RButtonDown(23),
-    /// <summary>Right button up.</summary>
+
+    /**
+     * Right button up.
+     */
     RButtonUp(24),
-    /// <summary>Touch tap.</summary>
+
+    /**
+     * Touch tap.
+     */
     TouchTap(50),
-    /// <summary>Touch double-tap.</summary>
+
+    /**
+     * Touch double-tap.
+     */
     TouchDoubleTap(51),
-    /// <summary>Touch long-press.</summary>
+
+    /**
+     * Touch long-press.
+     */
     TouchLongPress(52),
-    /// <summary>Touch scroll.</summary>
+
+    /**
+     * Touch scroll.
+     */
     TouchScroll(53),
-    /// <summary>Touch pan.</summary>
+
+    /**
+     * Touch pan.
+     */
     TouchPan(54),
-    /// <summary>Touch flick.</summary>
+
+    /**
+     * Touch flick.
+     */
     TouchFlick(55),
-    /// <summary>Touch pinch.</summary>
+
+    /**
+     * Touch pinch.
+     */
     TouchPinch(56),
-    /// <summary>Touch zoom.</summary>
+
+    /**
+     * Touch zoom.
+     */
     TouchZoom(57),
-    /// <summary>Touch rotate.</summary>
+
+    /**
+     * Touch rotate.
+     */
     TouchRotate(58),
-    /// <summary>Keyboard press.</summary>
+
+    /**
+     * Keyboard press.
+     */
     KeyboardPress(100),
-    /// <summary>Keyboard Enter.</summary>
+
+    /**
+     * Keyboard Enter.
+     */
     KeyboardEnter(101);
 
     private final int m_value;

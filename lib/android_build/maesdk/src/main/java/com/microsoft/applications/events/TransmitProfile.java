@@ -1,12 +1,24 @@
 package com.microsoft.applications.events;
 
+/**
+ * Transmit profiles to choose from for event transmission that could favor low transmission
+ * latency or device resource consumption.
+ */
 public enum TransmitProfile {
-    /// <summary>Favors low transmission latency, but may consume more data bandwidth and power.</summary>
-    TransmitProfile_RealTime(0),
-    /// <summary>Favors near real-time transmission latency. Automatically balances transmission
-    /// latency with data bandwidth and power consumption.</summary>
-    TransmitProfile_NearRealTime(1),
-    /// <summary>Favors device performance by conserving both data bandwidth and power consumption.</summary>
+    /**
+     * Favors low transmission latency, but may consume more data bandwidth and power.
+     */
+    RealTime(0),
+
+    /**
+     * Favors near real-time transmission latency. Automatically balances
+     * transmission latency with data bandwidth and power consumption.
+     */
+    NearRealTime(1),
+
+    /**
+     * Favors device performance by conserving both data bandwidth and power consumption.
+     */
     TransmitProfile_BestEffort(2);
 
     private final int m_value;

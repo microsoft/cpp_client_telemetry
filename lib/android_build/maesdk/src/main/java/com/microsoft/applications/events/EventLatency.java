@@ -1,18 +1,37 @@
 package com.microsoft.applications.events;
 
+/**
+ * Latency for an event to be transmitted
+ */
 public enum EventLatency {
-
-    /// Unspecified: Event Latency is not specified
+    /**
+     * Unspecified: Event Latency is not specified
+     */
     Unspecified(-1),
-    /// Off: Latency is not to be transmitted
+
+    /**
+     * Off: Latency is not to be transmitted
+     */
     Off(0),
-    /// Normal: Latency is to be transmitted at low priority
+
+    /**
+     * Normal: Latency is to be transmitted at low priority
+     */
     Normal(1),
-    /// Cost Deffered: Latency is to be transmitted at cost deferred priority
+
+    /**
+     * Cost Deffered: Latency is to be transmitted at cost deferred priority
+     */
     CostDeferred(2),
-    /// RealTime: Latency is to be transmitted at real time priority
+
+    /**
+     * RealTime: Latency is to be transmitted at real time priority
+     */
     RealTime(3),
-    /// Max: Latency is to be transmitted as soon as possible
+
+    /**
+     * Max: Latency is to be transmitted as soon as possible
+     */
     Max(4);
 
     static final int VALUE_UNSPECIFIED = -1;

@@ -1,13 +1,27 @@
 package com.microsoft.applications.events;
 
+/**
+ * The AggregateType enumeration contains a set of values that specify the type of aggregated metric.
+ */
 public enum AggregateType {
-    /// <summary>The arithmetic sum.</summary>
+    /**
+     * The arithmetic sum.
+     */
     Sum(0),
-    /// <summary>The maximum.</summary>
+
+    /**
+     * The maximum
+     */
     Maximum(1),
-    /// <summary>The minimum.</summary>
+
+    /**
+     * The minimum.
+     */
     Minimum(2),
-    /// <summary>The sum of the squares used to calculate the variance.</summary>
+
+    /**
+     * The sum of the squares used to calculate the variance.
+     */
     SumOfSquares(3);
 
     private final int m_value;

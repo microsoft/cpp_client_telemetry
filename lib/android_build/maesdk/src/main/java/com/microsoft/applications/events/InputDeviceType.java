@@ -1,25 +1,57 @@
 package com.microsoft.applications.events;
 
+/**
+ * The InputDeviceType enumeration contains a set of values that specify a physical device that a user can use to perform an action on a page view.
+ */
 public enum InputDeviceType {
-    /// <summary>Device type unspecified.</summary>
+    /**
+     * Device type unspecified.
+     */
     Unspecified(0),
-    /// <summary>Device type unknown.</summary>
+
+    /**
+     * Device type unknown.
+     */
     Unknown(1),
-    /// <summary>Other.</summary>
+
+    /**
+     * Other.
+     */
     Other(2),
-    /// <summary>Mouse.</summary>
+
+    /**
+     * Mouse.
+     */
     Mouse(3),
-    /// <summary>Keyboard.</summary>
+
+    /**
+     * Keyboard.
+     */
     Keyboard(4),
-    /// <summary>Touch.</summary>
+
+    /**
+     * Touch.
+     */
     Touch(5),
-    /// <summary>Stylus.</summary>
+
+    /**
+     * Stylus.
+     */
     Stylus(6),
-    /// <summary>Microphone.</summary>
+
+    /**
+     * Microphone.
+     */
     Microphone(7),
-    /// <summary>Kinect.</summary>
+
+    /**
+     * Kinect.
+     */
     Kinect(8),
-    /// <summary>Camera.</summary>
+
+    /**
+     * Camera.
+     */
     Camera(9);
 
     private final int m_value;

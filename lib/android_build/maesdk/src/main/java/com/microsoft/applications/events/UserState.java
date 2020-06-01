@@ -1,15 +1,32 @@
 package com.microsoft.applications.events;
 
+/**
+ * The UserState enumeration contains a set of values that specify the user's state. For example, connected.
+ */
 public enum UserState {
-    /// <summary>User state unknown.</summary>
+    /**
+     * User state unknown.
+     */
     Unknown(0),
-    /// <summary>The user is connected to a service.</summary>
+
+    /**
+     * The user is connected to a service.
+     */
     Connected(1),
-    /// <summary>The user is reachable for a service like push notification.</summary>
+
+    /**
+     * The user is reachable for a service like push notification.
+     */
     Reachable(2),
-    /// <summary>The user is signed-into a service.</summary>
+
+    /**
+     * The user is signed-into a service.
+     */
     SignedIn(3),
-    /// <summary>The user is signed-out of a service.</summary>
+
+    /**
+     * The user is signed-out of a service.
+     */
     SignedOut(4);
 
     private final int m_value;

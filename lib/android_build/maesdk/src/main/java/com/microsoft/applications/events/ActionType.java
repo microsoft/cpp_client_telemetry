@@ -1,19 +1,39 @@
 package com.microsoft.applications.events;
 
 public enum ActionType {
-    /// <summary>The action type is unspecified.</summary>
+    /**
+     * The action type is unspecified.
+     */
     Unspecified(0),
-    /// <summary>The action type is unknown.</summary>
+
+    /**
+     * The action type is unknown.
+     */
     Unknown(1),
-    /// <summary>The action type is other.</summary>
+
+    /**
+     * The action type is other.
+     */
     Other(2),
-    /// <summary>A mouse click.</summary>
+
+    /**
+     * A mouse click.
+     */
     Click(3),
-    /// <summary>A pan.</summary>
+
+    /**
+     * A pan.
+     */
     Pan(5),
-    /// <summary>A zoom.</summary>
+
+    /**
+     * A zoom.
+     */
     Zoom(6),
-    /// <summary>A hover.</summary>
+
+    /**
+     * A hover.
+     */
     Hover(7);
 
     private final int m_value;

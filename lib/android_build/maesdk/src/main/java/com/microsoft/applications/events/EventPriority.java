@@ -1,21 +1,47 @@
 package com.microsoft.applications.events;
 
+/**
+ * The EventPriority enumeration contains a set of values that specify the priority for an event.
+ */
 public enum EventPriority {
-    /// <summary>The event priority is not specified.</summary>
+    /**
+     * The event priority is not specified.
+     */
     Unspecified(-1),
-    /// <summary>The event will not be transmitted.</summary>
+
+    /**
+     * The event will not be transmitted.
+     */
     Off(0),
-    /// <summary>low priority.</summary>
+
+    /**
+     * low priority.
+     */
     Low(1),
-    /// <summary>Same as Low.</summary>
+
+    /**
+     * Same as Low.
+     */
     MIN(Low.getValue()),
-    /// <summary>Normal priority.</summary>
+
+    /**
+     * Normal priority.
+     */
     Normal(2),
-    /// <summary>High priority.</summary>
+
+    /**
+     * High priority.
+     */
     High(3),
-    /// <summary>The event will be transmitted as soon as possible.</summary>
+
+    /**
+     * The event will be transmitted as soon as possible.
+     */
     Immediate(4),
-    /// <summary>Same as Immediate.</summary>
+
+    /**
+     * Same as Immediate.
+     */
     MAX(Immediate.getValue());
 
     static final int VALUE_UNSPECIFIED = -1;
