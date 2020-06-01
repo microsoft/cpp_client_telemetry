@@ -1,15 +1,32 @@
 package com.microsoft.applications.events;
 
+/**
+ * The NetworkCost enumeration contains a set of values that specify the kind of network cost for a connected device.
+ */
 public enum NetworkCost {
-    /// <summary>Any network cost.</summary>
+    /**
+     * Any network cost.
+     */
     Any(1),
-    /// <summary>Network cost unknown.</summary>
+
+    /**
+     * Network cost unknown.
+     */
     Unknown(0),
-    /// <summary>Unmetered.</summary>
+
+    /**
+     * Unmetered.
+     */
     Unmetered(1),
-    /// <summary>Metered.</summary>
+
+    /**
+     * Metered.
+     */
     Metered(2),
-    /// <summary>The device is roaming.</summary>
+
+    /**
+     * The device is roaming.
+     */
     Roaming(3);
 
     private final int m_value;

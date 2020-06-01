@@ -1,15 +1,32 @@
 package com.microsoft.applications.events;
 
+/**
+ * The NetworkType enumeration contains a set of values that specify the type of network that a device is connected to.
+ */
 public enum NetworkType {
-    /// <summary>Any type of network.</summary>
+    /**
+     * Any type of network.
+     */
     Any(1),
-    /// <summary>The type of network is unknown.</summary>
+
+    /**
+     * The type of network is unknown.
+     */
     Unknown(0),
-    /// <summary>A wired network.</summary>
+
+    /**
+     * A wired network.
+     */
     Wired(1),
-    /// <summary>A Wi-fi network.</summary>
+
+    /**
+     * A Wi-fi network.
+     */
     Wifi(2),
-    /// <summary>A wireless wide-area network.</summary>
+
+    /**
+     * A wireless wide-area network.
+     */
     WWAN(3);
 
     private final int m_value;

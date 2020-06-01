@@ -553,7 +553,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logPageView(final String id, final String pageName, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -577,7 +577,7 @@ class Logger implements ILogger {
     @Override
     public void logPageView(final String id, final String pageName, final String category,
                             final String uri, final String referrerUri, final EventProperties properties){
-
+        //ToDO
     }
 
     /**
@@ -592,7 +592,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logPageAction(final String pageViewId, final ActionType actionType, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -605,7 +605,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logPageAction(final PageActionData pageActionData, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -622,7 +622,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logSampledMetric(final String name, double value, final String units, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -646,7 +646,7 @@ class Logger implements ILogger {
     @Override
     public void logSampledMetric(final String name, double value, final String units, final String instanceName,
                                  final String objectClass, final String objectId, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -658,7 +658,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logAggregatedMetric(final String name, long duration, long count, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -671,7 +671,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logAggregatedMetric(final AggregatedMetricData metricData, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -683,7 +683,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logTrace(final TraceLevel level, final String message, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -695,7 +695,7 @@ class Logger implements ILogger {
      */
     @Override
     public void logUserState(final UserState state, final long timeToLiveInMillis, final EventProperties properties) {
-
+        //ToDO
     }
 
     /**
@@ -705,6 +705,6 @@ class Logger implements ILogger {
      */
     @Override
     public void setLevel(final int level) {
-
+        //ToDO
     }
 }

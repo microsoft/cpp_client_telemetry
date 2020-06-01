@@ -1,19 +1,36 @@
 package com.microsoft.applications.events;
 
+/**
+ * The AppLifecycleState enumeration contains a set of values that specify the lifecycle state of the application.
+ */
 public enum AppLifecycleState {
-    /// <summary>Lifecycle state unknown.</summary>
+    /**
+     * Lifecycle state unknown.
+     */
     Unknown(0),
-    /// <summary>The application launched.</summary>
+    /**
+     * The application launched.
+     */
     Launch(1),
-    /// <summary>The application exited.</summary>
+    /**
+     * The application exited.
+     */
     Exit(2),
-    /// <summary>The application suspended.</summary>
+    /**
+     * The application suspended.
+     */
     Suspend(3),
-    /// <summary>The application resumed.</summary>
+    /**
+     * The application resumed.
+     */
     Resume(4),
-    /// <summary>The application came back into the foreground.</summary>
+    /**
+     * The application came back into the foreground.
+     */
     Foreground(5),
-    /// <summary>The application went into the background.</summary>
+    /**
+     * The application went into the background.
+     */
     Background(6);
 
     private final int m_value;

@@ -1,33 +1,64 @@
 package com.microsoft.applications.events;
 
+/**
+ * The PiiKind enumeration contains a set of values that specify the kind of PII (Personal Identifiable Information) for tagging an event property
+ */
 public enum PiiKind {
-    /// <summary>No PII kind.</summary>
+    /**
+     * No PII kind.
+     */
     None(0),
-    /// <summary>An LDAP distinguished name.</summary>
+    /**
+     * An LDAP distinguished name.
+     */
     DistinguishedName(1),
-    /// <summary>Generic data.</summary>
+    /**
+     * Generic data.
+     */
     GenericData(2),
-    /// <summary>An IPV4 Internet address.</summary>
+    /**
+     * An IPV4 Internet address.
+     */
     IPv4Address(3),
-    /// <summary>An IPV6 Internet address.</summary>
+    /**
+     * An IPV6 Internet address.
+     */
     IPv6Address(4),
-    /// <summary>An e-mail subject.</summary>
+    /**
+     * An e-mail subject.
+     */
     MailSubject(5),
-    /// <summary>A telephone number.</summary>
+    /**
+     * A telephone number.
+     */
     PhoneNumber(6),
-    /// <summary>A query string.</summary>
+    /**
+     * A query string.
+     */
     QueryString(7),
-    /// <summary>A SIP address</summary>
+    /**
+     * A SIP address
+     */
     SipAddress(8),
-    /// <summary>An e-mail address.</summary>
+    /**
+     * An e-mail address.
+     */
     SmtpAddress(9),
-    /// <summary>An identity.</summary>
+    /**
+     * An identity.
+     */
     Identity(10),
-    /// <summary>A uniform resource indicator.</summary>
+    /**
+     * A uniform resource indicator.
+     */
     Uri(11),
-    /// <summary>A fully-qualified domain name.</summary>
+    /**
+     * A fully-qualified domain name.
+     */
     Fqdn(12),
-    /// <summary>A legacy IPV4 Internet address.</summary>
+    /**
+     * A legacy IPV4 Internet address.
+     */
     IPv4AddressLegacy(13),
 
     CustomerContentKind_GenericData(32);
