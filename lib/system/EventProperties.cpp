@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <jni.h>
 
 #include "utils/annex_k.hpp"
 
@@ -58,6 +59,14 @@ namespace ARIASDK_NS_BEGIN {
     EventProperties::EventProperties(const string& name)
         : EventProperties(name, DIAG_LEVEL_OPTIONAL)
     {
+    }
+
+    extern "C" JNIEXPORT jlong
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_EventPropertiesConstruct(JNIEnv* env, jclass,jstring name) {
+        auto utf = env->GetStringUTFChars(name, nullptr);
+        std::string converted(utf);
+        return reinterpret_cast<jlong>(new EventProperties(std::move(converted)));
     }
 
     /**
@@ -263,6 +272,16 @@ namespace ARIASDK_NS_BEGIN {
         }
         m_storage->eventName.assign(sanitizedEventName);
         return true;
+    }
+
+    extern "C" JNIEXPORT jboolean
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_SetName(JNIEnv* env, jlong reference, jstring name) {
+        EventProperties *eventProperties;
+        eventProperties = (EventProperties*)reference;
+        auto utf = env->GetStringUTFChars(name, nullptr);
+        std::string converted(utf);
+        return eventProperties->SetName(std::move(converted));
     }
 
     /// <summary>
