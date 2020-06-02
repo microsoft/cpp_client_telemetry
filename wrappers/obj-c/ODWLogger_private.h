@@ -24,6 +24,11 @@ using namespace MAT;
  */
 + (void)traceException:(const char*)message;
 
+/*!
+ @brief Performs block and handles inner SDK C++ exceptions. This method might be only used internally by wrapper.
+ */
+void PerformActionWithCppExceptionsCatch(void (^block)());
+
 @end
 
 NS_ASSUME_NONNULL_END
