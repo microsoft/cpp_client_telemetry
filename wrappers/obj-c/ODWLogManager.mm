@@ -68,7 +68,14 @@ LOGMANAGER_INSTANCE
     
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
-        std::string strUserLocale = std::string([[[NSLocale currentLocale] localeIdentifier] UTF8String]);
+        NSLocale* locale = [NSLocale currentLocale];
+        std::string strUserLocale = std::string([[locale languageCode] UTF8String]);
+        NSString* countryCode = [locale countryCode];
+        if ([countryCode length] != 0)
+        {
+            strUserLocale += [[NSString stringWithFormat:@"-%@", countryCode] UTF8String];
+        }
+
         NSString* bundleVersion = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
         std::string strBundleVersion = bundleVersion == nil ? std::string {} : std::string([bundleVersion UTF8String]);
         NSArray<NSString *> *localizations = [bundle preferredLocalizations];
