@@ -174,6 +174,15 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+    extern "C" JNIEXPORT void
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_SetPriority(JNIEnv* env, jlong reference, jlong priority) {
+        EventProperties *eventProperties;
+        eventProperties = (EventProperties*)reference;
+
+        return eventProperties->SetPriority(static_cast<EventPriority>(priority));
+    }
+
     /// <summary>
     /// Get transmit priority of this event
     /// Default transmit priority will be used if none specified 
@@ -192,6 +201,15 @@ namespace ARIASDK_NS_BEGIN {
         m_storage->eventLatency = latency;
     }
 
+    extern "C" JNIEXPORT void
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_SetLatency(JNIEnv* env, jlong reference, jlong latency) {
+        EventProperties *eventProperties;
+        eventProperties = (EventProperties*)reference;
+
+        return eventProperties->SetLatency(static_cast<EventLatency>(latency));
+    }
+
     /// <summary>
     /// Get transmit priority of this event
     /// Default transmit priority will be used if none specified 
@@ -208,6 +226,15 @@ namespace ARIASDK_NS_BEGIN {
     void EventProperties::SetPersistence(EventPersistence persistence)
     {
         m_storage->eventPersistence = persistence;
+    }
+
+    extern "C" JNIEXPORT void
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_SetPersistence(JNIEnv* env, jlong reference, jlong persistence) {
+        EventProperties *eventProperties;
+        eventProperties = (EventProperties*)reference;
+
+        return eventProperties->SetPersistence(static_cast<EventPersistence>(persistence));
     }
 
     /// <summary>
@@ -279,6 +306,7 @@ namespace ARIASDK_NS_BEGIN {
     Java_com_microsoft_applications_events_EventProperties_SetName(JNIEnv* env, jlong reference, jstring name) {
         EventProperties *eventProperties;
         eventProperties = (EventProperties*)reference;
+
         auto utf = env->GetStringUTFChars(name, nullptr);
         std::string converted(utf);
         return eventProperties->SetName(std::move(converted));
@@ -311,6 +339,17 @@ namespace ARIASDK_NS_BEGIN {
         }
         m_storage->eventType.assign(eventType);
         return true;
+    }
+
+    extern "C" JNIEXPORT jboolean
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperties_SetType(JNIEnv* env, jlong reference, jstring eventType) {
+        EventProperties *eventProperties;
+        eventProperties = (EventProperties*)reference;
+
+        auto utf = env->GetStringUTFChars(eventType, nullptr);
+        std::string converted(utf);
+        return eventProperties->SetType(std::move(converted));
     }
 
     /// <summary>
@@ -360,6 +399,21 @@ namespace ARIASDK_NS_BEGIN {
 
         m_storage->properties[name] = prop;
     }
+
+       extern "C" JNIEXPORT void
+       JNICALL
+       Java_com_microsoft_applications_events_EventProperties_SetProperty(JNIEnv* env, jlong eventPropertiesRef, jstring name, jlong eventPropertyRef) {
+           EventProperties *eventProperties;
+           eventProperties = (EventProperties*)eventPropertiesRef;
+
+           EventProperty *eventProperty;
+           eventProperty = (EventProperty*)eventPropertyRef;
+
+           auto utf = env->GetStringUTFChars(name, nullptr);
+           std::string converted(utf);
+
+           return eventProperties->SetProperty(std::move(converted), eventProperty);
+       }
 
     //
     void EventProperties::SetProperty(const std::string& name, char const*  value, PiiKind piiKind, DataCategory category) { SetProperty(name, EventProperty(value, piiKind, category)); }

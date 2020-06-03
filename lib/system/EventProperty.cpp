@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <jni.h>
 
 using namespace std;
 using namespace MAT;
@@ -452,6 +453,14 @@ namespace ARIASDK_NS_BEGIN {
 
         type = TYPE_STRING;
         return (*this);
+    }
+
+    extern "C" JNIEXPORT jlong
+    JNICALL
+    Java_com_microsoft_applications_events_EventProperty_EventPropertyConstruct(JNIEnv* env, jclass, jstring value) {
+        auto utf = env->GetStringUTFChars(value, nullptr);
+        std::string converted(utf);
+        return reinterpret_cast<jlong>(new EventProperty(std::move(converted)));
     }
 
     /// <summary>
