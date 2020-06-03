@@ -91,7 +91,7 @@ namespace ARIASDK_NS_BEGIN {
         IRuntimeConfig &m_config;
         IOfflineStorageObserver *m_observer;
         jobject m_room = nullptr;
-        std::recursive_mutex m_resize_mutex;
+        std::mutex m_resize_mutex;
         constexpr static size_t CHECK_INSERT_COUNT = 1000;
         size_t m_size_limit = 3 * 1024 * 1024; // 3 MB
         double m_notify_fraction = 0.75;

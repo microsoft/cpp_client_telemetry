@@ -28,6 +28,7 @@ jobs:
         working-directory: ./lib/android_build
         script: ./testandlog
     - name: Upload
+      if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: logcat

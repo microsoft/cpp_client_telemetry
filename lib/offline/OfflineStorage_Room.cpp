@@ -108,7 +108,21 @@ namespace ARIASDK_NS_BEGIN
 
     void OfflineStorage_Room::DeleteRecords(const std::map<std::string, std::string>& whereFilter)
     {
-        throw std::logic_error("IOfflineStorage(... wherefilter) not implemented for Room");
+        using Filter = std::map<std::string, std::string>;
+        ConnectedEnv env(s_vm);
+        Filter::const_iterator token = whereFilter.find("tenant_token");
+        if (whereFilter.size() != 1 || token == whereFilter.cend()) {
+            throw std::logic_error("whereFilter not implemented");
+        }
+
+        auto room_class = env->GetObjectClass(m_room);
+        auto deleteByToken = env->GetMethodID(room_class,
+                "deleteByToken",
+                "(Ljava/lang/String;)J");
+        ThrowLogic(env, "dbt method");
+        auto jToken = env->NewStringUTF(token->second.c_str());
+        ThrowRuntime(env, "dbt token");
+        env->CallLongMethod(m_room, deleteByToken, jToken);
     }
 
     void OfflineStorage_Room::DeleteRecords(
@@ -125,25 +139,34 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
         auto room_class = env->GetObjectClass(m_room);
-        auto method = env->GetMethodID(room_class, "deleteById", "([Ljava/lang/String;)J");
+        auto method = env->GetMethodID(room_class, "deleteById", "([J)J");
         ThrowLogic(env, "Unable to get deleteById method");
-        auto string_class = env->FindClass("java/lang/String");
-        auto ids_java = env->NewObjectArray(ids.size(), string_class, nullptr);
         ThrowRuntime(env, "Unable to allocate id array");
         size_t index = 0;
         env.pushLocalFrame(32);
+        std::vector<jlong> roomIds;
+        roomIds.reserve(ids.size());
         for (auto & id : ids) {
-            jstring id_java = env->NewStringUTF(id.c_str());
-            ThrowRuntime(env, "Allocate id string");
-            env->SetObjectArrayElement(ids_java, index, id_java);
-            ThrowLogic(env, "Set id element");
-            ++index;
-            if ((index & 0xf) == 0) {
-                env.popLocalFrame();
-                env.pushLocalFrame(32);
+            long long n = 0;
+            try {
+                n = std::stoll(id);
+                if (n > 0) {
+                    roomIds.push_back(n);
+                }
+            }
+            catch (std::out_of_range e) {
+                m_observer->OnStorageFailed("ID out of range");
+            }
+            catch (std::invalid_argument e) {
+                m_observer->OnStorageFailed("Empty ID");
             }
         }
-        env.popLocalFrame();
+        if (roomIds.empty()) {
+            return;
+        }
+        auto ids_java = env->NewLongArray(roomIds.size());
+        env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
+        ThrowLogic(env, "set delete ids");
         env->CallLongMethod(m_room, method, ids_java);
         ThrowRuntime(env, "deleteById");
     }
@@ -195,7 +218,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowLogic(env, "getAndReserve element");
             if (!record_class) {
                 record_class = env->GetObjectClass(record);
-                id_id = env->GetFieldID(record_class, "id", "Ljava/lang/String;");
+                id_id = env->GetFieldID(record_class, "id", "J");
                 ThrowLogic(env, "gar id");
                 tenantToken_id = env->GetFieldID(record_class, "tenantToken", "Ljava/lang/String;");
                 ThrowLogic(env, "gar tenant");
@@ -213,10 +236,8 @@ namespace ARIASDK_NS_BEGIN
                 ThrowLogic(env, "gar blob");
             }
 
-            auto id_java = static_cast<jstring>(env->GetObjectField(record, id_id));
+            auto id_java = env->GetLongField(record, id_id);
             ThrowLogic(env, "get id");
-            auto id_utf = env->GetStringUTFChars(id_java, nullptr);
-            ThrowRuntime(env, "string id");
             auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record, tenantToken_id));
             ThrowRuntime(env, "get tenant");
             auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
@@ -237,7 +258,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowLogic(env, "get blob storage");
             uint8_t* end = start + env->GetArrayLength(blob_java);
             StorageRecord dest(
-                    id_utf,
+                    std::to_string(id_java),
                     token_utf,
                     latency,
                     persistence,
@@ -246,7 +267,6 @@ namespace ARIASDK_NS_BEGIN
                     retryCount,
                     reservedUntil
                     );
-            env->ReleaseStringUTFChars(id_java, id_utf);
             env->ReleaseStringUTFChars(tenantToken_java, token_utf);
             env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte *>(start), 0);
             env.popLocalFrame();
@@ -318,29 +338,36 @@ namespace ARIASDK_NS_BEGIN
         auto room_class = env->GetObjectClass(m_room);
         auto release = env->GetMethodID(room_class,
                 "releaseRecords",
-                "([Ljava/lang/String;ZJ)[Lcom/microsoft/applications/events/ByTenant;"
+                "([JZJ)[Lcom/microsoft/applications/events/ByTenant;"
                 );
         ThrowLogic(env, "Exception finding releaseRecords");
         int64_t maximumRetries = 0;
         if (incrementRetryCount) {
             maximumRetries = m_config.GetMaximumRetryCount();
         }
-        auto string_class = env->FindClass("java/lang/String");
-        auto ids_java = env->NewObjectArray(ids.size(), string_class, nullptr);
-        ThrowRuntime(env, "Exception creating ids array");
-        size_t index = 0;
+        std::vector<jlong> roomIds;
+        roomIds.reserve(ids.size());
         for (auto const &id : ids) {
-            env.pushLocalFrame(32);
-            auto id_java = env->NewStringUTF(id.c_str());
-            ThrowRuntime(env, "Exception creating id string");
-            env->SetObjectArrayElement(ids_java, index, id_java);
-            ThrowRuntime(env, "Exception setting ids element");
-            ++index;
-            if ((index & 0xf) == 0) {
-                env.popLocalFrame();
-                env.pushLocalFrame(32);
+            try {
+                long long roomId = std::stoll(id);
+                if (roomId > 0) {
+                    roomIds.push_back(roomId);
+                }
+            }
+            catch (std::out_of_range e) {
+                m_observer->OnStorageFailed("id out of range");
+            }
+            catch (std::invalid_argument e) {
+                m_observer->OnStorageFailed("id empty");
             }
         }
+        if (roomIds.empty()) {
+            return;
+        }
+        auto ids_java = env->NewLongArray(roomIds.size());
+        ThrowRuntime(env, "ids_java");
+        env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
+        ThrowLogic(env, "ids_java");
         jobjectArray results = static_cast<jobjectArray>(
                 env->CallObjectMethod(
                         m_room,
@@ -404,32 +431,28 @@ namespace ARIASDK_NS_BEGIN
         }
 
         static constexpr char newRecordSignature[] =
-                "(Ljava/lang/String;Ljava/lang/String;IIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
+                "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
         auto room_class = env->GetObjectClass(m_room);
 
         size_t count = std::min<size_t>(records.size(), INT32_MAX);
         env.pushLocalFrame(8);
         size_t buffer_size = 0;
         for (auto const & record : records) {
-            buffer_size += record.id.size() + record.tenantToken.size() + record.blob.size();
+            buffer_size += record.tenantToken.size() + record.blob.size();
         }
         if (buffer_size >= UINT32_MAX) {
             throw std::runtime_error("Buffer size");
         }
-        std::vector<jbyte> buffer; // id, tenantToken, blob
+        std::vector<jbyte> buffer; // tenantToken, blob
         std::vector<jint> indices;
         std::vector<jint> smallNumbers; // latency, persistence, retryCount
-        std::vector<jlong> bigNumbers; // timestamp, reservedUntil
+        std::vector<jlong> bigNumbers; // id, timestamp, reservedUntil
         buffer.reserve(buffer_size);
         indices.reserve(3 * count);
         smallNumbers.reserve(3 * count);
-        bigNumbers.reserve(2 * count);
+        bigNumbers.reserve(3 * count);
 
         for (auto & record : records) {
-            indices.push_back(record.id.size());
-            for (size_t i = 0; i < record.id.size(); ++i) {
-                buffer.push_back(record.id[i]);
-            }
             indices.push_back(record.tenantToken.size());
             for (size_t i = 0; i < record.tenantToken.size(); ++i) {
                 buffer.push_back(record.tenantToken[i]);
@@ -441,6 +464,7 @@ namespace ARIASDK_NS_BEGIN
             smallNumbers.push_back(record.latency);
             smallNumbers.push_back(record.persistence);
             smallNumbers.push_back(record.retryCount);
+            bigNumbers.push_back(0);
             bigNumbers.push_back(record.timestamp);
             bigNumbers.push_back(record.reservedUntil);
         }
@@ -458,7 +482,7 @@ namespace ARIASDK_NS_BEGIN
         auto bigBuffer = env->NewLongArray(bigNumbers.size());
         ThrowRuntime(env, "big");
         env->SetLongArrayRegion(bigBuffer, 0, bigNumbers.size(), bigNumbers.data());
-//     public void storeFromBuffers(int count, int[] indices, byte[] bytes, int[] small, long[] big)
+//     public long[] storeFromBuffers(int count, int[] indices, byte[] bytes, int[] small, long[] big)
         static constexpr char storeSignature[] = "(I[I[B[I[J)V";
         auto storeId = env->GetMethodID(room_class, "storeFromBuffers", storeSignature);
         ThrowLogic(env, "store");
@@ -610,7 +634,7 @@ namespace ARIASDK_NS_BEGIN
 
     bool OfflineStorage_Room::ResizeDbInternal(ConnectedEnv &env)
     {
-        std::lock_guard<std::recursive_mutex> lock(m_resize_mutex);
+        std::lock_guard<std::mutex> lock(m_resize_mutex);
         if (!env) {
             return false;
         }
@@ -619,16 +643,10 @@ namespace ARIASDK_NS_BEGIN
         if (current < limit) {
             return false;
         }
-        double fraction = 0.75;
-        if (limit > 0) {
-            fraction = std::min(fraction, static_cast<double>(limit) / static_cast<double>(current));
-        }
         auto room_class = env->GetObjectClass(m_room);
-        auto trim_id = env->GetMethodID(room_class, "trim", "(D)J");
-        if (!trim_id) {
-            return false;
-        }
-        size_t dropped = env->CallLongMethod(m_room, trim_id, fraction);
+        auto trim_id = env->GetMethodID(room_class, "trim", "(J)J");
+        ThrowLogic(env, "trim");
+        size_t dropped = env->CallLongMethod(m_room, trim_id, static_cast<jlong>(limit));
 
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = dropped;
@@ -674,7 +692,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowLogic(env, "access result element");
             if (!record_class) {
                 record_class = env->GetObjectClass(record);
-                id_id = env->GetFieldID(record_class, "id", "Ljava/lang/String;");
+                id_id = env->GetFieldID(record_class, "id", "J");
                 ThrowLogic(env, "id field");
                 tenantToken_id = env->GetFieldID(record_class, "tenantToken", "Ljava/lang/String;");
                 ThrowLogic(env, "tenant field");
@@ -691,9 +709,8 @@ namespace ARIASDK_NS_BEGIN
                 blob_id = env->GetFieldID(record_class, "blob", "[B");
                 ThrowLogic(env, "blob field");
             }
-            StorageRecord & dest(records.back());
-            auto id_j = static_cast<jstring>(env->GetObjectField(record, id_id));
-            auto id_utf = env->GetStringUTFChars(id_j, nullptr);
+            StorageRecord dest;
+            auto id_j = env->GetLongField(record, id_id);
             auto tenant_j = static_cast<jstring>(env->GetObjectField(record, tenantToken_id));
             auto tenant_utf = env->GetStringUTFChars(tenant_j, nullptr);
             auto latency = static_cast<EventLatency>(env->GetIntField(record, latency_id));
@@ -707,7 +724,7 @@ namespace ARIASDK_NS_BEGIN
             size_t blob_length = env->GetArrayLength(blob_j);
             auto blob_end = blob_store + blob_length;
             records.emplace_back(
-                    id_utf,
+                    std::to_string(id_j),
                     tenant_utf,
                     latency,
                     persistence,
@@ -715,7 +732,6 @@ namespace ARIASDK_NS_BEGIN
                     StorageBlob(blob_store, blob_end),
                     retryCount,
                     reservedUntil);
-            env->ReleaseStringUTFChars(id_j, id_utf);
             env->ReleaseStringUTFChars(tenant_j, tenant_utf);
             env->ReleaseByteArrayElements(blob_j, elements, 0);
             env.popLocalFrame();

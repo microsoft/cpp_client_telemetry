@@ -1,10 +1,12 @@
 package com.microsoft.applications.events;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity
+@Entity(indices = {@Index(value = {"id"}, unique = true)})
 public class StorageRecord {
     final public static int EventLatency_Unspecified = -1;
     final public static int EventLatency_Normal = 1;
@@ -13,8 +15,7 @@ public class StorageRecord {
 
 
     public StorageRecord(
-        @NonNull
-        String id,
+        long id,
         String tenantToken,
         int latency,
         int persistence,
@@ -33,10 +34,11 @@ public class StorageRecord {
         this.blob = blob;
     }
 
-    @PrimaryKey
-    @NonNull
-    public String id;
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(typeAffinity = ColumnInfo.INTEGER)
+    public long id = 0;
     public String tenantToken;
+    @ColumnInfo(index = true)
     public int latency = EventLatency_Unspecified;
     public int persistence = EventPersistence_Normal;
     public long timestamp = 0;

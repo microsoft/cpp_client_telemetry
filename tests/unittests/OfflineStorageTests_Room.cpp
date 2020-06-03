@@ -8,6 +8,7 @@
 #include "offline/OfflineStorage_Room.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
 #include "NullObjects.hpp"
+#include <functional>
 #include <string>
 
 namespace MAE = ::Microsoft::Applications::Events;
@@ -293,9 +294,6 @@ TEST_P(OfflineStorageTestsRoom, TestGetRecords) {
 
 TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
     size_t count = 5000;
-    if (implementation == StorageImplementation::SQLite) {
-        count = 64; // issue 411
-    }
     auto now = PAL::getUtcSystemTimeMs();
     auto retries = configMock.GetMaximumRetryCount() + 1;
     std::vector<StorageRecord> manyRecords;
@@ -341,6 +339,102 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
         remainingRecords = count;
     }
     EXPECT_EQ(remainingRecords, offlineStorage->GetRecordCount(EventLatency_Normal));
+}
+
+TEST_P(OfflineStorageTestsRoom, LastReadRecordCount) {
+    size_t count = 5000;
+    size_t consume = 315;
+    std::hash<size_t> id_hash;
+    StorageRecordVector records;
+    records.reserve(count);
+    auto now = PAL::getUtcSystemTimeMs();
+    for (size_t i = 0; i < count; i++) {
+        auto id = id_hash(i);
+        auto id_string = std::to_string(id);
+        records.emplace_back(
+                id_string,
+                id_string,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {3, 1, 4, 1, 5, 9}
+                );
+    }
+    offlineStorage->StoreRecords(records);
+    records.clear();
+    offlineStorage->GetAndReserveRecords(
+            [&records, consume](StorageRecord && record)->bool
+            {
+                if (records.size() >= consume) {
+                    return false;
+                }
+                records.emplace_back(record);
+                return true;
+            },
+            5000
+            );
+    EXPECT_EQ(consume, offlineStorage->LastReadRecordCount());
+}
+
+TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
+    auto now = PAL::getUtcSystemTimeMs();
+    StorageRecord r(
+            "Fred",
+            "George",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            now,
+            StorageBlob {1, 2, 3}
+            );
+    offlineStorage->StoreRecord(r);
+    offlineStorage->GetAndReserveRecords(
+            [](StorageRecord && record)->bool
+            {
+                return false;
+            },
+            5000
+            );
+    EXPECT_EQ(0, offlineStorage->LastReadRecordCount());
+    StorageRecordVector records;
+    offlineStorage->GetAndReserveRecords(
+            [&records] (StorageRecord && record)->bool
+            {
+                records.emplace_back(std::move(record));
+                return true;
+            }, 5000
+            );
+    EXPECT_EQ(1, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(1, records.size());
+    offlineStorage->GetAndReserveRecords(
+            [] (StorageRecord && record)->bool
+            {
+                ADD_FAILURE();
+                return false;
+            },
+            5000
+            );
+}
+
+TEST_P(OfflineStorageTestsRoom, DeleteByToken)
+{
+    StorageRecordVector records;
+    auto now = PAL::getUtcSystemTimeMs();
+    for (size_t i = 0; i < 1000; ++i) {
+        auto id = std::to_string(i);
+        auto tenantToken = std::to_string(i % 5);
+        records.emplace_back(
+                id,
+                tenantToken,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {1, 2, static_cast<unsigned char>(i), 4, 5}
+        );
+    }
+    offlineStorage->StoreRecords(records);
+    EXPECT_EQ(1000, offlineStorage->GetRecordCount());
+    offlineStorage->DeleteRecords({{ "tenant_token", "0"}});
+    EXPECT_EQ(800, offlineStorage->GetRecordCount());
 }
 
 INSTANTIATE_TEST_CASE_P(Storage,
