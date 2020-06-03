@@ -230,6 +230,11 @@ using namespace MAT;
     }
 }
 
++(void)raiseException:(const char *)message
+{
+    [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%s", message]];
+}
+
 void PerformActionWithCppExceptionsCatch(void (^block)())
 {
     try
@@ -240,17 +245,9 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what() ];
     }
 }
 
