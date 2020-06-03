@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogger_private.h"
 #import "LogManager.hpp"
 
 using namespace Microsoft::Applications::Events;
@@ -10,15 +11,53 @@ using namespace Microsoft::Applications::Events;
 
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec
 {
-    auto& config = LogManager::GetLogConfiguration();
-    config[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
+    try
+    {
+        auto& config = LogManager::GetLogConfiguration();
+        config[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
+	}
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e.what()];
+    }
+    catch (const std::exception *e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e->what()];
+    }
 }
 
 +(void)setEnableTrace:(bool)enableTrace
 {
-    auto& config = LogManager::GetLogConfiguration();
-    config[CFG_BOOL_ENABLE_TRACE] = enableTrace;
-	_enableTrace = enableTrace;
+    try
+    {
+        auto& config = LogManager::GetLogConfiguration();
+        config[CFG_BOOL_ENABLE_TRACE] = enableTrace;
+        _enableTrace = enableTrace;
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e.what()];
+    }
+    catch (const std::exception *e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            throw;
+        }
+        [ODWLogger traceException: e->what()];
+    }
 }
 
 +(bool)enableTrace

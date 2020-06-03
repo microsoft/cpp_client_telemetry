@@ -1,13 +1,13 @@
 
-# **1. Using privacy tags on UTC mode **
+# Using Privacy Tags
 
-In order to set privacy tags to an event on UTC mode, the C++ SDK exposes the functionality on it's API.
+In order to set privacy tags, the C++ SDK exposes the functionality on it's API.
 
-To be able to send an event on UTC mode you need to set CFG_INT_SDK_MODE flag on the LogManager configuration:
-
-```cpp
-config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
-```
+> ***NOTE***: To be able to send an event on UTC mode you need to set CFG_INT_SDK_MODE flag on the LogManager configuration:
+>
+>```cpp
+>config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+>```
 
 To set a tag in code you can use the following syntax using the SetProperty method:
 
@@ -51,14 +51,21 @@ PDT_ProductAndServiceUsage              0x0000000002000000u
 PDT_SoftwareSetupAndInventory           0x0000000080000000u
 ```
 
-The tag set on your event will show it the field ext.metadata.privTags. You can validate that using Telemetry Real Time Tool **[TRTT](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT)**
+The tag set on your event will show it the field `EventInfo.PrivTags`. You can validate that using [Telemetry Real Time Tool (TRTT)](https://osgwiki.com/wiki/Telemetry_Real-Time_Tool_(TRTT))
 
 ![UTC Privacy Tags example](/docs/images/14154-utc.png)
 
 
-# **2. Diagnostic level filtering**
+# Diagnostic Level
 
-The C++ SDK has an API feature to filter events using the diagnostic level associated with it.
+The C++ SDK has an API feature to filter events using the diagnostic level associated with it. The current list of supported Diagnostic level are:
+```cpp
+DIAG_LEVEL_REQUIRED                                 1
+DIAG_LEVEL_OPTIONAL                                 2
+DIAG_LEVEL_REQUIREDSERVICEDATA                      110
+DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
+```
+The level set on your event will show up in the field `EventInfo.Level`.
 
 There are different ways you can make your diagnostic levels filtering work:
 
@@ -81,22 +88,18 @@ auto logger0 = LogManager::Initialize(TENANT_TOKEN, config);
 // Inherit diagnostic level from parent (LogManager level)
 auto logger1 = LogManager::GetLogger();
 
-// Set diagnostic level to ENHANCED for logger2
-auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_enhanced_source");
-logger2->SetLevel(DIAG_LEVEL_ENHANCED);
-
-// Set diagnostic level to FULL
-auto logger3 = LogManager::GetLogger("my_full_source");
-logger3->SetLevel(DIAG_LEVEL_FULL);
+// Set diagnostic level to OPTIONAL
+auto logger2 = LogManager::GetLogger("my_optional_source");
+logger3->SetLevel(DIAG_LEVEL_OPTIONAL);
 
 // A set that specifies that nothing passes through level filter
 std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
 // Everything goes through
 std::set<uint8_t> logAll   = { };
 // Only allow BASIC level filtering
-std::set<uint8_t> logBasic = { DIAG_LEVEL_BASIC };
+std::set<uint8_t> logRequired = { DIAG_LEVEL_REQUIRED };
 
-auto filters = { logNone, logAll, logBasic };
+auto filters = { logNone, logAll, logRequired };
 
 // Example of how level filtering works
 size_t i = 0;
@@ -113,17 +116,17 @@ for (auto filter : filters)
 		// Behavior is inherited from the current logger
 		logger->LogEvent(defLevelEvent);
 
-		// Create an event and set level to BASIC 
+		// Create an event and set level to REQUIRED 
 		// This overrides the logger level for filtering
-		EventProperties basicEvent("My.BasicEvent");
-		basicEvent.SetLevel(DIAG_LEVEL_BASIC);
-		logger->LogEvent(basicEvent);
+		EventProperties requiredEvent("My.RequiredEvent");
+		requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+		logger->LogEvent(requiredEvent);
 
-		// Create an event and set level to FULL 
+		// Create an event and set level to OPTIONAL 
 		// This overrides the logger level for filtering
-		EventProperties fullEvent("My.FullEvent");
-		fullEvent.SetLevel(DIAG_LEVEL_FULL);
-		logger->LogEvent(fullEvent);
+		EventProperties optionalEvent("My.OptionalEvent");
+		optionalEvent.SetLevel(DIAG_LEVEL_OPTIONAL);
+		logger->LogEvent(optionalEvent);
 	}
 }
 
