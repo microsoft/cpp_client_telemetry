@@ -1,6 +1,6 @@
 while (1)
 {
-  $pipe=new-object System.IO.Pipes.NamedPipeServerStream("\\.\pipe\ETW\6d084bbf-6a96-44ef-83F4-0a77c9e34580");
+  $pipe=new-object System.IO.Pipes.NamedPipeServerStream("ETW-6d084bbf-6a96-44ef-83F4-0a77c9e34580");
   Write-Host "Waiting for client connection..."
   $pipe.WaitForConnection();
   $sr = new-object System.IO.StreamReader($pipe);
