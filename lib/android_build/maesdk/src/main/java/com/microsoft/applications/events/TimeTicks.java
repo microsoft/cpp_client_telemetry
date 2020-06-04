@@ -11,27 +11,6 @@ class TimeTicks {
 
     /**
      *  The TimeTicks structure encapsulates time in .NET ticks equivalent to native time_ticks_t.
-     *  A single tick represents one hundred nanoseconds, or one ten-millionth of a second.
-     *  There are 10,000 ticks in a millisecond, or 10 million ticks in a second.
-     *  The value of this property represents the number of 100 nanosecond intervals that have
-     *  elapsed since 12:00 AM, January, 1, 0001 (0:00 : 00 UTC on January 1, 0001, in
-     *  the Gregorian calendar), which represents DateTime.MinValue in native.
-     *  <b>Note:</b> This does not include the number of ticks that are attributable to leap seconds.
-     * @param ticks since 12:00 AM, January, 1, 0001
-     */
-    public TimeTicks(long ticks) {
-        if (ticks < 0)
-        {
-            throw new IllegalArgumentException("Value of ticks cannot be -ve.");
-        }
-        else
-        {
-            m_ticks = ticks;
-        }
-    }
-
-    /**
-     *  The TimeTicks structure encapsulates time in .NET ticks equivalent to native time_ticks_t.
      *  This constructor converts the Java Date to the .NET ticks.
      *  A single tick represents one hundred nanoseconds, or one ten-millionth of a second.
      *  There are 10,000 ticks in a millisecond, or 10 million ticks in a second.
@@ -41,7 +20,7 @@ class TimeTicks {
      *  <b>Note:</b> This does not include the number of ticks that are attributable to leap seconds.
      * @param date Java Date
      */
-    public TimeTicks(Date date) {
+    TimeTicks(Date date) {
         if (date == null)
             throw new IllegalArgumentException("date is null");
 

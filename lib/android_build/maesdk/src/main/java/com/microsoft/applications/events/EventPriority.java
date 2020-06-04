@@ -1,5 +1,14 @@
 package com.microsoft.applications.events;
 
+class EventPriorityValues {
+    static final int VALUE_UNSPECIFIED = -1;
+    static final int VALUE_OFF = 0;
+    static final int VALUE_LOW = 1;
+    static final int VALUE_NORMAL = 2;
+    static final int VALUE_HIGH = 3;
+    static final int VALUE_IMMEDIATE = 4;
+}
+
 /**
  * The EventPriority enumeration contains a set of values that specify the priority for an event.
  */
@@ -7,17 +16,17 @@ public enum EventPriority {
     /**
      * The event priority is not specified.
      */
-    Unspecified(-1),
+    Unspecified(EventPriorityValues.VALUE_UNSPECIFIED),
 
     /**
      * The event will not be transmitted.
      */
-    Off(0),
+    Off(EventPriorityValues.VALUE_OFF),
 
     /**
      * low priority.
      */
-    Low(1),
+    Low(EventPriorityValues.VALUE_LOW),
 
     /**
      * Same as Low.
@@ -27,53 +36,46 @@ public enum EventPriority {
     /**
      * Normal priority.
      */
-    Normal(2),
+    Normal(EventPriorityValues.VALUE_NORMAL),
 
     /**
      * High priority.
      */
-    High(3),
+    High(EventPriorityValues.VALUE_HIGH),
 
     /**
      * The event will be transmitted as soon as possible.
      */
-    Immediate(4),
+    Immediate(EventPriorityValues.VALUE_IMMEDIATE),
 
     /**
      * Same as Immediate.
      */
     MAX(Immediate.getValue());
 
-    static final int VALUE_UNSPECIFIED = -1;
-    static final int VALUE_OFF = 0;
-    static final int VALUE_LOW = 1;
-    static final int VALUE_NORMAL = 2;
-    static final int VALUE_HIGH = 3;
-    static final int VALUE_IMMEDIATE = 4;
-
     private final int m_value;
 
-    private EventPriority(int value) {
+    EventPriority(int value) {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 
-    public static EventPriority getEnum(int value) {
+    static EventPriority getEnum(int value) {
         switch (value) {
-            case VALUE_UNSPECIFIED :
+            case EventPriorityValues.VALUE_UNSPECIFIED :
                 return Unspecified;
-            case VALUE_OFF :
+            case EventPriorityValues.VALUE_OFF :
                 return Off;
-            case VALUE_LOW :
+            case EventPriorityValues.VALUE_LOW :
                 return Low;
-            case VALUE_NORMAL :
+            case EventPriorityValues.VALUE_NORMAL :
                 return Normal;
-            case VALUE_HIGH :
+            case EventPriorityValues.VALUE_HIGH :
                 return High;
-            case VALUE_IMMEDIATE :
+            case EventPriorityValues.VALUE_IMMEDIATE :
                 return Immediate;
             default :
                 throw new IllegalArgumentException("Unsupported value: " + value);

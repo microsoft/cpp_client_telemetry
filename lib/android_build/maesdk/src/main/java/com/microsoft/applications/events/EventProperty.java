@@ -29,7 +29,17 @@ public class EventProperty {
      * @param value A string.
      */
     public EventProperty(final String value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a string.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A string.
+     */
+    public EventProperty(final String value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -41,8 +51,8 @@ public class EventProperty {
      * @param category DataCategory of the event
      */
     public EventProperty(final String value, final PiiKind piiKind, final DataCategory category) {
-        if (value == null || value.trim().isEmpty())
-            throw new IllegalArgumentException("value is null or empty");
+        if (value == null)
+            throw new IllegalArgumentException("value is null");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
         if (category == null)
@@ -61,7 +71,17 @@ public class EventProperty {
      * @param value An int.
      */
     public EventProperty(final int value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a int.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A int.
+     */
+    public EventProperty(final int value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -73,16 +93,8 @@ public class EventProperty {
      * @param category DataCategory of the event
      */
     public EventProperty(final int value, final PiiKind piiKind, final DataCategory category) {
-        if (piiKind == null)
-            throw new IllegalArgumentException("piiKind is null");
-        if (category == null)
-            throw new IllegalArgumentException("category is null");
-
-        m_piiKind = piiKind;
-        m_category = category;
-        m_eventPropertyValue = new EventPropertyLongValue(value);
+        this((long)value, piiKind, category);
     }
-
 
     /**
      * The EventProperty constructor, taking a long.
@@ -92,7 +104,17 @@ public class EventProperty {
      * @param value A long.
      */
     public EventProperty(final long value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a long.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A long.
+     */
+    public EventProperty(final long value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -122,7 +144,17 @@ public class EventProperty {
      * @param value A double.
      */
     public EventProperty(final double value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a double.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A double.
+     */
+    public EventProperty(final double value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -152,7 +184,17 @@ public class EventProperty {
      * @param value A boolean.
      */
     public EventProperty(final boolean value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a boolean.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A boolean.
+     */
+    public EventProperty(final boolean value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -182,7 +224,17 @@ public class EventProperty {
      * @param value A Date.
      */
     public EventProperty(final Date value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a Date.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A Date.
+     */
+    public EventProperty(final Date value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -226,7 +278,17 @@ public class EventProperty {
      * @param value A UUID.
      */
     public EventProperty(final UUID value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking a UUID/GUID.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value A UUID.
+     */
+    public EventProperty(final UUID value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -258,7 +320,17 @@ public class EventProperty {
      * @param value An array of strings.
      */
     public EventProperty(final String[] value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking an array of string.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value An array of string.
+     */
+    public EventProperty(final String[] value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -290,7 +362,17 @@ public class EventProperty {
      * @param value An array of long.
      */
     public EventProperty(final long[] value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking an array of long.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value An array of long.
+     */
+    public EventProperty(final long[] value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -322,7 +404,17 @@ public class EventProperty {
      * @param value An array of double.
      */
     public EventProperty(final double[] value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking an array of double.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value An array of double.
+     */
+    public EventProperty(final double[] value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -354,7 +446,17 @@ public class EventProperty {
      * @param value An array of UUID.
      */
     public EventProperty(final UUID[] value) {
-        this(value, PiiKind.None, DataCategory.PartC);
+        this(value, PiiKind.None);
+    }
+
+    /**
+     * The EventProperty constructor, taking an array of UUID/GUID.
+     * By default tags the property with default DataCategory.PartC.
+     *
+     * @param value An array of UUID.
+     */
+    public EventProperty(final UUID[] value, final PiiKind piiKind) {
+        this(value, piiKind, DataCategory.PartC);
     }
 
     /**
@@ -377,16 +479,4 @@ public class EventProperty {
         m_category = category;
         m_eventPropertyValue = new EventPropertyGuidArrayValue(value);
     }
-/*TODO
-    String toString() {
-        String result;
-        switch(m_eventPropertyValue.getType()) {
-            case EventPropertyType.TYPE_BOOLEAN.getValue() :
-                return "";
-        }
-
-        return result;
-    }
-
- */
 }

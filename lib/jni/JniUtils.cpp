@@ -4,6 +4,9 @@ namespace ARIASDK_NS_BEGIN
 {
 
 std::string JStringToStdString(JNIEnv* env, const jstring& jstr) {
+    if (jstr == NULL)
+        return "";
+
     size_t jstr_length = env->GetStringUTFLength(jstr);
     auto jstr_utf = env->GetStringUTFChars(jstr, nullptr);
     std::string str(jstr_utf, jstr_utf + jstr_length);

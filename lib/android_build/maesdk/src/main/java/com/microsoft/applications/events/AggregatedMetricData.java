@@ -1,5 +1,6 @@
 package com.microsoft.applications.events;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -24,33 +25,34 @@ public class AggregatedMetricData {
     /**
      * [Optional] A string representing the units of measure of the aggregated metric.
      */
-    public String units;
+    public String units = "";
 
     /**
      * [Optional] An instance name for the aggregated metric.
      */
-    public String instanceName;
+    public String instanceName = "";
 
     /**
      * [Optional] A string that contains the object class upon which the aggregated metric is measured.
      */
-    public String objectClass;
+    public String objectClass = "";
 
     /**
      * [Optional] A string that contains the object ID upon which the Aggregated Metric is measured.
      */
-    public String objectId;
+    public String objectId = "";
 
     /**
      * [Optional] The reported aggregated metrics.
      * The types of aggregates are specified by the ::AggregateType enumeration.
      */
-    public Map<AggregateType, Double> aggregates;
+    public Map<AggregateType, Double> aggregates = new HashMap<>();
 
     /**
-     * [Optional] A standard map that contains a frequency table, which is an alternative way to summarize the observations (like a time series).
+     * [Optional] A standard map that contains a frequency table,
+     * which is an alternative way to summarize the observations (like a time series).
      */
-    public Map<Long, Long> buckets;
+    public Map<Long, Long> buckets = new HashMap<>();
 
     /**
      * An AggregatedMetricData constructor

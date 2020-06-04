@@ -25,7 +25,7 @@ public enum EventPersistence {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 }

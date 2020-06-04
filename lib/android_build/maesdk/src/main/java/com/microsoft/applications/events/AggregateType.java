@@ -26,11 +26,11 @@ public enum AggregateType {
 
     private final int m_value;
 
-    private AggregateType(int value) {
+    AggregateType(int value) {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 }

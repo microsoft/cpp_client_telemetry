@@ -7,7 +7,15 @@ class EventPropertyStringArrayValue extends EventPropertyValue{
         super(EventPropertyType.TYPE_STRING_ARRAY);
         if (value == null || value.length == 0)
             throw new IllegalArgumentException("value is null or empty");
-        m_value = value;
+
+        m_value = new String[value.length];
+        for(int i = 0; i < value.length; i++) {
+            String strValue = value[i];
+            if (strValue == null)
+                throw new IllegalArgumentException("String value is null for array index:" + i);
+
+            m_value[i] = strValue;
+        }
     }
 
     @Override

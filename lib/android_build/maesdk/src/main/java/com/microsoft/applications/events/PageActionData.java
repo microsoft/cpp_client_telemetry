@@ -27,27 +27,27 @@ public class PageActionData {
     /**
      * [Optional] The ID of the item on which this action acts.
      */
-    public String targetItemId;
+    public String targetItemId = "";
 
     /**
      * [Optional] The name of the data source item upon which this action acts.
      */
-    public String targetItemDataSourceName;
+    public String targetItemDataSourceName = "";
 
     /**
      * [Optional] The name of the data source category that the item belongs to.
      */
-    public String targetItemDataSourceCategory;
+    public String targetItemDataSourceCategory = "";
 
     /**
      * [Optional] The name of the data source collection that the item belongs to.
      */
-    public String targetItemDataSourceCollection;
+    public String targetItemDataSourceCollection = "";
 
     /**
      * [Optional] The name of the layout container the item belongs to.
      */
-    public String targetItemLayoutContainer;
+    public String targetItemLayoutContainer = "";
 
     /**
      * [Optional] The relative ordering/ranking/positioning within the layout container.
@@ -57,7 +57,7 @@ public class PageActionData {
     /**
      * The destination URI resulted by this action.
      */
-    public String destinationUri;
+    public String destinationUri = "";
 
     /**
      * A constructor that takes a page view ID, and an action type.

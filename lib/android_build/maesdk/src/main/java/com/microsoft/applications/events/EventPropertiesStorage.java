@@ -4,18 +4,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 class EventPropertiesStorage {
-    public String              eventName = "";
-    public String              eventType = "";
-    public EventLatency        eventLatency = EventLatency.Normal;
-    public EventPersistence    eventPersistence = EventPersistence.Normal;
-    public double              eventPopSample = 100;
-    public long                eventPolicyBitflags = 0;
-    public long                timestampInMillis = 0;
+    String eventName;
+    String eventType;
+    EventLatency eventLatency;
+    EventPersistence eventPersistence;
+    double eventPopSample;
+    long eventPolicyBitflags;
+    long timestampInMillis;
 
-    public Map<String, EventProperty> properties = new HashMap<>();
-    public Map<String, EventProperty> propertiesPartB = new HashMap<>();
+    Map<String, EventProperty> properties;
+    Map<String, EventProperty> propertiesPartB;
 
-    public void copyEventPropertiesStorage(EventPropertiesStorage other) {
+    EventPropertiesStorage() {
+        eventName = "";
+        eventType = "";
+        eventLatency = EventLatency.Normal;
+        eventPersistence = EventPersistence.Normal;
+        eventPopSample = 100;
+        eventPolicyBitflags = 0;
+        timestampInMillis = 0;
+
+        properties = new HashMap<>();
+        propertiesPartB = new HashMap<>();
+    }
+
+    EventPropertiesStorage(EventPropertiesStorage other) {
         if (other == null)
             throw new IllegalArgumentException("other is null");
 
@@ -26,23 +39,18 @@ class EventPropertiesStorage {
         eventPopSample = other.eventPopSample;
         eventPolicyBitflags = other.eventPolicyBitflags;
         timestampInMillis = other.timestampInMillis;
-
-        if (properties == null) {
-            properties = other.properties;
-        }
-        else {
-            properties.putAll(other.properties);
-        }
+        properties = other.properties;
+        propertiesPartB = other.propertiesPartB;
     }
 
-    public void addProperties(Map<String, EventProperty> properties) {
+    void addProperties(Map<String, EventProperty> properties) {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
         this.properties.putAll(properties);
     }
 
-    public void assignProperties(Map<String, EventProperty> properties) {
+    void assignProperties(Map<String, EventProperty> properties) {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 

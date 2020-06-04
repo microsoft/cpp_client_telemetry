@@ -5,6 +5,7 @@ using namespace MAT;
 
 extern "C"
 {
+
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetAppExperimentETag(
         JNIEnv* env,
         jobject /* this */,
