@@ -34,17 +34,9 @@ LOGMANAGER_INSTANCE
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
 
     if(!logger) return nil;
@@ -102,17 +94,9 @@ LOGMANAGER_INSTANCE
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
     
     return logger != NULL;
@@ -130,17 +114,9 @@ LOGMANAGER_INSTANCE
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
 
     if(!logger) return nil;
