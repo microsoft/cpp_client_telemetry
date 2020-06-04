@@ -33,7 +33,62 @@ function isString(x) {
   return Object.prototype.toString.call(x) === "[object String]"
 }
 
-const sendAIEvent = function (json) {
+/**
+ * This function adjust Object to be more closely aligned with Common Schema 4.x
+ * @param {*} obj 
+ */
+function unflatten(obj)
+{
+  for(let key in obj)
+  {
+    let val = obj[key];
+    if (key.startsWith("PartA_"))
+    {
+      delete obj[key];
+      key = key.replace("PartA_", "");
+      key = key.replace(/_/g, ".");
+      let items = key.split(".");
+      let item = obj;
+      let i = 0;
+      items.forEach( elem =>
+        {
+          if (i == items.length-1)
+          {
+            item[elem] = val;
+          } else
+          if (typeof item[elem] === 'undefined')
+          {
+            item[elem] = { };
+          }
+          item = item[elem];
+          i++;
+        }
+      );
+    }
+  }
+  return obj; 
+};
+
+
+const sendAIEvent = function(obj)
+{
+  let evt = unflatten(obj);
+  let name = evt.name;
+  delete evt.name;
+
+  let ai_event = { name: name };
+  let ext = evt.ext;
+  if (typeof ext === 'object')
+  {
+    ai_event.ext = ext;
+    delete evt.ext;
+  }
+  ai_event.properties = evt;
+  console.log(colorize(ai_event, { pretty: true }));
+  client.trackEvent(ai_event);
+};
+
+const sendAIEvents = function (json) {
   let obj = json;
   if (isString(json)) {
     obj = JSON.parse(json);
@@ -41,14 +96,11 @@ const sendAIEvent = function (json) {
   if (obj instanceof Array) {
     // Array of events
     obj.forEach(evt => {
-      let ai_event = { name: evt.name, properties: evt };
-      console.log(colorize(ai_event, { pretty: true }));
-      client.trackEvent(ai_event);
+      sendAIEvent(evt);
     });
   } else {
     // One event
-    console.log(colorize(obj, { pretty: true }));
-    client.trackEvent(obj);
+    sendAIEvent(obj);
   }
 };
 
@@ -70,21 +122,18 @@ const createServer = function () {
       // Transform string stream into array of event objects
       var objs = [];
       for (var i = 0; i < items.length; i++) {
-        L("Trying to parse: ", items[i]);
+        // L("Trying to parse: ", items[i]);
         var item = items[i].trim();
-        if (item.length)
-        {
-          try
-          {
+        if (item.length) {
+          try {
             objs.push(JSON.parse(item));
-          } catch(ex)
-          {
+          } catch (ex) {
             // FIXME: invalid event contents
           }
         }
       }
-      // Send array of events to AI
-      sendAIEvent(objs);
+      // Send event(s) to AI
+      sendAIEvents(objs);
     });
 
     stream.on('error', function (ex) {
