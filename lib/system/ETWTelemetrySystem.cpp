@@ -43,26 +43,26 @@ namespace ARIASDK_NS_BEGIN
     const char* const UTC_APP_LANG = "appLang";
     const char* const UTC_BC_SOURCE = "source";
     const char* const UTC_BC_ADVERTISEMENT_ID = "advertisingId";
-    const char* const UTC_APP_EXPERIMENT_IDS = "PartA_Ext_App_ExpId";
+    const char* const UTC_APP_EXPERIMENT_IDS = "PartA_ext_app_expId";
     const char* const UTC_APP_ETAG = "expEtag";
-    const char* const UTC_PART_A_EXTS_ARIA = "PartAExt_aria";
+
     const char* const UTC_LIB_VERSION = "libVer";
 
     const char* const CS_EXT_IKEY = "PartA_iKey";
-    const char* const CS_EXT_APP_NAME = "PartA_Ext_App_Name";
-    const char* const CS_EXT_NET_PROVIDER = "PartA_Ext_Net_Provider";
-    const char* const CS_EXT_NET_COST = "PartA_Ext_Net_Cost";
-    const char* const CS_EXT_NET_TYPE = "PartA_Ext_Net_Type";
-    const char* const CS_EXT_APP_SEQ_NUM = "PartA_Ext_App_SeqNum";
+    const char* const CS_EXT_APP_NAME = "PartA_ext_app_name";
+    const char* const CS_EXT_NET_PROVIDER = "PartA_ext_net_provider";
+    const char* const CS_EXT_NET_COST = "PartA_ext_net_cost";
+    const char* const CS_EXT_NET_TYPE = "PartA_ext_net_type";
+    const char* const CS_EXT_APP_SEQ_NUM = "PartA_ext_app_seqNum";
     const char* const CS_EXT_APP_SESSION_ID = "sesId";
     const char* const CS_EXT_RECORD_TIMESTAMP = "evtTime";
-    const char* const CS_EXT_APP_ASID = "PartA_Ext_App_AsId";
-    const char* const CS_EXT_APP_USERID = "PartA_Ext_App_UserId";
-    const char* const CS_EXT_OS_LOCALE = "PartA_Ext_Os_Locale";
-    const char* const CS_EXT_USER_AUTH_ID = "PartA_Ext_User_AuthId";
-    const char* const CS_EXT_ARIA_METADATA = "PartA_Ext_AriaMD";
+    const char* const CS_EXT_APP_ASID = "PartA_ext_app_asId";
+    const char* const CS_EXT_APP_USERID = "PartA_ext_app_userId";
+    const char* const CS_EXT_OS_LOCALE = "PartA_ext_os_locale";
+    const char* const CS_EXT_USER_AUTH_ID = "PartA_ext_user_authId";
+    const char* const CS_EXT_ARIA_METADATA = "PartA_ext_metadata";
     const char* const CS_EXT_ARIA_METADATA_FIELDS = "fields";
-    const char* const CS_EXT_METADATA_PRIVTAGS = "PartA_PrivTags";
+    const char* const CS_EXT_METADATA_PRIVTAGS = "PartA_ext_metadata_PrivTags";
 
     enum EventPropertyType : UINT16
     {
@@ -379,7 +379,7 @@ namespace ARIASDK_NS_BEGIN
                         INT64 temp = iterValue->second.longValue;
                         dbuilder.AddBytes(&temp, sizeof(INT64));
 
-                        metadata.append(std::to_string(EventPropertyTypeInt64));
+                        metadata.append(MAT::toString(EventPropertyTypeInt64));
                         break;
                     }
                     case CsProtocol::ValueKind::ValueBool:
@@ -397,7 +397,7 @@ namespace ARIASDK_NS_BEGIN
                         UINT64 temp = iterValue->second.longValue;
                         dbuilder.AddBytes(&temp, sizeof(UINT64));
 
-                        metadata.append(std::to_string(EventPropertyTypeDateTime));
+                        metadata.append(MAT::toString(EventPropertyTypeDateTime));
                         break;
                     }
                     case CsProtocol::ValueKind::ValueArrayInt64:
@@ -415,7 +415,7 @@ namespace ARIASDK_NS_BEGIN
                         double temp = iterValue->second.doubleValue;
                         dbuilder.AddBytes(&temp, sizeof(double));
 
-                        metadata.append(std::to_string(EventPropertyTypeDouble));
+                        metadata.append(MAT::toString(EventPropertyTypeDouble));
                         break;
                     }
                     case CsProtocol::ValueKind::ValueArrayDouble:
