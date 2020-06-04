@@ -1,3 +1,7 @@
+plugins {
+    id 'maven-publish'
+}
+
 apply plugin: 'com.android.library'
 
 android {
@@ -36,6 +40,13 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url = "https://office.pkgs.visualstudio.com/_packaging/1DS-SDK/maven/v1"
+        name = "Azure"
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -44,4 +55,30 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:3.2.4'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = 'com.microsoft.applications.events'
+                artifactId = 'maesdk'
+                version = '1.0'
+            }
+            // Creates a Maven publication called “debug”.
+            debug(MavenPublication) {
+                // Applies the component for the debug build variant.
+                from components.debug
+
+                groupId = 'com.microsoft.applications.events'
+                artifactId = 'maesdk-debug'
+                version = '1.0'
+            }
+        }
+    }
 }
