@@ -15,3 +15,8 @@
 [submodule "third_party/benchmark"]
 	path = third_party/benchmark
 	url = https://github.com/google/benchmark
+
+[submodule "third_party/opentelemetry-cpp"]
+	path = third_party/opentelemetry-cpp
+	url = https://github.com/maxgolov/opentelemetry-cpp
+	branch = master
