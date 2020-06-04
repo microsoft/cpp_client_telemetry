@@ -28,11 +28,12 @@ public class EventProperties {
         if (name == null || !Utils.validatePropertyName(name))
             throw new IllegalArgumentException("name is null or invalid");
 
+        mStorage = new EventPropertiesStorage();
+
         if (!setName(name))
             throw new IllegalArgumentException("name is invalid");
 
         setLevel(diagnosticLevel);
-        mStorage = new EventPropertiesStorage();
     }
 
     /**
