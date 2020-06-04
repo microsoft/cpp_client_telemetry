@@ -147,10 +147,11 @@ namespace ARIASDK_NS_BEGIN {
     template<typename T>
     std::string to_string(char const* format, T value)
     {
-        static const int buf_size = 40;
+        static const size_t buf_size = 40;
         char buf[buf_size] = { 0 };
 #ifdef _WIN32
-        ::_snprintf_s(buf, buf_size, format, value);
+        static _locale_t locale_C = _create_locale(LC_ALL, "C");
+        ::_snprintf_s_l(buf, buf_size, buf_size, format, locale_C, value);
 #else
         snprintf(buf, buf_size, format, value);
 #endif
