@@ -5,6 +5,7 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+
     std::string JStringToStdString(JNIEnv*, const jstring&);
 
     EventProperty GetEventProperty(JNIEnv*, const jobject&);

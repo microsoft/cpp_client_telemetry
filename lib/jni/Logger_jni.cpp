@@ -5,23 +5,6 @@ using namespace MAT;
 
 extern "C"
 {
-JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_EventProperties_nativeIsEventNameValid(
-        JNIEnv* env,
-        jclass /* this */,
-        jstring jstrName) {
-    auto name = JStringToStdString(env, jstrName);
-    EventProperties properties;
-    return properties.SetName(name);
-}
-
-JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_EventProperties_nativeIsTypeValid(
-        JNIEnv* env,
-        jclass /* this */,
-        jstring jstrRecordType) {
-    auto recordType = JStringToStdString(env, jstrRecordType);
-    EventProperties properties;
-    return properties.SetName(recordType);
-}
 
 JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_Logger_nativeGetSemanticContext(
         JNIEnv* env,
@@ -143,6 +126,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogAp
         jclass /* this */,
         jlong nativeLoggerPtr,
         jint jAppLifecycleState,
+        // EventProperties
         jstring jstrEventName,
         jstring jstrEventType,
         jint jEventLatency,
@@ -163,6 +147,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogSe
         jclass /* this */,
         jlong nativeLoggerPtr,
         jint jSessionState,
+        // EventProperties
         jstring jstrEventName,
         jstring jstrEventType,
         jint jEventLatency,
@@ -191,6 +176,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogEv
         JNIEnv* env,
         jclass /* this */,
         jlong nativeLoggerPtr,
+        // EventProperties
         jstring jstrEventName,
         jstring jstrEventType,
         jint jEventLatency,
@@ -212,6 +198,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogFa
         jlong nativeLoggerPtr,
         jstring jstrSignature,
         jstring jstrDetail,
+        // EventProperties
         jstring jstrEventName,
         jstring jstrEventType,
         jint jEventLatency,
@@ -237,6 +224,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogFa
         jstring jstrDetail,
         jstring jstrCategory,
         jstring jstrId,
+        // EventProperties
         jstring jstrEventName,
         jstring jstrEventType,
         jint jEventLatency,
@@ -252,7 +240,322 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogFa
     auto category = JStringToStdString(env, jstrCategory);
     auto id = JStringToStdString(env, jstrId);
     EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
-                                               jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
     logger->LogFailure(signature, detail, category, id, properties);
 }
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogPageView(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrId,
+        jstring jstrPageName,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto id = JStringToStdString(env, jstrId);
+    auto pageName = JStringToStdString(env, jstrPageName);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogPageView(id, pageName, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogPageViewWithUri(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrId,
+        jstring jstrPageName,
+        jstring jstrCategory,
+        jstring jstrUri,
+        jstring jstrReferrerUri,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto id = JStringToStdString(env, jstrId);
+    auto pageName = JStringToStdString(env, jstrPageName);
+    auto category = JStringToStdString(env, jstrCategory);
+    auto uri = JStringToStdString(env, jstrUri);
+    auto referrerUri = JStringToStdString(env, jstrReferrerUri);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogPageView(id, pageName, category, uri, referrerUri, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogPageAction(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrPageViewId,
+        jint jActionType,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto pageViewId = JStringToStdString(env, jstrPageViewId);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogPageAction(pageViewId, static_cast<ActionType>(jActionType), properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogPageActionData(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        // PageActionData
+        jstring jstrPageViewId,
+        jint jActionType,
+        jint jRawActionType,
+        jint jInputDeviceType,
+        jstring jstrTargetItemId,
+        jstring jstrTargetItemDataSourceName,
+        jstring jstrTargetItemDataSourceCategory,
+        jstring jstrTargetItemDataSourceCollection,
+        jstring jstrTargetItemLayoutContainer,
+        jshort jTargetItemLayoutRank,
+        jstring jstrDestinationUri,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto pageViewId = JStringToStdString(env, jstrPageViewId);
+    PageActionData pageActionData(pageViewId, static_cast<ActionType>(jActionType));
+    pageActionData.rawActionType = static_cast<RawActionType>(jRawActionType);
+    pageActionData.inputDeviceType = static_cast<InputDeviceType>(jInputDeviceType);
+    pageActionData.targetItemId = JStringToStdString(env, jstrTargetItemId);
+    pageActionData.targetItemDataSourceName = JStringToStdString(env, jstrTargetItemDataSourceName);
+    pageActionData.targetItemDataSourceCategory = JStringToStdString(env, jstrTargetItemDataSourceCategory);
+    pageActionData.targetItemDataSourceCollection = JStringToStdString(env, jstrTargetItemDataSourceCollection);
+    pageActionData.targetItemLayoutContainer = JStringToStdString(env, jstrTargetItemLayoutContainer);
+    pageActionData.targetItemLayoutRank = static_cast<short>(jTargetItemLayoutRank);
+    pageActionData.destinationUri = JStringToStdString(env, jstrDestinationUri);
+
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    logger->LogPageAction(pageActionData, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogSampledMetric(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrName,
+        jdouble jValue,
+        jstring jstrUnits,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto name = JStringToStdString(env, jstrName);
+    auto units = JStringToStdString(env, jstrUnits);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+                                                    jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogSampledMetric(name, static_cast<double>(jValue), units, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogSampledMetricWithObjectId(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrName,
+        jdouble jValue,
+        jstring jstrUnits,
+        jstring jstrInstanceName,
+        jstring jstrObjectClass,
+        jstring jstrObjectId,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto name = JStringToStdString(env, jstrName);
+    auto units = JStringToStdString(env, jstrUnits);
+    auto instanceName = JStringToStdString(env, jstrInstanceName);
+    auto objectClass = JStringToStdString(env, jstrObjectClass);
+    auto objectId = JStringToStdString(env, jstrObjectId);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+                                                    jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogSampledMetric(name, static_cast<double>(jValue), units, instanceName, objectClass, objectId, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogAggregatedMetric(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jstring jstrName,
+        jlong jDuration,
+        jlong jCount,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    auto name = JStringToStdString(env, jstrName);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+                                                    jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    logger->LogAggregatedMetric(name, static_cast<long>(jDuration), static_cast<long>(jCount), properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogAggregatedMetricData(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        // AggregatedMetricData
+        jstring jstrName,
+        jlong jDuration,
+        jlong jCount,
+        jstring jstrUnits,
+        jstring jstrInstanceName,
+        jstring jstrObjectClass,
+        jstring jstrObjectId,
+        jintArray jAggregateTypeKeys,
+        jdoubleArray jAggregateDoubleValues,
+        jlongArray jBucketsLongKeys,
+        jlongArray jBucketsLongValues,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto name = JStringToStdString(env, jstrName);
+    AggregatedMetricData aggregatedMetricData(name, static_cast<long>(jDuration), static_cast<long>(jCount));
+    aggregatedMetricData.units = JStringToStdString(env, jstrUnits);
+    aggregatedMetricData.instanceName = JStringToStdString(env, jstrInstanceName);
+    aggregatedMetricData.objectClass = JStringToStdString(env, jstrObjectClass);
+    aggregatedMetricData.objectId = JStringToStdString(env, jstrObjectId);
+
+    jsize aggregatesLen = env->GetArrayLength(jAggregateTypeKeys);
+    jint* aggregateTypeKeys = env->GetIntArrayElements(jAggregateTypeKeys, NULL);
+    jdouble* aggregateDoubleValues = env->GetDoubleArrayElements(jAggregateDoubleValues, NULL);
+    for (int i = 0; i < aggregatesLen; i++) {
+        auto key = static_cast<AggregateType>(aggregateTypeKeys[i]);
+        auto value = static_cast<double>(aggregateDoubleValues[i]);
+        aggregatedMetricData.aggregates[key] = value;
+    }
+
+    jsize bucketsLen = env->GetArrayLength(jBucketsLongKeys);
+    jlong* bucketsLongKeys = env->GetLongArrayElements(jBucketsLongKeys, NULL);
+    jlong* bucketsLongValues = env->GetLongArrayElements(jBucketsLongValues, NULL);
+    for (int i = 0; i < bucketsLen; i++) {
+        auto key = static_cast<long>(bucketsLongKeys[i]);
+        auto value = static_cast<long>(bucketsLongValues[i]);
+        aggregatedMetricData.buckets[key] = value;
+    }
+
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    logger->LogAggregatedMetric(aggregatedMetricData, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogTrace(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jint jTraceLevel,
+        jstring jstrMessage,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    auto message = JStringToStdString(env, jstrMessage);
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    logger->LogTrace(static_cast<TraceLevel>(jTraceLevel), message, properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogUserState(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jint jUserState,
+        jlong jTimeToLiveInMillis,
+        // EventProperties
+        jstring jstrEventName,
+        jstring jstrEventType,
+        jint jEventLatency,
+        jint jEventPersistence,
+        jdouble jEventPopSample,
+        jlong jEventPolicyBitflags,
+        jlong jTimestampInMillis,
+        jobjectArray jEventPropertyStringKey,
+        jobjectArray jEventPropertyValue) {
+    EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
+            jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    logger->LogUserState(static_cast<UserState>(jUserState), static_cast<long>(jTimeToLiveInMillis), properties);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeSetLevel(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr,
+        jint jLevel) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    logger->SetLevel(static_cast<int>(jLevel));
+}
+
 };

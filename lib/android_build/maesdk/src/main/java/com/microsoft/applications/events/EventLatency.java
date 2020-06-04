@@ -1,5 +1,14 @@
 package com.microsoft.applications.events;
 
+class EventLatencyValues {
+    static final int VALUE_UNSPECIFIED = -1;
+    static final int VALUE_OFF = 0;
+    static final int VALUE_NORMAL = 1;
+    static final int VALUE_COST_DEFERRED = 2;
+    static final int VALUE_REAL_TIME = 3;
+    static final int VALUE_MAX = 4;
+}
+
 /**
  * Latency for an event to be transmitted
  */
@@ -7,63 +16,56 @@ public enum EventLatency {
     /**
      * Unspecified: Event Latency is not specified
      */
-    Unspecified(-1),
+    Unspecified(EventLatencyValues.VALUE_UNSPECIFIED),
 
     /**
      * Off: Latency is not to be transmitted
      */
-    Off(0),
+    Off(EventLatencyValues.VALUE_OFF),
 
     /**
      * Normal: Latency is to be transmitted at low priority
      */
-    Normal(1),
+    Normal(EventLatencyValues.VALUE_NORMAL),
 
     /**
      * Cost Deffered: Latency is to be transmitted at cost deferred priority
      */
-    CostDeferred(2),
+    CostDeferred(EventLatencyValues.VALUE_COST_DEFERRED),
 
     /**
      * RealTime: Latency is to be transmitted at real time priority
      */
-    RealTime(3),
+    RealTime(EventLatencyValues.VALUE_REAL_TIME),
 
     /**
      * Max: Latency is to be transmitted as soon as possible
      */
-    Max(4);
-
-    static final int VALUE_UNSPECIFIED = -1;
-    static final int VALUE_OFF = 0;
-    static final int VALUE_NORMAL = 1;
-    static final int VALUE_COST_DEFERRED = 2;
-    static final int VALUE_REAL_TIME = 3;
-    static final int VALUE_MAX = 4;
+    Max(EventLatencyValues.VALUE_MAX);
 
     private final int m_value;
 
-    private EventLatency(int value) {
+    EventLatency(int value) {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 
-    public static EventLatency getEnum(int value) {
+    static EventLatency getEnum(int value) {
         switch (value) {
-            case VALUE_UNSPECIFIED :
+            case EventLatencyValues.VALUE_UNSPECIFIED :
                 return Unspecified;
-            case VALUE_OFF :
+            case EventLatencyValues.VALUE_OFF :
                 return Off;
-            case VALUE_NORMAL :
+            case EventLatencyValues.VALUE_NORMAL :
                 return Normal;
-            case VALUE_COST_DEFERRED :
+            case EventLatencyValues.VALUE_COST_DEFERRED :
                 return CostDeferred;
-            case VALUE_REAL_TIME :
+            case EventLatencyValues.VALUE_REAL_TIME :
                 return RealTime;
-            case VALUE_MAX :
+            case EventLatencyValues.VALUE_MAX :
                 return Max;
             default :
                 throw new IllegalArgumentException("Unsupported value: " + value);

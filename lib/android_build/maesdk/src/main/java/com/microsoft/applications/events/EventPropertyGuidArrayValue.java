@@ -12,7 +12,11 @@ class EventPropertyGuidArrayValue extends EventPropertyValue {
 
         m_value = new String[value.length];
         for(int i = 0; i < value.length; i++) {
-            m_value[i] = value[i].toString();
+            UUID uuid = value[i];
+            if (uuid == null)
+                throw new IllegalArgumentException("UUID value is null for array index:" + i);
+
+            m_value[i] = uuid.toString();
         }
     }
 

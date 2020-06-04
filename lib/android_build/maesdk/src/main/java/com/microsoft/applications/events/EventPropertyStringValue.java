@@ -5,8 +5,8 @@ class EventPropertyStringValue extends EventPropertyValue{
 
     public EventPropertyStringValue(final String value) {
         super(EventPropertyType.TYPE_STRING);
-        if (value == null || value.trim().isEmpty())
-            throw new IllegalArgumentException("value is null or empty");
+        if (value == null)
+            throw new IllegalArgumentException("value is null");
         m_value = value;
     }
 

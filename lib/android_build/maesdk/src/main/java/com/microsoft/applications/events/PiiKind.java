@@ -8,54 +8,67 @@ public enum PiiKind {
      * No PII kind.
      */
     None(0),
+
     /**
      * An LDAP distinguished name.
      */
     DistinguishedName(1),
+
     /**
      * Generic data.
      */
     GenericData(2),
+
     /**
      * An IPV4 Internet address.
      */
     IPv4Address(3),
+
     /**
      * An IPV6 Internet address.
      */
     IPv6Address(4),
+
     /**
      * An e-mail subject.
      */
     MailSubject(5),
+
     /**
      * A telephone number.
      */
     PhoneNumber(6),
+
     /**
      * A query string.
      */
     QueryString(7),
+
     /**
      * A SIP address
      */
     SipAddress(8),
+
     /**
      * An e-mail address.
      */
     SmtpAddress(9),
+
     /**
      * An identity.
      */
     Identity(10),
+
     /**
      * A uniform resource indicator.
      */
     Uri(11),
+
     /**
      * A fully-qualified domain name.
      */
     Fqdn(12),
+
     /**
      * A legacy IPV4 Internet address.
      */
@@ -69,7 +82,7 @@ public enum PiiKind {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 }

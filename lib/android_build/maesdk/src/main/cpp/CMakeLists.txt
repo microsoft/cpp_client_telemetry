@@ -51,6 +51,7 @@ set(SRCS
         ${SDK_ROOT}/lib/jni/LogManager_jni.cpp
         ${SDK_ROOT}/lib/jni/Logger_jni.cpp
         ${SDK_ROOT}/lib/jni/SemanticContext_jni.cpp
+        ${SDK_ROOT}/lib/jni/Utils_jni.cpp
         ${SDK_ROOT}/lib/offline/MemoryStorage.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorageHandler.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp

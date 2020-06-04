@@ -32,11 +32,11 @@ public enum TraceLevel {
 
     private final int m_value;
 
-    private TraceLevel(int value) {
+    TraceLevel(int value) {
         m_value = value;
     }
 
-    public int getValue() {
+    int getValue() {
         return m_value;
     }
 }
