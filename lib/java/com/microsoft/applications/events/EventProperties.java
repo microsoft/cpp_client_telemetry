@@ -703,6 +703,20 @@ public class EventProperties {
             return mStorage.propertiesPartB;
     }
 
+    /**
+     * Set the privacy metadata for an event
+     * @param privacyDataTypes Privacy Data Type for an event. Multiple values can be set using Binary OR operator (|)
+     * @param privacyDiagnosticLevel Privacy Diagnostic Level for an event.
+     */
+    public void setPrivacyMetadata(final long privacyDataTypes, final int privacyDiagnosticLevel)
+    {
+        /**
+         * TODO Use ENUMs instead of raw long/int for the values.
+         */
+        setLevel(pdlValue);
+        setProperty(Constants.COMMONFIELDS_EVENT_PRIVTAGS, privacyDataTypes);
+    }
+
     /** TODO
      * Get the Pii properties bag of an event.
      *

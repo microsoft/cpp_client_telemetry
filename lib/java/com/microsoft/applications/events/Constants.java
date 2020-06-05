@@ -74,17 +74,22 @@ public class Constants {
     public static final String CONTEXT_SCOPE_ALL                            = "*";  /* Inherit all parent context props    */
     public static final String CONTEXT_SCOPE_NONE                           = "-";  /* Do not inherit parent context props */
 
+    /* Privacy Tags*/
+    public static final long PDT_BrowsingHistory                     = 0x0000000000000002u;
+    public static final long PDT_DeviceConnectivityAndConfiguration  = 0x0000000000000800u;
+    public static final long PDT_InkingTypingAndSpeechUtterance      = 0x0000000000020000u;
+    public static final long PDT_ProductAndServicePerformance        = 0x0000000001000000u;
+    public static final long PDT_ProductAndServiceUsage              = 0x0000000002000000u;
+    public static final long PDT_SoftwareSetupAndInventory           = 0x0000000080000000u;
+
     /* Default set of diagnostic level constants. Customers may define their own set. */
     public static final int DIAG_LEVEL_NOTSET                               = 255;
     public static final int DIAG_LEVEL_DEFAULT                              = DIAG_LEVEL_NOTSET;     /* Default level is inherited from parent */
     public static final int DIAG_LEVEL_NONE                                 = 0;       /* Logging disabled                       */
 
-    /* Windows OS diagnostic level classification */
-    public static final int DIAG_LEVEL_BASIC                                = 1;       /* Basic info                             */
-    public static final int DIAG_LEVEL_ENHANCED                             = 2;       /* Additional performance data            */
-    public static final int DIAG_LEVEL_FULL                                 = 3;       /* Extra activity and enhanced reporting  */
-
-    /* Microsoft Office diagnostic level classification */
-    public static final int DIAG_LEVEL_REQUIRED                             = 1;       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
-    public static final int DIAG_LEVEL_OPTIONAL                             = 2;      /* Additional optional data               */
+    /* Microsoft NPG diagnostic level classification */
+    public static final int DIAG_LEVEL_REQUIRED  = 1;       /* Data that we need to collect in order to keep the product secure, up to date, and performing as expected */
+    public static final int DIAG_LEVEL_OPTIONAL  = 2;      /* Additional optional data               */
+    public static final int DIAG_LEVEL_RSD       = 110;     /* Data required for services to be able to function properly */
+    public static final int DIAG_LEVEL_RSDES     = 120;     /* Data required for operation of essential services such as licensing, etc. */
 }
