@@ -44,6 +44,7 @@ set(SRCS
   ${SDK_ROOT}/lib/api/LogManagerImpl.cpp
   ${SDK_ROOT}/lib/api/LogSessionData.cpp
   ${SDK_ROOT}/lib/api/Logger.cpp
+  ${SDK_ROOT}/lib/api/LoggerWrapper.cpp
   ${SDK_ROOT}/lib/api/LogManagerProvider.cpp
   ${SDK_ROOT}/lib/api/CorrelationVector.cpp
   ${SDK_ROOT}/lib/api/LogConfiguration.cpp
