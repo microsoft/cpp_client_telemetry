@@ -227,7 +227,7 @@ TEST(MemoryStorage, GetAndReserveSome)
     constexpr size_t howMany = 32;
     std::vector<StorageRecord> someRecords;
     storage.GetAndReserveRecords(
-        [&someRecords] (StorageRecord && record)->bool
+        [&someRecords, howMany] (StorageRecord && record)->bool
         {
             if (someRecords.size() >= howMany) {
                 return false;
