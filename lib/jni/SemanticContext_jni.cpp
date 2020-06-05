@@ -54,9 +54,9 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_na
         jobject /* this */,
         jlong nativeSemanticContextPtr,
         jstring jstrUserId,
-        jint PiiKind_Identity) {
+        jint piiKind) {
     auto userId = JStringToStdString(env, jstrUserId);
-    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetUserId(userId, static_cast<PiiKind>(PiiKind_Identity));
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetUserId(userId, static_cast<PiiKind>(piiKind));
 }
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCommonFieldString(
@@ -77,7 +77,19 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_na
         jstring jstrName,
         jobject jEventProperty) {
     auto name = JStringToStdString(env, jstrName);
-    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCommonField(name, GetEventProperty(env, jEventProperty));
+    auto prop = GetEventProperty(env, jEventProperty);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCommonField(name, prop);
+}
+
+JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCustomFieldString(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong nativeSemanticContextPtr,
+        jstring jstrName,
+        jstring jstrValue) {
+    auto name = JStringToStdString(env, jstrName);
+    auto value = JStringToStdString(env, jstrValue);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCustomField(name, value);
 }
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetCustomField(
@@ -87,7 +99,8 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_na
         jstring jstrName,
         jobject jEventProperty) {
     auto name = JStringToStdString(env, jstrName);
-    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCustomField(name, GetEventProperty(env, jEventProperty));
+    auto prop = GetEventProperty(env, jEventProperty);
+    reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCustomField(name, prop);
 }
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_nativeSetTicket (

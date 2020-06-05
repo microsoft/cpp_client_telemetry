@@ -23,7 +23,7 @@ public enum TransmitProfile {
 
     private final int m_value;
 
-    private TransmitProfile(int value) {
+    TransmitProfile(int value) {
         m_value = value;
     }
 

@@ -31,7 +31,7 @@ public enum NetworkCost {
 
     private final int m_value;
 
-    private NetworkCost(int value) {
+    NetworkCost(int value) {
         m_value = value;
     }
 

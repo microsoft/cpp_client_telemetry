@@ -6,7 +6,7 @@ import java.util.UUID;
 public class LogManager {
     private LogManager() {};
 
-    private static native long initializeWithoutTenantToken();
+    private static native long nativeInitializeWithoutTenantToken();
 
     /**
      * Initializes the telemetry logging system with default configuration and HTTPClient.
@@ -14,10 +14,14 @@ public class LogManager {
      * @return A logger instance instantiated with the default tenantToken.
      */
     public static ILogger initialize(){
-        return new Logger(initializeWithoutTenantToken());
+        long logger = nativeInitializeWithoutTenantToken();
+        if (logger == 0)
+            return null;
+        else
+            return new Logger(logger);
     }
 
-    private static native long initializeWithTenantToken(String tenantToken);
+    private static native long nativeInitializeWithTenantToken(String tenantToken);
 
     /**
      * Initializes the telemetry logging system with the specified tenantToken.
@@ -29,22 +33,26 @@ public class LogManager {
         if (tenantToken == null || tenantToken.trim().isEmpty())
             throw new IllegalArgumentException("tenantToken is null or empty");
 
-        return new Logger(initializeWithTenantToken(tenantToken));
+        long logger = nativeInitializeWithTenantToken(tenantToken);
+        if (logger == 0)
+            return null;
+        else
+            return new Logger(logger);
     }
+
+
+    private static native int nativeFlushAndTeardown();
 
     /**
      * Flush any pending telemetry events in memory to disk and tear down the telemetry logging system.
      *
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static native int flushAndTeardown();
+    public static Status flushAndTeardown() {
+        return Status.getEnum(nativeFlushAndTeardown());
+    }
 
-    /**
-     * Try to send any pending telemetry events in memory or on disk.
-     *
-     * @return native value of status_t
-     */
-    public static native int uploadNow();
+    private static native int nativeFlush();
 
     /**
      * Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
@@ -52,26 +60,48 @@ public class LogManager {
      * and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be
      * time consuming.
      *
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static native int flush();
+    public static Status flush() {
+        return Status.getEnum(nativeFlush());
+    }
+
+    private static native int nativeUploadNow();
+
+    /**
+     * Try to send any pending telemetry events in memory or on disk.
+     *
+     * @return Status enum corresponding to the native API execution status_t.
+     */
+    public static Status uploadNow() {
+        return Status.getEnum(nativeUploadNow());
+    }
+
+
+    private static native int nativePauseTransmission();
 
     /**
      * Pauses the transmission of events to data collector.
      * While paused events will continue to be queued up on client side in cache (either in memory or on disk file).
      *
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static native int pauseTransmission();
+    public static Status pauseTransmission() {
+        return Status.getEnum(nativePauseTransmission());
+    }
+
+    private static native int nativeResumeTransmission();
 
     /**
      * Resumes the transmission of events to data collector.
      *
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static native int resumeTransmission();
+    public static Status resumeTransmission() {
+        return Status.getEnum(nativeResumeTransmission());
+    }
 
-    private static native int setIntTransmitProfile(int profile);
+    private static native int nativeSetIntTransmitProfile(int profile);
 
     /**
      * Sets transmit profile for event transmission to one of the built-in profiles.
@@ -79,17 +109,17 @@ public class LogManager {
      * based on which to determine how events are to be transmitted.
      *
      * @param profile Transmit profile
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setTransmitProfile(TransmitProfile profile) {
+    public static Status setTransmitProfile(TransmitProfile profile) {
         if (profile == null)
             throw new IllegalArgumentException("profile is null");
 
-        return setIntTransmitProfile(profile.getValue());
+        return Status.getEnum(nativeSetIntTransmitProfile(profile.getValue()));
     }
 
 
-    public static native int setTransmitProfileString(String profile);
+    private static native int nativeSetTransmitProfileString(String profile);
 
     /**
      * Sets transmit profile for event transmission.
@@ -97,37 +127,41 @@ public class LogManager {
      * based on which to determine how events are to be transmitted.
      *
      * @param profile Transmit profile
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
 
-    public static int setTransmitProfile(String profile) {
+    public static Status setTransmitProfile(String profile) {
         if (profile == null || profile.trim().isEmpty())
             throw new IllegalArgumentException("profile is null or empty");
 
-        return setTransmitProfileString(profile);
+        return Status.getEnum(nativeSetTransmitProfileString(profile));
     }
 
-    private static native int loadTransmitProfilesString(String profilesJson);
+    private static native int nativeLoadTransmitProfilesString(String profilesJson);
 
     /**
      * Load transmit profiles from JSON config
      *
      * @param profilesJson JSON config
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int loadTransmitProfiles(String profilesJson) {
+    public static Status loadTransmitProfiles(String profilesJson) {
         if (profilesJson == null || profilesJson.trim().isEmpty())
             throw new IllegalArgumentException("profilesJson is null or empty");
 
-        return loadTransmitProfilesString(profilesJson);
+        return Status.getEnum(nativeLoadTransmitProfilesString(profilesJson));
     }
+
+    private static native int nativeResetTransmitProfiles();
 
     /**
      * Reset transmission profiles to default settings
      *
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static native int resetTransmitProfiles();
+    public static Status resetTransmitProfiles() {
+        return Status.getEnum(nativeResetTransmitProfiles());
+    }
 
     /**
      * @return Transmit profile name based on built-in profile enum
@@ -141,10 +175,16 @@ public class LogManager {
      * such as device, system, hardware and user information.
      * Context information set via this API will apply to all logger instance unless they
      * are overwritten by individual logger instance.
+     *
      * @return ISemanticContext interface pointer
      */
     public static ISemanticContext getSemanticContext() {
-        return new SemanticContext(nativeGetSemanticContext());
+
+        long semanticContext = nativeGetSemanticContext();
+        if (semanticContext == 0)
+            return null;
+        else
+            return new SemanticContext(semanticContext);
     }
 
     private static native int nativeSetContextStringValue(String name, String value, int piiKind);
@@ -157,9 +197,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final String value) {
+    public static Status setContext(final String name, final String value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -171,17 +211,17 @@ public class LogManager {
      * @param name Name of the context property
      * @param value String value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final String value, PiiKind piiKind) {
+    public static Status setContext(final String name, final String value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
-        if (value == null || value.trim().isEmpty())
-            throw new IllegalArgumentException("value is null or empty");
+        if (value == null)
+            throw new IllegalArgumentException("value is null");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextStringValue(name, value, piiKind.getValue());
+        return Status.getEnum(nativeSetContextStringValue(name, value, piiKind.getValue()));
     }
 
     private static native int nativeSetContextIntValue(String name, int value, int piiKind);
@@ -194,9 +234,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Int value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final int value) {
+    public static Status setContext(final String name, final int value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -208,15 +248,15 @@ public class LogManager {
      * @param name Name of the context property
      * @param value Int value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final int value, PiiKind piiKind) {
+    public static Status setContext(final String name, final int value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextIntValue(name, value, piiKind.getValue());
+        return Status.getEnum(nativeSetContextIntValue(name, value, piiKind.getValue()));
     }
 
     private static native int nativeSetContextLongValue(String name, long value, int piiKind);
@@ -229,9 +269,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Long value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final long value) {
+    public static Status setContext(final String name, final long value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -243,15 +283,15 @@ public class LogManager {
      * @param name Name of the context property
      * @param value Long value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final long value, PiiKind piiKind) {
+    public static Status setContext(final String name, final long value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextLongValue(name, value, piiKind.getValue());
+        return Status.getEnum(nativeSetContextLongValue(name, value, piiKind.getValue()));
     }
 
     private static native int nativeSetContextDoubleValue(String name, double value, int piiKind);
@@ -264,9 +304,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Double value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final double value) {
+    public static Status setContext(final String name, final double value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -278,15 +318,15 @@ public class LogManager {
      * @param name Name of the context property
      * @param value Double value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final double value, PiiKind piiKind) {
+    public static Status setContext(final String name, final double value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextDoubleValue(name, value, piiKind.getValue());
+        return Status.getEnum(nativeSetContextDoubleValue(name, value, piiKind.getValue()));
     }
 
     private static native int nativeSetContextBoolValue(String name, boolean value, int piiKind);
@@ -299,9 +339,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Boolean value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final boolean value) {
+    public static Status setContext(final String name, final boolean value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -313,15 +353,15 @@ public class LogManager {
      * @param name Name of the context property
      * @param value boolean value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final boolean value, PiiKind piiKind) {
+    public static Status setContext(final String name, final boolean value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextBoolValue(name, value, piiKind.getValue());
+        return Status.getEnum(nativeSetContextBoolValue(name, value, piiKind.getValue()));
     }
 
     private static native int nativeSetContextTimeTicksValue(String name, long value, int piiKind);
@@ -334,9 +374,9 @@ public class LogManager {
      * @param name Name of the context property
      * @param value TimeTicks value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    private static int setContext(final String name, final TimeTicks value, PiiKind piiKind) {
+    private static Status setContext(final String name, final TimeTicks value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (value == null)
@@ -344,7 +384,7 @@ public class LogManager {
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextTimeTicksValue(name, value.getTicks(), piiKind.getValue());
+        return Status.getEnum(nativeSetContextTimeTicksValue(name, value.getTicks(), piiKind.getValue()));
     }
 
     /**
@@ -355,9 +395,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value Date value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final Date value) {
+    public static Status setContext(final String name, final Date value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -369,16 +409,9 @@ public class LogManager {
      * @param name Name of the context property
      * @param value Date value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final Date value, PiiKind piiKind) {
-        if (name == null || name.trim().isEmpty())
-            throw new IllegalArgumentException("name is null or empty");
-        if (value == null)
-            throw new IllegalArgumentException("value is null");
-        if (piiKind == null)
-            throw new IllegalArgumentException("piiKind is null");
-
+    public static Status setContext(final String name, final Date value, final PiiKind piiKind) {
         return setContext(name, new TimeTicks(value), piiKind);
     }
 
@@ -392,9 +425,9 @@ public class LogManager {
      *
      * @param name Name of the context property
      * @param value UUID/GUID value of the context property
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final UUID value) {
+    public static Status setContext(final String name, final UUID value) {
         return setContext(name, value, PiiKind.None);
     }
 
@@ -406,9 +439,9 @@ public class LogManager {
      * @param name Name of the context property
      * @param value UUID/GUID value of the context property
      * @param piiKind PIIKind of the context
-     * @return native value of status_t
+     * @return Status enum corresponding to the native API execution status_t.
      */
-    public static int setContext(final String name, final UUID value, PiiKind piiKind) {
+    public static Status setContext(final String name, final UUID value, final PiiKind piiKind) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (value == null)
@@ -416,42 +449,83 @@ public class LogManager {
         if (piiKind == null)
             throw new IllegalArgumentException("piiKind is null");
 
-        return nativeSetContextGuidValue(name, value.toString(), piiKind.getValue());
+        return Status.getEnum(nativeSetContextGuidValue(name, value.toString(), piiKind.getValue()));
     }
 
-    private static native int nativeGetLogger();
+    private static native long nativeGetLogger();
 
     /**
      * Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
      *
-     * @return Instance of ILogger
+     * @return Logger instance of the ILogger interface
      */
     public static ILogger GetLogger() {
-        return new Logger(nativeGetLogger());
+        long logger = nativeGetLogger();
+        if (logger == 0)
+            return null;
+        else
+            return new Logger(logger);
     }
 
-    private static native int nativeGetLoggerWithSource(String source);
+    private static native long nativeGetLoggerWithSource(String source);
 
     /**
      * Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
      *
      * @param source Source name of events sent by this logger instance
-     * @return Instance of ILogger
+     * @return Logger instance of the ILogger interface
      */
     public static ILogger GetLogger(final String source) {
-        return new Logger(nativeGetLoggerWithSource(source));
+        long logger = nativeGetLoggerWithSource(source);
+        if (logger == 0)
+            return null;
+        else
+            return new Logger(logger);
     }
 
-    private static native int nativeGetLoggerWithTenantTokenAndSource(String tenantToken, String source);
+    private static native long nativeGetLoggerWithTenantTokenAndSource(String tenantToken, String source);
 
     /**
      * Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
      * 
      * @param tenantToken Token of the tenant with which the application is associated for collecting telemetry
      * @param source Source name of events sent by this logger instance
-     * @return Instance of ILogger
+     * @return Logger instance of the ILogger interface
      */
     public static ILogger GetLogger(final String tenantToken, final String source) {
-        return new Logger(nativeGetLoggerWithTenantTokenAndSource(tenantToken, source));
+        long logger = nativeGetLoggerWithTenantTokenAndSource(tenantToken, source);
+        if (logger == 0)
+            return null;
+        else
+            return new Logger(logger);
     }
+
+    /**
+     * Initializes the default DDV with the machine identifier.
+     *
+     * @param machineIdentifier Machine identifier string
+     */
+    public native static void initializeDiagnosticDataViewer(String machineIdentifier);
+
+    /**
+     * Enables the remote viewer for the default DDV connection.
+     *
+     * @param endpoint End point for the remote DDV
+     * @return boolean value for success or failure
+     */
+    public native static boolean enableRemoteViewer(String endpoint);
+
+    /**
+     * Disable the default data viewer.
+     *
+     * @return boolean value for success or failure
+     */
+    public native static boolean disableViewer();
+
+    /**
+     * Check if the DDV viewer is enabled.
+     *
+     * @return boolean value for success or failure
+     */
+    public native static boolean isViewerEnabled();
 }

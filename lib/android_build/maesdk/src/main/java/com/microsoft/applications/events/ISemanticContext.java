@@ -141,6 +141,13 @@ public interface ISemanticContext {
     public void setOsBuild(final String osBuild);
 
     /**
+     * Set the userId context information of telemetry event and default to PiiKind_Identity.
+     *
+     * @param userId Identifier that uniquely identifies a user in the application-specific user namespace
+     */
+    public void setUserId(final String userId);
+
+    /**
      * Set the userId context information of telemetry event.
      * @param userId Identifier that uniquely identifies a user in the application-specific user namespace
      * @param piiKind_Identity PIIKind of the userId. Default to PiiKind_Identity, set it to PiiKind_None to denote it as non-PII.
@@ -191,10 +198,26 @@ public interface ISemanticContext {
 
     /**
      * Sets the common Part A/B field.
+     *
+     * @param name Field name
+     * @param value Field value in string
+     */
+    public void setCommonField(final String name, final String value);
+
+    /**
+     * Sets the common Part A/B field.
      * @param name Field name
      * @param value Field value
      */
     public void setCommonField(final String name, final EventProperty value);
+
+    /**
+     * Sets the custom Part C field.
+     *
+     * @param name Field name
+     * @param value Field value
+     */
+    public void setCustomField(final String name, final String value);
 
     /**
      * Sets the custom Part C field.
