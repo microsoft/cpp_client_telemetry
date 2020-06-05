@@ -136,26 +136,29 @@ namespace ARIASDK_NS_BEGIN {
         {
             while (maxCount && (m_records[latency]).size())
             {
-                m_lastReadCount++;
                 StorageRecord & record = m_records[latency].back();
+                StorageRecord consumerRecord(record);
+
                 size_t recordSize = record.blob.size() + sizeof(record);
 
                 // Reserve records only if asked
                 if (leaseTimeMs)
                 {
-                    record.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
-                    m_reserved_records[record.id] = record; // copy to reserved
+                    consumerRecord.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
                 }
 
-                bool wantMore = consumer(std::move(record)); // move to consumer
-                m_records[latency].pop_back();               // destroy in records
+                bool wantMore = consumer(std::move(consumerRecord)); // move to consumer
+                if (!wantMore) {
+                    return true;
+                }
+                m_lastReadCount++;
+                if (leaseTimeMs) {
+                    m_reserved_records[record.id] = std::move(record);
+                }
+                m_records[latency].pop_back();               // destroy in m_records
 
                 m_size -= std::min(m_size, recordSize);
                 maxCount--;
-
-                // If consumer has no space left for the records, exit
-                if (!wantMore)
-                    return true;
             }
         }
 

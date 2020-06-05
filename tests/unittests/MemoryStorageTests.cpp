@@ -218,6 +218,30 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
+TEST(MemoryStorage, GetAndReserveSome)
+{
+    MemoryStorage storage(testLogManager, testConfig);
+    storage.Initialize(testObserver);
+    addEvents(storage);
+    auto totalCount = storage.GetRecordCount();
+    constexpr size_t howMany = 32;
+    std::vector<StorageRecord> someRecords;
+    storage.GetAndReserveRecords(
+        [&someRecords] (StorageRecord && record)->bool
+        {
+            if (someRecords.size() >= howMany) {
+                return false;
+            }
+            someRecords.emplace_back(std::move(record));
+            return true;
+        },
+        EventLatency_Normal
+    );
+    EXPECT_EQ(howMany, someRecords.size());
+    EXPECT_EQ(howMany, storage.LastReadRecordCount());
+    EXPECT_EQ(totalCount - howMany, storage.GetRecordCount());
+}
+
 // This method is not implemented for RAM storage
 TEST(MemoryStorage, StoreSetting)
 {
