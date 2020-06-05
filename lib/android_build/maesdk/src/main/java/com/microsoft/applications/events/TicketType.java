@@ -9,10 +9,9 @@ public enum TicketType {
     AAD_User(5),
     AAD_JWT(6);
 
-
     private final int m_value;
 
-    private TicketType(int value) {
+    TicketType(int value) {
         m_value = value;
     }
 

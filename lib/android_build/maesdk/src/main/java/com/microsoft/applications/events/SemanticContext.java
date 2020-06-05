@@ -16,7 +16,7 @@ class SemanticContext implements ISemanticContext {
      *
      * @param nativeISemanticContextPtr
      */
-    public SemanticContext(final long nativeISemanticContextPtr) {
+    SemanticContext(final long nativeISemanticContextPtr) {
         m_nativeISemanticContextPtr = nativeISemanticContextPtr;
     }
 
@@ -172,7 +172,7 @@ class SemanticContext implements ISemanticContext {
      */
     @Override
     public void setDeviceClass(final String deviceClass) {
-        setCommonField(Constants.COMMONFIELDS_DEVICE_MAKE, deviceClass);
+        setCommonField(Constants.COMMONFIELDS_DEVICE_CLASS, deviceClass);
     }
 
     private native void nativeSetNetworkCost(long nativeISemanticContextPtr, int networkCost);
@@ -243,21 +243,32 @@ class SemanticContext implements ISemanticContext {
         setCommonField(Constants.COMMONFIELDS_OS_BUILD, osBuild);
     }
 
-    private native void nativeSetUserId(long nativeISemanticContextPtr, String userId, int PiiKind_Identity);
+    /**
+     * Set the userId context information of telemetry event and default to PiiKind_Identity.
+     *
+     * @param userId Identifier that uniquely identifies a user in the application-specific user namespace
+     */
+    @Override
+    public void setUserId(final String userId) {
+        setUserId(userId, PiiKind.Identity);
+    }
+
+    private native void nativeSetUserId(long nativeISemanticContextPtr, String userId, int PiiKind);
 
     /**
      * Set the userId context information of telemetry event.
+     *
      * @param userId Identifier that uniquely identifies a user in the application-specific user namespace
-     * @param piiKind_Identity PIIKind of the userId. Default to PiiKind_Identity, set it to PiiKind_None to denote it as non-PII.
+     * @param piiKind PIIKind of the userId. Default to PiiKind_Identity, set it to PiiKind_None to denote it as non-PII.
      */
     @Override
-    public void setUserId(final String userId, final PiiKind piiKind_Identity) {
+    public void setUserId(final String userId, final PiiKind piiKind) {
         if (userId == null || userId.trim().isEmpty())
             throw new IllegalArgumentException("userId is null or empty");
-        if (piiKind_Identity == null)
+        if (piiKind == null)
             throw new IllegalArgumentException("piiKind_Identity is null");
 
-        nativeSetUserId(m_nativeISemanticContextPtr, userId, piiKind_Identity.getValue());
+        nativeSetUserId(m_nativeISemanticContextPtr, userId, piiKind.getValue());
     }
 
     /**
@@ -324,10 +335,12 @@ class SemanticContext implements ISemanticContext {
 
     /**
      * Sets the common Part A/B field.
+     *
      * @param name Field name
      * @param value Field value in string
      */
-    private void setCommonField(final String name, final String value) {
+    @Override
+    public void setCommonField(final String name, final String value) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("name is null or empty");
         if (value == null)
@@ -340,6 +353,7 @@ class SemanticContext implements ISemanticContext {
 
     /**
      * Sets the common Part A/B field.
+     *
      * @param name Field name
      * @param value Field value
      */
@@ -353,10 +367,29 @@ class SemanticContext implements ISemanticContext {
         nativeSetCommonField(m_nativeISemanticContextPtr, name, value);
     }
 
+    private native void nativeSetCustomFieldString(long nativeISemanticContextPtr, String name, String value);
+
+    /**
+     * Sets the custom Part C field.
+     *
+     * @param name Field name
+     * @param value Field value in string
+     */
+    @Override
+    public void setCustomField(final String name, final String value) {
+        if (name == null || name.trim().isEmpty())
+            throw new IllegalArgumentException("name is null or empty");
+        if (value == null)
+            throw new IllegalArgumentException("value is null");
+
+        nativeSetCustomFieldString(m_nativeISemanticContextPtr, name, value);
+    }
+
     private native void nativeSetCustomField(long nativeISemanticContextPtr, String name, EventProperty value);
 
     /**
      * Sets the custom Part C field.
+     *
      * @param name Field name
      * @param value Field value
      */

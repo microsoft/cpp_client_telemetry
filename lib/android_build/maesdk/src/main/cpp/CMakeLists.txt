@@ -80,6 +80,12 @@ set(SRCS
         ${SDK_ROOT}/sqlite/sqlite3.c
 )
 
+if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/modules/dataviewer/DefaultDataViewer.cpp
+                ${SDK_ROOT}/lib/modules/dataviewer/OnDisableNotificationCollection.cpp
+        )
+endif()
 
 if (USE_CURL)
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)

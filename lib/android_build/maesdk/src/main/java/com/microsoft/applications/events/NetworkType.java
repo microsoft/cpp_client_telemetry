@@ -7,7 +7,7 @@ public enum NetworkType {
     /**
      * Any type of network.
      */
-    Any(1),
+    Any(-1),
 
     /**
      * The type of network is unknown.
