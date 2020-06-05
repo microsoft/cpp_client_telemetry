@@ -218,7 +218,7 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
-TEST(MemoryStorage, GetAndReserveSome)
+TEST(MemoryStorageTests, GetAndReserveSome)
 {
     MemoryStorage storage(testLogManager, testConfig);
     storage.Initialize(testObserver);
@@ -243,7 +243,7 @@ TEST(MemoryStorage, GetAndReserveSome)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, StoreSetting)
+TEST(MemoryStorageTests, StoreSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     bool result = storage.StoreSetting("not_implemented", "not_implemented");
@@ -251,7 +251,7 @@ TEST(MemoryStorage, StoreSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, GetSetting)
+TEST(MemoryStorageTests, GetSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     auto result = storage.GetSetting("not_implemented");
@@ -259,7 +259,7 @@ TEST(MemoryStorage, GetSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorag, ResizeDb)
+TEST(MemoryStorageTests, ResizeDb)
 {
     MemoryStorage storage(testLogManager, testConfig);
     EXPECT_THAT(storage.ResizeDb(), true);
