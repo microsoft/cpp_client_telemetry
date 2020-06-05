@@ -77,6 +77,11 @@ const sendAIEvent = function(obj)
   delete evt.name;
 
   let ai_event = { name: name };
+  if (typeof evt.timestamp === 'string')
+  {
+    ai_event.timestamp = evt.timestamp;
+  }
+
   let ext = evt.ext;
   if (typeof ext === 'object')
   {
