@@ -41,10 +41,12 @@ const char *CONFIG_DIRECT = static_cast<const char *> JSON_CONFIG({
 });
 
 // ETW upload configuration
+// My test: 6d084bbf6a9644ef83f40a77c9e34580
+// MA test: 8f667dcec4aa5f17a06bcadb2ca760f3
 const char *CONFIG_ETW = static_cast<const char *> JSON_CONFIG({
   "minimumTraceLevel" : 4,
   "multiTenantEnabled" : true,
-  "primaryToken" : "6d084bbf6a9644ef83f40a77c9e34580",
+  "primaryToken" : "8f667dcec4aa5f17a06bcadb2ca760f3",
   "sdkmode" : 3,
   "stats" : {"interval" : 0},
   "traceLevelMask" : 0
