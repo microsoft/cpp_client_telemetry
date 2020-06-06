@@ -1,4 +1,5 @@
 set "PATH=C:\Windows;C:\Windows\System32;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\Git\bin"
+cd %~dp0
 @powershell -File .\install_llvm-win64.ps1
 
 REM Download Visual Studio LLVM extension required for clang build to succeed
