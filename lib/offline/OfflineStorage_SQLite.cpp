@@ -489,7 +489,6 @@ namespace ARIASDK_NS_BEGIN {
             LOG_TRACE("Releasing %u event(s) {%s%s}, retry count %s...",
                 static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
 
-            constexpr static size_t kBlockSize = 1024;
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseEvents_ids_retryCountDelta);
             for (size_t i = 0; i < ids.size(); i += kBlockSize) {
                 size_t count = std::min(kBlockSize, ids.size() - i);
