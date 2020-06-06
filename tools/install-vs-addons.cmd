@@ -1,6 +1,6 @@
 set "PATH=C:\Windows;C:\Windows\System32;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\Git\bin"
 cd %~dp0
-@powershell -File .\install_llvm-win64.ps1
+call powershell -File .\install_llvm-win64.ps1
 
 REM Download Visual Studio LLVM extension required for clang build to succeed
 call download.cmd https://llvmextensions.gallerycdn.vsassets.io/extensions/llvmextensions/llvm-toolchain/1.0.363769/1560930595399/llvm.vsix
@@ -34,3 +34,6 @@ IF EXIST %ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise (
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM64
 "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller.exe" /q /a llvm.vsix
 )
+
+REM Ignore failures if components have been already installed
+EXIT /b 0
