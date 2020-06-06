@@ -1,5 +1,4 @@
 #include <jni.h>
-//#include <sstream>
 #include <include/public/EventProperties.hpp>
 #include "Version.hpp"
 

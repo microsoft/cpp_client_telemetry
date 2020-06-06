@@ -1,5 +1,5 @@
 #include <utils/Utils.hpp>
-#include "JniUtils.hpp"
+#include "JniConvertors.hpp"
 
 using namespace MAT;
 

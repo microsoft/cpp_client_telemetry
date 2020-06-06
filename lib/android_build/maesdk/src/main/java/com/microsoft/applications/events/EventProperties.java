@@ -1,6 +1,7 @@
 package com.microsoft.applications.events;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -9,27 +10,17 @@ public class EventProperties {
     private EventPropertiesStorage mStorage;
 
     /**
-     * Gets the internal storage used for EventProperties.
-     *
-     * @return EventPropertiesStorage
-     */
-    EventPropertiesStorage getStorage() {
-        return mStorage;
-    }
-
-    /**
      * Constructs an EventProperties object, taking a string for the property name and a diagnostic level.
      * You must supply a non-empty name whenever you supply any custom properties for the event via EventProperties.
      * 
      * @param name Name for the EventProperties
-     * @param diagnosticLevel Diagnostic level defined in com.microsoft.applications.events.Constants
+     * @param diagnosticLevel Diagnostic level for the event
      */
-    public EventProperties(final String name, int diagnosticLevel) {
+    public EventProperties(final String name, DiagnosticLevel diagnosticLevel) {
         if (name == null || !Utils.validatePropertyName(name))
             throw new IllegalArgumentException("name is null or invalid");
 
         mStorage = new EventPropertiesStorage();
-
         if (!setName(name))
             throw new IllegalArgumentException("name is invalid");
 
@@ -44,7 +35,7 @@ public class EventProperties {
      * @param name Name for the EventProperties
      */
     public EventProperties(final String name) {
-        this(name, Constants.DIAG_LEVEL_OPTIONAL);
+        this(name, DiagnosticLevel.DIAG_LEVEL_OPTIONAL);
     }
 
     /**
@@ -284,8 +275,40 @@ public class EventProperties {
      *
      * @param level Diagnostic level of the event.
      */
-    public void setLevel(int level) {
-        setProperty(Constants.COMMONFIELDS_EVENT_LEVEL, level);
+    public void setLevel(DiagnosticLevel level) {
+        setProperty(Constants.COMMONFIELDS_EVENT_LEVEL, level.getValue());
+    }
+
+    /**
+     * Sets the single privacy diagnostic tag for an event.
+     *
+     * @param tag A PrivacyDiagnosticTag
+     */
+    public void setPrivacyTags(PrivacyDiagnosticTag tag) {
+        if (tag == null)
+            throw new IllegalArgumentException("tag is null");
+
+        setPrivacyTags(EnumSet.of(tag));
+    }
+
+    /**
+     * Sets the multiple privacy diagnostic tags for an event.
+     *
+     * @param tags An EnumSet of the PrivacyDiagnosticTag
+     */
+    public void setPrivacyTags(EnumSet<PrivacyDiagnosticTag> tags) {
+        if (tags == null)
+            throw new IllegalArgumentException("tags is null");
+
+        long diagnosticTags = 0;
+        for(PrivacyDiagnosticTag tag : tags) {
+            diagnosticTags |= tag.getValue();
+        }
+
+        if (diagnosticTags == 0)
+            throw new IllegalArgumentException("EnumSet of tags is empty");
+
+        setProperty(Constants.COMMONFIELDS_EVENT_PRIVTAGS, diagnosticTags);
     }
 
     /**
