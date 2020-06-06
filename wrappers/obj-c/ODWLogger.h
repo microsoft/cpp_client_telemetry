@@ -51,7 +51,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @brief Logs a failure event (such as an application exception), taking a signature, failure details, and event properties.
  @param signature A string that identifies the bucket of the failure.
  @param detail A string that contains a description of the failure.
- @param properties Properties of the failure event, encapsulated within an ODWEventProperties object.
+ @param properties Properties of the failure event, encapsulated within an ODWEventProperties object. <b>Note:</b> This value can be null.
  */
 -(void)logFailureWithSignature:(NSString *)signature
                          detail:(NSString *)detail
