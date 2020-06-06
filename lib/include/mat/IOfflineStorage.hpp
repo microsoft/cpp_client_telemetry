@@ -48,6 +48,9 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
+    using StorageRecordVector = std::vector<StorageRecord>;
+    using StorageRecordIdVector = std::vector<StorageRecordId>;
+
     class IOfflineStorageObserver {
     public:
         virtual ~IOfflineStorageObserver() {}

@@ -12,6 +12,13 @@ namespace ARIASDK_NS_BEGIN {
 class HttpClient_Android : public IHttpClient
 {
 
+    enum class RequestState : int8_t {
+        early = 0,
+        preparing,
+        running,
+        cancel
+    };
+
 public:
 	class HttpResponse : public IHttpResponse {
 
@@ -142,7 +149,7 @@ public:
         }
 
 	protected:
-      HttpClient_Android &    m_parent;
+        HttpClient_Android &    m_parent;
 		HttpHeaders             m_headers;
 		IHttpResponseCallback*  m_callback = nullptr;
 		std::string             m_id;
@@ -150,7 +157,7 @@ public:
 		std::string             m_url;
 		std::vector<uint8_t>    m_body;
 		jobject 				m_java_request = nullptr;
-		bool					m_cancel_request = false;
+		RequestState			m_state = RequestState::early;
 
 		friend HttpClient_Android;
 	};
