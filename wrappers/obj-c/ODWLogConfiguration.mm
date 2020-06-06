@@ -11,53 +11,15 @@ using namespace Microsoft::Applications::Events;
 
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec
 {
-    try
-    {
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
-	}
-    catch (const std::exception &e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
-    }
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
 }
 
 +(void)setEnableTrace:(bool)enableTrace
 {
-    try
-    {
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_BOOL_ENABLE_TRACE] = enableTrace;
-        _enableTrace = enableTrace;
-    }
-    catch (const std::exception &e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
-    }
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_BOOL_ENABLE_TRACE] = enableTrace;
+    _enableTrace = enableTrace;
 }
 
 +(bool)enableTrace
