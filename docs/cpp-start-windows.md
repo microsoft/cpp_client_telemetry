@@ -15,7 +15,7 @@ to clone the repo. If your project requires UTC to send telemetry, you need to a
 
 * Visual Studio 2017.
 * C++ Dev Tools for Visual Studio 2017.
-* Visual Studio 2019 _should work_ if you use vc141 toolset; newer toolsets _might work_, but not tested.
+* Visual Studio 2019 _works_ if you use vc141 toolset; newer toolsets _might work_, but not tested.
 
 ## **Build the SDK from source using Visual Studio 2017**
 
@@ -26,6 +26,8 @@ If your build fails, then you most likely missing the following optional Visual 
 - ATL support
 - ARM64 support
 - Spectre mitigation libraries
+
+Please review the script [here](../tools/install-vs-addons.cmd) that shows how to install those optional components from command line.
 
 Make sure you install all of these above optional Visual Studio components, as these are required for the SDK to build all SDK SKUs successfully. If you are using GitHub Actions infrastructure to build your project, then all of these optional components are available by default as part of stock GitHub Actions deployment.
 
@@ -38,6 +40,7 @@ See:
 
 ## **Windows prerequisites and dependencies for building from source using LLVM compiler**
 
+* Visual Studio 2017 IDE
 * [LLVM compiler](https://releases.llvm.org/download.html)
 * [CMake build system](https://cmake.org/download/)
 * [LLVM compiler toolchain for Visual Studio](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
@@ -66,7 +69,7 @@ To build SDK using cmake with clang on Windows, run:
 
 3. Create the default LogManager instance for your project using the following macro in your main file:
 
-	```
+    ```
     LOGMANAGER_INSTANCE
     ```
 

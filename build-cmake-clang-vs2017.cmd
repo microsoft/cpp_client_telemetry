@@ -1,4 +1,17 @@
 @echo off
+
+echo WARNING!!! ****************************************************************************************** !!!WARNING
+echo WARNING!!! This part of the build process requires Visual Studio 2017 IDE to be installed on machine. !!!WARNING
+echo WARNING!!! llvm.vsix extension (Clang LLVM support for Visual Studio) is INCOMPATIBLE with vs2019.    !!!WARNING
+echo WARNING!!! vs2019 build fails with an error: The build tools for LLVM (Platform Toolset = 'LLVM')     !!!WARNING
+echo WARNING!!! cannot be found. Since Visual Studio 2019-preview includes built-in support for Clang,     !!!WARNING
+echo WARNING!!! feel free to contribute a 'build-cmake-clang-vs2019.cmd' script. The only change should    !!!WARNING
+echo WARNING!!! be to change the LLVM_VER variable below to clang_cl_x64 ... Except that there could be    !!!WARNING
+echo WARNING!!! another issue (June 2019) here: https://gitlab.kitware.com/cmake/cmake/-/issues/20180      !!!WARNING
+echo WARNING!!! The other alternative is to actually install Visual Studio 2017 IDE side-by-side....       !!!WARNING
+echo WARNING!!! ****************************************************************************************** !!!WARNING
+timeout 5
+
 cd %~dp0
 setlocal enableextensions
 setlocal enabledelayedexpansion

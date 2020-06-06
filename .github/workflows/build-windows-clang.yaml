@@ -1,4 +1,4 @@
-name: C/C++ CI on Windows (vs2017)
+name: C/C++ CI on Windows (clang)
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   build:
 
     runs-on: windows-latest
-    name: Build for Windows (vs2017)
+    name: Build for Windows (clang)
 
     steps:
     - name: Checkout
