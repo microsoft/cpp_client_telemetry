@@ -7,8 +7,7 @@ call download.cmd https://llvmextensions.gallerycdn.vsassets.io/extensions/llvme
 
 REM Install optional components required for ARM build - vs2017-BuildTools
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\BuildTools" (
-  start /wait "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vs_installer.exe" ^
-	modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\BuildTools" -q ^
+  "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\BuildTools" -q ^
 	--add Microsoft.VisualStudio.Component.VC.ATL ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM64 --passive --wait
@@ -17,8 +16,7 @@ if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\BuildTools" (
 
 REM Install optional components required for ARM build - vs2017-Enterprise
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise" (
-  start /wait "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vs_installer.exe" ^
-	modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise" -q ^
+  "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise" -q ^
 	--add Microsoft.VisualStudio.Component.VC.ATL ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM64 --passive --wait
@@ -27,8 +25,7 @@ if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise" (
 
 REM Install optional components required for ARM build - vs2019-Enterprise
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise" (
-  start /wait "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" ^
-	modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise" -q ^
+  "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise" -q ^
 	--add Microsoft.VisualStudio.Component.VC.ATL ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM ^
 	--add Microsoft.VisualStudio.Component.VC.ATL.ARM64 --passive --wait
