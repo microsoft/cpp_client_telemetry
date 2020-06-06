@@ -47,7 +47,7 @@ set(SRCS
         ${SDK_ROOT}/lib/http/HttpClientManager.cpp
         ${SDK_ROOT}/lib/http/HttpRequestEncoder.cpp
         ${SDK_ROOT}/lib/http/HttpResponseDecoder.cpp
-        ${SDK_ROOT}/lib/jni/JniUtils.cpp
+        ${SDK_ROOT}/lib/jni/JniConvertors.cpp
         ${SDK_ROOT}/lib/jni/LogManager_jni.cpp
         ${SDK_ROOT}/lib/jni/Logger_jni.cpp
         ${SDK_ROOT}/lib/jni/SemanticContext_jni.cpp
@@ -82,6 +82,7 @@ set(SRCS
 
 if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
         list(APPEND SRCS
+                ${SDK_ROOT}/lib/jni/LogManagerDDVController_jni.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/DefaultDataViewer.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/OnDisableNotificationCollection.cpp
         )

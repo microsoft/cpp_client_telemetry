@@ -1,4 +1,4 @@
-#include "JniUtils.hpp"
+#include "JniConvertors.hpp"
 #include "ISemanticContext.hpp"
 
 using namespace MAT;

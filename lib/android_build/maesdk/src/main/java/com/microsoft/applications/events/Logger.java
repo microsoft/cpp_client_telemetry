@@ -336,18 +336,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -376,18 +375,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -429,18 +427,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -473,18 +470,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -521,18 +517,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -569,18 +564,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -631,18 +625,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -677,18 +670,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -724,18 +716,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -776,18 +767,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -839,18 +829,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -880,18 +869,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -926,18 +914,17 @@ class Logger implements ILogger {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -987,18 +974,17 @@ class Logger implements ILogger {
         if (level == null)
             throw new IllegalArgumentException("level is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }
@@ -1026,18 +1012,17 @@ class Logger implements ILogger {
         if (state == null)
             throw new IllegalArgumentException("state is null");
 
-        EventPropertiesStorage storage = properties.getStorage();
-        String eventName = storage.eventName;
-        String eventType = storage.eventType;
-        EventLatency eventLatency = storage.eventLatency;
-        EventPersistence eventPersistence = storage.eventPersistence;
-        double eventPopSample = storage.eventPopSample;
-        long eventPolicyBitflags = storage.eventPolicyBitflags;
-        long timestampInMillis = storage.timestampInMillis;
+        String eventName = properties.getName();
+        String eventType = properties.getType();
+        EventLatency eventLatency = properties.getLatency();
+        EventPersistence eventPersistence = properties.getPersistence();
+        double eventPopSample = properties.getPopSample();
+        long eventPolicyBitflags = properties.getPolicyBitFlags();
+        long timestampInMillis = properties.getTimestamp();
 
         ArrayList<String> eventPropertyStringKey = new ArrayList<>();
         ArrayList<EventProperty> eventPropertyValue = new ArrayList<>();
-        for (Map.Entry<String, EventProperty> entry : storage.properties.entrySet()) {
+        for (Map.Entry<String, EventProperty> entry : properties.getProperties().entrySet()) {
             eventPropertyStringKey.add(entry.getKey());
             eventPropertyValue.add(entry.getValue());
         }

@@ -1,5 +1,5 @@
 #include "ILogger.hpp"
-#include "JniUtils.hpp"
+#include "JniConvertors.hpp"
 
 using namespace MAT;
 

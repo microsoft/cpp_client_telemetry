@@ -1,5 +1,12 @@
 package com.microsoft.applications.events;
 
+/**
+ * The ActionType enumeration contains a set of values that specify the
+ * type of action that a user can perform on a page view.
+ * They are a general abstraction of action types, each of which corresponds
+ * to multiple raw action types. For example, a click action type can be the result of
+ * either a button down or a touch tap.
+ */
 public enum ActionType {
     /**
      * The action type is unspecified.
