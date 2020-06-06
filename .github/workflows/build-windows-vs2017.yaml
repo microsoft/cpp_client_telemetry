@@ -1,0 +1,25 @@
+name: C/C++ CI on Windows (vs2017)
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    name: Build for Windows
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build (vs2017)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
+      shell: cmd
+      run: build-all.bat
