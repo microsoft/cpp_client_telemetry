@@ -49,6 +49,8 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
   | Android                        | partial&dagger;    |                    |
+  | iOS 10+ (simulator)            | :white_check_mark: | :white_check_mark: |
+  | iOS 10+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
   | Mac OS X 10.11+                | :white_check_mark: |                    |
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |

@@ -163,6 +163,7 @@ int main(int argc, char *argv[])
         {
             // Add privacy tags to avoid the event being dropped at UTC layer
             evt.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+            evt.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL);
         }
 
         if (std::string("My.Detailed.Event.PiiMark") == eventName)
