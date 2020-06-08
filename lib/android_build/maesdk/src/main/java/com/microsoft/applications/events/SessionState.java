@@ -15,7 +15,7 @@ public enum SessionState {
 
     private final int m_value;
 
-    private SessionState(int value) {
+    SessionState(int value) {
         m_value = value;
     }
 

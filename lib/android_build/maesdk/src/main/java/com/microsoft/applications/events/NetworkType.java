@@ -31,7 +31,7 @@ public enum NetworkType {
 
     private final int m_value;
 
-    private NetworkType(int value) {
+    NetworkType(int value) {
         m_value = value;
     }
 

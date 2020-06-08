@@ -31,7 +31,7 @@ public enum UserState {
 
     private final int m_value;
 
-    private UserState(int value) {
+    UserState(int value) {
         m_value = value;
     }
 

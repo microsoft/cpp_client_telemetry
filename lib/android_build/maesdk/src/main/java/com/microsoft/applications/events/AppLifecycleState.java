@@ -35,7 +35,7 @@ public enum AppLifecycleState {
 
     private final int m_value;
 
-    private AppLifecycleState(int value) {
+    AppLifecycleState(int value) {
         m_value = value;
     }
 
