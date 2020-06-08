@@ -50,7 +50,7 @@ class EventPropertiesStorage {
         this.properties.putAll(properties);
     }
 
-    void assignProperties(Map<String, EventProperty> properties) {
+    void setProperties(Map<String, EventProperty> properties) {
         if (properties == null)
             throw new IllegalArgumentException("properties is null");
 

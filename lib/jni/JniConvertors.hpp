@@ -2,6 +2,8 @@
 #include <include/public/EventProperties.hpp>
 #include "Version.hpp"
 
+#define MAT_USE_WEAK_LOGMANAGER
+
 namespace ARIASDK_NS_BEGIN
 {
 

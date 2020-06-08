@@ -78,7 +78,7 @@ public enum PiiKind {
 
     private final int m_value;
 
-    private PiiKind(int value) {
+    PiiKind(int value) {
         m_value = value;
     }
 

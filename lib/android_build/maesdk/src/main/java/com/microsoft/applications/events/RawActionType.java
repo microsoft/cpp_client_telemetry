@@ -136,7 +136,7 @@ public enum RawActionType {
 
     private final int m_value;
 
-    private RawActionType(int value) {
+    RawActionType(int value) {
         m_value = value;
     }
 

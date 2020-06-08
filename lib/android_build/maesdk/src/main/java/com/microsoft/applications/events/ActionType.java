@@ -45,7 +45,7 @@ public enum ActionType {
 
     private final int m_value;
 
-    private ActionType(int value) {
+    ActionType(int value) {
         m_value = value;
     }
 

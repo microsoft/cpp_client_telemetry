@@ -17,9 +17,6 @@ public class EventProperties {
      * @param diagnosticLevel Diagnostic level for the event
      */
     public EventProperties(final String name, DiagnosticLevel diagnosticLevel) {
-        if (name == null || !Utils.validatePropertyName(name))
-            throw new IllegalArgumentException("name is null or invalid");
-
         mStorage = new EventPropertiesStorage();
         if (!setName(name))
             throw new IllegalArgumentException("name is invalid");
@@ -36,15 +33,6 @@ public class EventProperties {
      */
     public EventProperties(final String name) {
         this(name, DiagnosticLevel.DIAG_LEVEL_OPTIONAL);
-    }
-
-    /**
-     * Constructs an EventProperties object (the default constructor).
-     * Sets the diagnostic level of the event to DIAG_LEVEL_OPTIONAL
-     * Default event name set to "undefined", you should set an appropriate event name.
-     */
-    public EventProperties() {
-        this(DEFAULT_EVENT_NAME);
     }
 
     /**
@@ -80,13 +68,13 @@ public class EventProperties {
     }
 
     /**
-     * Assigns a map of <string, EventProperty> to EventProperties.
+     * Sets a map of <string, EventProperty> to EventProperties.
      * Any previous existing properties would be removed.
      *
      * @param properties map of <string, EventProperty>
      */
-    public void assignProperties(final Map<String, EventProperty> properties) {
-        mStorage.assignProperties(properties);
+    public void setProperties(final Map<String, EventProperty> properties) {
+        mStorage.setProperties(properties);
     }
 
     /**
@@ -309,6 +297,30 @@ public class EventProperties {
             throw new IllegalArgumentException("EnumSet of tags is empty");
 
         setProperty(Constants.COMMONFIELDS_EVENT_PRIVTAGS, diagnosticTags);
+    }
+
+    /**
+     * Sets the single privacy diagnostic tag and diagnostic level of an event.
+     *
+     * @param tag A PrivacyDiagnosticTag
+     * @param level Diagnostic level of the event.
+     */
+    public void setPrivacyMetadata(PrivacyDiagnosticTag tag, DiagnosticLevel level) {
+        if (tag == null)
+            throw new IllegalArgumentException("tag is null");
+
+        setPrivacyMetadata(EnumSet.of(tag), level);
+    }
+
+    /**
+     * Sets the multiple privacy diagnostic tags and diagnostic level of an event.
+     *
+     * @param tags An EnumSet of the PrivacyDiagnosticTag
+     * @param level Diagnostic level of the event.
+     */
+    public void setPrivacyMetadata(EnumSet<PrivacyDiagnosticTag> tags, DiagnosticLevel level) {
+        setLevel(level);
+        setPrivacyTags(tags);
     }
 
     /**

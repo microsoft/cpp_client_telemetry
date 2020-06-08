@@ -21,7 +21,7 @@ public enum EventPersistence {
 
     private final int m_value;
 
-    private EventPersistence(int value) {
+    EventPersistence(int value) {
         m_value = value;
     }
 

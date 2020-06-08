@@ -501,26 +501,19 @@ public class LogManager {
     }
 
     /**
-     * Initializes the default DDV with the machine identifier.
+     * Initializes the default DDV with the machine identifier and
+     * enables sending diagnostic data to the remote DDV endpoint.
      *
      * @param machineIdentifier Machine identifier string
-     */
-    public native static void initializeDiagnosticDataViewer(String machineIdentifier);
-
-    /**
-     * Enables the remote viewer for the default DDV connection.
-     *
-     * @param endpoint End point for the remote DDV
+     * @param endpoint Remote DDV endpoint connection string
      * @return boolean value for success or failure
      */
-    public native static boolean enableRemoteViewer(String endpoint);
+    public native static boolean initializeDiagnosticDataViewer(String machineIdentifier, String endpoint);
 
     /**
      * Disable the default data viewer.
-     *
-     * @return boolean value for success or failure
      */
-    public native static boolean disableViewer();
+    public native static void disableViewer();
 
     /**
      * Check if the DDV viewer is enabled.

@@ -56,7 +56,7 @@ public enum InputDeviceType {
 
     private final int m_value;
 
-    private InputDeviceType(int value) {
+    InputDeviceType(int value) {
         m_value = value;
     }
 
