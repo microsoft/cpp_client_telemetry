@@ -246,7 +246,6 @@ constexpr size_t MAX_STRESS_THREADS = 20;
 TEST(MemoryStorageTests, MultiThreadPerfTest)
 {
     MemoryStorage storage(testLogManager, testConfig);
-    std::atomic<size_t> totalRecords(0);
 
     std::vector<std::thread> workers;
     std::atomic<size_t> threadCount(0);
