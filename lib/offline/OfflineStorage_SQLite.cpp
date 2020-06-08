@@ -620,6 +620,13 @@ namespace ARIASDK_NS_BEGIN {
         SqliteStatement(*m_db, "PRAGMA auto_vacuum=FULL").select();
         SqliteStatement(*m_db, "PRAGMA journal_mode=WAL").select();
         SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
+        {
+            std::ostringstream tempPragma;
+            tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
+            SqliteStatement(*m_db, tempPragma.str().c_str()).select();
+            const char * result = sqlite3_temp_directory;
+            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+        }
 
         int openedDbVersion;
         {
