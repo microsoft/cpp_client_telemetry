@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogger_private.h"
 #import "LogManager.hpp"
 
 using namespace Microsoft::Applications::Events;
@@ -18,7 +19,7 @@ using namespace Microsoft::Applications::Events;
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_BOOL_ENABLE_TRACE] = enableTrace;
-	_enableTrace = enableTrace;
+    _enableTrace = enableTrace;
 }
 
 +(bool)enableTrace
