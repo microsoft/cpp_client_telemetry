@@ -320,14 +320,7 @@ namespace ARIASDK_NS_BEGIN {
     {
         LOG_TRACE("No stored events to send at the moment");
         resetBackoff();
-        if (ctx->requestedMinLatency == EventLatency_Normal)
-        {
-            finishUpload(ctx, -1);
-        }
-        else
-        {
-            finishUpload(ctx, 0);
-        }
+        finishUpload(ctx, m_timerdelay);
     }
 
     void TransmissionPolicyManager::handlePackagingFailed(EventsUploadContextPtr const& ctx)
