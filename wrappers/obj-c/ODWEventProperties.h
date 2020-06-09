@@ -43,7 +43,7 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  @brief The <b>ODWPrivacytDataType</b> enumeration contains a set of values that indicate various Privacy Data Types that data may be used for an event's privacy classification.
  @remark Explicitly specified as <b>uint64_t</b> as it needs to be able to hold 64-bit values.
  */
-typedef NS_ENUM(uint64_t, ODWPrivacyDataType)
+typedef NS_OPTIONS(uint64_t, ODWPrivacyDataType)
 {
     ODWPDTBrowsingHistory                    = 0x0000000000000002u,
     ODWPDTDeviceConnectivityAndConfiguration = 0x0000000000000800u ,
