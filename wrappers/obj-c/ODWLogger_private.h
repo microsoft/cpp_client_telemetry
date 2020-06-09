@@ -22,7 +22,17 @@ using namespace MAT;
 /*!
  @brief Traces C++ exception message. This method might be only used internally by wrapper.
  */
-+ (void)traceException:(const char*)message;
++(void)traceException:(const char*)message;
+
+/*!
+ @brief Raises a NSException. This method might be only used internally by wrapper.
+ */
++(void)raiseException:(const char *)message;
+
+/*!
+ @brief Performs block and handles inner SDK C++ exceptions. This method might be only used internally by wrapper.
+ */
+void PerformActionWithCppExceptionsCatch(void (^block)());
 
 @end
 
