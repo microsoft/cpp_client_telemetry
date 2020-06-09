@@ -131,7 +131,7 @@ EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
         }
 
         default :
-            throw std::exception();
+            throw UnsupportedEventPropertyType(static_cast<int>(type));
     }
 
     env->DeleteLocalRef(jEventPropertyValueClass);
