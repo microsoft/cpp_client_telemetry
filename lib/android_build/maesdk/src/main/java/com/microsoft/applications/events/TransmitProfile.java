@@ -19,7 +19,7 @@ public enum TransmitProfile {
     /**
      * Favors device performance by conserving both data bandwidth and power consumption.
      */
-    TransmitProfile_BestEffort(2);
+    BestEffort(2);
 
     private final int m_value;
 

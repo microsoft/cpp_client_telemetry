@@ -411,7 +411,7 @@ class SemanticContext implements ISemanticContext {
      * @param ticketValue Ticket value
      */
     @Override
-    public void SetTicket(final TicketType ticketType, final String ticketValue) {
+    public void setTicket(final TicketType ticketType, final String ticketValue) {
         if (ticketValue == null || ticketValue.trim().isEmpty())
             throw new IllegalArgumentException("ticketValue is null or empty");
         if (ticketType == null)
