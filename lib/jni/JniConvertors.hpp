@@ -6,6 +6,18 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    struct UnsupportedEventPropertyType : std::exception {
+        UnsupportedEventPropertyType(int type) {
+            whatStr += std::to_string(type);
+        }
+
+        const char* what() const noexcept {
+            return whatStr.c_str();
+        }
+
+    private :
+        std::string whatStr = "Unsupported EventPropertyType = ";
+    };
 
     std::string JStringToStdString(JNIEnv*, const jstring&);
 
