@@ -231,5 +231,5 @@ public interface ISemanticContext {
      * @param ticketType Ticket type
      * @param ticketValue Ticket value
      */
-    public void SetTicket(final TicketType ticketType, final String ticketValue);
+    public void setTicket(final TicketType ticketType, final String ticketValue);
 }
