@@ -171,7 +171,7 @@ public:
 	void CancelAllRequests() override;
 	void SetClient(JNIEnv* env, jobject c);
 	void EraseRequest(HttpRequest*);
-	HttpRequest* GetRequest(std::string id);
+	HttpRequest* GetAndRemoveRequest(std::string id);
 	std::string NextIdString();
 
 	static void CreateClientInstance(JNIEnv* env,
