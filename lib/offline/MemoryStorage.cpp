@@ -104,6 +104,17 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
+    size_t MemoryStorage::StoreRecords(std::vector<StorageRecord> & records)
+    {
+        size_t stored = 0;
+        for (auto  & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
+    }
+
     /// <summary>
     /// Get records from MemoryStorage.
     /// Getting records automatically deletes them.
