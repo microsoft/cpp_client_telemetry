@@ -606,7 +606,7 @@ TEST_F(BasicFuncTests, sendSamePriorityNormalEvents)
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
     logger->LogEvent(event2);
 
-    waitForEvents(2, 3);
+    waitForEvents(3, 3);
     for (const auto &evt : { event, event2 })
     {
         verifyEvent(evt, find(evt.GetName()));
