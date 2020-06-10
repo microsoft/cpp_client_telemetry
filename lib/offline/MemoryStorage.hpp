@@ -34,6 +34,8 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool StoreRecord(StorageRecord const& record) override;
 
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
+
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs,
             EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
 
