@@ -24,17 +24,9 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
 }
 
@@ -64,17 +56,9 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
 
     return result;
@@ -113,17 +97,9 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
         {
-            throw;
+            [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
-    }
-    catch (const std::exception *e)
-    {
-        if ([ODWLogConfiguration surfaceCppExceptions])
-        {
-            throw;
-        }
-        [ODWLogger traceException: e->what()];
     }
 
     return result;
