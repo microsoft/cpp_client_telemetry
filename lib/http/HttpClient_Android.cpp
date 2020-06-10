@@ -287,6 +287,7 @@ void HttpClient_Android::CancelAllRequests()
 		std::vector<HttpRequest *>::iterator first_cancel = std::partition(m_requests.begin(), m_requests.end(), [](HttpRequest * request)-> bool
 		{
 			switch(request->m_state) {
+				// return false for running requests to move them to the end of the vector
 				case RequestState::cancel:
 					return true;
 				case RequestState::early:
@@ -300,6 +301,7 @@ void HttpClient_Android::CancelAllRequests()
 			}
 		});
 		if (first_cancel != m_requests.end()) {
+			// move running requests to the toCancel vector, remove from m_requests
 			toCancel.assign(first_cancel, m_requests.end());
 			m_requests.erase(first_cancel, m_requests.end());
 		}
@@ -340,14 +342,17 @@ void HttpClient_Android::EraseRequest(HttpRequest* request)
 	}
 }
 
-HttpClient_Android::HttpRequest* HttpClient_Android::GetRequest(std::string id)
+HttpClient_Android::HttpRequest* HttpClient_Android::GetAndRemoveRequest(std::string id)
 {
 	std::lock_guard<std::mutex> lock(m_requestsMutex);
 	for (auto&& u : m_requests)
 	{
 		if (u->m_id == id)
 		{
-			return u;
+			auto r = u;
+			u = m_requests.back();
+			m_requests.pop_back();
+			return r;
 		}
 	}
 	return nullptr;
@@ -467,7 +472,7 @@ Java_com_microsoft_applications_events_HttpClient_dispatchCallback(
 	env->ReleaseStringUTFChars(id, id_utf);
 	using HttpClient_Android = Microsoft::Applications::Events::HttpClient_Android;
 	auto client = HttpClient_Android::GetClientInstance();
-	auto request = client->GetRequest(id_string);
+	auto request = client->GetAndRemoveRequest(id_string);
 	if (!request)
 	{
 		return;
