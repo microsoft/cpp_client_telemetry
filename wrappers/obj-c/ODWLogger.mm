@@ -2,6 +2,10 @@
 #import <Foundation/Foundation.h>
 #import "ODWLogger_private.h"
 #import "ODWLogConfiguration.h"
+#import "ODWSemanticContext.h"
+#import "ODWSemanticContext_private.h"
+
+#include "EventProperties.hpp"
 
 using namespace MAT;
 
@@ -9,6 +13,8 @@ using namespace MAT;
 {
     ILogger* _wrappedLogger;
 }
+
+@synthesize semanticContext = _semanticContext;
 
 -(instancetype)initWithILogger:(ILogger*)logger
 {
@@ -19,6 +25,7 @@ using namespace MAT;
 		{
 	        NSLog(@"Logger initialized successfully");
 		}
+        _semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
     }
     return self;
 }
@@ -27,7 +34,9 @@ using namespace MAT;
 {
     std::string eventName = std::string([name UTF8String]);
     EventProperties event(eventName);
-    _wrappedLogger->LogEvent(event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogEvent(event);
+    });
 	if([ODWLogConfiguration enableTrace])
 	{
 	    NSLog(@"Log event with name: %@",name);
@@ -48,7 +57,7 @@ using namespace MAT;
     NSDictionary* piiTags = [wrappedProperties piiTags];
     for(NSString* propertyName in props){
         NSObject* value = [props objectForKey: propertyName];
-		PiiKind piiKind = (PiiKind)[[piiTags objectForKey: propertyName] integerValue];
+        PiiKind piiKind = (PiiKind)[[piiTags objectForKey: propertyName] integerValue];
         std::string strPropertyName = std::string([propertyName UTF8String]);
         if([value isKindOfClass: [NSNumber class]]){
             NSNumber* num = (NSNumber*)value;
@@ -60,7 +69,22 @@ using namespace MAT;
             }else{
                 event.SetProperty(strPropertyName, [num floatValue], piiKind);
             }
-        }else{
+        }
+        else if([value isKindOfClass: [NSDate class]])
+        {
+            time_ticks_t ticks { static_cast<uint64_t>((static_cast<NSDate*>(value).timeIntervalSince1970 * ticksPerSecond) + ticksUnixEpoch) };
+            event.SetProperty(strPropertyName, ticks, piiKind);
+        }
+        else if([value isKindOfClass: [NSUUID class]])
+        {
+            uuid_t uuidBytes;
+            NSUUID* nsuuid = (NSUUID*)value;
+            [nsuuid getUUIDBytes:uuidBytes];
+            GUID_t guid { uuidBytes, true /*bigEndian*/ };
+            event.SetProperty(strPropertyName, guid, piiKind);
+        }
+        else
+        {
             NSString* str = (NSString*)value;
             event.SetProperty(strPropertyName, [str UTF8String], piiKind);
         }
@@ -71,7 +95,9 @@ using namespace MAT;
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
-    _wrappedLogger->LogEvent(event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogEvent(event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log event with name: %@",[properties name]);
@@ -88,7 +114,9 @@ using namespace MAT;
     std::string strSignature = std::string([signature UTF8String]);
     std::string strDetail    = std::string([detail UTF8String]);
 
-    _wrappedLogger->LogFailure(strSignature, strDetail, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogFailure(strSignature, strDetail, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log failure with signature: %@, detail: %@ and name: %@",signature, detail, [properties name]);
@@ -109,7 +137,9 @@ using namespace MAT;
     std::string strCategory  = std::string([category UTF8String]);
     std::string strId        = std::string([identifier UTF8String]);
 
-    _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log failure with signature %@, detail %@, category: %@, id: %@ and name: %@",signature, detail, category, identifier, [properties name]);
@@ -126,7 +156,9 @@ using namespace MAT;
     std::string strId        = std::string([identifier UTF8String]);
     std::string strPageName  = std::string([pageName UTF8String]);
 
-    _wrappedLogger->LogPageView(strId, strPageName, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogPageView(strId, strPageName, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log page view with id: %@, page name: %@ and name %@", identifier, pageName, [properties name]);
@@ -149,7 +181,9 @@ using namespace MAT;
     std::string strUri         = std::string([uri UTF8String]);
     std::string strReferrerUri = std::string([referrerUri UTF8String]);
 
-    _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log page view with id: %@, page name: %@, category: %@, uri: %@, referrer uri: %@ and name %@", identifier, pageName, category, uri, referrerUri, [properties name]);
@@ -165,7 +199,9 @@ using namespace MAT;
 
     std::string strMessage = std::string([message UTF8String]);
 
-    _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log trace with level: %@, message: %@, name: %@", @(traceLevel), message, [properties name]);
@@ -177,10 +213,41 @@ using namespace MAT;
 {
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
-    _wrappedLogger->LogSession((SessionState)state, event);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->LogSession((SessionState)state, event);
+    });
     if([ODWLogConfiguration enableTrace])
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
+    }
+}
+
++(void)traceException:(const char *)message
+{
+    if([ODWLogConfiguration enableTrace])
+    {
+        NSLog(EXCEPTION_TRACE_FORMAT, message);
+    }
+}
+
++(void)raiseException:(const char *)message
+{
+    [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%s", message]];
+}
+
+void PerformActionWithCppExceptionsCatch(void (^block)())
+{
+    try
+    {
+        block();
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
     }
 }
 
