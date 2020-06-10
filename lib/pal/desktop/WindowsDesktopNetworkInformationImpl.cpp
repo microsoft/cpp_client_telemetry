@@ -55,7 +55,10 @@ namespace PAL_NS_BEGIN {
         virtual NetworkType GetNetworkType() override
         {
             m_type = NetworkType_Unknown;
-#if 0 // TODO: implement more robust network type detection logic
+#ifdef HAVE_NETWORK_TYPE
+            // Unfortunately this network type detection logic uses WinInet API
+            // that may not always behave properly on some versions of Windows.
+            // Turning this code off should improve overall SDK stability.
             DWORD flags;
             DWORD reserved = 0;
             if (::InternetGetConnectedState(&flags, reserved)) {
