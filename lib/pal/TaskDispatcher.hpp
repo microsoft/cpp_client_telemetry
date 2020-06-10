@@ -12,6 +12,7 @@
 #include <climits>
 #include <algorithm>
 #include <atomic>
+#include <utility>
 
 #include "ITaskDispatcher.hpp"
 #include "Version.hpp"
@@ -59,33 +60,42 @@ namespace PAL_NS_BEGIN {
     class DeferredCallbackHandle
     {
     public:
-        std::atomic<MAT::Task*> m_task;
-        MAT::ITaskDispatcher* m_taskDispatcher;
+        std::mutex m_mutex;
+        MAT::Task* m_task = nullptr;
+        MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
 
         DeferredCallbackHandle(MAT::Task* task, MAT::ITaskDispatcher* taskDispatcher) :
             m_task(task),
             m_taskDispatcher(taskDispatcher) { };
-        DeferredCallbackHandle() : m_task(nullptr), m_taskDispatcher(nullptr) {};
-        DeferredCallbackHandle(const DeferredCallbackHandle& h) :
-            m_task(h.m_task.load()),
-            m_taskDispatcher(h.m_taskDispatcher) { };
-
-        DeferredCallbackHandle& operator=(DeferredCallbackHandle other)
+        DeferredCallbackHandle() {};
+        DeferredCallbackHandle(DeferredCallbackHandle&& h)
         {
-            m_task = other.m_task.load();
+            *this = std::move(h);
+        };
+
+        DeferredCallbackHandle& operator=(DeferredCallbackHandle&& other)
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            std::lock_guard<std::mutex> otherLock(other.m_mutex);
+            m_task = other.m_task;
+            other.m_task = nullptr;
             m_taskDispatcher = other.m_taskDispatcher;
+
             return *this;
         }
 
         bool Cancel(uint64_t waitTime = 0)
         {
-            MAT::Task* m_current_task = m_task.exchange(nullptr);
-            if (m_current_task)
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_task)
             {
-                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_current_task, waitTime));
+                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, waitTime));
                 return result;
             }
-            return false;
+            else {
+                // Canceled nothing successfully
+                return true;
+            }
         }
     };
 

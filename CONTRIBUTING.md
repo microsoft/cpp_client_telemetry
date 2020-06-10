@@ -19,9 +19,9 @@ Platform specific build instructions:
 - [Windows](docs/cpp-start-windows.md)
 - [Windows/clang](build-cmake-clang.cmd)
 - [Mac](docs/cpp-start-macosx.md)
-- [Linux](docs/cpp-start-linux.md). Docker can also be used to build for varios distros. Refer to [build-docker.cmd](build-docker.cmd).
-- [iOS/iPadOS](build-ios.sh)
-- Android... We don't have instructions yet, feel free to contribute :)
+- [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
+- [iOS/iPadOS](docs/cpp-start-ios.md)
+- [Android](docs/cpp-start-android.md)
 
 Other resources to learn how to setup the build system:
 - Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
