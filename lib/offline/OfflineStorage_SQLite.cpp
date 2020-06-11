@@ -746,6 +746,13 @@ namespace ARIASDK_NS_BEGIN {
             "SELECT tenant_token FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
             "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
             "* ? / 100)");
+        PREPARE_SQL(m_stmtTrimEvents_percent,
+                    "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
+                                                     "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
+                                                                                                "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
+                                                                                                                                                   "* ? / 100)"
+                                                                                                                                                   ")");
+
         PREPARE_SQL(m_stmtDeleteEvents_tenants,
                 SQL_SUPPLY_PACKAGED_IDS
                 "DELETE FROM " TABLE_NAME_EVENTS " WHERE tenant_token IN ids");
