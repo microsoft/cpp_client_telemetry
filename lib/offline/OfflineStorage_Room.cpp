@@ -638,7 +638,7 @@ namespace ARIASDK_NS_BEGIN
         if (!env) {
             return false;
         }
-        auto limit = static_cast<uint32_t>(m_config[CFG_INT_CACHE_FILE_SIZE]);
+        auto limit = static_cast<uint32_t>(m_config.GetOfflineStorageMaximumSizeBytes());
         auto current = GetSizeInternal(env);
         if (current < limit) {
             return false;

@@ -292,6 +292,7 @@ public class OfflineRoom {
         finally {
             if (c != null) {
                 c.close();
+                c = null;
             }
         }
 

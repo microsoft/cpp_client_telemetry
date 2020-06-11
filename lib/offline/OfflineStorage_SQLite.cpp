@@ -59,7 +59,8 @@ namespace ARIASDK_NS_BEGIN {
         , m_logManager(logManager)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
-        m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE]) : static_cast<uint32_t>(m_config[CFG_INT_CACHE_FILE_SIZE]);
+        m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE])
+                : m_config.GetOfflineStorageMaximumSizeBytes();
         m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
 
         if ((percentage == 0)||(percentage > 100))
