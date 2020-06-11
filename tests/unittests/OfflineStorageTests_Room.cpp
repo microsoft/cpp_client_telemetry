@@ -46,7 +46,7 @@ public:
     OfflineStorageTestsRoom() : logManager(&nullLogManager)
     {
         EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(
-                Return(UINT_MAX));
+                Return(32 * 4096));
         EXPECT_CALL(configMock, GetMaximumRetryCount()).WillRepeatedly(
                 Return(5));
         std::ostringstream name;
@@ -435,6 +435,34 @@ TEST_P(OfflineStorageTestsRoom, DeleteByToken)
     EXPECT_EQ(1000, offlineStorage->GetRecordCount());
     offlineStorage->DeleteRecords({{ "tenant_token", "0"}});
     EXPECT_EQ(800, offlineStorage->GetRecordCount());
+}
+
+TEST_P(OfflineStorageTestsRoom, ResizeDB)
+{
+    if (implementation == StorageImplementation::Memory) {
+        return;
+    }
+
+    auto now = PAL::getUtcSystemTimeMs();
+
+    StorageRecord record(
+            "",
+            "TenantFred",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            now,
+            StorageBlob {1, 2, 3, 4}
+            );
+    size_t index = 1;
+    while (offlineStorage->GetSize() <= configMock.GetOfflineStorageMaximumSizeBytes()) {
+        record.id = std::to_string(index);
+        offlineStorage->StoreRecord(record);
+        index += 1;
+    }
+    auto preCount = offlineStorage->GetRecordCount();
+    offlineStorage->ResizeDb();
+    auto postCount = offlineStorage->GetRecordCount();
+    EXPECT_GT(preCount, postCount);
 }
 
 INSTANTIATE_TEST_CASE_P(Storage,
