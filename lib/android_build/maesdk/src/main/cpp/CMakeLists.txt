@@ -13,6 +13,8 @@ if (USE_CURL)
         find_package(CURL REQUIRED)
 endif()
 
+set(USE_ROOM 1)
+
 include_directories(AFTER
         ${SDK_ROOT}/lib
         ${SDK_ROOT}/lib/include/public
@@ -54,7 +56,6 @@ set(SRCS
         ${SDK_ROOT}/lib/jni/Utils_jni.cpp
         ${SDK_ROOT}/lib/offline/MemoryStorage.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorageHandler.cpp
-        ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
         ${SDK_ROOT}/lib/offline/StorageObserver.cpp
         ${SDK_ROOT}/lib/packager/BondSplicer.cpp
         ${SDK_ROOT}/lib/packager/Packager.cpp
@@ -77,7 +78,6 @@ set(SRCS
         ${SDK_ROOT}/lib/utils/FileUtils.cpp
         ${SDK_ROOT}/lib/utils/StringUtils.cpp
         ${SDK_ROOT}/lib/utils/Utils.cpp
-        ${SDK_ROOT}/sqlite/sqlite3.c
 )
 
 if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
@@ -86,6 +86,15 @@ if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
                 ${SDK_ROOT}/lib/modules/dataviewer/DefaultDataViewer.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/OnDisableNotificationCollection.cpp
         )
+
+if (USE_ROOM)
+        add_definitions("-DUSE_ROOM")
+        list(APPEND SRCS ${SDK_ROOT}/lib/offline/OfflineStorage_Room.cpp)
+else()
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
+                ${SDK_ROOT}/sqlite/sqlite3.c
+                )
 endif()
 
 if (USE_CURL)

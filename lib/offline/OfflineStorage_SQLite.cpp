@@ -199,6 +199,17 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
+    size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord> & records)
+    {
+        size_t stored = 0;
+        for (auto & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
+    }
+
     // Debug routine to print record count in the DB
     void OfflineStorage_SQLite::printRecordCount()
     {
