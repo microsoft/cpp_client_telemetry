@@ -86,6 +86,7 @@ if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
                 ${SDK_ROOT}/lib/modules/dataviewer/DefaultDataViewer.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/OnDisableNotificationCollection.cpp
         )
+endif()
 
 if (USE_ROOM)
         add_definitions("-DUSE_ROOM")
