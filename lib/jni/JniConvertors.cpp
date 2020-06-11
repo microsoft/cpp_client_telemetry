@@ -52,7 +52,7 @@ EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
         case EventProperty::TYPE_TIME : {
             methodIdToGetValueForDataTypes = env->GetMethodID(jEventPropertyValueClass, "getTimeTicks", "()J");
             auto jValue = env->CallLongMethod(jEventPropertyValue, methodIdToGetValueForDataTypes);
-            eventProperty = time_ticks_t(static_cast<long>(jValue));
+            eventProperty = time_ticks_t(static_cast<uint64_t>(jValue));
             break;
         }
 

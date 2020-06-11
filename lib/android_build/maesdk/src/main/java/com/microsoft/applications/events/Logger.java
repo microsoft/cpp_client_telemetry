@@ -1040,7 +1040,7 @@ class Logger implements ILogger {
      * @param level Diagnostic level.
      */
     @Override
-    public void setLevel(final int level) {
-        nativeSetLevel(m_nativePtr, level);
+    public void setLevel(final DiagnosticLevel level) {
+        nativeSetLevel(m_nativePtr, level.getValue());
     }
 }
