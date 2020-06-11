@@ -64,7 +64,7 @@ public class AggregatedMetricData {
      * @param aggrDuration Duration of the aggregation
      * @param aggrCount Number of occurrences
      */
-    AggregatedMetricData(final String aggrName, final long aggrDuration, final long aggrCount) {
+    public AggregatedMetricData(final String aggrName, final long aggrDuration, final long aggrCount) {
         name = aggrName;
         duration = aggrDuration;
         count = aggrCount;

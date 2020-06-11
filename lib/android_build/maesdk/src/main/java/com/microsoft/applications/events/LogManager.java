@@ -459,7 +459,7 @@ public class LogManager {
      *
      * @return Logger instance of the ILogger interface
      */
-    public static ILogger GetLogger() {
+    public static ILogger getLogger() {
         long logger = nativeGetLogger();
         if (logger == 0)
             return null;
@@ -475,7 +475,7 @@ public class LogManager {
      * @param source Source name of events sent by this logger instance
      * @return Logger instance of the ILogger interface
      */
-    public static ILogger GetLogger(final String source) {
+    public static ILogger getLogger(final String source) {
         long logger = nativeGetLoggerWithSource(source);
         if (logger == 0)
             return null;
@@ -492,7 +492,7 @@ public class LogManager {
      * @param source Source name of events sent by this logger instance
      * @return Logger instance of the ILogger interface
      */
-    public static ILogger GetLogger(final String tenantToken, final String source) {
+    public static ILogger getLogger(final String tenantToken, final String source) {
         long logger = nativeGetLoggerWithTenantTokenAndSource(tenantToken, source);
         if (logger == 0)
             return null;

@@ -65,7 +65,7 @@ public class PageActionData {
      * @param pvId page view ID
      * @param actType action type
      */
-    PageActionData(final String pvId, final ActionType actType) {
+    public PageActionData(final String pvId, final ActionType actType) {
         pageViewId = pvId;
         actionType = actType;
         rawActionType = RawActionType.Unspecified;

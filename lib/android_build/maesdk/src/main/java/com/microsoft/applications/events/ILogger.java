@@ -378,5 +378,5 @@ public interface ILogger {
      *
      * @param level Diagnostic level.
      */
-    public void setLevel(final int level);
+    public void setLevel(final DiagnosticLevel level);
 }

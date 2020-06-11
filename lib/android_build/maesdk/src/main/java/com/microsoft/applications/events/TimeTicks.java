@@ -25,7 +25,7 @@ class TimeTicks {
             throw new IllegalArgumentException("date is null");
 
         //The UNIX epoch: Thursday, January, 01, 1970, 12:00:00 AM.
-        final long ticksUnixEpoch = 0x089f7ff5f7b5800L;
+        final long ticksUnixEpoch = 0x089f7ff5f7b58000L;
         final long ticksPerMilliSecond = 10000;
         m_ticks = ticksUnixEpoch + (ticksPerMilliSecond * date.getTime());
     }
