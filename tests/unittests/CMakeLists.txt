@@ -37,6 +37,7 @@ set(SRCS
   StringUtilsTests.cpp
   TaskDispatcherCAPITests.cpp
   TransmissionPolicyManagerTests.cpp
+  TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
 )
