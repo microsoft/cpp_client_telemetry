@@ -31,9 +31,11 @@ public abstract class StorageRecordDao {
     @Query("DELETE FROM StorageRecord WHERE id IN (SELECT id FROM StorageRecord ORDER BY persistence ASC, timestamp ASC LIMIT :count)")
     public abstract int trim(long count);
 
+    @Transaction
     @Query("SELECT * FROM StorageRecord WHERE latency >= :minLatency ORDER BY latency DESC, persistence DESC, timestamp ASC LIMIT :limit")
     public abstract StorageRecord[] getRecords(int minLatency, long limit);
 
+    @Transaction
     @Query("SELECT * FROM StorageRecord WHERE latency >= :minLatency AND reservedUntil = 0 ORDER BY latency DESC, persistence DESC, timestamp ASC LIMIT :limit")
     public abstract StorageRecord[] getUnreservedRecords(int minLatency, long limit);
 
@@ -44,6 +46,7 @@ public abstract class StorageRecordDao {
     @Query("UPDATE StorageRecord SET reservedUntil = :until WHERE id IN (:ids)")
     public abstract int setReservedBlock(long[] ids, long until);
 
+    @Transaction
     @Query("SELECT * FROM StorageRecord WHERE id IN (:ids) AND retryCount >= :maximumRetries")
     public abstract StorageRecord[] getRetryExpired(long[] ids, long maximumRetries);
 
@@ -56,6 +59,7 @@ public abstract class StorageRecordDao {
     @Query("SELECT min(latency) FROM StorageRecord WHERE latency >= :minLatency AND reservedUntil = 0")
     public abstract Long getMinLatency(long minLatency);
 
+    @Transaction
     @Query("SELECT * FROM StorageRecord WHERE latency = :latency AND reservedUntil = 0 ORDER BY persistence DESC, timestamp ASC LIMIT :limit")
     public abstract StorageRecord[] getUnreservedByLatency(long latency, long limit);
 
