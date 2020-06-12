@@ -72,7 +72,7 @@ namespace ARIASDK_NS_BEGIN
                 ConnectedEnv env(s_vm);
 
                 auto roomClass = env->GetObjectClass(m_room);
-                auto closeId = env->GetMethodID(roomClass, "closeConnection", "()V");
+                auto closeId = env->GetMethodID(roomClass, "close", "()V");
                 if (env->ExceptionCheck() == JNI_TRUE) {
                     env->ExceptionDescribe();
                     env->ExceptionClear();
@@ -482,7 +482,6 @@ namespace ARIASDK_NS_BEGIN
         auto bigBuffer = env->NewLongArray(bigNumbers.size());
         ThrowRuntime(env, "big");
         env->SetLongArrayRegion(bigBuffer, 0, bigNumbers.size(), bigNumbers.data());
-//     public long[] storeFromBuffers(int count, int[] indices, byte[] bytes, int[] small, long[] big)
         static constexpr char storeSignature[] = "(I[I[B[I[J)V";
         auto storeId = env->GetMethodID(room_class, "storeFromBuffers", storeSignature);
         ThrowLogic(env, "store");

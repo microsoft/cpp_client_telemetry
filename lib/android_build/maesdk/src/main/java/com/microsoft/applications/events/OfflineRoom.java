@@ -10,8 +10,77 @@ import androidx.room.RoomDatabase;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 
-public class OfflineRoom {
+class TrimTransaction implements Callable<Long>
+{
+    OfflineRoom m_room = null;
+    long m_byteLimit = 0;
+
+    public TrimTransaction(OfflineRoom room, long byteLimit)
+    {
+        m_room = room;
+        m_byteLimit = byteLimit;
+    }
+
+    protected long vacuum(long pre) {
+        try (Cursor c = m_room.m_db.query("VACUUM", null)) {};
+        long post = m_room.totalSize();
+        Log.i("MAE", String.format(
+                "Vacuum: %d before, %d after",
+                pre,
+                post));
+        return post;
+    }
+
+    public Long call()
+    {
+        if (m_room == null || m_byteLimit == 0) {
+            return null;
+        }
+        long currentSize = m_room.totalSize();
+        if (currentSize <= m_byteLimit) {
+            return new Long(0);
+        }
+        long postVacuum = currentSize;
+        try {
+            postVacuum = vacuum(currentSize);
+        } catch (Exception e) {
+            Log.e("MAE", "Exception in VACUUM", e);
+            postVacuum = currentSize;
+        }
+        if (postVacuum <= m_byteLimit) {
+            return new Long(0);
+        }
+
+        long records = m_room.m_srDao.totalRecordCount();
+        double fraction = 0.25; // fraction of current to be dropped
+        if (m_byteLimit > m_room.m_pageSize) {
+            double dLimit = m_byteLimit;
+            double dCurrent = postVacuum;
+            fraction = Math.max(0.25, 1.0 - (dLimit / dCurrent));
+        }
+        long to_drop = (long) Math.ceil(fraction * records);
+        if (to_drop <= 0) {
+            return new Long(0);
+        }
+        long recordsDropped = m_room.m_srDao.trim(to_drop);
+        long postDrop = m_room.totalSize();
+        long reVacuum = postDrop;
+        if (postDrop > m_byteLimit) {
+            reVacuum = vacuum(postDrop);
+        }
+        Log.i(
+                "MAE", String.format(
+                "Trim: dropped %d records, new size %d bytes",
+                recordsDropped,
+                reVacuum));
+        return new Long(recordsDropped);
+
+    }
+}
+
+public class OfflineRoom implements AutoCloseable {
     OfflineRoomDatabase m_db = null;
     StorageRecordDao m_srDao = null;
     StorageSettingDao m_settingDao = null;
@@ -30,9 +99,7 @@ public class OfflineRoom {
         m_db = builder.build();
         m_srDao = m_db.getStorageRecordDao();
         m_settingDao = m_db.getStorageSettingDao();
-        Cursor c = null;
-        try {
-            c = m_db.query("PRAGMA page_size", null);
+        try (Cursor c = m_db.query("PRAGMA page_size", null)) {
             if (c.getCount() == 1 && c.getColumnCount() == 1) {
                 c.moveToFirst();
                 m_pageSize = c.getLong(0);
@@ -43,29 +110,11 @@ public class OfflineRoom {
                                 c.getColumnCount()));
             }
         }
-        catch (Exception e) {
-            Log.e("MAE", "Exception while querying page size", e);
-        }
-        finally {
-            if (c != null) {
-                c.close();
-                c = null;
-            }
-        }
         long pageCount = -1;
-        try {
-            c = m_db.query("PRAGMA page_count", null);
+        try (Cursor c = m_db.query("PRAGMA page_count", null)) {
             if (c.getCount() == 1 && c.getColumnCount() == 1) {
                 c.moveToFirst();
                 pageCount = c.getLong(0);
-            }
-        } catch (Exception e) {
-            Log.e("MAE", "Exception while getting page count", e);
-        }
-        finally {
-            if (c != null) {
-                c.close();
-                c = null;
             }
         }
         Log.i("MAE", String.format("Opened %s: %d records, %d settings, page size %d, %d pages",
@@ -80,52 +129,36 @@ public class OfflineRoom {
         return m_srDao.insertRecords(records);
     }
 
-    public void closeConnection()
+    public void close()
     {
         if (m_db.isOpen()) {
             m_db.close();
         }
+        m_srDao = null;
+        m_settingDao = null;
+        m_db = null;
     }
 
-    public void explain()
+    public void explain(String query)
     {
-        Cursor c = null;
-        try {
-            c = m_db.query("EXPLAIN QUERY PLAN SELECT * FROM StorageRecord WHERE latency >= 1 AND reservedUntil = 0 ORDER BY latency DESC, persistence DESC, timestamp ASC", null);
+        try (Cursor c = m_db.query("EXPLAIN QUERY PLAN " + query, null)) {
             int n = c.getCount();
             int m = c.getColumnCount();
             boolean noMove = c.moveToFirst();
             String[] names = c.getColumnNames();
             for (int i = 0; i < names.length; ++i) {
-                Log.i("MAE", names[i]);
-                try {
-                    Log.i("MAE", String.format("Type for column %s (%d): %d", names[i], i, c.getType(i)));
-                } catch (Exception e) {
-                    Log.i("MAE", "woops", e);
-                }
+                Log.i("MAE", String.format("Type for column %s (%d): %d", names[i], i, c.getType(i)));
             }
             for (int j = 0; j < n; ++j) {
                 if (!c.moveToPosition(j)) {
                     break;
                 }
                 for (int i = 0; i < m; ++i) {
-                    try {
-                        Log.i("MAE", String.format("%d %s: %s",
-                                j,
-                                names[i],
-                                c.getString(i)));
-                    } catch (Exception e) {
-                        Log.i("MAE", "oh sad", e);
-                    }
+                    Log.i("MAE", String.format("%d %s: %s",
+                            j,
+                            names[i],
+                            c.getString(i)));
                 }
-            }
-        }
-        catch (Exception e) {
-            Log.e("MAE", "Exception in explain", e);
-        }
-        finally {
-            if (c != null) {
-                c.close();
             }
         }
     }
@@ -169,69 +202,20 @@ public class OfflineRoom {
         return m_srDao.recordCount(latency);
     }
 
-    public long vacuum(long pre) {
-        Cursor c = null;
-        try {
-            c = m_db.query("VACUUM", null);
-        }
-        catch (Exception e) {
-            Log.e("MAE", "Exception in vacuum", e);
-        }
-        finally {
-            if (c != null) {
-                c.close();
-            }
-        }
-        long post = totalSize();
-        Log.i("MAE", String.format(
-                "Vacuum: %d before, %d after",
-                pre,
-                post));
-        return post;
-    }
-
     public long trim(long byteLimit) {
         long currentSize = totalSize();
         if (currentSize <= byteLimit) {
             return 0;
         }
-        long postVacuum = currentSize;
-        try {
-            postVacuum = vacuum(currentSize);
-        } catch (Exception e) {
-            Log.e("MAE", "Exception in VACUUM", e);
-            postVacuum = currentSize;
-        }
-        if (postVacuum <= byteLimit) {
+        Log.i("MAE","Start trim");
+        TrimTransaction transaction = new TrimTransaction(this, byteLimit);
+        Long recordsDropped = m_db.runInTransaction(transaction);
+        if (recordsDropped == null) {
+            Log.e("MAE", "Null result from trim");
             return 0;
         }
-
-        long records = m_srDao.totalRecordCount();
-        double fraction = 0.25; // fraction of current to be dropped
-        if (byteLimit > m_pageSize) {
-            double dLimit = byteLimit;
-            double dCurrent = postVacuum;
-            fraction = Math.max(0.25, 1.0 - (dLimit / dCurrent));
-        }
-        long to_drop = (long) Math.ceil(fraction * records);
-        if (to_drop <= 0) {
-            return 0;
-        }
-        int n = m_srDao.trim(to_drop);
-        long postDrop = totalSize();
-        long reVacuum = postDrop;
-        if (postDrop > byteLimit) {
-            try {
-                reVacuum = vacuum(postDrop);
-            } catch (Exception e) {
-                Log.e("MAE", "Exception in reVacuum", e);
-            }
-        }
-        Log.i("MAE", String.format(
-                "Trim: dropped %d records, new size %d bytes",
-                n,
-                reVacuum));
-        return n;
+        Log.i("MAE", String.format("Dropped %d records in trim", recordsDropped));
+        return recordsDropped;
     }
 
     public ByTenant[] releaseRecords(long[] ids, boolean incrementRetry, long maximumRetries)
@@ -274,28 +258,12 @@ public class OfflineRoom {
     public long totalSize()
     {
         long result = 0;
-        Cursor c = null;
-        try {
-            c = m_db.query("PRAGMA page_count", null);
-            if (c.getCount() == 1 && c.getColumnCount() == 1) {
-                c.moveToFirst();
-                long pages = c.getLong(0);
-                result = pages * m_pageSize;
-            } else {
-                Log.e("MAE", String.format("Unexpected result from PRAGMA page_count, %d rows and %d columns",
-                        c.getCount(), c.getColumnCount()));
-            }
+        try (Cursor c = m_db.query("PRAGMA page_count", null)) {
+            assert(c.getCount() == 1 && c.getColumnCount() == 1);
+            c.moveToFirst();
+            long pages = c.getLong(0);
+            result = pages * m_pageSize;
         }
-        catch (Exception e) {
-            Log.e("MAE", "Exception in PRAGMA page_count", e);
-        }
-        finally {
-            if (c != null) {
-                c.close();
-                c = null;
-            }
-        }
-
         return result;
     }
 

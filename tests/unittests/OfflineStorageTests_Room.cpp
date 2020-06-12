@@ -1,6 +1,7 @@
 //
 // Created by maharrim on 5/18/2020.
 //
+#include <android/log.h>
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
@@ -91,6 +92,7 @@ public:
         HttpHeaders h;
         bool fromMemory = false;
         offlineStorage->DeleteRecords(ids, h, fromMemory);
+        EXPECT_EQ(0, offlineStorage->GetRecordCount());
     }
 
     void SetUp() override {
@@ -454,15 +456,63 @@ TEST_P(OfflineStorageTestsRoom, ResizeDB)
             StorageBlob {1, 2, 3, 4}
             );
     size_t index = 1;
+    __android_log_print(ANDROID_LOG_INFO, "MAE",
+            "Start fill");
     while (offlineStorage->GetSize() <= configMock.GetOfflineStorageMaximumSizeBytes()) {
         record.id = std::to_string(index);
         offlineStorage->StoreRecord(record);
         index += 1;
     }
+    __android_log_print(ANDROID_LOG_INFO, "MAE",
+            "End fill");
     auto preCount = offlineStorage->GetRecordCount();
     offlineStorage->ResizeDb();
     auto postCount = offlineStorage->GetRecordCount();
     EXPECT_GT(preCount, postCount);
+}
+
+TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
+{
+    constexpr size_t targetSize = 2 * 1024 * 1024;
+    constexpr size_t blobSize = 512;
+    constexpr size_t blockSize = 4096;
+
+    std::random_device rd;   // non-deterministic generator
+    std::mt19937_64 gen(rd());  // to seed mersenne twister.
+    std::uniform_int_distribution<> randomByte(0,255);
+    std::uniform_int_distribution<uint64_t> randomWord(0, UINT64_MAX);
+    auto now = PAL::getUtcSystemTimeMs();
+
+    StorageBlob masterBlob;
+    masterBlob.reserve(blobSize);
+    while (masterBlob.size() < blobSize) {
+        masterBlob.push_back(randomByte(gen));
+    }
+    size_t blocks = 0;
+    StorageRecordVector records;
+    records.reserve(blockSize);
+    while (records.size() < blockSize) {
+        records.emplace_back(
+                "",
+                "Fred-Doom-Token23",
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob(masterBlob)
+        );
+    }
+    __android_log_print(ANDROID_LOG_INFO, "MAE", "Start StoreRecords loop");
+    while (offlineStorage->GetSize() < targetSize) {
+        for (auto & record : records) {
+            record.id = std::to_string(randomWord(gen));
+        }
+        offlineStorage->StoreRecords(records);
+        ++blocks;
+    }
+    EXPECT_EQ(blocks * blockSize, offlineStorage->GetRecordCount());
+    __android_log_print(ANDROID_LOG_INFO, "MAE",
+            "Stored %zd blocks, %zd records, final size %zd bytes",
+            blocks, blocks*blockSize, offlineStorage->GetSize());
 }
 
 INSTANTIATE_TEST_CASE_P(Storage,
