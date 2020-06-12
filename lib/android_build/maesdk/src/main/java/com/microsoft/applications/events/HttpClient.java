@@ -14,7 +14,10 @@ import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.io.BufferedInputStream;
@@ -37,8 +40,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 class PowerInfoReceiver extends android.content.BroadcastReceiver {
     private final HttpClient m_parent;
-    boolean m_charging = true;
-    boolean m_low_battery = false;
 
     PowerInfoReceiver(HttpClient parent)
     {
@@ -49,7 +50,10 @@ class PowerInfoReceiver extends android.content.BroadcastReceiver {
         final int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         final boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL;
-        final boolean isLow = intent.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false);
+        boolean isLow = false;
+        if (Build.VERSION.SDK_INT >= 28) {
+            isLow = intent.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false);
+        }
         m_parent.onPowerChange(isCharging, isLow);
     }
 }
@@ -62,7 +66,7 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
         m_metered = metered;
     }
 
-    final public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
+    final public void onCapabilitiesChanged(@Nullable Network network, @NonNull NetworkCapabilities networkCapabilities) {
         final boolean new_metered = !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
         if (new_metered != m_metered) {
             m_metered = new_metered;
@@ -98,6 +102,8 @@ class Request implements Runnable {
     }
 
     public void run() {
+        final boolean logExceptions = false;
+
         String[] headerArray = {};
         byte[] body = {};
         int response = 0;
@@ -147,7 +153,9 @@ class Request implements Runnable {
             }
         } catch (Exception e) {
             /* pass this on as a response of 0 */
-            e.getMessage();
+            if (logExceptions) {
+                Log.e("MAE", "Exception in callback", e);
+            }
         } finally {
             m_connection.disconnect();
         }
@@ -246,10 +254,6 @@ public class HttpClient {
         return Executors.newFixedThreadPool(MAX_HTTP_THREADS);
     }
 
-    protected boolean hasAndroidID() {
-        return Build.VERSION.SDK_INT >= 26;
-    }
-    
     protected boolean hasConnectivityManager()
     {
         return Build.VERSION.SDK_INT >= 24;

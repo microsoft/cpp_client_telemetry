@@ -51,7 +51,7 @@ NS_ASSUME_NONNULL_BEGIN
  @brief Sets callback for OnDisableNotification event.
  @param callback Code to execute when OnDisableNotification event occurrs.
  */
-+(void)registerOnDisableNotification:(void(^)())callback;
++(void)registerOnDisableNotification:(void(^)(void))callback;
 
 @end
 

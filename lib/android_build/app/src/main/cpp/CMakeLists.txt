@@ -30,27 +30,13 @@ include_directories(AFTER
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library( # Sets the name of the library.
-        native-lib
-
-        # Sets the library as a shared library.
-        SHARED
-
-        # Provides a relative path to your source file(s).
-        native-lib.cpp)
-
-add_library(
-        gmock
-        SHARED
-        ${gtest_dir}/src/gtest-all.cc
-        ${gmock_dir}/src/gmock-all.cc
-        )
-
 set(TESTS_COMMON_SRCS
         ${SDK_ROOT}/tests/common/Common.cpp
         ${SDK_ROOT}/tests/common/Mocks.cpp
         ${SDK_ROOT}/tests/common/Reactor.cpp
         ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
+        ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
+        ${SDK_ROOT}/sqlite/sqlite3.c
 )
 
 set(TESTS_SRCS
@@ -81,7 +67,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/MetaStatsTests.cpp
         ${SDK_ROOT}/tests/unittests/OacrTests.cpp
         ${SDK_ROOT}/tests/unittests/OfflineStorageTests.cpp
-        ${SDK_ROOT}/tests/unittests/OfflineStorageTests_SQLite.cpp
+        ${SDK_ROOT}/tests/unittests/OfflineStorageTests_Room.cpp
         ${SDK_ROOT}/tests/unittests/PackagerTests.cpp
         ${SDK_ROOT}/tests/unittests/PalTests.cpp
         ${SDK_ROOT}/tests/unittests/RouteTests.cpp
@@ -105,9 +91,6 @@ set_target_properties(maesdk PROPERTIES
         IMPORTED_LOCATION "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so"
         IMPORTED_LOCATION_Release "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so")
 
-add_library (UnitTests SHARED ${TESTS_SRCS} ${TESTS_COMMON_SRCS})
-target_link_libraries(UnitTests gmock maesdk ${zlib-path})
-
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -122,6 +105,21 @@ find_library( # Sets the name of the path variable.
         # you want CMake to locate.
         log)
 
+add_library( # Sets the name of the library.
+        native-lib
+
+        # Sets the library as a shared library.
+        SHARED
+
+        # Provides a relative path to your source file(s).
+        native-lib.cpp
+        ${gtest_dir}/src/gtest-all.cc
+        ${gmock_dir}/src/gmock-all.cc
+        ${TESTS_COMMON_SRCS}
+        ${TESTS_SRCS}
+        )
+
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
@@ -129,8 +127,7 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
         native-lib
         maesdk
-        UnitTests
-        gmock
+        ${zlib-path}
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

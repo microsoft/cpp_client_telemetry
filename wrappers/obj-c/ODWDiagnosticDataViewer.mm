@@ -105,7 +105,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     return result;
 }
 
-+(void)registerOnDisableNotification:(void(^)())callback
++(void)registerOnDisableNotification:(void(^)(void))callback
 {
     std::function<void()> disableNotification = std::bind(callback);
     _viewer->RegisterOnDisableNotification(disableNotification);
