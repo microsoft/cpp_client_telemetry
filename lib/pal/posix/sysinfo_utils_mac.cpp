@@ -26,6 +26,11 @@ std::string GetDeviceModel()
     return deviceModel;
 }
 
+std::string GetDeviceOsName()
+{
+    return std::string("Mac OS X");
+}
+
 std::string GetDeviceId()
 {
     uuid_t uuidBytes;
