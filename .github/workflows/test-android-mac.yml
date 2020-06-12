@@ -22,7 +22,7 @@ jobs:
     - name: Build and Test
       uses: reactivecircus/android-emulator-runner@v2
       with:
-        api-level: 30
+        api-level: 29
         ndk: 21.0.6528147
         cmake: 3.10.2.4988404
         working-directory: ./lib/android_build
