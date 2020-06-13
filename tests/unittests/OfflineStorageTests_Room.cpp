@@ -1,12 +1,16 @@
 //
 // Created by maharrim on 5/18/2020.
 //
+#ifdef ANDROID
 #include <android/log.h>
+#endif
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "offline/MemoryStorage.hpp"
+#ifdef ANDROID
 #include "offline/OfflineStorage_Room.hpp"
+#endif
 #include "offline/OfflineStorage_SQLite.hpp"
 #include "NullObjects.hpp"
 #include <functional>
@@ -53,12 +57,14 @@ public:
         std::ostringstream name;
         implementation = GetParam();
         switch (implementation) {
+#ifdef ANDROID
             case StorageImplementation::Room:
                 configMock[CFG_STR_CACHE_FILE_PATH] = "OfflineStorageTestsRoom.db";
                 offlineStorage = std::make_unique<MAE::OfflineStorage_Room>(nullLogManager, configMock);
                 EXPECT_CALL(observerMock, OnStorageOpened("Room/Init"))
                         .RetiresOnSaturation();
                 break;
+#endif
             case StorageImplementation::SQLite:
                 name << MAE::GetTempDirectory() << "OfflineStorageTestsSQLite.db";
                 configMock[CFG_STR_CACHE_FILE_PATH] = name.str();
@@ -78,7 +84,6 @@ public:
     {
         offlineStorage->Shutdown();
     }
-
     void DeleteAllRecords() {
         auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
         if (records.empty()) {
@@ -456,15 +461,11 @@ TEST_P(OfflineStorageTestsRoom, ResizeDB)
             StorageBlob {1, 2, 3, 4}
             );
     size_t index = 1;
-    __android_log_print(ANDROID_LOG_INFO, "MAE",
-            "Start fill");
     while (offlineStorage->GetSize() <= configMock.GetOfflineStorageMaximumSizeBytes()) {
         record.id = std::to_string(index);
         offlineStorage->StoreRecord(record);
         index += 1;
     }
-    __android_log_print(ANDROID_LOG_INFO, "MAE",
-            "End fill");
     auto preCount = offlineStorage->GetRecordCount();
     offlineStorage->ResizeDb();
     auto postCount = offlineStorage->GetRecordCount();
@@ -501,7 +502,7 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
                 StorageBlob(masterBlob)
         );
     }
-    __android_log_print(ANDROID_LOG_INFO, "MAE", "Start StoreRecords loop");
+
     while (offlineStorage->GetSize() < targetSize) {
         for (auto & record : records) {
             record.id = std::to_string(randomWord(gen));
@@ -510,14 +511,17 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
         ++blocks;
     }
     EXPECT_EQ(blocks * blockSize, offlineStorage->GetRecordCount());
-    __android_log_print(ANDROID_LOG_INFO, "MAE",
-            "Stored %zd blocks, %zd records, final size %zd bytes",
-            blocks, blocks*blockSize, offlineStorage->GetSize());
 }
+
+#ifdef ANDROID
+auto values = Values(StorageImplementation::Room, StorageImplementation::SQLite, StorageImplementation::Memory);
+#else
+auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memory);
+#endif
 
 INSTANTIATE_TEST_CASE_P(Storage,
         OfflineStorageTestsRoom,
-        Values(StorageImplementation::Room, StorageImplementation::SQLite, StorageImplementation::Memory),
+        values,
         [](const testing::TestParamInfo<OfflineStorageTestsRoom::ParamType>& info)->std::string {
     std::ostringstream s;
     s << info.param;
