@@ -475,7 +475,7 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
 {
     constexpr size_t targetSize = 2 * 1024 * 1024;
     constexpr size_t blobSize = 512;
-    constexpr size_t blockSize = 4096;
+    constexpr size_t blockSize = 1024;
 
     std::random_device rd;   // non-deterministic generator
     std::mt19937_64 gen(rd());  // to seed mersenne twister.

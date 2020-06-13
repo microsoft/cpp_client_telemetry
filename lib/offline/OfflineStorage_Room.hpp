@@ -68,8 +68,8 @@ namespace ARIASDK_NS_BEGIN {
         unsigned LastReadRecordCount() override;
 
         void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
-        void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
-        void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
+        void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders, bool&) override;
+        void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders, bool&) override;
 
         bool StoreSetting(std::string const& name, std::string const& value) override;
         void DeleteSetting(std::string const& name);
@@ -79,7 +79,7 @@ namespace ARIASDK_NS_BEGIN {
         StorageRecordVector GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         bool ResizeDb() override;
 
-        static void ConnectJVM(JNIEnv* env, jobject appContext, jclass room_class);
+        static void ConnectJVM(JNIEnv* env, jobject appContext);
 
     protected:
 
