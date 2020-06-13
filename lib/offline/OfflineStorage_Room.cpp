@@ -5,15 +5,33 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    /**
+     * Java virtual machine
+     * Set by ConnectJVM or the JNI connectContext methods.
+     */
+
     JavaVM* OfflineStorage_Room::s_vm = nullptr;
+
+    /**
+     * Application context
+     * The context we will use to construct the database.
+     * Set by ConnectJVM or the JNI connectContext methods.
+     */
+
     jobject OfflineStorage_Room::s_context = nullptr;
 
-    std::mutex OfflineStorage_Room::ConnectedEnv::s_envValuesMutex;
-    std::map<JNIEnv*, size_t> OfflineStorage_Room::ConnectedEnv::s_envValues;
-
-
+    /**
+     * We start by pushing a local JNI frame of this size
+     */
     constexpr static size_t INITIAL_FRAME_SIZE = 64;
 
+    /**
+     * JNI AttachCurrentThread and PushLocalFrame helper
+     */
+
+    /**
+     * Constructor: attach thread, save JNIEnv pointer
+     */
     OfflineStorage_Room::ConnectedEnv::ConnectedEnv(JavaVM *vm_)
     {
         vm = vm_;
@@ -25,6 +43,9 @@ namespace ARIASDK_NS_BEGIN
         pushLocalFrame(INITIAL_FRAME_SIZE);
     }
 
+    /**
+     * Destructor: pop local frames on exit
+     */
     OfflineStorage_Room::ConnectedEnv::~ConnectedEnv()
     {
         if (!!env && !!vm) {
@@ -35,6 +56,10 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
+    /**
+     * call PushLocalFrame and track current depth
+     */
+
     void
     OfflineStorage_Room::ConnectedEnv::pushLocalFrame(uint32_t frameSize)
     {
@@ -44,6 +69,10 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
+    /**
+     * PopLocalFrame and decrement depth
+     */
+
     void
     OfflineStorage_Room::ConnectedEnv::popLocalFrame() {
         if (push_count > 0) {
@@ -51,6 +80,13 @@ namespace ARIASDK_NS_BEGIN
             --push_count;
         }
     }
+
+    /**
+     * Drop-in replacement for OfflineStorage_SQLite.
+     * 
+     * @param[in] logManager Send DebugEvent here
+     * @param[in] runtimeConfig Configuration (imagine that)
+     */
 
     OfflineStorage_Room::OfflineStorage_Room(ILogManager& logManager, IRuntimeConfig& runtimeConfig) :
         m_manager(logManager), m_config(runtimeConfig)
@@ -65,6 +101,10 @@ namespace ARIASDK_NS_BEGIN
         m_notify_fraction = static_cast<double>(percent)/100.0;
     }
 
+    /**
+     * On destruction, call the Closeable close() method on Java OfflineRoom.
+     */
+
     OfflineStorage_Room::~OfflineStorage_Room()
     {
         if (s_vm && m_room) {
@@ -78,6 +118,8 @@ namespace ARIASDK_NS_BEGIN
                     env->ExceptionClear();
                 }
                 else {
+                    // We must call the close() method on the
+                    // database before we drop our reference
                     env->CallVoidMethod(m_room, closeId);
                     if (env->ExceptionCheck() == JNI_TRUE) {
                         env->ExceptionDescribe();
@@ -94,7 +136,16 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 
-    void OfflineStorage_Room::ConnectJVM(JNIEnv *env, jobject appContext, jclass /* unused */)
+    /**
+     * Connect Java VM and application context for later use in reverse-JNI
+     * 
+     * There is a static native method connectContext on the Java class OfflineRoom which will call
+     * this static method, as a convenient way to pass the application context to this method.
+     * 
+     * @param [in] env: JNI environment.
+     * @param [in] appContext: Context that will own database (usually application Context) 
+     */
+    void OfflineStorage_Room::ConnectJVM(JNIEnv *env, jobject appContext)
     {
        if (env->GetJavaVM(&s_vm) != JNI_OK) {
            s_vm = nullptr;
@@ -106,6 +157,14 @@ namespace ARIASDK_NS_BEGIN
        s_context = env->NewGlobalRef(appContext);
     }
 
+    /**
+     * Delete records matching a set of WHERE equality conditions
+     * 
+     * Only implements equality-on-tenantToken.
+     * @param[in] whereFilter The keys are column selectors (only tenant_token
+     * is supported). The corresponding value specifies the column value
+     * to match.
+     */
     void OfflineStorage_Room::DeleteRecords(const std::map<std::string, std::string>& whereFilter)
     {
         using Filter = std::map<std::string, std::string>;
@@ -125,6 +184,13 @@ namespace ARIASDK_NS_BEGIN
         env->CallLongMethod(m_room, deleteByToken, jToken);
     }
 
+    /**
+     * Delete records by identifier.
+     * 
+     * @param[in] ids A vector of std::string record ids.
+     * @param[out] fromMemory Always false (even when the database
+     * is held in memory, which can happen in tests).
+     */
     void OfflineStorage_Room::DeleteRecords(
         std::vector<StorageRecordId> const& ids,
         HttpHeaders, bool& fromMemory
@@ -143,6 +209,9 @@ namespace ARIASDK_NS_BEGIN
         ThrowLogic(env, "Unable to get deleteById method");
         ThrowRuntime(env, "Unable to allocate id array");
         size_t index = 0;
+        
+        /* Convert string identifiers to int64_t */
+
         env.pushLocalFrame(32);
         std::vector<jlong> roomIds;
         roomIds.reserve(ids.size());
@@ -164,6 +233,7 @@ namespace ARIASDK_NS_BEGIN
         if (roomIds.empty()) {
             return;
         }
+        // Convert to java array, call OfflineRoom.deleteById
         auto ids_java = env->NewLongArray(roomIds.size());
         env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
         ThrowLogic(env, "set delete ids");
@@ -171,6 +241,40 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "deleteById");
     }
 
+    /**
+     * Get records for the packager
+     * 
+     * If leaseTime is non-zero, this will set the reservedUntil
+     * column in the selected
+     * records. This method only selects records with a
+     * reservedUntil value in the past, so setting the column reserves the
+     * record and prevents later calls to GetAndReserveRecords
+     * from picking up and retransmitting the reserved records.
+     * 
+     * Because we retrieve the records in a batch, if the consumer
+     * functor returns false before the end of the batch, we
+     * will reset reservedUntil on the unconsumed records.
+     * 
+     * Records are sorted by:
+     * - Latency (Latency_RealTime first)
+     * - Persistence (Critical first)
+     * - Time (oldest first)
+     * 
+     * @param[in] consumer We call this functor for each
+     * record, and it may move or copy the record as it likes. If
+     * the functor returns false, we assume that it did not
+     * consume the record (and so we will not reserve it), and
+     * we will not call the functor again.
+     * @param[in] leaseTimeMs How long to reserve the records
+     * (in milliseconds). If zero, we do not reserve
+     * the records.
+     * @param[in] minLatency The lowest latency we will select.
+     * @param[in] maxCount The maximum number of records to select
+     * (and thus the maximum number of times we will call the
+     * functor).
+     * @return true for success. Could return false for failures, but
+     * this implementation does not.
+     */
     bool OfflineStorage_Room::GetAndReserveRecords(
         std::function<bool(StorageRecord&&)> const& consumer,
         unsigned leaseTimeMs,
@@ -284,6 +388,16 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
+    /**
+     * Initialize the database (and instantiate our androidx Room objects).
+     * 
+     * The ConnectJVM method must be called before this method to set up our
+     * connection to the JVM and the desired Context (usually the
+     * application context).
+     * 
+     * @param[in] observer In practice, an instance of StorageObserver. We
+     * communicate significant events back to this IOfflineStorageObserver.
+     */
     void OfflineStorage_Room::Initialize(IOfflineStorageObserver& observer)
     {
         static constexpr char k_init_string[] = "Room/Init";
@@ -306,35 +420,48 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "Failed to create db_name string");
         auto local_room = env->NewObject(room_class, constructor, s_context, java_db_name);
         ThrowRuntime(env, "Exception constructing OfflineRoom");
+        // we take a global reference on our instance of OfflineRoom, since we want
+        // it to stay alive across JNI calls.
         m_room = env->NewGlobalRef(local_room);
         ThrowRuntime(env, "Exception creating global ref to OfflineRoom");
         m_observer->OnStorageOpened(k_init_string);
     }
 
+    /**
+     * Was the last read from MemoryStorage? No. Always returns false.
+     */
     bool OfflineStorage_Room::IsLastReadFromMemory()
     {
         return false;
     }
 
+    /**
+     * How many records were accepted by the functor in GetAndReserveRecords().
+     */
     unsigned OfflineStorage_Room::LastReadRecordCount()
     {
         return m_lastReadCount;
     }
 
+    /**
+     * Release lease and optionally increment retry count for records.
+     * 
+     * @param[in] ids Vector of StorageRecord ids to release.
+     * @param[in] incrementRetryCount True if we should increment the retryCount column
+     * for these records.
+     * 
+     */
     void OfflineStorage_Room::ReleaseRecords(
         std::vector<StorageRecordId> const& ids,
         bool incrementRetryCount,
-        HttpHeaders, // unused
-        bool& // unused "from_memory" parameter
+        HttpHeaders,
+        bool&
     )
     {
         if (ids.empty()) {
             return;
         }
         ConnectedEnv env(s_vm);
-        if (!env) {
-            return;
-        }
         auto room_class = env->GetObjectClass(m_room);
         auto release = env->GetMethodID(room_class,
                 "releaseRecords",
@@ -408,9 +535,23 @@ namespace ARIASDK_NS_BEGIN
         }
     }
     
+    /**
+     * We do nothing for Shutdown() (our destructor closes the database)
+     */
     void OfflineStorage_Room::Shutdown()
     {
     }
+
+    /**
+     * Store a single record.
+     * 
+     * This makes a reverse-JNI call, so
+     * the StoreRecords() method with a batch of records will be
+     * more efficient.
+     * 
+     * @param[in] record StorageRecord to persist.
+     * @return true if we stored the record.
+     */
 
     bool OfflineStorage_Room::StoreRecord(StorageRecord const& record)
     {
@@ -418,6 +559,17 @@ namespace ARIASDK_NS_BEGIN
         records.push_back(record);
         return StoreRecords(records) > 0;
     }
+
+    /**
+     * Store a std::vector of records.
+     * 
+     * We ignore the id on these records. SQLite will assign a unique
+     * row id to each record we persist, and we will return that
+     * whenever we retrieve records.
+     * 
+     * @param[in] records The records to be persisted.
+     * @return the number of records we persisted.
+     */
 
     size_t OfflineStorage_Room::StoreRecords(StorageRecordVector & records)
     {
@@ -522,6 +674,12 @@ namespace ARIASDK_NS_BEGIN
         return count;
     }
 
+    /**
+     * Delete one setting (helper for StoreSetting)
+     * 
+     * @param[in] name The key to delete from the database.
+     */
+
     void OfflineStorage_Room::DeleteSetting(std::string const& name)
     {
         ConnectedEnv env(s_vm);
@@ -533,6 +691,14 @@ namespace ARIASDK_NS_BEGIN
         env->CallVoidMethod(m_room, delete_method, jName);
         ThrowLogic(env, "exception in delete setting");
     }
+
+    /**
+     * Store a value into our key-value Setting database
+     *
+     * @param[in] name Key.
+     * @param[in] value Value.
+     * @return true if we persisted the key-value pair.
+     */
 
     bool OfflineStorage_Room::StoreSetting(std::string const& name, std::string const& value)
     {
@@ -558,6 +724,16 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "Exception StoreSetting");
         return (count == 1);
     }
+
+    /**
+     * Retrieve value from key-value store.
+     * 
+     * Returns empty string if the key is not in the database, or we
+     * encounter errors.
+     * 
+     * @param[in] name Key.
+     * @return Corresponding value.
+     */
 
     std::string OfflineStorage_Room::GetSetting(std::string const &name)
     {
@@ -589,15 +765,23 @@ namespace ARIASDK_NS_BEGIN
         return result;
     }
 
+    /**
+     * @return The total size of the database in bytes
+     */
+
     size_t OfflineStorage_Room::GetSize()
     {
         ConnectedEnv env(s_vm);
         if (!env) {
             return 0;
         }
-        auto result = GetSizeInternal(env);
-        return result;
+        return GetSizeInternal(env);
     }
+
+    /**
+     * @param[in] env Our caller's ConnectedEnv.
+     * @returns The total size of the database in bytes.
+     */
 
     size_t OfflineStorage_Room::GetSizeInternal(ConnectedEnv& env) const {
         auto room_class = env->GetObjectClass(m_room);
@@ -607,6 +791,14 @@ namespace ARIASDK_NS_BEGIN
         }
         return env->CallLongMethod(m_room, method);
     }
+
+    /**
+     * Number of records (StorageRecord) for a latency (or all latencies)
+     * 
+     * @param[in] latency Desired latency (or EventLatency_Unspecified to get
+     * the total count for all latencies).
+     * @return number of records.
+     */
 
     size_t OfflineStorage_Room::GetRecordCount(EventLatency latency) const
     {
@@ -765,7 +957,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(
         JNIEnv *env,
-        jclass room_class,
+        jclass /* OfflineRoom class */,
         jobject context) {
-    ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context, room_class);
+    ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
 }
