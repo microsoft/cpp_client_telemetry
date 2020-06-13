@@ -1,7 +1,7 @@
 #include "OfflineStorage_Room.hpp"
-#include <jni.h>
-#include <exception>
 #include <cmath>
+#include <exception>
+#include <jni.h>
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -32,10 +32,11 @@ namespace ARIASDK_NS_BEGIN
     /**
      * Constructor: attach thread, save JNIEnv pointer
      */
-    OfflineStorage_Room::ConnectedEnv::ConnectedEnv(JavaVM *vm_)
+    OfflineStorage_Room::ConnectedEnv::ConnectedEnv(JavaVM* vm_)
     {
         vm = vm_;
-        if (vm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+        if (vm->AttachCurrentThread(&env, nullptr) != JNI_OK)
+        {
             env = nullptr;
             throw std::runtime_error("Unable to connect to Java thread");
             return;
@@ -48,8 +49,10 @@ namespace ARIASDK_NS_BEGIN
      */
     OfflineStorage_Room::ConnectedEnv::~ConnectedEnv()
     {
-        if (!!env && !!vm) {
-            while (push_count != 0) {
+        if (!!env && !!vm)
+        {
+            while (push_count != 0)
+            {
                 env->PopLocalFrame(nullptr);
                 --push_count;
             }
@@ -63,8 +66,8 @@ namespace ARIASDK_NS_BEGIN
     void
     OfflineStorage_Room::ConnectedEnv::pushLocalFrame(uint32_t frameSize)
     {
-        
-        if (env->PushLocalFrame(frameSize) == 0) {
+        if (env->PushLocalFrame(frameSize) == 0)
+        {
             ++push_count;
         }
     }
@@ -74,8 +77,10 @@ namespace ARIASDK_NS_BEGIN
      */
 
     void
-    OfflineStorage_Room::ConnectedEnv::popLocalFrame() {
-        if (push_count > 0) {
+    OfflineStorage_Room::ConnectedEnv::popLocalFrame()
+    {
+        if (push_count > 0)
+        {
             env->PopLocalFrame(nullptr);
             --push_count;
         }
@@ -95,10 +100,11 @@ namespace ARIASDK_NS_BEGIN
         m_lastReadCount.store(0);
         m_size_limit = m_config[CFG_INT_CACHE_FILE_SIZE];
         int percent = m_config[CFG_INT_STORAGE_FULL_PCT];
-        if (percent <= 0 || percent >= 150) {
+        if (percent <= 0 || percent >= 150)
+        {
             percent = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE;
         }
-        m_notify_fraction = static_cast<double>(percent)/100.0;
+        m_notify_fraction = static_cast<double>(percent) / 100.0;
     }
 
     /**
@@ -107,21 +113,26 @@ namespace ARIASDK_NS_BEGIN
 
     OfflineStorage_Room::~OfflineStorage_Room()
     {
-        if (s_vm && m_room) {
-            try {
+        if (s_vm && m_room)
+        {
+            try
+            {
                 ConnectedEnv env(s_vm);
 
                 auto roomClass = env->GetObjectClass(m_room);
                 auto closeId = env->GetMethodID(roomClass, "close", "()V");
-                if (env->ExceptionCheck() == JNI_TRUE) {
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
                     env->ExceptionDescribe();
                     env->ExceptionClear();
                 }
-                else {
+                else
+                {
                     // We must call the close() method on the
                     // database before we drop our reference
                     env->CallVoidMethod(m_room, closeId);
-                    if (env->ExceptionCheck() == JNI_TRUE) {
+                    if (env->ExceptionCheck() == JNI_TRUE)
+                    {
                         env->ExceptionDescribe();
                         env->ExceptionClear();
                     }
@@ -129,7 +140,8 @@ namespace ARIASDK_NS_BEGIN
                 env->DeleteGlobalRef(m_room);
                 env->ExceptionClear();
             }
-            catch (std::logic_error & e) {
+            catch (std::logic_error& e)
+            {
                 // just swallow the error
             }
             m_room = nullptr;
@@ -145,16 +157,17 @@ namespace ARIASDK_NS_BEGIN
      * @param [in] env: JNI environment.
      * @param [in] appContext: Context that will own database (usually application Context) 
      */
-    void OfflineStorage_Room::ConnectJVM(JNIEnv *env, jobject appContext)
+    void OfflineStorage_Room::ConnectJVM(JNIEnv* env, jobject appContext)
     {
-       if (env->GetJavaVM(&s_vm) != JNI_OK) {
-           s_vm = nullptr;
-           env->ExceptionDescribe();
-           env->ExceptionClear();
-           throw std::runtime_error("Unable to acquire JavaVM pointer");
-           return;
-       }
-       s_context = env->NewGlobalRef(appContext);
+        if (env->GetJavaVM(&s_vm) != JNI_OK)
+        {
+            s_vm = nullptr;
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+            throw std::runtime_error("Unable to acquire JavaVM pointer");
+            return;
+        }
+        s_context = env->NewGlobalRef(appContext);
     }
 
     /**
@@ -170,14 +183,15 @@ namespace ARIASDK_NS_BEGIN
         using Filter = std::map<std::string, std::string>;
         ConnectedEnv env(s_vm);
         Filter::const_iterator token = whereFilter.find("tenant_token");
-        if (whereFilter.size() != 1 || token == whereFilter.cend()) {
+        if (whereFilter.size() != 1 || token == whereFilter.cend())
+        {
             throw std::logic_error("whereFilter not implemented");
         }
 
         auto room_class = env->GetObjectClass(m_room);
         auto deleteByToken = env->GetMethodID(room_class,
-                "deleteByToken",
-                "(Ljava/lang/String;)J");
+                                              "deleteByToken",
+                                              "(Ljava/lang/String;)J");
         ThrowLogic(env, "dbt method");
         auto jToken = env->NewStringUTF(token->second.c_str());
         ThrowRuntime(env, "dbt token");
@@ -193,15 +207,17 @@ namespace ARIASDK_NS_BEGIN
      */
     void OfflineStorage_Room::DeleteRecords(
         std::vector<StorageRecordId> const& ids,
-        HttpHeaders, bool& fromMemory
-    )
+        HttpHeaders,
+        bool& fromMemory)
     {
         fromMemory = false;
-        if (ids.empty()) {
+        if (ids.empty())
+        {
             return;
         }
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return;
         }
         auto room_class = env->GetObjectClass(m_room);
@@ -209,28 +225,34 @@ namespace ARIASDK_NS_BEGIN
         ThrowLogic(env, "Unable to get deleteById method");
         ThrowRuntime(env, "Unable to allocate id array");
         size_t index = 0;
-        
+
         /* Convert string identifiers to int64_t */
 
         env.pushLocalFrame(32);
         std::vector<jlong> roomIds;
         roomIds.reserve(ids.size());
-        for (auto & id : ids) {
+        for (auto& id : ids)
+        {
             long long n = 0;
-            try {
+            try
+            {
                 n = std::stoll(id);
-                if (n > 0) {
+                if (n > 0)
+                {
                     roomIds.push_back(n);
                 }
             }
-            catch (std::out_of_range e) {
+            catch (std::out_of_range e)
+            {
                 m_observer->OnStorageFailed("ID out of range");
             }
-            catch (std::invalid_argument e) {
+            catch (std::invalid_argument e)
+            {
                 m_observer->OnStorageFailed("Empty ID");
             }
         }
-        if (roomIds.empty()) {
+        if (roomIds.empty())
+        {
             return;
         }
         // Convert to java array, call OfflineRoom.deleteById
@@ -282,7 +304,8 @@ namespace ARIASDK_NS_BEGIN
         unsigned maxCount)
     {
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return false;
         }
         auto room_class = env->GetObjectClass(m_room);
@@ -291,10 +314,10 @@ namespace ARIASDK_NS_BEGIN
         auto now = PAL::getUtcSystemTimeMs();
         auto until = now + leaseTimeMs;
         jobjectArray selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
-                static_cast<int>(minLatency),
-                static_cast<int64_t>(maxCount ? maxCount : -1),
-                static_cast<int64_t>(now),
-                static_cast<int64_t>(until)));
+                                                                                static_cast<int>(minLatency),
+                                                                                static_cast<int64_t>(maxCount ? maxCount : -1),
+                                                                                static_cast<int64_t>(now),
+                                                                                static_cast<int64_t>(until)));
         ThrowRuntime(env, "Call getAndReserve");
         size_t index;
         size_t limit = env->GetArrayLength(selected);
@@ -316,11 +339,13 @@ namespace ARIASDK_NS_BEGIN
         int persist_lb = static_cast<int>(EventPersistence_Normal);
         int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
-        for (index = 0; index < limit; ++index) {
+        for (index = 0; index < limit; ++index)
+        {
             env.pushLocalFrame(32);
             auto record = env->GetObjectArrayElement(selected, index);
             ThrowLogic(env, "getAndReserve element");
-            if (!record_class) {
+            if (!record_class)
+            {
                 record_class = env->GetObjectClass(record);
                 id_id = env->GetFieldID(record_class, "id", "J");
                 ThrowLogic(env, "gar id");
@@ -362,23 +387,24 @@ namespace ARIASDK_NS_BEGIN
             ThrowLogic(env, "get blob storage");
             uint8_t* end = start + env->GetArrayLength(blob_java);
             StorageRecord dest(
-                    std::to_string(id_java),
-                    token_utf,
-                    latency,
-                    persistence,
-                    timestamp,
-                    StorageBlob(start, end),
-                    retryCount,
-                    reservedUntil
-                    );
+                std::to_string(id_java),
+                token_utf,
+                latency,
+                persistence,
+                timestamp,
+                StorageBlob(start, end),
+                retryCount,
+                reservedUntil);
             env->ReleaseStringUTFChars(tenantToken_java, token_utf);
-            env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte *>(start), 0);
+            env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte*>(start), 0);
             env.popLocalFrame();
-            if (!consumer(std::move(dest))) {
+            if (!consumer(std::move(dest)))
+            {
                 break;
             }
         }
-        if (index < limit) {
+        if (index < limit)
+        {
             auto release = env->GetMethodID(room_class, "releaseUnconsumed", "([Lcom/microsoft/applications/events/StorageRecord;I)V");
             ThrowLogic(env, "releaseUnconsumed");
             env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
@@ -404,11 +430,13 @@ namespace ARIASDK_NS_BEGIN
 
         m_observer = &observer;
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return;
         }
-        auto db_name = static_cast<const char *>(m_config[CFG_STR_CACHE_FILE_PATH]);
-        if (!db_name || !*db_name) {
+        auto db_name = static_cast<const char*>(m_config[CFG_STR_CACHE_FILE_PATH]);
+        if (!db_name || !*db_name)
+        {
             db_name = "MAEvents";
         }
         static constexpr char room_class_name[] = "com/microsoft/applications/events/OfflineRoom";
@@ -455,40 +483,46 @@ namespace ARIASDK_NS_BEGIN
         std::vector<StorageRecordId> const& ids,
         bool incrementRetryCount,
         HttpHeaders,
-        bool&
-    )
+        bool&)
     {
-        if (ids.empty()) {
+        if (ids.empty())
+        {
             return;
         }
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
         auto release = env->GetMethodID(room_class,
-                "releaseRecords",
-                "([JZJ)[Lcom/microsoft/applications/events/ByTenant;"
-                );
+                                        "releaseRecords",
+                                        "([JZJ)[Lcom/microsoft/applications/events/ByTenant;");
         ThrowLogic(env, "Exception finding releaseRecords");
         int64_t maximumRetries = 0;
-        if (incrementRetryCount) {
+        if (incrementRetryCount)
+        {
             maximumRetries = m_config.GetMaximumRetryCount();
         }
         std::vector<jlong> roomIds;
         roomIds.reserve(ids.size());
-        for (auto const &id : ids) {
-            try {
+        for (auto const& id : ids)
+        {
+            try
+            {
                 long long roomId = std::stoll(id);
-                if (roomId > 0) {
+                if (roomId > 0)
+                {
                     roomIds.push_back(roomId);
                 }
             }
-            catch (std::out_of_range e) {
+            catch (std::out_of_range e)
+            {
                 m_observer->OnStorageFailed("id out of range");
             }
-            catch (std::invalid_argument e) {
+            catch (std::invalid_argument e)
+            {
                 m_observer->OnStorageFailed("id empty");
             }
         }
-        if (roomIds.empty()) {
+        if (roomIds.empty())
+        {
             return;
         }
         auto ids_java = env->NewLongArray(roomIds.size());
@@ -496,26 +530,30 @@ namespace ARIASDK_NS_BEGIN
         env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
         ThrowLogic(env, "ids_java");
         jobjectArray results = static_cast<jobjectArray>(
-                env->CallObjectMethod(
-                        m_room,
-                        release,
-                        ids_java,
-                        incrementRetryCount,
-                        maximumRetries));
+            env->CallObjectMethod(
+                m_room,
+                release,
+                ids_java,
+                incrementRetryCount,
+                maximumRetries));
         ThrowRuntime(env, "Exception in releaseRecords");
         size_t tokens = 0;
-        if (!!results) {
+        if (!!results)
+        {
             tokens = env->GetArrayLength(results);
         }
-        if (tokens > 0) {
+        if (tokens > 0)
+        {
             DroppedMap dropped;
             jclass bt_class = nullptr;
             jfieldID token_id;
             jfieldID count_id;
-            for (size_t index = 0; index < tokens; ++index) {
+            for (size_t index = 0; index < tokens; ++index)
+            {
                 auto byTenant = env->GetObjectArrayElement(results, index);
                 ThrowRuntime(env, "Exception fetching element from results");
-                if (!bt_class) {
+                if (!bt_class)
+                {
                     bt_class = env->GetObjectClass(byTenant);
                     token_id = env->GetFieldID(bt_class, "tenantToken", "Ljava/lang/String;");
                     ThrowLogic(env, "Error fetching tenantToken field id");
@@ -534,7 +572,7 @@ namespace ARIASDK_NS_BEGIN
             m_observer->OnStorageRecordsDropped(dropped);
         }
     }
-    
+
     /**
      * We do nothing for Shutdown() (our destructor closes the database)
      */
@@ -571,46 +609,53 @@ namespace ARIASDK_NS_BEGIN
      * @return the number of records we persisted.
      */
 
-    size_t OfflineStorage_Room::StoreRecords(StorageRecordVector & records)
+    size_t OfflineStorage_Room::StoreRecords(StorageRecordVector& records)
     {
-        if (records.size() == 0) {
+        if (records.size() == 0)
+        {
             return 0;
         }
 
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return 0;
         }
 
         static constexpr char newRecordSignature[] =
-                "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
+            "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
         auto room_class = env->GetObjectClass(m_room);
 
         size_t count = std::min<size_t>(records.size(), INT32_MAX);
         env.pushLocalFrame(8);
         size_t buffer_size = 0;
-        for (auto const & record : records) {
+        for (auto const& record : records)
+        {
             buffer_size += record.tenantToken.size() + record.blob.size();
         }
-        if (buffer_size >= UINT32_MAX) {
+        if (buffer_size >= UINT32_MAX)
+        {
             throw std::runtime_error("Buffer size");
         }
-        std::vector<jbyte> buffer; // tenantToken, blob
+        std::vector<jbyte> buffer;  // tenantToken, blob
         std::vector<jint> indices;
-        std::vector<jint> smallNumbers; // latency, persistence, retryCount
-        std::vector<jlong> bigNumbers; // id, timestamp, reservedUntil
+        std::vector<jint> smallNumbers;  // latency, persistence, retryCount
+        std::vector<jlong> bigNumbers;   // id, timestamp, reservedUntil
         buffer.reserve(buffer_size);
         indices.reserve(3 * count);
         smallNumbers.reserve(3 * count);
         bigNumbers.reserve(3 * count);
 
-        for (auto & record : records) {
+        for (auto& record : records)
+        {
             indices.push_back(record.tenantToken.size());
-            for (size_t i = 0; i < record.tenantToken.size(); ++i) {
+            for (size_t i = 0; i < record.tenantToken.size(); ++i)
+            {
                 buffer.push_back(record.tenantToken[i]);
             }
             indices.push_back(record.blob.size());
-            for (size_t i = 0; i < record.blob.size(); ++i) {
+            for (size_t i = 0; i < record.blob.size(); ++i)
+            {
                 buffer.push_back(record.blob[i]);
             }
             smallNumbers.push_back(record.latency);
@@ -644,22 +689,28 @@ namespace ARIASDK_NS_BEGIN
         auto current = m_checkAfterInsertCounter.load();
         size_t newValue;
         // atomic decrement counter
-        do {
-            if (m_checkAfterInsertCounter <= count) {
+        do
+        {
+            if (m_checkAfterInsertCounter <= count)
+            {
                 shouldCheck = true;
                 newValue = CHECK_INSERT_COUNT;
             }
-            else {
+            else
+            {
                 shouldCheck = false;
                 newValue = current - count;
             }
         } while (!m_checkAfterInsertCounter.compare_exchange_weak(current, newValue));
-        if (shouldCheck) {
+        if (shouldCheck)
+        {
             auto sizeEstimate = GetSizeInternal(env);
-            double ratio = static_cast<double>(sizeEstimate)/static_cast<double>(m_size_limit);
-            if (m_notify_fraction <= ratio) {
+            double ratio = static_cast<double>(sizeEstimate) / static_cast<double>(m_size_limit);
+            if (m_notify_fraction <= ratio)
+            {
                 auto now = PAL::getMonotonicTimeMs();
-                if (now > m_storageFullNotifyTime + DB_FULL_CHECK_TIME_MS) {
+                if (now > m_storageFullNotifyTime + DB_FULL_CHECK_TIME_MS)
+                {
                     m_storageFullNotifyTime = now;
                     DebugEvent evt;
                     evt.type = DebugEventType::EVT_STORAGE_FULL;
@@ -667,7 +718,8 @@ namespace ARIASDK_NS_BEGIN
                     m_manager.DispatchEvent(evt);
                 }
             }
-            if (sizeEstimate >= m_size_limit) {
+            if (sizeEstimate >= m_size_limit)
+            {
                 ResizeDbInternal(env);
             }
         }
@@ -702,17 +754,17 @@ namespace ARIASDK_NS_BEGIN
 
     bool OfflineStorage_Room::StoreSetting(std::string const& name, std::string const& value)
     {
-        if (value.size() == 0) {
+        if (value.size() == 0)
+        {
             DeleteSetting(name);
             return true;
         }
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
         jmethodID store_setting = env->GetMethodID(
-                room_class,
-                "storeSetting",
-                "(Ljava/lang/String;Ljava/lang/String;)J"
-                );
+            room_class,
+            "storeSetting",
+            "(Ljava/lang/String;Ljava/lang/String;)J");
         ThrowLogic(env, "method storeSetting");
         env.pushLocalFrame(8);
 
@@ -735,28 +787,30 @@ namespace ARIASDK_NS_BEGIN
      * @return Corresponding value.
      */
 
-    std::string OfflineStorage_Room::GetSetting(std::string const &name)
+    std::string OfflineStorage_Room::GetSetting(std::string const& name)
     {
-        if (!s_vm || !m_room) {
+        if (!s_vm || !m_room)
+        {
             return "";
         }
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return "";
         }
         auto room_class = env->GetObjectClass(m_room);
         auto get_method = env->GetMethodID(room_class, "getSetting",
-                                    "(Ljava/lang/String;)Ljava/lang/String;");
+                                           "(Ljava/lang/String;)Ljava/lang/String;");
         ThrowLogic(env, "getSetting method");
         env.pushLocalFrame(8);
         auto java_name = env->NewStringUTF(name.c_str());
         ThrowRuntime(env, "name string");
         auto java_value = static_cast<jstring>(
-                env->CallObjectMethod(m_room, get_method, java_name)
-                );
+            env->CallObjectMethod(m_room, get_method, java_name));
         ThrowRuntime(env, "Exception getSetting");
         std::string result;
-        if (java_value) {
+        if (java_value)
+        {
             auto utf = env->GetStringUTFChars(java_value, nullptr);
             ThrowRuntime(env, "copy setting value");
             result = utf;
@@ -772,7 +826,8 @@ namespace ARIASDK_NS_BEGIN
     size_t OfflineStorage_Room::GetSize()
     {
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return 0;
         }
         return GetSizeInternal(env);
@@ -783,10 +838,12 @@ namespace ARIASDK_NS_BEGIN
      * @returns The total size of the database in bytes.
      */
 
-    size_t OfflineStorage_Room::GetSizeInternal(ConnectedEnv& env) const {
+    size_t OfflineStorage_Room::GetSizeInternal(ConnectedEnv& env) const
+    {
         auto room_class = env->GetObjectClass(m_room);
         auto method = env->GetMethodID(room_class, "totalSize", "()J");
-        if (!method) {
+        if (!method)
+        {
             return 0;
         }
         return env->CallLongMethod(m_room, method);
@@ -803,7 +860,8 @@ namespace ARIASDK_NS_BEGIN
     size_t OfflineStorage_Room::GetRecordCount(EventLatency latency) const
     {
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return 0;
         }
         auto room_class = env->GetObjectClass(m_room);
@@ -816,22 +874,25 @@ namespace ARIASDK_NS_BEGIN
     bool OfflineStorage_Room::ResizeDb()
     {
         ConnectedEnv env(s_vm);
-        if (!env) {
+        if (!env)
+        {
             return false;
         }
         bool result = ResizeDbInternal(env);
         return result;
     }
 
-    bool OfflineStorage_Room::ResizeDbInternal(ConnectedEnv &env)
+    bool OfflineStorage_Room::ResizeDbInternal(ConnectedEnv& env)
     {
         std::lock_guard<std::mutex> lock(m_resize_mutex);
-        if (!env) {
+        if (!env)
+        {
             return false;
         }
         auto limit = static_cast<uint32_t>(m_config.GetOfflineStorageMaximumSizeBytes());
         auto current = GetSizeInternal(env);
-        if (current < limit) {
+        if (current < limit)
+        {
             return false;
         }
         auto room_class = env->GetObjectClass(m_room);
@@ -848,11 +909,13 @@ namespace ARIASDK_NS_BEGIN
     }
 
     StorageRecordVector OfflineStorage_Room::GetRecords(
-            bool shutdown,
-            EventLatency minLatency,
-            unsigned int maxCount) {
+        bool shutdown,
+        EventLatency minLatency,
+        unsigned int maxCount)
+    {
         int64_t limit = maxCount;
-        if (limit == 0) {
+        if (limit == 0)
+        {
             limit = -1;
         }
         StorageRecordVector records;
@@ -873,15 +936,17 @@ namespace ARIASDK_NS_BEGIN
         jfieldID blob_id;
 
         auto java_records = static_cast<jobjectArray>(env->CallObjectMethod(m_room, method, shutdown,
-                static_cast<jint>(minLatency), limit));
+                                                                            static_cast<jint>(minLatency), limit));
         ThrowRuntime(env, "call getRecords");
         auto result_count = env->GetArrayLength(java_records);
         records.reserve(result_count);
-        for (size_t record_index = 0; record_index < result_count; ++record_index) {
+        for (size_t record_index = 0; record_index < result_count; ++record_index)
+        {
             env.pushLocalFrame(64);
             auto record = env->GetObjectArrayElement(java_records, record_index);
             ThrowLogic(env, "access result element");
-            if (!record_class) {
+            if (!record_class)
+            {
                 record_class = env->GetObjectClass(record);
                 id_id = env->GetFieldID(record_class, "id", "J");
                 ThrowLogic(env, "id field");
@@ -911,18 +976,18 @@ namespace ARIASDK_NS_BEGIN
             uint64_t reservedUntil = env->GetLongField(record, reservedUntil_id);
             jbyteArray blob_j = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
             auto elements = env->GetByteArrayElements(blob_j, nullptr);
-            auto blob_store = reinterpret_cast<const uint8_t *>(elements);
+            auto blob_store = reinterpret_cast<const uint8_t*>(elements);
             size_t blob_length = env->GetArrayLength(blob_j);
             auto blob_end = blob_store + blob_length;
             records.emplace_back(
-                    std::to_string(id_j),
-                    tenant_utf,
-                    latency,
-                    persistence,
-                    timestamp,
-                    StorageBlob(blob_store, blob_end),
-                    retryCount,
-                    reservedUntil);
+                std::to_string(id_j),
+                tenant_utf,
+                latency,
+                persistence,
+                timestamp,
+                StorageBlob(blob_store, blob_end),
+                retryCount,
+                reservedUntil);
             env->ReleaseStringUTFChars(tenant_j, tenant_utf);
             env->ReleaseByteArrayElements(blob_j, elements, 0);
             env.popLocalFrame();
@@ -931,8 +996,10 @@ namespace ARIASDK_NS_BEGIN
     }
 
     void
-    OfflineStorage_Room::ThrowLogic(OfflineStorage_Room::ConnectedEnv &env, const char *message) const {
-        if (env->ExceptionCheck() == JNI_TRUE) {
+    OfflineStorage_Room::ThrowLogic(OfflineStorage_Room::ConnectedEnv& env, const char* message) const
+    {
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
             env->ExceptionDescribe();
             env->ExceptionClear();
             throw std::logic_error(message);
@@ -940,9 +1007,11 @@ namespace ARIASDK_NS_BEGIN
     }
 
     void
-    OfflineStorage_Room::ThrowRuntime(OfflineStorage_Room::ConnectedEnv &env,
-                                      const char *message) const {
-        if (env->ExceptionCheck() == JNI_TRUE) {
+    OfflineStorage_Room::ThrowRuntime(OfflineStorage_Room::ConnectedEnv& env,
+                                      const char* message) const
+    {
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
             env->ExceptionDescribe();
             env->ExceptionClear();
             throw std::runtime_error(message);
@@ -951,13 +1020,14 @@ namespace ARIASDK_NS_BEGIN
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_Room, "EventsSDK.RoomStorage", "Offline Storage: Android Room database")
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END
 
-extern "C"
-JNIEXPORT void JNICALL
+extern "C" JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(
-        JNIEnv *env,
-        jclass /* OfflineRoom class */,
-        jobject context) {
+    JNIEnv* env,
+    jclass /* OfflineRoom class */,
+    jobject context)
+{
     ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
 }
