@@ -34,6 +34,7 @@
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp">

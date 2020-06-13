@@ -16,6 +16,7 @@ class MockIOfflineStorage : public MAT::IOfflineStorage {
     MOCK_METHOD0(Shutdown, void());
     MOCK_METHOD0(Flush, void());
     MOCK_METHOD1(StoreRecord, bool(MAT::StorageRecord const &));
+    MOCK_METHOD1(StoreRecords, size_t(std::vector<MAT::StorageRecord> &));
     MOCK_METHOD4(GetAndReserveRecords, bool(std::function<bool(MAT::StorageRecord&&)> const &, unsigned, MAT::EventLatency, unsigned));
     MOCK_METHOD0(IsLastReadFromMemory, bool());
     MOCK_METHOD0(LastReadRecordCount, unsigned());
