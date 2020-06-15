@@ -27,7 +27,6 @@ namespace ARIASDK_NS_BEGIN {
     {
         out[0] = 1;
         out[1] = 2;
-        out[2] = 4;
     }
 
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }
