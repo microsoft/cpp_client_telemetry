@@ -51,7 +51,9 @@ namespace ARIASDK_NS_BEGIN {
         bool initializeDatabase();
         bool recreate(unsigned failureCode);
 
-        std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
+        std::vector<uint8_t> packageIdList(
+            std::vector<std::string>::const_iterator const & begin,
+            std::vector<std::string>::const_iterator const & end) const;
 
         // Debug routine to print record count in the DB
         void printRecordCount();
@@ -86,6 +88,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t                      m_stmtTrimEvents_percent {};
         size_t                      m_stmtDeleteEvents_ids {};
         size_t                      m_stmtReleaseExpiredEvents {};
+        size_t                      m_stmtDeleteEvents_tenants {};
         size_t                      m_stmtSelectEvents {};
         size_t                      m_stmtSelectEventAtShutdown {};
         size_t                      m_stmtSelectEventsMinlatency {};

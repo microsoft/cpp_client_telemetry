@@ -30,6 +30,7 @@ set(SRCS
   MetaStatsTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
+  OfflineStorageTests_Room.cpp
   OfflineStorageTests_SQLite.cpp
   PackagerTests.cpp
   PalTests.cpp

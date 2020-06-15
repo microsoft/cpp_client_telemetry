@@ -25,19 +25,12 @@ include_directories(AFTER
         # Test sources.
         "${gtest_dir}")
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
-
 set(TESTS_COMMON_SRCS
         ${SDK_ROOT}/tests/common/Common.cpp
         ${SDK_ROOT}/tests/common/Mocks.cpp
         ${SDK_ROOT}/tests/common/Reactor.cpp
         ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
-        ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
-        ${SDK_ROOT}/sqlite/sqlite3.c
-)
+        )
 
 set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/BackoffTests_ExponentialWithJitter.cpp
@@ -76,7 +69,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/TransmissionPolicyManagerTests.cpp
         ${SDK_ROOT}/tests/unittests/TransmitProfilesTests.cpp
         ${SDK_ROOT}/tests/unittests/UtilsTests.cpp
-)
+        )
 
 find_package( ZLIB REQUIRED )
 include_directories(
@@ -91,6 +84,19 @@ set_target_properties(maesdk PROPERTIES
         IMPORTED_LOCATION "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so"
         IMPORTED_LOCATION_Release "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so")
 
+# include the other flavor of database: if maesdk builds with Room include sqlite
+# if maesdk builds with native sqlite, include Room
+
+if (USE_ROOM)
+        set(OTHER_OFFLINE_SRCS
+                ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
+                ${SDK_ROOT}/sqlite/sqlite3.c
+        )
+else()
+        set(OTHER_OFFLINE_SRCS
+                ${SDK_ROOT}/lib/offline/OfflineStorage_Room.cpp
+        )
+endif()
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -113,6 +119,7 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         native-lib.cpp
+        ${OTHER_OFFLINE_SRCS}
         ${gtest_dir}/src/gtest-all.cc
         ${gmock_dir}/src/gmock-all.cc
         ${TESTS_COMMON_SRCS}
@@ -127,8 +134,9 @@ add_library( # Sets the name of the library.
 target_link_libraries( # Specifies the target library.
         native-lib
         maesdk
-        ${zlib-path}
         # Links the target library to the log library
         # included in the NDK.
-        ${log-lib})
+        ${log-lib}
+        ${zlib-path}
+        )
         
