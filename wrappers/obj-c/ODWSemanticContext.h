@@ -25,6 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 -(void)setUserAdvertisingId:(nonnull NSString *)userAdvertisingId;
 
+/*!
+ @brief Sets the experiment tag (experiment configuration) context information for telemetry events.
+ <b>Note:</b> This method removes any previously stored experiment IDs that were set using setAppExperimentETag.
+ @param eTag A string that contains the ETag which is a hash of the set of experiments.
+ */
+-(void)setAppExperimentETag:(nonnull NSString *)eTag;
+
 @end
 
 NS_ASSUME_NONNULL_END
