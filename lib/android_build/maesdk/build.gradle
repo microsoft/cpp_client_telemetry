@@ -1,3 +1,8 @@
+plugins {
+    id 'maven-publish'
+    id 'net.linguica.maven-settings' version '0.5'
+}
+
 apply plugin: 'com.android.library'
 
 android {
@@ -16,7 +21,7 @@ android {
         externalNativeBuild {
             cmake {
                 // Passes optional arguments to CMake.
-                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1"
+                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1"
             }
         }
         javaCompileOptions {
@@ -54,7 +59,7 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     testImplementation 'org.mockito:mockito-inline:3.2.4'
     testImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

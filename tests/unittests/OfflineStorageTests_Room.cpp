@@ -1,13 +1,19 @@
 //
 // Created by maharrim on 5/18/2020.
 //
+#ifdef ANDROID
+#include <android/log.h>
+#endif
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "offline/MemoryStorage.hpp"
+#ifdef ANDROID
 #include "offline/OfflineStorage_Room.hpp"
+#endif
 #include "offline/OfflineStorage_SQLite.hpp"
 #include "NullObjects.hpp"
+#include <functional>
 #include <string>
 
 namespace MAE = ::Microsoft::Applications::Events;
@@ -45,18 +51,20 @@ public:
     OfflineStorageTestsRoom() : logManager(&nullLogManager)
     {
         EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(
-                Return(UINT_MAX));
+                Return(32 * 4096));
         EXPECT_CALL(configMock, GetMaximumRetryCount()).WillRepeatedly(
                 Return(5));
         std::ostringstream name;
         implementation = GetParam();
         switch (implementation) {
+#ifdef ANDROID
             case StorageImplementation::Room:
                 configMock[CFG_STR_CACHE_FILE_PATH] = "OfflineStorageTestsRoom.db";
                 offlineStorage = std::make_unique<MAE::OfflineStorage_Room>(nullLogManager, configMock);
                 EXPECT_CALL(observerMock, OnStorageOpened("Room/Init"))
                         .RetiresOnSaturation();
                 break;
+#endif
             case StorageImplementation::SQLite:
                 name << MAE::GetTempDirectory() << "OfflineStorageTestsSQLite.db";
                 configMock[CFG_STR_CACHE_FILE_PATH] = name.str();
@@ -76,7 +84,6 @@ public:
     {
         offlineStorage->Shutdown();
     }
-
     void DeleteAllRecords() {
         auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
         if (records.empty()) {
@@ -90,6 +97,7 @@ public:
         HttpHeaders h;
         bool fromMemory = false;
         offlineStorage->DeleteRecords(ids, h, fromMemory);
+        EXPECT_EQ(0, offlineStorage->GetRecordCount());
     }
 
     void SetUp() override {
@@ -293,9 +301,6 @@ TEST_P(OfflineStorageTestsRoom, TestGetRecords) {
 
 TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
     size_t count = 5000;
-    if (implementation == StorageImplementation::SQLite) {
-        count = 64; // issue 411
-    }
     auto now = PAL::getUtcSystemTimeMs();
     auto retries = configMock.GetMaximumRetryCount() + 1;
     std::vector<StorageRecord> manyRecords;
@@ -343,9 +348,180 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
     EXPECT_EQ(remainingRecords, offlineStorage->GetRecordCount(EventLatency_Normal));
 }
 
+TEST_P(OfflineStorageTestsRoom, LastReadRecordCount) {
+    size_t count = 5000;
+    size_t consume = 315;
+    std::hash<size_t> id_hash;
+    StorageRecordVector records;
+    records.reserve(count);
+    auto now = PAL::getUtcSystemTimeMs();
+    for (size_t i = 0; i < count; i++) {
+        auto id = id_hash(i);
+        auto id_string = std::to_string(id);
+        records.emplace_back(
+                id_string,
+                id_string,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {3, 1, 4, 1, 5, 9}
+                );
+    }
+    offlineStorage->StoreRecords(records);
+    records.clear();
+    offlineStorage->GetAndReserveRecords(
+            [&records, consume](StorageRecord && record)->bool
+            {
+                if (records.size() >= consume) {
+                    return false;
+                }
+                records.emplace_back(record);
+                return true;
+            },
+            5000
+            );
+    EXPECT_EQ(consume, offlineStorage->LastReadRecordCount());
+}
+
+TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
+    auto now = PAL::getUtcSystemTimeMs();
+    StorageRecord r(
+            "Fred",
+            "George",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            now,
+            StorageBlob {1, 2, 3}
+            );
+    offlineStorage->StoreRecord(r);
+    offlineStorage->GetAndReserveRecords(
+            [](StorageRecord && record)->bool
+            {
+                return false;
+            },
+            5000
+            );
+    EXPECT_EQ(0, offlineStorage->LastReadRecordCount());
+    StorageRecordVector records;
+    offlineStorage->GetAndReserveRecords(
+            [&records] (StorageRecord && record)->bool
+            {
+                records.emplace_back(std::move(record));
+                return true;
+            }, 5000
+            );
+    EXPECT_EQ(1, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(1, records.size());
+    offlineStorage->GetAndReserveRecords(
+            [] (StorageRecord && record)->bool
+            {
+                ADD_FAILURE();
+                return false;
+            },
+            5000
+            );
+}
+
+TEST_P(OfflineStorageTestsRoom, DeleteByToken)
+{
+    StorageRecordVector records;
+    auto now = PAL::getUtcSystemTimeMs();
+    for (size_t i = 0; i < 1000; ++i) {
+        auto id = std::to_string(i);
+        auto tenantToken = std::to_string(i % 5);
+        records.emplace_back(
+                id,
+                tenantToken,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {1, 2, static_cast<unsigned char>(i), 4, 5}
+        );
+    }
+    offlineStorage->StoreRecords(records);
+    EXPECT_EQ(1000, offlineStorage->GetRecordCount());
+    offlineStorage->DeleteRecords({{ "tenant_token", "0"}});
+    EXPECT_EQ(800, offlineStorage->GetRecordCount());
+}
+
+TEST_P(OfflineStorageTestsRoom, ResizeDB)
+{
+    if (implementation == StorageImplementation::Memory) {
+        return;
+    }
+
+    auto now = PAL::getUtcSystemTimeMs();
+
+    StorageRecord record(
+            "",
+            "TenantFred",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            now,
+            StorageBlob {1, 2, 3, 4}
+            );
+    size_t index = 1;
+    while (offlineStorage->GetSize() <= configMock.GetOfflineStorageMaximumSizeBytes()) {
+        record.id = std::to_string(index);
+        offlineStorage->StoreRecord(record);
+        index += 1;
+    }
+    auto preCount = offlineStorage->GetRecordCount();
+    offlineStorage->ResizeDb();
+    auto postCount = offlineStorage->GetRecordCount();
+    EXPECT_GT(preCount, postCount);
+}
+
+TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
+{
+    constexpr size_t targetSize = 2 * 1024 * 1024;
+    constexpr size_t blobSize = 512;
+    constexpr size_t blockSize = 1024;
+
+    std::random_device rd;   // non-deterministic generator
+    std::mt19937_64 gen(rd());  // to seed mersenne twister.
+    std::uniform_int_distribution<> randomByte(0,255);
+    std::uniform_int_distribution<uint64_t> randomWord(0, UINT64_MAX);
+    auto now = PAL::getUtcSystemTimeMs();
+
+    StorageBlob masterBlob;
+    masterBlob.reserve(blobSize);
+    while (masterBlob.size() < blobSize) {
+        masterBlob.push_back(randomByte(gen));
+    }
+    size_t blocks = 0;
+    StorageRecordVector records;
+    records.reserve(blockSize);
+    while (records.size() < blockSize) {
+        records.emplace_back(
+                "",
+                "Fred-Doom-Token23",
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob(masterBlob)
+        );
+    }
+
+    while (offlineStorage->GetSize() < targetSize) {
+        for (auto & record : records) {
+            record.id = std::to_string(randomWord(gen));
+        }
+        offlineStorage->StoreRecords(records);
+        ++blocks;
+    }
+    EXPECT_EQ(blocks * blockSize, offlineStorage->GetRecordCount());
+}
+
+#ifdef ANDROID
+auto values = Values(StorageImplementation::Room, StorageImplementation::SQLite, StorageImplementation::Memory);
+#else
+auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memory);
+#endif
+
 INSTANTIATE_TEST_CASE_P(Storage,
         OfflineStorageTestsRoom,
-        Values(StorageImplementation::Room, StorageImplementation::SQLite, StorageImplementation::Memory),
+        values,
         [](const testing::TestParamInfo<OfflineStorageTestsRoom::ParamType>& info)->std::string {
     std::ostringstream s;
     s << info.param;

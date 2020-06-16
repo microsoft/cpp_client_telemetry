@@ -85,23 +85,23 @@ public:
                 );
     }
 
-    void OnTestProgramEnd(const ::testing::UnitTest& unitTest) override {
+    void OnTestProgramEnd(const ::testing::UnitTest& unit) override {
         __android_log_print(
                 ANDROID_LOG_INFO,
                 "MAE",
-                "End tests: %d succeeded, %d failed, %d total\n",
-                unitTest.successful_test_count(),
-                unitTest.failed_test_count(),
-                unitTest.total_test_count()
+                "End tests: %d success, %d fail, %d total",
+                unit.successful_test_count(),
+                unit.failed_test_count(),
+                unit.total_test_count()
                 );
     }
 };
 
 int RunTests::run_all_tests(JNIEnv * env, jobject java_logger)
 {
-    int argc = 1;
+    int argc = 2;
     char command_name[] = "maesdk-test";
-    char filter[] = "--gtest_filter=Storage/*";
+    char filter[] = "--gtest_filter=*";
     char *argv[] = { command_name, filter };
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::TestEventListeners& listeners =
