@@ -48,8 +48,8 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-    using DroppedMap = std::map<std::string, size_t>;
     using StorageRecordVector = std::vector<StorageRecord>;
+    using DroppedMap = std::map<std::string, size_t>;
 
     class IOfflineStorageObserver {
     public:
