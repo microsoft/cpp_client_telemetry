@@ -17,6 +17,11 @@ std::string GetDeviceModel()
     }
 }
 
+std::string GetDeviceOsName()
+{
+    return std::string("iOS");
+}
+
 std::string GetDeviceId()
 {
     @autoreleasepool {

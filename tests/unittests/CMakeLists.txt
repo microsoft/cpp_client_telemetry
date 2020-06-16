@@ -30,6 +30,7 @@ set(SRCS
   MetaStatsTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
+  OfflineStorageTests_Room.cpp
   OfflineStorageTests_SQLite.cpp
   PackagerTests.cpp
   PalTests.cpp
@@ -41,6 +42,14 @@ set(SRCS
   TransmitProfilesTests.cpp
   UtilsTests.cpp
 )
+
+if (APPLE)
+  if (BUILD_IOS)
+    list(APPEND SRCS SysInfoUtilsTests_iOS.cpp)
+  else()
+    list(APPEND SRCS SysInfoUtilsTests_Mac.cpp)
+  endif()
+endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")

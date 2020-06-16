@@ -13,8 +13,6 @@ if (USE_CURL)
         find_package(CURL REQUIRED)
 endif()
 
-set(USE_ROOM 1)
-
 include_directories(AFTER
         ${SDK_ROOT}/lib
         ${SDK_ROOT}/lib/include/public

@@ -37,4 +37,10 @@ using namespace MAT;
     _wrappedSemanticContext->SetUserAdvertisingId(strUserAdvertisingId);
 }
 
+-(void)setAppExperimentETag:(nonnull NSString *)eTag
+{
+    std::string strETag = std::string([eTag UTF8String]);
+    _wrappedSemanticContext->SetAppExperimentETag(strETag);
+}
+
 @end

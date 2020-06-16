@@ -21,6 +21,7 @@ class MockIOfflineStorage : public MAT::IOfflineStorage {
     MOCK_METHOD0(IsLastReadFromMemory, bool());
     MOCK_METHOD0(LastReadRecordCount, unsigned());
     MOCK_METHOD3(DeleteRecords, void(std::vector<MAT::StorageRecordId> const &, MAT::HttpHeaders, bool& ));
+    MOCK_METHOD1(DeleteRecordsByToken, void(std::vector<std::string> const &));
     MOCK_METHOD4(ReleaseRecords, void(std::vector<MAT::StorageRecordId> const &, bool, MAT::HttpHeaders, bool&));
     MOCK_METHOD2(StoreSetting, bool(std::string const &, std::string const &));
     MOCK_METHOD1(GetSetting, std::string(std::string const &));
