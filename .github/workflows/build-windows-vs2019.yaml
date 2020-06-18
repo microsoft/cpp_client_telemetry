@@ -1,4 +1,4 @@
-name: C/C++ CI on Windows (vs2017)
+name: C/C++ CI on Windows (vs2019)
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-2016
+    runs-on: windows-2019
     name: Build
 
     steps:

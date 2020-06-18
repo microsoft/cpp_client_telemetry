@@ -11,18 +11,21 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
-    name: Build for Windows (clang)
+    runs-on: windows-2016
+    name: Build
 
     steps:
+
     - name: Checkout
       uses: actions/checkout@v2
+
     - name: Setup Tools
       shell: cmd
-      run: tools\install-vs-addons.cmd
+      run: tools\setup-buildtools.cmd
+
     - name: Build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       shell: cmd
-      run: build-all.bat
+      run: build-cmake-clang-vs2017.cmd

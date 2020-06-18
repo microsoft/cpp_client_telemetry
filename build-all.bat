@@ -1,4 +1,5 @@
 @echo off
+
 cd %~dp0
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
