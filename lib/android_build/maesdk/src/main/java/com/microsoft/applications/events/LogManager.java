@@ -40,7 +40,6 @@ public class LogManager {
             return new Logger(logger);
     }
 
-
     private static native int nativeFlushAndTeardown();
 
     /**
@@ -498,6 +497,10 @@ public class LogManager {
             return null;
         else
             return new Logger(logger);
+    }
+
+    public static ILogController getController() {
+        return null;
     }
 
     /**

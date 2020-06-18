@@ -1,196 +1,226 @@
 #include "JniConvertors.hpp"
-#include "LogManager.hpp"
+#include "LogManagerBase.hpp"
 
 using namespace MAT;
-LOGMANAGER_INSTANCE
+
+class WrapperConfig : public ILogConfiguration
+{
+};
+class WrapperLogManager : public LogManagerBase<WrapperConfig>
+{
+};
+
+template <>
+ILogManager* LogManagerBase<WrapperConfig>::instance{};
 
 extern "C"
 {
-
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeInitializeWithoutTenantToken(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeInitializeWithoutTenantToken(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    ILogger* logger = LogManager::Initialize();
-    return reinterpret_cast<jlong>(logger);
-}
+        jclass /* this */)
+    {
+        ILogger* logger = WrapperLogManager::Initialize();
+        return reinterpret_cast<jlong>(logger);
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeInitializeWithTenantToken(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeInitializeWithTenantToken(
         JNIEnv* env,
         jclass /* this */,
-        jstring jTenantToken) {
-    auto tenantToken = JStringToStdString(env, jTenantToken);
-    ILogger* logger = LogManager::Initialize(tenantToken);
-    return reinterpret_cast<jlong>(logger);
-}
+        jstring jTenantToken)
+    {
+        auto tenantToken = JStringToStdString(env, jTenantToken);
+        ILogger* logger = WrapperLogManager::Initialize(tenantToken);
+        return reinterpret_cast<jlong>(logger);
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeFlushAndTeardown(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeFlushAndTeardown(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::FlushAndTeardown());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::FlushAndTeardown());
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeFlush(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeFlush(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::Flush());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::Flush());
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeUploadNow(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeUploadNow(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::UploadNow());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::UploadNow());
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativePauseTransmission(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativePauseTransmission(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::PauseTransmission());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::PauseTransmission());
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeResumeTransmission(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeResumeTransmission(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::ResumeTransmission());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::ResumeTransmission());
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetIntTransmitProfile(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetIntTransmitProfile(
         JNIEnv* /* env */,
         jclass /* this */,
-        jint jProfile) {
-    return static_cast<jint>(LogManager::SetTransmitProfile(
+        jint jProfile)
+    {
+        return static_cast<jint>(WrapperLogManager::SetTransmitProfile(
             static_cast<TransmitProfile>(jProfile)));
-}
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetTransmitProfileString(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetTransmitProfileString(
         JNIEnv* env,
         jclass /* this */,
-        jstring jstrProfile) {
-    return static_cast<jint>(LogManager::SetTransmitProfile(JStringToStdString(env, jstrProfile)));
-}
+        jstring jstrProfile)
+    {
+        return static_cast<jint>(WrapperLogManager::SetTransmitProfile(JStringToStdString(env, jstrProfile)));
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeLoadTransmitProfilesString(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeLoadTransmitProfilesString(
         JNIEnv* env,
         jclass /* this */,
-        jstring jstrProfilesJson) {
-    return static_cast<jint>(LogManager::LoadTransmitProfiles(JStringToStdString(env, jstrProfilesJson)));
-}
+        jstring jstrProfilesJson)
+    {
+        return static_cast<jint>(WrapperLogManager::LoadTransmitProfiles(JStringToStdString(env, jstrProfilesJson)));
+    }
 
-JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeResetTransmitProfiles(
+    JNIEXPORT jint JNICALL Java_com_microsoft_applications_events_LogManager_nativeResetTransmitProfiles(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    return static_cast<jint>(LogManager::ResetTransmitProfiles());
-}
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::ResetTransmitProfiles());
+    }
 
-JNIEXPORT jstring JNICALL Java_com_microsoft_applications_events_LogManager_getTransmitProfileName(
+    JNIEXPORT jstring JNICALL Java_com_microsoft_applications_events_LogManager_getTransmitProfileName(
         JNIEnv* env,
-        jclass /* this */) {
-    std::string profileName = LogManager::GetTransmitProfileName();
-    return static_cast<jstring>(env->NewStringUTF(profileName.c_str()));
-}
+        jclass /* this */)
+    {
+        std::string profileName = WrapperLogManager::GetTransmitProfileName();
+        return static_cast<jstring>(env->NewStringUTF(profileName.c_str()));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetSemanticContext(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetSemanticContext(
         JNIEnv* env,
-        jclass /* this */) {
-    return reinterpret_cast<jlong>(LogManager::GetSemanticContext());
-}
+        jclass /* this */)
+    {
+        return reinterpret_cast<jlong>(WrapperLogManager::GetSemanticContext());
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextStringValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextStringValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jstring jstrValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    auto value = JStringToStdString(env, jstrValue);
-    return static_cast<jint>(LogManager::SetContext(name, value, static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        auto value = JStringToStdString(env, jstrValue);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, value, static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextIntValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextIntValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jint jValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    return static_cast<jint>(LogManager::SetContext(name, static_cast<int32_t>(jValue), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, static_cast<int32_t>(jValue), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextLongValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextLongValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jlong jValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    return static_cast<jint>(LogManager::SetContext(name, static_cast<int64_t>(jValue), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, static_cast<int64_t>(jValue), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextDoubleValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextDoubleValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jdouble jValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    return static_cast<jint>(LogManager::SetContext(name, static_cast<double>(jValue), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, static_cast<double>(jValue), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextBoolValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextBoolValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jboolean jValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    return static_cast<jint>(LogManager::SetContext(name, static_cast<bool>(jValue), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, static_cast<bool>(jValue), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextTimeTicksValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextTimeTicksValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jlong jValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    return static_cast<jint>(LogManager::SetContext(name, time_ticks_t(static_cast<uint64_t>(jValue)), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, time_ticks_t(static_cast<uint64_t>(jValue)), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextGuidValue(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeSetContextGuidValue(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrName,
         jstring jstrValue,
-        jint piiKind) {
-    auto name = JStringToStdString(env, jstrName);
-    auto value = JStringToStdString(env, jstrValue);
-    return static_cast<jint>(LogManager::SetContext(name, GUID_t(value.c_str()), static_cast<PiiKind>(piiKind)));
-}
+        jint piiKind)
+    {
+        auto name = JStringToStdString(env, jstrName);
+        auto value = JStringToStdString(env, jstrValue);
+        return static_cast<jint>(WrapperLogManager::SetContext(name, GUID_t(value.c_str()), static_cast<PiiKind>(piiKind)));
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLogger(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLogger(
         JNIEnv* /* env */,
-        jclass /* this */) {
-    ILogger* logger = LogManager::GetLogger();
-    return reinterpret_cast<jlong>(logger);
-}
+        jclass /* this */)
+    {
+        ILogger* logger = WrapperLogManager::GetLogger();
+        return reinterpret_cast<jlong>(logger);
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLoggerWithSource(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLoggerWithSource(
         JNIEnv* env,
         jclass /* this */,
-        jstring jstrSource) {
-    auto source = JStringToStdString(env, jstrSource);
-    ILogger* logger = LogManager::GetLogger(source);
-    return reinterpret_cast<jlong>(logger);
-}
+        jstring jstrSource)
+    {
+        auto source = JStringToStdString(env, jstrSource);
+        ILogger* logger = WrapperLogManager::GetLogger(source);
+        return reinterpret_cast<jlong>(logger);
+    }
 
-JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLoggerWithTenantTokenAndSource(
+    JNIEXPORT jlong JNICALL Java_com_microsoft_applications_events_LogManager_nativeGetLoggerWithTenantTokenAndSource(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrTenantToken,
-        jstring jstrSource){
-    auto tenantToken = JStringToStdString(env, jstrTenantToken);
-    auto source = JStringToStdString(env, jstrSource);
-    ILogger* logger = LogManager::GetLogger(tenantToken, source);
-    return reinterpret_cast<jlong>(logger);
-}
-
+        jstring jstrSource)
+    {
+        auto tenantToken = JStringToStdString(env, jstrTenantToken);
+        auto source = JStringToStdString(env, jstrSource);
+        ILogger* logger = WrapperLogManager::GetLogger(tenantToken, source);
+        return reinterpret_cast<jlong>(logger);
+    }
 }
