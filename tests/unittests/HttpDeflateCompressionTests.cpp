@@ -73,7 +73,7 @@ static std::vector<uint8_t> testPayload = { 1, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
 
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
-    config["http"]["compress"] = false;
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;
     EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
@@ -87,7 +87,7 @@ TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 
 TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 {
-    config["http"]["compress"] = true;
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
     EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
@@ -104,7 +104,7 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 
 TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 {
-    config["http"]["compress"] = true;
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
     EventsUploadContextPtr event = new EventsUploadContext();
     EXPECT_THAT(event->compressed, false);
     event->body = {};

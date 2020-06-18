@@ -220,7 +220,7 @@ namespace ARIASDK_NS_BEGIN
             HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
             if (client != nullptr)
             {
-                client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
+                client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
             }
 #endif
         }
@@ -280,7 +280,7 @@ namespace ARIASDK_NS_BEGIN
         HttpClient_WinInet* client = static_cast<HttpClient_WinInet *>(m_httpClient.get());
         if (client != nullptr)
         {
-            client->SetMsRootCheck(m_logConfiguration["http"]["msRootCheck"]);
+            client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
         }
 #endif
     };
