@@ -40,47 +40,7 @@ echo %VSINSTALLER%
 REM Install optional components required for ARM build - vs2017-BuildTools
 if exist "%VSINSTALLDIR%" (
   echo Running Visual Studio installer..
-  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" -q ^
---add Microsoft.Component.MSBuild ^
---add Microsoft.VisualStudio.Component.Roslyn.Compiler ^
---add Microsoft.VisualStudio.Component.TextTemplating ^
---add Microsoft.VisualStudio.ComponentGroup.UWP.VC.v141.BuildTools ^
---add Microsoft.VisualStudio.Component.VC.v141.ARM ^
---add Microsoft.VisualStudio.Component.VC.v141.ARM64 ^
---add Microsoft.VisualStudio.Component.VC.v141.x86.x64 ^
---add Microsoft.VisualStudio.Component.VC.v141.ARM.Spectre ^
---add Microsoft.VisualStudio.Component.VC.v141.ARM64.Spectre ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL.ARM ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL.ARM.Spectre ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL.ARM64 ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL.ARM64.Spectre ^
---add Microsoft.VisualStudio.Component.VC.v141.ATL.Spectre ^
---add Microsoft.VisualStudio.Component.VC.v141.CLI.Support ^
---add Microsoft.VisualStudio.Component.VC.ATL ^
---add Microsoft.VisualStudio.Component.VC.ATL.ARM ^
---add Microsoft.VisualStudio.Component.VC.ATL.ARM64 ^
---add Microsoft.VisualStudio.Component.VC.ATLMFC ^
---add Microsoft.VisualStudio.Component.VC.CLI.Support ^
---add Microsoft.VisualStudio.Component.VC.CoreBuildTools ^
---add Microsoft.VisualStudio.Component.VC.CoreIde ^
---add Microsoft.VisualStudio.Component.VC.Llvm.Clang ^
---add Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset ^
---add Microsoft.VisualStudio.Component.VC.Modules.x86.x64 ^
---add Microsoft.VisualStudio.Component.VC.Redist.14.Latest ^
---add Microsoft.VisualStudio.Component.VC.Tools.14.11 ^
---add Microsoft.VisualStudio.Component.VC.Tools.ARM ^
---add Microsoft.VisualStudio.Component.VC.Tools.ARM64 ^
---add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 ^
---add Microsoft.VisualStudio.Component.Windows10SDK ^
---add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core ^
---add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Llvm.Clang ^
---add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Win81 ^
---add Microsoft.VisualStudio.ComponentGroup.UWP.VC.BuildTools ^
---add Microsoft.VisualStudio.ComponentGroup.UWP.VC.v141.BuildTools ^
---add Microsoft.VisualStudio.Workload.VCTools ^
---add Microsoft.VisualStudio.Component.UWP.VC.ARM64 ^
---norestart --noUpdateInstaller
+  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config .vsconfig.%VSVERSION% --passive --norestart --noUpdateInstaller
 )
 
 where /Q vcpkg.exe

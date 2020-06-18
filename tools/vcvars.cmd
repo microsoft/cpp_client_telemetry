@@ -23,6 +23,7 @@ REM vs2017 Enterprise
 :vs2017
 :vs2017_enterprise
 set "VSDEVCMD=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+set VSVERSION=2017
 if exist "%VSDEVCMD%" (
   set "VSINSTALLDIR=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise"
   echo Building with vs2017 Enterprise...
@@ -43,6 +44,7 @@ if exist "%VSDEVCMD%" (
 REM vs2019 Enterprise
 :vs2019
 :vs2019_enterprise
+set VSVERSION=2019
 set "VSDEVCMD=%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
 if exist "%VSDEVCMD%" (
   set "VSINSTALLDIR=%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise"
@@ -75,6 +77,7 @@ echo WARNING:*********************************************
 echo WARNING: cannot auto-detect Visual Studio version !!!
 echo WARNING:*********************************************
 set VSTOOLS_NOTFOUND=1
+set VSVERSION=
 exit /b 0
 
 :tools_configured
