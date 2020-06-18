@@ -27,6 +27,12 @@ namespace ARIASDK_NS_BEGIN
         /// Get the name of the current viewer.
         /// </summary>
         virtual const char* GetName() const noexcept = 0;
+
+        /// <summary>
+        /// Check if the current viewer is transmitting.
+        /// </summary>
+        /// <returns>True if transmission is enabled, false otherwise.</returns>
+        virtual bool IsTransmissionEnabled() const noexcept = 0;
     };
 
 } ARIASDK_NS_END
