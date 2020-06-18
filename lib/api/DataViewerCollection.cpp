@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
 
-        if (IsViewerInCollection(dataViewer->GetName()))
+        if (GetViewerFromCollection_NotThreadSafe(dataViewer->GetName()) != nullptr)
         {
             std::stringstream errorMessage;
             errorMessage << "Viewer: '" << dataViewer->GetName() << "' is already registered";
@@ -69,6 +69,23 @@ namespace ARIASDK_NS_BEGIN {
 
     bool DataViewerCollection::IsViewerEnabled(const char* viewerName) const
     {
+        auto viewerFetched = GetViewerFromCollection_ThreadSafe(viewerName);
+        return viewerFetched != nullptr && viewerFetched->IsTransmissionEnabled();
+    }
+
+    bool DataViewerCollection::IsViewerRegistered(const char* viewerName) const
+    {
+        return GetViewerFromCollection_ThreadSafe(viewerName) != nullptr;
+    }
+
+    bool DataViewerCollection::AnyViewerRegistered() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        return !m_dataViewerCollection.empty();
+    }
+    
+    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection_ThreadSafe(const char* viewerName) const
+    {
         if (viewerName == nullptr)
         {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
@@ -76,10 +93,10 @@ namespace ARIASDK_NS_BEGIN {
 
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
 
-        return IsViewerInCollection(viewerName);
+        return GetViewerFromCollection_NotThreadSafe(viewerName);
     }
-    
-    bool DataViewerCollection::IsViewerInCollection(const char* viewerName) const
+
+    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection_NotThreadSafe(const char* viewerName) const
     {
         if (viewerName == nullptr)
         {
@@ -93,12 +110,18 @@ namespace ARIASDK_NS_BEGIN {
                                             return strcmp(viewer->GetName(), viewerName) == 0;
                                          });
 
-        return lookupResult != m_dataViewerCollection.end();
+        if (lookupResult != m_dataViewerCollection.end())
+        {
+            return *lookupResult;
+        }
+
+        return nullptr;
     }
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
         std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-        return !m_dataViewerCollection.empty();
+        return !m_dataViewerCollection.empty() &&
+           std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
     }
 } ARIASDK_NS_END

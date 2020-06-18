@@ -26,6 +26,10 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsViewerEnabled() const noexcept override;
 
+        virtual bool IsViewerRegistered(const char* viewerName) const override;
+
+        virtual bool AnyViewerRegistered() const noexcept override;
+
         virtual ~DataViewerCollection() noexcept {};
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
@@ -33,7 +37,8 @@ namespace ARIASDK_NS_BEGIN {
         mutable std::mutex m_dataViewerMapLock;
 
     protected:
-        bool IsViewerInCollection(const char* viewerName) const;
+        std::shared_ptr<IDataViewer> GetViewerFromCollection_ThreadSafe(const char* viewerName) const;
+        std::shared_ptr<IDataViewer> GetViewerFromCollection_NotThreadSafe(const char* viewerName) const;
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
     };
 
