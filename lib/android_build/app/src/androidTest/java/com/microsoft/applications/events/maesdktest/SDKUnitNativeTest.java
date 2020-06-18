@@ -1,7 +1,9 @@
 package com.microsoft.applications.events.maesdktest;
 
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -10,9 +12,15 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.HttpClient;
+import com.microsoft.applications.events.ILogConfiguration;
 import com.microsoft.applications.events.ILogger;
+import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
+import com.microsoft.applications.events.LogManager.LogConfigurationImpl;
 import com.microsoft.applications.events.OfflineRoom;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,6 +31,47 @@ import org.junit.runner.RunWith;
  */
 @RunWith(AndroidJUnit4.class)
 public class SDKUnitNativeTest extends MaeUnitLogger {
+  public static class isValueSuperset extends TypeSafeDiagnosingMatcher<LogConfigurationImpl> {
+
+    final LogConfigurationImpl subset;
+
+    public isValueSuperset(LogConfigurationImpl subset) {
+      super(LogConfigurationImpl.class);
+      this.subset = subset;
+    }
+
+    /**
+     * Subclasses should implement this. The item will already have been checked for the specific
+     * type and will never be null.
+     *
+     * @param item
+     * @param mismatchDescription
+     */
+    @Override
+    protected boolean matchesSafely(LogConfigurationImpl item, Description mismatchDescription) {
+      if (item.valueContainsAll(subset)) {
+        return true;
+      }
+      mismatchDescription.appendText("not a superset");
+      return false;
+    }
+
+    /**
+     * Generates a description of the object.  The description may be part of a a description of a
+     * larger object of which this is just a component, so it should be worded appropriately.
+     *
+     * @param description The description to be built or appended to.
+     */
+    @Override
+    public void describeTo(Description description) {
+      description.appendText("match: is this item a superset of the expected configuration");
+    }
+  }
+
+  static isValueSuperset isValueSuperset(ILogConfiguration expected) {
+    return new isValueSuperset((LogManager.LogConfigurationImpl) expected);
+  }
+
   public void log_failure(String filename, int line, String summary) {
     fail(String.format("%s:%d: %s", filename, line, summary));
   }
@@ -63,6 +112,49 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
 
     ILogger logger = LogManager.initialize(token);
     assertThat(logger, isA(ILogger.class));
+    logger.logEvent("fred");
+  }
+
+  @Test
+  public void wrapperLogManagerConfig() {
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+    ILogger logger = LogManager.initialize("", custom);
+    ILogConfiguration newConfig = LogManager.getLogConfigurationCopy();
+    assertNotNull(newConfig);
+    assertThat(newConfig.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+
+    assertNotNull(logger);
+    logger.logEvent("amazingAndroidUnitTest");
     LogManager.flushAndTeardown();
+  }
+
+  @Test
+  public void wrapperLogManagerCopyConfig() {
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogConfiguration current = LogManager.getLogConfigurationCopy();
+    current.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    assertThat(current.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+    ILogger logger = LogManager.initialize("", current);
+    ILogConfiguration postConfig = LogManager.getLogConfigurationCopy();
+    assertThat((LogConfigurationImpl) postConfig, isValueSuperset(current));
   }
 }
