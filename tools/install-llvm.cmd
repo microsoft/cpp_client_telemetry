@@ -16,8 +16,8 @@ if NOT exist "%VSINSTALLDIR%" (
 
 REM Install optional components
 set "VSIXInstaller=%VSINSTALLDIR%\Common7\IDE\VSIXInstaller.exe"
-if exist %VSIXInstaller% (
-  %VSIXInstaller% /q /a llvm.vsix
+if exist "%VSIXInstaller%" (
+  "%VSIXInstaller%" /q /a llvm.vsix
 )
 
 REM Ignore failures if components have been already installed
