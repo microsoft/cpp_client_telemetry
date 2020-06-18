@@ -1,5 +1,4 @@
 @echo off
-
 echo WARNING!!! ****************************************************************************************** !!!WARNING
 echo WARNING!!! This part of the build process requires Visual Studio 2017 IDE to be installed on machine. !!!WARNING
 echo WARNING!!! llvm.vsix extension (Clang LLVM support for Visual Studio) is INCOMPATIBLE with vs2019.    !!!WARNING
@@ -12,7 +11,19 @@ echo WARNING!!! The other alternative is to actually install Visual Studio 2017 
 echo WARNING!!! ****************************************************************************************** !!!WARNING
 timeout 5
 
+set VSTOOLS_VERSION=vs2017
 cd %~dp0
+
+echo Update all public submodules...
+git -c submodule."lib/modules".update=none submodule update --init --recursive
+
+if DEFINED GIT_PULL_TOKEN (
+  rd /s /q lib\modules
+  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+)
+
+call tools\vcvars.cmd
+
 setlocal enableextensions
 setlocal enabledelayedexpansion
 set ROOT=%~dp0
