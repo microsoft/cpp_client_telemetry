@@ -690,7 +690,7 @@ namespace ARIASDK_NS_BEGIN
 //
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                           \
     ILogManager*            LogManagerClass::instance      = nullptr;
-#elif (defined(__APPLE__) || defined(ANDROID)) && defined(MAT_USE_WEAK_LOGMANAGER)
+#elif (defined(__APPLE__))
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass)                                       \
     template<> __attribute__((weak)) ILogManager*            LogManagerBase<LogConfigurationClass>::instance {};
 #else
