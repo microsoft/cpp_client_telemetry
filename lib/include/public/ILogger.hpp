@@ -618,6 +618,12 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
         /// Get collection of current event filters.
         /// </summary>
         virtual IEventFilterCollection const& GetEventFilters() const noexcept = 0;
+
+        /// <summary>
+        /// Gets the unique Session ID of the current session
+        /// </summary>
+        /// <returns>The unique Session ID of the current session</returns>
+        virtual std::string const& GetSessionId() const = 0;
     };
 
 

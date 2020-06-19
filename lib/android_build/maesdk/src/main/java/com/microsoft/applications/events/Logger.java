@@ -1043,4 +1043,14 @@ class Logger implements ILogger {
     public void setLevel(final DiagnosticLevel level) {
         nativeSetLevel(m_nativePtr, level.getValue());
     }
+
+    private native String nativeGetSessionId(long nativeLoggerPtr);
+
+    /**
+     * Return current session id.
+     */
+    @Override
+    public String getSessionId() {
+      return nativeGetSessionId(m_nativePtr);
+    }
 }
