@@ -170,6 +170,12 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void onSubmitted();
 
+        /// <summary>
+        /// Gets the unique Session ID of the current session
+        /// </summary>
+        /// <returns>The unique Session ID of the current session</returns>
+        virtual std::string const& GetSessionId() const override;
+
     protected:
 
         bool applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, MAT::EventLatency& latency);
