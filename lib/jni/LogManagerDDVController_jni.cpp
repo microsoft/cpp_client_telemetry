@@ -43,7 +43,7 @@ JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_isV
         jclass /* this */) {
     if(spDefaultDataViewer != nullptr)
     {
-        return LogManager::GetDataViewerCollection().IsViewerEnabled(spDefaultDataViewer->GetName());
+        return WrapperLogManager::GetDataViewerCollection().IsViewerEnabled(spDefaultDataViewer->GetName());
     }
 
     return false;
