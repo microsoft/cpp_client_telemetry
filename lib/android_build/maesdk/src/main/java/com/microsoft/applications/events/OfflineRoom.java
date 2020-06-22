@@ -117,12 +117,6 @@ public class OfflineRoom implements AutoCloseable {
                 pageCount = c.getLong(0);
             }
         }
-        Log.i("MAE", String.format("Opened %s: %d records, %d settings, page size %d, %d pages",
-                name,
-                m_srDao.totalRecordCount(),
-                m_settingDao.totalSettingCount(),
-                m_pageSize,
-                pageCount));
     }
 
     public long[] storeRecords(StorageRecord... records) {
