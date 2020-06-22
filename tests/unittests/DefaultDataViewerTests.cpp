@@ -121,7 +121,10 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.EnableRemoteViewer("http://TestEndpoint");
-
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+    viewer.DisableViewer();
+    ASSERT_FALSE(viewer.IsTransmissionEnabled());
+    viewer.EnableRemoteViewer("HTTP://TestEndpoint");
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
 }
 
@@ -145,14 +148,15 @@ TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
 }
 
 //TODO Uncomment this test when the submodule has been updated.
-//TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArgument)
-//{
-//    MockDefaultDataViewer viewer(mockHttpClient, "Test");
-//    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer(""); });
-//    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("           "); });
-//    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("TestEndpoint"); });
-//    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("https://TestEndpoint"); });
-//}
+TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArgument)
+{
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer(""); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("           "); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("TestEndpoint"); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("https://TestEndpoint"); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("HTTps://TestEndpoint"); });
+}
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
 {
