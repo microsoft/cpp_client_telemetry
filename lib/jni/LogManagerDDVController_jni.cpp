@@ -3,7 +3,9 @@
 #include "modules/dataviewer/DefaultDataViewer.hpp"
 
 using namespace MAT;
-LOGMANAGER_INSTANCE
+#include "WrapperLogManager.hpp"
+
+// The static instance of WrapperLogManager is instantiated in LogManager_jni.cpp
 
 extern "C"
 {
@@ -17,8 +19,8 @@ JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_ini
     auto endpoint = JStringToStdString(env, jstrEndpoint);
     std::shared_ptr<DefaultDataViewer> spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
     if (spDefaultDataViewer->EnableRemoteViewer(endpoint)) {
-        LogManager::GetDataViewerCollection().UnregisterAllViewers();
-        LogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
+        WrapperLogManager::GetDataViewerCollection().UnregisterAllViewers();
+        WrapperLogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
         return true;
     }
     else {
@@ -29,13 +31,13 @@ JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_ini
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_LogManager_disableViewer(
         JNIEnv* env,
         jclass /* this */) {
-    LogManager::GetDataViewerCollection().UnregisterAllViewers();
+    WrapperLogManager::GetDataViewerCollection().UnregisterAllViewers();
 }
 
 JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_isViewerEnabled(
         JNIEnv* env,
         jclass /* this */) {
-    return LogManager::GetDataViewerCollection().IsViewerEnabled();
+    return WrapperLogManager::GetDataViewerCollection().IsViewerEnabled();
 }
 
 }
