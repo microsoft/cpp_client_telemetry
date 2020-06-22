@@ -48,6 +48,12 @@ NS_ASSUME_NONNULL_BEGIN
 +(bool)viewerEnabled;
 
 /*!
+ @brief Returns current endpoint if it is set, empty string otherwise.
+ @return Returns current endpoint if it is set, empty string otherwise.
+ */
++(NSString *)currentEndpoint;
+
+/*!
  @brief Sets callback for OnDisableNotification event.
  @param callback Code to execute when OnDisableNotification event occurrs.
  */
