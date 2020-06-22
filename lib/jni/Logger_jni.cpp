@@ -558,4 +558,13 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeSetLe
     logger->SetLevel(static_cast<int>(jLevel));
 }
 
+JNIEXPORT jstring JNICALL Java_com_microsoft_applications_events_Logger_nativeGetSessionId(
+        JNIEnv* env,
+        jclass /* this */,
+        jlong nativeLoggerPtr) {
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    std::string sessionId = logger->GetSessionId();
+    return static_cast<jstring>(env->NewStringUTF(sessionId.c_str()));
+}
+
 };

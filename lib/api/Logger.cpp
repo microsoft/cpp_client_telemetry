@@ -717,4 +717,9 @@ namespace ARIASDK_NS_BEGIN
         return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
     }
 
+    std::string const& Logger::GetSessionId() const
+    {
+      return m_sessionId;
+    }
+
 } ARIASDK_NS_END
