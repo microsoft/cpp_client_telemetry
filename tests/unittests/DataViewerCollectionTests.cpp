@@ -10,8 +10,8 @@ using namespace MAT;
 
 class MockIDataViewer : public IDataViewer
 {
-public:
-  
+   public:
+
     MockIDataViewer(const char* name, bool isTransmissionEnabled) :
         m_name(name), m_isTransmissionEnabled(isTransmissionEnabled) {}
 
@@ -43,25 +43,25 @@ public:
 
 class TestDataViewerCollection : public DataViewerCollection
 {
-public:
+   public:
 
-   using DataViewerCollection::DispatchDataViewerEvent;
-   using DataViewerCollection::RegisterViewer;
-   using DataViewerCollection::UnregisterViewer;
-   using DataViewerCollection::UnregisterAllViewers;
-   using DataViewerCollection::IsViewerEnabled;
-   using DataViewerCollection::IsViewerRegistered;
+    using DataViewerCollection::DispatchDataViewerEvent;
+    using DataViewerCollection::IsViewerEnabled;
+    using DataViewerCollection::IsViewerRegistered;
+    using DataViewerCollection::RegisterViewer;
+    using DataViewerCollection::UnregisterAllViewers;
+    using DataViewerCollection::UnregisterViewer;
 
-   std::vector<std::shared_ptr<IDataViewer>>& GetCollection()
-   {
-       return m_dataViewerCollection;
-   }
+    std::vector<std::shared_ptr<IDataViewer>>& GetCollection()
+    {
+        return m_dataViewerCollection;
+    }
 };
 
 TEST(DataViewerCollectionTests, RegisterViewer_DataViewerIsNullptr_ThrowsInvalidArgumentException)
 {
-     TestDataViewerCollection dataViewerCollection { };
-     CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.RegisterViewer(nullptr); });
+    TestDataViewerCollection dataViewerCollection { };
+    CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.RegisterViewer(nullptr); });
 }
 
 TEST(DataViewerCollectionTests, RegisterViewer_DataViewerIsNotNullptr_NoExceptions)
@@ -162,7 +162,7 @@ TEST(DataViewerCollectionTests, UnregisterAllViewers_OneViewerRegistered_Unregis
     std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName", /*isTransmissionEnabled*/ false);
     TestDataViewerCollection dataViewerCollection { };
     dataViewerCollection.GetCollection().push_back(viewer);
-    
+
     ASSERT_NO_THROW(dataViewerCollection.UnregisterAllViewers());
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
@@ -218,7 +218,7 @@ TEST(DataViewerCollectionTests, IsViewerEnabled_MultipleViewersRegisteredAndNone
     dataViewerCollection.GetCollection().push_back(viewer1);
     dataViewerCollection.GetCollection().push_back(viewer2);
     dataViewerCollection.GetCollection().push_back(viewer3);
-    
+
     ASSERT_FALSE(dataViewerCollection.IsViewerEnabled("sharedName3"));
 }
 
@@ -231,7 +231,7 @@ TEST(DataViewerCollectionTests, IsViewerEnabled_MultipleViewersRegisteredAndOneT
     dataViewerCollection.GetCollection().push_back(viewer1);
     dataViewerCollection.GetCollection().push_back(viewer2);
     dataViewerCollection.GetCollection().push_back(viewer3);
-    
+
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled("sharedName1"));
 }
 
