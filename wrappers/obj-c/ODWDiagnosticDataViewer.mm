@@ -105,11 +105,9 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     return result;
 }
 
-+(NSString *)getCurrentEndpoint
++(NSString *)currentEndpoint
 {
-    NSString *currentEndpoint = [NSString stringWithCString:_viewer->GetCurrentEndpoint().c_str() encoding:[NSString defaultCStringEncoding]];
-
-    return currentEndpoint;
+    return [NSString stringWithCString:_viewer->GetCurrentEndpoint().c_str() encoding:[NSString defaultCStringEncoding]];
 }
 
 +(void)registerOnDisableNotification:(void(^)(void))callback
