@@ -520,4 +520,6 @@ public class LogManager {
      * @return boolean value for success or failure
      */
     public native static boolean isViewerEnabled();
+
+    public native static String getCurrentEndpoint();
 }
