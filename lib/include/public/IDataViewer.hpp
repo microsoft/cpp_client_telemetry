@@ -6,6 +6,7 @@
 #include "ctmacros.hpp"
 #include "IModule.hpp"
 
+#include <string>
 #include <vector>
 
 namespace ARIASDK_NS_BEGIN
