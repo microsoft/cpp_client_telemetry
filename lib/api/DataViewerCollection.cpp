@@ -11,7 +11,7 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         for(const auto& viewer : m_dataViewerCollection)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
@@ -26,7 +26,7 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for data viewer"));
         }
 
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
 
         if (GetViewerFromCollection(dataViewer->GetName()) != nullptr)
         {
@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
                 return viewer->GetName() == viewerName;
@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollection::UnregisterAllViewers()
     {
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
@@ -73,15 +73,16 @@ namespace ARIASDK_NS_BEGIN {
         return viewerFetched != nullptr && viewerFetched->IsTransmissionEnabled();
     }
 
+    bool DataViewerCollection::IsViewerEnabled() const noexcept
+    {
+        LOCKGUARD(m_dataViewerMapLock);
+        return !m_dataViewerCollection.empty() &&
+               std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
+    }
+
     bool DataViewerCollection::IsViewerRegistered(const char* viewerName) const
     {
         return GetViewerFromCollection(viewerName) != nullptr;
-    }
-
-    bool DataViewerCollection::AnyViewerRegistered() const noexcept
-    {
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
-        return !m_dataViewerCollection.empty();
     }
     
     std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection(const char* viewerName) const
@@ -91,7 +92,7 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
 
         auto lookupResult = std::find_if(m_dataViewerCollection.begin(),
                                          m_dataViewerCollection.end(),
@@ -106,12 +107,5 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         return nullptr;
-    }
-
-    bool DataViewerCollection::IsViewerEnabled() const noexcept
-    {
-        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
-        return !m_dataViewerCollection.empty() &&
-           std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
     }
 } ARIASDK_NS_END

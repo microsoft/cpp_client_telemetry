@@ -61,11 +61,6 @@ namespace ARIASDK_NS_BEGIN
         /// Unique Name to identify the viewer being checked.
         /// </param>
         virtual bool IsViewerRegistered(const char* viewerName) const = 0;
-
-        /// <summary>
-        /// Check if any viewers are registered.
-        /// </summary>
-        virtual bool AnyViewerRegistered() const noexcept = 0;
     };
 
 } ARIASDK_NS_END
