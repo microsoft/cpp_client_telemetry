@@ -24,6 +24,12 @@
     "Microsoft.VisualStudio.Component.VC.ATL.ARM",
     "Microsoft.VisualStudio.Component.VC.ATL.ARM64",
     "Microsoft.VisualStudio.Component.VC.Tools.14.11",
-    "Microsoft.VisualStudio.Component.VC.ClangC2"
+    "Microsoft.VisualStudio.Component.VC.ClangC2",
+    "Microsoft.VisualStudio.Component.VC.ATLMFC.Spectre",
+    "Microsoft.Visualstudio.Component.VC.Runtimes.x86.x64.Spectre",
+    "Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre",
+    "Microsoft.VisualStudio.Component.VC.ATL.ARM64.Spectre",
+    "Microsoft.VisualStudio.Component.VC.MFC.ARM64",
+    "Microsoft.VisualStudio.Component.VC.MFC.ARM64.Spectre"
   ]
 }

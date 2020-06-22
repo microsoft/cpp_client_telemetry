@@ -40,7 +40,7 @@ echo %VSINSTALLER%
 REM Install optional components required for ARM build - vs2017-BuildTools
 if exist "%VSINSTALLDIR%" (
   echo Running Visual Studio installer..
-  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config .vsconfig.%VSVERSION% --passive --norestart --noUpdateInstaller
+  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config "%~dp0\.vsconfig.%VSVERSION%" --force --quiet --norestart
 )
 
 where /Q vcpkg.exe
