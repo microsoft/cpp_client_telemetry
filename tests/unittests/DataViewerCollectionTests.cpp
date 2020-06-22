@@ -30,9 +30,15 @@ public:
         return m_isTransmissionEnabled;
     }
 
+    const std::string& GetCurrentEndpoint() const noexcept override
+    {
+        return m_testEndpoint;
+    }
+
     mutable std::vector<uint8_t> localPacketData;
     const char* m_name;
     bool m_isTransmissionEnabled;
+    const std::string m_testEndpoint{"TestEndpoint"};
 };
 
 class TestDataViewerCollection : public DataViewerCollection

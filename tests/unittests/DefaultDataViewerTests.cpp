@@ -81,6 +81,7 @@ public:
     using MAT::DefaultDataViewer::GetMachineFriendlyIdentifier;
     using MAT::DefaultDataViewer::IsTransmissionEnabled;
     using MAT::DefaultDataViewer::SetTransmissionEnabled;
+    using MAT::DefaultDataViewer::GetCurrentEndpoint;
 };
 
 std::shared_ptr<MockHttpClient> mockHttpClient = std::make_shared<MockHttpClient>();
@@ -120,6 +121,25 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.EnableRemoteViewer("http://TestEndpoint");
+
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+}
+
+TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
+{
+    mockHttpClient->Reset();
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    {
+        auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+        response->m_statusCode = 200;
+        callback->OnHttpResponse(response.get());
+    };
+
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    ASSERT_EQ("", viewer.GetCurrentEndpoint());
+    const std::string endpoint{"http://TestEndpoint"};
+    viewer.EnableRemoteViewer(endpoint);
+    ASSERT_EQ(endpoint, viewer.GetCurrentEndpoint());
 
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
 }
