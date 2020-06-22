@@ -499,10 +499,6 @@ public class LogManager {
             return new Logger(logger);
     }
 
-    public static ILogController getController() {
-        return null;
-    }
-
     /**
      * Initializes the default DDV with the machine identifier and
      * enables sending diagnostic data to the remote DDV endpoint.
