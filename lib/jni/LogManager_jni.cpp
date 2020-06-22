@@ -1,14 +1,8 @@
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
+#include "WrapperLogManager.hpp"
 
 using namespace MAT;
-
-class WrapperConfig : public ILogConfiguration
-{
-};
-class WrapperLogManager : public LogManagerBase<WrapperConfig>
-{
-};
 
 template <>
 ILogManager* LogManagerBase<WrapperConfig>::instance{};

@@ -35,13 +35,15 @@ public interface ILogController {
    */
   Status UploadNow();
 
-  /// <summary>
-  /// Sets the transmit profile for event transmission - to one of the built-in profiles.
-  /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
-  /// based on which to determine how events are to be transmitted.
-  /// </summary>
-  /// <param name="profile">Transmit profile, as one of the TransmitProfile enumeration values.</param>
-  /// <returns>This method doesn't return a value - because it always succeeds.</returns>
+  /**
+   * Sets the transmit profile for event transmission - to one of the built-in profiles.
+   *
+   * A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
+   * based on which to determine how events are to be transmitted.
+   *
+   * @param profile transmit profile, as one of the TransmitProfile enumeration values.</param>
+   * @return status (always Status.SUCCESS in the present implementation).
+   */
   Status SetTransmitProfile(TransmitProfile profile);
 
   /**

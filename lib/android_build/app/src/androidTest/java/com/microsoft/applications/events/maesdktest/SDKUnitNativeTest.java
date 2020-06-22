@@ -63,5 +63,6 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
 
     ILogger logger = LogManager.initialize(token);
     assertThat(logger, isA(ILogger.class));
+    LogManager.flushAndTeardown();
   }
 }
