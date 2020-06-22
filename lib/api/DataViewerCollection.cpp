@@ -11,7 +11,7 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
         for(const auto& viewer : m_dataViewerCollection)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
@@ -26,9 +26,9 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for data viewer"));
         }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
 
-        if (GetViewerFromCollection_NotThreadSafe(dataViewer->GetName()) != nullptr)
+        if (GetViewerFromCollection(dataViewer->GetName()) != nullptr)
         {
             std::stringstream errorMessage;
             errorMessage << "Viewer: '" << dataViewer->GetName() << "' is already registered";
@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
         auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
                 return viewer->GetName() == viewerName;
@@ -63,45 +63,35 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollection::UnregisterAllViewers()
     {
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
     bool DataViewerCollection::IsViewerEnabled(const char* viewerName) const
     {
-        auto viewerFetched = GetViewerFromCollection_ThreadSafe(viewerName);
+        auto viewerFetched = GetViewerFromCollection(viewerName);
         return viewerFetched != nullptr && viewerFetched->IsTransmissionEnabled();
     }
 
     bool DataViewerCollection::IsViewerRegistered(const char* viewerName) const
     {
-        return GetViewerFromCollection_ThreadSafe(viewerName) != nullptr;
+        return GetViewerFromCollection(viewerName) != nullptr;
     }
 
     bool DataViewerCollection::AnyViewerRegistered() const noexcept
     {
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
         return !m_dataViewerCollection.empty();
     }
     
-    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection_ThreadSafe(const char* viewerName) const
+    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection(const char* viewerName) const
     {
         if (viewerName == nullptr)
         {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-
-        return GetViewerFromCollection_NotThreadSafe(viewerName);
-    }
-
-    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection_NotThreadSafe(const char* viewerName) const
-    {
-        if (viewerName == nullptr)
-        {
-            MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
-        }
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
 
         auto lookupResult = std::find_if(m_dataViewerCollection.begin(),
                                          m_dataViewerCollection.end(),
@@ -120,7 +110,7 @@ namespace ARIASDK_NS_BEGIN {
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        std::lock_guard<std::recursive_mutex> lock(m_dataViewerMapLock);
         return !m_dataViewerCollection.empty() &&
            std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
     }

@@ -33,6 +33,12 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <returns>True if transmission is enabled, false otherwise.</returns>
         virtual bool IsTransmissionEnabled() const noexcept = 0;
+
+        /// <summary>
+        /// Get the current endpoint where the data is being streamed to.
+        /// </summary>
+        /// <returns>const char* denoting the endpoint, empty string if not currently streaming.</returns>
+        virtual const std::string& GetCurrentEndpoint() const noexcept = 0;
     };
 
 } ARIASDK_NS_END
