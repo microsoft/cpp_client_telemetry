@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <array>
 
+#include <android/log.h>
+
 using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN
@@ -601,8 +603,10 @@ namespace ARIASDK_NS_BEGIN
     ******************************************************************************/
     void Logger::LogSession(SessionState state, const EventProperties& props)
     {
+        __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession1 %d", state);
         if (!CanEventPropertiesBeSent(props))
         {
+            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession CantEventPropertiesBeSent");
             DispatchEvent(DebugEventType::EVT_FILTERED);
             return;
         }
@@ -613,14 +617,14 @@ namespace ARIASDK_NS_BEGIN
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {
-            LOG_WARN("We don't have a first time so no session logged");
+            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "We don't have a first time so no session logged");
             return;
         }
 
         EventRejectedReason isValidEventName = validateEventName(props.GetName());
         if (isValidEventName != REJECTED_REASON_OK)
         {
-            LOG_ERROR("Invalid event properties!");
+            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "Invalid event properties!");
             DebugEvent evt;
             evt.type = DebugEventType::EVT_REJECTED;
             evt.param1 = isValidEventName;
@@ -635,19 +639,20 @@ namespace ARIASDK_NS_BEGIN
         {
             if (m_sessionStartTime > 0)
             {
-                LOG_ERROR("LogSession The order is not the correct one in calling LogSession");
+                __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession The order is not the correct one in calling LogSession");
                 return;
             }
             m_sessionStartTime = PAL::getUtcSystemTime();
 
             m_sessionId = PAL::generateUuidString();
+            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "Session_Started %s", m_sessionId.c_str());
             break;
         }
         case SessionState::Session_Ended:
         {
             if (m_sessionStartTime == 0)
             {
-                LOG_WARN("LogSession We don't have session start time");
+                __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession We don't have session start time");
                 return;
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
@@ -663,11 +668,12 @@ namespace ARIASDK_NS_BEGIN
 
         if (!decorated)
         {
-            LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
+            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "Failed to log %s event %s/%s: invalid arguments provided",
                 "Trace", tenantTokenToId(m_tenantToken).c_str(), props.GetName().empty() ? "<unnamed>" : props.GetName().c_str());
             return;
         }
 
+        __android_log_print(ANDROID_LOG_ERROR, "HungCat", "submit DispatchEvent");
         submit(record, props);
         DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
     }
