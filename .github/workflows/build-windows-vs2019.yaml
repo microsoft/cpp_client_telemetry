@@ -27,5 +27,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
+        SKIP_ARM_BUILD: 1
+        SKIP_ARM64_BUILD: 1
+        PlatformToolset: v142
       shell: cmd
       run: build-all.bat
