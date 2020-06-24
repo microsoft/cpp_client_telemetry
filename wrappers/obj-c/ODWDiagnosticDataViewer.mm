@@ -105,9 +105,16 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     return result;
 }
 
-+(NSString *)currentEndpoint
++(nullable NSString *)currentEndpoint
 {
-    return [NSString stringWithCString:_viewer->GetCurrentEndpoint().c_str() encoding:[NSString defaultCStringEncoding]];
+    std::string endpoint = _viewer->GetCurrentEndpoint();
+    if (endpoint.empty())
+    {
+        // Empty endpoint means there is not a current endpoint
+        return nil;
+    }
+
+    return [NSString stringWithCString:endpoint.c_str() encoding:NSUTF8StringEncoding];
 }
 
 +(void)registerOnDisableNotification:(void(^)(void))callback
