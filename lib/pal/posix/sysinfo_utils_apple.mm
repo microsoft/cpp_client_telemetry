@@ -42,12 +42,6 @@ NSString* get_system_value(NSString* key)
     return @"";
 }
 
-std::string GetDeviceOsName()
-{
-    NSString* value = get_system_value(@"ProductName");
-    return std::string([value UTF8String]);
-}
-
 std::string GetDeviceOsVersion()
 {
     NSString* value = get_system_value(@"ProductVersion");
