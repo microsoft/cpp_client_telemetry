@@ -160,6 +160,7 @@ namespace ARIASDK_NS_BEGIN {
         if (priority >= EventPriority_Low)
         {
             // TODO: 1438270 - [v3][1DS] Direct upload to respect low priority
+            // Any changes to this method needs corresponding fixes in Java code.
             m_storage->eventLatency = EventLatency_Normal;
             m_storage->eventPersistence = EventPersistence_Normal;
         }

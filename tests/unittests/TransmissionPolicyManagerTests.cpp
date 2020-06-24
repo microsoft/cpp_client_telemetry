@@ -43,6 +43,9 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
 
+    int timerDelay() const { return m_timerdelay; }
+    void timerDelay(int delay) { m_timerdelay = delay; }
+
     void NotMockScheduleUpload(int delay, EventLatency latency, bool force)
     {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
@@ -98,14 +101,14 @@ TEST_F(TransmissionPolicyManagerTests, StopLeavesNoScheduledUploads)
 {
     tpm.paused(false);
 
-    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(1000, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
         .WillOnce(Return());
     tpm.start();
 
     size_t i = 1000;
     while (i--)
     {
-        EXPECT_CALL(tpm, scheduleUpload(_, EventLatency_Normal, false))
+        EXPECT_CALL(tpm, scheduleUpload(_, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
             .Times(3)
             .WillOnce(Return())
             .WillOnce(Return())
@@ -276,11 +279,13 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EXPECT_THAT(tpm.activeUploads(), Contains(upload));
 }
 
-TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploading)
+TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelay)
 {
     auto upload = tpm.fakeActiveUpload();
-	EXPECT_CALL(tpm, scheduleUpload(0, EventLatency_Normal, false))
-		.WillOnce(Return());
+    constexpr std::chrono::duration<int,std::milli> delay { std::chrono::seconds(300) };
+    tpm.timerDelay(delay.count());
+    EXPECT_CALL(tpm, scheduleUpload(delay.count(), EventLatency_Normal, false))
+      .WillOnce(Return());
     tpm.nothingToUpload(upload);
 }
 

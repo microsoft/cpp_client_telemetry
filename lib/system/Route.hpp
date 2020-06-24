@@ -7,8 +7,8 @@
 #include <assert.h>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN
-{
+namespace ARIASDK_NS_BEGIN {
+
     //! Interface for generic route sink (incoming data handler)
     template <typename... TArgs>
     class IRouteSink
