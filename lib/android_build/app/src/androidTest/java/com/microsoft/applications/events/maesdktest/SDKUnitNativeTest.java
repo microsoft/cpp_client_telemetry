@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.microsoft.applications.events.HttpClient;
+import com.microsoft.applications.events.OfflineRoom;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,15 +21,10 @@ import static org.junit.Assert.fail;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class ExampleInstrumentedTest extends MaeUnitLogger {
+public class SDKUnitNativeTest extends MaeUnitLogger {
     public void log_failure(String filename, int line, String summary)
     {
-        StringBuilder failure = new StringBuilder(filename == null ? "NO file" : filename);
-        failure.append(":");
-        failure.append(line);
-        failure.append(": ");
-        failure.append(summary == "null" ? "null" : summary);
-        fail(failure.toString());
+        fail(String.format("%s:%d: %s", filename, line, summary));
     }
 
     @Test
@@ -46,6 +42,7 @@ public class ExampleInstrumentedTest extends MaeUnitLogger {
 
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         HttpClient client = new HttpClient(appContext);
+        OfflineRoom.connectContext(appContext);
 
         TestStub stub = new TestStub();
         int result = stub.runNativeTests(this);

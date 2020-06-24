@@ -11,72 +11,23 @@
 
 using namespace MAT;
 using namespace std;
-using nlohmann::json;
 
 #ifdef _WIN32
 #include <windows.h> // for EXCEPTION_ACCESS_VIOLATION
 #include <excpt.h>
 #endif
 
-/// <summary>
-/// Default JSON config for Transmit Profiles
-/// </summary>
-static const char* const defaultProfiles = R"(
-[{
-    "name": "REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "NEAR_REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 18,  9 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "BEST_EFFORT",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 54, 27 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}]
-)";
+static const char* const defaultRealTimeProfileName = "REAL_TIME";
+static const char* const defaultNearRealTimeProfileName = "NEAR_REAL_TIME";
+static const char* const defaultBestEffortProfileName = "BEST_EFFORT";
 
-static set<string, std::greater<string>> defaultProfileNames = {
-    "REAL_TIME",
-    "NEAR_REAL_TIME",
-    "BEST_EFFORT"
+static const set<string, std::greater<string>> defaultProfileNames = {
+    string{defaultRealTimeProfileName},
+    string{defaultNearRealTimeProfileName},
+    string{defaultBestEffortProfileName}
 };
 
-static const char* DEFAULT_PROFILE = "REAL_TIME";
+static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
 /// Compile-time map of text fields to struct fields and their types.
@@ -208,13 +159,13 @@ namespace ARIASDK_NS_BEGIN {
 
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
-         LOCK_PROFILES;
+        LOCK_PROFILES;
         if (profiles.size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
             reset();
         }
-	 }
+    }
 
     /// <summary>
     /// Parse JSON configration describing transmit profiles
@@ -228,6 +179,7 @@ namespace ARIASDK_NS_BEGIN {
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
 
+        using nlohmann::json;
         try
         {
             json temp = json::parse(profiles_json.c_str());
@@ -390,7 +342,52 @@ namespace ARIASDK_NS_BEGIN {
     /// Reset transmit profiles to defaults.
     /// </summary>
     void TransmitProfiles::reset() {
-        parse(defaultProfiles);
+        const TransmitProfileRules realTimeProfile{ std::string{ defaultRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules nearRealTimeProfile{ std::string{ defaultNearRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 18, 9} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules bestEffortProfile{ std::string{ defaultBestEffortProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 54, 27} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { {-1, -1, -1} }
+        }};
+
+        UpdateProfiles({realTimeProfile, nearRealTimeProfile, bestEffortProfile});
     }
 
     bool TransmitProfiles::setDefaultProfile(const TransmitProfile profileName)

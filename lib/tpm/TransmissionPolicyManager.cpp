@@ -326,7 +326,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         else
         {
-            finishUpload(ctx, 0);
+            finishUpload(ctx, m_timerdelay);
         }
     }
 

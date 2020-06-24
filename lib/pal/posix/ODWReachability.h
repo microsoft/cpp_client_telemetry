@@ -1,17 +1,17 @@
 /*
  Copyright (c) 2011, Tony Million.
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
- 
+
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -22,14 +22,14 @@
  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- POSSIBILITY OF SUCH DAMAGE. 
+ POSSIBILITY OF SUCH DAMAGE.
  */
 
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 
 
-/** 
+/**
  * Create NS_ENUM macro if it does not exist on the targeted version of iOS or OS X.
  *
  * @see http://nshipster.com/ns_enum-ns_options/
@@ -40,20 +40,20 @@
 
 extern NSString *const kReachabilityChangedNotification;
 
-typedef NS_ENUM(NSInteger, NetworkStatus) {
+typedef NS_ENUM(NSInteger, ODWNetworkStatus) {
     // Apple NetworkStatus Compatible Names.
     NotReachable = 0,
     ReachableViaWiFi = 2,
     ReachableViaWWAN = 1
 };
 
-@class Reachability;
+@class ODWReachability;
 
-typedef void (^NetworkReachable)(Reachability * reachability);
-typedef void (^NetworkUnreachable)(Reachability * reachability);
+typedef void (^NetworkReachable)(ODWReachability * reachability);
+typedef void (^NetworkUnreachable)(ODWReachability * reachability);
 
 
-@interface Reachability : NSObject
+@interface ODWReachability : NSObject
 
 @property (nonatomic, copy) NetworkReachable    reachableBlock;
 @property (nonatomic, copy) NetworkUnreachable  unreachableBlock;
@@ -61,15 +61,15 @@ typedef void (^NetworkUnreachable)(Reachability * reachability);
 @property (nonatomic, assign) BOOL reachableOnWWAN;
 
 
-+(Reachability*)reachabilityWithHostname:(NSString*)hostname;
++(ODWReachability*)reachabilityWithHostname:(NSString*)hostname;
 // This is identical to the function above, but is here to maintain
 //compatibility with Apples original code. (see .m)
-+(Reachability*)reachabilityWithHostName:(NSString*)hostname;
-+(Reachability*)reachabilityForInternetConnection;
-+(Reachability*)reachabilityWithAddress:(void *)hostAddress;
-+(Reachability*)reachabilityForLocalWiFi;
++(ODWReachability*)reachabilityWithHostName:(NSString*)hostname;
++(ODWReachability*)reachabilityForInternetConnection;
++(ODWReachability*)reachabilityWithAddress:(void *)hostAddress;
++(ODWReachability*)reachabilityForLocalWiFi;
 
--(Reachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref;
+-(ODWReachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref;
 
 -(BOOL)startNotifier;
 -(void)stopNotifier;
@@ -87,7 +87,7 @@ typedef void (^NetworkUnreachable)(Reachability * reachability);
 // Is user intervention required?
 -(BOOL)isInterventionRequired;
 
--(NetworkStatus)currentReachabilityStatus;
+-(ODWNetworkStatus)currentReachabilityStatus;
 -(SCNetworkReachabilityFlags)reachabilityFlags;
 -(NSString*)currentReachabilityString;
 -(NSString*)currentReachabilityFlags;

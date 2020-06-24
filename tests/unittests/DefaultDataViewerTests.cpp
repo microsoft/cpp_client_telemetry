@@ -81,6 +81,7 @@ public:
     using MAT::DefaultDataViewer::GetMachineFriendlyIdentifier;
     using MAT::DefaultDataViewer::IsTransmissionEnabled;
     using MAT::DefaultDataViewer::SetTransmissionEnabled;
+    using MAT::DefaultDataViewer::GetCurrentEndpoint;
 };
 
 std::shared_ptr<MockHttpClient> mockHttpClient = std::make_shared<MockHttpClient>();
@@ -119,16 +120,42 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-    viewer.EnableRemoteViewer("TestEndpoint");
+    viewer.EnableRemoteViewer("http://TestEndpoint");
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+    viewer.DisableViewer();
+    ASSERT_FALSE(viewer.IsTransmissionEnabled());
+    viewer.EnableRemoteViewer("HTTP://TestEndpoint");
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+}
+
+TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
+{
+    mockHttpClient->Reset();
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
+    {
+        auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+        response->m_statusCode = 200;
+        callback->OnHttpResponse(response.get());
+    };
+
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    ASSERT_EQ("", viewer.GetCurrentEndpoint());
+    const std::string endpoint{"http://TestEndpoint"};
+    viewer.EnableRemoteViewer(endpoint);
+    ASSERT_EQ(endpoint, viewer.GetCurrentEndpoint());
 
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
 }
 
-TEST(DefaultDataViewerTests, EnableRemoteViewer_NullOrEmptryEndpoint_ThrowsInvalidArgument)
+//TODO Uncomment this test when the submodule has been updated.
+TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArgument)
 {
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer(""); });
     CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("           "); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("TestEndpoint"); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("https://TestEndpoint"); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("HTTps://TestEndpoint"); });
 }
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
@@ -143,7 +170,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotE
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-    viewer.EnableRemoteViewer("TestEndpoint");
+    viewer.EnableRemoteViewer("http://TestEndpoint");
 
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }

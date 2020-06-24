@@ -6,6 +6,7 @@
 #include "ctmacros.hpp"
 #include "IModule.hpp"
 
+#include <string>
 #include <vector>
 
 namespace ARIASDK_NS_BEGIN
@@ -27,6 +28,18 @@ namespace ARIASDK_NS_BEGIN
         /// Get the name of the current viewer.
         /// </summary>
         virtual const char* GetName() const noexcept = 0;
+
+        /// <summary>
+        /// Check if the current viewer is transmitting.
+        /// </summary>
+        /// <returns>True if transmission is enabled, false otherwise.</returns>
+        virtual bool IsTransmissionEnabled() const noexcept = 0;
+
+        /// <summary>
+        /// Get the current endpoint where the data is being streamed to.
+        /// </summary>
+        /// <returns>const char* denoting the endpoint, empty string if not currently streaming.</returns>
+        virtual const std::string& GetCurrentEndpoint() const noexcept = 0;
     };
 
 } ARIASDK_NS_END

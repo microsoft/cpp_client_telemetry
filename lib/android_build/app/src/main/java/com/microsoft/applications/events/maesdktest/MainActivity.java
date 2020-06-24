@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        s_client = new HttpClient(getApplicationContext());
+        m_client = new HttpClient(getApplicationContext());
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         tv.setText("Fun Times " + stringFromJNI(System.getProperty("java.io.tmpdir")));
@@ -31,5 +31,5 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI(String path);
-    static HttpClient s_client;
+    HttpClient m_client;
 }

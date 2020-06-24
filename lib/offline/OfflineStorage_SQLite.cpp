@@ -12,6 +12,8 @@
 
 namespace ARIASDK_NS_BEGIN {
 
+    constexpr static size_t kBlockSize = 8192;
+
     class DbTransaction {
         SqliteDB* m_db;
     public:
@@ -57,7 +59,8 @@ namespace ARIASDK_NS_BEGIN {
         , m_logManager(logManager)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
-        m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE]) : static_cast<uint32_t>(m_config[CFG_INT_CACHE_FILE_SIZE]);
+        m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE])
+                : m_config.GetOfflineStorageMaximumSizeBytes();
         m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
 
         if ((percentage == 0)||(percentage > 100))
@@ -199,6 +202,17 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
+    size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord> & records)
+    {
+        size_t stored = 0;
+        for (auto & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
+    }
+
     // Debug routine to print record count in the DB
     void OfflineStorage_SQLite::printRecordCount()
     {
@@ -298,13 +312,17 @@ namespace ARIASDK_NS_BEGIN {
             LOG_TRACE("Reserving %u event(s) {%s%s} for %u milliseconds",
                 static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
 
-            std::vector<uint8_t> idList = packageIdList(consumedIds);
-            if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs)) {
-                LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
-                recreate(207);
-                return false;
+            for (size_t i = 0; i < consumedIds.size(); i += kBlockSize)
+            {
+                auto count = std::min(kBlockSize, consumedIds.size() - i);
+                std::vector<uint8_t> idList = packageIdList(consumedIds.begin() + i, consumedIds.begin() + i + count);
+                if (!SqliteStatement(*m_db, m_stmtReserveEvents).execute(idList, PAL::getUtcSystemTimeMs() + leaseTimeMs))
+                {
+                    LOG_ERROR("Failed to reserve events to send: Database error occurred, recreating database");
+                    recreate(207);
+                    return false;
+                }
             }
-
             m_lastReadCount = static_cast<unsigned>(consumedIds.size());
         }
         return true;
@@ -441,12 +459,18 @@ namespace ARIASDK_NS_BEGIN {
 #endif
             LOG_TRACE("Deleting %u sent event(s) {%s%s}...", static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
 
-            std::vector<uint8_t> idList = packageIdList(ids);
-            if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
-                LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
-                    static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
-                recreate(302);
-                return;
+            for (size_t i = 0; i < ids.size(); i += kBlockSize) {
+                size_t count = std::min(kBlockSize, ids.size() - i);
+                std::vector<uint8_t> idList = packageIdList(ids.begin() + i,
+                                                            ids.begin() + i + count);
+                if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
+                    LOG_ERROR(
+                            "Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
+                            static_cast<unsigned>(ids.size()), ids.front().c_str(),
+                            (ids.size() > 1) ? ", ..." : "");
+                    recreate(302);
+                    return;
+                }
             }
         }
     }
@@ -477,13 +501,19 @@ namespace ARIASDK_NS_BEGIN {
             LOG_TRACE("Releasing %u event(s) {%s%s}, retry count %s...",
                 static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
 
-            std::vector<uint8_t> idList = packageIdList(ids);
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseEvents_ids_retryCountDelta);
-            if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0)) {
-                LOG_ERROR("Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",
-                    static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
-                recreate(403);
-                return;
+            for (size_t i = 0; i < ids.size(); i += kBlockSize) {
+                size_t count = std::min(kBlockSize, ids.size() - i);
+                std::vector<uint8_t> idList = packageIdList(ids.begin() + i, ids.begin() + i + count);
+                if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0)) {
+                    LOG_ERROR(
+                            "Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",
+                            static_cast<unsigned>(ids.size()), ids.front().c_str(),
+                            (ids.size() > 1) ? ", ..." : "",
+                            incrementRetryCount ? "+1" : "not changed");
+                    recreate(403);
+                    return;
+                }
             }
             LOG_TRACE("Successfully released %u requested event(s), %u were not found anymore",
                 releaseStmt.changes(), static_cast<unsigned>(ids.size()) - releaseStmt.changes());
@@ -620,6 +650,13 @@ namespace ARIASDK_NS_BEGIN {
         SqliteStatement(*m_db, "PRAGMA auto_vacuum=FULL").select();
         SqliteStatement(*m_db, "PRAGMA journal_mode=WAL").select();
         SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
+        {
+            std::ostringstream tempPragma;
+            tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
+            SqliteStatement(*m_db, tempPragma.str().c_str()).select();
+            const char * result = sqlite3_temp_directory;
+            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+        }
 
         int openedDbVersion;
         {
@@ -711,11 +748,15 @@ namespace ARIASDK_NS_BEGIN {
             "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
             "* ? / 100)");
         PREPARE_SQL(m_stmtTrimEvents_percent,
-            "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
-            "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
-            "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
-            "* ? / 100)"
-            ")");
+                    "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
+                                                     "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
+                                                                                                "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
+                                                                                                                                                   "* ? / 100)"
+                                                                                                                                                   ")");
+
+        PREPARE_SQL(m_stmtDeleteEvents_tenants,
+                SQL_SUPPLY_PACKAGED_IDS
+                "DELETE FROM " TABLE_NAME_EVENTS " WHERE tenant_token IN ids");
         PREPARE_SQL(m_stmtDeleteEvents_ids,
             SQL_SUPPLY_PACKAGED_IDS
             "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ids");
@@ -877,23 +918,26 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-    std::vector<uint8_t> OfflineStorage_SQLite::packageIdList(std::vector<std::string> const& ids)
+    std::vector<uint8_t> OfflineStorage_SQLite::packageIdList(
+        std::vector<std::string>::const_iterator const & begin,
+        std::vector<std::string>::const_iterator const & end) const
     {
-        size_t size = std::accumulate(ids.cbegin(), ids.cend(), size_t(0), [](size_t sum, std::string const& id) -> size_t {
+        size_t size = std::accumulate(begin, end, size_t(0), [](size_t sum, std::string const& id) -> size_t {
             return sum + id.length() + 1;
         });
 
         std::vector<uint8_t> result;
         result.reserve(size);
 
-        for (std::string const& id : ids) {
+        for (auto i = begin; i != end; ++i)
+        {
+            std::string const & id(*i);
             uint8_t const* ptr = reinterpret_cast<uint8_t const*>(id.c_str());
             result.insert(result.end(), ptr, ptr + id.size() + 1);
         }
 
         return result;
     }
-
-
+    
 } ARIASDK_NS_END
 #endif

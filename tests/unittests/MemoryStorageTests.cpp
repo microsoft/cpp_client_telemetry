@@ -218,8 +218,32 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
+TEST(MemoryStorageTests, GetAndReserveSome)
+{
+    MemoryStorage storage(testLogManager, testConfig);
+    storage.Initialize(testObserver);
+    addEvents(storage);
+    auto totalCount = storage.GetRecordCount();
+    constexpr size_t howMany = 32;
+    std::vector<StorageRecord> someRecords;
+    storage.GetAndReserveRecords(
+        [&someRecords, howMany] (StorageRecord && record)->bool
+        {
+            if (someRecords.size() >= howMany) {
+                return false;
+            }
+            someRecords.emplace_back(std::move(record));
+            return true;
+        },
+        EventLatency_Normal
+    );
+    EXPECT_EQ(howMany, someRecords.size());
+    EXPECT_EQ(howMany, storage.LastReadRecordCount());
+    EXPECT_EQ(totalCount - howMany, storage.GetRecordCount());
+}
+
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, StoreSetting)
+TEST(MemoryStorageTests, StoreSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     bool result = storage.StoreSetting("not_implemented", "not_implemented");
@@ -227,7 +251,7 @@ TEST(MemoryStorage, StoreSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, GetSetting)
+TEST(MemoryStorageTests, GetSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     auto result = storage.GetSetting("not_implemented");
@@ -235,7 +259,7 @@ TEST(MemoryStorage, GetSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorag, ResizeDb)
+TEST(MemoryStorageTests, ResizeDb)
 {
     MemoryStorage storage(testLogManager, testConfig);
     EXPECT_THAT(storage.ResizeDb(), true);
@@ -246,7 +270,6 @@ constexpr size_t MAX_STRESS_THREADS = 20;
 TEST(MemoryStorageTests, MultiThreadPerfTest)
 {
     MemoryStorage storage(testLogManager, testConfig);
-    std::atomic<size_t> totalRecords(0);
 
     std::vector<std::thread> workers;
     std::atomic<size_t> threadCount(0);

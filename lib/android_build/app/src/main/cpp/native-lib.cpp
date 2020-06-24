@@ -64,10 +64,12 @@ public:
     }
 
     void OnTestStart(const ::testing::TestInfo& test_info) override {
+        auto param = test_info.value_param();
         __android_log_print(
                 ANDROID_LOG_INFO,
                 "MAE",
-                "Start %s\n",
+                "Start %s.%s\n",
+                test_info.test_case_name(),
                 test_info.name()
                 );
     }
@@ -76,26 +78,31 @@ public:
         __android_log_print(
                 ANDROID_LOG_INFO,
                 "MAE",
-                "End %s: %s\n",
+                "End %s.%s: %s\n",
+                test_info.test_case_name(),
                 test_info.name(),
                 test_info.result()->Failed() ? "FAIL" : "OK"
                 );
     }
 
-    void OnTestProgramEnd(const ::testing::UnitTest& /* unit test */) override {
+    void OnTestProgramEnd(const ::testing::UnitTest& unit) override {
         __android_log_print(
                 ANDROID_LOG_INFO,
                 "MAE",
-                "End tests\n"
+                "End tests: %d success, %d fail, %d total",
+                unit.successful_test_count(),
+                unit.failed_test_count(),
+                unit.total_test_count()
                 );
     }
 };
 
 int RunTests::run_all_tests(JNIEnv * env, jobject java_logger)
 {
-    int argc = 1;
+    int argc = 2;
     char command_name[] = "maesdk-test";
-    char *argv[] = { command_name };
+    char filter[] = "--gtest_filter=*";
+    char *argv[] = { command_name, filter };
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::TestEventListeners& listeners =
             ::testing::UnitTest::GetInstance()->listeners();
