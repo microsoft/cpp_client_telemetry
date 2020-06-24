@@ -51,7 +51,7 @@ NS_ASSUME_NONNULL_BEGIN
  @brief Returns current endpoint if it is set, empty string otherwise.
  @return Returns current endpoint if it is set, empty string otherwise.
  */
-+(NSString *)currentEndpoint;
++(nullable NSString *)currentEndpoint;
 
 /*!
  @brief Sets callback for OnDisableNotification event.
