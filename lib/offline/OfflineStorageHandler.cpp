@@ -3,7 +3,11 @@
 #include "OfflineStorageHandler.hpp"
 
 #ifdef HAVE_MAT_STORAGE
+#ifdef USE_ROOM
+#include "offline/OfflineStorage_Room.hpp"
+#else
 #include "offline/OfflineStorage_SQLite.hpp"
+#endif
 #endif
 
 #include "offline/MemoryStorage.hpp"
@@ -61,7 +65,7 @@ namespace ARIASDK_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task.load());
+        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
         m_flushComplete.wait();
     }
 
@@ -87,7 +91,11 @@ namespace ARIASDK_NS_BEGIN {
         /* No storage configured */
         m_offlineStorageDisk.reset(nullptr);
 #else
+#ifdef USE_ROOM
+        m_offlineStorageDisk.reset(new OfflineStorage_Room(m_logManager, m_config));
+#else
         m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
+#endif
         m_offlineStorageDisk->Initialize(*this);
 #endif
 
@@ -168,22 +176,12 @@ namespace ARIASDK_NS_BEGIN {
             // StoreRecord() will then block until the move completes.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
-            size_t totalSaved = 0;
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");
 
-            while (records.size())
-            {
-                if (records.back().persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
-                {
-                    ids.push_back(records.back().id);
-                    if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
-                        totalSaved++;
-                }
-                records.pop_back();
-            }
+            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
@@ -259,7 +257,7 @@ namespace ARIASDK_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task.load());
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
                     }
                     m_flushLock.unlock();
                 }
@@ -277,6 +275,16 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         return true;
+    }
+
+    size_t OfflineStorageHandler::StoreRecords(std::vector<StorageRecord> & records) {
+        size_t stored = 0;
+        for (auto & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
     }
 
     bool OfflineStorageHandler::ResizeDb()

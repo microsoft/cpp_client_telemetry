@@ -11,72 +11,23 @@
 
 using namespace MAT;
 using namespace std;
-using nlohmann::json;
 
 #ifdef _WIN32
 #include <windows.h> // for EXCEPTION_ACCESS_VIOLATION
 #include <excpt.h>
 #endif
 
-/// <summary>
-/// Default JSON config for Transmit Profiles
-/// </summary>
-static const char* const defaultProfiles = R"(
-[{
-    "name": "REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "NEAR_REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 18,  9 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "BEST_EFFORT",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 54, 27 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}]
-)";
+static const char* const defaultRealTimeProfileName = "REAL_TIME";
+static const char* const defaultNearRealTimeProfileName = "NEAR_REAL_TIME";
+static const char* const defaultBestEffortProfileName = "BEST_EFFORT";
 
-static set<string, std::greater<string>> defaultProfileNames = {
-    "REAL_TIME",
-    "NEAR_REAL_TIME",
-    "BEST_EFFORT"
+static const set<string, std::greater<string>> defaultProfileNames = {
+    string{defaultRealTimeProfileName},
+    string{defaultNearRealTimeProfileName},
+    string{defaultBestEffortProfileName}
 };
 
-static const char* DEFAULT_PROFILE = "REAL_TIME";
+static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
 /// Compile-time map of text fields to struct fields and their types.
@@ -102,7 +53,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
 };
 
-#define LOCK_PROFILES       std::lock_guard<std::mutex> lock(profiles_mtx)
+#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -110,13 +61,13 @@ namespace ARIASDK_NS_BEGIN {
     static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
     static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
 
-    static std::mutex      profiles_mtx;
+    static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
     string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
-    bool        TransmitProfiles::isTimerUpdated = true;
+    std::atomic<bool> TransmitProfiles::isTimerUpdated(true);
 
     /// <summary>
     /// Get current transmit profile name
@@ -176,46 +127,45 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmitProfiles::UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept
     {
+        LOCK_PROFILES;
+        removeCustomProfiles();
+        // Add new profiles
+        for (const auto& profile : newProfiles)
         {
-            LOCK_PROFILES;
-            removeCustomProfiles();
-            // Add new profiles
-            for (const auto& profile : newProfiles)
-            {
-                profiles[profile.name] = profile;
-            }
-            // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
-            auto it = profiles.find(currProfileName);
-            if (it == profiles.end())
-            {
-                currProfileName = DEFAULT_PROFILE;
-                LOG_TRACE("Switched to profile %s", currProfileName.c_str());
-            }
+            profiles[profile.name] = profile;
+        }
+        // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
+        auto it = profiles.find(currProfileName);
+        if (it == profiles.end())
+        {
+            currProfileName = DEFAULT_PROFILE;
+            LOG_TRACE("Switched to profile %s", currProfileName.c_str());
+        }
 
 #ifdef  HAVE_MAT_LOGGING
-            // Print combined list of profiles: default + custom
-            LOG_TRACE("Profiles:");
-            size_t i = 0;
-            for (const auto& kv : profiles)
-            {
-                LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
-                          (!kv.first.compare(currProfileName)) ? " [active]" : "");
-                i++;
-            }
+        // Print combined list of profiles: default + custom
+        LOG_TRACE("Profiles:");
+        size_t i = 0;
+        for (const auto& kv : profiles)
+        {
+            LOG_TRACE("[%d] %s%s", i, kv.first.c_str(),
+                        (!kv.first.compare(currProfileName)) ? " [active]" : "");
+            i++;
+        }
 #endif  
-            currRule = 0;
-        }  // Unlock here because updateStates performs its own LOCK_PROFILES
+        currRule = 0;
         updateStates(currNetCost, currPowState);
     }
 
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
+        LOCK_PROFILES;
         if (profiles.size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
             reset();
         }
-	 }
+    }
 
     /// <summary>
     /// Parse JSON configration describing transmit profiles
@@ -229,6 +179,7 @@ namespace ARIASDK_NS_BEGIN {
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
 
+        using nlohmann::json;
         try
         {
             json temp = json::parse(profiles_json.c_str());
@@ -391,7 +342,52 @@ namespace ARIASDK_NS_BEGIN {
     /// Reset transmit profiles to defaults.
     /// </summary>
     void TransmitProfiles::reset() {
-        parse(defaultProfiles);
+        const TransmitProfileRules realTimeProfile{ std::string{ defaultRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules nearRealTimeProfile{ std::string{ defaultNearRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 18, 9} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules bestEffortProfile{ std::string{ defaultBestEffortProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 54, 27} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { {-1, -1, -1} }
+        }};
+
+        UpdateProfiles({realTimeProfile, nearRealTimeProfile, bestEffortProfile});
     }
 
     bool TransmitProfiles::setDefaultProfile(const TransmitProfile profileName)
@@ -426,27 +422,18 @@ namespace ARIASDK_NS_BEGIN {
     bool TransmitProfiles::setProfile(const std::string& profileName) {
         bool result = false;
 
-        // We do not lock it here, but it's OK because reset would lock if
-        // needed. We're reading an integer value typically on non-empty
-        // collection and not modifying it without a lock.
-        if (profiles.size() == 0) {
-            // Load default profiles if nothing is loaded yet
-            reset();
+        EnsureDefaultProfiles();
+        LOCK_PROFILES;
+        auto it = profiles.find(profileName);
+        if (it != profiles.end()) {
+            currProfileName = profileName;
+            LOG_INFO("selected profile %s ...", profileName.c_str());
+            result = true;
         }
-
-        {
-            LOCK_PROFILES;
-            auto it = profiles.find(profileName);
-            if (it != profiles.end()) {
-                currProfileName = profileName;
-                LOG_INFO("selected profile %s ...", profileName.c_str());
-                result = true;
-            }
-            else {
-                LOG_WARN("profile %s not found!", profileName.c_str());
-                currProfileName = DEFAULT_PROFILE;
-                LOG_WARN("selected profile %s instead", currProfileName.c_str());
-            }
+        else {
+            LOG_WARN("profile %s not found!", profileName.c_str());
+            currProfileName = DEFAULT_PROFILE;
+            LOG_WARN("selected profile %s instead", currProfileName.c_str());
         }
         updateStates(currNetCost, currPowState);
         return result;
@@ -456,27 +443,44 @@ namespace ARIASDK_NS_BEGIN {
     /// Get the current list of priority timers
     /// </summary>
     /// <returns></returns>
-    void TransmitProfiles::getTimers(std::vector<int>& out) {
-        {
-            out.clear();
-            if (profiles.size() == 0) {
-                // Load default profiles if nothing is loaded yet
-                reset();
-            }
-            LOCK_PROFILES;
-            auto it = profiles.find(currProfileName);
-            if (it == profiles.end()) {
-                for (size_t i = 0; i < MAX_TIMERS_SIZE; i++) {
-                    out.push_back(-1);
-                }
-                LOG_WARN("No active profile found, disabling all transmission timers.");
-                return;
-            }
-            for (int timer : (it->second).rules[currRule].timers) {
-                out.push_back(timer * 1000);// convert time in milisec
-            }
-            isTimerUpdated = false;
+    void TransmitProfiles::getTimers(TimerArray& out) {
+        EnsureDefaultProfiles();
+
+        LOCK_PROFILES;
+        auto it = profiles.find(currProfileName);
+        // When we can't get timers, we won't set isTimerUpdated to false,
+        // so we will keep calling getTimers from TransmissionPolicyManager.
+        if (it == profiles.end()) {
+            out.fill(-1);
+            LOG_WARN("No active profile found, disabling all transmission timers.");
+            return;
         }
+        if (currRule >= it->second.rules.size()) {
+            out.fill(-1);
+            LOG_ERROR(
+                "Profile %s current rule %iz >= profile length %iz",
+                currProfileName.c_str(),
+                currRule,
+                it->second.rules.size()
+            );
+            return;
+        }
+        auto const & rule = (it->second).rules[currRule];
+        if (rule.timers.empty()) {
+            out.fill(-1);
+            LOG_ERROR(
+                "Profile %s rule %iz has no timers",
+                currProfileName.c_str(),
+                currRule
+            );
+            return;
+        }
+        out[0] = 1000 * rule.timers[0];
+        out[1] = out[0];
+        if (rule.timers.size() > 2) {
+            out[1] = 1000 * rule.timers[2];
+        }
+        isTimerUpdated = false;
     }
 
     /// <summary>
@@ -513,30 +517,28 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="powState"></param>
     bool TransmitProfiles::updateStates(NetworkCost netCost, PowerSource powState) {
         bool result = false;
-        // remember the current state in case if profile change happens
+
+        LOCK_PROFILES;
         currNetCost = netCost;
         currPowState = powState;
-        {
-            LOCK_PROFILES;
-            auto it = profiles.find(currProfileName);
-            if (it != profiles.end()) {
-                auto &profile = it->second;
-                // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
-                currRule = 0;
-                for (size_t i = 0; i < profile.rules.size(); i++) {
-                    const auto &rule = profile.rules[i];
-                    if ((
-                        (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
-                        ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))
-                        )
-                    {
-                        currRule = i;
-                        result = true;
-                        break;
-                    }
+        auto it = profiles.find(currProfileName);
+        if (it != profiles.end()) {
+            auto &profile = it->second;
+            // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
+            currRule = 0;
+            for (size_t i = 0; i < profile.rules.size(); i++) {
+                const auto &rule = profile.rules[i];
+                if ((
+                    (rule.netCost == netCost) || (NetworkCost::NetworkCost_Any == netCost) || (NetworkCost::NetworkCost_Any == rule.netCost)) &&
+                    ((rule.powerState == powState) || (PowerSource::PowerSource_Any == powState) || (PowerSource::PowerSource_Any == rule.powerState))
+                    )
+                {
+                    currRule = i;
+                    result = true;
+                    break;
                 }
-                onTimersUpdated();
             }
+            onTimersUpdated();
         }
         return result;
     }
