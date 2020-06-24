@@ -91,7 +91,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     bool result = false;
     try
     {
-        result = LogManager::GetDataViewerCollection().IsViewerEnabled();
+        result = LogManager::GetDataViewerCollection().IsViewerEnabled(_viewer->GetName());
     }
     catch (const std::exception &e)
     {
@@ -105,7 +105,12 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     return result;
 }
 
-+(void)registerOnDisableNotification:(void(^)())callback
++(NSString *)currentEndpoint
+{
+    return [NSString stringWithCString:_viewer->GetCurrentEndpoint().c_str() encoding:[NSString defaultCStringEncoding]];
+}
+
++(void)registerOnDisableNotification:(void(^)(void))callback
 {
     std::function<void()> disableNotification = std::bind(callback);
     _viewer->RegisterOnDisableNotification(disableNotification);
