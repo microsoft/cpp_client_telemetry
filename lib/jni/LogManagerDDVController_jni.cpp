@@ -7,7 +7,6 @@ LOGMANAGER_INSTANCE
 
 extern "C"
 {
-std::shared_ptr<DefaultDataViewer> spDefaultDataViewer;
 
 JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_initializeDiagnosticDataViewer(
         JNIEnv* env,
@@ -16,7 +15,7 @@ JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_ini
         jstring jstrEndpoint) {
     auto machineIdentifier = JStringToStdString(env, jstrMachineIdentifier);
     auto endpoint = JStringToStdString(env, jstrEndpoint);
-    spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
+    std::shared_ptr<DefaultDataViewer> spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
     if (spDefaultDataViewer->EnableRemoteViewer(endpoint)) {
         LogManager::GetDataViewerCollection().UnregisterAllViewers();
         LogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
@@ -30,32 +29,13 @@ JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_ini
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_LogManager_disableViewer(
         JNIEnv* env,
         jclass /* this */) {
-    if(spDefaultDataViewer != nullptr)
-    {
-        spDefaultDataViewer->DisableViewer();
-    }
+    LogManager::GetDataViewerCollection().UnregisterAllViewers();
 }
 
 JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_isViewerEnabled(
         JNIEnv* env,
         jclass /* this */) {
-    if(spDefaultDataViewer != nullptr)
-    {
-        return LogManager::GetDataViewerCollection().IsViewerEnabled(spDefaultDataViewer->GetName());
-    }
-
-    return false;
-}
-
-JNIEXPORT jString JNICALL Java_com_microsoft_applications_events_LogManager_getCurrentEndpoint(
-        JNIEnv* env,
-        jclass /* this */) {
-    if(spDefaultDataViewer != nullptr)
-    {
-        return spDefaultDataViewer->GetCurrentEndpoint();
-    }
-
-    return "";
+    return LogManager::GetDataViewerCollection().IsViewerEnabled();
 }
 
 }
