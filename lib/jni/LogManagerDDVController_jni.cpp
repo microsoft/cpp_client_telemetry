@@ -9,59 +9,35 @@ using namespace MAT;
 
 extern "C"
 {
-    std::shared_ptr<DefaultDataViewer> spDefaultDataViewer;
 
     JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_initializeDiagnosticDataViewer(
         JNIEnv* env,
         jclass /* this */,
         jstring jstrMachineIdentifier,
-        jstring jstrEndpoint)
-    {
-        auto machineIdentifier = JStringToStdString(env, jstrMachineIdentifier);
-        auto endpoint = JStringToStdString(env, jstrEndpoint);
-        spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
-        if (spDefaultDataViewer->EnableRemoteViewer(endpoint))
-        {
-            WrapperLogManager::GetDataViewerCollection().UnregisterAllViewers();
-            WrapperLogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        jstring jstrEndpoint) {
+    auto machineIdentifier = JStringToStdString(env, jstrMachineIdentifier);
+    auto endpoint = JStringToStdString(env, jstrEndpoint);
+    std::shared_ptr<DefaultDataViewer> spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
+    if (spDefaultDataViewer->EnableRemoteViewer(endpoint)) {
+        LogManager::GetDataViewerCollection().UnregisterAllViewers();
+        LogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
+        return true;
+    }
+    else {
+        return false;
     }
 
     JNIEXPORT void JNICALL Java_com_microsoft_applications_events_LogManager_disableViewer(
         JNIEnv* env,
-        jclass /* this */)
-    {
-        if (spDefaultDataViewer != nullptr)
-        {
-            spDefaultDataViewer->DisableViewer();
-        }
-    }
+        jclass /* this */) {
+    LogManager::GetDataViewerCollection().UnregisterAllViewers();
+}
 
     JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_isViewerEnabled(
         JNIEnv* env,
-        jclass /* this */)
-    {
-        if (spDefaultDataViewer != nullptr)
-        {
-            return WrapperLogManager::GetDataViewerCollection().IsViewerEnabled(spDefaultDataViewer->GetName());
-        }
-
-        return false;
-    }
-
-    JNIEXPORT jString JNICALL Java_com_microsoft_applications_events_LogManager_getCurrentEndpoint(
-        JNIEnv* env,
-        jclass /* this */)
-    {
-        if (spDefaultDataViewer != nullptr)
-        {
-            return spDefaultDataViewer->GetCurrentEndpoint();
-        }
+        jclass /* this */) {
+    return LogManager::GetDataViewerCollection().IsViewerEnabled();
+}
 
         return "";
     }
