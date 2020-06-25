@@ -146,6 +146,11 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
+        virtual bool IsViewerRegistered(const char*) const override
+        {
+            return false;
+        }
+
         virtual ~NullDataViewerCollection() {};
     };
 
