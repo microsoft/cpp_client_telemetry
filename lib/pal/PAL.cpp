@@ -433,9 +433,7 @@ namespace PAL_NS_BEGIN {
             // Get SystemInfo common fields
             context->SetOsVersion(m_SystemInformation->GetOsMajorVersion());
             context->SetOsName(m_SystemInformation->GetOsName());
-            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "m_SystemInformation->GetOsMajorVersion() %s", m_SystemInformation->GetOsMajorVersion().c_str());
             context->SetOsBuild(m_SystemInformation->GetOsFullVersion());
-            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "m_SystemInformation->GetOsFullVersion( %s", m_SystemInformation->GetOsFullVersion().c_str());
             context->SetDeviceClass(m_SystemInformation->GetDeviceClass());
 
             // AppInfo fields

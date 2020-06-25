@@ -227,7 +227,6 @@ public class HttpClient {
             os_major_version = "GECOS III"; // unexpected except in Java unit tests
         }
         String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
-        Log.i("HungCatJ", "Java.setSystemInfo " + String.format("A:%s", app_id) + ", " + app_version + ", " + app_language + ", " + os_major_version + ", " + os_full_version);
         setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version);
     }
 

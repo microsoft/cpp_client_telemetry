@@ -162,7 +162,6 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogSe
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties properties = GetEventProperties(env, jstrEventName, jstrEventType, jEventLatency, jEventPersistence,
             jEventPopSample, jEventPolicyBitflags, jTimestampInMillis, jEventPropertyStringKey, jEventPropertyValue);
-    __android_log_print(ANDROID_LOG_ERROR, "HungCat", "nativeLogSession %d", jSessionState);
     logger->LogSession(static_cast<SessionState>(jSessionState), properties);
 }
 

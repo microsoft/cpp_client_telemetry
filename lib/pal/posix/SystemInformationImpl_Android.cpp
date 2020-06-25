@@ -115,7 +115,6 @@ namespace PAL_NS_BEGIN {
             AndroidSystemInformationConnector::s_app_version = std::move(versionName);
             AndroidSystemInformationConnector::s_os_full_version = std::move(osVersion);
             AndroidSystemInformationConnector::s_os_major_version = std::move(versionRelease);
-            __android_log_print(ANDROID_LOG_ERROR, "HungCat", "SystemInformationImpl.PopulateSystemInfo: s_os_major_version %s, s_os_full_version %s.", AndroidSystemInformationConnector::s_os_major_version.c_str(), AndroidSystemInformationConnector::s_os_full_version.c_str());
         }
 
     };
@@ -144,7 +143,6 @@ namespace PAL_NS_BEGIN {
         m_app_language = AndroidSystemInformationConnector::s_app_language;
         m_os_major_version = AndroidSystemInformationConnector::s_os_major_version;
         m_os_full_version = AndroidSystemInformationConnector::s_os_full_version;
-        __android_log_print(ANDROID_LOG_ERROR, "HungCat", "SystemInformationImpl constructor: m_os_major_version %s, m_os_full_version %s.", m_os_major_version.c_str(), m_os_full_version.c_str());
     }
 
     SystemInformationImpl::~SystemInformationImpl()
@@ -183,7 +181,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
     auto capp_language = JStringToStdString(env, app_language);
     auto cos_major_version = JStringToStdString(env, os_major_version);
     auto cos_full_version = JStringToStdString(env, os_full_version);
-    __android_log_print(ANDROID_LOG_ERROR, "HungCat", "HttpClient_setSystemInfo %s, %s. %s, %s", capp_id.c_str(), capp_version.c_str(), cos_major_version.c_str(), cos_full_version.c_str());
     PAL::AndroidSystemInformationConnector::setValue(
         env,
         PAL::AndroidSystemInformationConnector::s_app_id,

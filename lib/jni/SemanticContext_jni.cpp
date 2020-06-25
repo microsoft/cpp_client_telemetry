@@ -69,7 +69,6 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_na
         jstring jstrValue) {
     auto name = JStringToStdString(env, jstrName);
     auto value = JStringToStdString(env, jstrValue);
-    __android_log_print(ANDROID_LOG_ERROR, "HungCat", "nativeSetCommonFieldString %s -> %s", name.c_str(), value.c_str());
     reinterpret_cast<ISemanticContext*>(nativeSemanticContextPtr)->SetCommonField(name, value);
 }
 
