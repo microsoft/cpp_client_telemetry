@@ -148,6 +148,7 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
+    utils/StringConversion.cpp
   )
 
   # UTC module
