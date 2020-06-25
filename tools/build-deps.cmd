@@ -4,8 +4,7 @@ echo Building 3rd party dependencies...
 
 set ROOT=%~dp0\..
 
-echo Using Visual Studio 2017 tools...
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+call %~dp0\vcvars.cmd
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=

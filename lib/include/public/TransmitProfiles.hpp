@@ -48,40 +48,61 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The network cost, as one of the MAT::NetworkCost enumeration values.
         /// </summary>
-        NetworkCost      netCost;         // any|unknown|low|high|restricted
+        NetworkCost      netCost = NetworkCost_Any;         // any|unknown|low|high|restricted
 
         /// <summary>
         /// The power state, as one of the MAT::PowerSource enumeration values.
         /// </summary>
-        PowerSource      powerState;      // any|unknown|battery|charging
+        PowerSource      powerState = PowerSource_Any;      // any|unknown|battery|charging
 
         /// <summary>
         /// The type of network, as one of the MAT::NetworkType enumeration values.
         /// <b>Note:</b> This member is reserved for future use.
         /// </summary>
-        NetworkType      netType;         // reserved for future use
+        NetworkType      netType = NetworkType_Any;         // reserved for future use
 
         /// <summary>
         /// The speed of the network.
         /// <b>Note:</b> This member is reserved for future use.
         /// </summary>
-        unsigned         netSpeed;        // reserved for future use
+        unsigned         netSpeed = 0;                      // reserved for future use
 
         /// <summary>
-        /// A vector on integers that contain per-priority transmission timers.
+        /// A vector of integers that contain per-priority transmission timers.
         /// </summary>
-        std::vector<int> timers;          // per-priority transmission timers
+        std::vector<int> timers;                            // per-priority transmission timers
 
         /// <summary>
         /// The TransmitProfileRule structure default constructor.
         /// </summary>
-        TransmitProfileRule() {
-            netCost = NetworkCost_Any;
-            netType = NetworkType_Any;
-            netSpeed = 0;
-            powerState = PowerSource_Any;
-            timers.clear();
-        }
+        TransmitProfileRule() noexcept = default;
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a collection of timers.
+        /// </summary>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(std::vector<int>&& timers)
+           : timers(std::move(timers)) { }
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , timers(std::move(timers)) { }
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost, PowerSource, and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="powerSource">The power state, as one of the MAT::PowerSource enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , powerState(powerSource)
+           , timers(std::move(timers)) { }
 
     } TransmitProfileRule;
 

@@ -42,9 +42,9 @@ namespace ARIASDK_NS_BEGIN
             status_t& status,
             uint64_t targetVersion = MAT::Version)
         {
-            cfg["name"] = id;
+            cfg[CFG_STR_FACTORY_NAME] = id;
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
-            cfg["config"]["host"] = (wantController) ? id : "*";
+            cfg[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = (wantController) ? id : "*";
             return Get(cfg, status);
         };
 
@@ -161,7 +161,7 @@ namespace ARIASDK_NS_BEGIN
     /// http           - optional IHttpClient override instance
     /// taskDispatcher - optional ITaskDispatcher override instance
     /// </summary>
-    typedef struct
+    typedef struct capi_client_struct
     {
         ILogManager*                     logmanager = nullptr;
         ILogConfiguration                config;
