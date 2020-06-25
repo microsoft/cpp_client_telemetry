@@ -38,7 +38,7 @@ namespace ARIASDK_NS_BEGIN
         if (vm->AttachCurrentThread(&env, nullptr) != JNI_OK)
         {
             env = nullptr;
-            throw std::runtime_error("Unable to connect to Java thread");
+            MATSDK_THROW(std::runtime_error("Unable to connect to Java thread"));
             return;
         }
         pushLocalFrame(INITIAL_FRAME_SIZE);
@@ -185,7 +185,7 @@ namespace ARIASDK_NS_BEGIN
         Filter::const_iterator token = whereFilter.find("tenant_token");
         if (whereFilter.size() != 1 || token == whereFilter.cend())
         {
-            throw std::logic_error("whereFilter not implemented");
+            MATSDK_THROW(std::logic_error("whereFilter not implemented"));
         }
 
         auto room_class = env->GetObjectClass(m_room);
@@ -635,7 +635,7 @@ namespace ARIASDK_NS_BEGIN
         }
         if (buffer_size >= UINT32_MAX)
         {
-            throw std::runtime_error("Buffer size");
+            MATSDK_THROW(std::runtime_error("Buffer size"));
         }
         std::vector<jbyte> buffer;  // tenantToken, blob
         std::vector<jint> indices;
@@ -1002,7 +1002,7 @@ namespace ARIASDK_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            throw std::logic_error(message);
+            MATSDK_THROW(std::logic_error(message));
         }
     }
 
@@ -1014,7 +1014,7 @@ namespace ARIASDK_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            throw std::runtime_error(message);
+            MATSDK_THROW(std::runtime_error(message));
         }
     }
 
