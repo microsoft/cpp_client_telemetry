@@ -38,13 +38,16 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     void uploadScheduled(bool state) { m_isUploadScheduled = state; }
 
     std::set<EventsUploadContextPtr> const& activeUploads() const { return m_activeUploads; }
-	EventsUploadContextPtr fakeActiveUpload() { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
+    EventsUploadContextPtr fakeActiveUpload() { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
+    EventsUploadContextPtr fakeActiveUpload(EventLatency latency) { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = latency; m_activeUploads.insert(ctx); return ctx; }
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
 
     int timerDelay() const { return m_timerdelay; }
     void timerDelay(int delay) { m_timerdelay = delay; }
+
+    void runningLatency(EventLatency latency) { m_runningLatency = latency; }
 
     void NotMockScheduleUpload(int delay, EventLatency latency, bool force)
     {
@@ -279,11 +282,20 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EXPECT_THAT(tpm.activeUploads(), Contains(upload));
 }
 
-TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelay)
+TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploadingForRunningLatencyNormal)
+{
+    auto upload = tpm.fakeActiveUpload(EventLatency_Normal);
+    EXPECT_CALL(tpm, scheduleUpload(_, _, false))
+      .Times(0);
+    tpm.nothingToUpload(upload);
+}
+
+TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelayForRunningLatencyRealtime)
 {
     auto upload = tpm.fakeActiveUpload();
     constexpr std::chrono::duration<int,std::milli> delay { std::chrono::seconds(300) };
     tpm.timerDelay(delay.count());
+    tpm.runningLatency(EventLatency_RealTime);
     EXPECT_CALL(tpm, scheduleUpload(delay.count(), EventLatency_Normal, false))
       .WillOnce(Return());
     tpm.nothingToUpload(upload);
