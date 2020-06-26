@@ -48,7 +48,7 @@ namespace ARIASDK_NS_BEGIN {
             }
         };
     protected:
-        // Convert a bias in minutes to the ISO 8601 time zone representaiton.
+        // Convert a bias in minutes to the ISO 8601 time zone representations.
         // ISO 8601 examples: +01:30, -08
         static std::string TimeZoneBiasToISO8601(long bias)
         {

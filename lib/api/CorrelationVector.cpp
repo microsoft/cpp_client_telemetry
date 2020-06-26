@@ -277,7 +277,7 @@ namespace ARIASDK_NS_BEGIN
             
             try
             {
-                // do a manual string comparision before trying to parse the value to avoid throwing an exception
+                // do a manual string comparison before trying to parse the value to avoid throwing an exception
                 if (vectorString.length() == 0 ||
                     vectorString.length() > s_maxVectorElementValue.length() ||
                     (vectorString.length() == s_maxVectorElementValue.length() && vectorString > s_maxVectorElementValue))

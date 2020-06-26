@@ -30,7 +30,6 @@ namespace ARIASDK_NS_BEGIN {
     bool StorageObserver::handleStoreRecord(IncomingEventContextPtr const& ctx)
     {
         ctx->record.timestamp = PAL::getUtcSystemTimeMs();
-
         if (!m_offlineStorage.StoreRecord(ctx->record)) {
             // stats implementation must trigger a failure notification
             storeRecordFailed(ctx);

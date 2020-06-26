@@ -3,7 +3,11 @@
 #include "OfflineStorageHandler.hpp"
 
 #ifdef HAVE_MAT_STORAGE
+#ifdef USE_ROOM
+#include "offline/OfflineStorage_Room.hpp"
+#else
 #include "offline/OfflineStorage_SQLite.hpp"
+#endif
 #endif
 
 #include "offline/MemoryStorage.hpp"
@@ -24,6 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
+        m_flushPending(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -31,8 +36,7 @@ namespace ARIASDK_NS_BEGIN {
         m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
-        m_isStorageFullNotificationSend(false),
-        m_flushPending(false)
+        m_isStorageFullNotificationSend(false)
     {
         // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
@@ -87,7 +91,11 @@ namespace ARIASDK_NS_BEGIN {
         /* No storage configured */
         m_offlineStorageDisk.reset(nullptr);
 #else
+#ifdef USE_ROOM
+        m_offlineStorageDisk.reset(new OfflineStorage_Room(m_logManager, m_config));
+#else
         m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
+#endif
         m_offlineStorageDisk->Initialize(*this);
 #endif
 
@@ -164,28 +172,22 @@ namespace ARIASDK_NS_BEGIN {
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-
+            // This will block on and then take a lock for the duration of this move, and
+            // StoreRecord() will then block until the move completes.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
-            size_t totalSaved = 0;
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");
 
-            while (records.size())
-            {
-                ids.push_back(records.back().id);
-                if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
-                    totalSaved++;
-                records.pop_back();
-            }
+            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("END");
 
-                        // Delete records from reserved on flush
+            // Delete records from reserved on flush
             HttpHeaders dummy;
             bool fromMemory = true;
             m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
@@ -209,7 +211,6 @@ namespace ARIASDK_NS_BEGIN {
         m_flushPending = false;
     }
 
-    // TODO: [MG] - investigate if StoreRecord is thread-safe if executed simultaneously with Flush
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
         // Don't discard on shutdown because the kill-switch may be temporary.
@@ -239,8 +240,10 @@ namespace ARIASDK_NS_BEGIN {
                     m_isStorageFullNotificationSend = true;
                 }
 #endif
-                // TODO: [MG] - investigate what happens if Flush from memory to disk
-                // is happening concurrently with adding a new in-memory record
+                // During flush, this will block on a mutex while records
+                // are selected and removed from the cache (but will
+                // not block for the subsequent handoff to persistent
+                // storage)
                 m_offlineStorageMemory->StoreRecord(record);
             }
 
@@ -264,11 +267,24 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (m_offlineStorageDisk != nullptr)
             {
-                m_offlineStorageDisk->StoreRecord(record);
+                if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
+                {
+                    m_offlineStorageDisk->StoreRecord(record);
+                }
             }
         }
 
         return true;
+    }
+
+    size_t OfflineStorageHandler::StoreRecords(std::vector<StorageRecord> & records) {
+        size_t stored = 0;
+        for (auto & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
     }
 
     bool OfflineStorageHandler::ResizeDb()

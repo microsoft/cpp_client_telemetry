@@ -13,31 +13,6 @@ namespace ARIASDK_NS_BEGIN {
 using namespace std;
 using namespace PAL;
 
-
-/******************************************************************************
-* DeviceStateHandler::DeviceStateHandler
-*
-* C'tor
-*
-******************************************************************************/
-DeviceStateHandler::DeviceStateHandler()
-{
-	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
-    m_networkCost = NetworkCost_Unmetered;
-	m_powerSource = PowerSource_Charging;
-}
-
-/******************************************************************************
-* DeviceStateHandler::~DeviceStateHandler
-*
-* D'tor
-*
-******************************************************************************/
-DeviceStateHandler::~DeviceStateHandler()
-{
-	// LOG_INFO("DeviceStateHandler ctor this=%p", this);
-}
-
 /******************************************************************************
 * DeviceStateHandler::Start
 *
@@ -45,11 +20,11 @@ DeviceStateHandler::~DeviceStateHandler()
 *
 ******************************************************************************/
 void DeviceStateHandler::Start()
-{	
+{
 	// TRACE("_RetrieveAndRegisterForDeviceConditionChange");
 
 	m_networkInformation = PAL::GetNetworkInformation();
-	if (m_networkInformation != NULL)
+	if (m_networkInformation)
 	{
 		m_networkType = m_networkInformation->GetNetworkType();
 		m_networkCost = m_networkInformation->GetNetworkCost();
@@ -61,7 +36,7 @@ void DeviceStateHandler::Start()
 	}
 
 	m_deviceInformation = PAL::GetDeviceInformation();
-	if (m_deviceInformation != NULL)
+	if (m_deviceInformation)
 	{
 		m_powerSource = m_deviceInformation->GetPowerSource();
 
@@ -70,7 +45,7 @@ void DeviceStateHandler::Start()
 	}
 
 	// Based on the network connectivity and power state info we just retrieved from system
-	// update the default device condition if necessary. 
+	// update the default device condition if necessary.
 	_UpdateDeviceCondition();
 }
 
@@ -85,17 +60,17 @@ void DeviceStateHandler::Stop()
 {
 	// TRACE("Enter stop transmission policy manager");
 
-	m_networkInformation = PAL::GetNetworkInformation();
-	m_deviceInformation = PAL::GetDeviceInformation();
 	// 4. Stop listening to platform network, power and device info changes
-	if (m_networkInformation != nullptr)
+	if (m_networkInformation)
 	{
 		m_networkInformation->UnRegisterInformationChangedCallback(m_networkInformationToken);
+		m_networkInformation = nullptr;
 	}
 
-	if (m_deviceInformation != nullptr)
+	if (m_deviceInformation)
 	{
 		m_deviceInformation->UnRegisterInformationChangedCallback(m_deviceInformationToken);
+		m_deviceInformation = nullptr;
 	}
 }
 
@@ -110,22 +85,22 @@ void DeviceStateHandler::OnChanged(
     std::string const& propertyName,
     std::string const& propertyValue)
 {
-    // TRACE("OnChanged: Platform network callback with Name=%s, Val=%s", 
+    // TRACE("OnChanged: Platform network callback with Name=%s, Val=%s",
  //       propertyName.c_str(), propertyValue.c_str());
 
-    
+
     if (propertyName.compare(NETWORK_TYPE) == 0)
     {
-		m_networkType = (NetworkType)strtol(propertyValue.c_str(), NULL, 10);
+        m_networkType = static_cast<NetworkType>(strtol(propertyValue.c_str(), nullptr, 10));
     }
     else if (propertyName.compare(NETWORK_COST) == 0)
     {
-		m_networkCost = (NetworkCost)strtol(propertyValue.c_str(), NULL, 10);
+        m_networkCost = static_cast<NetworkCost>(strtol(propertyValue.c_str(), nullptr, 10));
     }
-	else if (propertyName.compare(POWER_SOURCE) == 0)
-	{
-		m_powerSource = (PowerSource)strtol(propertyValue.c_str(), NULL, 10);
-	}
+    else if (propertyName.compare(POWER_SOURCE) == 0)
+    {
+        m_powerSource = static_cast<PowerSource>(strtol(propertyValue.c_str(), nullptr, 10));
+    }
 
 	_UpdateDeviceCondition();
 }
@@ -136,10 +111,10 @@ void DeviceStateHandler::OnChanged(
  * Update device condition such as power state and network connectivity changes
  *
  ******************************************************************************/
- bool DeviceStateHandler::_UpdateDeviceCondition()
+ void DeviceStateHandler::_UpdateDeviceCondition()
 {
 #ifdef _WIN32
-     if (m_networkInformation != NULL)
+     if (m_networkInformation)
      {
          m_networkType = m_networkInformation->GetNetworkType();
          m_networkCost = m_networkInformation->GetNetworkCost();
@@ -149,7 +124,7 @@ void DeviceStateHandler::OnChanged(
          m_networkCost = NetworkCost_Unknown;
      }
 
-     if (m_deviceInformation != NULL)
+     if (m_deviceInformation)
      {
          m_powerSource = m_deviceInformation->GetPowerSource();
      }
@@ -162,12 +137,9 @@ void DeviceStateHandler::OnChanged(
      //m_networkCost, NetworkCostNames[m_networkCost].c_str(),
      //m_powerSource, PowerSourceNames[m_powerSource].c_str());
 
-     bool result = false;
      TransmitProfiles::updateStates(m_networkCost, m_powerSource);
 
 	 //do we need to stop current timer?? and restart
-     return result;
  }
- 
-} ARIASDK_NS_END
 
+} ARIASDK_NS_END

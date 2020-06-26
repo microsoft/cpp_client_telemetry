@@ -131,7 +131,7 @@ ILogConfiguration testConfiguration()
     return result;
 }
 
-#define MAX_EVENTS_TO_LOG       100L 
+#define MAX_EVENTS_TO_LOG       1000L 
 
 extern "C" int OfficeTest();
 extern "C" void test_c_api();
@@ -218,7 +218,15 @@ void logPiiMark()
     event1.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
     logger->LogEvent(event1);
 }
- 
+
+void logDoNotStore()
+{
+    auto logger = LogManager::GetLogger();
+    EventProperties eventInRam("MyEvent.NeverStore");
+    eventInRam.SetPersistence(EventPersistence::EventPersistence_DoNotStoreOnDisk);
+    logger->LogEvent(eventInRam); // this event should not go to disk
+}
+
 int main()
 {
 #ifdef OFFICE_TEST  /* Custom test for a stats crash scenario experienced by OTEL */
@@ -335,6 +343,9 @@ int main()
 
     LogManager::SetTransmitProfile(TransmitProfile::TransmitProfile_NearRealTime);
 
+    logDoNotStore();
+    LogManager::UploadNow();
+
     // Ingest events of various latencies
     printf("Starting stress-test...\n");
     for(size_t i = 1; i <= MAX_EVENTS_TO_LOG; i++)
@@ -344,7 +355,6 @@ int main()
         eventName += std::to_string((unsigned)latency);
 
         EventProperties event(eventName);
-
         std::string evtType = "My.Record.BaseType"; // default v1 legacy behaviour: custom.my_record_basetype
         event.SetName("MyProduct.TaggedEvent");
         event.SetType(evtType);
@@ -352,7 +362,8 @@ int main()
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i); 
-        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i+1) );
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, static_cast<int64_t>(i + 1));
+        event.SetProperty(COMMONFIELDS_EVENT_LEVEL, static_cast<uint8_t>(i + 1));
         event.SetLatency(latency); 
         logger->LogEvent(event);
 
@@ -362,7 +373,8 @@ int main()
                 { "random", rand() },
                 { "secret", 5.6872 },
                 { "seq", (uint64_t)i },
-                { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
+                {COMMONFIELDS_EVENT_PRIVTAGS, static_cast<int64_t>(i + 1)},
+                {COMMONFIELDS_EVENT_LEVEL, static_cast<uint8_t>(i + 1)}
             });
         logger->LogEvent(event2);
     }
