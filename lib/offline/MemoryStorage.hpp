@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <atomic>
 #include <mutex>
 #include <map>
 #include <string>
@@ -34,6 +33,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Flush() override;
 
         virtual bool StoreRecord(StorageRecord const& record) override;
+
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
 
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs,
             EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
@@ -82,12 +83,12 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex                  m_reserved_lock;
         std::map<StorageRecordId, StorageRecord> m_reserved_records;
 
-        std::atomic<size_t>         m_size;
+        size_t                      m_size;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        std::atomic<size_t>         m_lastReadCount;
+        size_t                      m_lastReadCount;
 
     };
 

@@ -34,6 +34,8 @@
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmissionPolicyManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
       <Filter>common</Filter>
@@ -47,6 +49,7 @@
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
+    <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

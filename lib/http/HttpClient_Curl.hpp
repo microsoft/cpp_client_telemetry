@@ -27,7 +27,6 @@
 #include "pal/PAL.hpp"
 
 #define HTTP_CONN_TIMEOUT       5L
-#define HTTP_READ_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
 #define HTTP_HEADER_REGEXP      "(.*)\\: (.*)\\n*"
 
@@ -84,8 +83,7 @@ public:
             const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
             // Default connectivity and response size options
             bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
-            size_t httpReadTimeout                                   = HTTP_READ_TIMEOUT) :
+            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
 
             //
             m_method(method),
@@ -98,7 +96,6 @@ public:
             // Optional connection params
             rawResponse(rawResponse),
             httpConnTimeout(httpConnTimeout),
-            httpReadTimeout(httpReadTimeout),
             // Result
             res(CURLE_OK),
             sockfd(0),
@@ -134,18 +131,17 @@ public:
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
 
         // Specify our custom headers
-        struct curl_slist *chunk = NULL;
         for(auto &kv : this->requestHeaders)
         {
             std::string header = kv.first.c_str();
             header += ": ";
             header += kv.second.c_str();
-            chunk = curl_slist_append(chunk, header.c_str());
+            m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
-        if(chunk != NULL)
+        if(m_headersChunk != nullptr)
         {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
@@ -158,6 +154,7 @@ public:
     virtual ~CurlHttpOperation()
     {
         // Given the request has not been aborted we should wait for completion here
+        // This guarantees the lifetime of this request.
         if (result.valid())
         {
             result.wait();
@@ -165,6 +162,7 @@ public:
         DispatchEvent(OnDestroy);
         res = CURLE_OK;
         curl_easy_cleanup(curl);
+        curl_slist_free_all(m_headersChunk);
         ReleaseResponse();
     }
 
@@ -256,7 +254,8 @@ public:
             goto cleanup;
         }
 
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, httpReadTimeout);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
+        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 4096);
         DispatchEvent(OnSending);
         res = curl_easy_perform(curl);
         if(CURLE_OK != res)
@@ -404,7 +403,6 @@ cleanup:
 protected:
     const bool   rawResponse;       // Do not split response headers from response body
     const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
-    const size_t httpReadTimeout;   // Timeout for read.     Default: 5s
 
     CURL *curl;                     // Local curl instance
     CURLcode res;                   // Curl result OR HTTP status code if successful
@@ -416,6 +414,7 @@ protected:
     std::string m_url;
     const std::map<std::string, std::string>& requestHeaders;
     const std::vector<uint8_t>& requestBody;
+    struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
     std::vector<uint8_t>        respHeaders;

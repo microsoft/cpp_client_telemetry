@@ -9,6 +9,7 @@ set(SRCS
   CorrelationVectorTests.cpp
   DataViewerCollectionTests.cpp
   DebugEventSourceTests.cpp
+  DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
   EventPropertiesStorageTests.cpp
@@ -29,6 +30,7 @@ set(SRCS
   MetaStatsTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
+  OfflineStorageTests_Room.cpp
   OfflineStorageTests_SQLite.cpp
   PackagerTests.cpp
   PalTests.cpp
@@ -36,8 +38,18 @@ set(SRCS
   StringUtilsTests.cpp
   TaskDispatcherCAPITests.cpp
   TransmissionPolicyManagerTests.cpp
+  TransmitProfileRuleTests.cpp
+  TransmitProfilesTests.cpp
   UtilsTests.cpp
 )
+
+if (APPLE)
+  if (BUILD_IOS)
+    list(APPEND SRCS SysInfoUtilsTests_iOS.cpp)
+  else()
+    list(APPEND SRCS SysInfoUtilsTests_Mac.cpp)
+  endif()
+endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
@@ -101,9 +113,23 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  find_file(LIBGTEST
+    NAMES libgtest.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
+  find_file(LIBGMOCK
+    NAMES libgmock.a
+    PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
+  )
+
   target_link_libraries(UnitTests 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/libgtest.a
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/libgmock.a
+    ${LIBGTEST}
+    ${LIBGMOCK}
     mat
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}

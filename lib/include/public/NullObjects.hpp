@@ -146,6 +146,11 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
+        virtual bool IsViewerRegistered(const char*) const override
+        {
+            return false;
+        }
+
         virtual ~NullDataViewerCollection() {};
     };
 
@@ -200,6 +205,12 @@ namespace ARIASDK_NS_BEGIN
         virtual status_t LoadTransmitProfiles(const std::string & profiles_json) override
         {
             UNREFERENCED_PARAMETER(profiles_json);
+            return STATUS_ENOSYS;
+        }
+
+        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept override
+        {
+            UNREFERENCED_PARAMETER(profiles);
             return STATUS_ENOSYS;
         }
 

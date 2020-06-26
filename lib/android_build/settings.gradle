@@ -1,0 +1,2 @@
+include ':app', ':maesdk'
+rootProject.name='EventsTest'

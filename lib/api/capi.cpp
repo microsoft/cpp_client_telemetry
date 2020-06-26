@@ -4,13 +4,15 @@
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
+#ifndef ANDROID
 #include "http/HttpClient_CAPI.hpp"
+#endif
 #include "LogManagerProvider.hpp"
 #include "mat.h"
 #include "pal/TaskDispatcher_CAPI.hpp"
 #include "utils/Utils.hpp"
 
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 
 #include "CommonFields.h"
 
@@ -113,12 +115,12 @@ evt_status_t mat_open_core(
         moduleName += std::to_string(code);
         clients[code].config =
         {
-            { "name", moduleName },
+            { CFG_STR_FACTORY_NAME, moduleName },
             { "version", "1.0.0" },
-            { "config",
+            { CFG_MAP_FACTORY_CONFIG,
                 {
-                    { "host", "*" },
-                    { "scope", CONTEXT_SCOPE_NONE }
+                    { CFG_STR_FACTORY_HOST, "*" },
+                    { CFG_STR_CONTEXT_SCOPE, CONTEXT_SCOPE_NONE }
                 }
             },
             { CFG_STR_PRIMARY_TOKEN, config }
@@ -128,6 +130,7 @@ evt_status_t mat_open_core(
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
+#ifndef ANDROID
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
@@ -142,7 +145,7 @@ evt_status_t mat_open_core(
             return EFAULT;
         }
     }
-
+#endif
     // Create custom worker thread
     if (taskDispatcherQueueFn != nullptr && taskDispatcherCancelFn != nullptr && taskDispatcherJoinFn != nullptr)
     {
@@ -251,8 +254,8 @@ evt_status_t mat_log(evt_context_t *ctx)
     // should not be able to capture the host's context vars.
     std::string scope = CONTEXT_SCOPE_NONE;
     {
-        MAT::VariantMap &config_map = config["config"];
-        const auto & it = config_map.find("scope");
+        MAT::VariantMap &config_map = config[CFG_MAP_FACTORY_CONFIG];
+        const auto & it = config_map.find(CFG_STR_CONTEXT_SCOPE);
         if (it != config_map.cend())
         {
             scope = static_cast<const char *>(it->second);

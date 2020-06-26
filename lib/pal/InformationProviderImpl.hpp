@@ -27,7 +27,7 @@ namespace PAL_NS_BEGIN {
     private:
         std::mutex m_lock;
         std::vector<IPropertyChangedCallback*> m_callbacks;
-        int m_registredCount;
+        int m_registeredCount;
     };
 
 } PAL_NS_END

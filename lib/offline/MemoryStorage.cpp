@@ -8,9 +8,9 @@ namespace ARIASDK_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(MemoryStorage, "EventsSDK.MemoryStorage", "Events telemetry client - MemoryStorage class");
 
     MemoryStorage::MemoryStorage(ILogManager & logManager, IRuntimeConfig & runtimeConfig) :
+        m_observer(nullptr),
         m_config(runtimeConfig),
         m_logManager(logManager),
-        m_observer(nullptr),
         m_size(0),
         m_lastReadCount(0)
     {
@@ -104,6 +104,17 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
+    size_t MemoryStorage::StoreRecords(std::vector<StorageRecord> & records)
+    {
+        size_t stored = 0;
+        for (auto  & i : records) {
+            if (StoreRecord(i)) {
+                ++stored;
+            }
+        }
+        return stored;
+    }
+
     /// <summary>
     /// Get records from MemoryStorage.
     /// Getting records automatically deletes them.
@@ -136,36 +147,29 @@ namespace ARIASDK_NS_BEGIN {
         {
             while (maxCount && (m_records[latency]).size())
             {
-                m_lastReadCount++;
                 StorageRecord & record = m_records[latency].back();
-                size_t recordSize = record.blob.size() + sizeof(record);
 
-                // Reserve records only if asked
+                size_t recordSize = record.blob.size() + sizeof(record);
+                StorageRecord forConsumer(record);
                 if (leaseTimeMs)
                 {
-                    record.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
-                    m_reserved_records[record.id] = record; // copy to reserved
+                    forConsumer.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
                 }
 
-                bool wantMore = consumer(std::move(record)); // move to consumer
-                m_records[latency].pop_back();               // destroy in records
-
-                if (m_size.load() > recordSize)
-                {
-                    m_size -= recordSize;
-                }
-                else
-                {
-                    m_size = 0;
-                }
-                maxCount--;
-
-                // If consumer has no space left for the records, exit
-                if (!wantMore)
+                bool wantMore = consumer(std::move(forConsumer)); // move to consumer
+                if (!wantMore) {
                     return true;
+                }
+
+                if (leaseTimeMs) {
+                    m_reserved_records[record.id] = std::move(record); // move to reserved
+                }
+                m_records[latency].pop_back();
+                m_size -= std::min(m_size, recordSize);
+                maxCount--;
+                m_lastReadCount++;
             }
         }
-
         return true;
     }
     
@@ -186,7 +190,8 @@ namespace ARIASDK_NS_BEGIN {
     /// <returns></returns>
     unsigned MemoryStorage::LastReadRecordCount()
     {
-        return static_cast<unsigned>(m_lastReadCount.load());
+        LOCKGUARD(m_records_lock);
+        return static_cast<unsigned>(m_lastReadCount);
     }
 
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
@@ -238,6 +243,8 @@ namespace ARIASDK_NS_BEGIN {
                     auto &v = *it;
                     if (matcher(v, whereFilter))
                     {
+                        size_t recordSize = v.blob.size() + sizeof(v);
+                        m_size -= std::min(m_size, recordSize);
                         it = records.erase(it);
                         continue;
                     }
@@ -246,7 +253,6 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
     }
- 
 
     /// <summary>
     /// MemoryStorage delete from reserved and ram queue.
@@ -302,6 +308,8 @@ namespace ARIASDK_NS_BEGIN {
                         {
                             // record id appears once only, so remove from set
                             idSet.erase(v.id);
+                            size_t recordSize = v.blob.size() + sizeof(v);
+                            m_size -= std::min(m_size, recordSize);
                             it = records.erase(it);
                             continue;
                         }
@@ -404,15 +412,8 @@ namespace ARIASDK_NS_BEGIN {
     /// </remarks>
     size_t MemoryStorage::GetSize()
     {
-        size_t totalRecords = GetRecordCount();
-        totalRecords+=GetReservedCount();
-        // Since m_size calculation is approximate - see below,
-        // it may happen that it's slightly off by several bytes.
-        // We audit and clean this up when the number of records
-        // gets down to zero.
-        if (totalRecords==0)
-            m_size = 0;
-        return m_size.load();
+        LOCKGUARD(m_records_lock);
+        return m_size;
     }
 
     /// <summary>

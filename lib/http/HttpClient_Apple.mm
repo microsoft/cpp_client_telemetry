@@ -9,7 +9,7 @@
 #import <CFNetwork/CFNetwork.h>
 
 #include "HttpClient_Apple.hpp"
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -101,7 +101,7 @@ public:
             }
             else
             {
-                LOG_TRACE("HTTP response error code: %l", errorCode);
+                LOG_TRACE("HTTP response error code: %li", errorCode);
                 simpleResponse->m_result = HttpResult_NetworkFailure;
             }
         }

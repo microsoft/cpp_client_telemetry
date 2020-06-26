@@ -45,10 +45,6 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-#ifdef ANDROID
-    extern ILogManager* g_jniLogManager;
-#endif
-
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
         // LOCKGUARD(ILogManagerInternal::managers_lock);
@@ -101,9 +97,9 @@ namespace ARIASDK_NS_BEGIN
     }
 
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
-        : m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr),
-        m_logConfiguration(configuration)
+        : m_logConfiguration(configuration),
+        m_bandwidthController(nullptr),
+        m_offlineStorage(nullptr)
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
@@ -123,7 +119,11 @@ namespace ARIASDK_NS_BEGIN
             {
                 std::string tenantId = (const char *)m_logConfiguration[CFG_STR_PRIMARY_TOKEN];
                 tenantId = MAT::tenantTokenToId(tenantId);
-
+                if ((!cacheFilePath.empty()) && (cacheFilePath.back() != PATH_SEPARATOR_CHAR))
+                {
+                    // append path separator if required 
+                    cacheFilePath += PATH_SEPARATOR_CHAR;
+                }
                 cacheFilePath += tenantId;
                 cacheFilePath += ".db";
             }
@@ -268,11 +268,6 @@ namespace ARIASDK_NS_BEGIN
         LOG_INFO("Started up and running");
         m_alive = true;
 
-#ifdef ANDROID
-        if (g_jniLogManager == nullptr) {
-            g_jniLogManager = this;
-        }
-#endif
     }
     
     /// <summary>
@@ -301,10 +296,9 @@ namespace ARIASDK_NS_BEGIN
     void LogManagerImpl::FlushAndTeardown()
     {
         LOG_INFO("Shutting down...");
-
+        LOCKGUARD(m_lock);
+        if (m_alive)
         {
-            LOCKGUARD(m_lock);
-
             LOG_INFO("Tearing down modules");
             TeardownModules();
 
@@ -324,21 +318,16 @@ namespace ARIASDK_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
+
+            m_filters.UnregisterAllFilters();
+
+            auto shutTime = GetUptimeMs();
+            PAL::shutdown();
+            shutTime = GetUptimeMs() - shutTime;
+            LOG_INFO("Shutdown complete in %lld ms", shutTime);
         }
-
-        m_filters.UnregisterAllFilters();
-
-        auto shutTime = GetUptimeMs();
-        PAL::shutdown();
-        shutTime = GetUptimeMs() - shutTime;
-        LOG_INFO("Shutdown complete in %lld ms", shutTime);
-
         m_alive = false;
-#ifdef ANDROID
-        if (g_jniLogManager == this) {
-            g_jniLogManager = nullptr;
-        }
-#endif
+
     }
 
     status_t LogManagerImpl::Flush()
@@ -351,6 +340,7 @@ namespace ARIASDK_NS_BEGIN
 
     status_t LogManagerImpl::UploadNow()
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->upload();
@@ -362,6 +352,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->pause();
@@ -373,6 +364,7 @@ namespace ARIASDK_NS_BEGIN
     status_t LogManagerImpl::ResumeTransmission()
     {
         LOG_INFO("Resuming transmission...");
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->resume();
@@ -409,6 +401,13 @@ namespace ARIASDK_NS_BEGIN
     {
         LOG_INFO("LoadTransmitProfiles");
         bool result = TransmitProfiles::load(profiles_json);
+        return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
+    }
+
+    status_t LogManagerImpl::LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept
+    {
+        LOG_INFO("LoadTransmitProfiles");
+        bool result = TransmitProfiles::load(profiles);
         return (result) ? STATUS_SUCCESS : STATUS_EFAIL;
     }
 
@@ -597,6 +596,7 @@ namespace ARIASDK_NS_BEGIN
 
     void LogManagerImpl::sendEvent(IncomingEventContextPtr const& event)
     {
+        LOCKGUARD(m_lock);
         if (GetSystem())
         {
            GetSystem()->sendEvent(event);
@@ -645,7 +645,6 @@ namespace ARIASDK_NS_BEGIN
 
     std::unique_ptr<ITelemetrySystem>& LogManagerImpl::GetSystem()
     {
-        LOCKGUARD(m_lock);
         if (m_system == nullptr || m_isSystemStarted)
            return m_system;
 
