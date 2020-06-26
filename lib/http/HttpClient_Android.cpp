@@ -105,7 +105,7 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 					r->m_callback = callback;
 					bool valid = r->m_state == RequestState::early || r->m_state == RequestState::cancel;
 					if (!valid) {
-						throw std::logic_error("neither early nor cancel");
+						MATSDK_THROW(std::logic_error("neither early nor cancel"));
 					}
 					if (r->m_state == RequestState::early) {
 						r->m_state = RequestState::preparing;
@@ -191,7 +191,7 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 			if (u->m_id == target_id)
 			{
 				if (u->m_callback != callback) {
-					throw std::logic_error("callback");
+					MATSDK_THROW(std::logic_error("callback"));
 				}
 				if (!result || u->m_state != RequestState::preparing)
 				{
@@ -262,7 +262,7 @@ void HttpClient_Android::CancelRequestAsync(std::string const& id)
 						m_requests.pop_back();
 						break;
 					default:
-						throw std::logic_error("request state");
+						MATSDK_THROW(std::logic_error("request state"));
 				}
 			}
 		}
