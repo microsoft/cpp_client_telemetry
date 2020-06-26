@@ -1,5 +1,4 @@
 #include "JniConvertors.hpp"
-#include "LogManager.hpp"
 #include "WrapperLogManager.hpp"
 #include "modules/dataviewer/DefaultDataViewer.hpp"
 
@@ -20,8 +19,8 @@ extern "C"
     auto endpoint = JStringToStdString(env, jstrEndpoint);
     std::shared_ptr<DefaultDataViewer> spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
     if (spDefaultDataViewer->EnableRemoteViewer(endpoint)) {
-        LogManager::GetDataViewerCollection().UnregisterAllViewers();
-        LogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
+        WrapperLogManager::GetDataViewerCollection().UnregisterAllViewers();
+        WrapperLogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
         return true;
     }
     else {
@@ -33,13 +32,13 @@ extern "C"
     JNIEnv* env,
     jclass /* this */)
 {
-    LogManager::GetDataViewerCollection().UnregisterAllViewers();
+    WrapperLogManager::GetDataViewerCollection().UnregisterAllViewers();
 }
 
 JNIEXPORT jboolean JNICALL Java_com_microsoft_applications_events_LogManager_isViewerEnabled(
     JNIEnv* env,
     jclass /* this */)
 {
-    return LogManager::GetDataViewerCollection().IsViewerEnabled();
+    return WrapperLogManager::GetDataViewerCollection().IsViewerEnabled();
 }
 }
