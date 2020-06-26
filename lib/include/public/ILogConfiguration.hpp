@@ -259,6 +259,25 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
 
+    /// LogManagerFactory's name parameter
+    /// </summary>
+    static constexpr const char* const CFG_STR_FACTORY_NAME = "name";
+
+    /// <summary>
+    /// LogManagerFactory (and friends) config map
+    /// </summary>
+    static constexpr const char* const CFG_MAP_FACTORY_CONFIG = "config";
+
+    /// <summary>
+    /// sub-component in CFG_MAP_FACTORY_CONFIG: LogManagerFactory host parameter
+    /// </summary>
+    static constexpr const char* const CFG_STR_FACTORY_HOST = "host";
+
+    /// <summary>
+    /// sub-component in CFG_MAP_FACTORY_CONFIG: capi's scope parameter
+    /// </summary>
+    static constexpr const char* const CFG_STR_CONTEXT_SCOPE = "scope";
+    
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable: 4251 )
@@ -295,7 +314,7 @@ namespace ARIASDK_NS_BEGIN
         std::shared_ptr<IModule> GetModule(const char* key);
 
         /// <summary>
-        /// Access underlying modules mpa
+        /// Access underlying modules map
         /// </summary>
         std::map<std::string, std::shared_ptr<IModule>>& GetModules();
 
