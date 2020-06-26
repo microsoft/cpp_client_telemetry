@@ -196,7 +196,7 @@ public:
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-        configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
+        configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
