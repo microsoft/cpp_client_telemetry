@@ -5,14 +5,6 @@
 
 using namespace MAT;
 
-class WrapperConfig : public ILogConfiguration
-{
-};
-
-class WrapperLogManager : public LogManagerBase<WrapperConfig>
-{
-};
-
 template <>
 ILogManager* LogManagerBase<WrapperConfig>::instance{};
 
