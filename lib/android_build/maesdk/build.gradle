@@ -21,7 +21,7 @@ android {
         externalNativeBuild {
             cmake {
                 // Passes optional arguments to CMake.
-                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1"
+                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1", "-DCMAKE_SHARED_LINKER_FLAGS=${project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ''}"
             }
         }
         javaCompileOptions {
