@@ -48,6 +48,9 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
+    using StorageRecordVector = std::vector<StorageRecord>;
+    using DroppedMap = std::map<std::string, size_t>;
+
     class IOfflineStorageObserver {
     public:
         virtual ~IOfflineStorageObserver() {}
@@ -83,7 +86,7 @@ namespace ARIASDK_NS_BEGIN {
         /// maintain its configured size limit
         /// <summary>
         /// <param name="numRecords">Number of records trimmed</param>
-        virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) = 0;
+        virtual void OnStorageTrimmed(DroppedMap const& numRecords) = 0;
 
         /// <summary>
         /// Called when the offline storage drops some records with retry count
@@ -153,6 +156,18 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool StoreRecord(StorageRecord const& record) = 0;
 
         /// <summary>
+        /// Store several telemetry event records
+        /// </summary>
+        /// <remarks>
+        /// The offline storage might need to trim the oldest events before
+        /// inserting the new one in order to maintain its configured size limit.
+        /// Called from the internal worker thread.
+        /// </remarks>
+        /// <param name="record">Record data to store</param>
+        /// <returns>Number of records stored</returns>
+        virtual size_t StoreRecords(StorageRecordVector & records) = 0;
+
+        /// <summary>
         /// Retrieve the best records to upload based on specified parameters
         /// </summary>
         /// <remarks>
@@ -219,8 +234,9 @@ namespace ARIASDK_NS_BEGIN {
         /// IDs of events that are no longer found in the storage are silently
         /// ignored. If <paramref name="incrementRetryCount"/> is set and the retry
         /// counter of some records reaches the maximum retry count, those events
-        /// are dropped as part of the releasing procedure. Called from the internal
-        /// worker thread.
+        /// may be dropped as part of the releasing procedure. Persistent storage
+        /// implementations of this interface drop these records. MemoryStorage does not.
+        /// Called from the internal worker thread.
         /// </remarks>
         /// <param name="ids">Identifiers of records to release</param>
         /// <param name="incrementRetryCount">Determines whether the retry
