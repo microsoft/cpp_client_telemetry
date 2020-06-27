@@ -31,6 +31,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Flush() override {};
         virtual void Execute(std::string command);
         virtual bool StoreRecord(StorageRecord const& record) override;
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool IsLastReadFromMemory() override;
         virtual unsigned LastReadRecordCount() override;
@@ -50,7 +51,9 @@ namespace ARIASDK_NS_BEGIN {
         bool initializeDatabase();
         bool recreate(unsigned failureCode);
 
-        std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
+        std::vector<uint8_t> packageIdList(
+            std::vector<std::string>::const_iterator const & begin,
+            std::vector<std::string>::const_iterator const & end) const;
 
         // Debug routine to print record count in the DB
         void printRecordCount();
@@ -85,6 +88,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t                      m_stmtTrimEvents_percent {};
         size_t                      m_stmtDeleteEvents_ids {};
         size_t                      m_stmtReleaseExpiredEvents {};
+        size_t                      m_stmtDeleteEvents_tenants {};
         size_t                      m_stmtSelectEvents {};
         size_t                      m_stmtSelectEventAtShutdown {};
         size_t                      m_stmtSelectEventsMinlatency {};
