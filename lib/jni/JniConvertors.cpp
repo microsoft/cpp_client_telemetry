@@ -131,7 +131,7 @@ EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
         }
 
         default :
-            throw UnsupportedEventPropertyType(static_cast<int>(type));
+            MATSDK_THROW(UnsupportedEventPropertyType(static_cast<int>(type)));
     }
 
     env->DeleteLocalRef(jEventPropertyValueClass);

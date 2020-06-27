@@ -105,7 +105,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     if(BUILD_IOS)
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm
-        pal/posix/Reachability.m
+        pal/posix/ODWReachability.m
       )
     else()
       list(APPEND SRCS
@@ -148,8 +148,9 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
+    utils/StringConversion.cpp
   )
-  
+
   # UTC module
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS

@@ -1,13 +1,6 @@
 package com.microsoft.applications.events;
 
-class StatusValues {
-    static final int VALUE_EFAIL = -1;
-    static final int VALUE_SUCCESS = 0;
-    static final int VALUE_EPERM = 1;
-    static final int VALUE_EALREADY = 103;
-    static final int VALUE_ENOSYS = 40;
-    static final int VALUE_ENOTSUP = 129;
-}
+
 
 /**
  * The status enum corresponding to the native API execution status_t.
@@ -67,4 +60,14 @@ public enum Status {
                 throw new IllegalArgumentException("Unsupported value: " + value);
         }
     }
+
+    class StatusValues {
+        static final int VALUE_EFAIL = -1;
+        static final int VALUE_SUCCESS = 0;
+        static final int VALUE_EPERM = 1;
+        static final int VALUE_EALREADY = 103;
+        static final int VALUE_ENOSYS = 40;
+        static final int VALUE_ENOTSUP = 129;
+    }
+
 }

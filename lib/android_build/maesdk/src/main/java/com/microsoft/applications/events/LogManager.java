@@ -40,7 +40,6 @@ public class LogManager {
             return new Logger(logger);
     }
 
-
     private static native int nativeFlushAndTeardown();
 
     /**

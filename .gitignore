@@ -399,3 +399,6 @@ zlib/contrib/vstudio/vc14/x64/
 # Xcode generated files
 *.xcworkspacedata
 *.xcuserstate
+
+# Visual Code
+*.code-workspace

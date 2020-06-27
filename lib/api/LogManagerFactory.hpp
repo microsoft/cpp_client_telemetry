@@ -102,9 +102,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             ILogConfiguration config = 
             {
-                { "name", module },
+                { CFG_STR_FACTORY_NAME, module },
                 { "version", "0.0.0" },
-                { "config", {  } }
+                { CFG_MAP_FACTORY_CONFIG, {  } }
             };
             auto result = instance().lease(config);
             status = (result != nullptr) ?

@@ -91,7 +91,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     bool result = false;
     try
     {
-        result = LogManager::GetDataViewerCollection().IsViewerEnabled();
+        result = LogManager::GetDataViewerCollection().IsViewerEnabled(_viewer->GetName());
     }
     catch (const std::exception &e)
     {
@@ -103,6 +103,18 @@ std::shared_ptr<DefaultDataViewer> _viewer;
     }
 
     return result;
+}
+
++(nullable NSString *)currentEndpoint
+{
+    std::string endpoint = _viewer->GetCurrentEndpoint();
+    if (endpoint.empty())
+    {
+        // Empty endpoint means there is not a current endpoint
+        return nil;
+    }
+
+    return [NSString stringWithCString:endpoint.c_str() encoding:NSUTF8StringEncoding];
 }
 
 +(void)registerOnDisableNotification:(void(^)(void))callback

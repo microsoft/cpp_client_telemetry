@@ -11,13 +11,12 @@ to clone the repo. If your project requires UTC to send telemetry, you need to a
 
 2. You will be asked for your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
 
-## **Windows prerequisites and dependencies for building from source using Visual Studio 2017**
+## **Windows prerequisites and dependencies for building from source**
 
-* Visual Studio 2017.
-* C++ Dev Tools for Visual Studio 2017.
-* Visual Studio 2019 _should work_ if you use vc141 toolset; newer toolsets _might work_, but not tested.
+* Visual Studio 2017 or 2019
+* C++ Dev Tools
 
-## **Build the SDK from source using Visual Studio 2017**
+## **Build the SDK from source using Visual Studio**
 
 * Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
 * Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
@@ -27,7 +26,9 @@ If your build fails, then you most likely missing the following optional Visual 
 - ARM64 support
 - Spectre mitigation libraries
 
-Make sure you install all of these above optional Visual Studio components, as these are required for the SDK to build all SDK SKUs successfully. If you are using GitHub Actions infrastructure to build your project, then all of these optional components are available by default as part of stock GitHub Actions deployment.
+Please review the script [here](../tools/setup-buildtools.cmd) that installs all the necessary dependencies.
+
+Make sure you install all of these above optional Visual Studio components, as these are required for the SDK to build all SDK SKUs successfully for all platform types. If you are using GitHub Actions infrastructure to build your project, then all of these optional components are available by default as part of stock GitHub Actions deployment.
 
 Specific version of Windows 10 SDK is referenced by the project(s). You will need to install that exact version of Windows 10 SDK, but you may also manually upgrade all projects to current latest version of Windows 10 SDK for your local build. SDK may periodically update its Windows 10 SDK dependency from time to time. Your responsibility is to decide what Windows 10 SDK you need to use for shipping 1DS C++ SDK build from source.
 
@@ -35,20 +36,27 @@ See:
 - [How to add optional components in Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/modify-visual-studio?view=vs-2017)
 - [Download Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
-
 ## **Windows prerequisites and dependencies for building from source using LLVM compiler**
 
+* Visual Studio
 * [LLVM compiler](https://releases.llvm.org/download.html)
 * [CMake build system](https://cmake.org/download/)
 * [LLVM compiler toolchain for Visual Studio](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
 
-- Install CMake for Windows into C:\Program Files\CMake\bin\ (default path)
-- Install **[LLVM/clang for Windows](http://releases.llvm.org/7.0.0/LLVM-7.0.0-win64.exe)** - version 7 or newer into C:\Program Files\LLVM\bin (default path)
+- Start elevated cmd.exe shell (Run As Administrator)
+- Launch **tools\setup-buildtools.cmd** to install all dependencies
 
-Make sure you can build a simple "Hello World" using cmake before proceeding to the next step.
+Make sure you can build a simple "Hello World" using CMake before proceeding to the next step.
+
 To build SDK using cmake with clang on Windows, run:
 
-```build-cmake-clang.cmd```
+```build-cmake-clang-vs2017.cmd```
+
+  or
+
+```build-cmake-clang-vs2019.cmd```
+
+depending on what Visual Studio version you are using.
 
 ## **Instrument your code to send a telemetry event**
 
@@ -66,7 +74,7 @@ To build SDK using cmake with clang on Windows, run:
 
 3. Create the default LogManager instance for your project using the following macro in your main file:
 
-	```
+    ```
     LOGMANAGER_INSTANCE
     ```
 

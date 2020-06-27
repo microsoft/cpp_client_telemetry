@@ -42,7 +42,7 @@ namespace ARIASDK_NS_BEGIN
         virtual void UnregisterAllViewers() = 0;
 
         /// <summary>
-        /// Check if the given viewer (name) is registered as a data viewer.
+        /// Check if the given viewer (name) is registered as a data viewer and is actively transmitting.
         /// </summary>
         /// <param name="viewerName">
         /// Unique Name to identify the viewer being checked.
@@ -50,9 +50,17 @@ namespace ARIASDK_NS_BEGIN
         virtual bool IsViewerEnabled(const char* viewerName) const = 0;
 
         /// <summary>
-        /// Check if any viewers are registered.
+        /// Check if any viewers are registered and actively transmitting.
         /// </summary>
         virtual bool IsViewerEnabled() const noexcept = 0;
+
+        /// <summary>
+        /// Check if the given viewer (name) is registered as a data viewer.
+        /// </summary>
+        /// <param name="viewerName">
+        /// Unique Name to identify the viewer being checked.
+        /// </param>
+        virtual bool IsViewerRegistered(const char* viewerName) const = 0;
     };
 
 } ARIASDK_NS_END

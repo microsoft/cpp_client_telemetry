@@ -4,22 +4,22 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <atomic>
 #include <algorithm>
-#include <utility>
+#include <atomic>
+#include <cassert>
 #include <functional>
 #include <iostream>
-#include <cassert>
+#include <utility>
 
 #include <ctime>
 
-namespace ARIASDK_NS_BEGIN {
-
+namespace ARIASDK_NS_BEGIN
+{
     // This mutex has to be recursive because we allow both
     // Destroy and destrutor to lock it. destructor could be
     // called directly, and Destroy calls destructor.
-    std::recursive_mutex     ILogManagerInternal::managers_lock;
-    std::set<ILogManager*>   ILogManagerInternal::managers;
+    std::recursive_mutex ILogManagerInternal::managers_lock;
+    std::set<ILogManager*> ILogManagerInternal::managers;
 
     /// <summary>
     /// Creates an instance of ILogManager using specified configuration.
@@ -69,12 +69,12 @@ namespace ARIASDK_NS_BEGIN {
 
     const ILogManager* LogManagerFactory::find(const std::string& name)
     {
-        for (auto &pool : { shared, exclusive })
-            for (auto &kv : pool)
+        for (auto& pool : {shared, exclusive})
+            for (auto& kv : pool)
             {
-                if (kv.second.names.count(name)) // check set for name
+                if (kv.second.names.count(name))  // check set for name
                 {
-                    return kv.second.instance;   // found ILogManager
+                    return kv.second.instance;  // found ILogManager
                 }
             }
         return nullptr;
@@ -82,18 +82,25 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerFactory::parseConfig(ILogConfiguration& c, std::string& name, std::string& host)
     {
-        if (c.HasConfig("name"))
+        if (c.HasConfig(CFG_STR_FACTORY_NAME))
         {
-            name = std::string((const char*)c["name"]);
+            const char* n = c[CFG_STR_FACTORY_NAME];
+            if (!!n)
+            {
+                name = n;
+            }
         }
 
-        if (c.HasConfig("config"))
+        if (c.HasConfig(CFG_MAP_FACTORY_CONFIG))
         {
-            auto configValue = c["config"];
+            auto configValue = c[CFG_MAP_FACTORY_CONFIG];
             if (configValue.type == Variant::TYPE_OBJ)
             {
-                const char* config_host = c["config"]["host"];
-                host = std::string(config_host);
+                const char* config_host = configValue[CFG_STR_FACTORY_HOST];
+                if (!!config_host)
+                {
+                    host = config_host;
+                }
             }
         }
     }
@@ -110,7 +117,7 @@ namespace ARIASDK_NS_BEGIN {
             // Exclusive hosts are being kept in their own sandbox: high chairs near the bar.
             if (!exclusive.count(name))
             {
-                exclusive[name] = { { name }, Create(c) };
+                exclusive[name] = {{name}, Create(c)};
             }
             c["hostMode"] = true;
             return exclusive[name].instance;
@@ -137,19 +144,18 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                shared[host] = { { name }, Create(c) };
+                shared[host] = {{name}, Create(c)};
             }
         }
-        else
-            if (!shared[host].names.count(name))
-            {
-                // Host already exists, so simply add the new item to it
-                shared[host].names.insert(name);
-            }
+        else if (!shared[host].names.count(name))
+        {
+            // Host already exists, so simply add the new item to it
+            shared[host].names.insert(name);
+        }
 
         // TODO: [MG] - if there was no module configuration supplied
         // explicitly, then do we treat the client as host or guest?
-        c["hostMode"] = (name==host);
+        c["hostMode"] = (name == host);
         return shared[host].instance;
     }
 
@@ -162,15 +168,15 @@ namespace ARIASDK_NS_BEGIN {
 
     bool LogManagerFactory::release(const std::string& name)
     {
-        for (auto &kv : shared)
+        for (auto& kv : shared)
         {
-            const std::string &host = kv.first;
+            const std::string& host = kv.first;
             if (kv.second.names.count(name))
             {
                 kv.second.names.erase(name);
                 if (kv.second.names.empty())
                 {
-                    // Last owner is gone, destroy 
+                    // Last owner is gone, destroy
                     Destroy(shared[host].instance);
                     shared.erase(host);
                 }
@@ -215,13 +221,13 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogManagerFactory::dump()
     {
-        for (const auto &items : { shared, exclusive })
+        for (const auto& items : {shared, exclusive})
         {
-            for (auto &kv : items)
+            for (auto& kv : items)
             {
                 std::string csv;
                 bool first = true;
-                for (const auto &name : kv.second.names)
+                for (const auto& name : kv.second.names)
                 {
                     if (!first)
                     {
@@ -239,9 +245,9 @@ namespace ARIASDK_NS_BEGIN {
     {
     }
 
-
     LogManagerFactory::~LogManagerFactory()
     {
     }
 
-} ARIASDK_NS_END
+}
+ARIASDK_NS_END

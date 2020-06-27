@@ -1,5 +1,8 @@
 @echo off
 
+set VSTOOLS_VERSION=vs2019
+set PlatformToolset=v142
+
 cd %~dp0
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS

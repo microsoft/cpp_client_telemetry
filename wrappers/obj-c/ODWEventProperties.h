@@ -45,12 +45,12 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
  */
 typedef NS_OPTIONS(uint64_t, ODWPrivacyDataType)
 {
-    ODWPDTBrowsingHistory                    = 0x0000000000000002u,
-    ODWPDTDeviceConnectivityAndConfiguration = 0x0000000000000800u ,
-    ODWPDTInkingTypingAndSpeechUtterance     = 0x0000000000020000u,
-    ODWPDTProductAndServicePerformance       = 0x0000000001000000u,
-    ODWPDTProductAndServiceUsage             = 0x0000000002000000u,
-    ODWPDTSoftwareSetupAndInventory          = 0x0000000080000000u
+    ODWPrivacyDataTypeBrowsingHistory                    = 0x0000000000000002u,
+    ODWPrivacyDataTypeDeviceConnectivityAndConfiguration = 0x0000000000000800u ,
+    ODWPrivacyDataTypeInkingTypingAndSpeechUtterance     = 0x0000000000020000u,
+    ODWPrivacyDataTypeProductAndServicePerformance       = 0x0000000001000000u,
+    ODWPrivacyDataTypeProductAndServiceUsage             = 0x0000000002000000u,
+    ODWPrivacyDataTypeSoftwareSetupAndInventory          = 0x0000000080000000u
 };
 
 /*!

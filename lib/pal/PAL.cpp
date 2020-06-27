@@ -41,6 +41,10 @@
 #include <oacr.h>
 #endif
 
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 #include <ctime>
 
 namespace PAL_NS_BEGIN {
@@ -164,6 +168,28 @@ namespace PAL_NS_BEGIN {
 #endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
+#if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
+            {
+                static android_LogPriority androidPriorities[] = {
+                    ANDROID_LOG_UNKNOWN,
+                    ANDROID_LOG_ERROR,
+                    ANDROID_LOG_WARN,
+                    ANDROID_LOG_INFO,
+                    ANDROID_LOG_DEBUG
+                };
+                android_LogPriority prio = ANDROID_LOG_ERROR;
+                if (level > 0 && level < 5) {
+                    prio = androidPriorities[level];
+                }
+                va_list ap;
+                va_start(ap, fmt);
+                __android_log_vprint(prio,
+                                     component,
+                                     fmt,
+                                     ap);
+                va_end(ap);
+            }
+#endif
 #ifdef HAVE_MAT_LOGGING
             if (!isLoggingInited)
                 return;
