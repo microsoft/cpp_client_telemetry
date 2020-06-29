@@ -104,7 +104,6 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        LOG_TRACE("Client DB not initialized...recreating");
         if (recreate(1))
         {
             return;
@@ -112,7 +111,7 @@ namespace ARIASDK_NS_BEGIN {
 
         // DB is not opened
         m_db.reset();
-        m_isOpened = false;   
+        m_isOpened = false;
     }
 
     void OfflineStorage_SQLite::Shutdown()
