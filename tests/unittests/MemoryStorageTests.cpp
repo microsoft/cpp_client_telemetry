@@ -34,6 +34,10 @@ class TestObserver : public IOfflineStorageObserver
     {
         UNREFERENCED_PARAMETER(reason);
     }
+    virtual void OnStorageOpenFailed(std::string const & reason) override
+    {
+        UNREFERENCED_PARAMETER(reason);
+    }
     virtual void OnStorageTrimmed(std::map<std::string, size_t> const & numRecords) override
     {
         UNREFERENCED_PARAMETER(numRecords);

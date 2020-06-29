@@ -104,6 +104,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
+        LOG_TRACE("Client DB not initialized...recreating");
         if (recreate(1))
         {
             return;
@@ -112,6 +113,13 @@ namespace ARIASDK_NS_BEGIN {
         // DB is not opened
         m_db.reset();
         m_isOpened = false;
+
+        //Notify the client that DB is not initialized
+        LOG_TRACE("Client DB not initialized...dispatching");
+        DebugEvent evt;
+        evt.type = DebugEventType::EVT_STORAGE_FAILED;
+        m_logManager.DispatchEvent(evt);
+        //m_observer->OnStorageFailed("Database cannot be opened");
     }
 
     void OfflineStorage_SQLite::Shutdown()
