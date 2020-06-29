@@ -82,6 +82,18 @@ namespace ARIASDK_NS_BEGIN {
         virtual void OnStorageFailed(std::string const& reason) = 0;
 
         /// <summary>
+        /// Called when the offline storage is not open.
+        /// <summary>
+        /// <remarks>
+        /// The parameter <paramref name="reason"> is any textual description
+        /// of the problem that occurred. It does not necessarily have to be
+        /// human-readable or self-explaining, it can be just a numerical code
+        /// that only that implementation's maintainer can understand.
+        /// </remarks>
+        /// <param name="reason">Reason of the current/recent failure</param>
+        virtual void OnStorageOpenFailed(std::string const& reason) = 0;
+
+        /// <summary>
         /// Called when the offline storage trims some records off in order to
         /// maintain its configured size limit
         /// <summary>

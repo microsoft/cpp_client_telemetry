@@ -16,6 +16,8 @@
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 
+#include<fstream>
+
 namespace ARIASDK_NS_BEGIN {
 
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
@@ -48,6 +50,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void OnStorageOpened(std::string const& type) override;
         virtual void OnStorageFailed(std::string const& reason) override;
+        virtual void OnStorageOpenFailed(std::string const& reason) override;
         virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;
