@@ -632,7 +632,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the log session data.
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
-        static LogSessionData* GetLogSessionData()
+        static LogSessionDataBase* GetLogSessionData()
             LM_SAFE_CALL_PTR(GetLogSessionData);
 
         /// <summary>

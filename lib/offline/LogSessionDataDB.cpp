@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "LogSessionDataDB.hpp"
-
+ #include "IOfflineStorage.hpp"
 #include "pal/PAL.hpp"
 #include "DebugTrace.hpp"
 
@@ -67,4 +67,3 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 } ARIASDK_NS_END
-

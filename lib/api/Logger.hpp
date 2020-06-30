@@ -158,8 +158,8 @@ namespace ARIASDK_NS_BEGIN {
         /// <summary>
         /// Gets the log session data.
         /// </summary>
-        /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
-        virtual LogSessionData* GetLogSessionData() override;
+        /// <returns>The log session data in a pointer to a LogSessionDataBase object.</returns>
+        virtual LogSessionDataBase* GetLogSessionData() override;
 
         /// <summary>
         /// Get the Auth ticket controller

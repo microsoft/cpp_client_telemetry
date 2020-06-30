@@ -2,6 +2,7 @@
 #ifndef LOGSESSIONDATA_HPP
 #define LOGSESSIONDATA_HPP
 
+#include "LogSessionDataBase.hpp"
 #include "Version.hpp"
 
 #include <string>
@@ -12,7 +13,7 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The LogSessionData class represents the session cache.
     /// </summary>
-    class LogSessionData
+    class LogSessionData : public LogSessionDataBase
     {
     public:
         /// <summary>
@@ -20,31 +21,11 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         LogSessionData(std::string const& cacheFilePath);
 
-        /// <summary>
-        /// Gets the time that this session began.
-        /// </summary>
-        /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSessionFirstTime() const
-        {
-            return m_sessionFirstTimeLaunch;
-        }
-
-        /// <summary>
-        /// Gets the SDK unique identifier.
-        /// </summary>
-        std::string getSessionSDKUid() const
-        {
-            return m_sessionSDKUid;
-        }
-
     protected:
 
         void open(const std::string& path);
 
         bool parse(const std::string& cacheContents);
-
-        std::string                         m_sessionSDKUid;
-        unsigned long long                  m_sessionFirstTimeLaunch;
     };
 
 
