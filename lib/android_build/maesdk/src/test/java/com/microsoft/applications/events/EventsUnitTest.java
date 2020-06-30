@@ -100,7 +100,7 @@ public class EventsUnitTest {
 
     class Stubby extends HttpClient {
 
-        Stubby(Context context) throws java.io.IOException {
+        Stubby(Context context) {
             super(context);
         }
 
@@ -150,7 +150,7 @@ public class EventsUnitTest {
         }
 
         @Override
-        public URL newUrl(String url) throws java.net.MalformedURLException {
+        public URL newUrl(String url) {
             return mockUrl;
         }
 
