@@ -17,7 +17,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The LogSessionData constructor, taking a cache file path.
         /// </summary>
-        LogSessionData() = delete;
+        LogSessionDataBase() = delete;
 
         /// <summary>
         /// Gets the time that this session began.
@@ -44,4 +44,4 @@ namespace ARIASDK_NS_BEGIN
 
 } ARIASDK_NS_END
 
-
+#endif
