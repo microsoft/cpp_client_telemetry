@@ -30,7 +30,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the log session data.
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
-        virtual LogSessionData* GetLogSessionData() = 0;
+        virtual LogSessionDataBase* GetLogSessionData() = 0;
 
         /// <summary>
         /// Set the Auth ticket controller
@@ -311,7 +311,7 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the log session data.
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
-        virtual LogSessionData* GetLogSessionData() override = 0;
+        virtual LogSessionDataBase* GetLogSessionData() override = 0;
 
         /// <summary>
         /// Retrieves the ILogController interface of LogManager to control transmission pipe.

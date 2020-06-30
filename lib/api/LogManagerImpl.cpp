@@ -165,7 +165,7 @@ namespace ARIASDK_NS_BEGIN
         }
 
         // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
-        m_logSessionData.reset(new LogSessionData(cacheFilePath));
+        //m_logSessionData.reset(new LogSessionData(cacheFilePath));
 
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
@@ -250,7 +250,7 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 #if ( defined(STORE_SESSION_SQLITE) and !defined(HAVE_MAT_STORAGE))
-       m_logSessionDataDB.reset(new LogSessionDataDB(m_offlineStorage.get()));
+       m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
 #else
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 #endif
@@ -628,7 +628,7 @@ namespace ARIASDK_NS_BEGIN
         return m_filters;
     }
 
-    LogSessionData* LogManagerImpl::GetLogSessionData()
+    LogSessionDataBase* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
     }

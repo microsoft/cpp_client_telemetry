@@ -2,7 +2,7 @@
 #ifndef LOGSESSIONDATADB_HPP
 #define LOGSESSIONDATADB_HPP
 
-#include "IOfflineStorage.hpp"
+#include "LogSessionDataBase.hpp"
 #include "Version.hpp"
 
 #include <string>
@@ -13,7 +13,9 @@ namespace ARIASDK_NS_BEGIN
     /// <summary>
     /// The LogSessionData class represents the session cache.
     /// </summary>
-    class LogSessionDataDB
+    class IOfflineStorage;
+
+    class LogSessionDataDB : public LogSessionDataBase
     {
     public:
         /// <summary>
@@ -21,31 +23,11 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         LogSessionDataDB(IOfflineStorage* offlineStorage);
 
-        /// <summary>
-        /// Gets the time that this session began.
-        /// </summary>
-        /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSessionFirstTime() const
-        {
-            return m_sessionFirstTimeLaunch;
-        }
-
-        /// <summary>
-        /// Gets the SDK unique identifier.
-        /// </summary>
-        std::string getSessionSDKUid() const
-        {
-            return m_sessionSDKUid;
-        }
-
     protected:
 
         void validateAndSetSdkId(const std::string& sdkId);
 
         void setSessionData(IOfflineStorage* offlineStorage);
-
-        std::string                         m_sessionSDKUid;
-        unsigned long long                  m_sessionFirstTimeLaunch;
     };
 
 
