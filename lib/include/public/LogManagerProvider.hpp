@@ -161,7 +161,7 @@ namespace ARIASDK_NS_BEGIN
     /// http           - optional IHttpClient override instance
     /// taskDispatcher - optional ITaskDispatcher override instance
     /// </summary>
-    typedef struct
+    typedef struct capi_client_struct
     {
         ILogManager*                     logmanager = nullptr;
         ILogConfiguration                config;
