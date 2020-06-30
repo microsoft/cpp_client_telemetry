@@ -167,7 +167,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogSe
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogEventName(
         JNIEnv* env,
-        jclass /* this */,
+        jobject/* this */,
         jlong nativeLoggerPtr,
         jstring jstrName) {
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
@@ -176,7 +176,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogEv
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogEventProperties(
         JNIEnv* env,
-        jclass /* this */,
+        jobject /* this */,
         jlong nativeLoggerPtr,
         // EventProperties
         jstring jstrEventName,
@@ -196,7 +196,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogEv
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogFailure(
         JNIEnv* env,
-        jclass /* this */,
+        jobject /* this */,
         jlong nativeLoggerPtr,
         jstring jstrSignature,
         jstring jstrDetail,
@@ -553,7 +553,7 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeLogUs
 
 JNIEXPORT void JNICALL Java_com_microsoft_applications_events_Logger_nativeSetLevel(
         JNIEnv* env,
-        jclass /* this */,
+        jobject /* this */,
         jlong nativeLoggerPtr,
         jint jLevel) {
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);

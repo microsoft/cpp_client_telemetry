@@ -113,13 +113,6 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
     /// <summary>
-    /// This configuration flag is populated by SDK to indicate if this singleton instance
-    /// is running in "host" mode and all LogController methods should be accessible to the
-    /// caller.
-    /// </summary>
-    static constexpr const char* HOST_MODE = "hostMode";
-
-    /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
     template <class ModuleConfiguration>
@@ -166,7 +159,7 @@ namespace ARIASDK_NS_BEGIN
 
         static inline bool isHost()
         {
-            return GetLogConfiguration()[HOST_MODE];
+            return GetLogConfiguration()[CFG_BOOL_HOST_MODE];
         }
 
         /// <summary>
