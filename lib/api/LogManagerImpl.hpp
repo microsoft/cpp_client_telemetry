@@ -25,7 +25,7 @@
 
 #include "AllowedLevelsCollection.hpp"
 
-#include "LogSessionData.hpp"
+#include "LogSessionDataBase.hpp"
 
 #include <mutex>
 #include <set>
@@ -181,7 +181,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
-        LogSessionData* GetLogSessionData() override;
+        LogSessionDataBase* GetLogSessionData() override;
 
         ILogController *GetLogController(void) override;
 
@@ -271,7 +271,7 @@ protected:
         AuthTokensController                                   m_authTokensController;
 
         std::unique_ptr<IOfflineStorage>                       m_offlineStorage;
-        std::unique_ptr<LogSessionData>                        m_logSessionData;
+        std::unique_ptr<LogSessionDataBase>                    m_logSessionData;
         bool                                                   m_isSystemStarted {};
         std::unique_ptr<ITelemetrySystem>                      m_system;
 
