@@ -183,7 +183,7 @@ public class EventsUnitTest {
             assertEquals("foobar", app_language);
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
-            assertNull(time_zone);
+            assertNotNull(time_zone);
         }
     }
 
