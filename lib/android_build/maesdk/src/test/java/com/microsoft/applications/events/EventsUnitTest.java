@@ -174,7 +174,8 @@ public class EventsUnitTest {
             String app_version,
             String app_language,
             String os_major_version,
-            String os_full_version
+            String os_full_version,
+            String time_zone
         )
         {
             assertEquals("A:com.microsoft.nemotronics.doodad", app_id);
@@ -182,6 +183,7 @@ public class EventsUnitTest {
             assertEquals("foobar", app_language);
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
+            assertNull(time_zone);
         }
     }
 

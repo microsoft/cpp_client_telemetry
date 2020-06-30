@@ -24,9 +24,13 @@ import java.io.BufferedInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -207,6 +211,12 @@ public class HttpClient {
         return locale.toString().replace('_', '-');
     }
 
+    private static String getTimeZone() 
+    {
+        Date currentLocalTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"), Locale.getDefault()).getTime();
+        return new SimpleDateFormat("XXX", Locale.getDefault()).format(currentLocalTime);
+    }
+
     private void calculateAndSetSystemInfo(android.content.Context context)
     {
         String app_id = context.getPackageName();
@@ -222,12 +232,14 @@ public class HttpClient {
         }
         String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
+        String time_zone = getTimeZone();
+
         String os_major_version = Build.VERSION.RELEASE;
         if (os_major_version == null) {
             os_major_version = "GECOS III"; // unexpected except in Java unit tests
         }
         String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
-        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version);
+        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version, time_zone);
     }
 
     private String calculateID(android.content.Context context)
@@ -293,7 +305,8 @@ public class HttpClient {
         String app_version,
         String app_language,
         String os_major_version,
-        String os_full_version
+        String os_full_version,
+        String time_zone
     );
 
     public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
