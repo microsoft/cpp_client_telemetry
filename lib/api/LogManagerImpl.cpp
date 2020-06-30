@@ -249,6 +249,11 @@ namespace ARIASDK_NS_BEGIN
         }
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
+#if ( defined(STORE_SESSION_SQLITE) and !defined(HAVE_MAT_STORAGE))
+       m_logSessionDataDB.reset(new LogSessionDataDB(m_offlineStorage.get()));
+#else
+        m_logSessionData.reset(new LogSessionData(cacheFilePath));
+#endif
 
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
