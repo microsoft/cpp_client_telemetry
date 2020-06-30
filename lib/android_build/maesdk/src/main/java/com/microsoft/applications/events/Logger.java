@@ -1378,16 +1378,6 @@ class Logger implements ILogger {
   public synchronized void clearNative() {
     m_nativePtr = 0;
   }
-  
-  /**
-   * Set default diagnostic level of this logger instance.
-   *
-   * @param level Diagnostic level.
-   */
-  @Override
-  public void setLevel(final DiagnosticLevel level) {
-      nativeSetLevel(m_nativePtr, level.getValue());
-  }
 
   private native String nativeGetSessionId(long nativeLoggerPtr);
 
