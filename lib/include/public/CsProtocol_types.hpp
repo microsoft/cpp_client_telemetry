@@ -17,9 +17,15 @@
 
 namespace CsProtocol {
 
+#ifdef HAVE_CS4
 constexpr int CS_VER_MAJOR = 4;
 constexpr int CS_VER_MINOR = 0;
 constexpr const char* CS_VER_STRING = "4.0";
+#else
+constexpr int CS_VER_MAJOR = 3;
+constexpr int CS_VER_MINOR = 0;
+constexpr const char* CS_VER_STRING = "3.0";
+#endif
 
 struct Ingest {
     // 1: required int64 time
@@ -118,8 +124,10 @@ struct Device {
     std::string make;
     // 9: optional string model
     std::string model;
+#ifdef HAVE_CS4
     // 10: optional string authIdEnt
     std::string authIdEnt;
+#endif
 
     bool operator==(Device const& other) const
     {
@@ -132,7 +140,10 @@ struct Device {
             && (orgAuthId == other.orgAuthId)
             && (make == other.make)
             && (model == other.model)
-            && (authIdEnt == other.authIdEnt);
+#ifdef HAVE_CS4
+            && (authIdEnt == other.authIdEnt)
+#endif
+            ;
     }
 
     bool operator!=(Device const& other) const
@@ -185,8 +196,10 @@ struct App {
     std::string locale;
     // 8: optional string name
     std::string name;
+#ifdef HAVE_CS4
     // 9: optional string sesId
     std::string sesId;
+#endif
 
     bool operator==(App const& other) const
     {
@@ -198,7 +211,10 @@ struct App {
             && (ver == other.ver)
             && (locale == other.locale)
             && (name == other.name)
-            && (sesId == other.sesId);
+#ifdef HAVE_CS4
+            && (sesId == other.sesId)
+#endif
+            ;
     }
 
     bool operator!=(App const& other) const
@@ -236,12 +252,14 @@ struct Utc {
     double popSample = 0.0;
     // 15: optional int64 eventFlags
     int64_t eventFlags = 0;
+#ifdef HAVE_CS4
     // 16: optional int64 wsId
     int64_t wsId = 0;
     // 17: optional int64 wcmp
     int64_t wcmp = 0;
     // 18: optional int64 wPId
     int64_t wPId = 0;
+#endif
 
     bool operator==(Utc const& other) const
     {
@@ -259,9 +277,12 @@ struct Utc {
             && (seq == other.seq)
             && (popSample == other.popSample)
             && (eventFlags == other.eventFlags)
+#ifdef HAVE_CS4
             && (wsId == other.wsId)
             && (wcmp == other.wcmp)
-            && (wPId == other.wPId);
+            && (wPId == other.wPId)
+#endif
+            ;
     }
 
     bool operator!=(Utc const& other) const
@@ -273,13 +294,18 @@ struct Utc {
 struct M365a {
     // 1: optional string enrolledTenantId
     std::string enrolledTenantId;
+#ifdef HAVE_CS4
     // 2: optional uint64 msp
     uint64_t msp = 0;
+#endif
 
     bool operator==(M365a const& other) const
     {
         return (enrolledTenantId == other.enrolledTenantId)
-            && (msp == other.msp);
+#ifdef HAVE_CS4
+            && (msp == other.msp)
+#endif
+            ;
     }
 
     bool operator!=(M365a const& other) const
@@ -365,8 +391,10 @@ struct Javascript {
     std::string model;
     // 40: optional string screenSize
     std::string screenSize;
+#ifdef HAVE_CS4
     // 45: optional string msfpc
     std::string msfpc;
+#endif
     // 50: optional string mc1Id
     std::string mc1Id;
     // 60: optional uint64 mc1Lu
@@ -399,12 +427,14 @@ struct Javascript {
     std::string gsfxSession;
     // 200: optional string domain
     std::string domain;
+#ifdef HAVE_CS4
     // 210: required bool userConsent
     bool userConsent = false;
     // 220: optional string browserLang
     std::string browserLang;
     // 230: optional string serviceName
     std::string serviceName;
+#endif
     // 999: optional string dnt
     std::string dnt;
 
@@ -418,7 +448,9 @@ struct Javascript {
             && (make == other.make)
             && (model == other.model)
             && (screenSize == other.screenSize)
+#ifdef HAVE_CS4
             && (msfpc == other.msfpc)
+#endif
             && (mc1Id == other.mc1Id)
             && (mc1Lu == other.mc1Lu)
             && (isMc1New == other.isMc1New)
@@ -435,9 +467,11 @@ struct Javascript {
             && (omniId == other.omniId)
             && (gsfxSession == other.gsfxSession)
             && (domain == other.domain)
+#ifdef HAVE_CS4
             && (userConsent == other.userConsent)
             && (browserLang == other.browserLang)
             && (serviceName == other.serviceName)
+#endif
             && (dnt == other.dnt);
     }
 
@@ -456,16 +490,21 @@ struct Protocol {
     std::string devMake;
     // 4: optional string devModel
     std::string devModel;
+#ifdef HAVE_CS4
     // 5: optional uint64 msp
     uint64_t msp = 0;
+#endif
 
     bool operator==(Protocol const& other) const
     {
         return (metadataCrc == other.metadataCrc)
             && (ticketKeys == other.ticketKeys)
             && (devMake == other.devMake)
+#ifdef HAVE_CS4
             && (devModel == other.devModel)
-            && (msp == other.msp);
+            && (msp == other.msp)
+#endif
+            ;
     }
 
     bool operator!=(Protocol const& other) const
@@ -479,17 +518,23 @@ struct Receipts {
     int64_t originalTime = 0;
     // 2: optional int64 uploadTime
     int64_t uploadTime = 0;
+
+#ifdef HAVE_CS4
     // 3: optional string originalName
     std::string originalName;
     // 4: optional uint64 flags
     uint64_t flags = 0;
+#endif
 
     bool operator==(Receipts const& other) const
     {
         return (originalTime == other.originalTime)
             && (uploadTime == other.uploadTime)
+#ifdef HAVE_CS4
             && (originalName == other.originalName)
-            && (flags == other.flags);
+            && (flags == other.flags)
+#endif
+            ;
     }
 
     bool operator!=(Receipts const& other) const
@@ -520,24 +565,38 @@ struct Net {
 };
 
 struct Sdk {
+#ifdef HAVE_CS4
     // 1: optional string ver
     std::string ver;
+#else
+    // 1: optional string libVer
+    std::string libVer;
+#endif
     // 2: optional string epoch
     std::string epoch;
     // 3: optional int64 seq
     int64_t seq = 0;
     // 4: optional string installId
     std::string installId;
+#ifdef HAVE_CS4
     // 5: optional string libVer
     std::string libVer;
+#endif
 
     bool operator==(Sdk const& other) const
     {
+#ifdef HAVE_CS4
         return (ver == other.ver)
             && (epoch == other.epoch)
             && (seq == other.seq)
             && (installId == other.installId)
             && (libVer == other.libVer);
+#else
+        return (libVer == other.libVer)
+            && (epoch == other.epoch)
+            && (seq == other.seq)
+            && (installId == other.installId);
+#endif
     }
 
     bool operator!=(Sdk const& other) const
@@ -579,6 +638,7 @@ struct Cloud {
     }
 };
 
+#ifdef HAVE_CS4_FULL
 struct Service {
     // 1: optional string name
     std::string name;
@@ -716,7 +776,8 @@ struct Web {
         return !(*this == other);
     }
 };
-
+#endif
+ 
 namespace _bond_enumerators {
 namespace ValueKind {
 enum ValueKind {
@@ -895,7 +956,7 @@ struct Record {
     int64_t flags = 0;
     // 7: optional string cV
     std::string cV;
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     // 20: optional vector<Ingest> extIngest
     std::vector< ::CsProtocol::Ingest> extIngest;
 #endif
@@ -909,10 +970,9 @@ struct Record {
     std::vector< ::CsProtocol::Os> extOs;
     // 25: optional vector<App> extApp
     std::vector< ::CsProtocol::App> extApp;
-/* There are scenarios where 1DS C++ SDK needs to populate UTC extension in Direct upload mode */
     // 26: optional vector<Utc> extUtc
     std::vector< ::CsProtocol::Utc> extUtc;
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     // 27: optional vector<Xbl> extXbl
     std::vector< ::CsProtocol::Xbl> extXbl;
     // 28: optional vector<Javascript> extJavascript
@@ -926,7 +986,7 @@ struct Record {
     std::vector< ::CsProtocol::Sdk> extSdk;
     // 33: optional vector<Loc> extLoc
     std::vector< ::CsProtocol::Loc> extLoc;
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     // 34: optional vector<Cloud> extCloud
     std::vector< ::CsProtocol::Cloud> extCloud;
     // 35: optional vector<Service> extService
@@ -938,7 +998,7 @@ struct Record {
     std::vector< ::CsProtocol::M365a> extM365a;
     // 41: optional vector<Data> ext
     std::vector< ::CsProtocol::Data> ext;
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     // 42: optional vector<Mscv> extMscv
     std::vector< ::CsProtocol::Mscv> extMscv;
     // 43: optional vector<IntWeb> extIntWeb
@@ -966,7 +1026,7 @@ struct Record {
             && (iKey == other.iKey)
             && (flags == other.flags)
             && (cV == other.cV)
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             && (extIngest == other.extIngest)
 #endif
             && (extProtocol == other.extProtocol)
@@ -975,7 +1035,7 @@ struct Record {
             && (extOs == other.extOs)
             && (extApp == other.extApp)
             && (extUtc == other.extUtc)
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             && (extXbl == other.extXbl)
             && (extJavascript == other.extJavascript)
             && (extReceipts == other.extReceipts)
@@ -983,14 +1043,14 @@ struct Record {
             && (extNet == other.extNet)
             && (extSdk == other.extSdk)
             && (extLoc == other.extLoc)
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             && (extCloud == other.extCloud)
             && (extService == other.extService)
             && (extCs == other.extCs)
 #endif
             && (extM365a == other.extM365a)
             && (ext == other.ext)
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             && (extMscv == other.extMscv)
             && (extIntWeb == other.extIntWeb)
             && (extIntService == other.extIntService)

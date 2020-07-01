@@ -228,7 +228,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Device const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (!value.authIdEnt.empty()) {
         writer.WriteFieldBegin(BT_STRING, 10, nullptr);
         writer.WriteString(value.authIdEnt);
@@ -236,7 +236,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Device const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 10, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -356,7 +356,7 @@ void Serialize(TWriter& writer, ::CsProtocol::App const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 8, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (!value.sesId.empty()) {
         writer.WriteFieldBegin(BT_STRING, 9, nullptr);
         writer.WriteString(value.sesId);
@@ -364,7 +364,7 @@ void Serialize(TWriter& writer, ::CsProtocol::App const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 9, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -484,7 +484,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Utc const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_INT64, 15, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (value.wsId != 0) {
         writer.WriteFieldBegin(BT_INT64, 16, nullptr);
         writer.WriteInt64(value.wsId);
@@ -508,7 +508,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Utc const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_INT64, 18, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -524,7 +524,7 @@ void Serialize(TWriter& writer, ::CsProtocol::M365a const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (value.msp != 0) {
         writer.WriteFieldBegin(BT_UINT64, 2, nullptr);
         writer.WriteUInt64(value.msp);
@@ -532,7 +532,7 @@ void Serialize(TWriter& writer, ::CsProtocol::M365a const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_UINT64, 2, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -745,7 +745,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
     } else {
         writer.WriteFieldOmitted(BT_STRING, 40, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (!value.msfpc.empty()) {
         writer.WriteFieldBegin(BT_STRING, 45, nullptr);
         writer.WriteString(value.msfpc);
@@ -753,7 +753,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
     } else {
         writer.WriteFieldOmitted(BT_STRING, 45, nullptr);
     }
-
+#endif
     if (!value.mc1Id.empty()) {
         writer.WriteFieldBegin(BT_STRING, 50, nullptr);
         writer.WriteString(value.mc1Id);
@@ -881,7 +881,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
     } else {
         writer.WriteFieldOmitted(BT_STRING, 200, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (value.userConsent != false) {
         writer.WriteFieldBegin(BT_BOOL, 210, nullptr);
         writer.WriteBool(value.userConsent);
@@ -905,7 +905,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Javascript const& value, bool isBa
     } else {
         writer.WriteFieldOmitted(BT_STRING, 230, nullptr);
     }
-
+#endif
     if (!value.dnt.empty()) {
         writer.WriteFieldBegin(BT_STRING, 999, nullptr);
         writer.WriteString(value.dnt);
@@ -961,7 +961,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Protocol const& value, bool isBase
     } else {
         writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (value.msp != 0) {
         writer.WriteFieldBegin(BT_UINT64, 5, nullptr);
         writer.WriteUInt64(value.msp);
@@ -969,7 +969,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Protocol const& value, bool isBase
     } else {
         writer.WriteFieldOmitted(BT_UINT64, 5, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -993,7 +993,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Receipts const& value, bool isBase
     } else {
         writer.WriteFieldOmitted(BT_INT64, 2, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (!value.originalName.empty()) {
         writer.WriteFieldBegin(BT_STRING, 3, nullptr);
         writer.WriteString(value.originalName);
@@ -1009,7 +1009,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Receipts const& value, bool isBase
     } else {
         writer.WriteFieldOmitted(BT_UINT64, 4, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -1049,7 +1049,9 @@ template<typename TWriter>
 void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
-
+#ifdef HAVE_CS4
+    // CS4 renamed the field name from ext.sdk.libVer to ext.sdk.ver.
+    // It remains at the same pos 1 with identical semantic meaning.
     if (!value.ver.empty()) {
         writer.WriteFieldBegin(BT_STRING, 1, nullptr);
         writer.WriteString(value.ver);
@@ -1057,6 +1059,15 @@ void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
     }
+#else
+    if (!value.libVer.empty()) {
+        writer.WriteFieldBegin(BT_STRING, 1, nullptr);
+        writer.WriteString(value.libVer);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_STRING, 1, nullptr);
+    }
+#endif
 
     if (!value.epoch.empty()) {
         writer.WriteFieldBegin(BT_STRING, 2, nullptr);
@@ -1081,7 +1092,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 4, nullptr);
     }
-
+#ifdef HAVE_CS4
     if (!value.libVer.empty()) {
         writer.WriteFieldBegin(BT_STRING, 5, nullptr);
         writer.WriteString(value.libVer);
@@ -1089,7 +1100,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Sdk const& value, bool isBase)
     } else {
         writer.WriteFieldOmitted(BT_STRING, 5, nullptr);
     }
-
+#endif
     writer.WriteStructEnd(isBase);
 }
 
@@ -1157,6 +1168,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Cloud const& value, bool isBase)
     writer.WriteStructEnd(isBase);
 }
 
+#ifdef HAVE_CS4_FULL
 template<typename TWriter>
 void Serialize(TWriter& writer, ::CsProtocol::Service const& value, bool isBase)
 {
@@ -1385,7 +1397,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Web const& value, bool isBase)
 
     writer.WriteStructEnd(isBase);
 }
-
+#endif
 template<typename TWriter>
 void Serialize(TWriter& writer, ::CsProtocol::PII const& value, bool isBase)
 {
@@ -1671,7 +1683,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldOmitted(BT_STRING, 7, nullptr);
     }
 
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     if (!value.extIngest.empty()) {
         writer.WriteFieldBegin(BT_LIST, 20, nullptr);
         writer.WriteContainerBegin(value.extIngest.size(), BT_STRUCT);
@@ -1757,7 +1769,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldOmitted(BT_LIST, 26, nullptr);
     }
 
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     if (!value.extXbl.empty()) {
         writer.WriteFieldBegin(BT_LIST, 27, nullptr);
         writer.WriteContainerBegin(value.extXbl.size(), BT_STRUCT);
@@ -1831,7 +1843,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldOmitted(BT_LIST, 33, nullptr);
     }
 
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     if (!value.extCloud.empty()) {
         writer.WriteFieldBegin(BT_LIST, 34, nullptr);
         writer.WriteContainerBegin(value.extCloud.size(), BT_STRUCT);
@@ -1893,7 +1905,7 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldOmitted(BT_LIST, 41, nullptr);
     }
 
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
     if (!value.extMscv.empty()) {
         writer.WriteFieldBegin(BT_LIST, 42, nullptr);
         writer.WriteContainerBegin(value.extMscv.size(), BT_STRUCT);

@@ -1,5 +1,4 @@
-﻿// Generated from https://msazure.visualstudio.com/OneDsCollector/_git/Collector?path=%2FServices%2FModels%2FCommonSchema%2FBond%2FCommonSchemaEvent.bond&version=GBmaster
-// by applying the following steps:
+﻿// Common Schema 4.0 definition. Generated from Collector Bond definition by applying the following steps:
 //    1) Take CommonSchemaEvent.bond and rename it to CsProtocol.bond.
 //    2) Remove comments, Bond metadata, BOM-marker, normalize tabs and linebreaks.
 //    3) Comment out recursive Ingest.processedIngest field.

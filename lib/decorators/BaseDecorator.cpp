@@ -37,7 +37,11 @@ namespace ARIASDK_NS_BEGIN {
         // - CS3 named this field libVer.
         // - CS4 moved the libVer from #0 to post #5. And renamed pos #0 from libVer to ver
         // This creates a ton of confusion, but we keep things where they were before.
+#ifdef HAVE_CS4
         record.extSdk[0].ver = PAL::getSdkVersion();
+#else
+        record.extSdk[0].libVer = PAL::getSdkVersion();
+#endif
         record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
 
         //set Tickets
