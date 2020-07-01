@@ -214,7 +214,9 @@ public class HttpClient {
     private static String getTimeZone() 
     {
         Date currentLocalTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"), Locale.getDefault()).getTime();
-        return new SimpleDateFormat("XXX", Locale.getDefault()).format(currentLocalTime);
+        String timeZone = new SimpleDateFormat("Z", Locale.getDefault()).format(currentLocalTime);
+        int length = timeZone.length();
+        return timeZone.substring(0, length-2) + ':' + timeZone.substring(length-2);
     }
 
     private void calculateAndSetSystemInfo(android.content.Context context)
