@@ -32,6 +32,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -183,7 +184,7 @@ public class EventsUnitTest {
             assertEquals("foobar", app_language);
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
-            assertNotNull(time_zone);
+            assertTrue(Pattern.matches("^([-+])\\d\\d:\\d\\d", time_zone));
         }
     }
 
