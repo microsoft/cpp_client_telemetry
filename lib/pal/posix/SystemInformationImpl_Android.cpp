@@ -18,6 +18,8 @@ namespace PAL_NS_BEGIN {
         static std::string s_os_full_version;
         static std::string s_os_name;
 
+        static std::string s_time_zone;
+
         static void setValue(JNIEnv *env, std::string & s, jstring js)
         {
             const char *start = env->GetStringUTFChars(js, nullptr);
@@ -124,6 +126,8 @@ namespace PAL_NS_BEGIN {
     std::string AndroidSystemInformationConnector::s_os_full_version;
     std::string AndroidSystemInformationConnector::s_os_name;
 
+    std::string AndroidSystemInformationConnector::s_time_zone;
+
     SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
         m_os_name("Android")
@@ -140,6 +144,7 @@ namespace PAL_NS_BEGIN {
         m_app_language = AndroidSystemInformationConnector::s_app_language;
         m_os_major_version = AndroidSystemInformationConnector::s_os_major_version;
         m_os_full_version = AndroidSystemInformationConnector::s_os_full_version;
+        m_user_timezone = AndroidSystemInformationConnector::s_time_zone;
     }
 
     SystemInformationImpl::~SystemInformationImpl()
@@ -170,7 +175,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
     jstring app_language,
 
     jstring os_major_version,
-    jstring os_full_version
+    jstring os_full_version,
+    jstring time_zone
 )
 {
     PAL::AndroidSystemInformationConnector::setValue(
@@ -193,4 +199,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
         env,
         PAL::AndroidSystemInformationConnector::s_os_full_version,
         os_full_version);
+    PAL::AndroidSystemInformationConnector::setValue(
+        env,
+        PAL::AndroidSystemInformationConnector::s_time_zone,
+        time_zone);
 }
