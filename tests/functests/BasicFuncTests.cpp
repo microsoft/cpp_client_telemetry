@@ -97,7 +97,6 @@ char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
 #undef LOCKGUARD
 #define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__) (macro_mutex);
-
 class HttpPostListener : public DebugEventListener
 {
 public:
@@ -106,7 +105,6 @@ public:
         static unsigned seq = 0;
         switch (evt.type)
         {
-
         case EVT_HTTP_OK:
             {
                 seq++;
@@ -116,19 +114,15 @@ public:
                 printf(">>>> REQUEST [%u]:%s\n", seq, out.c_str());
             }
             break;
-
         default:
             break;
         };
-
     };
 };
-
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
 {
 protected:
-
     std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
@@ -142,7 +136,6 @@ protected:
 
     std::condition_variable cv_gotEvents;
     std::mutex cv_m;
-
 public:
 
     BasicFuncTests() :
@@ -267,7 +260,8 @@ public:
                 if (receivedRequests.size())
                 {
                     size_t size = receivedRequests.size();
-                    /* Process only new requests that we haven't processed yet */
+
+                    //requests can come within 100 milisec sleep
                     for (size_t index = lastIdx; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
@@ -308,7 +302,7 @@ public:
                 {
                     if (index + 2 < length)
                     {
-                        // Search for Version "4." marker after \x3 in Bond stream
+                        // Search for Version marker after \x3 in Bond stream
                         if (test[index + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[index + 2] == '.')
                         {
                             found = true;
@@ -653,6 +647,8 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event.SetProperty("property4", gvector);
+
+
     logger->LogEvent(event);
 
     EventProperties event2("second_event");
@@ -661,6 +657,8 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     event2.SetProperty("property2", "another value");
     event2.SetProperty("pii_property", "pii_value", PiiKind_Identity);
     event2.SetProperty("cc_property", "cc_value", CustomerContentKind_GenericData);
+
+
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
@@ -701,11 +699,13 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     std::fill(gvector.begin(), gvector.begin() + 4, GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F"));
     std::fill(gvector.begin() + 3, gvector.end() - 2, GUID_t("00000000-0000-0000-0000-000000000000"));
     event1.SetProperty("property4", gvector);
+
     logger->LogEvent(event1);
 
     EventProperties event2("second_event");
     event2.SetProperty("property", "value2");
     event2.SetProperty("property2", "another value");
+
     logger2->LogEvent(event2);
 
     LogManager::UploadNow();
@@ -777,6 +777,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::GetLogger()->LogEvent(fooEvent);
         LogManager::UploadNow();
 
+        // 1st request for realtime event
         waitForEvents(3, 7); // start, first_event, second_event, ongoing, stop, start, fooEvent
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
@@ -917,7 +918,8 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 
     LogManager::UploadNow();
     waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
-    ASSERT_EQ(records().size(), static_cast<size_t>(2));
+
+    ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
 
     verifyEvent(eventWithAllowedLevel, find(eventWithAllowedLevel.GetName()));
 
@@ -959,8 +961,9 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
 
     LogManager::UploadNow();
     waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
+
     auto sentRecords = records();
-    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4));
+    ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
     ASSERT_EQ(GetEventsWithName("EventWithOptionalLevel", sentRecords).size(), size_t{ 1 });
     ASSERT_EQ(GetEventsWithName("EventWithRequiredLevel", sentRecords).size(), size_t{ 2 });
 

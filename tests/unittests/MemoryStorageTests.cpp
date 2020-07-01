@@ -279,7 +279,6 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
         workers.push_back(std::thread([&storage, &threadCount]()
         {
             threadCount++;
-
             // Add some events
             addEvents(storage);
 

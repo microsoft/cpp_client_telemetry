@@ -444,6 +444,7 @@ namespace ARIASDK_NS_BEGIN {
             {
                 dropPiiPartA(record);
             }
+
             return true;
         }
 

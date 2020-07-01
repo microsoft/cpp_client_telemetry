@@ -32,7 +32,6 @@ namespace CommonSchema
                 }
 
                 app.UseStaticFiles(); // For the wwwroot folder
-
                 app.Run(async (context) =>
                 {
                     // Dump request information with headers

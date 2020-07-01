@@ -17,7 +17,6 @@
 #include "api/ContextFieldsProvider.hpp"
 
 #include "DebugEvents.hpp"
-
 #include <memory>
 
 #include "IBandwidthController.hpp"
@@ -119,7 +118,6 @@ namespace ARIASDK_NS_BEGIN
         std::shared_ptr<IDecoratorModule> m_customDecorator;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
-
         virtual const ContextFieldsProvider& GetContext() = 0;
         virtual const DiagLevelFilter& GetLevelFilter() = 0;
     };

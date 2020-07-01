@@ -310,14 +310,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::Device& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 10: {
                 if (!reader.ReadString(value.authIdEnt)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -484,14 +484,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::App& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 9: {
                 if (!reader.ReadString(value.sesId)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -627,7 +627,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Utc& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 16: {
                 if (!reader.ReadInt64(value.wsId)) {
                     return false;
@@ -648,7 +648,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Utc& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -693,14 +693,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::M365a& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 2: {
                 if (!reader.ReadUInt64(value.msp)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -961,14 +961,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::Javascript& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 45: {
                 if (!reader.ReadString(value.msfpc)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             case 50: {
                 if (!reader.ReadString(value.mc1Id)) {
                     return false;
@@ -1080,7 +1080,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Javascript& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 210: {
                 if (!reader.ReadBool(value.userConsent)) {
                     return false;
@@ -1101,7 +1101,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Javascript& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             case 999: {
                 if (!reader.ReadString(value.dnt)) {
                     return false;
@@ -1202,14 +1202,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::Protocol& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 5: {
                 if (!reader.ReadUInt64(value.msp)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -1261,7 +1261,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Receipts& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 3: {
                 if (!reader.ReadString(value.originalName)) {
                     return false;
@@ -1275,7 +1275,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Receipts& value, bool isBase)
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -1374,7 +1374,12 @@ bool Deserialize(TReader& reader, ::CsProtocol::Sdk& value, bool isBase)
 
         switch (id) {
             case 1: {
+#ifdef HAVE_CS4
+                /* CS4 note the breaking change here: field name got renamed, binary position stays the same. */
                 if (!reader.ReadString(value.ver)) {
+#else
+                if (!reader.ReadString(value.libVer)) {
+#endif
                     return false;
                 }
                 break;
@@ -1400,14 +1405,14 @@ bool Deserialize(TReader& reader, ::CsProtocol::Sdk& value, bool isBase)
                 }
                 break;
             }
-
+#ifdef HAVE_CS4
             case 5: {
                 if (!reader.ReadString(value.libVer)) {
                     return false;
                 }
                 break;
             }
-
+#endif
             default:
                 return false;
         }
@@ -1511,6 +1516,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Cloud& value, bool isBase)
     return true;
 }
 
+#ifdef HAVE_CS4_FULL
 template<typename TReader>
 bool Deserialize(TReader& reader, ::CsProtocol::Service& value, bool isBase)
 {
@@ -1909,6 +1915,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Web& value, bool isBase)
 
     return true;
 }
+#endif
 
 template<typename TReader>
 bool Deserialize(TReader& reader, ::CsProtocol::PII& value, bool isBase)
@@ -2497,7 +2504,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             case 20: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2644,7 +2651,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             case 27: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2770,7 +2777,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             case 34: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2833,7 +2840,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-#endif
+#endif // of HAVE_CS4_FULL
             case 37: {
                 uint32_t size4;
                 uint8_t type4;
@@ -2875,7 +2882,7 @@ bool Deserialize(TReader& reader, ::CsProtocol::Record& value, bool isBase)
                 }
                 break;
             }
-#ifdef HAVE_FULL_COMMON_SCHEMA
+#ifdef HAVE_CS4_FULL
             case 42: {
                 uint32_t size4;
                 uint8_t type4;

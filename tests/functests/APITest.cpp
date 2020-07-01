@@ -1416,8 +1416,6 @@ TEST(APITest, Custom_Decorator)
     LogManager::Initialize(TEST_TOKEN, config);
     LogManager::GetLogger()->LogEvent("foobar");
     LogManager::FlushAndTeardown();
-    // TODO #1: [MG] add config.RemoveModule?
-    // TODO #2: [MG] verify that decoration is successful
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
