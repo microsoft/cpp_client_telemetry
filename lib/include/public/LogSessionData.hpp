@@ -21,6 +21,10 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         LogSessionData(std::string const& cacheFilePath);
 
+        virtual unsigned long long getSessionFirstTime() const override;
+        virtual std::string getSessionSDKUid() const override;
+        
+
     protected:
 
         void open(const std::string& path);
