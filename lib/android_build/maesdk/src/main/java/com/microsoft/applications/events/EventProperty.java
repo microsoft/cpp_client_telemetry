@@ -1,5 +1,6 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
 import java.util.Date;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public class EventProperty {
         return m_category;
     }
 
+    @Keep
     public EventPropertyValue getEventPropertyValue() {
         return m_eventPropertyValue;
     }

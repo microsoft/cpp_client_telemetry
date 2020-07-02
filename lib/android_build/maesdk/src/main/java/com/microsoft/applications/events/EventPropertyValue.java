@@ -1,5 +1,8 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
+
+@Keep
 abstract class EventPropertyValue {
     private EventPropertyType m_type;
 
