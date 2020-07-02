@@ -1,6 +1,6 @@
 # Common Schema protocol upgrade considerations
 
-Common Schmea is a protocol used by 1DS SDK. This document outlines the key differences between Common Schema 3.0 (CS3) and Common Schema 4.x (CS4). CS3 and CS4 protocols are largerly compatible. There are no breaking changes in CS4 by-design, only incremental additions. There is one non-functional exception to this general rule: **ext.sdk.libVer** field got renamed to **ext.sdk.ver** in CS4. This renaming does not affect the contents of binary-encoded payload: "new" field (**ext.sdk.ver**) has been positioned at the same location (position 1) as the old field. All other protocol changes are only incremental additions of new optional fields.
+Common Schema is a protocol used by 1DS SDK. This document outlines the key differences between Common Schema 3.0 (CS3) and Common Schema 4.x (CS4). CS3 and CS4 protocols are largely compatible. There are no breaking changes in CS4 by-design, only incremental additions. There is one non-functional exception to this general rule: **ext.sdk.libVer** field got renamed to **ext.sdk.ver** in CS4. This renaming does not affect the contents of binary-encoded payload: "new" field (**ext.sdk.ver**) has been positioned at the same location (position 1) as the old field. All other protocol changes are only incremental additions of new optional fields.
 
 # Identifying protocol version at record level
 
@@ -26,25 +26,25 @@ List of new optional fields introduced in CS4:
 | Field name | Field type | Description | Comments |
 | --- | --- | --- | --- |
 | **ext.device.authIdEnt** | string | Device ID used by enterprises (e.g. AAD device ID). | Required for AAD JWT tokens support. |
-| **ext.app.sesId** | string | Identifier to mark session. Unless overriden, a session cookie will be used to set this value based on 30 min inactivity. | Analytics Session ID |
+| **ext.app.sesId** | string | Identifier to mark session. Unless overridden, a session cookie will be used to set this value based on 30 min inactivity. | Analytics Session ID |
 | **ext.ingest.flags** | int64 | Optional OneCollector flags for new unscrubbed paths | Server-side only |
 | **ext.utc.wsId** | int64 | WCOS UTC-only fields | |
 | **ext.utc.wcmp** | int64 | WCOS UTC-only fields | |
 | **ext.utc.wPId** | int64 | WCOS UTC-only fields | |
-| **ext.m365.msp** | int64 | MSP Bits | Identify what feature ring device belongs to. MSP flags allow to route events that belong to certain rings to Enteprise Data Platform. |
+| **ext.m365.msp** | int64 | MSP Bits | Identify what feature ring device belongs to. MSP flags allow to route events that belong to certain rings to Enterprise Data Platform. |
 | **ext.javascript.msfpc** | string | Identifies the unique browser instance.  This is the first party cookie value copied over from the MC1 cookie to circumvent the '3rd party cookie disabled' case. | |
 | **ext.javascript.userConsent** | bool | Describes whether the user has given consent for Cookies. | |
 | **ext.javascript.browserLang** | string | Language with highest quality score from http header accept-language | |
 | **ext.javascript.serviceName** | string | Service name(s) identifier, semi-colon delimited list | |
 | **ext.protocol.msp** | uint64 | MSP Bits | Similar semantic meaning as **ext.m365.msp** |
 | **ext.receipts.originalName** | string | Original Event Name (if the event name is changed) | Collector only |
-| **ext.receipts.flags** | uint64 | Server-detected event properties not relevant to auth or event quality | Collectory only |
+| **ext.receipts.flags** | uint64 | Server-detected event properties not relevant to auth or event quality | Collector only |
 | **ext.sdk.ver** | string | SDK Version (binary position 1) | Renamed from **ext.sdk.libVer** and located at the same position 1 as legacy. |
-| **ext.sdk.libVer** | string | SDK Version (binary position 5) | Deprecated. Used by server for mapping of CS3 records to Javascript notation. Client does not use this field. |
+| **ext.sdk.libVer** | string | SDK Version (binary position 5) | Deprecated. Used by server for mapping of CS3 records to JavaScript notation. Client does not use this field. |
 
 # Enabling full schema support
 
-In odrer to minimize the size of CsProtocol structure in memory SDK applies a few optimizations. Those optimizations allow to turn off support for extensions that are never used by 1DS client SDK.
+In order to minimize the size of CsProtocol structure in memory SDK applies a few optimizations. Those optimizations allow to turn off support for extensions that are never used by 1DS client SDK.
 
 | Feature | Description |
 | --- | --- |
@@ -60,11 +60,11 @@ In odrer to minimize the size of CsProtocol structure in memory SDK applies a fe
 | **ext.cs** | Additional Common Schema extension for server-side signatures. |
 | **ext.mscv** | Correlation Vector: A single field for tracking partial order of related telemetry events across component boundaries. |
 | **ext.ingest** | Describes the fields added dynamically by the service. Clients should NOT use this section since it is adding dynamically by the service. |
-| **ext.intWeb** | Describes the Microsoft internal fields related to the javascript logging library implementation for CS4.0. |
+| **ext.intWeb** | Describes the Microsoft internal fields related to the JavaScript logging library implementation for CS4.0. |
 | **ext.intService** | Cloud service related properties 4.0 extension. |
-| **ext.web** | Describes the fields related to the javascript logging library implementation for CS4.0. |
+| **ext.web** | Describes the fields related to the JavaScript logging library implementation for CS4.0. |
 | **ext.xbl** | Describes the XBox-Live related fields. Typically these are sourced from an XAuth supporting token, but may come from a client. |
-| **ext.javascript** | Describes the fields related to the javascript logging library implementation. |
+| **ext.javascript** | Describes the fields related to the JavaScript logging library implementation. |
 | **ext.receipts** | Describes the fields related to the receipts extension, added by the service. |
 
 Customers integrating 1DS SDK in service / server environments need to enable the **HAVE_CS4_FULL** flag.
