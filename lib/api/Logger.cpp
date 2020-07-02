@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <array>
 
+#include <android/log.h>
+
 using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN
@@ -42,7 +44,7 @@ namespace ARIASDK_NS_BEGIN
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
-        m_allowDotsInType = m_config["compat"]["dotType"];
+        m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
         // It allows to detach the logger from its parent context.
@@ -609,7 +611,7 @@ namespace ARIASDK_NS_BEGIN
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {
-            LOG_WARN("We don't have a first time so no session logged");
+            LOG_ERROR("We don't have a first time so no session logged");
             return;
         }
 
@@ -643,7 +645,7 @@ namespace ARIASDK_NS_BEGIN
         {
             if (m_sessionStartTime == 0)
             {
-                LOG_WARN("LogSession We don't have session start time");
+                __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession We don't have session start time");
                 return;
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
@@ -711,6 +713,11 @@ namespace ARIASDK_NS_BEGIN
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
         return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+    }
+
+    std::string const& Logger::GetSessionId() const
+    {
+      return m_sessionId;
     }
 
 } ARIASDK_NS_END

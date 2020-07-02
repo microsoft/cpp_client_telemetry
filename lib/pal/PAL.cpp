@@ -47,6 +47,8 @@
 
 #include <ctime>
 
+#include <android/log.h>
+
 namespace PAL_NS_BEGIN {
 
     PlatformAbstractionLayer& GetPAL() noexcept

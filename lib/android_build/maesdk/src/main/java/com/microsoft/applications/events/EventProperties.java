@@ -19,7 +19,7 @@ public class EventProperties {
     public EventProperties(final String name, DiagnosticLevel diagnosticLevel) {
         mStorage = new EventPropertiesStorage();
         if (!setName(name))
-            throw new IllegalArgumentException("name is invalid");
+            throw new IllegalArgumentException(name + " name is invalid");
 
         setLevel(diagnosticLevel);
     }

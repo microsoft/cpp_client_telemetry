@@ -1,6 +1,8 @@
 #include "JniConvertors.hpp"
 #include "ISemanticContext.hpp"
 
+#include <android/log.h>
+
 using namespace MAT;
 
 extern "C"

@@ -1,7 +1,9 @@
 package com.microsoft.applications.events.maesdktest;
 
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -10,7 +12,9 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.HttpClient;
+import com.microsoft.applications.events.ILogConfiguration;
 import com.microsoft.applications.events.ILogger;
+import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
 import com.microsoft.applications.events.OfflineRoom;
 import org.junit.Test;
@@ -63,6 +67,30 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
 
     ILogger logger = LogManager.initialize(token);
     assertThat(logger, isA(ILogger.class));
+    logger.logEvent("fred");
+  }
+
+  @Test
+  public void wrapperLogManagerConfig() {
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+    ILogger logger = LogManager.initialize("", custom);
+    ILogConfiguration newConfig = LogManager.getLogConfigurationCopy();
+    assertNotNull(newConfig);
+    assertThat(newConfig.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+
+    assertNotNull(logger);
+    logger.logEvent("amazingAndroidUnitTest");
     LogManager.flushAndTeardown();
   }
 }

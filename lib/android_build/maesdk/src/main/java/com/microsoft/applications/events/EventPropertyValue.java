@@ -1,6 +1,6 @@
 package com.microsoft.applications.events;
 
-abstract class EventPropertyValue {
+public abstract class EventPropertyValue {
     private EventPropertyType m_type;
 
     EventPropertyValue(EventPropertyType type) {

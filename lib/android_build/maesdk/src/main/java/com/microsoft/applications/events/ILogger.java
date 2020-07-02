@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-public interface ILogger {
+public interface ILogger extends AutoCloseable {
 
     /**
      * Gets an ISemanticContext interface through which you can specify the semantic context for this logger instance.
@@ -379,4 +379,9 @@ public interface ILogger {
      * @param level Diagnostic level.
      */
     public void setLevel(final DiagnosticLevel level);
+
+    /**
+     * Return current session id.
+     */
+    public String getSessionId();
 }

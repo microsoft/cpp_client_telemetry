@@ -3,8 +3,11 @@
 #include <jni.h>
 #include "pal/PAL.hpp"
 #include "pal/SystemInformationImpl.hpp"
+#include "jni/JniConvertors.hpp"
 
 #include <string>
+
+#include <android/log.h>
 
 namespace PAL_NS_BEGIN {
 
@@ -179,6 +182,11 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
     jstring time_zone
 )
 {
+    auto capp_id = JStringToStdString(env, app_id);
+    auto capp_version = JStringToStdString(env, app_version);
+    auto capp_language = JStringToStdString(env, app_language);
+    auto cos_major_version = JStringToStdString(env, os_major_version);
+    auto cos_full_version = JStringToStdString(env, os_full_version);
     PAL::AndroidSystemInformationConnector::setValue(
         env,
         PAL::AndroidSystemInformationConnector::s_app_id,
