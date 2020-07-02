@@ -23,13 +23,21 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         LogSessionDataDB(IOfflineStorage* offlineStorage);
 
+         virtual std::string getSessionSDKUid() const override;
+
+         virtual unsigned long long getSessionFirstTime() const override;
+
     protected:
+
+        void Initialize();
 
         void validateAndSetSdkId(const std::string& sdkId);
 
         void setSessionData(IOfflineStorage* offlineStorage);
     };
 
-
+    private:
+        bool    m_isDBInitialized;
+        OfflineStorageHandler m_offlineStorage;
 } ARIASDK_NS_END
 #endif
