@@ -269,15 +269,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.hpp">
       <Filter>bond</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_readers.hpp">
-      <Filter>bond\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_types.hpp">
-      <Filter>bond\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\AriaProtocol_writers.hpp">
-      <Filter>bond\generated</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\BondConstTypes.hpp">
       <Filter>bond\generated</Filter>
     </ClInclude>
@@ -288,9 +279,6 @@
       <Filter>decorators</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\EventPropertiesDecorator.hpp">
-      <Filter>decorators</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\IDecorator.hpp">
       <Filter>decorators</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\SemanticApiDecorators.hpp">
@@ -611,6 +599,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp">
       <Filter>include\public</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp">
+      <Filter>include\public</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp">
+      <Filter>include\public</Filter>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\PseudoRandomGenerator.hpp">
       <Filter>pal</Filter>
     </ClInclude>
