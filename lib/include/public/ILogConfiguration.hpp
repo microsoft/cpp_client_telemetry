@@ -240,6 +240,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_MODULE_DATA_VIEWER = "dataViewer";
 
     /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
+
+    /// <summary>
     /// Pointer to the Android app's JavaVM
     /// </summary>
     static constexpr const char* const CFG_PTR_ANDROID_JVM = "android_jvm";

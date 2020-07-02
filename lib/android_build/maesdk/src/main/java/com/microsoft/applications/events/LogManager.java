@@ -1,5 +1,6 @@
 package com.microsoft.applications.events;
 
+import android.util.Log;
 import java.util.Date;
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -17,11 +18,91 @@ public class LogManager {
    * <p>The C++ side can translate values of type Boolean, Long, String, ILogConfiguration (nested
    * maps) and arrays of these types (including nested arrays).
    */
-  static class LogConfigurationImpl implements ILogConfiguration {
+
+  public static class LogConfigurationImpl implements ILogConfiguration {
     TreeMap<String, Object> configMap;
 
     LogConfigurationImpl() {
       configMap = new TreeMap<String, Object>();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!this.getClass().isAssignableFrom(other.getClass())) {
+        return false;
+      }
+
+      LogConfigurationImpl castOther = (LogConfigurationImpl) other;
+      if (this.configMap.size() != castOther.configMap.size()) {
+        return false;
+      }
+
+      NavigableSet<String> set = configMap.navigableKeySet();
+      for (String k : set) {
+        if (!castOther.configMap.containsKey(k)) {
+          return false;
+        }
+        if (castOther.configMap.get(k) != configMap.get(k)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Intended for unit tests: does this instance contain all of the
+     * non-null-valued key-value pairs of the other instance?
+     * @param subset the subset configuration
+     * @return true if the other is castable to ILogConfigurationImpl and all of its non-null
+     * content appears in this ILogConfigurationImpl
+     */
+
+    public boolean valueContainsAll(LogConfigurationImpl subset)
+    {
+      NavigableSet<String> keySet = subset.configMap.navigableKeySet();
+      for (String k : keySet) {
+        Object v = subset.configMap.get(k);
+        if (v == null) {
+          continue;
+        }
+        if (!configMap.containsKey(k)) {
+          return false;
+        }
+        Object superV = configMap.get(k);
+        if (superV == null) {
+          return false;
+        }
+        if (superV == v) {
+          continue;
+        }
+        if (!superV.getClass().isAssignableFrom(v.getClass())) {
+          return false;
+        }
+        if (!superV.equals(v)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = 0;
+      NavigableSet<String> set = configMap.navigableKeySet();
+      for (String k : set) {
+        result ^= k.hashCode();
+        Object v = configMap.get(k);
+        if (v != null) {
+          result ^= v.hashCode();
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public String toString()
+    {
+      return configMap.toString();
     }
 
     /**

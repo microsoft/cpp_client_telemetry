@@ -12,7 +12,7 @@
 #include "api/LogManagerImpl.hpp"
 
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 #include "LogManager.hpp"
 
@@ -302,7 +302,8 @@ public:
                 {
                     if (index + 2 < length)
                     {
-                        if (test[index + 1] == '3' && test[index + 2] == '.')
+                        // Search for Version marker after \x3 in Bond stream
+                        if (test[index + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[index + 2] == '.')
                         {
                             found = true;
                             break;
@@ -546,6 +547,10 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     CleanStorage();
     Initialize();
+    /* Verify both:
+     - local deserializer implementation in verifyEvent
+     - public MAT::exporters::DecodeRequest(...) via debug callback
+     */
     HttpPostListener listener;
     LogManager::AddEventListener(EVT_HTTP_OK, listener);
 
@@ -657,6 +662,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
     logger->LogEvent(event2);
 
     LogManager::UploadNow();
+    // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
 
     for (const auto &evt : { event, event2 })
@@ -703,6 +709,8 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
     logger2->LogEvent(event2);
 
     LogManager::UploadNow();
+
+    // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
     for (const auto &evt : { event1, event2 })
     {
