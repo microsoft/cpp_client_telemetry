@@ -23,20 +23,16 @@ namespace ARIASDK_NS_BEGIN
         /// Gets the time that this session began.
         /// </summary>
         /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSessionFirstTime() const {
-        {
-            return m_sessionFirstTimeLaunch;
-        }
-
+        virtual unsigned long long getSessionFirstTime() const           = 0;
+       
         /// <summary>
         /// Gets the SDK unique identifier.
         /// </summary>
-        std::string getSessionSDKUid() const {
-            return m_sessionSDKUid;   
-        }
+        virtual std::string getSessionSDKUid() const= 0;
+
 
     protected:
-
+        
         std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch;
     };

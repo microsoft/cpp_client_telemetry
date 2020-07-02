@@ -96,6 +96,17 @@ namespace ARIASDK_NS_BEGIN {
 
        return false;
     }
+    
+    unsigned long long LogSessionData::getSessionFirstTime()
+    {
+        return m_sessionFirstTimeLaunch;
+    
+    }
+
+    std::string LogSessionData::getSessionSDKUid()
+    {
+        return m_sessionSDKUid;
+    }
 
 } ARIASDK_NS_END
 
