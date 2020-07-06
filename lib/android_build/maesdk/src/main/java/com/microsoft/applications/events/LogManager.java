@@ -1,6 +1,7 @@
 package com.microsoft.applications.events;
 
 import android.util.Log;
+import androidx.annotation.Keep;
 import java.util.Date;
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -57,7 +58,7 @@ public class LogManager {
      * content appears in this ILogConfigurationImpl
      */
 
-    public boolean valueContainsAll(LogConfigurationImpl subset)
+    public boolean valueContainsAll(LogConfigurationImpl subset, StringBuffer failure)
     {
       NavigableSet<String> keySet = subset.configMap.navigableKeySet();
       for (String k : keySet) {
@@ -66,19 +67,35 @@ public class LogManager {
           continue;
         }
         if (!configMap.containsKey(k)) {
+          failure.append(String.format("Key %s missing from superset", k));
           return false;
         }
         Object superV = configMap.get(k);
         if (superV == null) {
+          failure.append(String.format("Value for key %s is null in superset", k));
           return false;
         }
         if (superV == v) {
           continue;
         }
         if (!superV.getClass().isAssignableFrom(v.getClass())) {
+          failure.append(String.format("Value for key %s is class %s in superset, %s in subset",
+            superV.getClass().getName(), v.getClass().getName()));
           return false;
         }
-        if (!superV.equals(v)) {
+        if (LogConfigurationImpl.class.isAssignableFrom(superV.getClass())) {
+          LogConfigurationImpl superMap = (LogConfigurationImpl) superV;
+          StringBuffer subFailure = new StringBuffer();
+          if (superMap.valueContainsAll((LogConfigurationImpl) v, subFailure)) {
+            continue;
+          }
+          failure.append(String.format("Sub-map %s: %s", k, subFailure));
+          return false;
+        }
+        if (!superV.equals(superV.getClass().cast(v))) {
+          String s = String.format("key %s, superset value %s, subset %s",
+            k, superV, v);
+          failure.append(s);
           return false;
         }
       }
@@ -111,6 +128,7 @@ public class LogManager {
      * @param key
      * @return the value for that key, or null if there is no entry.
      */
+    @Keep
     @Override
     public Object getObject(String key) {
       if (key == null) {
@@ -260,6 +278,7 @@ public class LogManager {
      * @param key
      * @param value
      */
+    @Keep
     @Override
     public void set(String key, Object value) {
       configMap.put(key, value);
@@ -270,6 +289,7 @@ public class LogManager {
      *
      * @return Sorted array of keys
      */
+    @Keep
     public String[] getKeyArray() {
       NavigableSet<String> set = configMap.navigableKeySet();
       String[] result = new String[set.size()];

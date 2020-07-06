@@ -13,13 +13,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.HttpClient;
 import com.microsoft.applications.events.ILogConfiguration;
+import com.microsoft.applications.events.ILogManager;
 import com.microsoft.applications.events.ILogger;
 import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
 import com.microsoft.applications.events.LogManager.LogConfigurationImpl;
+import com.microsoft.applications.events.LogManagerProvider;
 import com.microsoft.applications.events.OfflineRoom;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,23 +42,23 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     }
 
     /**
-     * Subclasses should implement this. The item will already have been checked for the specific
-     * type and will never be null.
+     * Matcher: is actual a superset of the given LogConfigurationImpl
      *
      * @param item
      * @param mismatchDescription
      */
     @Override
     protected boolean matchesSafely(LogConfigurationImpl item, Description mismatchDescription) {
-      if (item.valueContainsAll(subset)) {
+      StringBuffer failure = new StringBuffer();
+      if (item.valueContainsAll(subset, failure)) {
         return true;
       }
-      mismatchDescription.appendText("not a superset");
+      mismatchDescription.appendText(failure.toString());
       return false;
     }
 
     /**
-     * Generates a description of the object.  The description may be part of a a description of a
+     * Generates a description of the object. The description may be part of a a description of a
      * larger object of which this is just a component, so it should be worded appropriately.
      *
      * @param description The description to be built or appended to.
@@ -140,7 +141,7 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
   }
 
   @Test
-  public void wrapperLogManagerCopyConfig() {
+  public void wrapperLogManagerCopyConfig() throws Exception {
     System.loadLibrary("maesdk");
 
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -150,11 +151,18 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     final String token =
         "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
 
-    ILogConfiguration current = LogManager.getLogConfigurationCopy();
+    ILogConfiguration current = LogManager.logConfigurationFactory();
     current.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    ILogConfiguration metastats = LogManager.logConfigurationFactory();
+    metastats.set(LogConfigurationKey.CFG_INT_METASTATS_INTERVAL, (long) 0);
+    current.set(LogConfigurationKey.CFG_MAP_METASTATS_CONFIG, metastats);
+    ILogConfiguration factory = LogManager.logConfigurationFactory();
+    factory.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "copyConfig");
+    current.set(LogConfigurationKey.CFG_MAP_FACTORY_CONFIG, factory);
     assertThat(current.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
-    ILogger logger = LogManager.initialize("", current);
-    ILogConfiguration postConfig = LogManager.getLogConfigurationCopy();
-    assertThat((LogConfigurationImpl) postConfig, isValueSuperset(current));
+    try (ILogManager logManager = LogManagerProvider.createLogManager(current)) {
+      ILogConfiguration postConfig = logManager.getLogConfigurationCopy();
+      assertThat((LogConfigurationImpl) postConfig, isValueSuperset(current));
+    }
   }
 }
