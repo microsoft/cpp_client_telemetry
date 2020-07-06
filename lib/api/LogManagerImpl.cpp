@@ -51,9 +51,7 @@ namespace ARIASDK_NS_BEGIN
         for (auto& kv : source)
         {
             m_deadLoggers.emplace_back(std::move(kv.second));
-#ifndef NDEBUG
             assert(!kv.second);
-#endif
         }
         source.clear(); // source is dead
     }
@@ -119,7 +117,6 @@ namespace ARIASDK_NS_BEGIN
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
-        m_customDecorator = std::static_pointer_cast<IDecoratorModule>(configuration.GetModule(CFG_MODULE_DECORATOR));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
@@ -328,9 +325,9 @@ namespace ARIASDK_NS_BEGIN
                 kv.second->RecordShutdown();
             }
             s_deadLoggers.AddMap(std::move(m_loggers));
-#ifndef NDEBUG
+
+            // Ensure that AddMap clears m_loggers (it does, it should continue to).
             assert(m_loggers.empty());
-#endif
 
             LOG_INFO("Tearing down modules");
             TeardownModules();

@@ -61,7 +61,7 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        bool LoggerIsDead()
+        bool LoggerIsDead() const noexcept
         {
             return !m_active;
         }
