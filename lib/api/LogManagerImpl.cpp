@@ -42,6 +42,14 @@
 #endif
 #endif // HAVE_MAT_DEFAULT_FILTER
 
+#define STORE_SESSION_DB 1
+
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+#include "offline/LogSessionDataDB.hpp"
+#else
+#include "LogSessionData.hpp"
+#endif
+
 namespace ARIASDK_NS_BEGIN
 {
 
@@ -249,12 +257,11 @@ namespace ARIASDK_NS_BEGIN
         }
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
-#if ( defined(STORE_SESSION_SQLITE) and !defined(HAVE_MAT_STORAGE))
-       m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+        m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
 #else
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 #endif
-
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
