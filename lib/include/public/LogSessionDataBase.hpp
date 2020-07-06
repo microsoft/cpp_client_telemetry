@@ -14,10 +14,10 @@ namespace ARIASDK_NS_BEGIN
     class LogSessionDataBase
     {
     public:
-        /// <summary>
-        /// The LogSessionData constructor, taking a cache file path.
-        /// </summary>
-        LogSessionDataBase() = delete;
+       
+        LogSessionDataBase(): m_sessionSDKUid(""), m_sessionFirstTimeLaunch(0ull)
+        {
+        }
 
         /// <summary>
         /// Gets the time that this session began.
@@ -32,7 +32,7 @@ namespace ARIASDK_NS_BEGIN
 
 
     protected:
-        
+
         std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch;
     };

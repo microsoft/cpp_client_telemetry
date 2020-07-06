@@ -18,8 +18,6 @@ namespace ARIASDK_NS_BEGIN {
 
 
     LogSessionDataDB::LogSessionDataDB(IOfflineStorage* offlineStorage):
-        m_sessionSDKUid(""),
-        m_sessionFirstTimeLaunch(0ull),
         m_isDBInitialized(false)
     {
         if (offlineStorage == nullptr)
@@ -32,15 +30,16 @@ namespace ARIASDK_NS_BEGIN {
 
     void LogSessionDataDB::Initialize()
     {
-        m_sessionSDKUid = offlineStorage->GetSetting(LOG_SESSION_SDKUID_NAME);
-        auto firsttimelaunch = offlineStorage->GetSetting(LOG_SESSION_FIRSTLAUNCHTIME_NAME); 
+        m_sessionSDKUid = m_offlineStorage->GetSetting(LOG_SESSION_SDKUID_NAME);
+        auto firsttimelaunch = m_offlineStorage->GetSetting(LOG_SESSION_FIRSTLAUNCHTIME_NAME); 
         validateAndSetSdkId(firsttimelaunch);
         if (!m_sessionFirstTimeLaunch || m_sessionSDKUid.empty())
         {
             m_sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
             m_sessionSDKUid = PAL::generateUuidString();
-            setSessionData(offlineStorage);
+            setSessionData();
         }
+        m_isDBInitialized = true;
     }
 
     void LogSessionDataDB::validateAndSetSdkId(const std::string &firsttimelaunch)
@@ -59,17 +58,17 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    void LogSessionDataDB::setSessionData(IOfflineStorage* offlineStorage)
+    void LogSessionDataDB::setSessionData()
     {
-        if (!offlineStorage->StoreSetting(SESSION_FIRSTLAUNCHTIME_NAME, std::to_string(m_sessionFirstTimeLaunch)))
+        if (!m_offlineStorage->StoreSetting(LOG_SESSION_FIRSTLAUNCHTIME_NAME, std::to_string(m_sessionFirstTimeLaunch)))
         {
-           LOG_WARN("Unable to save session analytics to DB for %s",SESSION_FIRSTLAUNCHTIME_NAME);
+           LOG_WARN("Unable to save session analytics to DB for %s", LOG_SESSION_FIRSTLAUNCHTIME_NAME);
            return;
         }
 
-        if (!offlineStorage->StoreSetting(SESSION_SDKUID_NAME, m_sessionSDKUid))
+        if (!m_offlineStorage->StoreSetting(LOG_SESSION_SDKUID_NAME, m_sessionSDKUid))
         {
-            LOG_WARN("Unable to save session analytics to DB for %s",SESSION_SDKUID_NAME);
+            LOG_WARN("Unable to save session analytics to DB for %s", LOG_SESSION_SDKUID_NAME);
             return;
         }
     }
@@ -78,16 +77,18 @@ namespace ARIASDK_NS_BEGIN {
     {
         if (!m_isDBInitialized)
         {
-            Initialize();
+            //TODO (labhas) - Need better way instead of remove constness
+            (const_cast<LogSessionDataDB*>(this))->Initialize(); 
         }
         return m_sessionFirstTimeLaunch;
     }
 
     std::string LogSessionDataDB::getSessionSDKUid() const
     {
+        //TODO (labhas) - Need better way instead of remove constness
         if (!m_isDBInitialized)
         {
-            Initialize();
+            (const_cast<LogSessionDataDB*>(this))->Initialize();
         }
         return m_sessionSDKUid;
     }

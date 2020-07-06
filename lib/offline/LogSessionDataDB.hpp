@@ -30,14 +30,12 @@ namespace ARIASDK_NS_BEGIN
     protected:
 
         void Initialize();
-
         void validateAndSetSdkId(const std::string& sdkId);
-
-        void setSessionData(IOfflineStorage* offlineStorage);
-    };
+        void setSessionData();
 
     private:
         bool    m_isDBInitialized;
-        OfflineStorageHandler m_offlineStorage;
+        IOfflineStorage *m_offlineStorage;
+    };
 } ARIASDK_NS_END
 #endif
