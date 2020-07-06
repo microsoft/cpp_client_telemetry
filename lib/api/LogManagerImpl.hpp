@@ -11,6 +11,7 @@
 #include "ILogManager.hpp"
 #include "IModule.hpp"
 #include "ITaskDispatcher.hpp"
+#include "IDecorator.hpp"
 
 #include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
@@ -109,6 +110,12 @@ namespace ARIASDK_NS_BEGIN
     public:
         static std::recursive_mutex     managers_lock;
         static std::set<ILogManager*>   managers;
+        
+        /// <summary>
+        /// Optional decorator that runs on event prior to passing
+        /// event context to sendEvent
+        /// </summary>
+        std::shared_ptr<IDecoratorModule> m_customDecorator;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
         virtual const ContextFieldsProvider& GetContext() = 0;

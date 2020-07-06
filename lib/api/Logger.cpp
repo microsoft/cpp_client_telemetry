@@ -426,10 +426,6 @@ namespace ARIASDK_NS_BEGIN
                 tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
-        // TODO:
-        // - event filtering based on EventName
-        // - kill-switch based on TenantId
-        // handled here in one central place before serialization.
 
         // TODO: [MG] - check if optimization is possible in generateUuidString
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);

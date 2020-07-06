@@ -11,7 +11,7 @@
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <atomic>
 #include <cassert>
@@ -20,6 +20,7 @@
 #include "PayloadDecoder.hpp"
 
 #include "mat.h"
+#include "IDecorator.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
@@ -1372,6 +1373,49 @@ TEST(APITest, Pii_Kind_E2E_Test)
     logger->LogEvent(detailed_event);
     LogManager::FlushAndTeardown();
     // Verify that contents get hashed by server
+}
+
+class CustomDecorator: public IDecoratorModule
+{
+public:
+    /***
+     * Note that C++ bond definition for extensions assumes that every extension is a vector,
+     * such as a record that may have 0 or 1 elements in that vector. Collector only respects
+     * the first item in extension vector, the others are discarded. Please do not try to
+     * populate the extX[1], as it would be effectively discarded.
+     */
+    virtual bool decorate(CsProtocol::Record& record) override
+    {
+        // App Environment
+        record.extApp[0].env = "insiders";
+
+        // UTC flags override for direct upload mode only.
+        // Resize with care: by default SDK does not populate that extension.
+        record.extUtc.resize(1);
+        record.extUtc[0].flags = 0x12345;
+
+        // Device Org Id, e.g. obtained via InTune API
+        record.extDevice[0].orgId = "00010203-0405-0607-0809-0A0B0C0D0E0F";
+
+        // App-specific Corellation Vector to track certain scenarios.
+        // Ref: https://github.com/microsoft/CorrelationVector/blob/master/cV%20-%203.0.md
+        record.cV = "A.PmvzQKgYek6Sdk/T5sWaqw.B";
+
+        // Custom global decorator is invoked before sending event further for serialization.
+        return true;
+    }
+
+};
+
+CustomDecorator myDecorator;
+
+TEST(APITest, Custom_Decorator)
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config.AddModule(CFG_MODULE_DECORATOR, std::make_shared<CustomDecorator>(myDecorator) );
+    LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetLogger()->LogEvent("foobar");
+    LogManager::FlushAndTeardown();
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
