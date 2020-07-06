@@ -191,15 +191,43 @@ to another application. The Local connection would be established using
 App Services. Like the remote connection, the result here would signify
 whether the connection was successful or not.
 
-#### Implementation Notes
+### Implementation Notes
 
 From implementation perspective, the goal will be to utilize existing
-HTTP stack used by 1SDK to support HTTP remote connection. This work
-will be considered as **First Phase 1**.
+HTTP stack used by 1SDK to support HTTP remote connection. 
 
-For **Second Phase**, we will integrate App Services connection to
-extend the local connection support for DDV, bringing the 1DS SDK
-offerings to feature parity with Office’s viewer implementation.
+>**Note**: Due to the complexities involved with App Services connection,
+>its lack of backward compatibilities with older versions of Windows, and the
+>resource overhead of using App Services, it has been decided to **not
+>integrate App Services support for local data viewing** in DDV at the
+>time of writing this document.
+
+#### DDV Communication Protocol
+For a successful communication with DDV, an `HTTP` POST connection must
+be used. The connection must also provide the following information
+as either header fields, or as query parameters:
+1. Machine Identifier (`Machine-Identifier`)
+2. App Name (`App-Name`)
+3. App Platform (`App-Platform`)
+
+The contents of the connection must be the binary packet that 1DS SDK
+provided to `ReceiveData` method as parameter, and should not be modified
+in any form (zipping, bonding, etc.).
+
+>**Note** : As of writing this document, DDV *does not* support `HTTPS`
+>connection. The Default Data Viewer implementation explicitly validates
+>that the connection endpoint is `HTTP` due to this.
+
+#### Connection Duration
+Network connection to DDV should be resilient to short network outages.
+It is recommended that in case of a failed network connection, we should
+wait at most 30 seconds, and attempt of retries should be limited to 3.
+This recommendation is intended to allow restarting of DDV, without
+risking streaming of data to an endpoint that is not running DDV.
+
+An additional connection recommendation is to expire the network connection
+every 24 hours. This will ensure that the connection is not opened and
+forgotten by the user.
 
 ## Related Note
 To support alternative viewer implementations, we should also
