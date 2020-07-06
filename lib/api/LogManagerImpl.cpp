@@ -15,7 +15,7 @@
 #include "EventProperty.hpp"
 #include "http/HttpClientFactory.hpp"
 #include "pal/TaskDispatcher.hpp"
-
+#include <iostream>
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
 #  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
@@ -41,8 +41,6 @@
 #include "modules/filter/LevelChececkingEventFilter.hpp"
 #endif
 #endif // HAVE_MAT_DEFAULT_FILTER
-
-#define STORE_SESSION_DB 1
 
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
 #include "offline/LogSessionDataDB.hpp"
@@ -172,9 +170,6 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
-        //m_logSessionData.reset(new LogSessionData(cacheFilePath));
-
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
         if (m_dataViewer != nullptr)
@@ -258,8 +253,10 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+        std::cout << " vaanya1";
         m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
 #else
+        std::cout << " vaanya2";
         m_logSessionData.reset(new LogSessionData(cacheFilePath));
 #endif
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
