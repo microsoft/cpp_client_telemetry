@@ -420,6 +420,14 @@ namespace
                 env->ReleaseStringUTFChars(key, cstringKey);
                 auto value = env->CallObjectMethod(configuration, getMethod, key);
                 rethrow(env);
+                if (!value)
+                {
+                    __android_log_print(
+                        ANDROID_LOG_WARN,
+                        "MAE",
+                        "Null value for key %s in translateVariantMap",
+                        stringKey.c_str());
+                }
                 auto v = translateVariant(value);
                 auto emplace = variantMap.emplace(stringKey, std::move(v));
                 if (!emplace.second)
@@ -432,6 +440,10 @@ namespace
 
         Variant translateVariant(jobject value)
         {
+            if (!value)
+            {
+                return Variant();
+            }
             for (auto& kv : classCache)
             {
                 if (env->IsInstanceOf(value, kv.second.valueClass))
@@ -651,6 +663,17 @@ namespace
             return map;
         }
     };
+
+    struct ManagerAndConfig
+    {
+        ILogConfiguration config;
+        ILogManager* manager;
+    };
+
+    using MCVector = std::vector<ManagerAndConfig>;
+
+    static MCVector jniManagers;
+    static std::mutex jniManagersMutex;
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -682,4 +705,67 @@ Java_com_microsoft_applications_events_LogManager_nativeGetLogConfiguration(
 {
     ConfigConstructor config(env);
     return config.mapTranslate(*WrapperLogManager::GetLogConfiguration());
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager(
+    JNIEnv* env,
+    jclass /* LogManagerProvider */,
+    jobject configuration)
+{
+    VariantTranslator variantTranslator(env);
+    size_t n;
+    {
+        n = jniManagers.size();
+        jniManagers.emplace_back();
+    }
+    variantTranslator.translateVariantMap(*jniManagers[n].config, configuration);
+
+    status_t status = status_t::STATUS_SUCCESS;
+    jniManagers[n].manager = MAT::LogManagerProvider::CreateLogManager(jniManagers.back().config, status);
+    if (status == status_t::STATUS_SUCCESS && !!jniManagers[n].manager)
+    {
+        return n;
+    }
+    __android_log_print(ANDROID_LOG_ERROR, "MAE", "Failed to create log manager");
+    return -1;
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetLogConfigurationCopy(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManagerIndex)
+{
+    ManagerAndConfig const* mc;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        {
+            return nullptr;
+        }
+        mc = &jniManagers[nativeLogManagerIndex];
+    }
+    ConfigConstructor builder(env);
+    auto vm = mc->config;
+    return builder.mapTranslate(*vm);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeClose(
+    JNIEnv* env,
+    jobject /* this */,
+    jlong nativeLogManager)
+{
+    std::lock_guard<std::mutex> lock(jniManagersMutex);
+    if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+    {
+        return;
+    }
+    if (!jniManagers[nativeLogManager].manager)
+    {
+        return;
+    }
+    MAT::LogManagerProvider::Release(jniManagers[nativeLogManager].config);
+    jniManagers[nativeLogManager].manager = nullptr;
 }
