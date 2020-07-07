@@ -52,7 +52,7 @@ LOGMANAGER_INSTANCE
     {
         // Turn off statistics
         auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;
+        config[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
 
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
