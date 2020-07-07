@@ -15,6 +15,7 @@
 
 #ifdef HAVE_MAT_DEFAULTDATAVIEWER
 #include "public/IHttpClient.hpp"
+#include <future>
 
 using namespace testing;
 using namespace MAT;
@@ -32,6 +33,8 @@ public:
     std::function<void(MAT::IHttpRequest*, MAT::IHttpResponseCallback*)> funcSendRequestAsync;
     void SendRequestAsync(MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback) override
     {
+        m_request = nullptr;
+        m_responseCallback = nullptr;
         if (funcSendRequestAsync)
         {
             funcSendRequestAsync(request, callback);
@@ -59,13 +62,6 @@ public:
         return m_responseCallback;
     }
 
-    void Reset() noexcept
-    {
-        m_request = nullptr;
-        m_responseCallback = nullptr;
-        funcSendRequestAsync = nullptr;
-    }
-
 private:
     std::shared_ptr<MAT::IHttpRequest> m_request;
     std::shared_ptr<MAT::IHttpResponseCallback> m_responseCallback;
@@ -84,8 +80,6 @@ public:
     using MAT::DefaultDataViewer::GetCurrentEndpoint;
 };
 
-std::shared_ptr<MockHttpClient> mockHttpClient = std::make_shared<MockHttpClient>();
-
 TEST(DefaultDataViewerTests, Constructor_HttpClientNotPassed_HttpClientSetsOrThrowsBasedOnConfig)
 {
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
@@ -98,20 +92,21 @@ TEST(DefaultDataViewerTests, Constructor_HttpClientNotPassed_HttpClientSetsOrThr
 
 TEST(DefaultDataViewerTests, Constructor_ValidMachineIdentifier_MachineIdentifierSetCorrectly)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     ASSERT_EQ(viewer.GetMachineFriendlyIdentifier(), "Test");
 }
 
 TEST(DefaultDataViewerTests, Constructor_InvalidMachineIdentifier_ThrowsInvalidArgument)
 {
-    CheckForExceptionOrAbort<std::invalid_argument>([]() { MockDefaultDataViewer(mockHttpClient, ""); });
-    CheckForExceptionOrAbort<std::invalid_argument>([]() { MockDefaultDataViewer(mockHttpClient, "   "); });
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
+    CheckForExceptionOrAbort<std::invalid_argument>([&mockHttpClient]() { MockDefaultDataViewer(mockHttpClient, ""); });
+    CheckForExceptionOrAbort<std::invalid_argument>([&mockHttpClient]() { MockDefaultDataViewer(mockHttpClient, "   "); });
 }
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnabled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -130,7 +125,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_ValidEndpoint_TransmissionEnable
 
 TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -150,6 +145,7 @@ TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
 //TODO Uncomment this test when the submodule has been updated.
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArgument)
 {
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer(""); });
     CheckForExceptionOrAbort<std::invalid_argument>([&viewer]() { viewer.EnableRemoteViewer("           "); });
@@ -160,7 +156,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArg
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -177,7 +173,7 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotE
 
 TEST(DefaultDataViewerTests, DisableViewer_TransmissionEnabled_TransmissionDisabled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
@@ -194,7 +190,7 @@ TEST(DefaultDataViewerTests, DisableViewer_TransmissionEnabled_TransmissionDisab
 
 TEST(DefaultDataViewerTests, DiableViewer_TransmissionDisabled_TransmissionDisabled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.SetTransmissionEnabled(false);
 
@@ -205,7 +201,7 @@ TEST(DefaultDataViewerTests, DiableViewer_TransmissionDisabled_TransmissionDisab
 
 TEST(DefaultDataViewerTests, DiableViewer_CallOnDisableNotification_NotificationCalled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
 
     bool onDisableNotificationCalled { false };
@@ -220,7 +216,7 @@ TEST(DefaultDataViewerTests, DiableViewer_CallOnDisableNotification_Notification
 
 TEST(DefaultDataViewerTests, DiableViewer_CallMultipleOnDisableNotifications_NotificationsCalled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
 
     int onDisableNotificationCalled { 0 };
@@ -247,7 +243,7 @@ TEST(DefaultDataViewerTests, DiableViewer_CallMultipleOnDisableNotifications_Not
 
 TEST(DefaultDataViewerTests, EnableLocalViewer_ThrowsLogicError)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
 
     CheckForExceptionOrAbort<std::logic_error>([&viewer]() { viewer.EnableLocalViewer(); });
@@ -256,7 +252,7 @@ TEST(DefaultDataViewerTests, EnableLocalViewer_ThrowsLogicError)
 
 TEST(DefaultDataViewerTests, ReceiveData_TransmissionNotEnabled_DoesntSendsDataToHttpClient)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     bool wasSendRequestAsyncCalled { false };
     mockHttpClient->funcSendRequestAsync = [&wasSendRequestAsyncCalled](MAT::IHttpRequest*, MAT::IHttpResponseCallback*)
     {
@@ -264,14 +260,13 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionNotEnabled_DoesntSendsDataT
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-
     viewer.ReceiveData(std::vector<uint8_t>{});
     ASSERT_FALSE(wasSendRequestAsyncCalled);
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectBodyToHttpClient)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
     mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
@@ -289,14 +284,14 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectBodyToH
     viewer.SetTransmissionEnabled(true);
     auto packet = std::vector<uint8_t> { 1, 2, 3 };
     viewer.ReceiveData(packet);
-    ASSERT_EQ(sendRequestAsyncCalledCount, 1);
 
+    ASSERT_EQ(sendRequestAsyncCalledCount, 1);
     ASSERT_EQ(requestToValidate->GetBody(), packet);
 }
 
 TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeadersToHttpClient)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
     mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
@@ -323,7 +318,7 @@ TEST(DefaultDataViewerTests, ReceiveData_TransmissionEnabled_SendsCorrectHeaders
 
 TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacketToClient)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     int sendRequestAsyncCalledCount { 0 };
     auto requestToValidate = std::shared_ptr<MAT::SimpleHttpRequest>(new SimpleHttpRequest("1"));
     mockHttpClient->funcSendRequestAsync = [&sendRequestAsyncCalledCount, &requestToValidate](MAT::IHttpRequest* request, MAT::IHttpResponseCallback* callback)
@@ -351,7 +346,7 @@ TEST(DefaultDataViewerTests, ReceiveData_PacketGoesOutOfScope_SendsCorrectPacket
 
 TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
 {
-    mockHttpClient->Reset();
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
     {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("Failure_Response"));
@@ -364,5 +359,52 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
     viewer.ReceiveData(std::vector<uint8_t> { 1, 2, 3 });
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
+}
+
+TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTimeout_TransmissionNotEnabled)
+{
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
+    std::future<void> discardFuture;
+    mockHttpClient->funcSendRequestAsync = [&discardFuture](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
+        discardFuture = std::async(std::launch::async, [callback]() {
+            std::this_thread::sleep_for(std::chrono::seconds(35));
+            auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+            response->m_statusCode = 200;
+            callback->OnHttpResponse(response.get());
+        });
+    };
+
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    viewer.EnableRemoteViewer("http://TestEndpoint");
+    ASSERT_FALSE(viewer.IsTransmissionEnabled());
+
+    mockHttpClient->funcSendRequestAsync = [&discardFuture](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
+        discardFuture = std::async(std::launch::async, [callback]() {
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+            response->m_statusCode = 200;
+            callback->OnHttpResponse(response.get());
+        });
+    };
+    viewer.EnableRemoteViewer("http://TestEndpoint");
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+}
+
+TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTakes20Seconds_TransmissionEnabled)
+{
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
+    std::future<void> discardFuture;
+    mockHttpClient->funcSendRequestAsync = [&discardFuture](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
+        discardFuture = std::async(std::launch::async, [callback]() {
+            std::this_thread::sleep_for(std::chrono::seconds(20));
+            auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+            response->m_statusCode = 200;
+            callback->OnHttpResponse(response.get());
+        });
+    };
+
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    viewer.EnableRemoteViewer("http://TestEndpoint");
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
 }
 #endif
