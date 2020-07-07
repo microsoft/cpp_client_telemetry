@@ -150,7 +150,7 @@ namespace ARIASDK_NS_BEGIN {
         m_telemetryStats.resourceManagerEnabled = false;
         m_telemetryStats.ecsClientEnabled = false;
 
-        m_enableTenantStats = static_cast<bool>(m_config["stats"]["split"]);
+        m_enableTenantStats = static_cast<bool>(m_config[CFG_MAP_METASTATS_CONFIG]["split"]);
         m_sessionId = PAL::generateUuidString();
     }
 
