@@ -195,8 +195,8 @@ public:
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-        configuration["http"]["compress"] = false;      // disable compression for now
-        configuration["stats"]["interval"] = 30 * 60;   // 30 mins
+        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+        configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
@@ -1127,8 +1127,8 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration["http"]["compress"] = false;      // disable compression for now
-    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
+    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
@@ -1209,8 +1209,8 @@ TEST_F(BasicFuncTests, killIsTemporary)
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration["http"]["compress"] = false;      // disable compression for now
-    configuration["stats"]["interval"] = 30 * 60;   // 30 mins
+    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
@@ -1302,7 +1302,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         auto &configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration["http"]["compress"] = true;
+        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
         configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
@@ -1366,7 +1366,7 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
         auto& configuration = LogManagerA::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration["http"]["compress"] = true;
+        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
         configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
@@ -1378,7 +1378,7 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
         auto& configuration = LogManagerB::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration["http"]["compress"] = true;
+        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
         configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
