@@ -396,7 +396,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
@@ -449,7 +449,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
@@ -528,7 +528,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
     EventProperties event;
@@ -889,7 +889,7 @@ TEST(APITest, Pii_DROP_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -968,7 +968,7 @@ TEST(APITest, SemanticContext_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -1168,9 +1168,9 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         CleanStorage();
 
         auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
+        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
         config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
         config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
         auto expectedHttpCount = std::get<2>(params);
