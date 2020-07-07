@@ -46,8 +46,13 @@ public:
         }
     }
 
-    void CancelRequestAsync(std::string const&) override
+    std::function<void(std::string const&)> fnCancelRequestAsync;
+    void CancelRequestAsync(std::string const& requestId) override
     {
+        if (fnCancelRequestAsync)
+        {
+            fnCancelRequestAsync(requestId);
+        }
     }
 
     void CancelAllRequests() override {}
@@ -361,7 +366,7 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
 
-TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTimeout_TransmissionNotEnabled)
+TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTimeout_TransmissionEnabledOnRetry)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     std::future<void> discardFuture;
@@ -374,9 +379,21 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTimeout_TransmissionN
         });
     };
 
+    auto cancelRequestCalled = false;
+    mockHttpClient->fnCancelRequestAsync = [&cancelRequestCalled](std::string const&)
+    {
+        cancelRequestCalled = true;
+    };
+
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.EnableRemoteViewer("http://TestEndpoint");
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
+
+    // This sleep is for test only as we are mocking out the HttpClient
+    // which does not convey CancelRequest information.
+    // As such, we are validating cancelled is called correctly below.
+    ASSERT_TRUE(cancelRequestCalled);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
 
     mockHttpClient->funcSendRequestAsync = [&discardFuture](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
         discardFuture = std::async(std::launch::async, [callback]() {
