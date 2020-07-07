@@ -97,7 +97,7 @@ namespace ARIASDK_NS_BEGIN
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
-        m_allowDotsInType = m_config["compat"]["dotType"];
+        m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
         // It allows to detach the logger from its parent context.
