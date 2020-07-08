@@ -38,8 +38,8 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     void uploadScheduled(bool state) { m_isUploadScheduled = state; }
 
     std::set<EventsUploadContextPtr> const& activeUploads() const { return m_activeUploads; }
-    EventsUploadContextPtr fakeActiveUpload() { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
-    EventsUploadContextPtr fakeActiveUpload(EventLatency latency) { auto ctx = new EventsUploadContext(); ctx->requestedMinLatency = latency; m_activeUploads.insert(ctx); return ctx; }
+    EventsUploadContextPtr fakeActiveUpload() { auto ctx = std::make_shared<EventsUploadContext>(); ctx->requestedMinLatency = EventLatency_RealTime; m_activeUploads.insert(ctx); return ctx; }
+    EventsUploadContextPtr fakeActiveUpload(EventLatency latency) { auto ctx = std::make_shared<EventsUploadContext>(); ctx->requestedMinLatency = latency; m_activeUploads.insert(ctx); return ctx; }
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
