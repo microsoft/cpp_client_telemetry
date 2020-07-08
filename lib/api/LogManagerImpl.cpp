@@ -53,7 +53,13 @@ namespace ARIASDK_NS_BEGIN
             m_deadLoggers.emplace_back(std::move(kv.second));
             assert(!kv.second);
         }
-        source.clear(); // source is dead
+        source.clear();  // source is dead
+    }
+
+    size_t DeadLoggers::GetDeadLoggerCount() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(m_deadLoggersMutex);
+        return m_deadLoggers.size();
     }
 
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
@@ -304,6 +310,11 @@ namespace ARIASDK_NS_BEGIN
         FlushAndTeardown();
         LOCKGUARD(ILogManagerInternal::managers_lock);
         ILogManagerInternal::managers.erase(this);
+    }
+
+    size_t LogManagerImpl::GetDeadLoggerCount()
+    {
+        return s_deadLoggers.GetDeadLoggerCount();
     }
 
     void LogManagerImpl::FlushAndTeardown()
