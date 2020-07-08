@@ -106,9 +106,8 @@ namespace ARIASDK_NS_BEGIN {
             auto it = m_activeUploads.find(ctx);
             if (it != m_activeUploads.cend())
             {
-                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx);
+                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx.get());
                 m_activeUploads.erase(it);
-                delete ctx;
                 return true;
             }
             return false;

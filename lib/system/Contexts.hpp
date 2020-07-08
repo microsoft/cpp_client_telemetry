@@ -122,7 +122,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-    typedef EventsUploadContext* EventsUploadContextPtr;
+    using EventsUploadContextPtr = std::shared_ptr<EventsUploadContext>;
 
     //---
 
