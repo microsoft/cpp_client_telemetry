@@ -188,7 +188,7 @@ namespace ARIASDK_NS_BEGIN {
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
     {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
