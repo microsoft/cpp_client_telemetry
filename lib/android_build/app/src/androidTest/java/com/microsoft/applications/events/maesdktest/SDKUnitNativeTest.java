@@ -165,4 +165,61 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
       assertThat((LogConfigurationImpl) postConfig, isValueSuperset(current));
     }
   }
+
+  @Test
+  public void roundTripConfigLong() {
+    System.loadLibrary("maesdk");
+
+    ILogConfiguration config = LogManager.logConfigurationFactory();
+    config.set(LogConfigurationKey.CFG_INT_METASTATS_INTERVAL, (long) 23);
+    ILogConfiguration mangled = config.roundTrip();
+    assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
+  }
+
+  @Test
+  public void roundTripConfigBool() {
+    System.loadLibrary("maesdk");
+
+    ILogConfiguration config = LogManager.logConfigurationFactory();
+    config.set(LogConfigurationKey.CFG_BOOL_COMPAT_DOTS, false);
+    ILogConfiguration mangled = config.roundTrip();
+    assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
+  }
+
+  @Test
+  public void roundTripConfigString() {
+    System.loadLibrary("maesdk");
+
+    ILogConfiguration config = LogManager.logConfigurationFactory();
+    config.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, "foobar");
+    ILogConfiguration mangled = config.roundTrip();
+    assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
+  }
+
+  @Test
+  public void roundTripConfigMap() {
+    System.loadLibrary("maesdk");
+
+    ILogConfiguration submap = LogManager.logConfigurationFactory();
+    submap.set(LogConfigurationKey.CFG_INT_METASTATS_INTERVAL, (long) 23);
+    ILogConfiguration config = LogManager.logConfigurationFactory();
+    config.set(LogConfigurationKey.CFG_MAP_FACTORY_CONFIG, submap);
+    ILogConfiguration mangled = config.roundTrip();
+    assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
+  }
+
+  @Test
+  public void roundTripConfigArray() {
+    System.loadLibrary("maesdk");
+
+    Long[] foobar = new Long[7];
+    for (int i = 0; i < 7; ++i) {
+      foobar[i] = Long.valueOf(i);
+    }
+    ILogConfiguration config = LogManager.logConfigurationFactory();
+    config.set("foobar", foobar);
+    ILogConfiguration mangled = config.roundTrip();
+    assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
+  }
+
 }
