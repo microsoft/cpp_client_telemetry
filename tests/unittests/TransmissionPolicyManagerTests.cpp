@@ -29,9 +29,11 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
 
+    using TransmissionPolicyManager::addUpload;
+    using TransmissionPolicyManager::removeUpload;
+
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
-    MOCK_METHOD1(removeUpload, void(EventsUploadContextPtr));
     MOCK_METHOD0(handleStop, bool());
 
     bool uploadScheduled() const { return m_isUploadScheduled; }
@@ -483,4 +485,30 @@ TEST_F(TransmissionPolicyManagerTests, FredProfile)
     EXPECT_CALL(tpm, scheduleUpload(_, _, _))
         .Times(0);
     tpm.eventArrived(event);
+}
+
+TEST_F(TransmissionPolicyManagerTests, removeUpload_nullptr_ReturnsFalse)
+{
+    EXPECT_FALSE(tpm.removeUpload(nullptr));
+}
+
+TEST_F(TransmissionPolicyManagerTests, removeUpload_ContextNotAdded_ReturnsFalse)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    EXPECT_FALSE(tpm.removeUpload(ctx));
+}
+
+TEST_F(TransmissionPolicyManagerTests, removeUpload_ContextAdded_ReturnsTrue)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    tpm.addUpload(ctx);
+    EXPECT_TRUE(tpm.removeUpload(ctx));
+}
+
+TEST_F(TransmissionPolicyManagerTests, removeUpload_CalledTwiceContextAdded_ReturnsTrueThenFalse)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    tpm.addUpload(ctx);
+    EXPECT_TRUE(tpm.removeUpload(ctx));
+    EXPECT_FALSE(tpm.removeUpload(ctx));
 }
