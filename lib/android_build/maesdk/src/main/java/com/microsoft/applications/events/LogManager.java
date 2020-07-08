@@ -1,6 +1,5 @@
 package com.microsoft.applications.events;
 
-import android.util.Log;
 import androidx.annotation.Keep;
 import java.util.Date;
 import java.util.NavigableSet;
@@ -19,7 +18,6 @@ public class LogManager {
    * <p>The C++ side can translate values of type Boolean, Long, String, ILogConfiguration (nested
    * maps) and arrays of these types (including nested arrays).
    */
-
   public static class LogConfigurationImpl implements ILogConfiguration {
     TreeMap<String, Object> configMap;
 
@@ -51,15 +49,14 @@ public class LogManager {
     }
 
     /**
-     * Intended for unit tests: does this instance contain all of the
-     * non-null-valued key-value pairs of the other instance?
+     * Intended for unit tests: does this instance contain all of the non-null-valued key-value
+     * pairs of the other instance?
+     *
      * @param subset the subset configuration
      * @return true if the other is castable to ILogConfigurationImpl and all of its non-null
-     * content appears in this ILogConfigurationImpl
+     *     content appears in this ILogConfigurationImpl
      */
-
-    public boolean valueContainsAll(LogConfigurationImpl subset, StringBuffer failure)
-    {
+    public boolean valueContainsAll(LogConfigurationImpl subset, StringBuffer failure) {
       NavigableSet<String> keySet = subset.configMap.navigableKeySet();
       for (String k : keySet) {
         Object v = subset.configMap.get(k);
@@ -79,8 +76,10 @@ public class LogManager {
           continue;
         }
         if (!superV.getClass().isAssignableFrom(v.getClass())) {
-          failure.append(String.format("Value for key %s is class %s in superset, %s in subset",
-            superV.getClass().getName(), v.getClass().getName()));
+          failure.append(
+              String.format(
+                  "Value for key %s is class %s in superset, %s in subset",
+                  k, superV.getClass().getName(), v.getClass().getName()));
           return false;
         }
         if (LogConfigurationImpl.class.isAssignableFrom(superV.getClass())) {
@@ -92,9 +91,53 @@ public class LogManager {
           failure.append(String.format("Sub-map %s: %s", k, subFailure));
           return false;
         }
+        if (superV.getClass().isArray()) {
+          if (!v.getClass().isArray()) {
+            failure.append(String.format("Super array %s: %s, sub %s", k, superV, v));
+            return false;
+          }
+          Object[] superVA = (Object[]) superV;
+          Object[] vA = (Object[]) v;
+          if (superVA.length != vA.length) {
+            failure.append(
+                String.format("Super array length %s: %d, sub %d", k, superVA.length, vA.length));
+            return false;
+          }
+          for (int i = 0; i < superVA.length; i += 1) {
+            Object superE = superVA[i];
+            Object subE = vA[i];
+            if (subE == null) {
+              continue;
+            }
+            if (superE == null) {
+              failure.append(String.format("Super %s[%d] is null", k, i));
+              return false;
+            }
+            if (!superE.getClass().isAssignableFrom(subE.getClass())) {
+              failure.append(
+                  String.format(
+                      "Value for key %s[%d] is class %s in superset, %s in subset",
+                      k, i, superE.getClass().getName(), subE.getClass().getName()));
+              return false;
+            }
+            if (LogConfigurationImpl.class.isAssignableFrom(superE.getClass())) {
+              LogConfigurationImpl superMap = (LogConfigurationImpl) superE;
+              StringBuffer subFailure = new StringBuffer();
+              if (superMap.valueContainsAll((LogConfigurationImpl) subE, subFailure)) {
+                continue;
+              }
+              failure.append(String.format("Sub-map %s: %s", k, subFailure));
+              return false;
+            }
+            if (!superE.equals(superE.getClass().cast(subE))) {
+              failure.append(String.format("not equal %s[%d]: %s != %s", k, i, superE, subE));
+              return false;
+            }
+          }
+          continue;
+        }
         if (!superV.equals(superV.getClass().cast(v))) {
-          String s = String.format("key %s, superset value %s, subset %s",
-            k, superV, v);
+          String s = String.format("key %s, superset value %s, subset %s", k, superV, v);
           failure.append(s);
           return false;
         }
@@ -117,8 +160,7 @@ public class LogManager {
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return configMap.toString();
     }
 
@@ -283,6 +325,9 @@ public class LogManager {
     public void set(String key, Object value) {
       configMap.put(key, value);
     }
+
+    @Override
+    public native ILogConfiguration roundTrip();
 
     /**
      * Return all keys as an array of String

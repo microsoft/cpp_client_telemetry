@@ -7,11 +7,11 @@
 
 #include "system/Contexts.hpp"
 
+#include "IDecorator.hpp"
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
 #include "IModule.hpp"
 #include "ITaskDispatcher.hpp"
-#include "IDecorator.hpp"
 
 #include "api/ContextFieldsProvider.hpp"
 #include "api/Logger.hpp"
@@ -124,10 +124,11 @@ namespace ARIASDK_NS_BEGIN
     class DeadLoggers
     {
        public:
-        void AddMap(LoggerMap && source);
+        void AddMap(LoggerMap&& source);
+        size_t GetDeadLoggerCount() const noexcept;
 
         std::vector<std::unique_ptr<Logger>> m_deadLoggers;
-        std::mutex m_deadLoggersMutex;
+        mutable std::mutex m_deadLoggersMutex;
     };
 
     class LogManagerImpl : public ILogManagerInternal
@@ -281,6 +282,8 @@ namespace ARIASDK_NS_BEGIN
         {
             return m_context;
         }
+
+        static size_t GetDeadLoggerCount();
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
