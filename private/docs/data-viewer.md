@@ -18,6 +18,11 @@ Microsoft products must support data viewing capabilities to meet customer
 promises with regards to data transparency.
 
 ## Proposed Solution
+
+![Data viewer workflow utilizing dual streaming](data-viewer-flow.png)
+
+Figure 1. Data Viewer Workflow utilizing dual streaming
+
 #### `IDataViewer` Interface
 
     class IDataViewer
