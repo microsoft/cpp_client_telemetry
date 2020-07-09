@@ -193,6 +193,7 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
         {
+            assert(false);
             LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 
