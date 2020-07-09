@@ -22,8 +22,9 @@ Java_com_microsoft_applications_events_LogManager_initializeDiagnosticDataViewer
 
     auto machineIdentifier = JStringToStdString(env, jstrMachineIdentifier);
     auto endpoint = JStringToStdString(env, jstrEndpoint);
-    spDefaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
-    if (spDefaultDataViewer->EnableRemoteViewer(endpoint)) {
+    std::shared_ptr<DefaultDataViewer> defaultDataViewer = std::make_shared<DefaultDataViewer>(nullptr, machineIdentifier);
+    if (defaultDataViewer->EnableRemoteViewer(endpoint)) {
+        spDefaultDataViewer = defaultDataViewer;
         WrapperLogManager::GetDataViewerCollection().RegisterViewer(std::static_pointer_cast<IDataViewer>(spDefaultDataViewer));
         return true;
     } else {
