@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual ~HttpCallback()
         {
-            LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx);
+            LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx.get());
         }
 
     public:
