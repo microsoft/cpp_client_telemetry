@@ -1,5 +1,4 @@
-where /r .. gbc.exe > %TEMP%\gbc.path
-set /P GBC=<%TEMP%\gbc.path
-%GBC% c# CSProtocol.bond
-move *.cs ..
-
+set "PATH=%~dp0\..\..\..\;%PATH%"
+copy /Y %~dp0\..\..\..\..\lib\bond\CsProtocol.bond %~dp0
+gbc.exe c# CSProtocol.bond
+move *.cs %~dp0\..
