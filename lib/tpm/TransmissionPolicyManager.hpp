@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
         int  increaseBackoff();
 
         void uploadAsync(EventLatency priority);
-        void finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs);
+        void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
 
         bool handleStart();
         bool handlePause();
@@ -89,7 +89,7 @@ namespace ARIASDK_NS_BEGIN {
         /// Thread-safe method to add the upload to active uploads.
         /// </summary>
         /// <param name="ctx">The CTX.</param>
-        void addUpload(EventsUploadContextPtr ctx)
+        void addUpload(EventsUploadContextPtr const& ctx)
         {
             LOCKGUARD(m_activeUploads_lock);
             m_activeUploads.insert(ctx);
@@ -100,15 +100,14 @@ namespace ARIASDK_NS_BEGIN {
         /// </summary>
         /// <param name="ctx">The CTX.</param>
         /// <returns></returns>
-        bool removeUpload(EventsUploadContextPtr ctx)
+        bool removeUpload(EventsUploadContextPtr const& ctx)
         {
             LOCKGUARD(m_activeUploads_lock);
             auto it = m_activeUploads.find(ctx);
             if (it != m_activeUploads.cend())
             {
-                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx);
+                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx.get());
                 m_activeUploads.erase(it);
-                delete ctx;
                 return true;
             }
             return false;
