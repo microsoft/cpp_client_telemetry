@@ -297,9 +297,19 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
         }));
     }
 
-    while (threadCount.load()!=MAX_STRESS_THREADS)
+    // The issue here is that clang-libc++ Mac OS X runtime can schedule
+    // the main thread to continue running BEFORE propagating the spawned
+    // thread(s) into joinable state, i.e. the thread is created, but not
+    // assigned a native handle yet. What that in essence means that the
+    // logic that waits for completion of all workers may run into race
+    // condition with one of threads not being in joinable state YET...
+    // Means rather than waiting for completion - we actually skip a thread
+    // that is about to get scheduled!! Solution is to use the threadCount
+    // to yield until each thread is guaranteed spawned, assigned a native
+    // handle, after that we  can iterate and wait for completion.
+    while (threadCount.load() != MAX_STRESS_THREADS)
     {
-    std::this_thread::yield();
+        std::this_thread::yield();
     }
 
     // Wait for completion of all worker threads
