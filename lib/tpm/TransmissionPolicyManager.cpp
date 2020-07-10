@@ -182,18 +182,19 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
 
-        EventsUploadContextPtr ctx = new EventsUploadContext();
+        auto ctx = std::make_shared<EventsUploadContext>();
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
     {
-        LOG_TRACE("HTTP upload finished for ctx=%p", ctx);
+        LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
         {
-            LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx);
+            assert(false);
+            LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 
         // Rescheduling upload
@@ -270,7 +271,7 @@ namespace ARIASDK_NS_BEGIN {
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            EventsUploadContextPtr ctx = new EventsUploadContext();
+            auto ctx = std::make_shared<EventsUploadContext>();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);
