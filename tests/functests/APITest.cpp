@@ -11,7 +11,7 @@
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <atomic>
 #include <cassert>
@@ -20,6 +20,7 @@
 #include "PayloadDecoder.hpp"
 
 #include "mat.h"
+#include "IDecorator.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
@@ -395,7 +396,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
@@ -448,7 +449,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
@@ -527,7 +528,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
     EventProperties event;
@@ -888,7 +889,7 @@ TEST(APITest, Pii_DROP_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -967,7 +968,7 @@ TEST(APITest, SemanticContext_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -1167,9 +1168,9 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         CleanStorage();
 
         auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
+        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
         config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
         config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
         auto expectedHttpCount = std::get<2>(params);
@@ -1372,6 +1373,49 @@ TEST(APITest, Pii_Kind_E2E_Test)
     logger->LogEvent(detailed_event);
     LogManager::FlushAndTeardown();
     // Verify that contents get hashed by server
+}
+
+class CustomDecorator: public IDecoratorModule
+{
+public:
+    /***
+     * Note that C++ bond definition for extensions assumes that every extension is a vector,
+     * such as a record that may have 0 or 1 elements in that vector. Collector only respects
+     * the first item in extension vector, the others are discarded. Please do not try to
+     * populate the extX[1], as it would be effectively discarded.
+     */
+    virtual bool decorate(CsProtocol::Record& record) override
+    {
+        // App Environment
+        record.extApp[0].env = "insiders";
+
+        // UTC flags override for direct upload mode only.
+        // Resize with care: by default SDK does not populate that extension.
+        record.extUtc.resize(1);
+        record.extUtc[0].flags = 0x12345;
+
+        // Device Org Id, e.g. obtained via InTune API
+        record.extDevice[0].orgId = "00010203-0405-0607-0809-0A0B0C0D0E0F";
+
+        // App-specific Corellation Vector to track certain scenarios.
+        // Ref: https://github.com/microsoft/CorrelationVector/blob/master/cV%20-%203.0.md
+        record.cV = "A.PmvzQKgYek6Sdk/T5sWaqw.B";
+
+        // Custom global decorator is invoked before sending event further for serialization.
+        return true;
+    }
+
+};
+
+CustomDecorator myDecorator;
+
+TEST(APITest, Custom_Decorator)
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config.AddModule(CFG_MODULE_DECORATOR, std::make_shared<CustomDecorator>(myDecorator) );
+    LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetLogger()->LogEvent("foobar");
+    LogManager::FlushAndTeardown();
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
