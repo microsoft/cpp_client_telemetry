@@ -26,7 +26,8 @@ namespace OneDSInspector
     using System.Collections.Generic;
 
     using Fiddler;
-    using CommonSchema;
+    using CsProtocol;
+    using CommonSchema = CsProtocol;
 
     using Bond;
     using Bond.Protocols;
@@ -269,7 +270,7 @@ namespace OneDSInspector
                 var writer = new SimpleJsonWriter(outputBuffer);
                 do
                 {
-                    var evt = Deserialize<CsEvent>.From(reader);
+                    var evt = Deserialize<Record>.From(reader);
                     // exception is thrown here if request is invalid
                     Serialize.To(writer, evt);
                     writer.Flush();
