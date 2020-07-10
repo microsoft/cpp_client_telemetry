@@ -59,6 +59,7 @@ public:
     std::atomic<unsigned>   logLatMin;
     std::atomic<unsigned>   logLatMax;
     std::atomic<unsigned>   storageFullPct;
+    std::atomic<bool>       storageFailed;
 
     std::function<void(::CsProtocol::Record &)> OnLogX;
 
@@ -76,7 +77,8 @@ public:
         numFiltered(0),
         logLatMin(100),
         logLatMax(0),
-        storageFullPct(0)
+        storageFullPct(0),
+        storageFailed(false)
     {
         resetOnLogX();
     }
@@ -97,6 +99,7 @@ public:
         logLatMin = 100;
         logLatMax = 0;
         storageFullPct = 0;
+        storageFailed = false;
         resetOnLogX();
     }
 
@@ -156,6 +159,10 @@ public:
 
         case EVT_STORAGE_FULL:
             storageFullPct = (unsigned int)evt.param1;
+            break;
+
+        case EVT_STORAGE_FAILED:
+            storageFailed = true;
             break;
 
         case EVT_CONN_FAILURE:
@@ -1119,6 +1126,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
+    TestDebugEventListener debugListener;
     auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
     config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
@@ -1139,12 +1147,16 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
     for (const auto &path : paths)
     {
+        debugListener.storageFailed = false;
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
         EXPECT_EQ(true, (result != NULL));
         result->LogEvent("test");
         LogManager::Flush();
         LogManager::FlushAndTeardown();
+        LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
+        EXPECT_EQ(true, debugListener.storageFailed);
     }
 
 }
