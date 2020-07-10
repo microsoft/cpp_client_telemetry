@@ -895,4 +895,11 @@ public class LogManager {
    * @return boolean value for success or failure
    */
   public static native boolean isViewerEnabled();
+
+  /**
+   * Get the current DDV endpoint where the data is being streamed to.
+   *
+   * @return string denoting the DDV endpoint, empty string if not currently streaming
+   */
+  public native static String getCurrentEndpoint();
 }

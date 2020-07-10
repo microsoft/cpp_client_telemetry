@@ -26,7 +26,7 @@ class Logger implements ILogger {
     return new SemanticContext(nativeGetSemanticContext(m_nativePtr));
   }
 
-  private static native int nativeSetContextStringValue(
+  private static native void nativeSetContextStringValue(
       long nativePtr, String name, String value, int piiKind);
 
   /**
@@ -61,7 +61,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextDoubleValue(
+  private static native void nativeSetContextDoubleValue(
       long nativePtr, String name, double value, int piiKind);
 
   /**
@@ -95,7 +95,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextLongValue(
+  private static native void nativeSetContextLongValue(
       long nativePtr, String name, long value, int piiKind);
 
   /**
@@ -129,7 +129,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextIntValue(
+  private static native void nativeSetContextIntValue(
       long nativePtr, String name, int value, int piiKind);
 
   /**
@@ -163,7 +163,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextBoolValue(
+  private static native void nativeSetContextBoolValue(
       long nativePtr, String name, boolean value, int piiKind);
 
   /**
@@ -197,7 +197,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextTimeTicksValue(
+  private static native void nativeSetContextTimeTicksValue(
       long nativePtr, String name, long value, int piiKind);
 
   /**
@@ -245,7 +245,7 @@ class Logger implements ILogger {
     setContext(name, value, PiiKind.None);
   }
 
-  private static native int nativeSetContextGuidValue(
+  private static native void nativeSetContextGuidValue(
       long nativePtr, String name, String value, int piiKind);
 
   /**
