@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Logger.hpp"
-#include "LogSessionData.hpp"
 #include "CommonFields.h"
+#include "LogSessionData.hpp"
+#include "NullObjects.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
@@ -14,16 +15,70 @@ using namespace MAT;
 
 namespace ARIASDK_NS_BEGIN
 {
+    class ActiveLoggerCall
+    {
+       public:
+        const Logger& m_logger;
+        bool m_active;
+
+        ActiveLoggerCall(ActiveLoggerCall const& source) : m_logger(source.m_logger)
+        {
+            std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
+            m_active = m_logger.m_active;
+            if (m_active)
+            {
+                m_logger.m_active_count += 1;
+            }
+        }
+
+        /// Record current state on construction; increment active
+        /// count if we are active.
+        explicit ActiveLoggerCall(const Logger& parent) :
+            m_logger(parent)
+        {
+            std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
+            m_active = m_logger.m_active;
+            if (m_active)
+            {
+                m_logger.m_active_count += 1;
+            }
+        }
+
+        /// If active, decrement active count, wake any listeners when
+        /// active count reaches zero (usually there are no listeners).
+        ~ActiveLoggerCall()
+        {
+            if (m_active)
+            {
+                std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
+
+                if (m_logger.m_active_count > 0)
+                {
+                    m_logger.m_active_count -= 1;
+                    if (m_logger.m_active_count == 0)
+                    {
+                        const_cast<std::condition_variable*>(&m_logger.m_shutdown_condition)->notify_all();
+                    }
+                }
+            }
+        }
+
+        bool LoggerIsDead() const noexcept
+        {
+            return !m_active;
+        }
+    };
+
+    static NullLogManager nullManager;
 
     Logger::Logger(
-        const std::string & tenantToken,
-        const std::string & source,
-        const std::string & scope,
+        const std::string& tenantToken,
+        const std::string& source,
+        const std::string& scope,
 
-        ILogManagerInternal & logManager,
-        ContextFieldsProvider & parentContext,
-        IRuntimeConfig & runtimeConfig)
-        :
+        ILogManagerInternal& logManager,
+        ContextFieldsProvider& parentContext,
+        IRuntimeConfig& runtimeConfig) :
         m_tenantToken(tenantToken),
         m_source(source),
         // TODO: scope parameter can be used to rewire the logger to alternate context.
@@ -76,8 +131,14 @@ namespace ARIASDK_NS_BEGIN
     ******************************************************************************/
     void Logger::SetContext(const std::string& name, const EventProperty& prop)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
-            this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
+                  this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
 
         EventRejectedReason isValidPropertyName = validatePropertyName(name);
         if (isValidPropertyName != REJECTED_REASON_OK)
@@ -90,25 +151,46 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
 
-        // Always overwrite the stored value. 
+        // Always overwrite the stored value.
         // Empty string is allowed to remove the previously set value.
         // If the value is empty, the context will not be added to event.
         m_context.SetCustomField(name, prop);
     }
 
-    void Logger::SetContext(const std::string& k, const char       v[], PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, const char v[], PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, double             v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, double v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, int64_t            v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, int64_t v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, time_ticks_t       v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, time_ticks_t v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, GUID_t             v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, GUID_t v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
-    void Logger::SetContext(const std::string& k, bool               v, PiiKind pii) { SetContext(k, EventProperty(v, pii)); };
+    void Logger::SetContext(const std::string& k, bool v, PiiKind pii)
+    {
+        SetContext(k, EventProperty(v, pii));
+    };
 
     // TODO: [MG] - the goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
@@ -120,8 +202,14 @@ namespace ARIASDK_NS_BEGIN
     // C API does not expose shared context to the callers. Default option for C API 'guest' customers is to detach them
     // from the parent logger via ILogger::SetParentContext(nullptr)
     //
-    void Logger::SetParentContext(ISemanticContext * context)
+    void Logger::SetParentContext(ISemanticContext* context)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         if (context == nullptr)
         {
             // Since common props would typically be populated by the root-level
@@ -129,7 +217,7 @@ namespace ARIASDK_NS_BEGIN
             // to populate this context with common props directly.
             PAL::registerSemanticContext(&m_context);
         }
-        m_context.SetParentContext(static_cast<ContextFieldsProvider *>(context));
+        m_context.SetParentContext(static_cast<ContextFieldsProvider*>(context));
     }
 
     /// <summary>
@@ -139,8 +227,14 @@ namespace ARIASDK_NS_BEGIN
     /// <param name="properties">The properties.</param>
     void Logger::LogAppLifecycle(AppLifecycleState state, EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogAppLifecycle(state=%u, properties.name=\"%s\", ...)",
-            this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -157,12 +251,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "AppLifecycle", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "AppLifecycle", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -171,6 +265,12 @@ namespace ARIASDK_NS_BEGIN
     /// <param name="name">A string that contains the name of the custom event.</param>
     void Logger::LogEvent(std::string const& name)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         EventProperties event(name);
         LogEvent(event);
     }
@@ -181,10 +281,16 @@ namespace ARIASDK_NS_BEGIN
     /// <param name="properties">The properties.</param>
     void Logger::LogEvent(EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         // SendAsJSON(properties, m_tenantToken);
 
         LOG_TRACE("%p: LogEvent(properties.name=\"%s\", ...)",
-            this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -203,14 +309,14 @@ namespace ARIASDK_NS_BEGIN
         if (!applyCommonDecorators(record, properties, latency))
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "custom",
-                tenantTokenToId(m_tenantToken).c_str(),
-                properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "custom",
+                      tenantTokenToId(m_tenantToken).c_str(),
+                      properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -229,8 +335,14 @@ namespace ARIASDK_NS_BEGIN
         std::string const& id,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogFailure(signature=\"%s\", properties.name=\"%s\", ...)",
-            this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -248,13 +360,13 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "Failure",
-                tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "Failure",
+                      tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     void Logger::LogFailure(
@@ -262,6 +374,7 @@ namespace ARIASDK_NS_BEGIN
         std::string const& detail,
         EventProperties const& properties)
     {
+        // this inner call to LogFailure will instantiate ActiveCall
         LogFailure(signature, detail, "", "", properties);
     }
 
@@ -273,8 +386,14 @@ namespace ARIASDK_NS_BEGIN
         std::string const& referrer,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogPageView(id=\"%s\", properties.name=\"%s\", ...)",
-            this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, id.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -292,12 +411,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "PageView", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "PageView", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEVIEW, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEVIEW, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     void Logger::LogPageView(
@@ -321,8 +440,14 @@ namespace ARIASDK_NS_BEGIN
         PageActionData const& pageActionData,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogPageAction(pageActionData.actionType=%u, properties.name=\"%s\", ...)",
-            this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -339,12 +464,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "PageAction", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "PageAction", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEACTION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_PAGEACTION, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -356,6 +481,12 @@ namespace ARIASDK_NS_BEGIN
     /// <returns></returns>
     bool Logger::applyCommonDecorators(::CsProtocol::Record& record, EventProperties const& properties, EventLatency& latency)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return false;
+        }
+
         record.name = properties.GetName();
         record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
 
@@ -368,7 +499,6 @@ namespace ARIASDK_NS_BEGIN
                 std::replace(evtType.begin(), evtType.end(), '.', '_');
             }
             record.baseType.append(evtType);
-
         }
 
         if (record.name.empty())
@@ -377,20 +507,24 @@ namespace ARIASDK_NS_BEGIN
         }
         record.iKey = m_iKey;
 
-        return m_baseDecorator.decorate(record)
-            && m_semanticContextDecorator.decorate(record)
-            && m_eventPropertiesDecorator.decorate(record, latency, properties);
+        return m_baseDecorator.decorate(record) && m_semanticContextDecorator.decorate(record) && m_eventPropertiesDecorator.decorate(record, latency, properties);
     }
 
     void Logger::submit(::CsProtocol::Record& record, const EventProperties& props)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         auto policyBitFlags = props.GetPolicyBitFlags();
         auto persistence = props.GetPersistence();
         auto latency = props.GetLatency();
         auto levelFilter = m_logManager.GetLevelFilter();
         if (levelFilter.IsLevelFilterEnabled())
         {
-            const auto & m_props = props.GetProperties();
+            const auto& m_props = props.GetProperties();
             const auto it = m_props.find(COMMONFIELDS_EVENT_LEVEL);
             //
             // Level policy:
@@ -409,7 +543,7 @@ namespace ARIASDK_NS_BEGIN
                 {
                     // If no default level, but restrictions are in effect, then prefer to drop event
                     LOG_INFO("Event %s/%s dropped: no diagnostic level assigned!",
-                        tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
+                             tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
                     DispatchEvent(DebugEventType::EVT_FILTERED);
                     return;
                 }
@@ -425,7 +559,7 @@ namespace ARIASDK_NS_BEGIN
         {
             DispatchEvent(DebugEventType::EVT_DROPPED);
             LOG_INFO("Event %s/%s dropped: calculated latency 0 (Off)",
-                tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
+                     tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;
         }
 
@@ -438,6 +572,12 @@ namespace ARIASDK_NS_BEGIN
 
     void Logger::onSubmitted()
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_INFO("This method is executed from worker thread");
     }
 
@@ -450,8 +590,14 @@ namespace ARIASDK_NS_BEGIN
         std::string const& objectId,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogSampledMetric(name=\"%s\", properties.name=\"%s\", ...)",
-            this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -469,12 +615,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "SampledMetric", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "SampledMetric", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SAMPLEMETR, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SAMPLEMETR, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     void Logger::LogSampledMetric(
@@ -500,8 +646,14 @@ namespace ARIASDK_NS_BEGIN
         AggregatedMetricData const& metricData,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogAggregatedMetric(name=\"%s\", properties.name=\"%s\", ...)",
-            this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -519,12 +671,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "AggregatedMetric", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "AggregatedMetric", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_AGGRMETR, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_AGGRMETR, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     void Logger::LogTrace(
@@ -532,8 +684,14 @@ namespace ARIASDK_NS_BEGIN
         std::string const& message,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogTrace(level=%u, properties.name=\"%s\", ...)",
-            this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -551,12 +709,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "Trace", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "Trace", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_TRACE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_TRACE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     void Logger::LogUserState(
@@ -564,8 +722,14 @@ namespace ARIASDK_NS_BEGIN
         long timeToLiveInMillis,
         EventProperties const& properties)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         LOG_TRACE("%p: LogUserState(state=%u, properties.name=\"%s\", ...)",
-            this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                  this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
         if (!CanEventPropertiesBeSent(properties))
         {
@@ -583,12 +747,12 @@ namespace ARIASDK_NS_BEGIN
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "UserState", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
+                      "UserState", tenantTokenToId(m_tenantToken).c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
             return;
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_USERSTATE, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_USERSTATE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     /******************************************************************************
@@ -599,6 +763,12 @@ namespace ARIASDK_NS_BEGIN
     ******************************************************************************/
     void Logger::LogSession(SessionState state, const EventProperties& props)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return;
+        }
+
         if (!CanEventPropertiesBeSent(props))
         {
             DispatchEvent(DebugEventType::EVT_FILTERED);
@@ -657,17 +827,17 @@ namespace ARIASDK_NS_BEGIN
         ::CsProtocol::Record record;
 
         bool decorated = applyCommonDecorators(record, props, latency) &&
-            m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration);
+                         m_semanticApiDecorators.decorateSessionMessage(record, state, m_sessionId, PAL::formatUtcTimestampMsAsISO8601(sessionFirstTime), sessionSDKUid, sessionDuration);
 
         if (!decorated)
         {
             LOG_ERROR("Failed to log %s event %s/%s: invalid arguments provided",
-                "Trace", tenantTokenToId(m_tenantToken).c_str(), props.GetName().empty() ? "<unnamed>" : props.GetName().c_str());
+                      "Trace", tenantTokenToId(m_tenantToken).c_str(), props.GetName().empty() ? "<unnamed>" : props.GetName().c_str());
             return;
         }
 
         submit(record, props);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void *)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_SESSION, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
     }
 
     IEventFilterCollection& Logger::GetEventFilters() noexcept
@@ -682,21 +852,45 @@ namespace ARIASDK_NS_BEGIN
 
     ILogManager& Logger::GetParent()
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return nullManager;
+        }
+
         return m_logManager;
     }
 
     LogSessionData* Logger::GetLogSessionData()
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return nullManager.GetLogSessionData();
+        }
+
         return m_logManager.GetLogSessionData();
     }
 
-    IAuthTokensController*  Logger::GetAuthTokensController()
+    IAuthTokensController* Logger::GetAuthTokensController()
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return nullManager.GetAuthTokensController();
+        }
+
         return m_logManager.GetAuthTokensController();
     }
 
     bool Logger::DispatchEvent(DebugEvent evt)
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return nullManager.DispatchEvent(std::move(evt));
+        }
+
         return m_logManager.DispatchEvent(std::move(evt));
     }
 
@@ -712,12 +906,34 @@ namespace ARIASDK_NS_BEGIN
 
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return false;
+        }
+
         return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
     }
-
+    
     std::string const& Logger::GetSessionId() const
     {
       return m_sessionId;
     }
 
-} ARIASDK_NS_END
+    void Logger::RecordShutdown()
+    {
+        std::unique_lock<std::mutex> shutdownLock(m_shutdown_mutex);
+        m_active = false;
+        if (m_active_count > 0)
+        {
+            // wait for idle before continuing
+            // as with all condition variables, we hold the lock,
+            // so no thread can decrement m_active_count until
+            // wait() releases (and later reacquires) the lock.
+            m_shutdown_condition.wait(shutdownLock, [this]() {
+                return m_active_count == 0; // we hold the lock for this call
+            });
+        }
+    }
+}
+ARIASDK_NS_END

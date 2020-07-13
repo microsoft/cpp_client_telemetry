@@ -22,4 +22,6 @@ public interface ILogConfiguration {
   public boolean set(LogConfigurationKey key, ILogConfiguration value);
 
   public void set(String key, Object value);
+
+  public ILogConfiguration roundTrip();
 }

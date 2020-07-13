@@ -149,7 +149,7 @@ namespace ARIASDK_NS_BEGIN {
         if (!m_db) {
             LOG_ERROR("Failed to store event %s:%s: Database is not open",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-            m_observer->OnStorageFailed("Database is not open");
+            m_observer->OnStorageOpenFailed("Database is not open");
             return false;
         }
 
