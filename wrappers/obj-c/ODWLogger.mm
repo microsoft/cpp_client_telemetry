@@ -64,10 +64,10 @@ using namespace MAT;
             if(strcmp([num objCType], @encode(BOOL))==0 ) {
                 event.SetProperty(strPropertyName, [num boolValue] ? true : false, piiKind);
             }
-            else if( strcmp([num objCType], @encode(int))==0 ){
-                event.SetProperty(strPropertyName, [num intValue], piiKind);
-            }else{
+            else if( (strcmp([num objCType], @encode(float))==0) || (strcmp([num objCType], @encode(double))==0) || (strcmp([num objCType], @encode(long double))==0) ){
                 event.SetProperty(strPropertyName, [num floatValue], piiKind);
+            }else{
+                event.SetProperty(strPropertyName, [num longLongValue], piiKind);
             }
         }
         else if([value isKindOfClass: [NSDate class]])
