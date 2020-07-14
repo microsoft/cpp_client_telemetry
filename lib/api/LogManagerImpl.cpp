@@ -3,18 +3,21 @@
 // evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
 #pragma warning( disable : 4459 )
 #endif
-#include "mat/config.h"
 #include "LogManagerImpl.hpp"
+#include "mat/config.h"
+
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
 #include "offline/LogSessionDataDB.hpp"
 #endif
 #include "offline/OfflineStorageHandler.hpp"
+
 #include "system/TelemetrySystem.hpp"
-#include "utils/Utils.hpp"
-#include "TransmitProfiles.hpp"
+
 #include "EventProperty.hpp"
+#include "TransmitProfiles.hpp"
 #include "http/HttpClientFactory.hpp"
 #include "pal/TaskDispatcher.hpp"
+#include "utils/Utils.hpp"
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
