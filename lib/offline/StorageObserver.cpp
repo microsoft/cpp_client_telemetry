@@ -126,6 +126,21 @@ namespace ARIASDK_NS_BEGIN {
         failed(&ctx);
     }
 
+    void StorageObserver::OnStorageOpenFailed(std::string const& reason)
+    {
+        StorageNotificationContext ctx;
+        ctx.str = reason;
+        failed(&ctx);
+        {
+            DebugEvent evt;
+            evt.type = EVT_STORAGE_FAILED;
+            evt.data = static_cast<void *>(const_cast<char *>(reason.c_str()));
+            evt.size = reason.length();
+            DispatchEvent(evt);
+        }
+    }
+
+
     void StorageObserver::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)
     {
         StorageNotificationContext ctx;

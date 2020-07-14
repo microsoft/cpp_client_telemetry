@@ -4,7 +4,7 @@ namespace ARIASDK_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
-        DecoratorBase(owner),
+        m_owner(owner),
         // TODO: populate m_source
         m_initId(PAL::generateUuidString()),
         m_sequenceId(0)
@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         record.time = PAL::getUtcSystemTimeinTicks();
-        record.ver = "3.0";
+        record.ver = ::CsProtocol::CS_VER_STRING;
         if (record.baseType.empty())
         {
             record.baseType = record.name;
@@ -33,7 +33,15 @@ namespace ARIASDK_NS_BEGIN {
 
         record.extSdk[0].seq = ++m_sequenceId;
         record.extSdk[0].epoch = m_initId;
+        // Backward compat note:
+        // - CS3 named this field libVer.
+        // - CS4 moved the libVer from #0 to post #5. And renamed pos #0 from libVer to ver
+        // This creates a ton of confusion, but we keep things where they were before.
+#ifdef HAVE_CS4
+        record.extSdk[0].ver = PAL::getSdkVersion();
+#else
         record.extSdk[0].libVer = PAL::getSdkVersion();
+#endif
         record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
 
         //set Tickets
