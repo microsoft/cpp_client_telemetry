@@ -6,13 +6,13 @@
 using namespace testing;
 using namespace Microsoft::Applications::Events;
 
-class TestLogSessionData : public LogSessionData
+class TestLogSessionData : public LogSessionDataFile
 {
 public:
    TestLogSessionData(const std::string& cacheFilePath)
-      : LogSessionData(cacheFilePath) { }
+      : LogSessionDataFile(cacheFilePath) { }
 
-   using LogSessionData::parse;
+   using LogSessionDataFile::parse;
 };
 
 const char* const PathToTestSesFile = "";

@@ -31,11 +31,11 @@ class LogSessionDataFuncTests : public ::testing::Test
     }
 };
 
-class TestLogSessionData : public LogSessionData
+class TestLogSessionData : public LogSessionDataFile
 {
 public:
     TestLogSessionData(const std::string& cacheFilePath)
-        : LogSessionData(cacheFilePath) { }
+        : LogSessionDataFile(cacheFilePath) { }
 };
 
 void ConstructSesFile(const char* sessionFile, const std::string& contents)
@@ -73,7 +73,7 @@ std::pair<unsigned long long, std::string> ReadPropertiesFromSessionFile(const c
 
 TEST_F(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
 {
-    LogSessionData logSessionData{ SessionFileArgument };
+    LogSessionDataFile logSessionData{ SessionFileArgument };
     ASSERT_TRUE(MAT::FileExists(SessionFile));
 }
 
@@ -82,7 +82,7 @@ TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToE
     const std::string validSessionFirstTime{ "123456" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, validSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
+    LogSessionDataFile logSessionData{ SessionFileArgument };
 
     ASSERT_EQ(logSessionData.getSessionFirstTime(), 123456ull);
     ASSERT_EQ(logSessionData.getSessionSDKUid(), validSkuId);
@@ -93,7 +93,7 @@ TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRege
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, invalidSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
+    LogSessionDataFile logSessionData{ SessionFileArgument };
 
     ASSERT_NE(logSessionData.getSessionFirstTime(), 123456ull);
     ASSERT_NE(logSessionData.getSessionSDKUid(), validSkuId);
@@ -104,7 +104,7 @@ TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWrit
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, invalidSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
+    LogSessionDataFile logSessionData{ SessionFileArgument };
 
     auto properties = ReadPropertiesFromSessionFile(SessionFile);
 
