@@ -63,7 +63,7 @@ namespace ARIASDK_NS_BEGIN {
         /**
         * Release unmanaged pointers associated with EventsUploadContext
         */
-        void clear()
+        void clear() noexcept
         {
             if (httpRequest != nullptr) {
                 delete httpRequest;
@@ -93,27 +93,23 @@ namespace ARIASDK_NS_BEGIN {
         bool                                 compressed = false;
 
         // Sending
-        IHttpRequest*                        httpRequest;
+        IHttpRequest*                        httpRequest = nullptr;
         std::string                          httpRequestId;
 
         // Receiving
-        IHttpResponse*                       httpResponse;
+        IHttpResponse*                       httpResponse = nullptr;
 
         int                                  durationMs = -1;
-        bool                                 fromMemory;
+        bool                                 fromMemory = false;
 
-        EventsUploadContext() :
-            httpRequest(nullptr),
-            httpResponse(nullptr),
-	    fromMemory(false)
+        EventsUploadContext() noexcept
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(1);
 #endif
-
         }
 
-        virtual ~EventsUploadContext()
+        virtual ~EventsUploadContext() noexcept
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(-1);
@@ -122,7 +118,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-    typedef EventsUploadContext* EventsUploadContextPtr;
+    using EventsUploadContextPtr = std::shared_ptr<EventsUploadContext>;
 
     //---
 

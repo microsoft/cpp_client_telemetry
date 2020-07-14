@@ -491,7 +491,6 @@ namespace ARIASDK_NS_BEGIN {
         return "";
     }
 
-
     void OfflineStorageHandler::OnStorageOpened(std::string const& type)
     {
         m_observer->OnStorageOpened(type);
@@ -499,7 +498,12 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorageHandler::OnStorageFailed(std::string const& reason)
     {
-        m_observer->OnStorageFailed(reason);
+        m_observer->OnStorageOpenFailed(reason);
+    }
+
+    void OfflineStorageHandler::OnStorageOpenFailed(std::string const& reason)
+    {
+        m_observer->OnStorageOpenFailed(reason);
     }
 
     void OfflineStorageHandler::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)

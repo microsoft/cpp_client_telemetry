@@ -47,7 +47,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
     SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";

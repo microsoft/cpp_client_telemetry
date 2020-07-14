@@ -2,7 +2,7 @@
 #ifndef SEMANTICAPIDECORATORS_HPP
 #define SEMANTICAPIDECORATORS_HPP
 
-#include "IDecorator.hpp"
+#include "BaseDecorator.hpp"
 #include "ILogger.hpp"
 
 #ifdef _MSC_VER
@@ -13,10 +13,10 @@ namespace ARIASDK_NS_BEGIN {
 
 #define RECORD_EXT      record.data[0].properties
 
-    class SemanticApiDecorators : public DecoratorBase {
+    class SemanticApiDecorators : public BaseDecorator {
 
     public:
-        SemanticApiDecorators(ILogManager& owner) : DecoratorBase(owner) {};
+        SemanticApiDecorators(ILogManager& owner) : BaseDecorator(owner) {};
 
         bool decorateAggregatedMetricMessage(::CsProtocol::Record& record, AggregatedMetricData const& metricData)
         {

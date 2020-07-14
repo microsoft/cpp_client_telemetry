@@ -7,6 +7,7 @@ class WrapperConfig: public ILogConfiguration {
 };
 class WrapperLogManager: public LogManagerBase<WrapperConfig> {
 };
+
 } ARIASDK_NS_END
 #endif
 

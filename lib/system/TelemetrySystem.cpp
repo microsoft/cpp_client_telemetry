@@ -198,7 +198,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)
     {
-        uint32_t maxBlobSize = m_config["tpm"]["maxBlobSize"];
+        uint32_t maxBlobSize = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_BLOB_BYTES];
         if (event->record.blob.size() > maxBlobSize)
         {
             DebugEvent evt;

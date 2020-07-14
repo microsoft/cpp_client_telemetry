@@ -6,7 +6,7 @@
 #include "api/IRuntimeConfig.hpp"
 
 #include "Enums.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <memory>
 #include <algorithm>

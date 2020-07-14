@@ -119,7 +119,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 exclusive[name] = {{name}, Create(c)};
             }
-            c["hostMode"] = true;
+            c[CFG_BOOL_HOST_MODE] = true;
             return exclusive[name].instance;
         }
 
@@ -129,7 +129,7 @@ namespace ARIASDK_NS_BEGIN
             // There are some items already. This guest doesn't care
             // where to go, so it goes to the first host's pool.
             shared[shared.begin()->first].names.insert(name);
-            c["hostMode"] = false;
+            c[CFG_BOOL_HOST_MODE] = false;
             return shared[shared.begin()->first].instance;
         }
 
@@ -155,7 +155,7 @@ namespace ARIASDK_NS_BEGIN
 
         // TODO: [MG] - if there was no module configuration supplied
         // explicitly, then do we treat the client as host or guest?
-        c["hostMode"] = (name == host);
+        c[CFG_BOOL_HOST_MODE] = (name == host);
         return shared[host].instance;
     }
 

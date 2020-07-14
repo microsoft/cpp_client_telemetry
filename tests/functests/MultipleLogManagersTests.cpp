@@ -12,7 +12,7 @@
 #include "api/LogManagerFactory.hpp"
 
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
 #include "sqlite3.h"

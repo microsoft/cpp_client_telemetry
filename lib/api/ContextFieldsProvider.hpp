@@ -3,7 +3,7 @@
 #define CONTEXTFIELDSPROVIDER_HPP
 
 #include "ILogger.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include "utils/Utils.hpp"
 

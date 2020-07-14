@@ -49,8 +49,8 @@ void test_c_api()
 	// It is possible to delay-load the loading of default ClientTelemetry.dll ,
 	// then load an alternate implementation with a matching set of exported syms.
 	// That way the calls are essentially redirected to user-supplied telemetry
-	printf("Testing custom implementation library...\n");
-	evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry2.dll"));
+	printf("Loading ClientTelemetry implementation library...\n");
+	evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry.dll"));
 #endif
 
 	printf("Testing C API...\n");
