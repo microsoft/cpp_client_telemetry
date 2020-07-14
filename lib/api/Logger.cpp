@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "Logger.hpp"
-#include "LogSessionDataBase.hpp"
+#include "LogSessionData.hpp"
 #include "CommonFields.h"
 #include "utils/Utils.hpp"
 
@@ -607,7 +607,7 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
 
-        LogSessionDataBase* logSessionData = m_logManager.GetLogSessionData();
+        LogSessionData* logSessionData = m_logManager.GetLogSessionData();
         std::string sessionSDKUid = logSessionData->getSessionSDKUid();
         unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
 
@@ -687,7 +687,7 @@ namespace ARIASDK_NS_BEGIN
         return m_logManager;
     }
 
-    LogSessionDataBase* Logger::GetLogSessionData()
+    LogSessionData* Logger::GetLogSessionData()
     {
         return m_logManager.GetLogSessionData();
     }
