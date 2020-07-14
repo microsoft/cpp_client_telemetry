@@ -327,7 +327,7 @@ namespace ARIASDK_NS_BEGIN
             return false;
         }
 
-        virtual LogSessionDataBase * GetLogSessionData() override
+        virtual LogSessionData * GetLogSessionData() override
         {
             return nullptr;
         }
