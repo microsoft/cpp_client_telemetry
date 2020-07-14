@@ -42,7 +42,6 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
-  offline/LogSessionDataDB.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp

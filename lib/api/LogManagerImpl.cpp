@@ -5,11 +5,11 @@
 #endif
 #include "mat/config.h"
 #include "LogManagerImpl.hpp"
-
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+#include "offline/LogSessionDataDB.hpp"
+#endif
 #include "offline/OfflineStorageHandler.hpp"
-
 #include "system/TelemetrySystem.hpp"
-
 #include "utils/Utils.hpp"
 #include "TransmitProfiles.hpp"
 #include "EventProperty.hpp"
@@ -41,12 +41,6 @@
 #include "modules/filter/LevelChececkingEventFilter.hpp"
 #endif
 #endif // HAVE_MAT_DEFAULT_FILTER
-
-#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-#include "offline/LogSessionDataDB.hpp"
-#else
-#include "LogSessionData.hpp"
-#endif
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -256,7 +250,7 @@ namespace ARIASDK_NS_BEGIN
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
         m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
 #else
-        m_logSessionData.reset(new LogSessionData(cacheFilePath));
+        m_logSessionData.reset(new LogSessionDataFile(cacheFilePath));
 #endif
 
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
@@ -632,7 +626,7 @@ namespace ARIASDK_NS_BEGIN
         return m_filters;
     }
 
-    LogSessionDataBase* LogManagerImpl::GetLogSessionData()
+    LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return m_logSessionData.get();
     }

@@ -24,7 +24,7 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    LogSessionData::LogSessionData(string const& cacheFilePath)
+    LogSessionDataFile::LogSessionDataFile(string const& cacheFilePath)
     {
         m_sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
         string sessionPath = cacheFilePath.empty() ? "" : (cacheFilePath + ".ses").c_str();
@@ -34,7 +34,17 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    void LogSessionData::open(const string& path)
+    unsigned long long LogSessionDataFile::getSessionFirstTime() const
+    {
+        return m_sessionFirstTimeLaunch;
+    }
+
+    std::string LogSessionDataFile::getSessionSDKUid() const
+    {
+        return m_sessionSDKUid;         
+    }
+
+    void LogSessionDataFile::open(const string& path)
     {
         bool recreate = true;
 
@@ -61,7 +71,7 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
-    bool LogSessionData::parse(const string& cacheContents)
+    bool LogSessionDataFile::parse(const string& cacheContents)
     {
        if (cacheContents.empty())
        {
@@ -95,17 +105,6 @@ namespace ARIASDK_NS_BEGIN {
        }
 
        return false;
-    }
-    
-    unsigned long long LogSessionData::getSessionFirstTime() const
-    {
-        return m_sessionFirstTimeLaunch;
-    
-    }
-
-    std::string LogSessionData::getSessionSDKUid() const
-    {
-        return m_sessionSDKUid;
     }
 
 } ARIASDK_NS_END
