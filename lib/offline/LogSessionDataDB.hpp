@@ -20,7 +20,7 @@ namespace ARIASDK_NS_BEGIN
 
 
     /// <summary>
-    /// The LogSessionDataDB class represents the session cache in DB
+    /// The LogSessionDataDB class represents the session cache in offline storage 
     /// </summary>
     class LogSessionDataDB : public LogSessionData
     {
