@@ -20,7 +20,7 @@ size_t BondSplicer::addTenantToken(std::string const& tenantToken)
 
     m_overheadEstimate += 8 + tenantToken.size();
 
-    m_packages.push_back(PackageInfo{tenantToken, Span{begin, 0}, {}});
+    m_packages.push_back(PackageInfo { tenantToken, Span{begin, size_t{0}}, {} });
     return m_packages.size() - 1;
 }
 
