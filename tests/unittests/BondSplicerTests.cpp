@@ -21,7 +21,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
     {
         m_TokenToDataPackagesMap[tenantToken] = dataPackage;
 
-        size_t index = MAT::BondSplicer::addDataPackage(tenantToken, dataPackage);
+        size_t index = MAT::BondSplicer::addDataPackage(tenantToken);
         assert(index == m_TokenToDataPackagesMap.size() - 1);
 
         m_packageIdToTenantToken[index] = tenantToken;
