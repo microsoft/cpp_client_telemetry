@@ -144,9 +144,9 @@ public enum LogConfigurationKey {
   CFG_INT_TPM_MAX_BLOB_BYTES("maxBlobSize", Long.class);
 
   private String key;
-  private Class valueType;
+  private Class<?> valueType;
 
-  LogConfigurationKey(String key, Class valueType) {
+  LogConfigurationKey(String key, Class<?> valueType) {
     this.key = key;
     this.valueType = valueType;
   }
@@ -155,7 +155,7 @@ public enum LogConfigurationKey {
     return key;
   }
 
-  public Class getValueType() {
+  public Class<?> getValueType() {
     return valueType;
   }
 }

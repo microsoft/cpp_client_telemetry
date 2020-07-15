@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.util.Log;
 
 import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
@@ -15,10 +14,10 @@ import java.util.concurrent.Callable;
 
 @Keep
 public class OfflineRoom implements AutoCloseable {
-    class TrimTransaction implements Callable<Long>
+    static class TrimTransaction implements Callable<Long>
     {
-        OfflineRoom m_room = null;
-        long m_byteLimit = 0;
+        final OfflineRoom m_room;
+        final long m_byteLimit;
 
         public TrimTransaction(OfflineRoom room, long byteLimit)
         {
@@ -27,7 +26,7 @@ public class OfflineRoom implements AutoCloseable {
         }
 
         protected long vacuum(long pre) {
-            try (Cursor c = m_room.m_db.query("VACUUM", null)) {};
+            try (Cursor c = m_room.m_db.query("VACUUM", null)) {}
             long post = m_room.totalSize();
             Log.i("MAE", String.format(
                 "Vacuum: %d before, %d after",
@@ -43,29 +42,26 @@ public class OfflineRoom implements AutoCloseable {
             }
             long currentSize = m_room.totalSize();
             if (currentSize <= m_byteLimit) {
-                return new Long(0);
+                return 0L;
             }
-            long postVacuum = currentSize;
+            long postVacuum = 0;
             try {
                 postVacuum = vacuum(currentSize);
             } catch (Exception e) {
                 Log.e("MAE", "Exception in VACUUM", e);
-                postVacuum = currentSize;
             }
             if (postVacuum <= m_byteLimit) {
-                return new Long(0);
+                return 0L;
             }
 
             long records = m_room.m_srDao.totalRecordCount();
             double fraction = 0.25; // fraction of current to be dropped
             if (m_byteLimit > m_room.m_pageSize) {
-                double dLimit = m_byteLimit;
-                double dCurrent = postVacuum;
-                fraction = Math.max(0.25, 1.0 - (dLimit / dCurrent));
+                fraction = Math.max(0.25, 1.0 - (double) m_byteLimit / (double) postVacuum);
             }
             long to_drop = (long) Math.ceil(fraction * records);
             if (to_drop <= 0) {
-                return new Long(0);
+                return 0L;
             }
             long recordsDropped = m_room.m_srDao.trim(to_drop);
             long postDrop = m_room.totalSize();
@@ -78,14 +74,14 @@ public class OfflineRoom implements AutoCloseable {
                     "Trim: dropped %d records, new size %d bytes",
                     recordsDropped,
                     reVacuum));
-            return new Long(recordsDropped);
+            return recordsDropped;
 
         }
     }
 
-    OfflineRoomDatabase m_db = null;
-    StorageRecordDao m_srDao = null;
-    StorageSettingDao m_settingDao = null;
+    OfflineRoomDatabase m_db;
+    StorageRecordDao m_srDao;
+    StorageSettingDao m_settingDao;
     long m_pageSize = 4096;
 
     public OfflineRoom(Context context, String name) {
@@ -110,13 +106,6 @@ public class OfflineRoom implements AutoCloseable {
                         String.format("Unexpected result from PRAGMA page_size: %d rows, %d columns",
                                 c.getCount(),
                                 c.getColumnCount()));
-            }
-        }
-        long pageCount = -1;
-        try (Cursor c = m_db.query("PRAGMA page_count", null)) {
-            if (c.getCount() == 1 && c.getColumnCount() == 1) {
-                c.moveToFirst();
-                pageCount = c.getLong(0);
             }
         }
     }
@@ -168,9 +157,8 @@ public class OfflineRoom implements AutoCloseable {
             String tenantToken = new String(bytes, byteIndex, indices[2 * i]);
             byteIndex += indices[2 * i];
             byte[] blob = new byte[indices[2 * i + 1]];
-            for (int j = 0; j < indices[2 * i + 1]; ++j) {
-                blob[j] = bytes[j + byteIndex];
-            }
+            if (indices[2 * i + 1] >= 0)
+                System.arraycopy(bytes, byteIndex, blob, 0, indices[2 * i + 1]);
             byteIndex += indices[2 * i + 1];
             records[i] = new StorageRecord(
                     id,
@@ -182,8 +170,7 @@ public class OfflineRoom implements AutoCloseable {
                     big[3 * i + 2],
                     blob);
         }
-        long[] ids = storeRecords(records);
-        return ids;
+        return storeRecords(records);
     }
 
     public void storeFromBuffers(int count, int[] indices, byte[] bytes, int[] small, long[] big)
@@ -216,7 +203,7 @@ public class OfflineRoom implements AutoCloseable {
 
     public ByTenant[] releaseRecords(long[] ids, boolean incrementRetry, long maximumRetries)
     {
-        TreeMap<String, Long> map = new TreeMap<String, Long>();
+        TreeMap<String, Long> map = new TreeMap<>();
 
         m_srDao.releaseRecords(ids, incrementRetry, maximumRetries, map);
         ByTenant[] results = new ByTenant[map.size()];
@@ -253,9 +240,8 @@ public class OfflineRoom implements AutoCloseable {
 
     public long totalSize()
     {
-        long result = 0;
+        long result;
         try (Cursor c = m_db.query("PRAGMA page_count", null)) {
-            assert(c.getCount() == 1 && c.getColumnCount() == 1);
             c.moveToFirst();
             long pages = c.getLong(0);
             result = pages * m_pageSize;

@@ -1,31 +1,30 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 #define LOG_MODULE DBG_PAL
-#include "pal/PAL.hpp"
 #include "pal/NetworkInformationImpl.hpp"
+#include "pal/PAL.hpp"
 #include <algorithm>
+#include <jni.h>
 #include <mutex>
 #include <vector>
-#include <jni.h>
 
-namespace PAL_NS_BEGIN {
-
+namespace PAL_NS_BEGIN
+{
     class NetworkInformation;
 
-    class AndroidNetcostConnector {
-    private:
-
-        static std::vector<NetworkInformation *> s_registered;
+    class AndroidNetcostConnector
+    {
+       private:
+        static std::vector<NetworkInformation*> s_registered;
         static std::mutex s_registered_mutex;
         static NetworkCost s_cost;
 
-    public:
+       public:
+        static void RegisterNI(NetworkInformation& thing);
 
-        static void RegisterNI(NetworkInformation &thing);
-
-        static void UnregisterNI(NetworkInformation &thing)
+        static void UnregisterNI(NetworkInformation& thing)
         {
             std::lock_guard<std::mutex> lock(s_registered_mutex);
-            auto end = std::remove_if(s_registered.begin(), s_registered.end(), [&thing] (NetworkInformation *element)->bool {
+            auto end = std::remove_if(s_registered.begin(), s_registered.end(), [&thing](NetworkInformation* element) -> bool {
                 return element == &thing;
             });
             s_registered.erase(end, s_registered.end());
@@ -39,33 +38,33 @@ namespace PAL_NS_BEGIN {
     NetworkCost AndroidNetcostConnector::s_cost = NetworkCost_Unknown;
 
     NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
-        m_info_helper(),
+        m_type(NetworkType::NetworkType_Unknown),
         m_cost(NetworkCost_Unknown),
+        m_info_helper(),
+        m_registeredCount(0),
         m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]){};
-
-    NetworkInformationImpl::~NetworkInformationImpl() {};
 
     class NetworkInformation : public NetworkInformationImpl
     {
         std::string m_network_provider;
 
-    public:
+       public:
         /// <summary>
         ///
         /// </summary>
         /// <param name="isNetDetectEnabled"></param>
-        NetworkInformation(IRuntimeConfig& configuration);
+        explicit NetworkInformation(IRuntimeConfig& configuration);
 
         /// <summary>
         ///
         /// </summary>
-        virtual ~NetworkInformation();
+        ~NetworkInformation() override;
 
         /// <summary>
         /// Gets the current network provider for the device
         /// </summary>
         /// <returns>The current network provider for the device</returns>
-        virtual std::string const& GetNetworkProvider()
+        std::string const& GetNetworkProvider() override
         {
             return m_network_provider;
         }
@@ -75,7 +74,7 @@ namespace PAL_NS_BEGIN {
         /// E.g. Wifi, 3G, Ethernet
         /// </summary>
         /// <returns>The current network type for the device</returns>
-        virtual NetworkType GetNetworkType()
+        NetworkType GetNetworkType() override
         {
             return NetworkType_Unknown;
         }
@@ -87,7 +86,7 @@ namespace PAL_NS_BEGIN {
         /// UNMETERED
         /// </summary>
         /// <returns>The current network cost for the device</returns>
-        virtual NetworkCost GetNetworkCost()
+        NetworkCost GetNetworkCost() override
         {
             return m_cost;
         }
@@ -141,15 +140,15 @@ namespace PAL_NS_BEGIN {
         return std::make_shared<NetworkInformation>(configuration);
     }
 
-} PAL_NS_END
+}
+PAL_NS_END
 
-extern "C"
-JNIEXPORT void
+extern "C" JNIEXPORT void
 
-JNICALL
-Java_com_microsoft_applications_events_HttpClient_onCostChange(JNIEnv* env,
-	jobject /* java_client */,
-    jboolean isMetered)
+    JNICALL
+    Java_com_microsoft_applications_events_HttpClient_onCostChange(JNIEnv* env,
+                                                                   jobject /* java_client */,
+                                                                   jboolean isMetered)
 {
     PAL::AndroidNetcostConnector::UpdateCost(isMetered ? NetworkCost_Metered : NetworkCost_Unmetered);
 }

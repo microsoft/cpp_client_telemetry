@@ -66,7 +66,7 @@ namespace ARIASDK_NS_BEGIN
         void Flush() override{};
         bool StoreRecord(StorageRecord const& record) override;
         size_t StoreRecords(StorageRecordVector& records) override;
-        bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
+        bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount) override;
         bool IsLastReadFromMemory() override;
         unsigned LastReadRecordCount() override;
 
@@ -79,7 +79,7 @@ namespace ARIASDK_NS_BEGIN
         std::string GetSetting(std::string const& name) override;
         size_t GetSize() override;
         size_t GetRecordCount(EventLatency latency) const override;
-        StorageRecordVector GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
+        StorageRecordVector GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount) override;
         bool ResizeDb() override;
 
         static void ConnectJVM(JNIEnv* env, jobject appContext);

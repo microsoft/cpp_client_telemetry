@@ -285,6 +285,7 @@ namespace
         size_t frameSize;
         jobject* result = nullptr;
 
+       public:
         FrameWrapper() = delete;
 
        public:
@@ -352,15 +353,15 @@ namespace
         /**
    * JNI class reference for a known type
    */
-        jclass valueClass;
+        jclass valueClass = nullptr;
         /**
    * Method ID for the method to cast into the primitive type for
    * Long or Boolean
    */
-        jmethodID castMethod;
+        jmethodID castMethod = nullptr;
     };
 
-    static constexpr char lcClassName[] =
+    constexpr char lcClassName[] =
         "com/microsoft/applications/events/ILogConfiguration";
 
     struct VariantTranslator
@@ -371,7 +372,7 @@ namespace
 
         VariantTranslator() = delete;
 
-        VariantTranslator(JNIEnv* env) :
+        explicit VariantTranslator(JNIEnv* env) :
             env(env)
         {
             ValueInfo vi;
@@ -424,7 +425,7 @@ namespace
                                  "getKeyArray",
                                  "()[Ljava/lang/String;");
             rethrow(env);
-            jobjectArray keys = static_cast<jobjectArray>(env->CallObjectMethod(
+            auto keys = static_cast<jobjectArray>(env->CallObjectMethod(
                 configuration,
                 gkaMethod));
             rethrow(env);
@@ -713,13 +714,13 @@ namespace
     struct ManagerAndConfig
     {
         ILogConfiguration config;
-        ILogManager* manager;
+        ILogManager* manager = nullptr;
     };
 
     using MCVector = std::vector<ManagerAndConfig>;
 
-    static MCVector jniManagers;
-    static std::mutex jniManagersMutex;
+    MCVector jniManagers;
+    std::mutex jniManagersMutex;
 }
 
 extern "C" JNIEXPORT jlong JNICALL

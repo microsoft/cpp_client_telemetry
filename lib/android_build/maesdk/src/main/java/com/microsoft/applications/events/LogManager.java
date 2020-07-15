@@ -1,6 +1,7 @@
 package com.microsoft.applications.events;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 import java.util.Date;
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -22,7 +23,7 @@ public class LogManager {
     TreeMap<String, Object> configMap;
 
     LogConfigurationImpl() {
-      configMap = new TreeMap<String, Object>();
+      configMap = new TreeMap<>();
     }
 
     @Override
@@ -160,6 +161,7 @@ public class LogManager {
     }
 
     @Override
+    @NonNull
     public String toString() {
       return configMap.toString();
     }
@@ -352,7 +354,7 @@ public class LogManager {
    * avoid mysterious use-after-free disasters. Note that the native FlushAndTeardown will delete
    * the corresponding native instances; all we have to do is zero out our now-dangling pointers.
    */
-  static Vector<Logger> loggers = new Vector<Logger>();
+  static Vector<Logger> loggers = new Vector<>();
 
   /** Called by Logger to register itself on construction */
   public static synchronized void registerLogger(Logger logger) {
