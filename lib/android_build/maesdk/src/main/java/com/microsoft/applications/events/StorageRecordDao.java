@@ -78,9 +78,7 @@ public abstract class StorageRecordDao {
         for (int i = 0; i < ids.length; i += idCount) {
             int count = Math.min(idCount, ids.length - i);
             long[] block = new long[count];
-            for (int j = 0; j < count; ++j) {
-                block[j] = ids[i + j];
-            }
+            System.arraycopy(ids, i + 0, block, 0, count);
             deleted += deleteByIdBlock(block);
         }
         return deleted;
@@ -138,9 +136,7 @@ public abstract class StorageRecordDao {
         for (int i = 0; i < ids.length; i += idCount) {
             int count = Math.min(ids.length - i, idCount);
             long[] block = new long[count];
-            for (int j = 0; j < count; ++j) {
-                block[j] = ids[i + j];
-            }
+            System.arraycopy(ids, i + 0, block, 0, count);
             setReservedBlock(block, until);
         }
     }
@@ -158,14 +154,12 @@ public abstract class StorageRecordDao {
             for (int i = 0; i < ids.length; i += idCount) {
                 int count = Math.min(ids.length - i, idCount);
                 long[] block = new long[count];
-                for (int j = 0; j < count; ++j) {
-                    block[j] = ids[i + j];
-                }
+                System.arraycopy(ids, i + 0, block, 0, count);
                 StorageRecord[] expired = getRetryExpired(block, maximumRetries);
                 for (StorageRecord record : expired) {
                     Long n = byTenant.get(record.tenantToken);
                     if (n == null) {
-                        n = Long.valueOf(0);
+                        n = 0L;
                     }
                     byTenant.put(record.tenantToken, n + 1);
                 }

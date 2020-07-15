@@ -259,9 +259,9 @@ public class EventsUnitTest {
 
     @Test
     public void canCreateTask() throws java.io.IOException, PackageManager.NameNotFoundException {
-        final List<String> someValue = new Vector<String>();
+        final List<String> someValue = new Vector<>();
         someValue.add("bar");
-        final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
+        final Map<String, List<String>> headerMap = new TreeMap<>();
         headerMap.put("foo", someValue);
         final String body_string = "fred";
         body_bytes = body_string.getBytes();
@@ -303,9 +303,9 @@ public class EventsUnitTest {
 
     @Test
     public void errorResponseCode() throws java.io.IOException, PackageManager.NameNotFoundException {
-        final List<String> someValue = new Vector<String>();
+        final List<String> someValue = new Vector<>();
         someValue.add("bar");
-        final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
+        final Map<String, List<String>> headerMap = new TreeMap<>();
         headerMap.put("foo", someValue);
         final String body_string = "fred";
         body_bytes = body_string.getBytes();
@@ -346,9 +346,9 @@ public class EventsUnitTest {
 
     @Test
     public void requestException() throws java.io.IOException, PackageManager.NameNotFoundException {
-        final List<String> someValue = new Vector<String>();
+        final List<String> someValue = new Vector<>();
         someValue.add("bar");
-        final Map<String, List<String>> headerMap = new TreeMap<String, List<String>>();
+        final Map<String, List<String>> headerMap = new TreeMap<>();
         headerMap.put("foo", someValue);
         final String body_string = "fred";
         body_bytes = body_string.getBytes();

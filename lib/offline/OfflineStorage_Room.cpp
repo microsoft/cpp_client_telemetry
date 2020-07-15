@@ -94,10 +94,12 @@ namespace ARIASDK_NS_BEGIN
      */
 
     OfflineStorage_Room::OfflineStorage_Room(ILogManager& logManager, IRuntimeConfig& runtimeConfig) :
-        m_manager(logManager), m_config(runtimeConfig)
+        m_manager(logManager),
+        m_config(runtimeConfig),
+        m_observer(nullptr),
+        m_checkAfterInsertCounter(CHECK_INSERT_COUNT),
+        m_lastReadCount(0)
     {
-        m_checkAfterInsertCounter.store(CHECK_INSERT_COUNT);
-        m_lastReadCount.store(0);
         m_size_limit = m_config[CFG_INT_CACHE_FILE_SIZE];
         int percent = m_config[CFG_INT_STORAGE_FULL_PCT];
         if (percent <= 0 || percent >= 150)
@@ -242,11 +244,11 @@ namespace ARIASDK_NS_BEGIN
                     roomIds.push_back(n);
                 }
             }
-            catch (std::out_of_range e)
+            catch (std::out_of_range& e)
             {
                 m_observer->OnStorageFailed("ID out of range");
             }
-            catch (std::invalid_argument e)
+            catch (std::invalid_argument& e)
             {
                 m_observer->OnStorageFailed("Empty ID");
             }
@@ -313,11 +315,11 @@ namespace ARIASDK_NS_BEGIN
         ThrowLogic(env, "getAndReserve");
         auto now = PAL::getUtcSystemTimeMs();
         auto until = now + leaseTimeMs;
-        jobjectArray selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
-                                                                                static_cast<int>(minLatency),
-                                                                                static_cast<int64_t>(maxCount ? maxCount : -1),
-                                                                                static_cast<int64_t>(now),
-                                                                                static_cast<int64_t>(until)));
+        auto selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
+                                                                        static_cast<int>(minLatency),
+                                                                        static_cast<int64_t>(maxCount ? maxCount : -1),
+                                                                        static_cast<int64_t>(now),
+                                                                        static_cast<int64_t>(until)));
         ThrowRuntime(env, "Call getAndReserve");
         size_t index;
         size_t limit = env->GetArrayLength(selected);
@@ -383,7 +385,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowLogic(env, "get reservedUntil");
             auto blob_java = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
             ThrowLogic(env, "get blob");
-            uint8_t* start = reinterpret_cast<uint8_t*>(env->GetByteArrayElements(blob_java, nullptr));
+            auto start = reinterpret_cast<uint8_t*>(env->GetByteArrayElements(blob_java, nullptr));
             ThrowLogic(env, "get blob storage");
             uint8_t* end = start + env->GetArrayLength(blob_java);
             StorageRecord dest(
@@ -512,11 +514,11 @@ namespace ARIASDK_NS_BEGIN
                     roomIds.push_back(roomId);
                 }
             }
-            catch (std::out_of_range e)
+            catch (std::out_of_range& e)
             {
                 m_observer->OnStorageFailed("id out of range");
             }
-            catch (std::invalid_argument e)
+            catch (std::invalid_argument& e)
             {
                 m_observer->OnStorageFailed("id empty");
             }
@@ -529,7 +531,7 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "ids_java");
         env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
         ThrowLogic(env, "ids_java");
-        jobjectArray results = static_cast<jobjectArray>(
+        auto results = static_cast<jobjectArray>(
             env->CallObjectMethod(
                 m_room,
                 release,
@@ -560,7 +562,7 @@ namespace ARIASDK_NS_BEGIN
                     count_id = env->GetFieldID(bt_class, "count", "J");
                     ThrowLogic(env, "Error fetching count field id");
                 }
-                jstring token = static_cast<jstring>(env->GetObjectField(byTenant, token_id));
+                auto token = static_cast<jstring>(env->GetObjectField(byTenant, token_id));
                 ThrowLogic(env, "Exception fetching token");
                 auto count = env->GetLongField(byTenant, count_id);
                 ThrowLogic(env, "Exception fetching count");
@@ -611,7 +613,7 @@ namespace ARIASDK_NS_BEGIN
 
     size_t OfflineStorage_Room::StoreRecords(StorageRecordVector& records)
     {
-        if (records.size() == 0)
+        if (records.empty())
         {
             return 0;
         }
@@ -649,15 +651,13 @@ namespace ARIASDK_NS_BEGIN
         for (auto& record : records)
         {
             indices.push_back(record.tenantToken.size());
-            for (size_t i = 0; i < record.tenantToken.size(); ++i)
-            {
-                buffer.push_back(record.tenantToken[i]);
-            }
+            buffer.insert(buffer.cend(),
+                          record.tenantToken.data(),
+                          record.tenantToken.data() + record.tenantToken.size());
             indices.push_back(record.blob.size());
-            for (size_t i = 0; i < record.blob.size(); ++i)
-            {
-                buffer.push_back(record.blob[i]);
-            }
+            buffer.insert(buffer.cend(),
+                          record.blob.data(),
+                          record.blob.data() + record.blob.size());
             smallNumbers.push_back(record.latency);
             smallNumbers.push_back(record.persistence);
             smallNumbers.push_back(record.retryCount);
@@ -754,7 +754,7 @@ namespace ARIASDK_NS_BEGIN
 
     bool OfflineStorage_Room::StoreSetting(std::string const& name, std::string const& value)
     {
-        if (value.size() == 0)
+        if (value.empty())
         {
             DeleteSetting(name);
             return true;
@@ -974,7 +974,7 @@ namespace ARIASDK_NS_BEGIN
             uint64_t timestamp = env->GetLongField(record, timestamp_id);
             auto retryCount = env->GetIntField(record, retryCount_id);
             uint64_t reservedUntil = env->GetLongField(record, reservedUntil_id);
-            jbyteArray blob_j = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
+            auto blob_j = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
             auto elements = env->GetByteArrayElements(blob_j, nullptr);
             auto blob_store = reinterpret_cast<const uint8_t*>(elements);
             size_t blob_length = env->GetArrayLength(blob_j);
