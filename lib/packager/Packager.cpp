@@ -53,7 +53,7 @@ namespace ARIASDK_NS_BEGIN {
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)
             {
-                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addDataPackage(tenantToken) });
+                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addTenantToken(tenantToken) });
             }
 
             ctx->splicer.addRecord(it->second, record.blob);

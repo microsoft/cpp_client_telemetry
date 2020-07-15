@@ -14,7 +14,7 @@ BondSplicer::BondSplicer()
 {
 }
 
-size_t BondSplicer::addDataPackage(std::string const& tenantToken)
+size_t BondSplicer::addTenantToken(std::string const& tenantToken)
 {
     //assert(dataPackage.Records.empty());
 
