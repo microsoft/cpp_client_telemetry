@@ -14,21 +14,13 @@ BondSplicer::BondSplicer()
 {
 }
 
-size_t BondSplicer::addDataPackage(std::string const& tenantToken, DataPackage const& /* dataPackage */)
+size_t BondSplicer::addTenantToken(std::string const& tenantToken)
 {
-    //assert(dataPackage.Records.empty());
-
     size_t begin = m_buffer.size();
- /*   {
-        bond_lite::CompactBinaryProtocolWriter writer(m_buffer);
-        bond_lite::Serialize(writer, dataPackage);
-    }
-    */
-    size_t end = m_buffer.size();
 
     m_overheadEstimate += 8 + tenantToken.size();
 
-    m_packages.push_back(PackageInfo{tenantToken, Span{begin, end - begin}, {}});
+    m_packages.push_back(PackageInfo { tenantToken, Span{begin, size_t{0}}, {} });
     return m_packages.size() - 1;
 }
 
