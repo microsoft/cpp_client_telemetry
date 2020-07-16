@@ -17,17 +17,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
     std::map<std::string, DataPackage>       m_TokenToDataPackagesMap;
 
   public:
-    size_t addDataPackage(std::string const& tenantToken, DataPackage const& dataPackage)
-    {
-        m_TokenToDataPackagesMap[tenantToken] = dataPackage;
-
-        size_t index = MAT::BondSplicer::addDataPackage(tenantToken, dataPackage);
-        assert(index == m_TokenToDataPackagesMap.size() - 1);
-
-        m_packageIdToTenantToken[index] = tenantToken;
-
-        return index;
-    }
+    using MAT::BondSplicer::addTenantToken;
 
     void addRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
     {
@@ -72,10 +62,9 @@ TEST_F(BondSplicerTests, Empty)
     EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
 }
 
-TEST_F(BondSplicerTests, OneEmptyDataPackage)
+TEST_F(BondSplicerTests, OneEmptyTenantToken)
 {
-    DataPackage dp;
-    bs.addDataPackage("tenant1", dp);
+    bs.addTenantToken("tenant1");
     EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
 }
 
