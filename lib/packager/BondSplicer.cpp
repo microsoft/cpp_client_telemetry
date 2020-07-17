@@ -9,8 +9,7 @@ namespace ARIASDK_NS_BEGIN {
 
 
 BondSplicer::BondSplicer()
-  : m_requestRetryCount(0),
-    m_overheadEstimate(0)
+  : m_overheadEstimate(0)
 {
 }
 
@@ -61,7 +60,6 @@ void BondSplicer::clear()
     // Swap with empty instead of clear() to release memory
     std::vector<uint8_t>().swap(m_buffer);
     std::vector<PackageInfo>().swap(m_packages);
-    m_requestRetryCount = 0;
     m_overheadEstimate = 0;
 }
 
