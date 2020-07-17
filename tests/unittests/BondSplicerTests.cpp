@@ -12,19 +12,11 @@ using namespace MAT;
 
 class ShadowBondSplicer : protected MAT::BondSplicer
 {
-  protected:
-    std::map<size_t, std::string>            m_packageIdToTenantToken;
-    std::map<std::string, DataPackage>       m_TokenToDataPackagesMap;
-
   public:
     using MAT::BondSplicer::addTenantToken;
 
     void addRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
     {
-        assert(dataPackageIndex < m_TokenToDataPackagesMap.size());
-
-        m_TokenToDataPackagesMap[m_packageIdToTenantToken[dataPackageIndex]].Records.push_back(record);
-
         std::vector<uint8_t> recordBlob;
         {
             bond_lite::CompactBinaryProtocolWriter writer(recordBlob);
