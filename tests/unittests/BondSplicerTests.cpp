@@ -31,14 +31,6 @@ class ShadowBondSplicer : protected MAT::BondSplicer
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();
         return output;
     }
-
-    FullDumpBinaryBlob serialize() const
-    {
-        FullDumpBinaryBlob output;
-        bond_lite::CompactBinaryProtocolWriter writer(output);
-        //bond_lite::Serialize(writer, m_shadow);
-        return output;
-    }
 };
 
 //---
@@ -51,13 +43,13 @@ class BondSplicerTests : public Test
 
 TEST_F(BondSplicerTests, Empty)
 {
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
+    EXPECT_EQ(bs.splice().size(), size_t { 0 });
 }
 
 TEST_F(BondSplicerTests, OneEmptyTenantToken)
 {
     bs.addTenantToken("tenant1");
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
+    EXPECT_EQ(bs.splice().size(), size_t { 0 });
 }
 
 TEST_F(BondSplicerTests, OneDataPackageWithOneEmptyRecord)
