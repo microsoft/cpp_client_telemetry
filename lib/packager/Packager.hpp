@@ -15,7 +15,6 @@ namespace ARIASDK_NS_BEGIN {
     class Packager {
     public:
         Packager(IRuntimeConfig& runtimeConfig);
-        ~Packager();
 
     protected:
         void handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore);
