@@ -22,7 +22,7 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         IRuntimeConfig & m_config;
-        std::string           m_forcedTenantToken;
+        std::string      m_forcedTenantToken;
 
     public:
         RouteSink<Packager, EventsUploadContextPtr const&, StorageRecord const&, bool&> addEventToPackage{ this, &Packager::handleAddEventToPackage };
