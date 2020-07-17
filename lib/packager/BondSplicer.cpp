@@ -7,12 +7,6 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-
-BondSplicer::BondSplicer()
-  : m_overheadEstimate(0)
-{
-}
-
 size_t BondSplicer::addTenantToken(std::string const& tenantToken)
 {
     size_t begin = m_buffer.size();
