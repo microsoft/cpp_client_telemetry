@@ -27,10 +27,10 @@ class BondSplicer
   protected:
     std::vector<uint8_t>     m_buffer;
     std::vector<PackageInfo> m_packages;
-    size_t                   m_overheadEstimate;
+    size_t                   m_overheadEstimate {};
 
   public:
-    BondSplicer();
+    BondSplicer() noexcept = default;
     BondSplicer(BondSplicer const&) = delete;
     BondSplicer& operator=(BondSplicer const&) = delete;
 
