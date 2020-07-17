@@ -44,22 +44,14 @@ std::vector<uint8_t> BondSplicer::splice() const
     bond_lite::CompactBinaryProtocolWriter writer(output);
 
     if (!m_packages.empty()) {
-
         for (PackageInfo const& package : m_packages) {
             if (!package.records.empty()) {
-
                 for (Span const& record : package.records) {
                     writer.WriteBlob(m_buffer.data() + record.offset, record.length);
                 }
             } 
-            else 
-            {
-            }
         }
     } 
-    else
-    {
-    }
 
     return output;
 }
