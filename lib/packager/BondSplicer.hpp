@@ -27,7 +27,6 @@ class BondSplicer
   protected:
     std::vector<uint8_t>     m_buffer;
     std::vector<PackageInfo> m_packages;
-    int32_t                  m_requestRetryCount;
     size_t                   m_overheadEstimate;
 
   public:
