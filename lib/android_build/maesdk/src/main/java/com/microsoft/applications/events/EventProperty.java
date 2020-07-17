@@ -14,6 +14,16 @@ public class EventProperty {
         return m_piiKind;
     }
 
+    @Keep
+    int getPiiKindValue() {
+        return m_piiKind.getValue();
+    }
+
+    @Keep
+    int getDataCategoryValue() {
+        return m_category.getValue();
+    }
+
     DataCategory getDataCategory() {
         return m_category;
     }
