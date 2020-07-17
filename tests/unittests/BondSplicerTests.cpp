@@ -41,6 +41,28 @@ class BondSplicerTests : public Test
     ShadowBondSplicer bs;
 };
 
+TEST_F(BondSplicerTests, addTenantToken_EmptyString_Returns0)
+{
+   EXPECT_EQ(bs.addTenantToken(std::string { }), size_t { 0 });
+}
+
+TEST_F(BondSplicerTests, addTenantToken_TestString_Returns0)
+{
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
+}
+
+TEST_F(BondSplicerTests, addTenantToken_TwoDifferentStrings_Returns0And1)
+{
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test2" }), size_t { 1 });
+}
+
+TEST_F(BondSplicerTests, addTenantToken_TwoSameStrings_Returns0And1)
+{
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 1 });
+}
+
 TEST_F(BondSplicerTests, Empty)
 {
     EXPECT_EQ(bs.splice().size(), size_t { 0 });
