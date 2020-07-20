@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "pal/PAL.hpp"
+#include "EventProperty.hpp"
 #include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
@@ -14,7 +15,7 @@
 #include <vector>
 
 #include <system/ITelemetrySystem.hpp>
-
+#define DEBUG_PERF
 namespace testing {
 
     const char *getMATSDKLogComponent();
@@ -63,6 +64,11 @@ namespace testing {
 
     bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
 
-    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
+    EventProperties CreateSampleEvent(const char *name, EventPriority prio);
+
+    std::string GetUniqueDBFileName();
+    void LogMemUsage(const char* label);
+    void LogCpuUsage(const char* label);
+	void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
 
 } // namespace testing
