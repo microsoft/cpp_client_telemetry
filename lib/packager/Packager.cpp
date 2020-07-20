@@ -17,10 +17,6 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    Packager::~Packager()
-    {
-    }
-
     void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore)
     {
         try {
