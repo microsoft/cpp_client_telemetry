@@ -3,9 +3,9 @@
 #define HAVE_MAT_UTC
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
-//#define HAVE_MAT_EXP
+#define HAVE_MAT_EXP
 #define HAVE_MAT_FIFOSTORAGE
-//#define HAVE_MAT_DEFAULTDATAVIEWER
+#define HAVE_MAT_DEFAULTDATAVIEWER
 #endif
 #define HAVE_MAT_JSONHPP
 #define HAVE_MAT_ZLIB
