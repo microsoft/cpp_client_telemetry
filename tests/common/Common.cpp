@@ -286,6 +286,7 @@ namespace testing {
 #ifdef _WIN32
         DWORD processID = ::GetCurrentProcessId();
         HANDLE hProcess;
+        PROCESS_MEMORY_COUNTERS pmc;
         hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
                 PROCESS_VM_READ,
                 FALSE, processID);
