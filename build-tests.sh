@@ -8,5 +8,5 @@ set -e
 cd out
 ./tests/functests/FuncTests
 ./tests/unittests/UnitTests
-./tests/unittests/UnitTests -gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager \
-    & ./tests/unittests/UnitTests  --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
+./tests/functests/UnitTests -gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager \
+    & ./tests/functests/UnitTests  --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
