@@ -15,7 +15,7 @@
 #include <vector>
 
 #include <system/ITelemetrySystem.hpp>
-#define DEBUG_PERF
+
 namespace testing {
 
     const char *getMATSDKLogComponent();
