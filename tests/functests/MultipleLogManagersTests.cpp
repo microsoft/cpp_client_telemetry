@@ -145,4 +145,35 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     lm2.reset();
 }
 
+constexpr static unsigned MAX_ITERATIONS = 2000;
+
+#define TESTING_LOG_STATS(label) \
+    testing::LogMemUsage(label); \
+    testing::LogCpuUsage(label);
+
+TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
+{
+    TESTING_LOG_STATS("start");
+    config1[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    config1[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20; // 80kb
+    config1[CFG_STR_CACHE_FILE_PATH] = testing::GetUniqueDBFileName();
+    std::unique_ptr<ILogManager> lm(LogManagerFactory::Create(config1));
+    TESTING_LOG_STATS("LogManager created");
+    ILogger* logger = lm->GetLogger("aaa");
+    TESTING_LOG_STATS("Logger created");
+    size_t numIterations = MAX_ITERATIONS;
+    while (numIterations--) 
+    {
+        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        logger->LogEvent(props);
+    }
+    TESTING_LOG_STATS("Events Sent");
+    lm->GetLogController()->UploadNow();
+    TESTING_LOG_STATS("Events Uploaded");
+    waitForRequests(10000, 2);
+    lm.reset();
+    TESTING_LOG_STATS("Log Manager deleted");
+
+
+}
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
