@@ -1,5 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "Common.hpp"
 #include "zlib.h"
 
@@ -15,7 +19,7 @@
 
 
 #ifdef _WIN32
-#define GET_CURRENT_PID  GetCurrentProcessId
+#define GET_CURRENT_PID  ::GetCurrentProcessId
 #else
 #define GET_CURRENT_PID getpid
 #endif
@@ -280,7 +284,7 @@ namespace testing {
 	{
 #ifdef DEBUG_PERF
 #ifdef _WIN32
-        DWORD processID = GetCurrentProcessId();
+        DWORD processID = ::GetCurrentProcessId();
         HANDLE hProcess;
         hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
                 PROCESS_VM_READ,
