@@ -12,18 +12,16 @@
 #include <stdio.h>
 #include <psapi.h>
 #include <processthreadsapi.h>
-#else
+#elif linux
 #include <malloc.h>
 #include <unistd.h>
 #endif
-
 
 #ifdef _WIN32
 #define GET_CURRENT_PID  ::GetCurrentProcessId
 #else
 #define GET_CURRENT_PID getpid
 #endif
-
 
 
 namespace testing {
@@ -296,9 +294,11 @@ namespace testing {
             printf("Heap Usage- %s ...  %ld\n", label, pmc.WorkingSetSize);
         }
         CloseHandle(hProcess);
-#else // posix
+#elif linux
         struct mallinfo mem = mallinfo();
         printf("Heap Usage- %s ...  %ld\n", label, mem.uordblks + mem.hblkhd);
+#else
+        UNREFERENCED_PARAMETER(label);
 #endif
 #endif
     }
