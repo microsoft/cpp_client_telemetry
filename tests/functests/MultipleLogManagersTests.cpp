@@ -145,7 +145,7 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     lm2.reset();
 }
 
-constexpr static unsigned MAX_ITERATIONS = 2000;
+constexpr static unsigned max_iterations = 2000;
 
 TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
 {
@@ -157,7 +157,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("LogManager created");
     ILogger* logger = lm->GetLogger("aaa");
     CAPTURE_PERF_STATS("Logger created");
-    size_t numIterations = MAX_ITERATIONS;
+    size_t numIterations = max_iterations;
     while (numIterations--) 
     {
         EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
@@ -169,7 +169,5 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     waitForRequests(10000, 2);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
-
-
 }
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
