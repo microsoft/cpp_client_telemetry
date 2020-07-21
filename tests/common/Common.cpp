@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft. All rights reserved.
-
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -12,7 +11,7 @@
 #include <stdio.h>
 #include <psapi.h>
 #include <processthreadsapi.h>
-#elif linux
+#elif defined(linux)
 #include <malloc.h>
 #include <unistd.h>
 #endif
@@ -22,7 +21,6 @@
 #else
 #define GET_CURRENT_PID getpid
 #endif
-
 
 namespace testing {
 
@@ -294,7 +292,7 @@ namespace testing {
             printf("Heap Usage- %s ...  %ld\n", label, pmc.WorkingSetSize);
         }
         CloseHandle(hProcess);
-#elif linux
+#elif defined(linux)
         struct mallinfo mem = mallinfo();
         printf("Heap Usage- %s ...  %ld\n", label, mem.uordblks + mem.hblkhd);
 #else
