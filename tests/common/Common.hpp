@@ -67,7 +67,13 @@ namespace testing {
     EventProperties CreateSampleEvent(const char *name, EventPriority prio);
 
     std::string GetUniqueDBFileName();
+
+#define CAPTURE_PERF_STATS(label) \
+       LogMemUsage(label); \
+       LogCpuUsage(label);
+
     void LogMemUsage(const char* label);
+
     void LogCpuUsage(const char* label);
 	void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
 
