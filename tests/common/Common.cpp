@@ -300,6 +300,8 @@ namespace testing {
 #else
         UNREFERENCED_PARAMETER(label);
 #endif
+#else
+        UNREFERENCED_PARAMETER(label);
 #endif
     }
 
