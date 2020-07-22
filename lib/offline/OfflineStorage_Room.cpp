@@ -104,6 +104,7 @@ namespace ARIASDK_NS_BEGIN
         {
             percent = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE;
         }
+        m_storageFullNotifyInterval = m_config[CFG_INT_STORAGE_FULL_CHECK_TIME];
         m_notify_fraction = static_cast<double>(percent) / 100.0;
     }
 
@@ -709,7 +710,7 @@ namespace ARIASDK_NS_BEGIN
             if (m_notify_fraction <= ratio)
             {
                 auto now = PAL::getMonotonicTimeMs();
-                if (now > m_storageFullNotifyTime + DB_FULL_CHECK_TIME_MS)
+                if (now > m_storageFullNotifyTime + m_DbSizeNotificationInterval)
                 {
                     m_storageFullNotifyTime = now;
                     DebugEvent evt;
