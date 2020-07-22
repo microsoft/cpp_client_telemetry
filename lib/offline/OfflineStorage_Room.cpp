@@ -710,7 +710,7 @@ namespace ARIASDK_NS_BEGIN
             if (m_notify_fraction <= ratio)
             {
                 auto now = PAL::getMonotonicTimeMs();
-                if (now > m_storageFullNotifyTime + m_DbSizeNotificationInterval)
+                if (now > m_storageFullNotifyTime + m_storageFullNotifyInterval)
                 {
                     m_storageFullNotifyTime = now;
                     DebugEvent evt;
