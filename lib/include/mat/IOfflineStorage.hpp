@@ -14,7 +14,8 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    const unsigned int DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE = 75;
+    constexpr unsigned int DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE = 75;
+    constexpr uint64_t     DB_FULL_CHECK_INTERVAL_DEFAULT_MS = 5000;
 
     using StorageRecordId = std::string;
 
