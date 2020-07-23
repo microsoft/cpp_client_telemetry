@@ -85,6 +85,9 @@ public enum LogConfigurationKey {
   /** The cache file percentage full notification. */
   CFG_INT_STORAGE_FULL_PCT("cacheFileFullNotificationPercentage", Long.class),
 
+  /** The cache file percentage full notification. */
+  CFG_INT_STORAGE_FULL_CHECK_TIME("cacheFullNotificationIntervalTime", Long.class),
+
   /** The cache memory percentage full notification. */
   CFG_INT_RAMCACHE_FULL_PCT("cacheMemoryFullNotificationPercentage", Long.class),
 

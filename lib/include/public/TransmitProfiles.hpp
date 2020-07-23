@@ -156,7 +156,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// A boolean value that indicates whether the timer was updated.
         /// </summary>
-        static std::atomic<bool> isTimerUpdated;
+        static bool isTimerUpdated;
 
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
