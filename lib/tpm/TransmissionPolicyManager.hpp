@@ -46,6 +46,7 @@ namespace ARIASDK_NS_BEGIN {
 
         void uploadAsync(EventLatency priority);
         void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
+        bool updateTimersIfNecessary();
 
         bool handleStart();
         bool handlePause();
