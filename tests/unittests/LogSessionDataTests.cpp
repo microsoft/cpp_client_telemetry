@@ -6,10 +6,10 @@
 using namespace testing;
 using namespace Microsoft::Applications::Events;
 
-class TestLogSessionData : public LogSessionDataFile
+class TestLogSessionDataFile: public LogSessionDataFile
 {
 public:
-   TestLogSessionData(const std::string& cacheFilePath)
+   TestLogSessionDataFile(const std::string& cacheFilePath)
       : LogSessionDataFile(cacheFilePath) { }
 
    using LogSessionDataFile::parse;
@@ -17,38 +17,38 @@ public:
 
 const char* const PathToTestSesFile = "";
 
-TEST(LogSessionDataTests, parse_EmptyString_ReturnsFalse)
+TEST(LogSessionDataFileTests, parse_EmptyString_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_FALSE(sessionData.parse(std::string {}));
 }
 
-TEST(LogSessionDataTests, parse_OneLine_ReturnsFalse)
+TEST(LogSessionDataFileTests, parse_OneLine_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_FALSE(sessionData.parse(std::string {"foo" }));
 }
 
-TEST(LogSessionDataTests, parse_ThreeLines_ReturnsFalse)
+TEST(LogSessionDataFileTests, parse_ThreeLines_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_FALSE(sessionData.parse(std::string { "foo\nbar\n\baz" }));
 }
 
-TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchNotNumber_ReturnsFalse)
+TEST(LogSessionDataFileTests, parse_TwoLinesFirstLaunchNotNumber_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_FALSE(sessionData.parse(std::string { "foo\nbar" }));
 }
 
-TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
+TEST(LogSessionDataFileTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_FALSE(sessionData.parse(std::string { "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\nbar" }));
 }
 
-TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
+TEST(LogSessionDataFileTests, parse_ValidInput_ReturnsTrue)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
+   TestLogSessionDataFile sessionData { std::string { PathToTestSesFile } };
    ASSERT_TRUE(sessionData.parse(std::string { "1234567890\nbar" }));
 }

@@ -25,7 +25,7 @@ namespace ARIASDK_NS_BEGIN
 
     protected:
 
-        std::string                         m_sessionSDKUid {""};
+        std::string                         m_sessionSDKUid;
         unsigned long long                  m_sessionFirstTimeLaunch{0ull} ;
     };
 

@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The LogSessionData constructor, taking the offline storage instance
         /// </summary>
-        LogSessionDataDB(IOfflineStorage* offlineStorage)
+        LogSessionDataDB(std::shared_ptr<IOfflineStorage> offlineStorage)
         :
         m_offlineStorage(offlineStorage)
         {
@@ -105,7 +105,7 @@ namespace ARIASDK_NS_BEGIN
 
     private:
         bool    m_isDBInitialized = false;
-        IOfflineStorage *m_offlineStorage;
+        std::shared_ptr<IOfflineStorage> m_offlineStorage;
     };
 } ARIASDK_NS_END
 #endif

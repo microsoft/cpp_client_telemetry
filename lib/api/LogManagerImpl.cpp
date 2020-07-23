@@ -272,7 +272,7 @@ namespace ARIASDK_NS_BEGIN
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-        m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage.get()));
+        m_logSessionData.reset(new LogSessionDataDB(m_offlineStorage));
 #else
         m_logSessionData.reset(new LogSessionDataFile(cacheFilePath));
 #endif
