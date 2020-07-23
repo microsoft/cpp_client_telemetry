@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
+@Keep
 public class OfflineRoom implements AutoCloseable {
     class TrimTransaction implements Callable<Long>
     {
