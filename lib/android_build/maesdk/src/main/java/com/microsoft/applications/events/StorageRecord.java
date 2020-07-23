@@ -1,11 +1,13 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+@Keep
 @Entity(indices = {@Index(value = {"id"}, unique = true)})
 public class StorageRecord {
     final public static int EventLatency_Unspecified = -1;

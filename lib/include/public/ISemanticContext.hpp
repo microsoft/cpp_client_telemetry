@@ -12,10 +12,6 @@
 #include <string>
 #include <cassert>
 
-#ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4100 ) // unreferenced formal parameter
-#endif
 namespace ARIASDK_NS_BEGIN
 {
     /// <summary>
@@ -81,7 +77,7 @@ namespace ARIASDK_NS_BEGIN
         /// Set the experiment IDs information of the specified telemetry event.
         /// </summary>
         /// <param name="appVersion">list of IDs of experimentations into which the application is enlisted</param>
-        virtual void  SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds) {};
+        virtual void  SetEventExperimentIds(std::string const& /*eventName*/, std::string const& /*experimentIds*/) {};
 
         /// <summary>
         /// Clear the experiment IDs information.
@@ -269,12 +265,9 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticket value.</param>
-        virtual void SetTicket(TicketType type, std::string const& ticketValue) {};
+        virtual void SetTicket(TicketType /*type*/, std::string const& /*ticketValue*/) {};
     };
 
 } ARIASDK_NS_END
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
 
 #endif //ISEMANTICCONTEXT_H

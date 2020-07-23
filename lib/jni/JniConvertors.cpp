@@ -20,6 +20,11 @@ EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
     jobject jEventPropertyValue = env->CallObjectMethod(jEventProperty, getEventPropertyValueMethodID);
 
     jclass jEventPropertyValueClass = env->GetObjectClass(jEventPropertyValue);
+    auto getPiiKindValue = env->GetMethodID(jEventPropertyClass, "getPiiKindValue", "()I");
+    auto jPiiKind = env->CallIntMethod(jEventProperty, getPiiKindValue);
+    auto getDataCategoryValue = env->GetMethodID(jEventPropertyClass, "getDataCategoryValue", "()I");
+    auto jDataCategory = env->CallIntMethod(jEventProperty, getDataCategoryValue);
+
     jmethodID getTypeMethodID = env->GetMethodID(jEventPropertyValueClass, "getType", "()I");
     jint type = env->CallIntMethod(jEventPropertyValue, getTypeMethodID);
 
@@ -138,7 +143,11 @@ EventProperty GetEventProperty(JNIEnv* env, const jobject& jEventProperty) {
     env->DeleteLocalRef(jEventPropertyValue);
     env->DeleteLocalRef(jEventPropertyClass);
 
-    return (eventProperty);
+    // The value assignment above (in the switch() statement) clears piiKind
+    // and dataCategory, so we have assign these here, after that assignment.
+    eventProperty.piiKind = static_cast<PiiKind>(jPiiKind);
+    eventProperty.dataCategory = static_cast<DataCategory>(jDataCategory);
+    return eventProperty;
 }
 
 EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, const jstring& jstrEventType, const jint& jEventLatency,

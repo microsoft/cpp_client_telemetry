@@ -11,6 +11,9 @@ import android.content.Context;
 import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import com.microsoft.applications.events.DataCategory;
+import com.microsoft.applications.events.EventProperties;
+import com.microsoft.applications.events.EventProperty;
 import com.microsoft.applications.events.HttpClient;
 import com.microsoft.applications.events.ILogConfiguration;
 import com.microsoft.applications.events.ILogManager;
@@ -20,6 +23,7 @@ import com.microsoft.applications.events.LogManager;
 import com.microsoft.applications.events.LogManager.LogConfigurationImpl;
 import com.microsoft.applications.events.LogManagerProvider;
 import com.microsoft.applications.events.OfflineRoom;
+import com.microsoft.applications.events.PiiKind;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
@@ -222,4 +226,18 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     assertThat((LogConfigurationImpl) mangled, isValueSuperset(config));
   }
 
+  public native int nativeGetPiiType(EventProperty property);
+  public native int nativeGetDataCategory(EventProperty property);
+
+  @Test
+  public void piiKindIdentity() {
+    System.loadLibrary("maesdk");
+    System.loadLibrary("native-lib");
+
+    EventProperty prop = new EventProperty("foo", PiiKind.Identity, DataCategory.PartB);
+    int roundTrip = nativeGetPiiType(prop);
+    assertThat(roundTrip, is(PiiKind.Identity.getValue()));
+    roundTrip = nativeGetDataCategory(prop);
+    assertThat(roundTrip, is(DataCategory.PartB.getValue()));
+  }
 }

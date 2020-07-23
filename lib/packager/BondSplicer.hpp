@@ -27,15 +27,14 @@ class BondSplicer
   protected:
     std::vector<uint8_t>     m_buffer;
     std::vector<PackageInfo> m_packages;
-    int32_t                  m_requestRetryCount;
-    size_t                   m_overheadEstimate;
+    size_t                   m_overheadEstimate {};
 
   public:
-    BondSplicer();
+    BondSplicer() noexcept = default;
     BondSplicer(BondSplicer const&) = delete;
     BondSplicer& operator=(BondSplicer const&) = delete;
 
-    size_t addDataPackage(std::string const& tenantToken, DataPackage const& dataPackage);
+    size_t addTenantToken(std::string const& tenantToken);
     void addRecord(size_t dataPackageIndex, std::vector<uint8_t> const& recordBlob);
 
     size_t getSizeEstimate() const;

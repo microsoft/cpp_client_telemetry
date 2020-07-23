@@ -1,9 +1,11 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+@Keep
 @Entity
 public class StorageSetting {
     @PrimaryKey

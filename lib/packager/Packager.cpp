@@ -17,10 +17,6 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    Packager::~Packager()
-    {
-    }
-
     void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore)
     {
         try {
@@ -53,13 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)
             {
-                DataPackage package;
-                package.Type = "Client";
-                package.Source = "act_default_source"; // from ReferenceSDK
-                package.Version = BUILD_VERSION_STR;
-                package.DataPackageId = PAL::generateUuidString();
-                package.Timestamp = PAL::getUtcSystemTimeMs();
-                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addDataPackage(tenantToken, package) });
+                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addTenantToken(tenantToken) });
             }
 
             ctx->splicer.addRecord(it->second, record.blob);

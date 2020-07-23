@@ -2,6 +2,7 @@
 #include <android/log.h>
 #include <jni.h>
 #include <string>
+#include "jni/JniConvertors.hpp"
 
 #include "LogManager.hpp"
 #include "api/LogManagerImpl.hpp"
@@ -138,4 +139,25 @@ Java_com_microsoft_applications_events_maesdktest_TestStub_runNativeTests(
     jobject logger)
 {
     return RunTests::run_all_tests(env, logger);
+}
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_maesdktest_SDKUnitNativeTest_nativeGetPiiType(
+    JNIEnv *env,
+    jobject thiz,
+    jobject jProperty) {
+    auto property = GetEventProperty(env, jProperty);
+    return static_cast<int>(property.piiKind);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_maesdktest_SDKUnitNativeTest_nativeGetDataCategory(
+    JNIEnv *env,
+    jobject thiz,
+    jobject jProperty) {
+    auto property = GetEventProperty(env, jProperty);
+    return static_cast<int>(property.dataCategory);
 }

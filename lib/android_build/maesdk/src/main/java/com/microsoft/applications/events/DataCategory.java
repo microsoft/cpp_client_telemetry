@@ -16,7 +16,7 @@ public enum DataCategory {
         m_value = value;
     }
 
-    int getValue() {
+    public int getValue() {
         return m_value;
     }
 }

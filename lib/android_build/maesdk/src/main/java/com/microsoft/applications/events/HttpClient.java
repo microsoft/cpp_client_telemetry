@@ -16,6 +16,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -175,6 +176,21 @@ class Request implements Runnable {
 public class HttpClient {
     private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
 
+    /**
+     * Shim FutureTask: we would like to @Keep the cancel method for JNI
+     */
+    class FutureShim extends FutureTask<Boolean> {
+        FutureShim(Request inner) {
+            super(inner, true);
+        }
+
+        @Keep
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return super.cancel(mayInterruptIfRunning);
+        }
+    }
+
     public HttpClient(Context context)
     {
         m_context = context;
@@ -313,16 +329,18 @@ public class HttpClient {
 
     public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 
+    @Keep
     public FutureTask<Boolean> createTask(String url, String method, byte[] body, String request_id, int[] header_index,
             byte[] header_buffer) {
         try {
             Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
-            return new FutureTask<>(r, true);
+            return new FutureShim(r);
         } catch (Exception e) {
             return null;
         }
     }
 
+    @Keep
     public void executeTask(FutureTask<Boolean> t) {
         m_executor.execute(t);
     }
