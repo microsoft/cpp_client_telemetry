@@ -68,6 +68,7 @@ namespace ARIASDK_NS_BEGIN {
             percentage = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE; // 75%
         }
         m_DbSizeNotificationLimit = (percentage * (uint32_t)m_DbSizeLimit) / 100;
+        m_DbSizeNotificationInterval = m_config[CFG_INT_STORAGE_FULL_CHECK_TIME];
 
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
@@ -171,7 +172,7 @@ namespace ARIASDK_NS_BEGIN {
         if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
         {
             auto now = PAL::getMonotonicTimeMs();
-            if (std::abs(static_cast<long>(now-m_isStorageFullNotificationSendTime)) > static_cast<long>(DB_FULL_CHECK_TIME_MS))
+            if (static_cast<uint64_t>(now-m_isStorageFullNotificationSendTime) > m_DbSizeNotificationInterval)
             {
                 // Notify the client that the DB is getting full, but only once in DB_FULL_CHECK_TIME_MS
                 m_isStorageFullNotificationSendTime = now;
