@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +21,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
-  <Import Project="..\decoder\decoder.projitems" Label="Shared" />
+  <Import Project="../decoder/decoder.projitems" Label="Shared" />
 
 </Project>
