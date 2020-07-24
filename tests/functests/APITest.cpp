@@ -373,6 +373,8 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
+    configuration[CFG_INT_STORAGE_FULL_PCT] = 1; // 1%
+    configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 0; // 0ms
 
     EventProperties eventToLog{ "foo1" };
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
