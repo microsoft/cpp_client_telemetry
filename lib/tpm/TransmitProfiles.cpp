@@ -4,6 +4,8 @@
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
+#endif
+
 #include "utils/Utils.hpp"
 
 #include <mutex>
@@ -173,6 +175,7 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="profiles_json"></param>
     /// <param name="profiles"></param>
     /// <returns></returns>
+#ifdef HAVE_MAT_JSONHPP
     size_t TransmitProfiles::parse(const std::string& profiles_json)
     {
         size_t numProfilesParsed = 0;
@@ -277,6 +280,12 @@ namespace ARIASDK_NS_BEGIN {
         }
         return numProfilesParsed;
     }
+#else
+    size_t TransmitProfiles::parse(const std::string&)
+    {
+        return size_t { 0 };
+    }
+#endif // HAVE_MAT_JSONHPP
 
     /// <summary>
     /// Load customer supplied transmit profiles
@@ -576,7 +585,3 @@ namespace ARIASDK_NS_BEGIN {
     static TransmitProfiles __profiles;
 
 } ARIASDK_NS_END
-
-#else
-#include "TransmitProfilesStub.hpp"
-#endif
