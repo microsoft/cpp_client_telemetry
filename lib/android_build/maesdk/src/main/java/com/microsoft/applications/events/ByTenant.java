@@ -1,5 +1,8 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class ByTenant {
     public String tenantToken;
     public long count;
