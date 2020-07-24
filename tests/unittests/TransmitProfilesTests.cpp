@@ -344,6 +344,7 @@ TEST_F(TransmitProfilesTests, load_OneRule_ReturnsTrueAndSizeFour)
     ASSERT_EQ(TransmitProfiles::profiles.size(), 4);
 }
 
+#ifdef HAVE_MAT_JSONHPP
 TEST_F(TransmitProfilesTests, load_Json_EmptyJsonArray_FailsToParse)
 {
     const std::string badRule = R"([])";
@@ -437,3 +438,10 @@ R"([{
 
     ASSERT_TRUE(TransmitProfiles::load(badRule));
 }
+#else
+TEST_F(TransmitProfilesTests, load_Json_JsonNotEnabled_ReturnsFalse)
+{
+    const std::string rule = R"([])";
+    ASSERT_FALSE(TransmitProfiles::load(rule));
+}
+#endif  // HAVE_MAT_JSONHPP
