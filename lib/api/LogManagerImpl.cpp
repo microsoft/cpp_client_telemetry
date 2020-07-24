@@ -9,6 +9,7 @@
 #include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
+#include "ai/AITelemetrySystem.hpp"
 
 #include "EventProperty.hpp"
 #include "TransmitProfiles.hpp"
@@ -271,7 +272,17 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
+        int32_t sdkMode = m_logConfiguration[CFG_INT_SDK_MODE];
+        if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
+        {
+            m_system.reset(new AITelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                               *m_taskDispatcher, m_bandwidthController));
+        }
+        else
+        {
+            m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                               *m_taskDispatcher, m_bandwidthController));
+        }
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
