@@ -68,7 +68,9 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Backward compatibility transmission mode.</summary>
         SdkModeTypes_UTCBackCompat = 1,
         /// <summary>Common schema transmission mode.</summary>
-        SdkModeTypes_UTCCommonSchema = 2
+        SdkModeTypes_UTCCommonSchema = 2,
+        /// <summary>AppInsights </summary>
+        SdkModeTypes_AI = 3
     };
 
     /// <summary>
