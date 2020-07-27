@@ -135,6 +135,8 @@ public enum LogConfigurationKey {
 
   CFG_BOOL_HTTP_COMPRESSION("compress", Boolean.class),
 
+  CFG_BOOL_HTTP_COMPRESSION_GZIP("gzip", Boolean.class),
+
   CFG_MAP_TPM("tpm", ILogConfiguration.class),
 
   CFG_INT_TPM_MAX_RETRY("maxRetryCount", Long.class),
