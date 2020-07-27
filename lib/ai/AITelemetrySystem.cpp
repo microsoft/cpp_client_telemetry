@@ -152,9 +152,9 @@ namespace ARIASDK_NS_BEGIN {
         packager.emptyPackage >> tpm.nothingToUpload;
 
         packager.packagedEvents >>
-//#ifdef HAVE_MAT_ZLIB
-//        compression.compress >>
-//#endif
+#ifdef HAVE_MAT_ZLIB
+        compression.compress >>
+#endif
         httpEncoder.encode >> clockSkewDelta.encode >> stats.onUploadStarted >> hcm.sendRequest;
 
 #ifdef HAVE_MAT_ZLIB

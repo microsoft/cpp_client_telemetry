@@ -318,7 +318,8 @@ namespace ARIASDK_NS_BEGIN
     /// HTTP configuration: compression
     /// </summary>
     static constexpr const char* const CFG_BOOL_HTTP_COMPRESSION = "compress";
-
+    
+    static constexpr const char* const CFG_BOOL_HTTP_COMPRESSION_GZIP = "gzip";
     /// <summary>
     /// TPM configuration map
     /// </summary>
