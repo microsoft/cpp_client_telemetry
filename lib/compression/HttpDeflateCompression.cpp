@@ -9,7 +9,8 @@
 #endif
 
 namespace ARIASDK_NS_BEGIN {
-
+    #define windowBits
+    #define GZIP_ENCODING 16
 
     HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)
         : m_config(runtimeConfig)
@@ -37,7 +38,12 @@ namespace ARIASDK_NS_BEGIN {
         // All values are defaults as would be used by a plain deflate(), except
         // for the negative -MAX_WBITS argument which makes zlib use "raw deflate"
         // without zlib header, as required by IIS.
-        int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
+        int windowsBits = -MAX_WBITS;
+        if (m_config.IsHttpRequestCompressionGzip()) {
+            windowsBits = MAX_WBITS | GZIP_ENCODING;
+        }
+
+        int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, windowsBits, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
         if (result != Z_OK) {
             LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 1, result, stream.msg);
             compressionFailed(ctx);
