@@ -12,6 +12,10 @@ set(SRCS decorators/BaseDecorator.cpp
   system/EventProperty.cpp
   system/TelemetrySystem.cpp
   system/EventProperties.cpp
+  ai/AIJsonSerializer.cpp
+  ai/AIPackager.cpp
+  ai/AIHttpRequestEncoder.cpp
+  ai/AITelemetrySystem.cpp
   compression/HttpDeflateCompression.cpp
   api/AllowedLevelsCollection.cpp
   api/LogManager.cpp
