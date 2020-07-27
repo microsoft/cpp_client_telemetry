@@ -84,6 +84,8 @@
 		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
 		431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
 		431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
+		437C72E924CF6CD60046F545 /* ObjectiveCWrapperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */; };
+		437C72EB24CF6E590046F545 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437C72EA24CF6E590046F545 /* XCTest.framework */; };
 		FE51D93D243EB59500E54890 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE51D93C243EB59500E54890 /* Network.framework */; };
 /* End PBXBuildFile section */
 
@@ -156,6 +158,8 @@
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
 		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
+		437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCWrapperTests.m; sourceTree = "<group>"; };
+		437C72EA24CF6E590046F545 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		FE51D93C243EB59500E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -171,6 +175,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				437C72EB24CF6E590046F545 /* XCTest.framework in Frameworks */,
 				431EFEC9233EC74E002FCC18 /* libz.tbd in Frameworks */,
 				FE51D93D243EB59500E54890 /* Network.framework in Frameworks */,
 				431EFEC5233EC6A0002FCC18 /* SystemConfiguration.framework in Frameworks */,
@@ -189,6 +194,7 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
+				437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */,
 				431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */,
 				431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */,
 				431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */,
@@ -254,6 +260,7 @@
 		431EFEBF233EC680002FCC18 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				437C72EA24CF6E590046F545 /* XCTest.framework */,
 				FE51D93C243EB59500E54890 /* Network.framework */,
 				431EFEC8233EC74E002FCC18 /* libz.tbd */,
 				431EFEC4233EC6A0002FCC18 /* SystemConfiguration.framework */,
@@ -397,6 +404,7 @@
 				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
 				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
+				437C72E924CF6CD60046F545 /* ObjectiveCWrapperTests.m in Sources */,
 				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
 				430102E5235E660F00836D50 /* iOSWrapper.mm in Sources */,
 				431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
