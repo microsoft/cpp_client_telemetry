@@ -369,17 +369,20 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
 TEST(DefaultDataViewerTests, EnableRemoteViewer_ReceiveData_DataReceivedCorrectly)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
-    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
+    auto httpCalls{0};
+    mockHttpClient->funcSendRequestAsync = [&httpCalls](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
         auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
         response->m_statusCode = 200;
         callback->OnHttpResponse(response.get());
+        httpCalls++;
     };
 
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
     viewer.EnableRemoteViewer("http://TestEndpoint");
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
     viewer.ReceiveData(std::vector<uint8_t>{1, 2, 3});
-    ASSERT_FALSE(viewer.IsTransmissionEnabled());
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+    ASSERT_EQ(httpCalls, 2);
 }
 
 TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTimeout_TransmissionEnabledOnRetry)
