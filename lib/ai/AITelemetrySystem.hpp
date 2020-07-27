@@ -13,8 +13,6 @@
 #endif
 
 #include "http/HttpClientManager.hpp"
-#include "http/HttpResponseDecoder.hpp"
-
 #include "offline/StorageObserver.hpp"
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
@@ -26,6 +24,7 @@
 
 #include "AIJsonSerializer.hpp"
 #include "AIHttpRequestEncoder.hpp"
+#include "AIHttpResponseDecoder.hpp"
 #include "AIPackager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
@@ -61,7 +60,7 @@ namespace ARIASDK_NS_BEGIN {
 
         HttpClientManager         hcm;
         AIHttpRequestEncoder      httpEncoder;
-        HttpResponseDecoder       httpDecoder;
+        AIHttpResponseDecoder       httpDecoder;
         StorageObserver           storage;
         AIPackager                packager;
         TransmissionPolicyManager tpm;
