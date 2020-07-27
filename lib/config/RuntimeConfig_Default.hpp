@@ -48,6 +48,7 @@ namespace ARIASDK_NS_BEGIN
              {CFG_BOOL_HTTP_COMPRESSION, false}
 #endif
              ,
+             {CFG_BOOL_HTTP_COMPRESSION_GZIP, false},
              /* Optional parameter to require Microsoft Root CA */
              {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
         {CFG_MAP_TPM,
@@ -142,6 +143,11 @@ namespace ARIASDK_NS_BEGIN
         virtual bool IsHttpRequestCompressionEnabled() override
         {
             return config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION];
+        }
+
+        virtual bool IsHttpRequestCompressionGzip() override
+        {
+            return config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION_GZIP];
         }
 
         virtual unsigned GetMinimumUploadBandwidthBps() override
