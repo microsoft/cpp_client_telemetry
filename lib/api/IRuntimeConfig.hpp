@@ -129,6 +129,8 @@ namespace ARIASDK_NS_BEGIN
         /// <returns>A boolean value that indicates that either compression is enabled (<i>true</i>), or not (<i>false</i>).</returns>
         virtual bool IsHttpRequestCompressionEnabled() = 0;
 
+        virtual bool IsHttpRequestCompressionGzip() = 0;
+
         /// <summary>
         /// Gets the minimum bandwidth necessary to start an upload.
         /// </summary>

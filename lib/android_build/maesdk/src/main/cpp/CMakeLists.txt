@@ -70,6 +70,10 @@ set(SRCS
         ${SDK_ROOT}/lib/system/EventProperties.cpp
         ${SDK_ROOT}/lib/system/EventProperty.cpp
         ${SDK_ROOT}/lib/system/TelemetrySystem.cpp
+        ${SDK_ROOT}/lib/ai/AIJsonSerializer.cpp
+        ${SDK_ROOT}/lib/ai/AIPackager.cpp
+        ${SDK_ROOT}/lib/ai/AIHttpRequestEncoder.cpp
+        ${SDK_ROOT}/lib/ai/AITelemetrySystem.cpp
         ${SDK_ROOT}/lib/tpm/DeviceStateHandler.cpp
         ${SDK_ROOT}/lib/tpm/TransmissionPolicyManager.cpp
         ${SDK_ROOT}/lib/tpm/TransmitProfiles.cpp
