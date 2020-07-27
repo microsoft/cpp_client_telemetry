@@ -15,6 +15,7 @@ set(SRCS decorators/BaseDecorator.cpp
   ai/AIJsonSerializer.cpp
   ai/AIPackager.cpp
   ai/AIHttpRequestEncoder.cpp
+  ai/AIHttpResponseDecoder.cpp
   ai/AITelemetrySystem.cpp
   compression/HttpDeflateCompression.cpp
   api/AllowedLevelsCollection.cpp
