@@ -73,6 +73,11 @@ namespace ARIASDK_NS_BEGIN
         time_ticks_t(const std::time_t* time);
 
         /// <summary>
+        /// Constructs a time_ticks_t object from a const reference to std::time_t.
+        /// </summary>
+        time_ticks_t(const std::time_t& time) : time_ticks_t(&time) {};
+
+        /// <summary>
         /// The time_ticks_t copy constructor.
         /// </summary>
         time_ticks_t(const time_ticks_t& t);

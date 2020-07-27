@@ -91,6 +91,12 @@ int main(int argc, char *argv[])
     auto& config = LogManager::GetLogConfiguration();
     config = MAT::FromJSON(jsonConfig);
 
+#if 0
+    // Enable this code below to forward events to local collector server
+    // See: tools\tools.sln - server project for local cross-platform .NET Core server implementation
+    config[CFG_STR_COLLECTOR_URL] = "http://localhost:5000/OneCollector/";
+#endif
+
     // LogManager initialization
     ILogger *logger = LogManager::Initialize();
     bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
@@ -152,11 +158,13 @@ int main(int argc, char *argv[])
                 { "strKey2",  "hello2" },
                 { "int64Key", int64_t(1L) },
                 { "dblKey",   3.14 },
-                { "boolKey",  false },
+                { "boolKeyFalse",  bool(false) },
+                { "boolKeyTrue",   bool(true) },
                 { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
                 { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
                 { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-                { "timeKey1", time_ticks_t((uint64_t)0) },     // time in .NET ticks
+                { "timeKey0", time_ticks_t((uint64_t)0) },    // time in .NET ticks 0 (nullable)
+                { "timeKeyNow", time_ticks_t(std::time(0)) }  // time in .NET ticks right now
             });
 
         if (utcActive)
