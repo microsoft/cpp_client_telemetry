@@ -28,6 +28,8 @@ Build recipe must contain the following preprocessor definitions:
 | HAVE_MAT_STORAGE | on | Enable SQLite persistent offline storage |
 | HAVE_MAT_NETDETECT | on | _Win32 Desktop only_: Use NLM COM object for network cost detection on Windows 8+ |
 | HAVE_MAT_SHORT_NS | off | Use short "MAT::" namespace instead of "Microsoft::Applications::Events::" to reduce the .DLL size |
+| HAVE_CS4 | off | Build with Common Schema 4.0 support. Current default is `off`, i.e. building with Common Schema 3.0 support |
+| HAVE_CS4_FULL | off | Enable additional Common Schema 4.0 protocol features needed by server / services SDK |
 | COMPACT_SDK | off | Built-in build recipe for smallest possible SDK. Turns most features off. Includes _mat/config-compact.h_ |
 
 ## Building custom SDK SKU: MSBuild example
