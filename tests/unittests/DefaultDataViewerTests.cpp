@@ -193,7 +193,7 @@ TEST(DefaultDataViewerTests, DisableViewer_TransmissionEnabled_TransmissionDisab
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
 
-TEST(DefaultDataViewerTests, DiableViewer_TransmissionDisabled_TransmissionDisabled)
+TEST(DefaultDataViewerTests, DisableViewer_TransmissionDisabled_TransmissionDisabled)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -204,7 +204,7 @@ TEST(DefaultDataViewerTests, DiableViewer_TransmissionDisabled_TransmissionDisab
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
 
-TEST(DefaultDataViewerTests, DiableViewer_CallOnDisableNotification_NotificationCalled)
+TEST(DefaultDataViewerTests, DisableViewer_CallOnDisableNotification_NotificationCalled)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -219,7 +219,7 @@ TEST(DefaultDataViewerTests, DiableViewer_CallOnDisableNotification_Notification
     ASSERT_TRUE(onDisableNotificationCalled);
 }
 
-TEST(DefaultDataViewerTests, DiableViewer_CallMultipleOnDisableNotifications_NotificationsCalled)
+TEST(DefaultDataViewerTests, DisableViewer_CallMultipleOnDisableNotifications_NotificationsCalled)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
@@ -363,6 +363,22 @@ TEST(DefaultDataViewerTests, ReceiveData_FailToSend_TransmissionDisabled)
     viewer.SetTransmissionEnabled(true);
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
     viewer.ReceiveData(std::vector<uint8_t> { 1, 2, 3 });
+    ASSERT_FALSE(viewer.IsTransmissionEnabled());
+}
+
+TEST(DefaultDataViewerTests, EnableRemoteViewer_ReceiveData_DataReceivedCorrectly)
+{
+    auto mockHttpClient = std::make_shared<MockHttpClient>();
+    mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback) {
+        auto response = std::unique_ptr<MAT::SimpleHttpResponse>(new SimpleHttpResponse("1"));
+        response->m_statusCode = 200;
+        callback->OnHttpResponse(response.get());
+    };
+
+    MockDefaultDataViewer viewer(mockHttpClient, "Test");
+    viewer.EnableRemoteViewer("http://TestEndpoint");
+    ASSERT_TRUE(viewer.IsTransmissionEnabled());
+    viewer.ReceiveData(std::vector<uint8_t>{1, 2, 3});
     ASSERT_FALSE(viewer.IsTransmissionEnabled());
 }
 
