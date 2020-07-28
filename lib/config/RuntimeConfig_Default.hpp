@@ -92,6 +92,7 @@ namespace ARIASDK_NS_BEGIN
                 {
                     // Populate default track URL instead of collector
                     config[CFG_STR_COLLECTOR_URL] = "https://dc.services.visualstudio.com/v2/track";
+                    config["http"]["gzip"] = true;
                     // See complete list of custom end-point URLs here:
                     // https://docs.microsoft.com/en-us/azure/azure-monitor/app/custom-endpoints
                 }
