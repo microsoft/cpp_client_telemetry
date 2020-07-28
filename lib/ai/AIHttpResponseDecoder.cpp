@@ -134,6 +134,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         case RetryServer: {
+            //TBD - labhas ( Need to handle  Retry-after-policy ). As of now, it will keep on retrying till retry-count.
             LOG_WARN("HTTP request %s failed after %d ms, a temporary server error has occurred (%u) and events will be sent at a different time",
                 response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
@@ -181,7 +182,6 @@ namespace ARIASDK_NS_BEGIN {
                     received = rec.value().get<int>();
                 }
             }
-
             int accepted = 0;
             auto acc = responseBody.find("itemsAccepted");
             if (responseBody.end() != acc)
@@ -191,9 +191,20 @@ namespace ARIASDK_NS_BEGIN {
                     accepted = acc.value().get<int>();
                 }
             }
-            if (received > accepted ) {
-                result = Rejected;
+            bool isRetry = false;
+            auto err = responseBody.find("errors");
+            if (responseBody.end() != err) {
+                for (auto& el: responseBody["errors"]) {
+                    int statusCode = el["statusCode"].get<int>();
+                    if (statusCode == 429 || statusCode == 500 || statusCode == 503 ) {
+                        isRetry  = true;
+                    }
+                }
             }
+            if (received > accepted ) {
+                //TBD - Need to handle partial retry of failed records. As of now, all the records would be retried.
+                result = isRetry ? RetryServer: Rejected; 
+            } 
         }
         catch (...)
         {
