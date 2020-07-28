@@ -91,7 +91,7 @@ namespace ARIASDK_NS_BEGIN {
             ctx->httpRequest->GetHeaders().add("Content-Encoding", contentEncoding);
         }
 
-#if 0
+#if 1
         // XXX: [MG] - debug only
         std::string str;
         if (ctx->compressed) {
