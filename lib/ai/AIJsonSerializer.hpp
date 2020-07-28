@@ -8,6 +8,7 @@ namespace ARIASDK_NS_BEGIN {
 
 class AIJsonSerializer {
   protected:
+    std::string m_sessionId;
     bool handleSerialize(IncomingEventContextPtr const& ctx);
 
   public:
