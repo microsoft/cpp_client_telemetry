@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#include "mat/config.h"
+#ifdef HAVE_MAT_AI
 #include "AIJsonSerializer.hpp"
 #include "CorrelationVector.hpp"
 #include "json.hpp"
@@ -73,3 +74,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 } ARIASDK_NS_END
+#endif
