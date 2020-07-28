@@ -12,10 +12,6 @@ set(SRCS decorators/BaseDecorator.cpp
   system/EventProperty.cpp
   system/TelemetrySystem.cpp
   system/EventProperties.cpp
-  ai/AIJsonSerializer.cpp
-  ai/AIPackager.cpp
-  ai/AIHttpRequestEncoder.cpp
-  ai/AITelemetrySystem.cpp
   compression/HttpDeflateCompression.cpp
   api/AllowedLevelsCollection.cpp
   api/LogManager.cpp
@@ -51,6 +47,18 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/TaskDispatcher_CAPI.cpp
   pal/WorkerThread.cpp
 )
+
+# Support for Azure Monitor / Application Insights
+if(BUILD_AZMON)
+  message("-- Building with Azure Monitor support")
+  add_definitions("-DHAVE_MAT_AI")
+  list(APPEND SRCS
+    ai/AIJsonSerializer.cpp
+    ai/AIPackager.cpp
+    ai/AIHttpRequestEncoder.cpp
+    ai/AITelemetrySystem.cpp
+  )
+endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   list(APPEND SRCS
