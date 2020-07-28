@@ -147,7 +147,7 @@ namespace ARIASDK_NS_BEGIN {
         tpm.initiateUpload >> storage.retrieveEvents;
 
         storage.retrievedEvent >> packager.addEventToPackage;
-//        storage.retrievalFinished >> packager.finalizePackage;
+        storage.retrievalFinished >> packager.finalizePackage;
 
         storage.retrievalFailed >> tpm.nothingToUpload;
         packager.emptyPackage >> tpm.nothingToUpload;
