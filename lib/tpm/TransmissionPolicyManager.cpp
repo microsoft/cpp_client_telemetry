@@ -369,5 +369,61 @@ namespace ARIASDK_NS_BEGIN {
         finishUpload(ctx, -1);
     }
 
+    void TransmissionPolicyManager::addUpload(EventsUploadContextPtr const& ctx)
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        m_activeUploads.insert(ctx);
+    }
+
+    bool TransmissionPolicyManager::removeUpload(EventsUploadContextPtr const& ctx)
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        auto it = m_activeUploads.find(ctx);
+        if (it != m_activeUploads.cend())
+        {
+            LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx.get());
+            m_activeUploads.erase(it);
+            return true;
+        }
+        return false;
+    }
+
+    void TransmissionPolicyManager::pauseAllUploads()
+    {
+        m_isPaused = true;
+        cancelUploadTask();
+    }
+
+    bool TransmissionPolicyManager::cancelUploadTask()
+    {
+        uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
+        bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
+
+        // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
+        //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
+        //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        if (result)
+        {
+            m_isUploadScheduled.exchange(false);
+        }
+        return result;
+    }
+
+    size_t TransmissionPolicyManager::uploadCount()
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        return m_activeUploads.size();
+    }
+
+    bool TransmissionPolicyManager::isUploadInProgress()
+    {
+        // unfinished uploads that haven't processed callbacks or pending upload task
+        return (uploadCount() > 0) || m_isUploadScheduled;
+    }
+
+    bool TransmissionPolicyManager::isPaused()
+    {
+        return m_isPaused;
+    }
 
 } ARIASDK_NS_END

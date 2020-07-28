@@ -90,66 +90,30 @@ namespace ARIASDK_NS_BEGIN {
         /// Thread-safe method to add the upload to active uploads.
         /// </summary>
         /// <param name="ctx">The CTX.</param>
-        void addUpload(EventsUploadContextPtr const& ctx)
-        {
-            LOCKGUARD(m_activeUploads_lock);
-            m_activeUploads.insert(ctx);
-        }
+        void addUpload(EventsUploadContextPtr const& ctx);
         
         /// <summary>
         /// Thread-safe method to remove the upload from active uploads.
         /// </summary>
         /// <param name="ctx">The CTX.</param>
         /// <returns></returns>
-        bool removeUpload(EventsUploadContextPtr const& ctx)
-        {
-            LOCKGUARD(m_activeUploads_lock);
-            auto it = m_activeUploads.find(ctx);
-            if (it != m_activeUploads.cend())
-            {
-                LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx.get());
-                m_activeUploads.erase(it);
-                return true;
-            }
-            return false;
-        }
+        bool removeUpload(EventsUploadContextPtr const& ctx);
         
         /// <summary>
         /// Cancel pending upload task and stop scheduling further uploads.
         /// </summary>
-        void pauseAllUploads()
-        {
-            m_isPaused = true;
-            cancelUploadTask();
-        }
+        void pauseAllUploads();
         
         /// <summary>
         /// Cancels pending upload task.
         /// </summary>
-        bool cancelUploadTask()
-        {
-            uint64_t cancelWaitTimeMs = (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
-            bool result = m_scheduledUpload.Cancel(cancelWaitTimeMs);
-
-            // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
-            //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
-            //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
-            if (result)
-            {
-                m_isUploadScheduled.exchange(false);
-            }
-            return result;
-        }
+        bool cancelUploadTask();
         
         /// <summary>
         /// Calculate the number of pending upload contexts.
         /// </summary>
         /// <returns></returns>
-        size_t uploadCount()
-        {
-            LOCKGUARD(m_activeUploads_lock);
-            return m_activeUploads.size();
-        }
+        size_t uploadCount();
 
         int                              m_timerdelay;
         EventLatency                     m_runningLatency;
@@ -172,17 +136,9 @@ namespace ARIASDK_NS_BEGIN {
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{ this, &TransmissionPolicyManager::handleEventsUploadFailed };
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{ this, &TransmissionPolicyManager::handleEventsUploadAborted };
 
-        virtual bool isUploadInProgress()
-        {
-            // unfinished uploads that haven't processed callbacks or pending upload task
-            return (uploadCount() > 0) || m_isUploadScheduled;
-        }
+        virtual bool isUploadInProgress();
 
-        virtual bool isPaused()
-        {
-            return m_isPaused;
-        }
-
+        virtual bool isPaused();
     };
 
 
