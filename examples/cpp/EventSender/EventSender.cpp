@@ -91,6 +91,30 @@ int main(int argc, char *argv[])
     auto& config = LogManager::GetLogConfiguration();
     config = MAT::FromJSON(jsonConfig);
 
+#if 0
+    // Enable this code below to forward events to local collector server
+    // See: tools\tools.sln - server project for local cross-platform .NET Core server implementation
+    config[CFG_STR_COLLECTOR_URL] = "http://localhost:5000/OneCollector/";
+#endif
+
+    // Quick test of the Application Insights channel
+#if 1
+    // Local test server - use console to debug
+    config[CFG_STR_COLLECTOR_URL] = "http://localhost:5000/v2/track";
+    config[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
+    config["http"]["compression"] = false; // Right now test server is confused about the type of gzip encoding we use
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;           // don't emit stats
+    config[CFG_STR_PRIMARY_TOKEN] = "4861647d-5f17-40c2-8b52-f5ad2f535464";     // Application Insights 1DS demo key
+#else
+    // Actual server - use Fiddler to debug
+    config[CFG_STR_COLLECTOR_URL] = "https://dc.services.visualstudio.com/v2/track";
+    config[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
+    config["http"]["compression"] = true;
+    config["http"]["gzip"] = true;
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;           // don't emit stats
+    config[CFG_STR_PRIMARY_TOKEN] = "4861647d-5f17-40c2-8b52-f5ad2f535464";     // Application Insights 1DS demo key
+#endif
+
     // LogManager initialization
     ILogger *logger = LogManager::Initialize();
     bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
@@ -152,11 +176,13 @@ int main(int argc, char *argv[])
                 { "strKey2",  "hello2" },
                 { "int64Key", int64_t(1L) },
                 { "dblKey",   3.14 },
-                { "boolKey",  false },
+                { "boolKeyFalse",  bool(false) },
+                { "boolKeyTrue",   bool(true) },
                 { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
                 { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
                 { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-                { "timeKey1", time_ticks_t((uint64_t)0) },     // time in .NET ticks
+                { "timeKey0", time_ticks_t((uint64_t)0) },    // time in .NET ticks 0 (nullable)
+                { "timeKeyNow", time_ticks_t(std::time(0)) }  // time in .NET ticks right now
             });
 
         if (utcActive)
@@ -174,6 +200,8 @@ int main(int argc, char *argv[])
         {
             evt.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
         }
+
+#if 0   // FIXME: [MG] - we do not want big strings sent to Application Insights yet...
         else if (std::string("My.Detailed.Event.RPC") == eventName)
         {
             // Ingest some UTC 'large' events via RPC channel
@@ -185,6 +213,7 @@ int main(int argc, char *argv[])
             }
             evt.SetProperty("bigString", s);
         }
+#endif
 
         printf("Sending %s\n", eventName);
         logger->LogEvent(evt);
@@ -192,7 +221,14 @@ int main(int argc, char *argv[])
 
     // Shutdown
     printf("FlushAndTeardown...\n");
-    LogManager::FlushAndTeardown();
+
+    // Push it
+    LogManager::UploadNow();
+    // FIXME: [MG] - hack for the lack of waiter in Application Insights implementation
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+    // FIXME: [MG] - not good.. We're hanging here. Possibly while trying to read offline storage DB, which we do not properly wire just yet?
+    // LogManager::FlushAndTeardown();
     printf("[ DONE ]\n");
 
     return 0;
