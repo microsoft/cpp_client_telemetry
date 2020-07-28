@@ -61,10 +61,6 @@ static void initTransmitProfileFields()
 
 namespace ARIASDK_NS_BEGIN {
 
-
-    static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
-    static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
-
     static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
     string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
@@ -180,6 +176,8 @@ namespace ARIASDK_NS_BEGIN {
 #ifdef HAVE_MAT_JSONHPP
     size_t TransmitProfiles::parse(const std::string& profiles_json)
     {
+        static const char* attributeName = "name";
+        static const char* attributeRules = "rules";
         size_t numProfilesParsed = 0;
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
@@ -204,10 +202,10 @@ namespace ARIASDK_NS_BEGIN {
                     json rulesObj = it.value();
                     if (rulesObj.is_object())
                     {
-                        std::string name = rulesObj[ATTR_NAME];
+                        std::string name = rulesObj[attributeName];
 
                         profile.name = name;
-                        json rules = rulesObj[ATTR_RULES];
+                        json rules = rulesObj[attributeRules];
 
                         if (rules.is_array())
                         {
