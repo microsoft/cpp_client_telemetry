@@ -284,15 +284,21 @@ namespace ARIASDK_NS_BEGIN
         if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
         {
             m_system.reset(new AITelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
-                                               *m_taskDispatcher, m_bandwidthController));
+                                                 *m_taskDispatcher, m_bandwidthController));
         }
         else
 #endif
-        // TODO: [MG] - would it be more explicit if we ensure this is SdkModeTypes_CS?
+            if (sdkMode == SdkModeTypes::SdkModeTypes_CS)
         {
             m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
                                                *m_taskDispatcher, m_bandwidthController));
         }
+        else
+        {
+            LOG_WARN("Unknown SDK mode specified!");
+            return;
+        };
+
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
