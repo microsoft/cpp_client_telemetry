@@ -288,16 +288,12 @@ namespace ARIASDK_NS_BEGIN
         }
         else
 #endif
-            if (sdkMode == SdkModeTypes::SdkModeTypes_CS)
         {
+            // Default mode is Common Schema - direct
+            (void)(sdkMode);
             m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
                                                *m_taskDispatcher, m_bandwidthController));
         }
-        else
-        {
-            LOG_WARN("Unknown SDK mode specified!");
-            return;
-        };
 
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)

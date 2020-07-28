@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 #endif
 
     // Quick test of the Application Insights channel
-#if 1
+#if 0
     // Local test server - use console to debug
     config[CFG_STR_COLLECTOR_URL] = "http://localhost:5000/v2/track";
     config[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
