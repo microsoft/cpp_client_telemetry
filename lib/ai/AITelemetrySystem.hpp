@@ -25,7 +25,6 @@
 #include "AIJsonSerializer.hpp"
 #include "AIHttpRequestEncoder.hpp"
 #include "AIHttpResponseDecoder.hpp"
-#include "AIPackager.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -62,7 +61,7 @@ namespace ARIASDK_NS_BEGIN {
         AIHttpRequestEncoder      httpEncoder;
         AIHttpResponseDecoder     httpDecoder;
         StorageObserver           storage;
-        AIPackager                packager;
+        Packager                  packager;
         TransmissionPolicyManager tpm;
         ClockSkewDelta            clockSkewDelta;
         AIJsonSerializer          aiJsonSerializer;

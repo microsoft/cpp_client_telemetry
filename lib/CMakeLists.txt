@@ -54,7 +54,7 @@ if(BUILD_AZMON)
   add_definitions("-DHAVE_MAT_AI")
   list(APPEND SRCS
     ai/AIJsonSerializer.cpp
-    ai/AIPackager.cpp
+    ai/AIJsonArraySplicer.cpp
     ai/AIHttpRequestEncoder.cpp
     ai/AIHttpResponseDecoder.cpp
     ai/AITelemetrySystem.cpp
