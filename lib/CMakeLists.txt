@@ -56,6 +56,7 @@ if(BUILD_AZMON)
     ai/AIJsonSerializer.cpp
     ai/AIPackager.cpp
     ai/AIHttpRequestEncoder.cpp
+    ai/AIHttpResponseDecoder.cpp
     ai/AITelemetrySystem.cpp
   )
 endif()

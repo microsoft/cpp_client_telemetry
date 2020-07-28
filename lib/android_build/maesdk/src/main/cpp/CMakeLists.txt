@@ -93,6 +93,7 @@ if (BUILD_AZMON)
     ${SDK_ROOT}/lib/ai/AIJsonSerializer.cpp
     ${SDK_ROOT}/lib/ai/AIPackager.cpp
     ${SDK_ROOT}/lib/ai/AIHttpRequestEncoder.cpp
+    ${SDK_ROOT}/lib/ai/AIHttpResponseDecoder.cpp
     ${SDK_ROOT}/lib/ai/AITelemetrySystem.cpp
   )
 endif()
