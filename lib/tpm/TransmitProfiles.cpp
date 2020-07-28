@@ -32,9 +32,10 @@ static const set<string, std::greater<string>> defaultProfileNames = {
 static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
-/// Compile-time map of text fields to struct fields and their types.
+/// Runtime map of text fields to struct fields and their types.
 /// This map greatly helps to simplify the serialization from JSON to binary.
 /// </summary>
+#ifdef HAVE_MAT_JSONHPP
 static std::map<std::string, int > transmitProfileNetCost;
 static std::map<std::string, int > transmitProfilePowerState;
 
@@ -54,6 +55,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["battery"] = (PowerSource_Battery);
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
 };
+#endif
 
 #define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
@@ -555,7 +557,9 @@ namespace ARIASDK_NS_BEGIN {
 
     TransmitProfiles::TransmitProfiles()
     {
+#ifdef HAVE_MAT_JSONHPP
         initTransmitProfileFields();
+#endif
     }
 
 #ifdef _MSC_VER
@@ -564,7 +568,7 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     TransmitProfiles::~TransmitProfiles()
     {
-#ifdef _WIN32
+#if (defined(_WIN32) && defined(HAVE_MAT_JSONHPP))
         // This silly code is required for vs2013 compiler workaround
         // https://connect.microsoft.com/VisualStudio/feedback/details/800104/
         __try {
