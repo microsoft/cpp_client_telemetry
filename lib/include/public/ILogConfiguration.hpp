@@ -198,6 +198,11 @@ namespace ARIASDK_NS_BEGIN
     static constexpr const char* const CFG_INT_STORAGE_FULL_PCT = "cacheFileFullNotificationPercentage";
 
     /// <summary>
+    /// The minimum time (ms) between storage full notifications.
+    /// </summary>
+    static constexpr const char* const CFG_INT_STORAGE_FULL_CHECK_TIME = "cacheFullNotificationIntervalTime";
+
+    /// <summary>
     /// The cache memory percentage full notification.
     /// </summary>
     static constexpr const char* const CFG_INT_RAMCACHE_FULL_PCT = "cacheMemoryFullNotificationPercentage";

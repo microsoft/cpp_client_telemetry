@@ -58,9 +58,6 @@ namespace ARIASDK_NS_BEGIN {
         // Debug routine to print record count in the DB
         void printRecordCount();
 
-        // Perform DB full check once a minute
-        const size_t                DB_FULL_CHECK_TIME_MS = 5000;
-
     protected:
         mutable std::recursive_mutex m_lock {};
         IOfflineStorageObserver*    m_observer {};
@@ -103,6 +100,7 @@ namespace ARIASDK_NS_BEGIN {
         unsigned                    m_lastReadCount {};
         std::string                 m_offlineStorageFileName {};
         unsigned                    m_DbSizeNotificationLimit {};
+        uint64_t                    m_DbSizeNotificationInterval {};
         size_t                      m_DbSizeHeapLimit {};
         size_t                      m_DbSizeLimit {};
         std::atomic<size_t>         m_DbSizeEstimate {};

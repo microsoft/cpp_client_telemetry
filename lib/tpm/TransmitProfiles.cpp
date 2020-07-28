@@ -67,7 +67,7 @@ namespace ARIASDK_NS_BEGIN {
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
-    std::atomic<bool> TransmitProfiles::isTimerUpdated(true);
+    bool        TransmitProfiles::isTimerUpdated = true;
 
     /// <summary>
     /// Get current transmit profile name
@@ -488,6 +488,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     bool TransmitProfiles::isTimerUpdateRequired()
     {
+        LOCK_PROFILES;
         return isTimerUpdated;
     }
 

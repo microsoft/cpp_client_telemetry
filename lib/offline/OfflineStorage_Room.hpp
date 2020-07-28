@@ -98,7 +98,7 @@ namespace ARIASDK_NS_BEGIN
         size_t m_size_limit = 3 * 1024 * 1024;  // 3 MB
         double m_notify_fraction = 0.75;
         uint64_t m_storageFullNotifyTime = 0;
-        constexpr static uint64_t DB_FULL_CHECK_TIME_MS = 5000;
+        uint64_t m_storageFullNotifyInterval = DB_FULL_CHECK_INTERVAL_DEFAULT_MS;
         std::atomic<size_t> m_checkAfterInsertCounter;
         std::atomic<unsigned> m_lastReadCount;
         std::mutex m_jniThreadsMutex;

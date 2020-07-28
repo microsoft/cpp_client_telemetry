@@ -105,6 +105,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
+        updateTimersIfNecessary();
         if (m_timers[0] < 0) {
             latency = std::max(latency, EventLatency_RealTime); // low priority disabled by profile
         }
@@ -206,6 +207,16 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
+    bool TransmissionPolicyManager::updateTimersIfNecessary()
+    {
+        bool needsUpdate = TransmitProfiles::isTimerUpdateRequired();
+        if (needsUpdate)
+        {
+            TransmitProfiles::getTimers(m_timers);
+        }
+        return needsUpdate;
+    }
+
     bool TransmissionPolicyManager::handleStart()
     {
         m_isPaused = false;
@@ -281,9 +292,8 @@ namespace ARIASDK_NS_BEGIN {
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
-            if (TransmitProfiles::isTimerUpdateRequired())
+            if (updateTimersIfNecessary())
             {
-                TransmitProfiles::getTimers(m_timers);
                 m_timerdelay = m_timers[1];
                 forceTimerRestart = true;
             }
@@ -299,6 +309,8 @@ namespace ARIASDK_NS_BEGIN {
     // We alternate RealTime and Normal otherwise (timers differ)
     EventLatency TransmissionPolicyManager::calculateNewPriority()
     {
+        updateTimersIfNecessary();
+
         if (m_timers[0] == m_timers[1])
         {
             return EventLatency_Normal;
