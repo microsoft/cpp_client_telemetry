@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <atomic>
+#include <ai/AIJsonArraySplicer.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -80,7 +81,9 @@ namespace ARIASDK_NS_BEGIN {
         unsigned                             requestedMaxCount = 0;
 
         // Packaging
-        BondSplicer                          splicer;
+        // HAVE_MAT_AI or runtime configuration?
+        AIJsonArraySplicer splicer;
+        //BondSplicer                          splicer;
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
