@@ -72,17 +72,14 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
         LOCKGUARD(m_scheduledUploadMutex);
-        if (delayInMs < 0 || m_timerdelay.count() < 0) {
-            return; // profile: no upload allowed
+        if (delayInMs < 0 || m_timerdelay.count() < 0) 
+        {
+            LOG_TRACE("Negative delayInMs(%d) or m_timerdelay(%d), no upload", delayInMs, m_timerdelay.count());
+            return;
         }
         if (m_scheduledUploadAborted)
         {
             return;
-        }
-        if (delayInMs < 0 || m_timerdelay.count() < 0)
-        {
-            LOG_TRACE("Negative delayInMs or m_timerdelay, no upload");
-            return; // transmission prohibited by profile
         }
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
         {
