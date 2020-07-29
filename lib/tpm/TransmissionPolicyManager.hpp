@@ -37,7 +37,6 @@ constexpr std::chrono::milliseconds DefaultTaskCancelTime { uint64_t { UPLOAD_TA
 constexpr std::chrono::milliseconds DefaultTaskCancelTime { 500 };
 #endif
 
-constexpr int DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 
     class TransmissionPolicyManager
@@ -127,7 +126,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         /// <returns></returns>
         size_t uploadCount();
 
-        int                              m_timerdelay { DEFAULT_DELAY_SEND_HTTP };
+        std::chrono::milliseconds        m_timerdelay { std::chrono::seconds { 2 } };
         EventLatency                     m_runningLatency { EventLatency_RealTime };
         TimerArray                       m_timers;
 
