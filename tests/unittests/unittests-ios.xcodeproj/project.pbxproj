@@ -84,8 +84,9 @@
 		431EFED1233ECB0F002FCC18 /* libUnitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 431EFED0233ECB0F002FCC18 /* libUnitTests.a */; };
 		431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
 		431EFED7234255C4002FCC18 /* DataViewerCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */; };
-		437C72E924CF6CD60046F545 /* ObjectiveCWrapperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */; };
 		437C72EB24CF6E590046F545 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437C72EA24CF6E590046F545 /* XCTest.framework */; };
+		437C72ED24D0C5D70046F545 /* ODWEventPropertiesTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */; };
+		437C72EF24D21ACE0046F545 /* ODWSemanticContextTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */; };
 		FE51D93D243EB59500E54890 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE51D93C243EB59500E54890 /* Network.framework */; };
 /* End PBXBuildFile section */
 
@@ -158,8 +159,9 @@
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
 		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
-		437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectiveCWrapperTests.m; sourceTree = "<group>"; };
 		437C72EA24CF6E590046F545 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWEventPropertiesTests.mm; path = "obj-c/ODWEventPropertiesTests.mm"; sourceTree = "<group>"; };
+		437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWSemanticContextTests.mm; path = "obj-c/ODWSemanticContextTests.mm"; sourceTree = "<group>"; };
 		FE51D93C243EB59500E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -194,7 +196,8 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
-				437C72E724CF6CD60046F545 /* ObjectiveCWrapperTests.m */,
+				437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */,
+				437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */,
 				431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */,
 				431EFE30233EBE53002FCC18 /* BackoffTests_ExponentialWithJitter.cpp */,
 				431EFE36233EBE53002FCC18 /* BondSplicerTests.cpp */,
@@ -404,7 +407,6 @@
 				431EFEA9233EC590002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
 				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
-				437C72E924CF6CD60046F545 /* ObjectiveCWrapperTests.m in Sources */,
 				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
 				430102E5235E660F00836D50 /* iOSWrapper.mm in Sources */,
 				431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
@@ -416,11 +418,13 @@
 				431EFEB4233EC590002FCC18 /* PackagerTests.cpp in Sources */,
 				431EFEAD233EC590002FCC18 /* LogManagerImplTests.cpp in Sources */,
 				431EFEB9233EC590002FCC18 /* TransmissionPolicyManagerTests.cpp in Sources */,
+				437C72EF24D21ACE0046F545 /* ODWSemanticContextTests.mm in Sources */,
 				431EFEA1233EC590002FCC18 /* EventPropertiesStorageTests.cpp in Sources */,
 				431EFE9F233EC590002FCC18 /* DiskLocalStorageTests.cpp in Sources */,
 				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */,
 				431EFEB8233EC590002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */,
+				437C72ED24D0C5D70046F545 /* ODWEventPropertiesTests.mm in Sources */,
 				431EFEB6233EC590002FCC18 /* RouteTests.cpp in Sources */,
 				431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
 				431EFEB7233EC590002FCC18 /* StringUtilsTests.cpp in Sources */,
@@ -510,6 +514,7 @@
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
 					../common/,
+					"../../wrappers/obj-c/",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -574,6 +579,7 @@
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
 					../common/,
+					"../../wrappers/obj-c/",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -644,6 +650,7 @@
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
 					../../common/,
+					"../../wrappers/obj-c/",
 				);
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -674,6 +681,7 @@
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
 					../../common/,
+					"../../wrappers/obj-c/",
 				);
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
