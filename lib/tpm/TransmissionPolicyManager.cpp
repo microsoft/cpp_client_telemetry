@@ -386,7 +386,7 @@ namespace ARIASDK_NS_BEGIN {
         cancelUploadTask();
     }
 
-    std::chrono::milliseconds TransmissionPolicyManager::getCancelWaitTime() noexcept
+    std::chrono::milliseconds TransmissionPolicyManager::getCancelWaitTime() const noexcept
     {
        return (m_scheduledUploadAborted) ? DefaultTaskCancelTime : std::chrono::milliseconds {};
     }
@@ -405,19 +405,19 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
-    size_t TransmissionPolicyManager::uploadCount()
+    size_t TransmissionPolicyManager::uploadCount() const noexcept
     {
         LOCKGUARD(m_activeUploads_lock);
         return m_activeUploads.size();
     }
 
-    bool TransmissionPolicyManager::isUploadInProgress()
+    bool TransmissionPolicyManager::isUploadInProgress() const noexcept
     {
         // unfinished uploads that haven't processed callbacks or pending upload task
         return (uploadCount() > 0) || m_isUploadScheduled;
     }
 
-    bool TransmissionPolicyManager::isPaused()
+    bool TransmissionPolicyManager::isPaused() const noexcept
     {
         return m_isPaused;
     }
