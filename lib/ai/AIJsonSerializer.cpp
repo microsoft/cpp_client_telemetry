@@ -21,11 +21,6 @@ namespace ARIASDK_NS_BEGIN {
         return semVerStr;
     };
 
-    static const std::string& getSessionId()
-    {
-        static std::string sessionId = PAL::generateUuidString();
-        return sessionId;
-    };
 
     static std::string formatTimestamp(time_t ticks)
     {
@@ -35,7 +30,7 @@ namespace ARIASDK_NS_BEGIN {
         return text;
     }
 
-    json serializeToAppInsightsFormat(IncomingEventContextPtr const& event)
+    json serializeToAppInsightsFormat(IncomingEventContextPtr const& event, std::string const& sessionId, bool isNewSession)
     {
         ::CsProtocol::Record* source = event->source;
 
@@ -75,18 +70,15 @@ namespace ARIASDK_NS_BEGIN {
                 { "tags", {
                          { "ai.application.ver", source->extApp[0].ver },
                          { "ai.device.id", source->extDevice[0].localId },
-                         { "ai.device.language", "en" },
-                         { "ai.device.locale", source->extApp[0].locale }, // en-US vs "en_US"
+                         { "ai.device.locale", source->extApp[0].locale },
                          { "ai.device.model", source->extProtocol[0].devModel },
                          { "ai.device.oemName", source->extProtocol[0].devMake },
                          { "ai.device.os", source->extOs[0].name },
                          { "ai.device.osVersion", source->extOs[0].ver },
-                         { "ai.device.screenResolution", "2340x1080" },
                          { "ai.device.type", source->extDevice[0].deviceClass },
-                         {"ai.session.id", getSessionId() },
-                         { "ai.session.isFirst", "false" },
-                         { "ai.session.isNew", "true" },
-                         { "ai.user.id", "5c3e9dff-4372-4dd0-923b-ef7d1bbd70e9" },
+                         { "ai.session.id", sessionId },
+                         { "ai.session.isFirst", isNewSession },
+                         { "ai.user.id", source->extUser[0].localId },
                          { "ai.internal.sdkVersion", getSdkSemVer() }
                      }},
                 { "data", {
@@ -104,7 +96,13 @@ namespace ARIASDK_NS_BEGIN {
 
     bool AIJsonSerializer::handleSerialize(IncomingEventContextPtr const& ctx)
     {
-        json result = serializeToAppInsightsFormat(ctx);
+        bool isNewSession = false;
+        if (m_sessionId.empty()) {
+            m_sessionId = PAL::generateUuidString();
+            isNewSession = true; // TBD is not correct when first events is a stats events
+        }
+
+        json result = serializeToAppInsightsFormat(ctx, m_sessionId, isNewSession);
         auto str = result.dump();
         std::vector<uint8_t> vec(str.begin(), str.end());
         ctx->record.blob = vec;
