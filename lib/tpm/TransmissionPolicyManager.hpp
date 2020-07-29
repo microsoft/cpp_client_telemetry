@@ -103,7 +103,9 @@ namespace ARIASDK_NS_BEGIN {
         /// Cancel pending upload task and stop scheduling further uploads.
         /// </summary>
         void pauseAllUploads();
-        
+
+        uint64_t getCancelWaitTime() noexcept;
+
         /// <summary>
         /// Cancels pending upload task.
         /// </summary>
