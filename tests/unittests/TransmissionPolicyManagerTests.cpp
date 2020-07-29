@@ -29,11 +29,13 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
 
+    using TransmissionPolicyManager::increaseBackoff;
     using TransmissionPolicyManager::addUpload;
     using TransmissionPolicyManager::removeUpload;
     using TransmissionPolicyManager::getCancelWaitTime;
     using TransmissionPolicyManager::cancelUploadTask;
 
+    using TransmissionPolicyManager::m_backoff;
     using TransmissionPolicyManager::m_isPaused;
     using TransmissionPolicyManager::m_scheduledUploadAborted;
     using TransmissionPolicyManager::m_isUploadScheduled;
@@ -95,7 +97,6 @@ class TransmissionPolicyManagerTests : public StrictMock<Test> {
             WillByDefault(Invoke(&tpm, &TransmissionPolicyManager4Test::uploadAsyncParent));
     }
 };
-
 
 #if 0
 TEST_F(TransmissionPolicyManagerTests, StartSchedulesUploadImmediately)
@@ -602,4 +603,21 @@ TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_IsUpload
     tpm.m_isUploadScheduled = true;
     tpm.cancelUploadTask();
     ASSERT_FALSE(tpm.m_isUploadScheduled);
+}
+
+TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)
+{
+    tpm.m_backoff = nullptr;
+    ASSERT_EQ(tpm.increaseBackoff(), 0);
+}
+
+TEST_F(TransmissionPolicyManagerTests, increaseBackoff_ValidBackoffObject_ReturnsGreaterThanZero)
+{
+    ASSERT_GT(tpm.increaseBackoff(), 0);
+}
+
+TEST_F(TransmissionPolicyManagerTests, increaseBackoff_CalledTwice_ReturnsHigherValue)
+{
+    auto first = tpm.increaseBackoff();
+    ASSERT_GT(tpm.increaseBackoff(), first);
 }
