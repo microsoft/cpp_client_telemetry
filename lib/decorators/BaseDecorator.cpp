@@ -1,3 +1,4 @@
+#include "mat/config.h"
 #include "BaseDecorator.hpp"
 
 namespace ARIASDK_NS_BEGIN {
