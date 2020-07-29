@@ -544,6 +544,12 @@ TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAbort
     ASSERT_EQ(tpm.getCancelWaitTime(), std::chrono::milliseconds{});
 }
 
+TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAborted_ReturnsZeroInteger)
+{
+    tpm.m_scheduledUploadAborted = false;
+    ASSERT_EQ(tpm.getCancelWaitTime().count(), uint64_t { 0 });
+}
+
 TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_ReturnsTrue)
 {
     ASSERT_TRUE(tpm.cancelUploadTask());
