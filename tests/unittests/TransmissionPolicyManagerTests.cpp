@@ -31,6 +31,9 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
 
     using TransmissionPolicyManager::addUpload;
     using TransmissionPolicyManager::removeUpload;
+    using TransmissionPolicyManager::getCancelWaitTime;
+
+    using TransmissionPolicyManager::m_scheduledUploadAborted;
 
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
@@ -511,4 +514,16 @@ TEST_F(TransmissionPolicyManagerTests, removeUpload_CalledTwiceContextAdded_Retu
     tpm.addUpload(ctx);
     EXPECT_TRUE(tpm.removeUpload(ctx));
     EXPECT_FALSE(tpm.removeUpload(ctx));
+}
+
+TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadAborted_ReturnsDefaultValue)
+{
+    tpm.m_scheduledUploadAborted = true;
+    ASSERT_EQ(tpm.getCancelWaitTime(), uint64_t { UPLOAD_TASK_CANCEL_TIME_MS });
+}
+
+TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAborted_ReturnsZero)
+{
+    tpm.m_scheduledUploadAborted = false;
+    ASSERT_EQ(tpm.getCancelWaitTime(), uint64_t { 0 });
 }
