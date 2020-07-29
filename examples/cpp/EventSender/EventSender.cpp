@@ -1,3 +1,4 @@
+#if 0 /* Temporarily turning this code off in Hackathon branch and replacing it with main.cpp */
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -233,3 +234,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif
