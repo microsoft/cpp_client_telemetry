@@ -54,7 +54,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         int  increaseBackoff();
 
         void uploadAsync(EventLatency priority);
-        void finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs);
+        void finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload);
         bool updateTimersIfNecessary();
 
         bool handleStart();
