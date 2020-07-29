@@ -29,7 +29,6 @@ namespace ARIASDK_NS_BEGIN {
 // addressing the case when a task that we are trying to cancel is currently running.
 // Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
 // Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
-#define UPLOAD_TASK_CANCEL_TIME_MS 5000
 #ifdef UPLOAD_TASK_CANCEL_TIME_MS
 static_assert(std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS, "std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS");
 static_assert(UPLOAD_TASK_CANCEL_TIME_MS >= 0, "UPLOAD_TASK_CANCEL_TIME_MS >= 0");
