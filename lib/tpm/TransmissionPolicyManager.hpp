@@ -37,6 +37,9 @@ constexpr std::chrono::milliseconds DefaultTaskCancelTime { uint64_t { UPLOAD_TA
 constexpr std::chrono::milliseconds DefaultTaskCancelTime { 500 };
 #endif
 
+constexpr int DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
+constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
+
     class TransmissionPolicyManager
     {
 
@@ -79,16 +82,16 @@ constexpr std::chrono::milliseconds DefaultTaskCancelTime { 500 };
         IBandwidthController*            m_bandwidthController;
 
         std::recursive_mutex             m_backoffMutex;
-        std::string                      m_backoffConfig;           // TODO: [MG] - move to config
+        std::string                      m_backoffConfig { DefaultBackoffConfig }; // TODO: [MG] - move to config
         std::unique_ptr<IBackoff>        m_backoff;
         DeviceStateHandler               m_deviceStateHandler;
 
-        std::atomic<bool>                m_isPaused;
-        std::atomic<bool>                m_isUploadScheduled;
-        uint64_t                         m_scheduledUploadTime;
+        std::atomic<bool>                m_isPaused { true };
+        std::atomic<bool>                m_isUploadScheduled { false };
+        uint64_t                         m_scheduledUploadTime { std::numeric_limits<uint64_t>::max() };
         std::mutex                       m_scheduledUploadMutex;
         PAL::DeferredCallbackHandle      m_scheduledUpload;
-        bool                             m_scheduledUploadAborted;
+        bool                             m_scheduledUploadAborted { false };
 
         std::mutex                       m_activeUploads_lock;
         std::set<EventsUploadContextPtr> m_activeUploads;
@@ -124,8 +127,8 @@ constexpr std::chrono::milliseconds DefaultTaskCancelTime { 500 };
         /// <returns></returns>
         size_t uploadCount();
 
-        int                              m_timerdelay;
-        EventLatency                     m_runningLatency;
+        int                              m_timerdelay { DEFAULT_DELAY_SEND_HTTP };
+        EventLatency                     m_runningLatency { EventLatency_RealTime };
         TimerArray                       m_timers;
 
     public:

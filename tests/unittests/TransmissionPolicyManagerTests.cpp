@@ -34,8 +34,13 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     using TransmissionPolicyManager::getCancelWaitTime;
     using TransmissionPolicyManager::cancelUploadTask;
 
+    using TransmissionPolicyManager::m_isPaused;
     using TransmissionPolicyManager::m_scheduledUploadAborted;
     using TransmissionPolicyManager::m_isUploadScheduled;
+    using TransmissionPolicyManager::m_scheduledUploadTime;
+    using TransmissionPolicyManager::m_timerdelay;
+    using TransmissionPolicyManager::m_runningLatency;
+	 using TransmissionPolicyManager::m_backoffConfig;
 
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
@@ -490,6 +495,41 @@ TEST_F(TransmissionPolicyManagerTests, FredProfile)
     EXPECT_CALL(tpm, scheduleUpload(_, _, _))
         .Times(0);
     tpm.eventArrived(event);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_IsPaused_True)
+{
+    ASSERT_TRUE(tpm.m_isPaused);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_IsUploadScheduled_False)
+{
+    ASSERT_FALSE(tpm.m_isUploadScheduled);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_ScheduledUploadAborted_False)
+{
+    ASSERT_FALSE(tpm.m_scheduledUploadAborted);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_ScheduledUploadTime_Uint64Max)
+{
+    ASSERT_EQ(tpm.m_scheduledUploadTime, std::numeric_limits<uint64_t>::max());
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_TimerDelay_TwoSeconds)
+{
+    ASSERT_EQ(tpm.m_timerdelay, 2000);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_RunningLatency_RealTime)
+{
+    ASSERT_EQ(tpm.m_runningLatency, EventLatency_RealTime);
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_BackoffConfig_RealTime)
+{
+    ASSERT_EQ(tpm.m_backoffConfig, std::string{ DefaultBackoffConfig });
 }
 
 TEST_F(TransmissionPolicyManagerTests, removeUpload_nullptr_ReturnsFalse)
