@@ -2,6 +2,9 @@
 #if defined(_WIN32) /* && defined(HAVE_PRIVATE_MODULES) */
 #define HAVE_MAT_UTC
 #endif
+
+#define HAVE_MAT_AI
+
 #if defined(HAVE_PRIVATE_MODULES)
 #define HAVE_MAT_EXP
 #define HAVE_MAT_FIFOSTORAGE

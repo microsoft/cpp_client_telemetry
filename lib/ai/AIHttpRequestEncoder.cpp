@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#include "mat/config.h"
+#ifdef HAVE_MAT_AI
 #include "AIHttpRequestEncoder.hpp"
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
@@ -80,14 +81,16 @@ namespace ARIASDK_NS_BEGIN {
 
         ctx->httpRequest->SetMethod("POST");
 
-        ctx->httpRequest->SetUrl("https://dc.services.visualstudio.com/v2/track");
+        ctx->httpRequest->SetUrl(m_config.GetCollectorUrl());
 
         // "Content-Type": "application/x-json-stream"
         ctx->httpRequest->GetHeaders().set("Content-Type", "application/json");
 
         if (ctx->compressed) {
-            ctx->httpRequest->GetHeaders().add("Content-Encoding",  "gzip");
+            const char* contentEncoding = m_config.IsHttpRequestCompressionGzip() ? "gzip" : "deflate";
+            ctx->httpRequest->GetHeaders().add("Content-Encoding", contentEncoding);
         }
+
 #if 1
         // XXX: [MG] - debug only
         std::string str;
@@ -114,3 +117,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 } ARIASDK_NS_END
+#endif

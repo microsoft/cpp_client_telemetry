@@ -82,7 +82,24 @@ namespace ARIASDK_NS_BEGIN
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
             config(customConfig)
         {
+            bool useCustomURL = customConfig.HasConfig(CFG_STR_COLLECTOR_URL);
             Variant::merge_map(*customConfig, *defaultRuntimeConfig);
+#ifdef HAVE_MAT_AI
+            int32_t sdkMode = config[CFG_INT_SDK_MODE];
+            if (sdkMode == SdkModeTypes_AI)
+            {
+                config["http"]["gzip"] = true;
+                if (!useCustomURL)
+                {
+                    // Populate default track URL instead of collector
+                    config[CFG_STR_COLLECTOR_URL] = "https://dc.services.visualstudio.com/v2/track";
+                    // See complete list of custom end-point URLs here:
+                    // https://docs.microsoft.com/en-us/azure/azure-monitor/app/custom-endpoints
+                }
+            }
+#else
+            UNREFERENCED_PARAMETER(useCustomURL);
+#endif
         };
 
         virtual ~RuntimeConfig_Default()
