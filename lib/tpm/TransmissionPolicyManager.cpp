@@ -67,14 +67,13 @@ namespace ARIASDK_NS_BEGIN {
         return delayMs;
     }
 
-    // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
     // If delayInMs is negative, do not schedule.
-    void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
+    void TransmissionPolicyManager::scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
         LOCKGUARD(m_scheduledUploadMutex);
-        if (delayInMs < 0 || m_timerdelay.count() < 0) 
+        if (delay.count() < 0 || m_timerdelay.count() < 0) 
         {
-            LOG_TRACE("Negative delayInMs(%d) or m_timerdelay(%d), no upload", delayInMs, m_timerdelay.count());
+            LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
             return;
         }
         if (m_scheduledUploadAborted)
@@ -108,7 +107,7 @@ namespace ARIASDK_NS_BEGIN {
             }
             auto now = PAL::getMonotonicTimeMs();
             auto delta = ABS64(m_scheduledUploadTime, now);
-            if (delta <= static_cast<uint64_t>(delayInMs))
+            if (delta <= static_cast<uint64_t>(delay.count()))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // m_isUploadScheduled check does not have to be strictly atomic because
@@ -120,7 +119,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         // Cancel upload if already scheduled.
-        if (force || delayInMs == 0)
+        if (force || delay.count() == 0)
         {
             if (!cancelUploadTask())
             {
@@ -131,10 +130,10 @@ namespace ARIASDK_NS_BEGIN {
         // Schedule new upload
         if (!m_isUploadScheduled.exchange(true))
         {
-            m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delayInMs;
+            m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %d ms for lat=%d", delayInMs, m_runningLatency);
-            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
+            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency);
+            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
 
@@ -192,7 +191,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
+            scheduleUpload(std::chrono::milliseconds { nextUploadInMs }, proposed); // reschedule uploadAsync again
         }
     }
 
@@ -213,7 +212,7 @@ namespace ARIASDK_NS_BEGIN {
         // some customers require to be able to start in a paused (no telemetry) state.
         // We may avoid the issue if we schedule the first upload to happen 1 second
         // after start
-        scheduleUpload(1000, calculateNewPriority());
+        scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
     }
 
@@ -289,7 +288,7 @@ namespace ARIASDK_NS_BEGIN {
             EventLatency proposed = calculateNewPriority();
             if (m_timerdelay.count() >= 0)
             {
-                scheduleUpload(static_cast<int>(m_timerdelay.count()), proposed, forceTimerRestart);
+                scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
             }
         }
     }

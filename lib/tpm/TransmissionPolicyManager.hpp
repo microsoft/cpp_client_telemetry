@@ -45,7 +45,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
     public:
         TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController);
         virtual ~TransmissionPolicyManager();
-        virtual void scheduleUpload(int delayInMs, EventLatency latency, bool force = false);
+        virtual void scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force = false);
 
     protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
