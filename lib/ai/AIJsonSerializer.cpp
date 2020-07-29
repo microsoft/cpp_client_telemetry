@@ -70,7 +70,7 @@ namespace ARIASDK_NS_BEGIN {
                 { "tags", {
                          { "ai.application.ver", source->extApp[0].ver },
                          { "ai.device.id", source->extDevice[0].localId },
-                         { "ai.device.locale", source->extApp[0].locale }, // en-US vs "en_US"
+                         { "ai.device.locale", source->extApp[0].locale },
                          { "ai.device.model", source->extProtocol[0].devModel },
                          { "ai.device.oemName", source->extProtocol[0].devMake },
                          { "ai.device.os", source->extOs[0].name },
@@ -78,8 +78,8 @@ namespace ARIASDK_NS_BEGIN {
                          { "ai.device.type", source->extDevice[0].deviceClass },
                          { "ai.session.id", sessionId },
                          { "ai.session.isFirst", isNewSession },
-                         { "ai.session.isNew", "true" },
-                         { "ai.user.id", source->extUser[0].localId }
+                         { "ai.user.id", source->extUser[0].localId },
+                         { "ai.internal.sdkVersion", getSdkSemVer() }
                      }},
                 { "data", {
                         { "baseType", "EventData" },
