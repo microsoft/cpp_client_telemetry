@@ -58,17 +58,18 @@ namespace ARIASDK_NS_BEGIN {
             m_backoff->reset();
     }
 
-    int TransmissionPolicyManager::increaseBackoff()
+    std::chrono::milliseconds TransmissionPolicyManager::increaseBackoff()
     {
-        int delayMs = 0;
         LOCKGUARD(m_backoffMutex);
         checkBackoffConfigUpdate();
-        if (m_backoff)
+        if (m_backoff == nullptr)
         {
-            delayMs = m_backoff->getValue();
-            m_backoff->increase();
+            return std::chrono::milliseconds{};
         }
-        return delayMs;
+
+        std::chrono::milliseconds delay{m_backoff->getValue()};
+        m_backoff->increase();
+        return delay;
     }
 
     // If delayInMs is negative, do not schedule.
@@ -349,12 +350,12 @@ namespace ARIASDK_NS_BEGIN {
 
     void TransmissionPolicyManager::handleEventsUploadRejected(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, std::chrono::milliseconds{ increaseBackoff() });
+        finishUpload(ctx, increaseBackoff());
     }
 
     void TransmissionPolicyManager::handleEventsUploadFailed(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, std::chrono::milliseconds{ increaseBackoff() });
+        finishUpload(ctx, increaseBackoff());
     }
 
     void TransmissionPolicyManager::handleEventsUploadAborted(EventsUploadContextPtr const& ctx)

@@ -608,12 +608,12 @@ TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_IsUpload
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)
 {
     tpm.m_backoff = nullptr;
-    ASSERT_EQ(tpm.increaseBackoff(), 0);
+    ASSERT_EQ(tpm.increaseBackoff(), std::chrono::milliseconds{});
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_ValidBackoffObject_ReturnsGreaterThanZero)
 {
-    ASSERT_GT(tpm.increaseBackoff(), 0);
+    ASSERT_GT(tpm.increaseBackoff(), std::chrono::milliseconds{});
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_CalledTwice_ReturnsHigherValue)
