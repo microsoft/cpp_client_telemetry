@@ -51,7 +51,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         MATSDK_LOG_DECL_COMPONENT_CLASS();
         void checkBackoffConfigUpdate();
         void resetBackoff();
-        int  increaseBackoff();
+        std::chrono::milliseconds increaseBackoff();
 
         void uploadAsync(EventLatency priority);
         void finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload);
