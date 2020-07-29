@@ -102,7 +102,10 @@ namespace ARIASDK_NS_BEGIN {
         } else {
             str.assign(ctx->body.begin(), ctx->body.end());
         }
-        LOG_INFO("Sending body (compressed '%s'): %s", ctx->compressed ? "Yes" : "No", str.c_str());
+        LOG_INFO("Sending %s %s (compressed '%s'): %s", "POST",
+                m_config.GetCollectorUrl().c_str(),
+                ctx->compressed ? (m_config.IsHttpRequestCompressionGzip() ? "gzip" : "deflate") : "no",
+                str.c_str());
 #endif
 
         ctx->httpRequest->SetBody(ctx->body);
