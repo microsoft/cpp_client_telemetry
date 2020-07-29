@@ -24,7 +24,7 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
         TransmissionPolicyManager::uploadAsync(latency);
     }
 
-    void scheduleUploadParent(int delay, EventLatency latency, bool force)
+    void scheduleUploadParent(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
@@ -42,7 +42,7 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     using TransmissionPolicyManager::m_runningLatency;
     using TransmissionPolicyManager::m_backoffConfig;
 
-    MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
+    MOCK_METHOD3(scheduleUpload, void(const std::chrono::milliseconds&, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
     MOCK_METHOD0(handleStop, bool());
 
@@ -58,7 +58,7 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
 
     void runningLatency(EventLatency latency) { m_runningLatency = latency; }
 
-    void NotMockScheduleUpload(int delay, EventLatency latency, bool force)
+    void NotMockScheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
@@ -113,7 +113,7 @@ TEST_F(TransmissionPolicyManagerTests, StopLeavesNoScheduledUploads)
 {
     tpm.paused(false);
 
-    EXPECT_CALL(tpm, scheduleUpload(1000, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds { 1000 }, AnyOf(EventLatency_Normal, EventLatency_RealTime), false))
         .WillOnce(Return());
     tpm.start();
 
@@ -174,7 +174,7 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
     event->record.latency = EventLatency_Normal;
 
     
-    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, true))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds { 1000 }, EventLatency_Normal, true))
         .WillOnce(Return());
     tpm.eventArrived(event);
 }
@@ -225,7 +225,7 @@ TEST_F(TransmissionPolicyManagerTests, NoUploadForNegative)
     EXPECT_CALL(tpm, scheduleUpload(_, _, _)).Times(0);
     tpm.eventArrived(event);
     EXPECT_CALL(tpm, uploadAsync(_)).Times(0);
-    tpm.scheduleUploadParent(-1000, EventLatency_RealTime, true);
+    tpm.scheduleUploadParent(std::chrono::milliseconds{-1000}, EventLatency_RealTime, true);
     TransmitProfiles::reset();
 }
 
@@ -302,10 +302,10 @@ TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploadingForRunningLaten
 TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelayForRunningLatencyRealtime)
 {
     auto upload = tpm.fakeActiveUpload();
-    constexpr std::chrono::duration<int,std::milli> delay { std::chrono::seconds(300) };
+    constexpr std::chrono::milliseconds delay { std::chrono::seconds(300) };
     tpm.m_timerdelay = delay;
     tpm.runningLatency(EventLatency_RealTime);
-    EXPECT_CALL(tpm, scheduleUpload(delay.count(), EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(delay, EventLatency_Normal, false))
       .WillOnce(Return());
     tpm.nothingToUpload(upload);
 }
@@ -313,7 +313,7 @@ TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelayForRunn
 TEST_F(TransmissionPolicyManagerTests, FailedUploadPackagingSchedulesNextOneWithDelay)
 {
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(2000, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds{ 2000 }, EventLatency_Normal, false))
         .WillOnce(Return());
     tpm.packagingFailed(upload);
 }
@@ -321,7 +321,7 @@ TEST_F(TransmissionPolicyManagerTests, FailedUploadPackagingSchedulesNextOneWith
 TEST_F(TransmissionPolicyManagerTests, SuccessfulUploadSchedulesNextOneImmediately)
 {
     auto upload = tpm.fakeActiveUpload();
-    EXPECT_CALL(tpm, scheduleUpload(0, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds{ 0 }, EventLatency_Normal, false))
         .WillOnce(Return());
     tpm.eventsUploadSuccessful(upload);
 }
@@ -444,11 +444,11 @@ TEST_F(TransmissionPolicyManagerTests, FinishAllUploads)
         .WillOnce(Return());
     tpm.stop();
 
-    EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds { 1000 }, EventLatency_Normal, false))
         .WillOnce(Return());
     tpm.start();
 
-    EXPECT_CALL(tpm, scheduleUpload(0, EventLatency_Normal, false))
+    EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds { 0 }, EventLatency_Normal, false))
         .Times(2)
         .WillOnce(Return())
         .WillOnce(Return());

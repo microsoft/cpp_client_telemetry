@@ -189,7 +189,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t recordCount = storage.GetRecordCount();
         if (recordCount)
         {
-            tpm.scheduleUpload(0, EventLatency_Normal, true);
+            tpm.scheduleUpload(std::chrono::milliseconds {}, EventLatency_Normal, true);
             return true;
         }
 
