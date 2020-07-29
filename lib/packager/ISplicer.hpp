@@ -10,7 +10,7 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-class Splicer
+class ISplicer
 {
   protected:
     struct Span {
@@ -29,10 +29,7 @@ class Splicer
     size_t                   m_overheadEstimate {};
 
   public:
-    Splicer() noexcept = default;
-    Splicer(Splicer const&) = delete;
-    Splicer& operator=(Splicer const&) = delete;
-    virtual ~Splicer() {}
+    virtual ~ISplicer() noexcept = default;
 
     virtual size_t addTenantToken(std::string const& tenantToken) = 0;
     virtual void addRecord(size_t dataPackageIndex, std::vector<uint8_t> const& recordBlob) = 0;

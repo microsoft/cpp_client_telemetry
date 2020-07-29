@@ -4,7 +4,7 @@
 
 #include "pal/PAL.hpp"
 #include "DataPackage.hpp"
-#include "Splicer.hpp"
+#include "ISplicer.hpp"
 
 #include <list>
 #include <vector>
@@ -12,7 +12,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class BondSplicer : public Splicer
+class BondSplicer : public ISplicer
 {
   protected:
     std::vector<uint8_t>     m_buffer;

@@ -3,7 +3,7 @@
 #define AIJSONARRAYSPLICER_HPP
 
 #include "pal/PAL.hpp"
-#include "packager/Splicer.hpp"
+#include "packager/ISplicer.hpp"
 
 #include <list>
 #include <vector>
@@ -11,7 +11,7 @@
 namespace ARIASDK_NS_BEGIN {
 
 
-class AIJsonArraySplicer : public Splicer
+class AIJsonArraySplicer : public ISplicer
 {
   protected:
     std::vector<uint8_t>     m_buffer;

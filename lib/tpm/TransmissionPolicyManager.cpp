@@ -3,6 +3,10 @@
 #include "TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
 #include "utils/Utils.hpp"
+#ifdef HAVE_MAT_AI
+/* Enable Azure Monitor / Application Insights support */
+#include "ai/AIJsonArraySplicer.hpp"
+#endif
 
 #include <limits>
 
@@ -75,6 +79,20 @@ namespace ARIASDK_NS_BEGIN {
             m_backoff->increase();
         }
         return delayMs;
+    }
+
+    EventsUploadContextPtr createUploadContext(int32_t sdkMode)
+    {
+#ifdef HAVE_MAT_AI
+        if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
+        {
+            return std::make_shared<EventsUploadContext>(new AIJsonArraySplicer());
+        }
+        else
+#endif
+        {
+            return std::make_shared<EventsUploadContext>(new BondSplicer());
+        }
     }
 
     // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
@@ -183,7 +201,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
 
-        auto ctx = std::make_shared<EventsUploadContext>();
+        auto ctx = createUploadContext(m_config[CFG_INT_SDK_MODE]);
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);

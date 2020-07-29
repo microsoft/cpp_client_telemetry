@@ -3,6 +3,7 @@
 #pragma once
 #include "IHttpClient.hpp"
 #include "IOfflineStorage.hpp"
+#include "packager/ISplicer.hpp"
 #include "packager/BondSplicer.hpp"
 #include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
@@ -11,7 +12,6 @@
 #include <memory>
 #include <vector>
 #include <atomic>
-#include <ai/AIJsonArraySplicer.hpp>
 
 namespace ARIASDK_NS_BEGIN {
 
@@ -81,9 +81,7 @@ namespace ARIASDK_NS_BEGIN {
         unsigned                             requestedMaxCount = 0;
 
         // Packaging
-        // HAVE_MAT_AI or runtime configuration?
-        AIJsonArraySplicer splicer;
-        //BondSplicer                          splicer;
+        std::unique_ptr<ISplicer>            splicer;
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
@@ -105,7 +103,16 @@ namespace ARIASDK_NS_BEGIN {
         int                                  durationMs = -1;
         bool                                 fromMemory = false;
 
-        EventsUploadContext() noexcept
+        EventsUploadContext() :
+            splicer(std::unique_ptr<BondSplicer>())
+        {
+#ifdef CRT_DEBUG_LEAKS
+            objCount(1);
+#endif
+        }
+
+        EventsUploadContext(ISplicer* splicer) :
+            splicer(std::unique_ptr<ISplicer>(splicer))
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(1);
