@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
+#ifndef TRANSMISSIONPOLICYMANAGER_HPP
+#define TRANSMISSIONPOLICYMANAGER_HPP
 
-#pragma once
 #include "IBandwidthController.hpp"
 
 #include "api/IRuntimeConfig.hpp"
@@ -145,3 +146,5 @@ namespace ARIASDK_NS_BEGIN {
 
 
 } ARIASDK_NS_END
+
+#endif // TRANSMISSIONPOLICYMANAGER_HPP
