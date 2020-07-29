@@ -560,29 +560,6 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     }
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6320)
-#endif
-    TransmitProfiles::~TransmitProfiles()
-    {
-#if (defined(_WIN32) && defined(HAVE_MAT_JSONHPP))
-        // This silly code is required for vs2013 compiler workaround
-        // https://connect.microsoft.com/VisualStudio/feedback/details/800104/
-        __try {
-            transmitProfileNetCost.clear();
-            transmitProfilePowerState.clear();
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER)
-        {
-            // This compiler bug costed me good relationship with OneDrive team :(
-        }
-#endif
-    }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;
 
