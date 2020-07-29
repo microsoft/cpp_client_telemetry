@@ -6,9 +6,13 @@
 
 #include <limits>
 
-#define ABS64(a,b)    ((a>b)?(a-b):(b-a))
-
 namespace ARIASDK_NS_BEGIN {
+
+    template<typename T>
+    constexpr T Abs64(const T& a, const T& b) noexcept
+    {
+        return (a > b) ? (a - b) : (b - a);
+    }
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
@@ -106,7 +110,7 @@ namespace ARIASDK_NS_BEGIN {
                 m_runningLatency = latency;
             }
             auto now = PAL::getMonotonicTimeMs();
-            auto delta = ABS64(m_scheduledUploadTime, now);
+            auto delta = Abs64(m_scheduledUploadTime, now);
             if (delta <= static_cast<uint64_t>(delay.count()))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
