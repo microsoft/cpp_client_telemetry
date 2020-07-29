@@ -60,7 +60,7 @@ namespace ARIASDK_NS_BEGIN {
 
         HttpClientManager         hcm;
         AIHttpRequestEncoder      httpEncoder;
-        AIHttpResponseDecoder       httpDecoder;
+        AIHttpResponseDecoder     httpDecoder;
         StorageObserver           storage;
         AIPackager                packager;
         TransmissionPolicyManager tpm;

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+#include "mat/config.h"
+#ifdef HAVE_MAT_AI
 #include "AITelemetrySystem.hpp"
 #include "utils/Utils.hpp"
 #include "ILogManager.hpp"
@@ -228,3 +229,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 } ARIASDK_NS_END
+#endif

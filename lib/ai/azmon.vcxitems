@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{6dc5ab1d-3d64-4c52-8d8e-d9a8b0c16f14}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)AIHttpRequestEncoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AIHttpResponseDecoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AIJsonSerializer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AIPackager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AITelemetrySystem.cpp" />
+  </ItemGroup>
+</Project>

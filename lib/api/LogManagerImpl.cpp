@@ -9,7 +9,6 @@
 #include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
-#include "ai/AITelemetrySystem.hpp"
 
 #include "EventProperty.hpp"
 #include "TransmitProfiles.hpp"
@@ -28,6 +27,11 @@
 #else
 #include "modules/utc/UtcTelemetrySystem.hpp"
 #endif
+#endif
+
+#ifdef HAVE_MAT_AI
+/* Enable Azure Monitor / Application Insights support */
+#include "ai/AITelemetrySystem.hpp"
 #endif
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
@@ -207,6 +211,8 @@ namespace ARIASDK_NS_BEGIN
             LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
+        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+
 #ifdef HAVE_MAT_UTC
         // UTC is not active
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
@@ -215,8 +221,10 @@ namespace ARIASDK_NS_BEGIN
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
 
-        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
-        if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
+        if (
+            ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat)||(sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema)) &&
+            isWindowsUtcClientRegistrationEnable
+           )
         {
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
@@ -272,17 +280,21 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        int32_t sdkMode = m_logConfiguration[CFG_INT_SDK_MODE];
+#ifdef HAVE_MAT_AI
         if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
         {
             m_system.reset(new AITelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
-                                               *m_taskDispatcher, m_bandwidthController));
+                                                 *m_taskDispatcher, m_bandwidthController));
         }
         else
+#endif
         {
+            // Default mode is Common Schema - direct
+            (void)(sdkMode);
             m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
                                                *m_taskDispatcher, m_bandwidthController));
         }
+
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {

@@ -194,7 +194,10 @@ namespace ARIASDK_NS_BEGIN {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
         {
-            assert(false);
+            // FIXME: [MG] - it was probably not a good idea to add an assert in here, since response
+            // may come back on Windows right after we already aborted (destroyed) the outgoing HTTP
+            // request.
+            // assert(false);
             LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 

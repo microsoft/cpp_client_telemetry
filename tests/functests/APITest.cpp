@@ -531,6 +531,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     removeAllListeners(debugListener);
 }
 
+#ifdef _WIN32
 TEST(APITest, LogManager_UTCSingleEventSent) {
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
@@ -556,6 +557,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     logger->LogEvent(event);
     LogManager::FlushAndTeardown();
 }
+#endif
 
 TEST(APITest, LogManager_SemanticAPI)
 {
@@ -821,6 +823,8 @@ TEST(APITest, C_API_Test)
 }
 
 #ifdef HAVE_MAT_JSONHPP
+
+#ifdef _WIN32
 TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
@@ -891,6 +895,7 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::FlushAndTeardown();
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
+#endif
 
 TEST(APITest, Pii_DROP_Test)
 {

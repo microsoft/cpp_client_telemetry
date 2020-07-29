@@ -9,7 +9,7 @@
 #endif
 
 namespace ARIASDK_NS_BEGIN {
-    #define windowBits
+
     #define GZIP_ENCODING 16
 
     HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)

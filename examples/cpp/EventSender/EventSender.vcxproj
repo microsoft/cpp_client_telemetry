@@ -198,6 +198,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EventSender.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration.Contains('static'))">
     <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
