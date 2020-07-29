@@ -73,6 +73,14 @@ namespace ARIASDK_NS_BEGIN
         time_ticks_t(const std::time_t* time);
 
         /// <summary>
+        /// Constructs a time_ticks_t object from a reference to a time_t object from the standard library.
+        /// <b>Note:</b> time_t time must contain a timestamp in UTC time.
+        /// </summary>
+        //
+        // FIXME: [MG] - this is required for proper conversion from std::time_t(0) to ticks
+        // time_ticks_t(const std::time_t& time) : time_ticks_t(&time) {};
+
+        /// <summary>
         /// The time_ticks_t copy constructor.
         /// </summary>
         time_ticks_t(const time_ticks_t& t);
