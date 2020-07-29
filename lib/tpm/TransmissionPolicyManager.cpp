@@ -10,24 +10,14 @@
 
 namespace ARIASDK_NS_BEGIN {
 
-    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
-
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
     TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
-        m_lock(),
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
-        m_bandwidthController(bandwidthController),
-        m_isPaused(true),
-        m_isUploadScheduled(false),
-        m_scheduledUploadTime(std::numeric_limits<uint64_t>::max()),
-        m_scheduledUploadAborted(false),
-        m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-        m_runningLatency(EventLatency_RealTime)
+        m_bandwidthController(bandwidthController)
     {
-        m_backoffConfig = "E,3000,300000,2,1";
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
