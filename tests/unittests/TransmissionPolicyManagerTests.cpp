@@ -521,7 +521,7 @@ TEST_F(TransmissionPolicyManagerTests, removeUpload_CalledTwiceContextAdded_Retu
 TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadAborted_ReturnsDefaultValue)
 {
     tpm.m_scheduledUploadAborted = true;
-    ASSERT_EQ(tpm.getCancelWaitTime(), uint64_t { UPLOAD_TASK_CANCEL_TIME_MS });
+    ASSERT_EQ(tpm.getCancelWaitTime(), DefaultTaskCancelTimeMs);
 }
 
 TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAborted_ReturnsZero)
