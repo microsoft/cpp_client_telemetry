@@ -72,14 +72,15 @@ namespace ARIASDK_NS_BEGIN {
     void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
     {
         LOCKGUARD(m_scheduledUploadMutex);
-        if (delayInMs < 0 || m_timerdelay < 0) {
+        if (delayInMs < 0 || m_timerdelay.count() < 0) {
             return; // profile: no upload allowed
         }
         if (m_scheduledUploadAborted)
         {
             return;
         }
-        if (delayInMs < 0 || m_timerdelay < 0) {
+        if (delayInMs < 0 || m_timerdelay.count() < 0)
+        {
             LOG_TRACE("Negative delayInMs or m_timerdelay, no upload");
             return; // transmission prohibited by profile
         }
@@ -284,12 +285,13 @@ namespace ARIASDK_NS_BEGIN {
         {
             if (updateTimersIfNecessary())
             {
-                m_timerdelay = m_timers[1];
+                m_timerdelay = std::chrono::milliseconds { m_timers[1] };
                 forceTimerRestart = true;
             }
             EventLatency proposed = calculateNewPriority();
-            if (m_timerdelay >= 0) {
-                scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
+            if (m_timerdelay.count() >= 0)
+            {
+                scheduleUpload(static_cast<int>(m_timerdelay.count()), proposed, forceTimerRestart);
             }
         }
     }
@@ -329,13 +331,13 @@ namespace ARIASDK_NS_BEGIN {
         }
         else
         {
-            finishUpload(ctx, m_timerdelay);
+            finishUpload(ctx, static_cast<int>(m_timerdelay.count()));
         }
     }
 
     void TransmissionPolicyManager::handlePackagingFailed(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, m_timerdelay);
+        finishUpload(ctx, static_cast<int>(m_timerdelay.count()));
     }
 
     void TransmissionPolicyManager::handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx)

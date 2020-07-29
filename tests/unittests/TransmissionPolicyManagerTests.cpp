@@ -40,7 +40,7 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     using TransmissionPolicyManager::m_scheduledUploadTime;
     using TransmissionPolicyManager::m_timerdelay;
     using TransmissionPolicyManager::m_runningLatency;
-	 using TransmissionPolicyManager::m_backoffConfig;
+    using TransmissionPolicyManager::m_backoffConfig;
 
     MOCK_METHOD3(scheduleUpload, void(int, EventLatency,bool));
     MOCK_METHOD1(uploadAsync, void(EventLatency));
@@ -55,9 +55,6 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
 
     bool paused() const { return m_isPaused; }
     void paused(bool state) { m_isPaused = state; }
-
-    int timerDelay() const { return m_timerdelay; }
-    void timerDelay(int delay) { m_timerdelay = delay; }
 
     void runningLatency(EventLatency latency) { m_runningLatency = latency; }
 
@@ -306,7 +303,7 @@ TEST_F(TransmissionPolicyManagerTests, EmptyUploadReschedulesAtTimerDelayForRunn
 {
     auto upload = tpm.fakeActiveUpload();
     constexpr std::chrono::duration<int,std::milli> delay { std::chrono::seconds(300) };
-    tpm.timerDelay(delay.count());
+    tpm.m_timerdelay = delay;
     tpm.runningLatency(EventLatency_RealTime);
     EXPECT_CALL(tpm, scheduleUpload(delay.count(), EventLatency_Normal, false))
       .WillOnce(Return());
@@ -519,7 +516,12 @@ TEST_F(TransmissionPolicyManagerTests, Constructor_ScheduledUploadTime_Uint64Max
 
 TEST_F(TransmissionPolicyManagerTests, Constructor_TimerDelay_TwoSeconds)
 {
-    ASSERT_EQ(tpm.m_timerdelay, 2000);
+    ASSERT_EQ(tpm.m_timerdelay, std::chrono::seconds{ 2 });
+}
+
+TEST_F(TransmissionPolicyManagerTests, Constructor_TimerDelayInteger_TwoThousand)
+{
+    ASSERT_EQ(tpm.m_timerdelay.count(), 2000);
 }
 
 TEST_F(TransmissionPolicyManagerTests, Constructor_RunningLatency_RealTime)
