@@ -521,13 +521,27 @@ TEST_F(TransmissionPolicyManagerTests, removeUpload_CalledTwiceContextAdded_Retu
 TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadAborted_ReturnsDefaultValue)
 {
     tpm.m_scheduledUploadAborted = true;
-    ASSERT_EQ(tpm.getCancelWaitTime(), DefaultTaskCancelTimeMs);
+    ASSERT_EQ(tpm.getCancelWaitTime(), DefaultTaskCancelTime);
 }
+
+#ifndef UPLOAD_TASK_CANCEL_TIME_MS
+TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadAborted_ReturnsDefaultValueInteger)
+{
+    tpm.m_scheduledUploadAborted = true;
+    ASSERT_EQ(tpm.getCancelWaitTime().count(), 500);
+}
+#else
+TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadAborted_ReturnsDefaultValueInteger)
+{
+    tpm.m_scheduledUploadAborted = true;
+    ASSERT_EQ(tpm.getCancelWaitTime().count(), uint64_t { UPLOAD_TASK_CANCEL_TIME_MS });
+}
+#endif
 
 TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAborted_ReturnsZero)
 {
     tpm.m_scheduledUploadAborted = false;
-    ASSERT_EQ(tpm.getCancelWaitTime(), uint64_t { 0 });
+    ASSERT_EQ(tpm.getCancelWaitTime(), std::chrono::milliseconds{});
 }
 
 TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_ReturnsTrue)

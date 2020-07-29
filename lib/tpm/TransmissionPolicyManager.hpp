@@ -18,7 +18,9 @@
 #include "TransmitProfiles.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <limits>
 #include <set>
 
 namespace ARIASDK_NS_BEGIN {
@@ -27,10 +29,13 @@ namespace ARIASDK_NS_BEGIN {
 // addressing the case when a task that we are trying to cancel is currently running.
 // Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
 // Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
+#define UPLOAD_TASK_CANCEL_TIME_MS 5000
 #ifdef UPLOAD_TASK_CANCEL_TIME_MS
-constexpr uint64_t DefaultTaskCancelTimeMs { UPLOAD_TASK_CANCEL_TIME_MS };
+static_assert(std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS, "std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS");
+static_assert(UPLOAD_TASK_CANCEL_TIME_MS >= 0, "UPLOAD_TASK_CANCEL_TIME_MS >= 0");
+constexpr std::chrono::milliseconds DefaultTaskCancelTime { uint64_t { UPLOAD_TASK_CANCEL_TIME_MS } };
 #else
-constexpr uint64_t DefaultTaskCancelTimeMs { 500 };
+constexpr std::chrono::milliseconds DefaultTaskCancelTime { 500 };
 #endif
 
     class TransmissionPolicyManager
@@ -107,7 +112,7 @@ constexpr uint64_t DefaultTaskCancelTimeMs { 500 };
         /// </summary>
         void pauseAllUploads();
 
-        uint64_t getCancelWaitTime() noexcept;
+        std::chrono::milliseconds getCancelWaitTime() noexcept;
 
         /// <summary>
         /// Cancels pending upload task.

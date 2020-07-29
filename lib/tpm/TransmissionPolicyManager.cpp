@@ -394,14 +394,14 @@ namespace ARIASDK_NS_BEGIN {
         cancelUploadTask();
     }
 
-    uint64_t TransmissionPolicyManager::getCancelWaitTime() noexcept
+    std::chrono::milliseconds TransmissionPolicyManager::getCancelWaitTime() noexcept
     {
-       return (m_scheduledUploadAborted) ? DefaultTaskCancelTimeMs : 0;
+       return (m_scheduledUploadAborted) ? DefaultTaskCancelTime : std::chrono::milliseconds {};
     }
 
     bool TransmissionPolicyManager::cancelUploadTask()
     {
-        bool result = m_scheduledUpload.Cancel(getCancelWaitTime());
+        bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
 
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
