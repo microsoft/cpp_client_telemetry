@@ -79,6 +79,7 @@ namespace ARIASDK_NS_BEGIN {
         }
         if (m_scheduledUploadAborted)
         {
+            LOG_TRACE("Scheduled upload aborted, no upload.");
             return;
         }
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
