@@ -87,6 +87,7 @@
 		437C72EB24CF6E590046F545 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437C72EA24CF6E590046F545 /* XCTest.framework */; };
 		437C72ED24D0C5D70046F545 /* ODWEventPropertiesTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */; };
 		437C72EF24D21ACE0046F545 /* ODWSemanticContextTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */; };
+		437C72F124D228700046F545 /* ODWLogConfigurationTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 437C72F024D2286F0046F545 /* ODWLogConfigurationTests.mm */; };
 		FE51D93D243EB59500E54890 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE51D93C243EB59500E54890 /* Network.framework */; };
 /* End PBXBuildFile section */
 
@@ -162,6 +163,7 @@
 		437C72EA24CF6E590046F545 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWEventPropertiesTests.mm; path = "obj-c/ODWEventPropertiesTests.mm"; sourceTree = "<group>"; };
 		437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWSemanticContextTests.mm; path = "obj-c/ODWSemanticContextTests.mm"; sourceTree = "<group>"; };
+		437C72F024D2286F0046F545 /* ODWLogConfigurationTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWLogConfigurationTests.mm; path = "obj-c/ODWLogConfigurationTests.mm"; sourceTree = "<group>"; };
 		FE51D93C243EB59500E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -196,6 +198,7 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
+				437C72F024D2286F0046F545 /* ODWLogConfigurationTests.mm */,
 				437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */,
 				437C72EC24D0C5D70046F545 /* ODWEventPropertiesTests.mm */,
 				431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */,
@@ -430,6 +433,7 @@
 				431EFEB7233EC590002FCC18 /* StringUtilsTests.cpp in Sources */,
 				431EFEA3233EC590002FCC18 /* GuidTests.cpp in Sources */,
 				431EFEA0233EC590002FCC18 /* EventFilterCollectionTests.cpp in Sources */,
+				437C72F124D228700046F545 /* ODWLogConfigurationTests.mm in Sources */,
 				431EFE9D233EC590002FCC18 /* DebugEventSourceTests.cpp in Sources */,
 				431EFEA2233EC590002FCC18 /* EventPropertiesTests.cpp in Sources */,
 				431EFEA4233EC590002FCC18 /* HttpClientCAPITests.cpp in Sources */,
