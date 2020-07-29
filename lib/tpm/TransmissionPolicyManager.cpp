@@ -181,7 +181,7 @@ namespace ARIASDK_NS_BEGIN {
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload)
     {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
@@ -191,11 +191,11 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         // Rescheduling upload
-        if (nextUploadInMs >= 0)
+        if (nextUpload.count() >= 0)
         {
-            LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
+            LOG_TRACE("Scheduling upload in %d ms", nextUpload.count());
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(std::chrono::milliseconds { nextUploadInMs }, proposed); // reschedule uploadAsync again
+            scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
         }
     }
 
@@ -328,38 +328,38 @@ namespace ARIASDK_NS_BEGIN {
         resetBackoff();
         if (ctx->requestedMinLatency == EventLatency_Normal)
         {
-            finishUpload(ctx, -1);
+            finishUpload(ctx, std::chrono::milliseconds{ -1 });
         }
         else
         {
-            finishUpload(ctx, static_cast<int>(m_timerdelay.count()));
+            finishUpload(ctx, m_timerdelay);
         }
     }
 
     void TransmissionPolicyManager::handlePackagingFailed(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, static_cast<int>(m_timerdelay.count()));
+        finishUpload(ctx, m_timerdelay);
     }
 
     void TransmissionPolicyManager::handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx)
     {
         resetBackoff();
-        finishUpload(ctx, 0);
+        finishUpload(ctx, std::chrono::milliseconds{});
     }
 
     void TransmissionPolicyManager::handleEventsUploadRejected(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, increaseBackoff());
+        finishUpload(ctx, std::chrono::milliseconds{ increaseBackoff() });
     }
 
     void TransmissionPolicyManager::handleEventsUploadFailed(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, increaseBackoff());
+        finishUpload(ctx, std::chrono::milliseconds{ increaseBackoff() });
     }
 
     void TransmissionPolicyManager::handleEventsUploadAborted(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, -1);
+        finishUpload(ctx, std::chrono::milliseconds{ -1 });
     }
 
     void TransmissionPolicyManager::addUpload(EventsUploadContextPtr const& ctx)
