@@ -17,7 +17,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)AIHttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)AIHttpResponseDecoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)AIJsonSerializer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)AIPackager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AIJsonArraySplicer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)AITelemetrySystem.cpp" />
   </ItemGroup>
 </Project>
