@@ -21,15 +21,17 @@
 #include <cstdint>
 #include <set>
 
+namespace ARIASDK_NS_BEGIN {
+
 // This macro allows to specify max upload task cancellation wait time at compile-time,
 // addressing the case when a task that we are trying to cancel is currently running.
 // Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
 // Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
-#ifndef UPLOAD_TASK_CANCEL_TIME_MS
-#define UPLOAD_TASK_CANCEL_TIME_MS      500
+#ifdef UPLOAD_TASK_CANCEL_TIME_MS
+constexpr uint64_t DefaultTaskCancelTimeMs { UPLOAD_TASK_CANCEL_TIME_MS };
+#else
+constexpr uint64_t DefaultTaskCancelTimeMs { 500 };
 #endif
-
-namespace ARIASDK_NS_BEGIN {
 
     class TransmissionPolicyManager
     {

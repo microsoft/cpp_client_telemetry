@@ -396,7 +396,7 @@ namespace ARIASDK_NS_BEGIN {
 
     uint64_t TransmissionPolicyManager::getCancelWaitTime() noexcept
     {
-       return (m_scheduledUploadAborted) ? UPLOAD_TASK_CANCEL_TIME_MS : 0;
+       return (m_scheduledUploadAborted) ? DefaultTaskCancelTimeMs : 0;
     }
 
     bool TransmissionPolicyManager::cancelUploadTask()
