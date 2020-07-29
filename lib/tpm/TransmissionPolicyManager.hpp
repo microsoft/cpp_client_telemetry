@@ -92,7 +92,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         PAL::DeferredCallbackHandle      m_scheduledUpload;
         bool                             m_scheduledUploadAborted { false };
 
-        std::mutex                       m_activeUploads_lock;
+        mutable std::mutex               m_activeUploads_lock;
         std::set<EventsUploadContextPtr> m_activeUploads;
         
         /// <summary>
@@ -113,7 +113,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         /// </summary>
         void pauseAllUploads();
 
-        std::chrono::milliseconds getCancelWaitTime() noexcept;
+        std::chrono::milliseconds getCancelWaitTime() const noexcept;
 
         /// <summary>
         /// Cancels pending upload task.
@@ -124,7 +124,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         /// Calculate the number of pending upload contexts.
         /// </summary>
         /// <returns></returns>
-        size_t uploadCount();
+        size_t uploadCount() const noexcept;
 
         std::chrono::milliseconds        m_timerdelay { std::chrono::seconds { 2 } };
         EventLatency                     m_runningLatency { EventLatency_RealTime };
@@ -147,9 +147,9 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{ this, &TransmissionPolicyManager::handleEventsUploadFailed };
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{ this, &TransmissionPolicyManager::handleEventsUploadAborted };
 
-        virtual bool isUploadInProgress();
+        virtual bool isUploadInProgress() const noexcept;
 
-        virtual bool isPaused();
+        virtual bool isPaused() const noexcept;
     };
 
 
