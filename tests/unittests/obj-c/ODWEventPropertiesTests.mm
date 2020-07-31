@@ -1,5 +1,5 @@
 //
-//  ODWLogManagerTests.mm
+//  ODWEventPropertiesTests.mm
 //  Tests
 //
 //  Created by David Brown on 7/28/20.
