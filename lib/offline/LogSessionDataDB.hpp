@@ -61,9 +61,13 @@ namespace ARIASDK_NS_BEGIN
 
         void Initialize()
         {
+            if ( nullptr == m_offlineStorage ) 
+            {
+                return;
+            }
             m_sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUid);
             m_sessionFirstTimeLaunch = convertStrToLong(m_offlineStorage->GetSetting(sessionFirstLaunchTimeName));
-            if (!m_sessionFirstTimeLaunch || m_sessionSDKUid.empty())
+            if ((m_sessionFirstTimeLaunch == 0) || m_sessionSDKUid.empty())
             {
                 m_sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
                 m_sessionSDKUid = PAL::generateUuidString();
