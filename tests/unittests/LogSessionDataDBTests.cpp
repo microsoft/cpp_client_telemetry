@@ -70,7 +70,6 @@ public:
 };
 
 TEST_F(LogSessionDataDBTests, subTest) {
-
 #ifndef USE_ROOM
     unsigned long long now = PAL::getUtcSystemTimeMs();
     auto sessionFirstTime= logSession->getSessionFirstTime();
