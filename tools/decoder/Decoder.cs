@@ -4,24 +4,33 @@ using System.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
+
 // Protocol
 using Bond;
 using Bond.Protocols;
 using Bond.IO.Safe;
+
+#if NETCOREAPP
 // Extensions
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+#endif
+
 // JSON parser
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using CsProtocol;
+using System.Linq;
 
 namespace CommonSchema
 {
     public class Decoder
     {
 
+#if NETCOREAPP
         // Logger passed down from the caller
-        private readonly ILogger _logger;
+        public ILogger Logger { get; set; }
+#endif
 
         // Raw HTTP post body in input format
         private byte[] SavedBody;
@@ -34,9 +43,8 @@ namespace CommonSchema
         /// </summary>
         /// <param name="requestHeaders">Request headers</param>
         /// <param name="requestBody">Request body</param>
-        public Decoder(ILogger logger, IHeaderDictionary requestHeaders, byte[] requestBody)
+        public Decoder(IDictionary<string, string> requestHeaders, byte[] requestBody)
         {
-            _logger = logger;
             if (requestHeaders is null)
             {
                 throw new ArgumentNullException(nameof(requestHeaders));
@@ -94,7 +102,7 @@ namespace CommonSchema
                 { "extIngest", "injest" },
                 { "extProtocol", "protocol" },
                 { "extUser", "user" },
-                { "extDevice", "dev" },
+                { "extDevice", "device" },
                 { "extOs", "os" },
                 { "extApp", "app" },
                 { "extUtc", "utc" },
@@ -105,8 +113,57 @@ namespace CommonSchema
                 { "extSdk", "sdk" },
                 { "extLoc", "loc" },
                 { "extCloud", "cloud" },
-                { "extM365a", "M365a" }
+                { "extService", "service" },
+                { "extCs", "cs" },
+                { "extM365a", "M365a" },
+                { "extMscv", "mscv" },
+                { "extIntWeb", "intWeb" },
+                { "extIntService", "intService" },
+                { "extWeb", "web" }
             };
+
+        /// <summary>
+        /// Convert Bond-style Value object to more readable JSON notation
+        /// </summary>
+        /// <param name="jObj"></param>
+        /// <returns></returns>
+        JToken ToJsonValue(JToken token)
+        {
+            JObject jObj = (token.Type == JTokenType.Object) ? (JObject)token: new JObject();
+
+            // Ref. CSProtocol_types.cs
+            if (jObj.ContainsKey("type"))
+            {
+                ValueKind kind = (CsProtocol.ValueKind)(int)jObj["type"];
+                switch (kind)
+                {
+                    case ValueKind.ValueInt64:
+                        return jObj["longValue"];
+                    case ValueKind.ValueDouble:
+                        return jObj["doubleValue"];
+                    case ValueKind.ValueGuid:
+                        return jObj["guidValue"][0];
+                    case ValueKind.ValueBool:
+                        return new JValue(jObj.Count != 1);
+                    default:
+                        break;
+                }
+            }
+
+            if (jObj.ContainsKey("stringValue") && (jObj.Count == 1))
+            {
+                return jObj["stringValue"];
+            }
+
+            // TODO: add nicer formatting for non-standard complex types:
+            // - stringArray
+            // - longArray
+            // - doubleArray
+            // - guidArray
+            // Currently these are still expressed based on JSON generated from Bond schema.
+
+            return jObj;
+        }
 
         /// <summary>
         /// Pull Common Schema extensions to 2nd-level JSON extension under 'ext'
@@ -120,7 +177,10 @@ namespace CommonSchema
         private string ToCompactExt(string json)
         {
             JObject jObj = JObject.Parse(json);
-            jObj.TryAdd("ext", new JObject());
+            if (!jObj.ContainsKey("ext"))
+            {
+                jObj.Add("ext", new JObject());
+            }
             JObject ext = (JObject)jObj["ext"];
             foreach(KeyValuePair<string, string> entry in nodeMap)
             {
@@ -137,7 +197,10 @@ namespace CommonSchema
                                 if (child.Count > 0)
                                 {
                                     child = (JObject)(child.DeepClone());
-                                    ext.TryAdd(entry.Value, child);
+                                    if (!ext.ContainsKey(entry.Value))
+                                    {
+                                        ext.Add(entry.Value, child);
+                                    }
                                 }
                             }
                             jObj.Remove(entry.Key);
@@ -145,13 +208,37 @@ namespace CommonSchema
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogCritical(
+#if NETCOREAPP
+                        Logger.LogCritical(
                             "Exception: {ex}\nInvalid JSON tree node: {json}",
                             ex,
                             parent.ToString());
+#else   
+                        throw;
+#endif
                     }
                 }
             }
+
+            // TODO:
+            // - consider moving ext.loc.timezone to ext.loc.tz
+
+            // Convert Bond-style event into JSON
+            if (jObj.TryGetValue("data", out JToken oldData))
+            {
+                var props = oldData[0]["properties"].DeepClone();
+                jObj.Remove("data");
+                var newData = new JObject();
+                for(int i=0; i<props.Count(); i+=2)
+                {
+                    newData.Add(
+                        props.ElementAt(i).ToString(),
+                        ToJsonValue(props.ElementAt(i+1).DeepClone())
+                    );
+                };
+                jObj.Add("data", newData);
+            };
+
             return jObj.ToString(Newtonsoft.Json.Formatting.None);
         }
 
@@ -227,7 +314,7 @@ namespace CommonSchema
                     SimpleJsonWriter writer = new SimpleJsonWriter(outputBuffer);
                     do
                     {
-                        CsEvent evt = Deserialize<CsEvent>.From(reader);
+                        Record evt = Deserialize<Record>.From(reader);
                         // exception is thrown here if request is invalid
                         Serialize.To(writer, evt);
                         writer.Flush();
@@ -237,9 +324,12 @@ namespace CommonSchema
                         outputBuffer.SetLength(0);
                     } while (true);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // end of input
+#if NETCOREAPP
+                    Logger.LogCritical( "Exception: {ex}", ex);                
+#endif
                 }
 
                 // flatten all into one buffer representing JSON array of records
