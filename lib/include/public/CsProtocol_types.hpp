@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------
 
 #pragma once
+#include "mat/config.h"
 #include <cstdint>
 #include <string>
 #include <vector>

@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------
 
 #pragma once
+#include "mat/config.h"
 #include "BondConstTypes.hpp"
 
 namespace bond_lite {
