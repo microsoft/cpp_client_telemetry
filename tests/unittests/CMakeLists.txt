@@ -40,6 +40,7 @@ set(SRCS
   TransmissionPolicyManagerTests.cpp
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
+  LogSessionDataDBTests.cpp
   UtilsTests.cpp
 )
 

@@ -53,6 +53,10 @@ namespace ARIASDK_NS_BEGIN
             return m_sessionFirstTimeLaunch;
         }
 
+        virtual ~LogSessionDataDB()
+        {
+        }
+
     protected:
 
         void Initialize()
