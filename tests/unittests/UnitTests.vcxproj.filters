@@ -22,6 +22,7 @@
     <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogSessionDataDBTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
