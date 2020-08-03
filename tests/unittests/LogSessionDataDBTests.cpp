@@ -18,19 +18,19 @@ namespace MAE = ::Microsoft::Applications::Events;
 using namespace testing;
 
 class TestTaskDispatcher_db : public ITaskDispatcher {
-    public:
-        virtual void Join() {}
-        virtual void Queue(Task *task) 
-        {
-            UNREFERENCED_PARAMETER(task);
-        }
-        virtual bool Cancel(Task *task, uint64_t waitTime = 0 )
-        {
-            UNREFERENCED_PARAMETER(task);
-            UNREFERENCED_PARAMETER(waitTime);
-            return true;
-        }
-         ~TestTaskDispatcher_db() {}
+public:
+    virtual void Join() {}
+    virtual void Queue(Task *task) 
+    {
+        UNREFERENCED_PARAMETER(task);
+    }
+    virtual bool Cancel(Task *task, uint64_t waitTime = 0 )
+    {
+        UNREFERENCED_PARAMETER(task);
+        UNREFERENCED_PARAMETER(waitTime);
+        return true;
+    }
+    ~TestTaskDispatcher_db() {}
 };
 
 class LogSessionDataDBTests : public ::testing::Test
@@ -52,7 +52,6 @@ public:
             	Return(5));
         EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Default"))
                 .RetiresOnSaturation();
-
         name << MAE::GetTempDirectory() << "LogSessionDbSQLite.db";
         configMock[CFG_STR_CACHE_FILE_PATH] = name.str();
         std::remove(name.str().c_str());
@@ -66,7 +65,6 @@ public:
         std::remove(name.str().c_str());
         offlineStorage->Shutdown();
         offlineStorage.reset();
-
         delete logSession;
     }
 };
@@ -88,6 +86,4 @@ TEST_F(LogSessionDataDBTests, subTest) {
 #else
     ASSERT_EQ(1, 1);
 #endif
-
 }
-
