@@ -226,6 +226,10 @@ namespace clienttelemetry {
                                                         { "ticketKeys",  r.extProtocol[0].ticketKeys },
                                                         { "devMake",     r.extProtocol[0].devMake },
                                                         { "devModel",    r.extProtocol[0].devModel }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "msp",         r.extProtocol[0].msp }
+#endif
                                                     }
                                                 },
                                                 { "user" ,                                           // 22: optional vector<User> extUser
@@ -244,7 +248,11 @@ namespace clienttelemetry {
                                                         { "id",          r.extDevice[0].id },
                                                         { "localId",     r.extDevice[0].localId },
                                                         { "make",        r.extDevice[0].make },
-                                                        { "model",       r.extDevice[0].model },
+                                                        { "model",       r.extDevice[0].model }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "authIdEnt",   r.extDevice[0].authIdEnt }
+#endif
                                                      }
                                                 },
                                                 { "os",                                              // 24: optional vector<Os> extOs
@@ -266,6 +274,10 @@ namespace clienttelemetry {
                                                         { "ver",     r.extApp[0].ver },
                                                         { "locale",  r.extApp[0].locale },
                                                         { "name",    r.extApp[0].name }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "sesId",   r.extApp[0].sesId }
+#endif
                                                      }
                                                 },
                     /*
@@ -285,7 +297,11 @@ namespace clienttelemetry {
                                                      {
                                                         { "epoch",     r.extSdk[0].epoch },
                                                         { "installId", r.extSdk[0].installId },
+#ifdef HAVE_CS4
+                                                        { "ver",       r.extSdk[0].ver }
+#else
                                                         { "libVer",    r.extSdk[0].libVer}
+#endif
                                                      }
                                                 }
                     /*
@@ -295,6 +311,17 @@ namespace clienttelemetry {
                                             }
                                         }
                 };
+
+#ifdef HAVE_CS4
+                if (r.extM365a.size())
+                {
+                    j["ext"]["m365"] = json
+                    {
+                        {"enrolledTenantId", r.extM365a[0].enrolledTenantId},
+                        {"msp", r.extM365a[0].msp }
+                    };
+                }
+#endif
 
                 if (r.ext.size())
                 {
