@@ -56,27 +56,8 @@ namespace ARIASDK_NS_BEGIN
             }
             return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
         }
-    private:
-        static unsigned long long convertStrToLong(const std::string& s)
-        {
-            unsigned long long res = 0ull;
-            try
-            {
-                res = std::stoull(s);
-            }
-            catch (const std::invalid_argument&)
-            {
-                LOG_WARN("Non-integer data passed to std::stoull");
-            }
-            catch (const std::out_of_range&)
-            {
-                LOG_WARN("Value passed to std::stoull was larger than unsigned long long could represent");
-            }
-            return res;
-        }
 
     protected:
- 
         static bool parse(
                 const std::string &content,
                 unsigned long long &sessionFirstTimeLaunch,
@@ -101,6 +82,23 @@ namespace ARIASDK_NS_BEGIN
         }
 
     private:
+        static unsigned long long convertStrToLong(const std::string& s)
+        {
+            unsigned long long res = 0ull;
+            try
+            {
+                res = std::stoull(s);
+            }
+            catch (const std::invalid_argument&)
+            {
+                LOG_WARN("Non-integer data passed to std::stoull");
+            }
+            catch (const std::out_of_range&)
+            {
+                LOG_WARN("Value passed to std::stoull was larger than unsigned long long could represent");
+            }
+            return res;
+        }
 
        static void writeFileContents(
             const std::string &path,
