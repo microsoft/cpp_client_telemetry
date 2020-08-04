@@ -183,9 +183,6 @@ namespace ARIASDK_NS_BEGIN
             }
         }
 
-        // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
-        //m_logSessionData.reset(new LogSessionData(cacheFilePath));
-
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
         if (m_dataViewer != nullptr)
@@ -270,14 +267,6 @@ namespace ARIASDK_NS_BEGIN
         }
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
-
-#if 0
-#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-        m_logSessionData = LogSessionDataProvider::CreateLogSessionData(m_offlineStorage.get());
-#else
-        m_logSessionData = LogSessionDataProvider::CreateLogSessionData(cacheFilePath);
-#endif
-#endif
 
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController,
                    m_logSessionData, cacheFilePath ));
