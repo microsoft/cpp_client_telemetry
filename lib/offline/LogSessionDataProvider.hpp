@@ -25,10 +25,10 @@ namespace ARIASDK_NS_BEGIN
                 sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
                 sessionSDKUid = PAL::generateUuidString();
                 if (!offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) {
-                    LOG_WARN("Unable to save session analytics to DB for %s", sessionFirstLaunchTimeName);
+                    LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
                 }
                 if (!offlineStorage->StoreSetting(sessionSdkUidName, sessionSDKUid)) {
-                    LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid);
+                    LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
                 }
             }
             return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
