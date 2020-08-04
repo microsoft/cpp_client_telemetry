@@ -9,44 +9,26 @@
 namespace ARIASDK_NS_BEGIN
 {
 
-    /// <summary>
-    /// The LogSessionData class represents the session cache.
-    /// </summary>
     class LogSessionData
     {
     public:
-        /// <summary>
-        /// The LogSessionData constructor, taking a cache file path.
-        /// </summary>
-        LogSessionData(std::string const& cacheFilePath);
+        LogSessionData(unsigned long long, std::string);
 
         /// <summary>
         /// Gets the time that this session began.
         /// </summary>
         /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSessionFirstTime() const
-        {
-            return m_sessionFirstTimeLaunch;
-        }
+        unsigned long long getSessionFirstTime() const ;
 
         /// <summary>
         /// Gets the SDK unique identifier.
         /// </summary>
-        std::string getSessionSDKUid() const
-        {
-            return m_sessionSDKUid;
-        }
+        std::string getSessionSDKUid() const ;
 
     protected:
-
-        void open(const std::string& path);
-
-        bool parse(const std::string& cacheContents);
-
+        unsigned long long                  m_sessionFirstTimeLaunch{0ull} ;
         std::string                         m_sessionSDKUid;
-        unsigned long long                  m_sessionFirstTimeLaunch;
     };
-
 
 } ARIASDK_NS_END
 #endif

@@ -17,6 +17,8 @@
 #include "http/HttpResponseDecoder.hpp"
 
 #include "offline/StorageObserver.hpp"
+#include "LogSessionData.hpp"
+
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
 
@@ -44,7 +46,9 @@ namespace ARIASDK_NS_BEGIN {
             IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
-            IBandwidthController* bandwidthController
+            IBandwidthController* bandwidthController,
+            std::shared_ptr<LogSessionData> &logSessionData,
+            std::string const & cacheFilePath
         );
 
         ~TelemetrySystem();

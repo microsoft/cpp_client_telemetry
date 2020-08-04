@@ -3,6 +3,7 @@
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
 #include "ILogManager.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include "mat/config.h"
 
@@ -23,7 +24,9 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
-        IBandwidthController* bandwidthController)
+        IBandwidthController* bandwidthController,
+        std::shared_ptr<LogSessionData> &logSessionData,
+        std::string const &cacheFilePath)
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
@@ -34,12 +37,17 @@ namespace ARIASDK_NS_BEGIN {
         packager(runtimeConfig),
         tpm(*this, taskDispatcher, bandwidthController)
     {
-        
+
         // Handler for start
-        onStart = [this](void)
+        onStart = [this, &logSessionData, cacheFilePath, &offlineStorage](void)
         {
             bool result = true;
             result&=storage.start();
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+        	logSessionData = LogSessionDataProvider::CreateLogSessionData(&offlineStorage);
+#else
+        	logSessionData = LogSessionDataProvider::CreateLogSessionData(cacheFilePath);
+#endif
             result&=tpm.start();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
