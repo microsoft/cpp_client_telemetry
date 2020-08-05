@@ -161,6 +161,8 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp">
       <Filter>offline</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.cpp">
+      <Filter>offline</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp">
       <Filter>api</Filter>

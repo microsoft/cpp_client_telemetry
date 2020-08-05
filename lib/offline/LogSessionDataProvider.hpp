@@ -2,127 +2,48 @@
 #define MAT_LOGSESSIONDATA_PROVIDER_HPP
 
 #include "LogSessionData.hpp"
-#include "utils/FileUtils.hpp"
-#include "utils/StringUtils.hpp"
-
+#include "IOfflineStorage.hpp"
+#include <string>
 #include <memory>
+
 namespace ARIASDK_NS_BEGIN
 {
-    static const char* sessionFirstLaunchTimeName = "sessionfirstlaunchtime";
-    static const char* sessionSdkUidName = "sessionsdkuid";
+    enum class SessionStorageType {
+        FILE_STORE,
+        DATABASE_STORE
+    };
 
     class  LogSessionDataProvider
     {
     public:
-        static std::shared_ptr<LogSessionData> CreateLogSessionData(
-            IOfflineStorage* offlineStorage)
+        LogSessionDataProvider(std::shared_ptr<IOfflineStorage> offlineStorage):
+            m_storageType(SessionStorageType::DATABASE_STORE),
+            m_offlineStorage(offlineStorage)
+            
         {
-            std::string sessionSDKUid;
-            unsigned long long sessionFirstTimeLaunch = 0;
-            sessionSDKUid = offlineStorage->GetSetting(sessionSdkUidName);
-            sessionFirstTimeLaunch = convertStrToLong(offlineStorage->GetSetting(sessionFirstLaunchTimeName));
-            if (!sessionFirstTimeLaunch || sessionSDKUid.empty()) {
-                sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                sessionSDKUid = PAL::generateUuidString();
-                if (!offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) {
-                    LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
-                }
-                if (!offlineStorage->StoreSetting(sessionSdkUidName, sessionSDKUid)) {
-                    LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
-                }
-            }
-            return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
         }
 
-        static std::shared_ptr<LogSessionData> CreateLogSessionData(
-            std::string const& cacheFilePath)
+        LogSessionDataProvider(std::string const& cacheFilePath):
+            m_storageType(SessionStorageType::FILE_STORE),
+            m_cacheFilePath(cacheFilePath)
+
         {
-            std::string sessionSDKUid;
-            unsigned long long sessionFirstTimeLaunch = 0;
-            std::string sessionPath = cacheFilePath.empty() ? "" : (cacheFilePath + ".ses").c_str();
-            if (!sessionPath.empty()) {
-                if (MAT::FileExists(sessionPath.c_str())) {
-                    auto content = MAT::FileGetContents(sessionPath.c_str());
-                    if (!parse (content, sessionFirstTimeLaunch, sessionSDKUid)) {
-                        sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                        sessionSDKUid = PAL::generateUuidString();
-                        writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
-                    }
-                } else {
-                    sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                    sessionSDKUid = PAL::generateUuidString();
-                    writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
-                }
-            }
-            return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
         }
+
+        std::shared_ptr<LogSessionData> GetLogSessionData();
 
     protected:
-        static bool parse(
-                const std::string &content,
-                unsigned long long &sessionFirstTimeLaunch,
-                std::string &sessionSDKUid)
-        {
-            if (content.empty()) {
-                return false;
-            }
-            std::vector<std::string> v;
-            StringUtils::SplitString(content, '\n', v);
-            if (v.size() != 2) {
-               return false;
-            }
-            remove_eol(v[0]);
-            remove_eol(v[1]);
-            sessionFirstTimeLaunch = convertStrToLong(v[0]);
-            if (sessionFirstTimeLaunch == 0 ) {
-                return false;
-            }
-            sessionSDKUid =  v[1];
-            return true;
-        }
+        std::shared_ptr<LogSessionData> GetLogSessionDataFromFile();
+        std::shared_ptr<LogSessionData> GetLogSessionDataFromDB();
+        bool parse(const std::string &, unsigned long long &,  std::string &) ;
 
     private:
-        static unsigned long long convertStrToLong(const std::string& s)
-        {
-            unsigned long long res = 0ull;
-            try
-            {
-                res = std::stoull(s);
-            }
-            catch (const std::invalid_argument&)
-            {
-                LOG_WARN("Non-integer data passed to std::stoull");
-            }
-            catch (const std::out_of_range&)
-            {
-                LOG_WARN("Value passed to std::stoull was larger than unsigned long long could represent");
-            }
-            return res;
-        }
-
-       static void writeFileContents(
-            const std::string &path,
-            unsigned long long sessionFirstTimeLaunch,
-            const std::string &sessionSDKUid)
-        {
-            std::string contents;
-            contents += std::to_string(sessionFirstTimeLaunch);
-            contents += '\n';
-            contents += sessionSDKUid;
-            contents += '\n';
-            if (!MAT::FileWrite(path.c_str(), contents.c_str()))
-            {
-                LOG_WARN("Unable to save session analytics to %s", path.c_str());
-            }
-        }
-
-        static void remove_eol(std::string& result)
-        {
-            if (!result.empty() && result[result.length() - 1] == '\n')
-            {
-                result.erase(result.length() - 1);
-            }
-        }
+        SessionStorageType m_storageType;
+        std::shared_ptr<IOfflineStorage> m_offlineStorage;
+        std::string const m_cacheFilePath;
+        unsigned long long convertStrToLong(const std::string& );
+        void writeFileContents(const std::string &, unsigned long long, const std::string &);
+        void remove_eol(std::string& );
     };
 }
 ARIASDK_NS_END
