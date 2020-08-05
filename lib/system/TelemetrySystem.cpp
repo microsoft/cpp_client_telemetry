@@ -43,7 +43,7 @@ namespace ARIASDK_NS_BEGIN {
         {
             bool result = true;
             result&=storage.start();
-        	logSessionData = logSessionDataProvider->GetLogSessionData();
+            logSessionData = logSessionDataProvider->GetLogSessionData();
             result&=tpm.start();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
