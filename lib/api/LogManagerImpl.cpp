@@ -268,8 +268,8 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController, cacheFilePath,
-                m_logSessionData));
+        m_system.reset(new TelemetrySystem(*this, *m_config, m_offlineStorage, *m_httpClient, *m_taskDispatcher, 
+                    m_bandwidthController, cacheFilePath,  m_logSessionData));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
