@@ -1,6 +1,15 @@
 #include "LogSessionDataProvider.hpp"
 #include "utils/FileUtils.hpp"
 #include "utils/StringUtils.hpp"
+#include "utils/Utils.hpp"
+
+#include<cstring>
+#include<cstdlib>
+#include<errno.h>
+
+#include<iostream>
+
+extern int errno;
 
 namespace ARIASDK_NS_BEGIN
 {
@@ -9,7 +18,7 @@ namespace ARIASDK_NS_BEGIN
 
     std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionData()
     {
-        if (m_storageType == SessionStorageType::FILE_STORE ) {
+        if (m_storageType == SessionStorageType::FileStore ) {
             return GetLogSessionDataFromFile();
         } else {
             return GetLogSessionDataFromDB();
@@ -19,7 +28,7 @@ namespace ARIASDK_NS_BEGIN
     std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionDataFromDB()
     {
         std::string sessionSDKUid;
-        unsigned long long sessionFirstTimeLaunch = 0;
+        uint64_t sessionFirstTimeLaunch = 0;
         if (nullptr != m_offlineStorage)
         {
             sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
@@ -41,7 +50,7 @@ namespace ARIASDK_NS_BEGIN
     std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionDataFromFile()
     {
         std::string sessionSDKUid;
-        unsigned long long sessionFirstTimeLaunch = 0;
+        uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
         if (!sessionPath.empty()) {
             if (MAT::FileExists(sessionPath.c_str())) {
@@ -62,7 +71,7 @@ namespace ARIASDK_NS_BEGIN
 
     bool LogSessionDataProvider::parse(
         const std::string &content,
-        unsigned long long &sessionFirstTimeLaunch,
+        uint64_t &sessionFirstTimeLaunch,
         std::string &sessionSDKUid)
     {
         if (content.empty()) {
@@ -83,31 +92,35 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
-    unsigned long long LogSessionDataProvider::convertStrToLong(const std::string& s)
+    uint64_t LogSessionDataProvider::convertStrToLong(const std::string& s)
     {
-        unsigned long long res = 0ull;
-        try
+        uint64_t res = 0ull;
+        char *endptr = nullptr;
+        res = std::strtol(s.c_str(), &endptr, 10);
+        if (errno == ERANGE && (res == LONG_MAX || res == 0 ))
         {
-            res = std::stoull(s);
-        }
-        catch (const std::invalid_argument&)
+            LOG_WARN ("Converted value falls out of uint64_t range.");
+            res = 0;
+        } 
+        else if ( 0 != errno  && 0 == res )
         {
-            LOG_WARN("Non-integer data passed to std::stoull");
+            LOG_WARN("Conversion cannot be performed.");
         }
-        catch (const std::out_of_range&)
+        else if (std::strlen(endptr) > 0)
         {
-            LOG_WARN("Value passed to std::stoull was larger than unsigned long long could represent");
-        }
+            LOG_WARN ("Conversion cannot be performed. Alphanumeric characters present");
+            res = 0;
+        } 
         return res;
     }
 
     void LogSessionDataProvider::writeFileContents(
         const std::string &path,
-        unsigned long long sessionFirstTimeLaunch,
+        uint64_t sessionFirstTimeLaunch,
         const std::string &sessionSDKUid)
     {
         std::string contents;
-        contents += std::to_string(sessionFirstTimeLaunch);
+        contents += toString(sessionFirstTimeLaunch);
         contents += '\n';
         contents += sessionSDKUid;
         contents += '\n';
@@ -126,6 +139,3 @@ namespace ARIASDK_NS_BEGIN
     }
 }
 ARIASDK_NS_END
-
-
-

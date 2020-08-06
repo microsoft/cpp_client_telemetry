@@ -16,7 +16,7 @@ public:
 
 const char* const PathToTestSesFile = "";
 std::string sessionSDKUid;
-unsigned long long sessionFirstTimeLaunch;
+uint64_t sessionFirstTimeLaunch;
 
 
 TEST(LogSessionDataTests, parse_EmptyString_ReturnsFalse)
@@ -52,7 +52,7 @@ TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
-   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\nbar" },
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1111111111111111111111111111111111111111111111111111111111111111111\nbar" },
                sessionFirstTimeLaunch, sessionSDKUid));
 }
 
