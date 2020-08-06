@@ -309,7 +309,7 @@ namespace ARIASDK_NS_BEGIN
 
         AuthTokensController m_authTokensController;
 
-        std::unique_ptr<IOfflineStorage> m_offlineStorage;
+        std::shared_ptr<IOfflineStorage> m_offlineStorage;
         std::shared_ptr<LogSessionData> m_logSessionData;
         bool m_isSystemStarted{};
         std::unique_ptr<ITelemetrySystem> m_system;

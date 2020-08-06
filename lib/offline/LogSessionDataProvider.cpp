@@ -7,8 +7,6 @@
 #include<cstdlib>
 #include<errno.h>
 
-#include<iostream>
-
 extern int errno;
 
 namespace ARIASDK_NS_BEGIN
