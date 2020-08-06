@@ -7,7 +7,6 @@
 #include "mat/config.h"
 
 #include "offline/OfflineStorageHandler.hpp"
-#include "offline/LogSessionDataProvider.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -269,14 +268,8 @@ namespace ARIASDK_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-		LogSessionDataProvider logSessionDataProvider(m_offlineStorage);
-#else
-		LogSessionDataProvider logSessionDataProvider(cacheFilePath);
-#endif
-
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController, &logSessionDataProvider,
-                   m_logSessionData));
+        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController, cacheFilePath,
+                m_logSessionData));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {

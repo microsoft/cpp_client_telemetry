@@ -8,25 +8,23 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-    enum class SessionStorageType {
-        FILE_STORE,
-        DATABASE_STORE
+    enum class SessionStorageType : uint8_t {
+        FileStore,
+        DatabaseStore  
     };
 
     class  LogSessionDataProvider
     {
     public:
         LogSessionDataProvider(std::shared_ptr<IOfflineStorage> offlineStorage):
-            m_storageType(SessionStorageType::DATABASE_STORE),
+            m_storageType(SessionStorageType::DatabaseStore),
             m_offlineStorage(offlineStorage)
-            
         {
         }
 
         LogSessionDataProvider(std::string const& cacheFilePath):
-            m_storageType(SessionStorageType::FILE_STORE),
+            m_storageType(SessionStorageType::FileStore),
             m_cacheFilePath(cacheFilePath)
-
         {
         }
 
@@ -35,14 +33,14 @@ namespace ARIASDK_NS_BEGIN
     protected:
         std::shared_ptr<LogSessionData> GetLogSessionDataFromFile();
         std::shared_ptr<LogSessionData> GetLogSessionDataFromDB();
-        bool parse(const std::string &, unsigned long long &,  std::string &) ;
+        bool parse(const std::string &, uint64_t &,  std::string &) ;
 
     private:
         SessionStorageType m_storageType;
         std::shared_ptr<IOfflineStorage> m_offlineStorage;
         std::string const m_cacheFilePath;
-        unsigned long long convertStrToLong(const std::string& );
-        void writeFileContents(const std::string &, unsigned long long, const std::string &);
+        uint64_t convertStrToLong(const std::string& );
+        void writeFileContents(const std::string &, uint64_t, const std::string &);
         void remove_eol(std::string& );
     };
 }

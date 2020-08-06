@@ -7,14 +7,14 @@ using namespace std;
 namespace ARIASDK_NS_BEGIN {
 
     LogSessionData::LogSessionData(
-        unsigned long long sessionFirstTimeLaunch,
+        uint64_t sessionFirstTimeLaunch,
         const std::string sessionSDKUid) :
         m_sessionFirstTimeLaunch(sessionFirstTimeLaunch),
         m_sessionSDKUid(sessionSDKUid)
     {
     }
 
-    unsigned long long LogSessionData::getSessionFirstTime() const
+    uint64_t LogSessionData::getSessionFirstTime() const
     {
         return m_sessionFirstTimeLaunch;
     }

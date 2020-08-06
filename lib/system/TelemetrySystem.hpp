@@ -48,7 +48,7 @@ namespace ARIASDK_NS_BEGIN {
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
             IBandwidthController* bandwidthController,
-            LogSessionDataProvider *logSessionDataProvider,
+            const std::string& cacheFilePath,
             std::shared_ptr<LogSessionData> &logSessionData
         );
 
@@ -74,6 +74,7 @@ namespace ARIASDK_NS_BEGIN {
         Packager                  packager;
         TransmissionPolicyManager tpm;
         ClockSkewDelta            clockSkewDelta;
+        LogSessionDataProvider    logSessionDataProvider;
 
     public:
         RouteSink<TelemetrySystem>                                 flushTaskDispatcher{ this, &TelemetrySystem::handleFlushTaskDispatcher };
