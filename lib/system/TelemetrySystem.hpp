@@ -44,7 +44,7 @@ namespace ARIASDK_NS_BEGIN {
         TelemetrySystem(
             ILogManager& logManager,
             IRuntimeConfig& runtimeConfig,
-            IOfflineStorage& offlineStorage,
+            std::shared_ptr<IOfflineStorage> offlineStorage,
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
             IBandwidthController* bandwidthController,

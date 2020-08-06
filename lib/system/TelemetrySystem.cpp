@@ -19,7 +19,7 @@ namespace ARIASDK_NS_BEGIN {
     TelemetrySystem::TelemetrySystem(
         ILogManager& logManager,
         IRuntimeConfig& runtimeConfig,
-        IOfflineStorage& offlineStorage,
+        std::shared_ptr<IOfflineStorage> offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
         IBandwidthController* bandwidthController,
@@ -31,11 +31,11 @@ namespace ARIASDK_NS_BEGIN {
         hcm(logManager, httpClient, taskDispatcher),
         httpEncoder(*this, httpClient),
         httpDecoder(*this),
-        storage(*this, offlineStorage),
+        storage(*this, *offlineStorage),
         packager(runtimeConfig),
         tpm(*this, taskDispatcher, bandwidthController),
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-        logSessionDataProvider(m_offlineStorage)
+        logSessionDataProvider(offlineStorage)
 #else
         logSessionDataProvider(cacheFilePath)     
 #endif
