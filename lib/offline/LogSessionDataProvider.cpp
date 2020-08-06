@@ -122,6 +122,8 @@ namespace ARIASDK_NS_BEGIN
         contents += '\n';
         contents += sessionSDKUid;
         contents += '\n';
+
+        //TBD (labhas) - validate if file is NOT a symlink/junction before trying to write.
         if (!MAT::FileWrite(path.c_str(), contents.c_str()))
         {
             LOG_WARN("Unable to save session analytics to %s", path.c_str());
