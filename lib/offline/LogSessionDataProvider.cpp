@@ -7,6 +7,9 @@
 #include<cstdlib>
 #include<errno.h>
 
+#ifndef _WIN32  /* Avoid warning under Windows */
+extern int errno;  
+#endif
 extern int errno;
 
 namespace ARIASDK_NS_BEGIN
