@@ -256,7 +256,7 @@ public class HttpClient {
         if (os_major_version == null) {
             os_major_version = "GECOS III"; // unexpected except in Java unit tests
         }
-        String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
+        String os_full_version = Build.VERSION.INCREMENTAL;
         setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version, time_zone);
     }
 

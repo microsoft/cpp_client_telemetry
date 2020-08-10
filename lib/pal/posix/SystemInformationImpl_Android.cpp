@@ -110,7 +110,7 @@ namespace PAL_NS_BEGIN {
             jStr = pEnv->GetStringUTFChars(versionIncrementalJstr, &isCopy);
             std::string versionIncremental = jStr;
             pEnv->ReleaseStringUTFChars(versionIncrementalJstr, jStr);
-            std::string osVersion = versionRelease + " " + versionIncremental;
+            std::string osVersion = versionIncremental;
 
             AndroidSystemInformationConnector::s_app_id = std::move(packageName);
             AndroidSystemInformationConnector::s_app_language = std::move(languageTag);
