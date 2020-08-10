@@ -47,7 +47,7 @@ public:
     StrictMock<MockIRuntimeConfig>  configMock;
     LogSessionDataProvider *logSessionDataProvider;
     std::ostringstream name;
-    unsigned long long now ;
+    unsigned long long now = PAL::getUtcSystemTimeMs(); 
 
     virtual void SetUp() override
     {
@@ -63,8 +63,8 @@ public:
         offlineStorage.reset(new OfflineStorageHandler(logManager, configMock, taskDispatcher)); 
 		logSessionDataProvider = new  LogSessionDataProvider(offlineStorage.get());
         logSessionDataProvider->CreateLogSessionData();
-        now = PAL::getUtcSystemTimeMs();
         offlineStorage->Initialize(observerMock);
+        logSessionDataProvider->CreateLogSessionData();
     }
 
     virtual void TearDown() override
