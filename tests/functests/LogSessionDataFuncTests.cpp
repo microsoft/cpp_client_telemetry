@@ -70,6 +70,7 @@ TEST(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
     auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+    UNREFERENCED_PARAMETER(logSessionData);
     ASSERT_TRUE(MAT::FileExists(SessionFile));
 }
 
