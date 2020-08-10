@@ -7,16 +7,6 @@ using namespace std;
 
 namespace ARIASDK_NS_BEGIN {
 
-    LogSessionData::LogSessionData(
-        LogSessionDataProvider *logSessionDataProvider)
-        :
-        m_logSessionDataProvider(logSessionDataProvider)
-    {
-        if ( nullptr != m_logSessionDataProvider ) {
-            m_logSessionDataProvider->CreateLogSessionData(m_sessionFirstTimeLaunch, m_sessionSDKUid);
-        }
-    }
-
     uint64_t LogSessionData::getSessionFirstTime() const
     {
         return m_sessionFirstTimeLaunch;

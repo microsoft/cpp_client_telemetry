@@ -17,6 +17,7 @@
 #include "http/HttpResponseDecoder.hpp"
 
 #include "offline/StorageObserver.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
 
@@ -44,7 +45,8 @@ namespace ARIASDK_NS_BEGIN {
             IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
-            IBandwidthController* bandwidthController
+            IBandwidthController* bandwidthController,
+            LogSessionDataProvider& logSessionDataProvider
         );
 
         ~TelemetrySystem();

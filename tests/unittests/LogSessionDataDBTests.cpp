@@ -62,6 +62,7 @@ public:
         std::remove(name.str().c_str());
         offlineStorage.reset(new OfflineStorageHandler(logManager, configMock, taskDispatcher)); 
 		logSessionDataProvider = new  LogSessionDataProvider(offlineStorage.get());
+        logSessionDataProvider->CreateLogSessionData();
         now = PAL::getUtcSystemTimeMs();
         offlineStorage->Initialize(observerMock);
     }

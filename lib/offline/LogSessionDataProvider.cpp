@@ -16,30 +16,30 @@ namespace ARIASDK_NS_BEGIN
     static const char* sessionFirstLaunchTimeName = "sessionfirstlaunchtime";
     static const char* sessionSdkUidName = "sessionsdkuid";
 
-    void LogSessionDataProvider::CreateLogSessionData(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
+    void LogSessionDataProvider::CreateLogSessionData()
     {
-        if (m_storageType == SessionStorageType::FileStore ) {
-            CreateLogSessionDataFromFile(sessionFirstTimeLaunch, sessionSDKUid);
-        } else {
-            CreateLogSessionDataFromDB(sessionFirstTimeLaunch, sessionSDKUid);
+        if (m_storageType == SessionStorageType::FileStore)
+        {
+            CreateLogSessionDataFromFile();
+        } else 
+        {
+            CreateLogSessionDataFromDB();
         }
     }
 
-    LogSessionData * LogSessionDataProvider::GetLogSessionData() 
+    LogSessionData* LogSessionDataProvider::GetLogSessionData() 
     {
-        static LogSessionData logSessionData(this);
-        return &logSessionData;
-
+        return m_logSessionData.get();
     }
 
-    void  LogSessionDataProvider::CreateLogSessionDataFromDB(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
+    void  LogSessionDataProvider::CreateLogSessionDataFromDB()
     {
         if (nullptr == m_offlineStorage) {
             LOG_WARN(" offline storage not available. Session data won't be initialized");
             return ;
         }
-        sessionFirstTimeLaunch = 0;
-        sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
+        uint64_t sessionFirstTimeLaunch = 0;
+        std::string sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
         sessionFirstTimeLaunch = convertStrToLong(m_offlineStorage->GetSetting(sessionFirstLaunchTimeName));
         if ((sessionFirstTimeLaunch == 0) || sessionSDKUid.empty())
         {
@@ -53,10 +53,13 @@ namespace ARIASDK_NS_BEGIN
                 LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
             }
         }
+        m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
     }
 
-    void LogSessionDataProvider::CreateLogSessionDataFromFile(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
+    void LogSessionDataProvider::CreateLogSessionDataFromFile()
     {
+        uint64_t sessionFirstTimeLaunch = 0;
+        std::string sessionSDKUid;
         std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
         if (!sessionPath.empty()) 
         {
@@ -76,6 +79,7 @@ namespace ARIASDK_NS_BEGIN
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
         }
+        m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
     }
 
     bool LogSessionDataProvider::parse(

@@ -276,7 +276,7 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
         m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, 
-                    m_bandwidthController));
+                    m_bandwidthController, *m_logSessionDataProvider));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
