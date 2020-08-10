@@ -80,7 +80,7 @@ TEST_F(LogSessionDataDBTests, subTest) {
 #ifndef USE_ROOM
     logSessionData =  logSessionDataProvider->GetLogSessionData();
     auto sessionFirstTime= logSessionData->getSessionFirstTime();
-    EXPECT_IN_RANGE(sessionFirstTime, now , now + 100);
+    EXPECT_IN_RANGE(sessionFirstTime, now , now + 1000);
     auto sdkUid = logSessionData->getSessionSDKUid();
     EXPECT_TRUE(sdkUid.size());
 
