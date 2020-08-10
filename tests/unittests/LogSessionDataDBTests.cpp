@@ -41,12 +41,13 @@ class LogSessionDataDBTests : public ::testing::Test
 public:
     NullLogManager logManager;
     std::shared_ptr<OfflineStorageHandler> offlineStorage;
-    std::shared_ptr<LogSessionData> logSessionData;
+    LogSessionData *logSessionData;
     TestTaskDispatcher_db taskDispatcher;
     StrictMock<MockIOfflineStorageObserver> observerMock;
     StrictMock<MockIRuntimeConfig>  configMock;
+    LogSessionDataProvider *logSessionDataProvider;
     std::ostringstream name;
-    unsigned long long now = PAL::getUtcSystemTimeMs();
+    unsigned long long now ;
 
     virtual void SetUp() override
     {
@@ -60,8 +61,8 @@ public:
         configMock[CFG_STR_CACHE_FILE_PATH] = name.str();
         std::remove(name.str().c_str());
         offlineStorage.reset(new OfflineStorageHandler(logManager, configMock, taskDispatcher)); 
-		LogSessionDataProvider logSessionDataProvider(offlineStorage);
-		logSessionData =  logSessionDataProvider.GetLogSessionData();
+		logSessionDataProvider = new  LogSessionDataProvider(offlineStorage.get());
+        now = PAL::getUtcSystemTimeMs();
         offlineStorage->Initialize(observerMock);
     }
 
@@ -70,19 +71,20 @@ public:
         std::remove(name.str().c_str());
         offlineStorage->Shutdown();
         offlineStorage.reset();
-        logSessionData.reset();
     }
 };
 
 TEST_F(LogSessionDataDBTests, subTest) {
 
 #ifndef USE_ROOM
+    logSessionData =  logSessionDataProvider->GetLogSessionData();
     auto sessionFirstTime= logSessionData->getSessionFirstTime();
-    EXPECT_IN_RANGE(sessionFirstTime, now , now + 10);
+    EXPECT_IN_RANGE(sessionFirstTime, now , now + 100);
     auto sdkUid = logSessionData->getSessionSDKUid();
     EXPECT_TRUE(sdkUid.size());
 
     // fetch next time, we should get same values
+    logSessionData =  logSessionDataProvider->GetLogSessionData();
     auto sessionFirstTime_again = logSessionData->getSessionFirstTime();
     auto sdkUid_again = logSessionData->getSessionSDKUid();
     EXPECT_EQ(sessionFirstTime, sessionFirstTime_again);

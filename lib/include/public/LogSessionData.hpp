@@ -9,11 +9,11 @@
 
 namespace ARIASDK_NS_BEGIN
 {
-
+    class LogSessionDataProvider;
     class LogSessionData
     {
     public:
-        LogSessionData(uint64_t, std::string);
+        LogSessionData(LogSessionDataProvider *);
 
         /// <summary>
         /// Gets the time that this session began.
@@ -27,8 +27,9 @@ namespace ARIASDK_NS_BEGIN
         std::string getSessionSDKUid() const;
 
     protected:
-        uint64_t        m_sessionFirstTimeLaunch{0ull};
-        std::string     m_sessionSDKUid;
+        uint64_t                m_sessionFirstTimeLaunch{0ull};
+        std::string             m_sessionSDKUid;
+        LogSessionDataProvider* m_logSessionDataProvider;
     };
 
 } ARIASDK_NS_END

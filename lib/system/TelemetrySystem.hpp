@@ -17,8 +17,6 @@
 #include "http/HttpResponseDecoder.hpp"
 
 #include "offline/StorageObserver.hpp"
-#include "offline/LogSessionDataProvider.hpp"
-#include "LogSessionData.hpp"
 
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
@@ -44,12 +42,10 @@ namespace ARIASDK_NS_BEGIN {
         TelemetrySystem(
             ILogManager& logManager,
             IRuntimeConfig& runtimeConfig,
-            std::shared_ptr<IOfflineStorage> offlineStorage,
+            IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
-            IBandwidthController* bandwidthController,
-            const std::string& cacheFilePath,
-            std::shared_ptr<LogSessionData> &logSessionData
+            IBandwidthController* bandwidthController
         );
 
         ~TelemetrySystem();
@@ -74,7 +70,6 @@ namespace ARIASDK_NS_BEGIN {
         Packager                  packager;
         TransmissionPolicyManager tpm;
         ClockSkewDelta            clockSkewDelta;
-        LogSessionDataProvider    logSessionDataProvider;
 
     public:
         RouteSink<TelemetrySystem>                                 flushTaskDispatcher{ this, &TelemetrySystem::handleFlushTaskDispatcher };
