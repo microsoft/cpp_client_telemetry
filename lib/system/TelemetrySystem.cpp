@@ -3,8 +3,9 @@
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
 #include "ILogManager.hpp"
+
 #include "mat/config.h"
-#include<iostream>
+
 namespace ARIASDK_NS_BEGIN {
 
 /// <summary>
