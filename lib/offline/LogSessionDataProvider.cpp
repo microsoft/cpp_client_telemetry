@@ -16,63 +16,72 @@ namespace ARIASDK_NS_BEGIN
     static const char* sessionFirstLaunchTimeName = "sessionfirstlaunchtime";
     static const char* sessionSdkUidName = "sessionsdkuid";
 
-    std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionData()
+    void LogSessionDataProvider::CreateLogSessionData(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
     {
         if (m_storageType == SessionStorageType::FileStore ) {
-            return GetLogSessionDataFromFile();
+            CreateLogSessionDataFromFile(sessionFirstTimeLaunch, sessionSDKUid);
         } else {
-            return GetLogSessionDataFromDB();
+            CreateLogSessionDataFromDB(sessionFirstTimeLaunch, sessionSDKUid);
         }
     }
 
-    std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionDataFromDB()
+    LogSessionData * LogSessionDataProvider::GetLogSessionData() 
     {
-        std::string sessionSDKUid;
-        uint64_t sessionFirstTimeLaunch = 0;
-        if (nullptr != m_offlineStorage)
+        static LogSessionData logSessionData(this);
+        return &logSessionData;
+
+    }
+
+    void  LogSessionDataProvider::CreateLogSessionDataFromDB(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
+    {
+        if (nullptr == m_offlineStorage) {
+            LOG_WARN(" offline storage not available. Session data won't be initialized");
+            return ;
+        }
+        sessionFirstTimeLaunch = 0;
+        sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
+        sessionFirstTimeLaunch = convertStrToLong(m_offlineStorage->GetSetting(sessionFirstLaunchTimeName));
+        if ((sessionFirstTimeLaunch == 0) || sessionSDKUid.empty())
         {
-            sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
-            sessionFirstTimeLaunch = convertStrToLong(m_offlineStorage->GetSetting(sessionFirstLaunchTimeName));
-            if ((sessionFirstTimeLaunch == 0) || sessionSDKUid.empty()) {
-                sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                sessionSDKUid = PAL::generateUuidString();
-                if (!m_offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) {
-                    LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
-                }
-                if (!m_offlineStorage->StoreSetting(sessionSdkUidName, sessionSDKUid)) {
-                    LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
-                }
+            sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
+            sessionSDKUid = PAL::generateUuidString();
+            if (!m_offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) 
+            {
+                LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
+            }
+            if (!m_offlineStorage->StoreSetting(sessionSdkUidName, sessionSDKUid)) {
+                LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
             }
         }
-        return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
     }
 
-    std::shared_ptr<LogSessionData> LogSessionDataProvider::GetLogSessionDataFromFile()
+    void LogSessionDataProvider::CreateLogSessionDataFromFile(uint64_t& sessionFirstTimeLaunch, std::string& sessionSDKUid)
     {
-        std::string sessionSDKUid;
-        uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
-        if (!sessionPath.empty()) {
-            if (MAT::FileExists(sessionPath.c_str())) {
+        if (!sessionPath.empty()) 
+        {
+            if (MAT::FileExists(sessionPath.c_str())) 
+            {
                 auto content = MAT::FileGetContents(sessionPath.c_str());
-                if (!parse (content, sessionFirstTimeLaunch, sessionSDKUid)) {
+                if (!parse (content, sessionFirstTimeLaunch, sessionSDKUid)) 
+                {
                     sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
                     sessionSDKUid = PAL::generateUuidString();
                     writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
                 }
-            } else {
+            } else
+            {
                 sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
                 sessionSDKUid = PAL::generateUuidString();
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
         }
-        return std::make_shared<LogSessionData>(sessionFirstTimeLaunch, sessionSDKUid);
     }
 
     bool LogSessionDataProvider::parse(
         const std::string &content,
-        uint64_t &sessionFirstTimeLaunch,
-        std::string &sessionSDKUid)
+        uint64_t& sessionFirstTimeLaunch,
+        std::string& sessionSDKUid)
     {
         if (content.empty()) {
             return false;

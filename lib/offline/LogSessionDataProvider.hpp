@@ -16,31 +16,36 @@ namespace ARIASDK_NS_BEGIN
     class  LogSessionDataProvider
     {
     public:
-        LogSessionDataProvider(std::shared_ptr<IOfflineStorage> offlineStorage):
-            m_storageType(SessionStorageType::DatabaseStore),
-            m_offlineStorage(offlineStorage)
+        LogSessionDataProvider(
+            IOfflineStorage* offlineStorage)
+            :
+            m_offlineStorage(offlineStorage),
+            m_storageType(SessionStorageType::DatabaseStore)
         {
         }
 
-        LogSessionDataProvider(std::string const& cacheFilePath):
-            m_storageType(SessionStorageType::FileStore),
-            m_cacheFilePath(cacheFilePath)
+        LogSessionDataProvider(
+            std::string const& cacheFilePath)
+            :
+            m_cacheFilePath(cacheFilePath),
+            m_storageType(SessionStorageType::FileStore)
         {
         }
 
-        std::shared_ptr<LogSessionData> GetLogSessionData();
+        void CreateLogSessionData(uint64_t&, std::string&);
+        LogSessionData *GetLogSessionData();
 
     protected:
-        std::shared_ptr<LogSessionData> GetLogSessionDataFromFile();
-        std::shared_ptr<LogSessionData> GetLogSessionDataFromDB();
-        bool parse(const std::string &, uint64_t &,  std::string &) ;
+        void CreateLogSessionDataFromFile(uint64_t&, std::string&);
+        void CreateLogSessionDataFromDB(uint64_t&, std::string&);
+        bool parse(const std::string&, uint64_t&,  std::string&) ;
 
     private:
-        SessionStorageType m_storageType;
-        std::shared_ptr<IOfflineStorage> m_offlineStorage;
+        IOfflineStorage* m_offlineStorage; //Pointer is not owned. Do not delete!
         std::string const m_cacheFilePath;
-        uint64_t convertStrToLong(const std::string& );
-        void writeFileContents(const std::string &, uint64_t, const std::string &);
+        SessionStorageType m_storageType;
+        uint64_t convertStrToLong(const std::string&);
+        void writeFileContents(const std::string&, uint64_t, const std::string&);
         void remove_eol(std::string& );
     };
 }

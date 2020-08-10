@@ -4,7 +4,7 @@
 #include "utils/Utils.hpp"
 #include "ILogManager.hpp"
 #include "mat/config.h"
-
+#include<iostream>
 namespace ARIASDK_NS_BEGIN {
 
 /// <summary>
@@ -19,33 +19,25 @@ namespace ARIASDK_NS_BEGIN {
     TelemetrySystem::TelemetrySystem(
         ILogManager& logManager,
         IRuntimeConfig& runtimeConfig,
-        std::shared_ptr<IOfflineStorage> offlineStorage,
+        IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
-        IBandwidthController* bandwidthController,
-        const std::string& cacheFilePath,
-        std::shared_ptr<LogSessionData> &logSessionData)
+        IBandwidthController* bandwidthController)
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
         hcm(logManager, httpClient, taskDispatcher),
         httpEncoder(*this, httpClient),
         httpDecoder(*this),
-        storage(*this, *offlineStorage),
+        storage(*this, offlineStorage),
         packager(runtimeConfig),
-        tpm(*this, taskDispatcher, bandwidthController),
-#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-        logSessionDataProvider(offlineStorage)
-#else
-        logSessionDataProvider(cacheFilePath)     
-#endif
+        tpm(*this, taskDispatcher, bandwidthController)
     {
         // Handler for start
-        onStart = [this, &logSessionData, &offlineStorage](void)
+        onStart = [this](void)
         {
             bool result = true;
             result&=storage.start();
-            logSessionData = this->logSessionDataProvider.GetLogSessionData();
             result&=tpm.start();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;

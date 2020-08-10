@@ -2,16 +2,19 @@
 #include <string.h>
 
 #include "LogSessionData.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 using namespace std;
 
 namespace ARIASDK_NS_BEGIN {
 
     LogSessionData::LogSessionData(
-        uint64_t sessionFirstTimeLaunch,
-        const std::string sessionSDKUid) :
-        m_sessionFirstTimeLaunch(sessionFirstTimeLaunch),
-        m_sessionSDKUid(sessionSDKUid)
+        LogSessionDataProvider *logSessionDataProvider)
+        :
+        m_logSessionDataProvider(logSessionDataProvider)
     {
+        if ( nullptr != m_logSessionDataProvider ) {
+            m_logSessionDataProvider->CreateLogSessionData(m_sessionFirstTimeLaunch, m_sessionSDKUid);
+        }
     }
 
     uint64_t LogSessionData::getSessionFirstTime() const
