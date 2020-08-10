@@ -23,7 +23,8 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
-        IBandwidthController* bandwidthController)
+        IBandwidthController* bandwidthController,
+        LogSessionDataProvider& logSessionDataProvider)
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
@@ -36,11 +37,12 @@ namespace ARIASDK_NS_BEGIN {
     {
 
         // Handler for start
-        onStart = [this](void)
+        onStart = [this, &logSessionDataProvider](void)
         {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
+            logSessionDataProvider.CreateLogSessionData();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
         };
