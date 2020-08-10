@@ -17,7 +17,6 @@
 #include "http/HttpResponseDecoder.hpp"
 
 #include "offline/StorageObserver.hpp"
-
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
 
