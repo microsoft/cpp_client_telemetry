@@ -34,6 +34,7 @@ namespace ARIASDK_NS_BEGIN {
         packager(runtimeConfig),
         tpm(*this, taskDispatcher, bandwidthController)
     {
+
         // Handler for start
         onStart = [this](void)
         {
