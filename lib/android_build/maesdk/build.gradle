@@ -41,7 +41,7 @@ android {
         }
         debug {
             jniDebuggable true
-            minifyEnabled true
+            minifyEnabled false
         }
     }
 
@@ -60,7 +60,22 @@ android {
 repositories {
     maven {
         url = "https://office.pkgs.visualstudio.com/_packaging/1DS-SDK/maven/v1"
-        name = "Azure"
+        name = "1DS-SDK"
+        authentication {
+            basic(BasicAuthentication)
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = "https://office.pkgs.visualstudio.com/_packaging/1DS-SDK/maven/v1"
+            name = "1DS-SDK"
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
     }
 }
 
@@ -92,7 +107,7 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.microsoft.applications.events'
                 artifactId = 'maesdk'
-                version = '1.0'
+                version = '3.4.216.1-SNAPSHOT'
             }
             // Creates a Maven publication called “debug”.
             debug(MavenPublication) {
@@ -101,7 +116,7 @@ afterEvaluate {
 
                 groupId = 'com.microsoft.applications.events'
                 artifactId = 'maesdk-debug'
-                version = '1.0'
+                version = '3.4.216.1-SNAPSHOT'
             }
         }
     }
