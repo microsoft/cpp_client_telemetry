@@ -105,6 +105,7 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
+        updateTimersIfNecessary();
         if (m_timers[0] < 0) {
             latency = std::max(latency, EventLatency_RealTime); // low priority disabled by profile
         }
@@ -182,18 +183,19 @@ namespace ARIASDK_NS_BEGIN {
         }
 #endif
 
-        EventsUploadContextPtr ctx = new EventsUploadContext();
+        auto ctx = std::make_shared<EventsUploadContext>();
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
     {
-        LOG_TRACE("HTTP upload finished for ctx=%p", ctx);
+        LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
         {
-            LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx);
+            assert(false);
+            LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 
         // Rescheduling upload
@@ -203,6 +205,16 @@ namespace ARIASDK_NS_BEGIN {
             EventLatency proposed = calculateNewPriority();
             scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
         }
+    }
+
+    bool TransmissionPolicyManager::updateTimersIfNecessary()
+    {
+        bool needsUpdate = TransmitProfiles::isTimerUpdateRequired();
+        if (needsUpdate)
+        {
+            TransmitProfiles::getTimers(m_timers);
+        }
+        return needsUpdate;
     }
 
     bool TransmissionPolicyManager::handleStart()
@@ -270,7 +282,7 @@ namespace ARIASDK_NS_BEGIN {
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            EventsUploadContextPtr ctx = new EventsUploadContext();
+            auto ctx = std::make_shared<EventsUploadContext>();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);
@@ -280,9 +292,8 @@ namespace ARIASDK_NS_BEGIN {
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
-            if (TransmitProfiles::isTimerUpdateRequired())
+            if (updateTimersIfNecessary())
             {
-                TransmitProfiles::getTimers(m_timers);
                 m_timerdelay = m_timers[1];
                 forceTimerRestart = true;
             }
@@ -298,6 +309,8 @@ namespace ARIASDK_NS_BEGIN {
     // We alternate RealTime and Normal otherwise (timers differ)
     EventLatency TransmissionPolicyManager::calculateNewPriority()
     {
+        updateTimersIfNecessary();
+
         if (m_timers[0] == m_timers[1])
         {
             return EventLatency_Normal;
