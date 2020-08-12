@@ -1,4 +1,4 @@
-# Modern C++ Language and compiler support, and  upgrade roadmap
+# Modern C++ Language and compiler support, and upgrade roadmap
 
 Current Modern C++ version used for development is driven from C++ style guidelines across different projects/teams which predominantly use 1DS C++ SDK:
 
@@ -16,11 +16,11 @@ Based on above guidelines, below are the C++ version support guidelines and futu
 
         There are places in code still using features `<codecvt>` header which is deprecated in C++17, this would be fixed.
 
-2. **C++ 11 features usability** : The 1DS SDK is written using C++11 features, and developers are encouraged to use these features as and when needed. 
+2. **C++ 11 features usability** : The 1DS SDK is written using C++11 features, and developers are encouraged to use these features as and when needed.
 
-3. **C++ 14 features usability** : One of the omissisions from C++11 standards, and made  available in C++14 standard is support for `std::make_unique`. This is already [backported](https://github.com/microsoft/cpp_client_telemetry/blob/780205d2ea0298e41e82d54a3d203366f051cdf4/lib/utils/Utils.hpp#L28) in 1DS SDK, and hence compiles successfully with C++11 compilers.
+3. **C++ 14 features usability** : One of the omissisions from C++11 standards, and made available in C++14 standard is support for `std::make_unique`. This is already [backported](https://github.com/microsoft/cpp_client_telemetry/blob/780205d2ea0298e41e82d54a3d203366f051cdf4/lib/utils/Utils.hpp#L28) in 1DS SDK, and hence compiles successfully with C++11 compilers.
 If there are any other features which needs to be used, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. As of now, there is no urgent requirement for supporting C++14 std features, but this would be re-visited once Azure SDK lifts the requirement for supporting GCC 4.8 compiler.
 
-4. **C++17 features usability** : C++17 features are not yet supported as per Chromium C++ guideline (see above), and hence 1DS SDK doesn't support using these features. This would be revisited around Mid-2021 once Chromium removes this restrictions. As of now, developers are encouraged to backport C++17 features for C++11 compiler in 1DS SDK. There are plans to backport some of the needed features like [std::variant](https://en.cppreference.com/w/cpp/utility/variant), [std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view),  and [std::visit](https://en.cppreference.com/w/cpp/utility/variant/visit) during this year(2020). For any other features need, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. Guidelines for backporting are been discussed in (Issue#557)[https://github.com/microsoft/cpp_client_telemetry/issues/557] and would be finalized soon.
+4. **C++17 features usability** : C++17 features are not yet supported as per Chromium C++ guideline (see above), and hence 1DS SDK doesn't support using these features. This would be revisited around Mid-2021 once Chromium removes this restrictions. There are plans to backport some of the needed features like [std::variant](https://en.cppreference.com/w/cpp/utility/variant), [std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view), and [std::visit](https://en.cppreference.com/w/cpp/utility/variant/visit) during this year(2020). For any other feature requirements, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. Guidelines for backporting are been discussed in (Issue#557)[https://github.com/microsoft/cpp_client_telemetry/issues/557] and would be finalized soon.
 
 5. **C++20 features usability** : As of now, there are no timelines for support of C++20 features. There are plans to backport (std::span)[https://en.cppreference.com/w/cpp/container/span] during this year (2020).
