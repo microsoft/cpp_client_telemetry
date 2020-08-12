@@ -676,6 +676,14 @@ namespace ARIASDK_NS_BEGIN
             return nullLogManager.GetDataViewerCollection();
 #endif
         }
+
+        /// <summary>
+        /// Obtain a raw pointer to the ILogManager singleton instance
+        /// </summary>
+        static ILogManager* GetLogManagerInstance() noexcept
+        {
+            return instance;
+        }
     };
 
     // Implements LogManager<T> singleton template static  members
