@@ -6,7 +6,7 @@ Current Modern C++ version used for development is driven from C++ style guideli
 
 2. [Azure SDK C++ Compiler Support](https://azure.github.io/azure-sdk/cpp_implementation.html#linux) : Azure SDK requires all client applications to compile successfully using GCC-4.8 compiler in order to run on RHEL 7+, Oracle 7+, Oracle Linux 7+, SLES12 SP2+. GCC 4.8.1 supports all major features of C++11 standard with exception of [N2670](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2670.htm) - _Minimal support for GC_. This requirement is driven from end of life cycle for these products. RHEL 7 has maintenance support till 30 June 2024, and SLES12 SP2 till 31st March 2021. The SDK guidelines are in draft, so this may change in future.
 
-Based on above guidelines, these are the 1DS C++ Style Guidelines:
+Based on above guidelines, below are the C++ version support guidelines and future roadmap:
 
 1. 1DS C++ SDK code should compile successfully using below compiler versions (with C++11 support):
     - Visual Studio 2017 or later.
@@ -14,7 +14,7 @@ Based on above guidelines, these are the 1DS C++ Style Guidelines:
     - Clang 3.4 or later
     - Apple Clang 9.1 or later
 
-        There are places in code still using features  `<codecvt>` header which is deprecated in C++17, this would be fixed.
+        There are places in code still using features `<codecvt>` header which is deprecated in C++17, this would be fixed.
 
 2. **C++ 11 features usability** : The 1DS SDK is written using C++11 features, and developers are encouraged to use these features as and when needed. 
 
