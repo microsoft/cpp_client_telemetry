@@ -71,7 +71,7 @@ namespace ARIASDK_NS_BEGIN
         /// Set the application experimentation impression id information of telemetry event.
         /// </summary>
         /// <param name="appExperimentIds">List of expementation IDs which are app/platform specific</param>
-        DECLARE_COMMONFIELD(AppExperimentImpressionId, COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID);
+        DECLARE_COMMONFIELD(AppExperimentImpressionId, SESSION_IMPRESSION_ID);
 
         /// <summary>
         /// Set the experiment IDs information of the specified telemetry event.
