@@ -14,7 +14,6 @@
 
 #define COMMONFIELDS_APP_EXPERIMENTIDS                       "AppInfo.ExperimentIds"
 #define COMMONFIELDS_APP_EXPERIMENTETAG                      "AppInfo.ETag"
-#define COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID            "AppInfo.ImpressionId"
 
 #define COMMONFIELDS_DEVICE_ID                               "DeviceInfo.Id"
 #define COMMONFIELDS_DEVICE_MAKE                             "DeviceInfo.Make"
@@ -57,6 +56,7 @@
 #define SESSION_FIRST_TIME                                   "Session.FirstLaunchTime"
 #define SESSION_STATE                                        "Session.State"
 #define SESSION_ID                                           "Session.Id"
+#define SESSION_IMPRESSION_ID                                "Session.ImpressionId"
 #define SESSION_DURATION                                     "Session.Duration"
 #define SESSION_DURATION_BUCKET                              "Session.DurationBucket"
 #define SESSION_ID_LEGACY                                    "act_session_id"
