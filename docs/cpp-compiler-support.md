@@ -34,6 +34,6 @@ Summarising roadmap in tabular format:
 | C++ Compilers | Current Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
 | C++11 | Yes | - | Mid-2021 |
-| C++14 | No | No Plans | Not Applicable |
+| C++14 | No | Won't be supported | N/A |
 | C++17 | No | Mid-2021 | No Plans |
 | C++20 | No | No Plans | No Plans |
