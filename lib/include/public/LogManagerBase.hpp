@@ -678,10 +678,12 @@ namespace ARIASDK_NS_BEGIN
         }
 
         /// <summary>
-        /// Obtain a raw pointer to the ILogManager singleton instance
+        /// Obtain a raw pointer to the ILogManager singleton instance.
+        /// NOTE: this API should not be used concurrently with Initialize or FlushAndTeardown API calls.
         /// </summary>
-        static ILogManager* GetLogManagerInstance() noexcept
+        static ILogManager* GetInstance() noexcept
         {
+            LM_LOCKGUARD(stateLock());
             return instance;
         }
     };
