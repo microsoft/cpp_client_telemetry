@@ -104,7 +104,7 @@ class SemanticContext implements ISemanticContext {
      */
     @Override
     public void setAppExperimentImpressionId(final String appExperimentImpressionId) {
-        setCommonField(Constants.COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID, appExperimentImpressionId);
+        setCommonField(Constants.SESSION_IMPRESSION_ID, appExperimentImpressionId);
     }
 
     private native void nativeSetEventExperimentIds(long nativeISemanticContextPtr, String eventName, String experimentIds);
