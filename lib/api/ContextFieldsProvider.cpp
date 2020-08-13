@@ -125,13 +125,13 @@ namespace ARIASDK_NS_BEGIN
 
             if (!m_commonContextFields.empty())
             {
-                if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID) != m_commonContextFields.end())
+                if (m_commonContextFields.find(SESSION_IMPRESSION_ID) != m_commonContextFields.end())
                 {
                     CsProtocol::Value temp;
-                    EventProperty prop = m_commonContextFields[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID];
+                    EventProperty prop = m_commonContextFields[SESSION_IMPRESSION_ID];
                     temp.stringValue = prop.as_string;
 
-                    ext[COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID] = temp;
+                    ext[SESSION_IMPRESSION_ID] = temp;
                 }
 
                 if (m_commonContextFields.find(COMMONFIELDS_APP_EXPERIMENTETAG) != m_commonContextFields.end())
