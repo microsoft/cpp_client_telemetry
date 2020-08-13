@@ -148,19 +148,21 @@ TEST(DefaultDataViewerTests, GetEndpoint_CorrectEndpointReturned)
 }
 
 //TODO Uncomment this test when the submodule has been updated.
-TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_ThrowsInvalidArgument)
+TEST(DefaultDataViewerTests, IsValidRemoteEndpoint_InvalidEndpoint_ReturnsFalse)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     MockDefaultDataViewer viewer(mockHttpClient, "Test");
-    ASSERT_FALSE(viewer.EnableRemoteViewer(""));
-    ASSERT_FALSE(viewer.EnableRemoteViewer("           "));
-    ASSERT_FALSE(viewer.EnableRemoteViewer("TestEndpoint"));
-    ASSERT_FALSE(viewer.EnableRemoteViewer("https://10.0.0.1"));
-    ASSERT_FALSE(viewer.EnableRemoteViewer("HTTps://10.0.0.1"));
-    ASSERT_FALSE(viewer.EnableRemoteViewer("http://14.0.0.1"));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint(""));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint(""));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("           "));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("TestEndpoint"));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("https://10.0.0.1"));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("HTTps://10.0.0.1"));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("http://14.0.0.1"));
+    ASSERT_FALSE(viewer.IsValidRemoteEndpoint("http://192.168.999.999"));
 }
 
-TEST(DefaultDataViewerTests, EnableRemoteViewer_InvalidEndpoint_TransmissionNotEnabled)
+TEST(DefaultDataViewerTests, EnableRemoteViewer_NonRespondingEndpoint_TransmissionNotEnabled)
 {
     auto mockHttpClient = std::make_shared<MockHttpClient>();
     mockHttpClient->funcSendRequestAsync = [](MAT::IHttpRequest*, MAT::IHttpResponseCallback* callback)
