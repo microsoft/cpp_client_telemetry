@@ -15,7 +15,6 @@ public class Constants {
 
     public static final String COMMONFIELDS_APP_EXPERIMENTIDS                       = "AppInfo.ExperimentIds";
     public static final String COMMONFIELDS_APP_EXPERIMENTETAG                      = "AppInfo.ETag";
-    public static final String COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID            = "AppInfo.ImpressionId";
 
     public static final String COMMONFIELDS_DEVICE_ID                               = "DeviceInfo.Id";
     public static final String COMMONFIELDS_DEVICE_MAKE                             = "DeviceInfo.Make";
@@ -58,6 +57,7 @@ public class Constants {
     public static final String SESSION_FIRST_TIME                                   = "Session.FirstLaunchTime";
     public static final String SESSION_STATE                                        = "Session.State";
     public static final String SESSION_ID                                           = "Session.Id";
+    public static final String SESSION_IMPRESSION_ID                                = "Session.ImpressionId";
     public static final String SESSION_DURATION                                     = "Session.Duration";
     public static final String SESSION_DURATION_BUCKET                              = "Session.DurationBucket";
     public static final String SESSION_ID_LEGACY                                    = "act_session_id";
