@@ -31,7 +31,7 @@ If there are any other features which needs to be used, contributions through PR
 
 Summarising roadmap in tabular format:
 
-| C++ Compilers | Current Support | Start of Support | End of Support |
+| C++ Compilers | Currently Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
 | C++11 | Yes | - | Mid-2021 |
 | C++14 | No | Won't be supported | N/A |
