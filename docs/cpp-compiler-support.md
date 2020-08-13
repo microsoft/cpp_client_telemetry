@@ -27,11 +27,13 @@ If there are any other features which needs to be used, contributions through PR
 
 5. **C++20 features usability** : As of now, there are no timelines for support of C++20 features. There are plans to backport (std::span)[https://en.cppreference.com/w/cpp/container/span] during this year (2020).
 
+**End of Support* : As we start supporting builds using C++17 compiler, C++11 build support would be removed, and the backported features from C++14 and C++17 would be cleaned-up.
+
 Summarising roadmap in tabular format:
 
-| C++ Version | Current Support | Start of Support | End of Support |
+| C++ Compilers | Current Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
 | C++11 | Yes | - | Mid-2021 |
-| C++14 | No | Won't be Supported | - |
+| C++14 | No | No Plans | - |
 | C++17 | No | Mid-2021 | No Plans |
 | C++20 | No | No Plans | No Plans |
