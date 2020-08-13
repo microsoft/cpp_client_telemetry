@@ -27,7 +27,7 @@ If there are any other features which needs to be used, contributions through PR
 
 5. **C++20 features usability** : As of now, there are no timelines for support of C++20 features. There are plans to backport (std::span)[https://en.cppreference.com/w/cpp/container/span] during this year (2020).
 
-Summarising Support in tabular format:
+Summarising roadmap in tabular format:
 
 | C++ Version | Current Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
