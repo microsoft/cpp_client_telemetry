@@ -9,7 +9,8 @@ if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
   echo Git system settings:
   git config --system --list
   git config credential.helper store
-  git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
+  git clone --single-branch --branch maxgolov/get_ready_for_oss https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
+# git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
