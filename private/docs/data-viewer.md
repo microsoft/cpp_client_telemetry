@@ -236,7 +236,7 @@ forgotten by the user.
 
 ## Related Note
 To support alternative viewer implementations, we should also
-provide an appropriate Aria Packet Parser. The parser should contain
+provide an appropriate Common Schema Packet Parser. The parser should contain
 enough logic to unbond the network packet and allow the viewer implementer
 to determine how they want to consume the data. Additionally, this should
 be made available in the same location as the SDK for easy access to the

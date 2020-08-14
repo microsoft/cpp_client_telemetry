@@ -8,7 +8,7 @@
 
 #define ABS64(a,b)    ((a>b)?(a-b):(b-a))
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
 
@@ -370,4 +370,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
