@@ -13,13 +13,15 @@ using namespace Microsoft::Applications::Experimentation::ECS;
 TEST(ECSConfigCacheTests, Constrcut_OK_RelativePath)
 {
     const std::string storagePath = "path";
-    new ECSConfigCache(storagePath);
+    auto c = new ECSConfigCache(storagePath);
+    delete c;
 }
 
 TEST(ECSConfigCacheTests, Constrcut_OK_AbsolutePath)
 {    
     const std::string storagePath = std::string("parentfolder") + PATH_SEPARATOR_CHAR + "childfolder";
-    new ECSConfigCache(storagePath);
+    auto c = new ECSConfigCache(storagePath);
+    delete c;
 }
 
 TEST(ECSConfigCacheTests, AddConfig)
@@ -40,23 +42,5 @@ TEST(ECSConfigCacheTests, GetConfigByRequestName_NotExistConfig)
     auto configCache = new ECSConfigCache(storagePath);
     ASSERT_EQ(NULL, configCache->GetConfigByRequestName("requestName"));
 }
-/*
-TEST(ECSConfigCacheTests, LoadConfig)
-{
-    const std::string storagePath = "path";
-    auto configCache = new ECSConfigCache(storagePath);
-    ASSERT_EQ(NULL, configCache.GetConfigByRequestName(requestName));
-}
-TEST(ECSConfigCacheTests, SaveConfig)
-{
-    const std::string storagePath = "path";
-    auto configCache = new ECSConfigCache(storagePath);
-    ASSERT_EQ(NULL, configCache.GetConfigByRequestName(requestName));
-}
-TEST(ECSConfigCacheTests, StopAndDestroyOfflineStorage)
-{
-    const std::string storagePath = "path";
-    auto configCache = new ECSConfigCache(storagePath);
-    ASSERT_EQ(NULL, configCache.GetConfigByRequestName(requestName));
-}*/
+
 #endif

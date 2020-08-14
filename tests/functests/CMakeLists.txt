@@ -9,6 +9,8 @@ set(SRCS
   LogSessionDataFuncTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
+  ECSClientFuncTests.cpp
+  ECSConfigCacheFuncTests.cpp
 )
 
 source_group(" "      REGULAR_EXPRESSION "")
