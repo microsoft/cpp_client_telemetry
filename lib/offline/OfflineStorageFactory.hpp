@@ -2,7 +2,7 @@
 #ifndef OFFLINESTORAGEFACTORY_HPP
 #define OFFLINESTORAGEFACTORY_HPP
 
-#ifdef HAVA_MAT_STORAGE
+#ifdef HAVE_MAT_STORAGE
 
 #include "IOfflineStorage.hpp"
 #include "pal/PAL.hpp"
