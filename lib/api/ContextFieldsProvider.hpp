@@ -12,7 +12,7 @@
 #include <string>
 #include <cassert>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // TODO: [MG] - A/B EXP code has to be refactored into separate module
 
@@ -53,5 +53,5 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
