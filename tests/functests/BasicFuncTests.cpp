@@ -1443,6 +1443,20 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
 }
 #endif
 
+TEST_F(BasicFuncTests, logManager_getLogManagerInstance_uninitializedReturnsNull)
+{
+    auto lm = LogManager::GetInstance();
+    EXPECT_EQ(lm,nullptr);
+}
+
+TEST_F(BasicFuncTests, logManager_getLogManagerInstance_initializedReturnsNonnull)
+{
+    LogManager::Initialize();
+    auto lm = LogManager::GetInstance();
+    EXPECT_NE(lm,nullptr);
+    LogManager::FlushAndTeardown();
+}
+
 #if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
 
 TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
