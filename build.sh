@@ -37,10 +37,10 @@ fi
 
 if [ "$1" == "arm64" ] || [ "$2" == "arm64" ]; then
 MAC_ARCH="arm64"
-elif [ "$1" == "x86_64" ] || [ "$2" == "x86_64" ]; then
-MAC_ARCH="x86_64"
-else
+elif [ "$1" == "universal" ] || [ "$2" == "universal" ]; then
 MAC_ARCH="universal"
+else
+MAC_ARCH="x86_64"
 fi
 
 # Set target MacOS minver
