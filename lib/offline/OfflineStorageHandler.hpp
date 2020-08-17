@@ -76,7 +76,7 @@ namespace ARIASDK_NS_BEGIN {
         PAL::Event                             m_flushComplete;
 
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;

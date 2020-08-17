@@ -20,7 +20,6 @@
 #include "IHttpClient.hpp"
 #include "ctmacros.hpp"
 #include "ILogManager.hpp"
-#include "IRuntimeConfig.hpp"
 
 #include <functional>
 #include <string>
@@ -137,7 +136,6 @@ namespace ARIASDK_NS_BEGIN {
     public:
 
         IOfflineStorage() noexcept = default;
-        IOfflineStorage(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
         virtual ~IOfflineStorage() noexcept = default;
 
         /// <summary>
