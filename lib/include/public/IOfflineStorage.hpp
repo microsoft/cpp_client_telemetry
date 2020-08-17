@@ -16,7 +16,6 @@
 #ifndef IOFFLINESTORAGE_HPP
 #define IOFFLINESTORAGE_HPP
 
-//#include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "IHttpClient.hpp"
 #include "ctmacros.hpp"
