@@ -55,6 +55,7 @@ set(SRCS
         ${SDK_ROOT}/lib/offline/MemoryStorage.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorageHandler.cpp
         ${SDK_ROOT}/lib/offline/StorageObserver.cpp
+        ${SDK_ROOT}/lib/offline/OfflineStorageFactory.cpp
         ${SDK_ROOT}/lib/packager/BondSplicer.cpp
         ${SDK_ROOT}/lib/packager/Packager.cpp
         ${SDK_ROOT}/lib/pal/InformationProviderImpl.cpp
