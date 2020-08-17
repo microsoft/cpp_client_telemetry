@@ -5,8 +5,7 @@ call tools\gen-version.cmd
 
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
-  git clone --single-branch --branch maxgolov/get_ready_for_oss https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
-REM  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+  git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
 set PLATFORM=
