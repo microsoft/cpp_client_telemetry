@@ -1,19 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
-
-#ifdef HAVE_MAT_STORAGE
-
 #include "OfflineStorageFactory.hpp"
 #include "pal/PAL.hpp"
-#ifdef USE_OFFLINE_STORAGE_MODULE
+
 namespace ARIASDK_NS_BEGIN
 {
+#ifdef HAVE_MAT_STORAGE
+#ifdef USE_OFFLINE_STORAGE_MODULE
 IOfflineStorage* OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
 {
     LOG_TRACE("Creating OfflineStorage from module");
-    auto ptr = std::static_pointer_cast<IOfflineStorage>(configuration.GetModule(CFG_MODULE_OFFLINE_STORAGE));
+    auto ptr = std::static_pointer_cast<IOfflineStorage>(logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE));
     return ptr.get();
- //   return std::static_pointer_cast<IOfflineStorage>(configuration.GetModule(CFG_MODULE_OFFLINE_STORAGE));
 }
 #elif USE_ROOM
 IOfflineStorage* OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
@@ -34,6 +32,6 @@ IOfflineStorage* OfflineStorageFactory::Create(ILogManager& logManager, IRuntime
     LOG_TRACE("MAT storage disabled");
     return nullptr;
 }
+#endif //HAVE_MAT_STORAGE
 }
 ARIASDK_NS_END
-#endif  // HAVE_MAT_STORAGE
