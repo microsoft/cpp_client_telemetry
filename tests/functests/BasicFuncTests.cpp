@@ -67,7 +67,7 @@ namespace PAL_NS_BEGIN
 }
 PAL_NS_END;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class ModuleA : public ILogConfiguration
     {
@@ -85,7 +85,7 @@ namespace ARIASDK_NS_BEGIN
     DEFINE_LOGMANAGER(LogManagerB, ModuleB);
     DEFINE_LOGMANAGER(LogManagerA, ModuleA);
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 

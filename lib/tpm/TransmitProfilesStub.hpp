@@ -3,7 +3,7 @@
 #define TRANSMITPROFILESSTUB_HPP
 #include <TransmitProfiles.hpp>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     TransmitProfiles::TransmitProfiles() {};
 
@@ -31,6 +31,6 @@ namespace ARIASDK_NS_BEGIN {
 
     bool TransmitProfiles::isTimerUpdateRequired() { return false; }
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // TRANSMITPROFILESSTUB_HPP
