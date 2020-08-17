@@ -3,7 +3,7 @@
 
 #include "pal/PAL.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 #include "Enums.hpp"
 #include "CsProtocol_types.hpp"

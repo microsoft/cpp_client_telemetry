@@ -6,7 +6,7 @@
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 #include "ILogManager.hpp"
 

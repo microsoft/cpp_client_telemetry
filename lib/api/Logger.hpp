@@ -4,7 +4,7 @@
 
 #include "pal/PAL.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 #include "ILogManager.hpp"
 #include "LogManagerImpl.hpp"

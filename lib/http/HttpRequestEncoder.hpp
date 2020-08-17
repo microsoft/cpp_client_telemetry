@@ -4,7 +4,7 @@
 #include "pal/PAL.hpp"
 #include "IHttpClient.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 #include "system/ITelemetrySystem.hpp"

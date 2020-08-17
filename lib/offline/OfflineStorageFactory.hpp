@@ -3,16 +3,15 @@
 #define OFFLINESTORAGEFACTORY_HPP
 
 #ifdef HAVE_MAT_STORAGE
-
 #include "IOfflineStorage.hpp"
-#include "pal/PAL.hpp"
+#include "IRuntimeConfig.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {
     class OfflineStorageFactory
     {
        public:
-        static std::shared_ptr<IOfflineStorage> Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
+        static IOfflineStorage* Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
     };
 }
 ARIASDK_NS_END

@@ -2,7 +2,7 @@
 #include "mat/config.h"
 
 #pragma once
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 namespace ARIASDK_NS_BEGIN
 {

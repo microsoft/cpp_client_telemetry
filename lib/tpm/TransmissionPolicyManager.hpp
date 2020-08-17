@@ -3,7 +3,7 @@
 #pragma once
 #include "IBandwidthController.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 #include "backoff/IBackoff.hpp"
 #include "pal/PAL.hpp"
 
