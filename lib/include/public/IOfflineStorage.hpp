@@ -20,6 +20,8 @@
 #include "Enums.hpp"
 #include "IHttpClient.hpp"
 #include "ctmacros.hpp"
+#include "ILogManager.hpp"
+#include "IRuntimeConfig.hpp"
 
 #include <functional>
 #include <string>
@@ -132,8 +134,11 @@ namespace ARIASDK_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) = 0;
     };
 
-    class IOfflineStorage {
+    class IOfflineStorage : public IModule {
     public:
+
+        IOfflineStorage() noexcept = default;
+        IOfflineStorage(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
         virtual ~IOfflineStorage() noexcept = default;
 
         /// <summary>

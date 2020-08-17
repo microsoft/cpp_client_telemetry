@@ -79,8 +79,7 @@ namespace ARIASDK_NS_BEGIN
         m_observer = &observer;
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-		m_offlineStorageDisk.reset(OfflineStorageFactory::Create(m_logManager, m_config));
-
+        m_offlineStorageDisk.reset(OfflineStorageFactory::Create(m_logManager, m_config));
         m_offlineStorageDisk->Initialize(*this);
 
         // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
