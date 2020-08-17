@@ -129,6 +129,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp">
       <Filter>offline</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp">
+      <Filter>offline</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.cpp">
       <Filter>packager</Filter>
     </ClCompile>
