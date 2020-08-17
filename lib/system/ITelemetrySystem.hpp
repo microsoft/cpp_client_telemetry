@@ -8,7 +8,7 @@
 
 #include "ILogManager.hpp"
 
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 namespace ARIASDK_NS_BEGIN {
 
