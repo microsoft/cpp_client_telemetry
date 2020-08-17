@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "api/IRuntimeConfig.hpp"
+#include "IRuntimeConfig.hpp"
 
 #include "config/RuntimeConfig_Default.hpp"
 
