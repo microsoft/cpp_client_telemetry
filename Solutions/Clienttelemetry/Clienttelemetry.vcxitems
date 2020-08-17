@@ -44,6 +44,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.cpp" />
