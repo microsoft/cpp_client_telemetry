@@ -8,7 +8,7 @@
 #include "system/Route.hpp"
 #include "system/ITelemetrySystem.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class StorageObserver :
         public IOfflineStorageObserver,
@@ -82,5 +82,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
