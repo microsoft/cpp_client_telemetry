@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class");
 
@@ -108,4 +108,4 @@ namespace ARIASDK_NS_BEGIN {
 
         return nullptr;
     }
-} ARIASDK_NS_END
+} MAT_NS_END
