@@ -12,7 +12,7 @@
 #define ECS_SUPP "No"
 #endif
 
-#include "IRuntimeConfig.hpp"
+#include "api/IRuntimeConfig.hpp"
 #include "SystemInformationImpl.hpp"
 #include "NetworkInformationImpl.hpp"
 #include "DeviceInformationImpl.hpp"
