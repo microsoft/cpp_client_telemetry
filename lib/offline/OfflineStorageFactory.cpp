@@ -4,32 +4,25 @@
 
 namespace ARIASDK_NS_BEGIN
 {
+    std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
+    {
 #ifdef HAVE_MAT_STORAGE
-#ifdef USE_OFFLINE_STORAGE_MODULE
-std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
-{
-    LOG_TRACE("Creating OfflineStorage from module");
-    return std::static_pointer_cast<IOfflineStorage>(logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE));
-}
-#elif USE_ROOM
-std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
-{
-    LOG_TRACE("Creating OfflineStorage_Room");
-    return std:shared_ptr<IOfflineStorage>(new OfflineStorage_Room(logManager, runtimeConfig));
-}
+        auto offlineStorageModule = logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE);
+        if ( nullptr != offlineStorageModule ) {
+            LOG_TRACE("Creating OfflineStorage from module");
+            return std::static_pointer_cast<IOfflineStorage>(offlineStorageModule);
+        }
+#ifdef USE_ROOM
+        LOG_TRACE("Creating OfflineStorage_Room");
+        return std::shared_ptr<IOfflineStorage>(new OfflineStorage_Room(logManager, runtimeConfig));
 #else
-std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
-{
-    LOG_TRACE("Creating OfflineStorage_SQLite");
-    return std::shared_ptr<IOfflineStorage>(new OfflineStorage_SQLite(logManager, runtimeConfig));
-}
-#endif // USE_OFFLINE_STORAGE_MODULE
+        LOG_TRACE("Creating OfflineStorage_SQLite");
+        return std::shared_ptr<IOfflineStorage>(new OfflineStorage_SQLite(logManager, runtimeConfig));
+#endif //USE_ROOM
 #else
-std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
-{
-    LOG_TRACE("MAT storage disabled");
-    return nullptr;
-}
+        LOG_TRACE("MAT storage disabled");
+        return nullptr;
 #endif //HAVE_MAT_STORAGE
+    }
 }
 ARIASDK_NS_END
