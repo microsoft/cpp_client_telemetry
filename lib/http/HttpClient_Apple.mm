@@ -11,7 +11,7 @@
 #include "HttpClient_Apple.hpp"
 #include "utils/Utils.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 static std::string NextReqId()
 {
@@ -220,6 +220,6 @@ void HttpClient_Apple::Add(IHttpRequest* req)
     m_requests[req->GetId()] = req;
 }
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

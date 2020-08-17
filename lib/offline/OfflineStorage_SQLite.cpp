@@ -10,7 +10,7 @@
 #include <numeric>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
@@ -940,5 +940,5 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
     
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

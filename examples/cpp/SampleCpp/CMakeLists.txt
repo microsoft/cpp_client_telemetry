@@ -23,7 +23,7 @@ find_package (Threads)
 
 set(MAT_SDK_INCLUDE	/usr/local/include/mat)
 
-# Aria SDK to include dirs
+# 1DS SDK to include dirs
 include_directories( . ${MAT_SDK_INCLUDE} )
 
 # Link main.cpp to executable
