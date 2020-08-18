@@ -59,7 +59,7 @@ static void initTransmitProfileFields()
 
 #define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
@@ -563,4 +563,4 @@ namespace ARIASDK_NS_BEGIN {
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;
 
-} ARIASDK_NS_END
+} MAT_NS_END
