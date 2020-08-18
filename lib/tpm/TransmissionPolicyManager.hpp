@@ -23,7 +23,7 @@
 #include <limits>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 // This macro allows to specify max upload task cancellation wait time at compile-time,
 // addressing the case when a task that we are trying to cancel is currently running.
@@ -152,7 +152,6 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         virtual bool isPaused() const noexcept;
     };
 
-
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // TRANSMISSIONPOLICYMANAGER_HPP

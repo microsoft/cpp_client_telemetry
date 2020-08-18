@@ -6,7 +6,7 @@
 
 #include "mat/config.h"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /// <summary>
 /// Initializes a new instance of the <see cref="TelemetrySystem"/> class.
@@ -219,4 +219,4 @@ namespace ARIASDK_NS_BEGIN {
         signalDone();
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

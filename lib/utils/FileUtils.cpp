@@ -6,7 +6,7 @@
 #include <fstream>
 #include <streambuf>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /**
@@ -166,4 +166,4 @@ namespace ARIASDK_NS_BEGIN
 #endif
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
