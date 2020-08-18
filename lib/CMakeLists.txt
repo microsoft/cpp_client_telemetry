@@ -72,7 +72,7 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
-      pal/posix/sysinfo_utils_apple.mm
+      pal/posix/sysinfo_utils_apple.cpp
     )
     if(BUILD_IOS)
       list(APPEND SRCS
