@@ -6,7 +6,7 @@
 
 #include <limits>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     template<typename T>
     constexpr T Abs64(const T& a, const T& b) noexcept
@@ -424,4 +424,4 @@ namespace ARIASDK_NS_BEGIN {
         return m_isPaused;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

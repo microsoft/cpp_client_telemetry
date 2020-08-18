@@ -6,7 +6,7 @@
 #include "Version.hpp"
 #include "pal/PAL.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     size_t      FileGetSize(const char* filename);
     int         FileDelete(const char* filename);
@@ -16,6 +16,6 @@ namespace ARIASDK_NS_BEGIN
     bool        FileWrite(const char* filename, const char* contents);
     bool        FileExists(const char* name);
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
