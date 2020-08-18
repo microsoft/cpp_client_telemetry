@@ -187,7 +187,7 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// The TransmitProfiles destructor.
         /// </summary>
-        virtual ~TransmitProfiles();
+        virtual ~TransmitProfiles() noexcept = default;
 
         /// <summary>
         /// Prints transmit profiles to the debug log.
