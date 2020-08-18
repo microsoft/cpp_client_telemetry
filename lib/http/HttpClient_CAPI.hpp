@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class HttpClient_CAPI : public IHttpClient {
     public:
@@ -25,6 +25,6 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex        m_requestsMutex;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HTTPCLIENT_CAPI_HPP

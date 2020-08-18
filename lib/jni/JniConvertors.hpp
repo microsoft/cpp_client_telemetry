@@ -4,7 +4,7 @@
 
 #define MAT_USE_WEAK_LOGMANAGER
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     struct UnsupportedEventPropertyType : std::exception {
         UnsupportedEventPropertyType(int type) {
@@ -26,4 +26,4 @@ namespace ARIASDK_NS_BEGIN
     EventProperties GetEventProperties(JNIEnv*, const jstring&, const jstring&, const jint&, const jint&,
             const jdouble&, const jlong&, const jlong&, const jobjectArray&, const jobjectArray&);
 
-} ARIASDK_NS_END
+} MAT_NS_END

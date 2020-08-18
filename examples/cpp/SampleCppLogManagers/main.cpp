@@ -10,10 +10,10 @@ using namespace MAT;
 // Define two instances for different LogManagers: A and B
 // This is how it's done with LOGMANAGER_INSTANCE macro to define the
 // default LogManager instance
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
     DEFINE_LOGMANAGER(LogManagerB, ModuleB);
     DEFINE_LOGMANAGER(LogManagerA, ModuleA);
-} ARIASDK_NS_END
+} MAT_NS_END
 
 void twoModules_LogManagerTest() 
 {

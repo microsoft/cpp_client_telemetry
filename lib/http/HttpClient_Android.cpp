@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 constexpr static auto Tag = "HttpClient_Android";
 
@@ -419,7 +419,7 @@ HttpClient_Android::GetClientInstance()
 std::shared_ptr<HttpClient_Android> HttpClient_Android::s_client;
 std::string HttpClient_Android::s_cache_file_path;
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 extern "C"
 JNIEXPORT void

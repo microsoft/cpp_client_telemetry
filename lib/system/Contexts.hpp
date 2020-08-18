@@ -12,7 +12,7 @@
 #include <vector>
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class IncomingEventContext {
@@ -128,4 +128,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
