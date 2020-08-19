@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.645
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -153,6 +153,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MacProxy", "MacProxy", "{83
 		..\examples\cpp\MacProxy\run-tests.sh = ..\examples\cpp\MacProxy\run-tests.sh
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "privacyguard", "..\lib\modules\privacyguard\privacyguard.vcxitems", "{E1F6CA48-3BBF-4378-8D1E-6BBF4869DB5B}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\universal\universal.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
@@ -198,6 +200,7 @@ Global
 		Clienttelemetry\Clienttelemetry.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
 		..\lib\modules\filter\filter.vcxitems*{d74e42ec-c6ee-4944-b92a-eb711be002a9}*SharedItemsImports = 9
 		..\lib\shared\Shared.vcxitems*{dc91621e-a203-42df-8e03-3a23dd0602b1}*SharedItemsImports = 4
+		..\lib\modules\privacyguard\privacyguard.vcxitems*{e1f6ca48-3bbf-4378-8d1e-6bbf4869db5b}*SharedItemsImports = 9
 		..\lib\shared\Shared.vcxitems*{ef859326-2a11-481c-ae8c-03d754f1c412}*SharedItemsImports = 9
 		..\lib\decoder\decoder.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\dataviewer\dataviewer.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
@@ -1264,6 +1267,7 @@ Global
 		{D1AB0EF1-4753-494E-A334-147C68F94BAF} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{D74E42EC-C6EE-4944-B92A-EB711BE002A9} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{835E544D-A6FB-4C1C-B603-D848C4A6B315} = {D31B3404-AE47-4D0A-9A59-C321164F945C}
+		{E1F6CA48-3BBF-4378-8D1E-6BBF4869DB5B} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}
