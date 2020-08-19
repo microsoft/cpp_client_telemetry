@@ -69,6 +69,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/)
+  list(APPEND SRCS
+    modules/privacyguard/PrivacyGuard.cpp
+  )
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
