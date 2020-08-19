@@ -46,3 +46,17 @@ std::string GetDeviceId()
 
     return {EMPTY_GUID};
 }
+
+std::string GetDeviceOsVersion()
+{
+    // Previous implementation pointed to "ProductVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // kern.osproductversion returns string in this same format
+    return get_sysctl_value("kern.osproductversion");
+}
+
+std::string GetDeviceOsRelease()
+{
+    // Previous implementation pointed to "ProductUserVisibleVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // GetDeviceOsVersion() returns string in this same format
+    return GetDeviceOsVersion();
+}
