@@ -25,7 +25,7 @@ If there are any other features which needs to be used, contributions through PR
 
 4. **C++17 features usability** : C++17 features are not yet supported as per Chromium C++ guideline (see above), and hence 1DS SDK doesn't support using these features. This would be revisited around Mid-2021 once Chromium removes this restrictions. There are plans to backport some of the needed features like [std::variant](https://en.cppreference.com/w/cpp/utility/variant), [std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view), and [std::visit](https://en.cppreference.com/w/cpp/utility/variant/visit) during this year(2020). For any other feature requirements, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. Guidelines for backporting are been discussed in (Issue#557)[https://github.com/microsoft/cpp_client_telemetry/issues/557] and would be finalized soon.
 
-5. **C++20 features usability** : As of now, there are no timelines for support of C++20 features. There are plans to backport (std::span)[https://en.cppreference.com/w/cpp/container/span] during this year (2020).
+5. **C++20 features usability** : As of now, there are no timelines for support of C++20 features. There are plans to backport (std::span)[https://en.cppreference.com/w/cpp/container/span] during this year (2020). This can be optionally lifted from Microsoft GSL span (once we start supporting C++17), as it internally uses C++14 features.
 
 6. **End of Support** : As we start supporting builds using C++17 compiler, C++11 build support would be removed, and the backported features from C++14 and C++17 would be cleaned-up.
 
