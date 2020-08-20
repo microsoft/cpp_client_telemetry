@@ -1,7 +1,7 @@
 resources:
 - repo: self
 queue:
-  name: aria-sdk-cpp
+  name: mstel-sdk-cpp
 steps:
 
 - task: CmdLine@1

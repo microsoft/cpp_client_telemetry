@@ -31,7 +31,7 @@
 #include <mutex>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class ITelemetrySystem;
 
@@ -111,6 +111,11 @@ namespace ARIASDK_NS_BEGIN
        public:
         static std::recursive_mutex managers_lock;
         static std::set<ILogManager*> managers;
+
+        /// <summary>
+        /// Optional decorator runs on event before passing it to sendEvent
+        /// </summary>
+        std::shared_ptr<IDecoratorModule> m_customDecorator;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
         virtual const ContextFieldsProvider& GetContext() = 0;
@@ -325,6 +330,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 #endif

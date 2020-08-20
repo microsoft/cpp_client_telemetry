@@ -5,7 +5,7 @@
 #include "BaseDecorator.hpp"
 #include "ILogger.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 #define RECORD_EXT      record.data[0].properties
 
@@ -290,5 +290,5 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
