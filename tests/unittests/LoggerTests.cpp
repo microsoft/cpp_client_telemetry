@@ -1,6 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "common/Common.hpp"
 #include "api/Logger.hpp"
+#ifdef ANDROID
+#include "jni/RunTests.hpp"
+#include "jni.h"
+#include <chrono>
+#endif
 
 using namespace testing;
 using namespace MAT;
@@ -45,6 +50,25 @@ public:
     }
 
 protected:
+    std::chrono::steady_clock::duration GenerateEventsInJava(size_t number) {
+#ifdef ANDROID
+        JNIEnv * env;
+        RunTests::javaVm->AttachCurrentThread(&env, nullptr);
+        auto loggerClass = env->FindClass(
+            "com/microsoft/applications/events/Logger");
+        auto constructor = env->GetMethodID(loggerClass, "<init>", "(J)V");
+        auto javaLogger = env->NewObject(loggerClass, constructor, reinterpret_cast<jlong>(&logger));
+        auto generatorClass = env->FindClass("com/microsoft/applications/events/maesdktest/EventGenerator");
+        auto logEventsId = env->GetStaticMethodID(generatorClass, "logEvents",
+                                                  "(Lcom/microsoft/applications/events/ILogger;J)V");
+        auto then = std::chrono::steady_clock::now();
+        env->CallStaticVoidMethod(generatorClass, logEventsId, javaLogger, static_cast<jlong>(number));
+        return std::chrono::steady_clock::now() - then;
+#else
+        return std::chrono::steady_clock::duration(0);
+#endif
+    }
+
     class LoggerTestEventFilter : public IEventFilter
     {
     public:
@@ -152,6 +176,25 @@ TEST_F(LoggerTests, LogEvent_String_CanEventPropertiesBeSentReturnsTrue_CallsSub
     logger.LogEvent("EventName");
     EXPECT_TRUE(logger.SubmitCalled);
 }
+
+#ifdef ANDROID
+TEST_F(LoggerTests, LogEvent_JNI_Test)
+{
+    constexpr size_t eventCount = 50000;
+    logger.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
+    auto javaDuration = GenerateEventsInJava(eventCount);
+    EXPECT_LT(javaDuration, std::chrono::seconds(20));
+    auto then = std::chrono::steady_clock::now();
+    for (size_t i = eventCount; i > 0; --i) {
+        logger.LogEvent("TestEvent");
+    }
+    auto nativeDuration = std::chrono::steady_clock::now() - then;
+    auto javaDouble = std::chrono::duration_cast<std::chrono::duration<double>>(javaDuration);
+    auto nativeDouble = std::chrono::duration_cast<std::chrono::duration<double>>(nativeDuration);
+    auto ratio = javaDouble / nativeDouble;
+    EXPECT_LT(nativeDuration, std::chrono::seconds(20));
+}
+#endif
 
 TEST_F(LoggerTests, LogFailure_CanEventPropertiesBeSentReturnsFalse_DoesNotCallSubmit)
 {

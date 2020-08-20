@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">maesdktest</string>
+    <string name="tests_button">Run Unit Tests</string>
+    <string name="mww_caption">Mann-Whitney-Wilcoxon</string>
 </resources>

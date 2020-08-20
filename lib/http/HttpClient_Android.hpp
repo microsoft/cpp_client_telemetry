@@ -157,7 +157,7 @@ public:
 		std::string             m_url;
 		std::vector<uint8_t>    m_body;
 		jobject 				m_java_request = nullptr;
-		RequestState			m_state = RequestState::early;
+		RequestState			m_state = RequestState::cancel;
 
 		friend HttpClient_Android;
 	};
