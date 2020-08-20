@@ -9,7 +9,7 @@ using std::string;
 using std::mutex;
 using std::vector;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // Note: CV spec reserves the last character for the "!" suffix identifying sealed values.
     // This effectively means we have one less character to use.
@@ -313,4 +313,4 @@ namespace ARIASDK_NS_BEGIN
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

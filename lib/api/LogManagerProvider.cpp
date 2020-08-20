@@ -2,7 +2,7 @@
 
 #include "LogManagerFactory.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
@@ -40,4 +40,4 @@ namespace ARIASDK_NS_BEGIN {
         return LogManagerFactory::Release(config);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

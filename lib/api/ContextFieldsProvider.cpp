@@ -6,7 +6,7 @@
 
 #include "utils/Utils.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     ContextFieldsProvider::ContextFieldsProvider()
@@ -463,4 +463,4 @@ namespace ARIASDK_NS_BEGIN
         return m_customContextFields;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
