@@ -36,7 +36,7 @@ namespace ARIASDK_NS_BEGIN
     {
         if (nullptr == m_offlineStorage) {
             LOG_WARN(" offline storage not available. Session data won't be initialized");
-            return ;
+            return;
         }
         uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
