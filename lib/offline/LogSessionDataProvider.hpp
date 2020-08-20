@@ -6,7 +6,7 @@
 #include <string>
 #include <memory>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     enum class SessionStorageType : uint8_t {
         FileStore,
@@ -50,5 +50,5 @@ namespace ARIASDK_NS_BEGIN
         void remove_eol(std::string& );
     };
 }
-ARIASDK_NS_END
+MAT_NS_END
 #endif

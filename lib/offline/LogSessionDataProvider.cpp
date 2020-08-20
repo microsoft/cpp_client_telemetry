@@ -11,7 +11,7 @@
 extern int errno;  
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     static const char* sessionFirstLaunchTimeName = "sessionfirstlaunchtime";
     static const char* sessionSdkUidName = "sessionsdkuid";
@@ -153,4 +153,4 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 }
-ARIASDK_NS_END
+MAT_NS_END
