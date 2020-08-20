@@ -34,6 +34,6 @@ Summarising roadmap in tabular format:
 | C++ Compilers | Currently Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
 | C++11 | Yes | - | Mid-2021 |
-| C++14 | No | Yes (Soft support for Windows specific components) | Mid-2021 |
+| C++14 | Yes ( Soft support for Windows specific components) | - | Mid-2021 |
 | C++17 | No | Mid-2021 | No Plans |
 | C++20 | No | No Plans | No Plans |
