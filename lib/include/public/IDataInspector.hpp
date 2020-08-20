@@ -67,7 +67,7 @@ namespace MAT_NS_BEGIN
           /// Set the enabled state at runtime for the inspector.
           /// </summary>
           /// <param name="isEnabled">Boolean value to denote whether the inspector is enabled or not.</param>
-          virtual void Enabled(bool isEnabled) = 0;
+          virtual void Enabled(bool isEnabled) noexcept = 0;
 
           /// <summary>
           /// Iterate and inspect the given record's Part-B and
@@ -75,27 +75,29 @@ namespace MAT_NS_BEGIN
           /// </summary>
           /// <param name="record">Record to inspect</param>
           /// <returns>Always returns true.</returns>
-          virtual bool decorate(::CsProtocol::Record& record) = 0;
+          virtual bool decorate(::CsProtocol::Record& record) noexcept = 0;
 
           /// <summary>
           /// Inspect an ISemanticContext value.
           /// </summary>
           /// <param name="semanticContext">Semantic Context to inspect</param>
-          virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const = 0;
+          virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const noexcept = 0;
 
           /// <summary>
           /// Custom inspector to validate strings for a given tenant.
           /// </summary>
           /// <param name="customInspector">Function to inspect the given string</param>
           /// <returns>PrivacyIssueType that was detected</returns>
-          virtual PrivacyIssueType AddCustomStringValueInspector(std::function<PrivacyIssueType(std::string& valueToInspect, std::string& tenant)>&& customInspector) const = 0;
+          virtual PrivacyIssueType AddCustomStringValueInspector(std::function<PrivacyIssueType(std::string& valueToInspect, std::string& tenantToken)>&& customInspector) noexcept = 0;
 
           /// <summary>
           /// Custom inspector to validate GUIDs for a given tenant.
           /// </summary>
           /// <param name="customInspector">Function to inspect the given GUID</param>
           /// <returns>PrivacyIssueType that was detected</returns>
-          virtual PrivacyIssueType AddCustomGuidValueInspector(std::function<PrivacyIssueType(GUID& valueToInspect, std::string& tenant)>&& customInspector) const = 0;
+          virtual PrivacyIssueType AddCustomGuidValueInspector(std::function<PrivacyIssueType(GUID& valueToInspect, std::string& tenantToken)>&& customInspector) noexcept = 0;
+
+          virtual void AddIgnoredConcern(const std::string& eventName, const std::string& propertyName, PrivacyIssueType knownIssue) noexcept = 0;
     };
 
 }
