@@ -38,3 +38,17 @@ std::string GetDeviceId()
         }
     }
 }
+
+std::string GetDeviceOsVersion()
+{
+    // Previous implementation pointed to "ProductVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // systemVersion returns string in this same format
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
+}
+
+std::string GetDeviceOsRelease()
+{
+    // Previous implementation pointed to "ProductUserVisibleVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // systemVersion returns string in this same format
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
+}

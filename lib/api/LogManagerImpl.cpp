@@ -43,7 +43,7 @@
 #endif
 #endif  // HAVE_MAT_DEFAULT_FILTER
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)
     {
@@ -731,4 +731,4 @@ namespace ARIASDK_NS_BEGIN
     }
 
 }
-ARIASDK_NS_END
+MAT_NS_END

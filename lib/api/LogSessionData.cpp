@@ -5,7 +5,7 @@
 #include "offline/LogSessionDataProvider.hpp"
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     uint64_t LogSessionData::getSessionFirstTime() const
     {
@@ -17,4 +17,4 @@ namespace ARIASDK_NS_BEGIN {
         return m_sessionSDKUid;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

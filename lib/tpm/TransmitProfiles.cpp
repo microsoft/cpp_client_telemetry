@@ -4,6 +4,8 @@
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
+#endif
+
 #include "utils/Utils.hpp"
 
 #include <mutex>
@@ -30,9 +32,10 @@ static const set<string, std::greater<string>> defaultProfileNames = {
 static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
-/// Compile-time map of text fields to struct fields and their types.
+/// Runtime map of text fields to struct fields and their types.
 /// This map greatly helps to simplify the serialization from JSON to binary.
 /// </summary>
+#ifdef HAVE_MAT_JSONHPP
 static std::map<std::string, int > transmitProfileNetCost;
 static std::map<std::string, int > transmitProfilePowerState;
 
@@ -52,14 +55,11 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["battery"] = (PowerSource_Battery);
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
 };
+#endif
 
 #define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
-namespace ARIASDK_NS_BEGIN {
-
-
-    static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
-    static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
+namespace MAT_NS_BEGIN {
 
     static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
@@ -173,8 +173,11 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="profiles_json"></param>
     /// <param name="profiles"></param>
     /// <returns></returns>
+#ifdef HAVE_MAT_JSONHPP
     size_t TransmitProfiles::parse(const std::string& profiles_json)
     {
+        static const char* attributeName = "name";
+        static const char* attributeRules = "rules";
         size_t numProfilesParsed = 0;
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
@@ -199,10 +202,10 @@ namespace ARIASDK_NS_BEGIN {
                     json rulesObj = it.value();
                     if (rulesObj.is_object())
                     {
-                        std::string name = rulesObj[ATTR_NAME];
+                        std::string name = rulesObj[attributeName];
 
                         profile.name = name;
-                        json rules = rulesObj[ATTR_RULES];
+                        json rules = rulesObj[attributeRules];
 
                         if (rules.is_array())
                         {
@@ -277,6 +280,12 @@ namespace ARIASDK_NS_BEGIN {
         }
         return numProfilesParsed;
     }
+#else
+    size_t TransmitProfiles::parse(const std::string&)
+    {
+        return size_t { 0 };
+    }
+#endif // HAVE_MAT_JSONHPP
 
     /// <summary>
     /// Load customer supplied transmit profiles
@@ -546,37 +555,12 @@ namespace ARIASDK_NS_BEGIN {
 
     TransmitProfiles::TransmitProfiles()
     {
+#ifdef HAVE_MAT_JSONHPP
         initTransmitProfileFields();
-    }
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6320)
-#endif
-    TransmitProfiles::~TransmitProfiles()
-    {
-#ifdef _WIN32
-        // This silly code is required for vs2013 compiler workaround
-        // https://connect.microsoft.com/VisualStudio/feedback/details/800104/
-        __try {
-            transmitProfileNetCost.clear();
-            transmitProfilePowerState.clear();
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER)
-        {
-            // This compiler bug costed me good relationship with OneDrive team :(
-        }
 #endif
     }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;
 
-} ARIASDK_NS_END
-
-#else
-#include "TransmitProfilesStub.hpp"
-#endif
+} MAT_NS_END

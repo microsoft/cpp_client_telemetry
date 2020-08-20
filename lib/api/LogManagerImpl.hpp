@@ -31,7 +31,7 @@
 #include <mutex>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class ITelemetrySystem;
 
@@ -325,6 +325,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 #endif
