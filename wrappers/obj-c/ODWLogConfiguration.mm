@@ -22,6 +22,12 @@ using namespace Microsoft::Applications::Events;
     _enableTrace = enableTrace;
 }
 
++(void)setTraceLevel:(int)traceLevel
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_TRACE_LEVEL_MIN] = traceLevel;
+}
+
 +(bool)enableTrace
 {
     return _enableTrace;
