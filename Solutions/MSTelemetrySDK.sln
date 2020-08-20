@@ -48,6 +48,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{5538
 		..\lib\include\public\EventProperties.hpp = ..\lib\include\public\EventProperties.hpp
 		..\lib\include\public\EventProperty.hpp = ..\lib\include\public\EventProperty.hpp
 		..\lib\include\public\IAFDClient.hpp = ..\lib\include\public\IAFDClient.hpp
+		..\lib\include\public\IDataInspector.hpp = ..\lib\include\public\IDataInspector.hpp
 		..\lib\include\public\IDataViewer.hpp = ..\lib\include\public\IDataViewer.hpp
 		..\lib\include\public\IDataViewerCollection.hpp = ..\lib\include\public\IDataViewerCollection.hpp
 		..\lib\include\public\IDecorator.hpp = ..\lib\include\public\IDecorator.hpp
