@@ -36,7 +36,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
@@ -107,7 +107,7 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.microsoft.applications.events'
                 artifactId = 'maesdk'
-                version = '3.4.216.1-SNAPSHOT'
+                version = '3.4.226.1-SNAPSHOT'
             }
             // Creates a Maven publication called “debug”.
             debug(MavenPublication) {
