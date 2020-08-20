@@ -21,7 +21,7 @@ Based on above guidelines, below are the C++ version support guidelines and futu
 2. **C++11 features usability** : The 1DS SDK is written using C++11 features, and developers are encouraged to use these features as and when needed.
 
 3. **C++14 features usability** : One of the omissisions from C++11 standards, and made available in C++14 standard is support for `std::make_unique`. This is already [backported](https://github.com/microsoft/cpp_client_telemetry/blob/780205d2ea0298e41e82d54a3d203366f051cdf4/lib/utils/Utils.hpp#L28) in 1DS SDK, and hence compiles successfully with C++11 compilers.
-If there are any other features which needs to be used, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. As of now, there is no urgent requirement for supporting C++14 std features, but this would be re-visited once Azure SDK lifts the requirement for supporting GCC 4.8 compiler.
+If there are any other features which needs to be used, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. One of the benefit of supporing C++14 would be to enable use of Guidelines Support Library(GSL) library. We would re-visited this once Azure SDK lifts the requirement for supporting GCC 4.8 compiler. As of now, plan is to do "soft-switch" to C++14 for Windows platform-specific code ( eg Winlnet or WinHTTP client, or other platform bindings), because we are alredy building with either Visual Studio 2017+ or modern clang (Chromium). This is planned by end of 2020.
 
 4. **C++17 features usability** : C++17 features are not yet supported as per Chromium C++ guideline (see above), and hence 1DS SDK doesn't support using these features. This would be revisited around Mid-2021 once Chromium removes this restrictions. There are plans to backport some of the needed features like [std::variant](https://en.cppreference.com/w/cpp/utility/variant), [std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view), and [std::visit](https://en.cppreference.com/w/cpp/utility/variant/visit) during this year(2020). For any other feature requirements, contributions through PRs to backport them for C++11 compiler in 1DS SDK can be done. Guidelines for backporting are been discussed in (Issue#557)[https://github.com/microsoft/cpp_client_telemetry/issues/557] and would be finalized soon.
 
@@ -34,6 +34,6 @@ Summarising roadmap in tabular format:
 | C++ Compilers | Currently Support | Start of Support | End of Support |
 | --- | --- | -- | -- |
 | C++11 | Yes | - | Mid-2021 |
-| C++14 | No | Won't be supported | N/A |
+| C++14 | No | Soft support for Windows(Dec-2020) | N/A |
 | C++17 | No | Mid-2021 | No Plans |
 | C++20 | No | No Plans | No Plans |
