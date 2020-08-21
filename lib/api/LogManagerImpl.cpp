@@ -124,6 +124,7 @@ namespace MAT_NS_BEGIN
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
         m_dataViewer = std::static_pointer_cast<IDataViewer>(configuration.GetModule(CFG_MODULE_DATA_VIEWER));
+        m_customDecorator = std::static_pointer_cast<IDecoratorModule>(configuration.GetModule(CFG_MODULE_DECORATOR));
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
@@ -649,6 +650,10 @@ namespace MAT_NS_BEGIN
         LOCKGUARD(m_lock);
         if (GetSystem())
         {
+            if (m_customDecorator)
+            {
+                m_customDecorator->decorate(*(event->source));
+            }
             GetSystem()->sendEvent(event);
         }
     }
