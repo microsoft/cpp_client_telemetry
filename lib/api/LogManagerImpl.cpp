@@ -7,6 +7,7 @@
 #include "mat/config.h"
 
 #include "offline/OfflineStorageHandler.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -184,9 +185,6 @@ namespace MAT_NS_BEGIN
             }
         }
 
-        // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
-        m_logSessionData.reset(new LogSessionData(cacheFilePath));
-
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
         if (m_dataViewer != nullptr)
@@ -272,7 +270,14 @@ namespace MAT_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
+#else
+         m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+#endif
+
+        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, 
+                    m_bandwidthController, *m_logSessionDataProvider));
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
@@ -675,7 +680,7 @@ namespace MAT_NS_BEGIN
 
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
-        return m_logSessionData.get();
+        return m_logSessionDataProvider->GetLogSessionData();
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
