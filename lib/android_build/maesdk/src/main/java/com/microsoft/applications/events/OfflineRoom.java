@@ -98,6 +98,7 @@ public class OfflineRoom implements AutoCloseable {
         }
         builder.fallbackToDestructiveMigration();
         builder.setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING);
+        builder.allowMainThreadQueries();
         m_db = builder.build();
         m_srDao = m_db.getStorageRecordDao();
         m_settingDao = m_db.getStorageSettingDao();
