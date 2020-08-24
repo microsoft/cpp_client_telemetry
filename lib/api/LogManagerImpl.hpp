@@ -26,7 +26,7 @@
 
 #include "AllowedLevelsCollection.hpp"
 
-#include "LogSessionData.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include <mutex>
 #include <set>
@@ -111,6 +111,11 @@ namespace MAT_NS_BEGIN
        public:
         static std::recursive_mutex managers_lock;
         static std::set<ILogManager*> managers;
+
+        /// <summary>
+        /// Optional decorator runs on event before passing it to sendEvent
+        /// </summary>
+        std::shared_ptr<IDecoratorModule> m_customDecorator;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
         virtual const ContextFieldsProvider& GetContext() = 0;
@@ -310,7 +315,7 @@ namespace MAT_NS_BEGIN
         AuthTokensController m_authTokensController;
 
         std::unique_ptr<IOfflineStorage> m_offlineStorage;
-        std::unique_ptr<LogSessionData> m_logSessionData;
+        std::unique_ptr<LogSessionDataProvider> m_logSessionDataProvider;
         bool m_isSystemStarted{};
         std::unique_ptr<ITelemetrySystem> m_system;
 
