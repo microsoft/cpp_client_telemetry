@@ -26,6 +26,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataInspector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IHttpClient.hpp" />
@@ -142,6 +144,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
@@ -174,12 +177,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystemBase.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfilesStub.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataInspector.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template" />

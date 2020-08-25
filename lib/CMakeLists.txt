@@ -42,6 +42,7 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
+  offline/LogSessionDataProvider.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp
@@ -79,7 +80,7 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
-      pal/posix/sysinfo_utils_apple.mm
+      pal/posix/sysinfo_utils_apple.cpp
     )
     if(BUILD_IOS)
       list(APPEND SRCS
