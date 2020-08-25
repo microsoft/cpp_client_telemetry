@@ -5,7 +5,7 @@
 #include "bond/generated/CsProtocol_writers.hpp"
 #include <assert.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 size_t BondSplicer::addTenantToken(std::string const& tenantToken)
 {
@@ -58,4 +58,4 @@ void BondSplicer::clear()
 }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
