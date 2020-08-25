@@ -33,7 +33,7 @@
 #undef TRACE
 #define TRACE(...)	// printf
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /**
  * Curl-based HTTP client
@@ -520,7 +520,7 @@ protected:
 
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
