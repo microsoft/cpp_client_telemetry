@@ -71,6 +71,7 @@ endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/)
   list(APPEND SRCS
+    modules/privacyguard/FileTypes.cpp
     modules/privacyguard/PrivacyGuard.cpp
   )
 endif()

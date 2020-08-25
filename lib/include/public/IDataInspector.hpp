@@ -84,19 +84,25 @@ namespace MAT_NS_BEGIN
           virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const noexcept = 0;
 
           /// <summary>
-          /// Custom inspector to validate strings for a given tenant.
+          /// Custom inspector to validate wstrings for a given tenant.
           /// </summary>
           /// <param name="customInspector">Function to inspect the given string</param>
-          /// <returns>PrivacyIssueType that was detected</returns>
-          virtual PrivacyIssueType AddCustomStringValueInspector(std::function<PrivacyIssueType(std::string& valueToInspect, std::string& tenantToken)>&& customInspector) noexcept = 0;
+          virtual void AddCustomWStringValueInspector(std::function<PrivacyIssueType(const std::wstring& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
           /// <summary>
           /// Custom inspector to validate GUIDs for a given tenant.
           /// </summary>
           /// <param name="customInspector">Function to inspect the given GUID</param>
-          /// <returns>PrivacyIssueType that was detected</returns>
-          virtual PrivacyIssueType AddCustomGuidValueInspector(std::function<PrivacyIssueType(GUID& valueToInspect, std::string& tenantToken)>&& customInspector) noexcept = 0;
+          virtual void AddCustomGuidValueInspector(std::function<PrivacyIssueType(const GUID& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
+          /// <summary>
+          /// Add known concern for a given event and field.
+          /// If a concern is identified in this field for the same Privacy Issue Type,
+          /// it is ignored
+          /// </summary>
+          /// <param name="eventName">Event to inspect</param>
+          /// <param name="propertyName">Event Proeprty to inspect</param>
+          /// <param name="knownIssue">Known Issue</param>
           virtual void AddIgnoredConcern(const std::string& eventName, const std::string& propertyName, PrivacyIssueType knownIssue) noexcept = 0;
     };
 
