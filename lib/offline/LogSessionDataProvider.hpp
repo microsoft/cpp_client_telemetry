@@ -19,6 +19,7 @@ namespace MAT_NS_BEGIN
         LogSessionDataProvider(
             IOfflineStorage* offlineStorage)
             :
+            m_logSessionData(nullptr),
             m_offlineStorage(offlineStorage),
             m_storageType(SessionStorageType::DatabaseStore)
         {
@@ -27,6 +28,7 @@ namespace MAT_NS_BEGIN
         LogSessionDataProvider(
             std::string const& cacheFilePath)
             :
+            m_logSessionData(nullptr),
             m_cacheFilePath(cacheFilePath),
             m_storageType(SessionStorageType::FileStore)
         {
