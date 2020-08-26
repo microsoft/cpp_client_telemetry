@@ -10,6 +10,7 @@ set(SRCS
   Main.cpp
   MultipleLogManagersTests.cpp
   ECSClientFuncTests.cpp
+  ECSClientRealworldFuncTests.cpp
   ECSConfigCacheFuncTests.cpp
 )
 
