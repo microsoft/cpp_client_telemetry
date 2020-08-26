@@ -1481,6 +1481,10 @@ TEST(APITest, Custom_Decorator)
     });
     LogManager::GetLogger()->LogEvent(myEvent2);
     LogManager::FlushAndTeardown();
+    // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
+    // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
+    // for non-existing module also returns nullptr.
+    config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
