@@ -6,7 +6,7 @@
 
 #include "mat/config.h"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /// <summary>
 /// Initializes a new instance of the <see cref="TelemetrySystem"/> class.
@@ -23,7 +23,8 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
-        IBandwidthController* bandwidthController)
+        IBandwidthController* bandwidthController,
+        LogSessionDataProvider& logSessionDataProvider)
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
@@ -34,13 +35,14 @@ namespace ARIASDK_NS_BEGIN {
         packager(runtimeConfig),
         tpm(*this, taskDispatcher, bandwidthController)
     {
-        
+
         // Handler for start
-        onStart = [this](void)
+        onStart = [this, &logSessionDataProvider](void)
         {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
+            logSessionDataProvider.CreateLogSessionData();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
         };
@@ -189,7 +191,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t recordCount = storage.GetRecordCount();
         if (recordCount)
         {
-            tpm.scheduleUpload(0, EventLatency_Normal, true);
+            tpm.scheduleUpload(std::chrono::milliseconds {}, EventLatency_Normal, true);
             return true;
         }
 
@@ -219,4 +221,4 @@ namespace ARIASDK_NS_BEGIN {
         signalDone();
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
