@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class HttpClient_Apple : public IHttpClient {
     public:
@@ -28,7 +28,7 @@ namespace ARIASDK_NS_BEGIN {
         std::map<std::string, IHttpRequest*> m_requests;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HTTPCLIENT_APPLE_HPP
 

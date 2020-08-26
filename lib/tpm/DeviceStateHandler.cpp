@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 using namespace std;
 using namespace PAL;
@@ -142,4 +142,4 @@ void DeviceStateHandler::OnChanged(
 	 //do we need to stop current timer?? and restart
  }
 
-} ARIASDK_NS_END
+} MAT_NS_END

@@ -42,6 +42,7 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
+  offline/LogSessionDataProvider.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp
@@ -72,7 +73,7 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
-      pal/posix/sysinfo_utils_apple.mm
+      pal/posix/sysinfo_utils_apple.cpp
     )
     if(BUILD_IOS)
       list(APPEND SRCS
@@ -138,7 +139,7 @@ elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
-add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DARIASDK_PLATFORM_WINDOWS=1 -DARIASDK_SHARED_LIB=1 -D_ARIA_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp

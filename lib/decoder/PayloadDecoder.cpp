@@ -534,7 +534,7 @@ namespace clienttelemetry {
 
 using namespace clienttelemetry::data::v3;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     namespace exporters {
 
@@ -593,4 +593,4 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

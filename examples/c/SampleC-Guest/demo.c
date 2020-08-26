@@ -25,12 +25,12 @@ void test_c_api_guest()
         "\"maxTeardownUploadTimeInSec\":5,"           // Allow up to 5 seconds for upload
         "\"hostMode\":false,"                         // Explicitly declare yourself as guest
         "\"minimumTraceLevel\":0,"                    // Debug printout level
-        "\"sdkmode\":0"                               // Aria direct-upload mode
+        "\"sdkmode\":0"                               // 1DS direct-upload mode
     "}";
 
     // Attemppt to load an alternate impl if available
 #ifdef _WIN32
-    evt_load((evt_handle_t)LoadLibrary(L"MsoAriaNext.dll"));
+    evt_load((evt_handle_t)LoadLibrary(L"ClientTelemetry2.dll"));
 #endif
 
     evt_handle_t handle = evt_open(config);

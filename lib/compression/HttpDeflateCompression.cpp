@@ -8,7 +8,7 @@
 #include <zlib.h>
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)
@@ -87,4 +87,4 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

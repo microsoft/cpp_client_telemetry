@@ -11,7 +11,7 @@
 #include <memory>
 #include <algorithm>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /** \brief The first positive spot for the frequency distribution of package consecutive failure duration.
         <20s, 20s~40s, 40s~80s, 80s~160s, 160s~320s, 320s~640s, >640s
@@ -608,6 +608,6 @@ namespace ARIASDK_NS_BEGIN {
         void snapStatsToRecord(std::vector< ::CsProtocol::Record>& records, RollUpKind rollupKind, TelemetryStats& telemetryStats);
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

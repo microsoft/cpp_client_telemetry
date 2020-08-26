@@ -26,11 +26,32 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)setUserAdvertisingId:(nonnull NSString *)userAdvertisingId;
 
 /*!
+ @brief Sets the experimentation IDs for determining the deployment configuration.
+ @param experimentIds A string that contains the experimentation IDs.
+ */
+-(void)setAppExperimentIds:(nonnull NSString*)experimentIds;
+
+/*!
+ @brief Sets the experimentation IDs for the specified telemetry event.
+ @param experimentIds A string that contains the experimentation IDs.
+ @param eventName A string that contains the name of the event.
+ */
+-(void)setAppExperimentIds:(nonnull NSString*)experimentIds
+                  forEvent:(nonnull NSString*)eventName;
+
+/*!
  @brief Sets the experiment tag (experiment configuration) context information for telemetry events.
  <b>Note:</b> This method removes any previously stored experiment IDs that were set using setAppExperimentETag.
  @param eTag A string that contains the ETag which is a hash of the set of experiments.
  */
 -(void)setAppExperimentETag:(nonnull NSString *)eTag;
+
+/*!
+ @brief Sets the impression ID (an identifier of the currently running flights) for an experiment.
+ @details Calling this method removes the previously stored experimentation IDs and flight IDs.
+ @param impressionId A string that contains the impression ID for the currently active configuration.
+ */
+-(void)setAppExperimentImpressionId:(nonnull NSString*)impressionId;
 
 @end
 

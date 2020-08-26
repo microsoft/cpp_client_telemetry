@@ -7,7 +7,7 @@
 #include <mutex>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class HttpClient_Android : public IHttpClient
 {
@@ -199,4 +199,4 @@ protected:
 
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END

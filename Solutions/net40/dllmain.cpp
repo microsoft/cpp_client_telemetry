@@ -23,8 +23,8 @@ HRESULT __stdcall DllCanUnloadNow(void)
 void LockInMemory()
 {
 #ifndef _WINRT_DLL
-    HMODULE ariaModule;
-    ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"ClientTelemetry.dll", &ariaModule);
+    HMODULE mstelModule;
+    ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"ClientTelemetry.dll", &mstelModule);
 #endif
 }
 

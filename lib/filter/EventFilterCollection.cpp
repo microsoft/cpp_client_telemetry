@@ -7,7 +7,7 @@
 #include <exception>
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     void EventFilterCollection::RegisterEventFilter(std::unique_ptr<IEventFilter>&& filter)
     {
@@ -66,4 +66,4 @@ namespace ARIASDK_NS_BEGIN
         return (Size() == 0);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

@@ -2060,10 +2060,9 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = _WIN32														\
-                        ARIASDK_LIBABI=													\
-			ARIASDK_NS_BEGIN=Microsoft { namespace Applications { namespace Events						\
-			ARIASDK_NS_END=}}												\
-			ARIASDK_NS=Microsoft::Applications::Events									\
+                        MATSDK_LIBABI=													\
+			MAT_NS_BEGIN=Microsoft { namespace Applications { namespace Events						\
+			MAT_NS_END=}}													\
 			MAT=Microsoft::Applications::Events										\
 			PAL_NS_BEGIN=Microsoft { namespace Applications { namespace Events { namespace PlatformAbstraction		\
 			PAL_NS_END=}}}													\

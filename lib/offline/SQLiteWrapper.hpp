@@ -13,7 +13,7 @@
 #include <vector>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     using SQLRecord = std::vector<std::string>;
     using SQLRecords = std::vector<SQLRecord>;
@@ -765,5 +765,5 @@ namespace ARIASDK_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

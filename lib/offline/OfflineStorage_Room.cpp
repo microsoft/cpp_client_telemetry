@@ -3,7 +3,7 @@
 #include <exception>
 #include <jni.h>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /**
      * Java virtual machine
@@ -1022,7 +1022,7 @@ namespace ARIASDK_NS_BEGIN
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_Room, "EventsSDK.RoomStorage", "Offline Storage: Android Room database")
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(

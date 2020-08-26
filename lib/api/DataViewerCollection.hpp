@@ -9,7 +9,7 @@
 #include <mutex>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class DataViewerCollection : public IDataViewerCollection
     {
@@ -39,6 +39,6 @@ namespace ARIASDK_NS_BEGIN {
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

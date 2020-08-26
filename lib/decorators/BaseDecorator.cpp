@@ -1,7 +1,7 @@
 #include "mat/config.h"
 #include "BaseDecorator.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
@@ -68,4 +68,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

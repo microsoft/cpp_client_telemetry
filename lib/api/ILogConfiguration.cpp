@@ -1,6 +1,6 @@
 #include "ILogConfiguration.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     ILogConfiguration::ILogConfiguration(const std::initializer_list<std::pair<const std::string, Variant>>& initList)
         : m_configs(initList) { }
@@ -35,4 +35,4 @@ namespace ARIASDK_NS_BEGIN
         return m_configs;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

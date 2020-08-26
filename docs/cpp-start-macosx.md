@@ -87,5 +87,5 @@ logging system by adding the following statements to your main() function.
 *You're done! You can now compile and run your app, and it will send a telemetry event.*
 
 
- _**Note:** If you need a deeper look into how to use the 1DS C++ SDK there is a couple of folders with examples under Aria.SDK.Cpp/examples_
+ _**Note:** If you need a deeper look into how to use the 1DS C++ SDK there is a couple of folders with examples under `examples`_
 

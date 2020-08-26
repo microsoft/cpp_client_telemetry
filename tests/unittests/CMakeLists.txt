@@ -25,6 +25,7 @@ set(SRCS
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
+  LogSessionDataDBTests.cpp
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp

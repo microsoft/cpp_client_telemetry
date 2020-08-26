@@ -4,7 +4,7 @@
 #pragma once
 #include "api/IRuntimeConfig.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     static ILogConfiguration defaultRuntimeConfig{
         {CFG_INT_TRACE_LEVEL_MIN, ACTTraceLevel::ACTTraceLevel_Error},
@@ -191,4 +191,4 @@ namespace ARIASDK_NS_BEGIN
     };
 
 }
-ARIASDK_NS_END
+MAT_NS_END

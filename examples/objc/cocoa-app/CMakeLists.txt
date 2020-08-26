@@ -17,7 +17,7 @@ find_package (Threads)
 
 set(MATSDK_INCLUDE	/usr/local/include/mat)
 
-# Aria SDK to include dirs
+# 1DS SDK to include dirs
 include_directories( . ${MATSDK_INCLUDE} )
 
 # Prefer linking to more recent local sqlite3

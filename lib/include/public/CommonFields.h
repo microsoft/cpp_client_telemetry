@@ -1,4 +1,18 @@
-/* Copyright (c) Microsoft. All rights reserved. */
+/*
+
+ Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+
+ This code is licensed under the MIT License (MIT).
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+*/
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
 
@@ -14,7 +28,6 @@
 
 #define COMMONFIELDS_APP_EXPERIMENTIDS                       "AppInfo.ExperimentIds"
 #define COMMONFIELDS_APP_EXPERIMENTETAG                      "AppInfo.ETag"
-#define COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID            "AppInfo.ImpressionId"
 
 #define COMMONFIELDS_DEVICE_ID                               "DeviceInfo.Id"
 #define COMMONFIELDS_DEVICE_MAKE                             "DeviceInfo.Make"
@@ -57,6 +70,7 @@
 #define SESSION_FIRST_TIME                                   "Session.FirstLaunchTime"
 #define SESSION_STATE                                        "Session.State"
 #define SESSION_ID                                           "Session.Id"
+#define SESSION_IMPRESSION_ID                                "Session.ImpressionId"
 #define SESSION_DURATION                                     "Session.Duration"
 #define SESSION_DURATION_BUCKET                              "Session.DurationBucket"
 #define SESSION_ID_LEGACY                                    "act_session_id"

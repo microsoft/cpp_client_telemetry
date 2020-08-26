@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 // Bit remapping has to happen on bits passed via API surface.
 // Ref CS2.1+ : https://osgwiki.com/wiki/CommonSchema/flags
@@ -450,5 +450,5 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

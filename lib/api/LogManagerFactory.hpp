@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     constexpr const char* ANYHOST = "*";
 
@@ -129,6 +129,6 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
