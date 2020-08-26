@@ -23,12 +23,12 @@
 
 namespace MAT_NS_BEGIN
 {
-   /// <summary>
-   /// Enums identifying applicable Privacy Issues
-   /// Source: https://aka.ms/privacyguard/issuetypes
-   /// </summary>
-   enum class PrivacyIssueType : uint16_t
-   {
+    /// <summary>
+    /// Enums identifying applicable Privacy Issues
+    /// Source: https://aka.ms/privacyguard/issuetypes
+    /// </summary>
+    enum class DataConcernType : uint16_t
+    {
         None = 0,                                   // Unused
         DemographicInfoLanguage = 1,                // The users language ID. Example: En-Us
         DemographicInfoCountryRegion = 2,           // Country/region
@@ -54,7 +54,43 @@ namespace MAT_NS_BEGIN
         Content = 22,                               // Formatted text: HTML, MIME, RTF, Xml, etc.
         FileSharingUrl = 23,                        // A URL referencing a common file-sharing site or service.
         Security = 24,                              // A URL containing parameters “access_token”, “password”, etc.
-   };
+    };
+
+    /// <summary>
+    /// Common Privacy Contexts to inspect in the data
+    /// </summary>
+    typedef struct CommonDataContexts
+    {
+        /// <summary>
+        /// Unique UserName such as the log-in name
+        /// </summary>
+        std::wstring UserName;
+
+        /// <summary>
+        /// Unique User Alias, if different than UserName
+        /// </summary>
+        std::wstring UserAlias;
+
+        /// <summary>
+        /// Domain Name for the current machine
+        /// </summary>
+        std::wstring DomainName;
+
+        /// <summary>
+        /// Friendly Machine Name
+        /// </summary>
+        std::wstring MachineName;
+
+        /// <summary>
+        /// Collection of Machine ID such as SQM_ID, Client_ID, etc
+        /// </summary>
+        std::vector<std::wstring> MachineID;
+
+        /// <summary>
+        /// IP Addresses for local network ports such as IPv4, IPv6, etc.
+        /// </summary>
+        std::vector<std::wstring> IPAddress;
+    } CommonDataContexts;
 
     /// <summary>
     /// This interface allows SDK users to register a data inspector
@@ -63,47 +99,55 @@ namespace MAT_NS_BEGIN
     class IDataInspector : public IModule, IDecorator
     {
        public:
-          /// <summary>
-          /// Set the enabled state at runtime for the inspector.
-          /// </summary>
-          /// <param name="isEnabled">Boolean value to denote whether the inspector is enabled or not.</param>
-          virtual void Enabled(bool isEnabled) noexcept = 0;
+        /// <summary>
+        /// Set the enabled state at runtime for the inspector.
+        /// </summary>
+        /// <param name="isEnabled">Boolean value to denote whether the inspector is enabled or not.</param>
+        virtual void Enabled(bool isEnabled) noexcept = 0;
 
-          /// <summary>
-          /// Iterate and inspect the given record's Part-B and
-          /// Part-C properties
-          /// </summary>
-          /// <param name="record">Record to inspect</param>
-          /// <returns>Always returns true.</returns>
-          virtual bool decorate(::CsProtocol::Record& record) noexcept = 0;
+        /// <summary>
+        /// Iterate and inspect the given record's Part-B and
+        /// Part-C properties
+        /// </summary>
+        /// <param name="record">Record to inspect</param>
+        /// <returns>Always returns true.</returns>
+        virtual bool decorate(::CsProtocol::Record& record) noexcept = 0;
 
-          /// <summary>
-          /// Inspect an ISemanticContext value.
-          /// </summary>
-          /// <param name="semanticContext">Semantic Context to inspect</param>
-          virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const noexcept = 0;
+        /// <summary>
+        /// Set Common Privacy Context after initialization.
+        /// <b>Note:</b> Data that may have been sent before this method was called
+        /// will not be inspected.
+        /// </summary>
+        /// <param name="delayedCommonPrivacyContext">Unique Ptr for Common Privacy Contexts. If the param is nullptr, this method is no-op.</param>
+        virtual void DelaySetCommonPrivacyContext(std::unique_ptr<CommonDataContexts>&& delayedCommonPrivacyContext) noexcept = 0;
 
-          /// <summary>
-          /// Custom inspector to validate wstrings for a given tenant.
-          /// </summary>
-          /// <param name="customInspector">Function to inspect the given string</param>
-          virtual void AddCustomWStringValueInspector(std::function<PrivacyIssueType(const std::wstring& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+        /// <summary>
+        /// Inspect an ISemanticContext value.
+        /// </summary>
+        /// <param name="semanticContext">Semantic Context to inspect</param>
+        virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const noexcept = 0;
 
-          /// <summary>
-          /// Custom inspector to validate GUIDs for a given tenant.
-          /// </summary>
-          /// <param name="customInspector">Function to inspect the given GUID</param>
-          virtual void AddCustomGuidValueInspector(std::function<PrivacyIssueType(const GUID& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+        /// <summary>
+        /// Custom inspector to validate wstrings for a given tenant.
+        /// </summary>
+        /// <param name="customInspector">Function to inspect the given string</param>
+        virtual void AddCustomWStringValueInspector(std::function<DataConcernType(const std::wstring& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
-          /// <summary>
-          /// Add known concern for a given event and field.
-          /// If a concern is identified in this field for the same Privacy Issue Type,
-          /// it is ignored
-          /// </summary>
-          /// <param name="eventName">Event to inspect</param>
-          /// <param name="propertyName">Event Proeprty to inspect</param>
-          /// <param name="knownIssue">Known Issue</param>
-          virtual void AddIgnoredConcern(const std::string& eventName, const std::string& propertyName, PrivacyIssueType knownIssue) noexcept = 0;
+        /// <summary>
+        /// Custom inspector to validate GUIDs for a given tenant.
+        /// </summary>
+        /// <param name="customInspector">Function to inspect the given GUID</param>
+        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+
+        /// <summary>
+        /// Add known concern for a given event and field.
+        /// If a concern is identified in this field for the same Privacy Issue Type,
+        /// it is ignored
+        /// </summary>
+        /// <param name="eventName">Event to inspect</param>
+        /// <param name="propertyName">Event Proeprty to inspect</param>
+        /// <param name="knownIssue">Known Issue</param>
+        virtual void AddIgnoredConcern(const std::string& eventName, const std::string& propertyName, DataConcernType knownIssue) noexcept = 0;
     };
 
 }
