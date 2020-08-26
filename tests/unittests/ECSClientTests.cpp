@@ -16,7 +16,7 @@ std::unique_ptr<ECSClient> GetInitializedECSClient()
     auto config = ECSClientConfiguration();
     config.clientName = "Test";
     config.clientVersion = "1.0";
-    config.cacheFilePathName = "cacheFilePathName";    
+    config.cacheFilePathName = "cacheFilePathName";
 
     client->Initialize(config);
     return client;
@@ -33,9 +33,10 @@ public:
         if (evtType == ECSClientEventType::ET_CONFIG_UPDATE_SUCCEEDED)
         {
             callback();
-        }            
+        }
     }
 };
+
 
 TEST(ECSClientTests, Construct_OK)
 {
@@ -46,6 +47,24 @@ TEST(ECSClientTests, Deconstruct_OK)
 {
     auto client = new ECSClient();
     delete client;
+}
+
+TEST(ECSClientTests, CreateInstance_OK)
+{
+    auto client = IECSClient::CreateInstance();
+}
+
+TEST(ECSClientTests, DestroyInstance_OK)
+{
+    auto client = IECSClient::CreateInstance();
+    IECSClient::DestroyInstance(&client);
+}
+
+TEST(ECSClientTests, DestroyInstance_ArgsIsNullptr)
+{
+    auto client = IECSClient::CreateInstance();
+    IECSClient::DestroyInstance(&client);
+    IECSClient::DestroyInstance(&client);
 }
 
 TEST(ECSClientTests, Initialize_Failed_ClientNameEmpty)
@@ -70,7 +89,7 @@ TEST(ECSClientTests, Start_Failed_AlreadyStarted)
     auto config = ECSClientConfiguration();
     config.clientName = "Test";
     config.clientVersion = "1.0";
-    config.cacheFilePathName = "cacheFilePathName";    
+    config.cacheFilePathName = "cacheFilePathName";
 
     client->Initialize(config);
     client->Start();
@@ -84,6 +103,36 @@ TEST(ECSClientTests, Start_OK)
     auto ret = client->Start();
     ASSERT_EQ(ret, true);
 }
+
+TEST(ECSClientTests, Stop_OK)
+{
+    auto client = GetInitializedECSClient();
+    auto ret = client->Start();
+    ASSERT_EQ(ret, true);
+    ret = client->Stop();
+    ASSERT_EQ(ret, true);
+}
+
+TEST(ECSClientTests, Suspend_OK)
+{
+    auto client = GetInitializedECSClient();
+    auto ret = client->Start();
+    ASSERT_EQ(ret, true);
+    ret = client->Suspend();
+    ASSERT_EQ(ret, true);
+}
+
+TEST(ECSClientTests, Resume_OK)
+{
+    auto client = GetInitializedECSClient();
+    auto ret = client->Start();
+    ASSERT_EQ(ret, true);
+    ret = client->Suspend();
+    ASSERT_EQ(ret, true);
+    ret = client->Resume();
+    ASSERT_EQ(ret, true);
+}
+
 
 TEST(ECSClientTests, AddListener)
 {
@@ -118,11 +167,11 @@ TEST(ECSClientTests, FireClientEvent)
     ret = client->Start();
     ASSERT_EQ(ret, true);
     client->FireClientEvent(Microsoft::Applications::Experimentation::CommonClientEventType::ET_CONFIG_UPDATE_SUCCEEDED, true);
-    
+
     const int maxRetryTime = 5;
     int retryTime = 0;
     while(!receiveEvent && retryTime < maxRetryTime){
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));        
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         ++retryTime;
     };
     ASSERT_EQ(receiveEvent, true);
