@@ -668,6 +668,10 @@ namespace MAT_NS_BEGIN
             {
                 m_customDecorator->decorate(*(event->source));
             }
+            if (m_dataInspector)
+            {
+                m_dataInspector->decorate(*(event->source));
+            }
             GetSystem()->sendEvent(event);
         }
     }
