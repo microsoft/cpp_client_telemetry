@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 #include <vector>
+#import <Foundation/Foundation.h>
 
 #define EMPTY_GUID "00000000-0000-0000-0000-000000000000"
 
@@ -51,7 +52,25 @@ std::string GetDeviceOsVersion()
 {
     // Previous implementation pointed to "ProductVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
     // kern.osproductversion returns string in this same format
-    return get_sysctl_value("kern.osproductversion");
+    std::string version = get_sysctl_value("kern.osproductversion");
+    if (version.empty())
+    {
+        // kern.osproductversion is not available on 10.10, build it from NSProcessInfo
+        @autoreleasepool
+        {
+            NSOperatingSystemVersion versionOs = [[NSProcessInfo processInfo] operatingSystemVersion];
+            if (versionOs.patchVersion != 0)
+            {
+                version.assign([[NSString stringWithFormat:@"%ld.%ld.%ld", versionOs.majorVersion, versionOs.minorVersion, versionOs.patchVersion] UTF8String]);
+            }
+            else
+            {
+                version.assign([[NSString stringWithFormat:@"%ld.%ld", versionOs.majorVersion, versionOs.minorVersion] UTF8String]);
+            }
+        }
+    }
+    
+    return version;
 }
 
 std::string GetDeviceOsRelease()
