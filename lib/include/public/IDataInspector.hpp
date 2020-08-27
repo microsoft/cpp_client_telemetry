@@ -24,7 +24,7 @@
 namespace MAT_NS_BEGIN
 {
     /// <summary>
-    /// Enums identifying applicable Privacy Issues
+    /// Enums identifying applicable Data Concerns
     /// Source: https://aka.ms/privacyguard/issuetypes
     /// </summary>
     enum class DataConcernType : uint16_t
@@ -64,32 +64,32 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Unique UserName such as the log-in name
         /// </summary>
-        std::wstring UserName;
+        std::string UserName;
 
         /// <summary>
         /// Unique User Alias, if different than UserName
         /// </summary>
-        std::wstring UserAlias;
+        std::string UserAlias;
 
         /// <summary>
         /// Domain Name for the current machine
         /// </summary>
-        std::wstring DomainName;
+        std::string DomainName;
 
         /// <summary>
         /// Friendly Machine Name
         /// </summary>
-        std::wstring MachineName;
+        std::string MachineName;
 
         /// <summary>
         /// Collection of Machine ID such as SQM_ID, Client_ID, etc
         /// </summary>
-        std::vector<std::wstring> MachineID;
+        std::vector<std::string> MachineID;
 
         /// <summary>
         /// IP Addresses for local network ports such as IPv4, IPv6, etc.
         /// </summary>
-        std::vector<std::wstring> IPAddress;
+        std::vector<std::string> IPAddress;
     } CommonDataContexts;
 
     /// <summary>
@@ -125,19 +125,25 @@ namespace MAT_NS_BEGIN
         /// Inspect an ISemanticContext value.
         /// </summary>
         /// <param name="semanticContext">Semantic Context to inspect</param>
-        virtual void InpectSemanticContext(const std::shared_ptr<ISemanticContext>& semanticContext) const noexcept = 0;
+        virtual void InspectSemanticContext(const std::string& contextName, const std::string& contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
+        
+        /// <summary>
+        /// Inspect an ISemanticContext value.
+        /// </summary>
+        /// <param name="semanticContext">Semantic Context to inspect</param>
+        virtual void InspectSemanticContext(const std::string& contextName, const GUID_t& contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
 
         /// <summary>
         /// Custom inspector to validate wstrings for a given tenant.
         /// </summary>
         /// <param name="customInspector">Function to inspect the given string</param>
-        virtual void AddCustomWStringValueInspector(std::function<DataConcernType(const std::wstring& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+        virtual void AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
         /// <summary>
         /// Custom inspector to validate GUIDs for a given tenant.
         /// </summary>
         /// <param name="customInspector">Function to inspect the given GUID</param>
-        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID_t& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
         /// <summary>
         /// Add known concern for a given event and field.
