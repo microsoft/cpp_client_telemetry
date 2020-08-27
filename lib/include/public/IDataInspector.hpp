@@ -17,7 +17,7 @@
 #define IDATAINSPECTOR_HPP
 
 #include "IDecorator.hpp"
-#include "IModule.hpp"
+#include "EventProperty.hpp"
 #include "Version.hpp"
 #include "ctmacros.hpp"
 
@@ -96,14 +96,20 @@ namespace MAT_NS_BEGIN
     /// This interface allows SDK users to register a data inspector
     /// that will inspect the data being uploaded by the SDK.
     /// </summary>
-    class IDataInspector : public IModule, IDecorator
+    class IDataInspector : public IDecoratorModule
     {
        public:
         /// <summary>
         /// Set the enabled state at runtime for the inspector.
         /// </summary>
         /// <param name="isEnabled">Boolean value to denote whether the inspector is enabled or not.</param>
-        virtual void Enabled(bool isEnabled) noexcept = 0;
+        virtual void SetState(bool isEnabled) noexcept = 0;
+
+        /// <summary>
+        /// Get the current state for the inspector.
+        /// </summary>
+        /// <returns>True if the data inspector is enabled, False otherwise.</returns>
+        virtual bool GetState() const noexcept = 0;
 
         /// <summary>
         /// Iterate and inspect the given record's Part-B and
@@ -131,7 +137,7 @@ namespace MAT_NS_BEGIN
         /// Inspect an ISemanticContext value.
         /// </summary>
         /// <param name="semanticContext">Semantic Context to inspect</param>
-        virtual void InspectSemanticContext(const std::string& contextName, const GUID_t& contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
+        virtual void InspectSemanticContext(const std::string& contextName, GUID_t contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
 
         /// <summary>
         /// Custom inspector to validate wstrings for a given tenant.
@@ -143,17 +149,16 @@ namespace MAT_NS_BEGIN
         /// Custom inspector to validate GUIDs for a given tenant.
         /// </summary>
         /// <param name="customInspector">Function to inspect the given GUID</param>
-        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID_t& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
 
         /// <summary>
-        /// Add known concern for a given event and field.
+        /// Add known concerns for a given event and field pairs.
         /// If a concern is identified in this field for the same Privacy Issue Type,
         /// it is ignored
         /// </summary>
-        /// <param name="eventName">Event to inspect</param>
-        /// <param name="propertyName">Event Proeprty to inspect</param>
-        /// <param name="knownIssue">Known Issue</param>
-        virtual void AddIgnoredConcern(const std::string& eventName, const std::string& propertyName, DataConcernType knownIssue) noexcept = 0;
+        /// <param name="ignoredConcernsCollection">Collection of ignored concerns</param>
+        /// <returns></returns>
+        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept = 0;
     };
 
 }

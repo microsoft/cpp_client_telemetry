@@ -21,9 +21,11 @@
 #include <climits>
 #include <cstdint>
 #include <string>
+#include <functional>
 
 #include "Enums.hpp"
 #include "IAuthTokensController.hpp"
+#include "IDataInspector.hpp"
 #include "IDataViewerCollection.hpp"
 #include "IEventFilterCollection.hpp"
 #include "ILogger.hpp"
@@ -370,6 +372,67 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
+
+        /// <summary>
+        /// Initialize the PrivacyGuard Data Inspector
+        /// </summary>
+        /// <param name="tenantToken">Tenant where any inspection notifications are sent</param>
+        /// <param name="commonContexts">Common Data Contexts to inspect for</param>
+        virtual void InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts) = 0;
+
+        /// <summary>
+        /// Override the current data inspector with the new data inspector.
+        /// <b>Note: </b> Due to performance considerations, only one data inspector can be used
+        /// at a time.
+        /// </summary>
+        /// <param name="dataInspector">
+        /// New DataInspector to use. If this is a nullptr, data inspector is unloaded.
+        /// </param>
+        virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept = 0;
+
+        /// <summary>
+        /// Sets the Common Data Contexts to inspect for in the data
+        /// <b>Note:</b> Any data generated before this method is called will not be inspected for
+        /// Common Data Contexts. You can update the Common Data Contexts during runtime as needed
+        /// and the latest values will be used.
+        /// </summary>
+        /// <param name="commonDataContexts">Common Data Context value. If this is a nullptr, no operations occur.</param>
+        virtual void SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept = 0;
+
+        /// <summary>
+        /// Set the state for the current data inspector.
+        /// <b>Note: </b> If no Data Inspector is loaded, no operations occur when this method
+        /// is called.
+        /// </summary>
+        /// <param name="isEnabled">True to enable the inspector, false to disable.</param>
+        virtual void SetDataInspectorState(bool isEnabled) noexcept = 0;
+
+        /// <summary>
+        /// Get the state for the current data inspector.
+        /// </summary>
+        /// <returns>True if data inspector is set and enabled, False otherwise.</returns>
+        virtual bool GetDataInspectorState() const noexcept = 0;
+
+        /// <summary>
+        /// Custom inspector to validate wstrings for a given tenant.
+        /// </summary>
+        /// <param name="customInspector">Function to inspect the given string</param>
+        virtual void AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+
+        /// <summary>
+        /// Custom inspector to validate GUIDs for a given tenant.
+        /// </summary>
+        /// <param name="customInspector">Function to inspect the given GUID</param>
+        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
+
+        /// <summary>
+        /// Add known concerns for a given event and field pairs.
+        /// If a concern is identified in this field for the same Privacy Issue Type,
+        /// it is ignored.
+        /// <b>Note:</b> If Data Inspector is not set, no operations occur.
+        /// </summary>
+        /// <param name="ignoredConcernsCollection"></param>
+        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept = 0;
     };
 
 }
