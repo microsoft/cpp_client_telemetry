@@ -242,7 +242,7 @@ class AISendTests : public ::testing::Test,
 
     void waitForEvents(unsigned timeOutSec, unsigned expectedRequests)
     {
-        unsigned receivedEvents = 0;
+        size_t receivedEvents = 0;
         unsigned timeoutMs = 1000 * timeOutSec;
         auto start = PAL::getUtcSystemTimeMs();
         while (((PAL::getUtcSystemTimeMs() - start) < timeoutMs) 
