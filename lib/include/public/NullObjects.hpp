@@ -376,6 +376,25 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
+        virtual void InitializePrivacyGuardDataInspector(const std::string& /*tenantToken*/, std::unique_ptr<CommonDataContexts>&& /*commonContexts*/) override {}
+
+        virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& /*dataInspector*/) noexcept override {}
+
+        virtual void SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& /*commonDataContexts*/) noexcept override {}
+
+        virtual void SetDataInspectorState(bool /*isEnabled*/) noexcept override  {}
+
+        virtual bool GetDataInspectorState() const noexcept override
+        {
+            return false;
+        }
+
+        virtual void AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& /*customInspector*/) noexcept override  {}
+
+        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID_t valueToInspect, const std::string& tenantToken)>&& /*customInspector*/) noexcept override  {}
+
+        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& /*ignoredConcernsCollection*/) noexcept override  {}
+
         private:
             NullDataViewerCollection nullDataViewerCollection;
             NullEventFilterCollection m_filters;

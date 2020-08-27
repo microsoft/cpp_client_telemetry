@@ -43,6 +43,19 @@
 #endif
 #endif  // HAVE_MAT_DEFAULT_FILTER
 
+#ifdef HAVE_MAT_PRIVACYGUARD
+#if defined __has_include
+#if __has_include("modules/privacyguard/privacyguard.hpp")
+#include "modules/PrivacyGuard/PrivacyGuard.hpp"
+#else
+/* Compiling without Privacy Guard support because Privacy Guard private header is unavailable */
+#undef HAVE_MAT_PRIVACYGUARD
+#endif
+#else
+#include "modules/PrivacyGuard/PrivacyGuard.hpp"
+#endif
+#endif
+
 namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)
@@ -119,7 +132,8 @@ namespace MAT_NS_BEGIN
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart) :
         m_logConfiguration(configuration),
         m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr)
+        m_offlineStorage(nullptr),
+        m_dataInspector(nullptr)
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
@@ -733,6 +747,63 @@ namespace MAT_NS_BEGIN
     IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
     {
         return m_dataViewerCollection;
+    }
+
+    void LogManagerImpl::InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts)
+    {
+#ifdef HAVE_MAT_PRIVACYGUARD
+        m_dataInspector = std::make_unique<PrivacyGuard>(GetLogger(tenantToken), commonContexts);
+#endif
+    }
+
+    void LogManagerImpl::OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept
+    {
+        m_dataInspector = std::move(dataInspector);
+    }
+
+    void LogManagerImpl::SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept
+    {
+        if (m_dataInspector != nullptr)
+        {
+            m_dataInspector->DelaySetCommonPrivacyContext(std::move(commonDataContexts));
+        }
+    }
+
+    void LogManagerImpl::SetDataInspectorState(bool isEnabled) noexcept
+    {
+        if (m_dataInspector != nullptr)
+        {
+            m_dataInspector->SetState(isEnabled);
+        }
+    }
+
+    bool LogManagerImpl::GetDataInspectorState() const noexcept
+    {
+        return m_dataInspector != nullptr && m_dataInspector->GetState();
+    }
+
+    void LogManagerImpl::AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept
+    {
+        if (m_dataInspector != nullptr)
+        {
+            m_dataInspector->AddCustomStringValueInspector(std::move(customInspector));
+        }
+    }
+
+    void LogManagerImpl::AddCustomGuidValueInspector(std::function<DataConcernType(GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept
+    {
+        if (m_dataInspector != nullptr)
+        {
+            m_dataInspector->AddCustomGuidValueInspector(std::move(customInspector));
+        }
+    }
+
+    void LogManagerImpl::AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
+    {
+        if (m_dataInspector != nullptr)
+        {
+            m_dataInspector->AddIgnoredConcern(ignoredConcernsCollection);
+        }
     }
 
 }
