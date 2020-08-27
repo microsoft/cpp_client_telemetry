@@ -16,10 +16,15 @@
 #ifndef IDATAINSPECTOR_HPP
 #define IDATAINSPECTOR_HPP
 
+#include "EventProperty.hpp"
 #include "IDecorator.hpp"
 #include "EventProperty.hpp"
 #include "Version.hpp"
 #include "ctmacros.hpp"
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace MAT_NS_BEGIN
 {
@@ -96,9 +101,14 @@ namespace MAT_NS_BEGIN
     /// This interface allows SDK users to register a data inspector
     /// that will inspect the data being uploaded by the SDK.
     /// </summary>
-    class IDataInspector : public IDecoratorModule
+    class IDataInspector : public IDecorator, public IModule
     {
        public:
+        /// <summary>
+        /// Default virtual destructor
+        /// </summary>
+        virtual ~IDataInspector() = default;
+
         /// <summary>
         /// Set the enabled state at runtime for the inspector.
         /// </summary>
@@ -117,7 +127,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="record">Record to inspect</param>
         /// <returns>Always returns true.</returns>
-        virtual bool decorate(::CsProtocol::Record& record) noexcept = 0;
+        virtual bool decorate(::CsProtocol::Record& record) noexcept override = 0;
 
         /// <summary>
         /// Set Common Privacy Context after initialization.
@@ -132,7 +142,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="semanticContext">Semantic Context to inspect</param>
         virtual void InspectSemanticContext(const std::string& contextName, const std::string& contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
-        
+
         /// <summary>
         /// Inspect an ISemanticContext value.
         /// </summary>
