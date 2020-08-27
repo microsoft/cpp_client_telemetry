@@ -177,6 +177,7 @@ Global
 		..\lib\pal\desktop\desktop.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c33}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c33}*SharedItemsImports = 4
 		..\lib\modules\exp\exp.vcxitems*{2bfafe9a-45b0-4c02-841e-03e47fd2e340}*SharedItemsImports = 9
+		..\lib\modules\azmon\azmon.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\modules\dataviewer\dataviewer.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\modules\filter\filter.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
