@@ -752,7 +752,13 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts)
     {
 #ifdef HAVE_MAT_PRIVACYGUARD
-        m_dataInspector = std::make_unique<PrivacyGuard>(GetLogger(tenantToken), commonContexts);
+        m_dataInspector = std::make_unique<PrivacyGuard>(std::shared_ptr<ILogger>(GetLogger(tenantToken)), std::move(commonContexts));
+#else
+        // To resolve C4100 regarding unreferenced formal parameter
+        if (tenantToken.empty() || commonContexts == nullptr)
+        {
+            return;
+        }
 #endif
     }
 
