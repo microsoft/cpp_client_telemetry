@@ -6,7 +6,6 @@
 #include <iostream>
 #include <memory>
 #include <functional>
-#include "common/HttpServer.hpp"
 #include "common/Common.hpp"
 #include "utils/Utils.hpp"
 #include "modules/exp/ecs/ecsclient/ECSClient.hpp"
@@ -107,12 +106,14 @@ namespace {
         InitilizedAndStartECSClientThen([](ECSClient* client){
             {
                 auto configs = client->GetConfigs();
+                std::cout<< configs << std::endl;
                 ASSERT_EQ(json::parse(configs)["ECSDemo"]["hit"], std::string("default"));
             }
 
             // TEST_F(ECSClientRealworldFuncTests, GetETag)
             {
                 auto etag = client->GetETag();
+                std::cout<< etag << std::endl;
                 // etag start with " and end with "
                 // no need to check is it equal because config change will modify the val
                 ASSERT_EQ(0, etag.find("\""));

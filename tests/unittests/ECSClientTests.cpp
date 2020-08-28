@@ -49,12 +49,7 @@ TEST(ECSClientTests, Deconstruct_OK)
     delete client;
 }
 
-TEST(ECSClientTests, CreateInstance_OK)
-{
-    auto client = IECSClient::CreateInstance();
-}
-
-TEST(ECSClientTests, DestroyInstance_OK)
+TEST(ECSClientTests, CreateInstance_OK_DestroyInstance_OK)
 {
     auto client = IECSClient::CreateInstance();
     IECSClient::DestroyInstance(&client);
