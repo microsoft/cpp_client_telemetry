@@ -33,6 +33,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     ctx.SetDeviceId("deviceId");
     ctx.SetDeviceMake("deviceMake");
     ctx.SetDeviceModel("deviceModel");
+    ctx.SetDeviceOrgId("deviceOrgId");
 
     ctx.SetNetworkCost(NetworkCost_Unmetered);
     ctx.SetNetworkProvider("networkProvider");
@@ -96,6 +97,7 @@ TEST(ContextFieldsProviderTests, SetProperties)
     //EXPECT_THAT(record1.data[0].properties["AppInfo.Language"].stringValue, Eq("appLanguage"));
 
     EXPECT_THAT(record1.extDevice[0].localId, Eq("c:deviceId"));
+    EXPECT_THAT(record1.extDevice[0].orgId, Eq("deviceOrgId"));
 
     //EXPECT_THAT(record1.extDevice[0]..properties["DeviceInfo.Make"].stringValue, Eq("deviceMake"));
     //EXPECT_THAT(record1.data[0].properties["DeviceInfo.Model"].stringValue, Eq("deviceModel"));
