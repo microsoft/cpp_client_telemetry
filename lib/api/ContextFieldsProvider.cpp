@@ -217,6 +217,12 @@ namespace MAT_NS_BEGIN
                     record.extDevice[0].localId = temp;
                 }
 
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ORGID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extDevice[0].orgId = iter->second.as_string;
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MAKE);
                 if (iter != m_commonContextFields.end())
                 {
