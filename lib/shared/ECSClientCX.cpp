@@ -1,5 +1,7 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_EXP
+// TEMPORARY_DISABLE_HAVE_MAT_EXP
+#ifndef HAVE_MAT_EXP
 #include "ECSClientCX.hpp"
 #include "LoggerCX.hpp"
 #include <iostream>
@@ -247,4 +249,5 @@ namespace MATW_NS_BEGIN {
 
 } MATW_NS_END
 
+#endif
 #endif
