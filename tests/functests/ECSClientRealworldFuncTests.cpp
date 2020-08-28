@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
-#define HAVE_MAT_EXP
 #ifdef HAVE_MAT_EXP
 #include <chrono>
 #include <thread>
