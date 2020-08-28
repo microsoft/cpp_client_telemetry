@@ -42,6 +42,8 @@ namespace MAT_NS_BEGIN {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
+            // TODO: clarify how UTC subsystem initializes LogSessionData m_storageType=SessionStorageType::FileStore ?
+            // We may not necessarily compile in SQLite support for UTC min-build. For now we assume nullptr.
             logSessionDataProvider.CreateLogSessionData();
             result&=stats.onStart(); // TODO: [MG]- readd this
             return result;
