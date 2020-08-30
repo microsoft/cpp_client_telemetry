@@ -1,37 +1,24 @@
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_AI
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN  // Exclude rarely-used stuff from Windows headers
 #endif
-
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 
 #include "LogManager.hpp"
-#include "common/Common.hpp"
-
-#include <assert.h>
-#include <atomic>
-#include <chrono>
-#include <condition_variable>
-#include <fstream>
-#include <thread>
-#include <vector>
 
 #include "json.hpp"
 
 using namespace testing;
-using namespace MAT;
-using namespace std;
 
 #undef LOCKGUARD
 #define LOCKGUARD(macro_mutex) std::lock_guard<decltype(macro_mutex)> TOKENPASTE2(__guard_, __LINE__)(macro_mutex);
 
 // Application Insights test key
 #define TEST_TOKEN "12345678-1234-1234-1234-123456789abc"
-#define HTTP_PORT 19001
+#define HTTP_PORT 19002
 char const* const TEST_STORAGE_FILENAME = "AISendTests.db";
 
 class AITestDebugEventListener : public DebugEventListener
@@ -189,6 +176,9 @@ class AISendTests : public ::testing::Test,
         LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
 
         LogManager::FlushAndTeardown();
+
+        auto &configuration = LogManager::GetLogConfiguration();
+        configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS;
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
