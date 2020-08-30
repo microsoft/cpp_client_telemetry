@@ -63,4 +63,6 @@ namespace testing {
 
     bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
 
+    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
+
 } // namespace testing
