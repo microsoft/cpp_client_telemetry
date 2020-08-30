@@ -34,7 +34,7 @@ using namespace std;
 #define HTTP_PORT 19001
 char const* const TEST_STORAGE_FILENAME = "AISendTests.db";
 
-class TestDebugEventListener : public DebugEventListener
+class AITestDebugEventListener : public DebugEventListener
 {
     const size_t IDX_OK   = 0;
     const size_t IDX_FAIL = 1;
@@ -45,7 +45,7 @@ class TestDebugEventListener : public DebugEventListener
 
    public:
 
-    TestDebugEventListener() 
+    AITestDebugEventListener() 
     {
         counts[IDX_OK] = 0;
         counts[IDX_FAIL] = 0;
@@ -264,7 +264,7 @@ class AISendTests : public ::testing::Test,
         ASSERT_EQ(receivedEvents, expectedRequests);
     }
 
-    void waitForResponse(unsigned timeOutSec, unsigned expectedDebugEvents, TestDebugEventListener& debugListener)
+    void waitForResponse(unsigned timeOutSec, unsigned expectedDebugEvents, AITestDebugEventListener& debugListener)
     {
         unsigned receivedDebugEvents = 0;
         unsigned timeoutMs = 1000 * timeOutSec;
@@ -331,7 +331,7 @@ class AISendTests : public ::testing::Test,
 
 TEST_F(AISendTests, sendOneEvent)
 {
-    TestDebugEventListener debugListener;
+    AITestDebugEventListener debugListener;
 
     CleanStorage();
     Initialize(debugListener, "");
@@ -349,7 +349,7 @@ TEST_F(AISendTests, sendOneEvent)
 
 TEST_F(AISendTests, sendMultipleEvent)
 {
-    TestDebugEventListener debugListener;
+    AITestDebugEventListener debugListener;
 
     CleanStorage();
     Initialize(debugListener, "");
@@ -374,7 +374,7 @@ TEST_F(AISendTests, sendMultipleEvent)
 
 TEST_F(AISendTests, receiveServerError)
 {
-    TestDebugEventListener debugListener;
+    AITestDebugEventListener debugListener;
 
     CleanStorage();
     Initialize(debugListener, "/500/");
@@ -393,7 +393,7 @@ TEST_F(AISendTests, receiveServerError)
 
 TEST_F(AISendTests, receivePartialSuccess)
 {
-    TestDebugEventListener debugListener;
+    AITestDebugEventListener debugListener;
 
     CleanStorage();
     Initialize(debugListener, "/206/");
@@ -412,7 +412,7 @@ TEST_F(AISendTests, receivePartialSuccess)
 
 TEST_F(AISendTests, receiveServerRejected)
 {
-    TestDebugEventListener debugListener;
+    AITestDebugEventListener debugListener;
 
     CleanStorage();
     Initialize(debugListener, "/400/");
