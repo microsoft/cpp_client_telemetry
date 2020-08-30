@@ -130,6 +130,12 @@ namespace MAT_NS_BEGIN
         virtual bool IsHttpRequestCompressionEnabled() = 0;
 
         /// <summary>
+        /// Returns content encoding method for http request
+        /// </summary>
+        /// <returns>A string value (<i>deflate</i>) or (<i>gzip</i>).</returns>
+        virtual const std::string& GetHttpRequestContentEncoding() const = 0;
+
+        /// <summary>
         /// Gets the minimum bandwidth necessary to start an upload.
         /// </summary>
         /// <remarks>
