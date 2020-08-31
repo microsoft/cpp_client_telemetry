@@ -35,6 +35,8 @@ namespace MAT_NS_BEGIN {
         virtual IRuntimeConfig& getConfig() = 0;
         virtual ISemanticContext& getContext() = 0;
 
+        virtual EventsUploadContextPtr createEventsUploadContext() = 0;
+
         // Debug functionality
         virtual bool DispatchEvent(DebugEvent evt) override = 0;
 
