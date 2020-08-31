@@ -311,8 +311,8 @@ int main()
 #ifdef _WIN32
     // Code snippet showing how to perform MS Root certificate check for v10 end-point.
     // Most other end-points are Baltimore CA-rooted. But v10 is MS CA-rooted.
-    config["http"]["msRootCheck"] = true;
-    config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
+    // config["http"]["msRootCheck"] = true;
+    // config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
 #endif
 
     logger = LogManager::Initialize(API_KEY);
