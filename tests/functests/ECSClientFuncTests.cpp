@@ -6,6 +6,9 @@
 #include <iostream>
 #include <memory>
 #include <functional>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#endif
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 #include "utils/Utils.hpp"
@@ -20,16 +23,16 @@ using namespace Microsoft::Applications::Experimentation::ECS;
 using namespace Microsoft::Applications::Events;
 
 namespace {
-    const int maxRetryTime = 5;
+    const int maxRetryTime = 10;
+    int port = 8888;
     const std::string jsonConfigString = "{\"ECSDemo\":{\"intArray\":[1,2],\"dblArray\":[1.1],\"strArray\":[\"hello\"],\"bool\":true,\"int\":123,\"double\":1.1,\"string\":\"str\",\"object\":{\"a\":\"b\",\"c\":\"d\"},\"null\":null},\"Headers\":{\"ETag\":\"\\\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\\\"\",\"Expires\":\"Fri, 14 Aug 2020 07:12:13 GMT\",\"CountryCode\":\"JP\",\"StatusCode\":\"200\"}}";
-    const std::string jsonConfigStringForFilter = "{}";
-    const std::string jsonConfigStringForUserID = "{}";
     const std::string agent = "ECSDemo";
     const std::string userIdHitString = "{\"hit\":\"userId\"}";
     const std::string deviceIdHitString = "{\"hit\":\"clientId\"}";
     const std::string filterHitString = "{\"hit\":\"filter\"}";
     const std::string etagVal = "\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\"";
     const std::string cacheFilePathName = "cacheFilePathName";
+    const std::string offlineStoragePath = ECSConfigCache::GetStoragePath(cacheFilePathName);
     class ECSServerCallback : public HttpServer::Callback
     {
         public:
@@ -105,11 +108,22 @@ namespace {
         protected:
             HttpServer server;
             ECSServerCallback callback;
-            std::string offlineStoragePath = ECSConfigCache::GetStoragePath(cacheFilePathName);
+
+            static void SetUpTestSuite()
+            {
+            }
+
+            static void TearDownTestSuite()
+            {
+            }
 
             virtual void SetUp()
             {
-                server.addListeningPort(8888);
+                // there are some error on windows
+                // looks like port didn't get recycled immediately so we randomize port
+                port += 1;
+                std:: cout<< "server port:" << port << std::endl;
+                server.addListeningPort(port);
                 server.addHandler("/config/v1", callback);
                 server.start();
                 std::remove(offlineStoragePath.c_str());
@@ -129,7 +143,7 @@ namespace {
         config.clientName = "Test";
         config.clientVersion = "1.0";
         config.cacheFilePathName = cacheFilePathName;
-        config.serverUrls.push_back("http://127.0.0.1:8888/config/v1");
+        config.serverUrls.push_back("http://127.0.0.1:" + std::to_string(port) + "/config/v1");
         client->Initialize(config);
         if (callback)
         {
@@ -358,7 +372,7 @@ namespace {
         InitilizedAndStartECSClientThen([](ECSClient* client){
             auto expiryTimeInSec = client->GetExpiryTimeInSec();
             // server return expriy time is zero, client will use DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN as expiry time
-            ASSERT_GE(expiryTimeInSec, 0);
+            ASSERT_EQ(expiryTimeInSec > 0, true);
             ASSERT_LE(expiryTimeInSec, DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN);
         });
     }
