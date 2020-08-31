@@ -25,7 +25,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
         MAT::BondSplicer::addRecord(dataPackageIndex, recordBlob);
     }
 
-    FullDumpBinaryBlob splice() const
+    std::vector<uint8_t> splice() const override
     {
         FullDumpBinaryBlob output;
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();

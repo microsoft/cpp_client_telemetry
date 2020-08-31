@@ -19,10 +19,11 @@ Build recipe must contain the following preprocessor definitions:
 | #define   | Default value | Description |
 |-----------|---------|----------|
 | STATS_TOKEN_PROD |    $token    | Default token for internal SDK usage stats 'evt_stats' in PROD |
-| STATS_TOKEN_INT | $token | Default token for internal SDK usage stats 'evt_stats' in INT (sandbox) environment.
+| STATS_TOKEN_INT | $token | Default token for internal SDK usage stats 'evt_stats' in INT (sandbox) environment |
 | HAVE_MAT_EXP | off | Enable built-in A/B config and Experimentation Client for ECS and AFD |
-| HAVE_MAT_UTC | on | Enable UTC telemetry channel (available on Windows 10 RS2+ only)
-| HAVE_MAT_JSONHPP | on | Build with [JSON for Modern C++ library](https://github.com/nlohmann/json)
+| HAVE_MAT_AI | on | Enable Azure Monitor / Application Insights telemetry channel |
+| HAVE_MAT_UTC | on | Enable UTC telemetry channel (available on Windows 10 RS2+ only) |
+| HAVE_MAT_JSONHPP | on | Build with [JSON for Modern C++ library](https://github.com/nlohmann/json) |
 | HAVE_MAT_ZLIB | on | Use zlib for HTTP requests compression. This option must always be turned on for any high-volume telemetry project |
 | HAVE_MAT_LOGGING | on | Enable internal SDK tracing / debug logging |
 | HAVE_MAT_STORAGE | on | Enable SQLite persistent offline storage |
