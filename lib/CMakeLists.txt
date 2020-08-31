@@ -49,6 +49,11 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/WorkerThread.cpp
 )
 
+# Support for Azure Monitor / Application Insights
+if(BUILD_AZMON)
+  include(modules/azmon/CMakeLists.txt)
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   list(APPEND SRCS
     modules/exp/afd/afdclient/AFDClientUtils.cpp
