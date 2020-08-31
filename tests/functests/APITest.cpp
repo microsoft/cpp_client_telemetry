@@ -375,6 +375,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
     configuration[CFG_INT_STORAGE_FULL_PCT] = 1; // 1%
     configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 0; // 0ms
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 524288; // Requires default ram queue size otherwise skips events
 
     EventProperties eventToLog{ "foo1" };
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
@@ -1394,6 +1395,10 @@ TEST(APITest, Custom_Decorator)
     });
     LogManager::GetLogger()->LogEvent(myEvent2);
     LogManager::FlushAndTeardown();
+    // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
+    // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
+    // for non-existing module also returns nullptr.
+    config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

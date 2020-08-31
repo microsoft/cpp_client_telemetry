@@ -773,9 +773,14 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        LogSessionData* logSessionData = m_logManager.GetLogSessionData();
-        std::string sessionSDKUid = logSessionData->getSessionSDKUid();
-        unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
+        auto logSessionData = m_logManager.GetLogSessionData();
+        std::string sessionSDKUid;
+        unsigned long long sessionFirstTime = 0;
+        if (logSessionData!=nullptr)
+        {
+            sessionSDKUid = logSessionData->getSessionSDKUid();
+            sessionFirstTime = logSessionData->getSessionFirstTime();
+        }
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {
