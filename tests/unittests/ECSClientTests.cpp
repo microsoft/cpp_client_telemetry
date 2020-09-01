@@ -62,15 +62,6 @@ TEST(ECSClientTests, DestroyInstance_ArgsIsNullptr)
     IECSClient::DestroyInstance(&client);
 }
 
-TEST(ECSClientTests, Initialize_Failed_ClientNameEmpty)
-{
-    auto client = new ECSClient();
-    auto config = ECSClientConfiguration();
-    ASSERT_DEATH({
-        client->Initialize(config);
-    }, "");
-}
-
 TEST(ECSClientTests, Start_Failed_NotInitialized)
 {
     auto client = new ECSClient();
