@@ -132,7 +132,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) = 0;
     };
 
-    class IOfflineStorage : public IModule {
+    class IOfflineStorage
+    {
     public:
 
         IOfflineStorage() noexcept = default;
@@ -332,6 +333,11 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void ReleaseAllRecords() {};
 
+    };
+
+    // IOfflineStorage as Module. External offline storage implementations need to inherit from it.
+    class IOfflineStorageModule : public IOfflineStorage, public IModule
+    {
     };
 
 
