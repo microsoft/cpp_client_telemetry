@@ -149,6 +149,11 @@ namespace MAT_NS_BEGIN {
             return m_logManager.GetSemanticContext();
         }
 
+        EventsUploadContextPtr createEventsUploadContext() override
+        {
+            return std::make_shared<EventsUploadContext>();
+        }
+
         virtual bool DispatchEvent(DebugEvent evt) override
         {
             return m_logManager.DispatchEvent(std::move(evt));
