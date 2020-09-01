@@ -51,7 +51,7 @@ set(SRCS decorators/BaseDecorator.cpp
 
 # Support for Azure Monitor / Application Insights
 if(BUILD_AZMON)
-  include(modules/azmon/CMakeLists.txt)
+  include(modules/azmon/CMakeLists.txt OPTIONAL)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
