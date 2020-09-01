@@ -99,6 +99,7 @@
     <Import Project="..\..\lib\modules\exp\exp.vcxitems" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\filter\filter.vcxitems" Condition="exists('..\..\lib\modules\filter\filter.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Condition="exists('..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\azmon\azmon.vcxitems" Condition="exists('..\..\lib\modules\azmon\azmon.vcxitems')" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />

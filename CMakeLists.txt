@@ -211,6 +211,9 @@ option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()

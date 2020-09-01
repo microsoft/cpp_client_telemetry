@@ -11,6 +11,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "decoder", "decoder\decoder.
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		decoder\decoder.projitems*{6a206be3-9975-4952-8e1d-35bc2f47431c}*SharedItemsImports = 13
 		decoder\decoder.projitems*{7627e313-4b14-43e6-8ed7-0880c3657084}*SharedItemsImports = 5
 		decoder\decoder.projitems*{b1916b1c-9108-4965-8d22-ad840cf2c059}*SharedItemsImports = 4
 	EndGlobalSection

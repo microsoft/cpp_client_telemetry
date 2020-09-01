@@ -176,7 +176,7 @@ namespace MAT_NS_BEGIN {
         }
 #endif
 
-        auto ctx = std::make_shared<EventsUploadContext>();
+        auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);
@@ -275,7 +275,7 @@ namespace MAT_NS_BEGIN {
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            auto ctx = std::make_shared<EventsUploadContext>();
+            auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);

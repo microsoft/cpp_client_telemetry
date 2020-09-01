@@ -1,6 +1,7 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
 #if defined(_WIN32) /* && defined(HAVE_PRIVATE_MODULES) */
 #define HAVE_MAT_UTC
+#define HAVE_MAT_AI
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
 #define HAVE_MAT_EXP
