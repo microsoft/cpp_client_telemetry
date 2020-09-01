@@ -1,4 +1,4 @@
-name: C/C++ CI on Windows (vs2017)
+name: SDK with exp - C/C++ CI on Windows (vs2017)
 
 on:
   push:

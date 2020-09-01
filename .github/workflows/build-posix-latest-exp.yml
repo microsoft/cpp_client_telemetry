@@ -1,4 +1,4 @@
-name: C/C++ CI on Linux and Mac
+name: SDK with exp - C/C++ CI on Linux and Mac
 
 on:
   push:
@@ -27,4 +27,4 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
-      run: ./build-exp.sh ${{ matrix.config }}
+      run: sh ./build-exp.sh ${{ matrix.config }}
