@@ -216,7 +216,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     int hh = lt.tm_gmtoff / 3600;
     int mm = (lt.tm_gmtoff / 60) % 60;
     std::ostringstream oss;
-    oss << (hh<0)?"-":"+"; // +hh:mm or -hh:mm
+    oss << ((hh<0)?"-":"+"); // +hh:mm or -hh:mm
     oss << std::setw(2) << std::setfill('0') << std::abs(hh);
     oss << std::setw(1) << ":";
     oss << std::setw(2) << std::setfill('0') << std::abs(mm);
