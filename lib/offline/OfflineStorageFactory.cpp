@@ -7,10 +7,10 @@ namespace ARIASDK_NS_BEGIN
     std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
     {
 #ifdef HAVE_MAT_STORAGE
-        auto offlineStorageModule = logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE);
-        if ( nullptr != offlineStorageModule ) {
+        std::shared_ptr<IModule> module = logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE);
+        if ( nullptr != module ) {
             LOG_TRACE("Creating OfflineStorage from module");
-            return std::static_pointer_cast<IOfflineStorage>(offlineStorageModule);
+            return std::static_pointer_cast<IOfflineStorage>(std::static_pointer_cast<IOfflineStorageModule>(module));
         }
 #ifdef USE_ROOM
         LOG_TRACE("Creating OfflineStorage_Room");
