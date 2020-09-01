@@ -38,7 +38,8 @@ namespace ARIASDK_NS_BEGIN
             m_memoryDbSizeNotificationLimit = (percentage * cacheMemorySizeLimitInBytes) / 100;
         }
         else
-        {  // incase user has specified bad percentage, we stck to 75%
+        {
+            // incase user has specified bad percentage, we stck to 75%
             m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheMemorySizeLimitInBytes) / 100;
         }
     }
