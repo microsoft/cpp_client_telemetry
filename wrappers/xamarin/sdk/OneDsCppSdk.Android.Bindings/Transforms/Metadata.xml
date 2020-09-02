@@ -1,0 +1,6 @@
+﻿<metadata>
+    <!-- Normalize the namespace for .NET -->
+    <attr path="/api/package[@name='com.microsoft.applications.events']" name="managedName">Microsoft.Applications.Events</attr>
+
+    <attr path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']" name="visibility">public</attr>
+</metadata>
