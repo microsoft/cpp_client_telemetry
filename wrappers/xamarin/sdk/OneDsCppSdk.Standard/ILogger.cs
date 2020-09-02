@@ -2,70 +2,66 @@
 {
     public interface ILogger
 	{
-		void SetContext(string p0, EventProperty p1);
+		ISemanticContext GetSemanticContext();
 
-		void LogAggregatedMetric(AggregatedMetricData p0, EventProperties p1);
+		//void SetContext(string name, const char value[], PiiKind piiKind=PiiKind.None);
 
-		void LogAggregatedMetric(string p0, long p1, long p2, EventProperties p3);
+		void SetContext(string name, string value, PiiKind piiKind = PiiKind.None);
 
-		void LogAppLifecycle(AppLifecycleState p0, EventProperties p1);
+		void SetContext(string name, double value, PiiKind piiKind = PiiKind.None);
 
-		void LogEvent(EventProperties p0);
+		void SetContext(string name, long value, PiiKind piiKind = PiiKind.None);
 
-		void LogEvent(string p0);
+		void SetContext(string name, sbyte value, PiiKind piiKind = PiiKind.None);
 
-		void LogFailure(string p0, string p1, EventProperties p2);
+		void SetContext(string name, short value, PiiKind piiKind = PiiKind.None);
 
-		void LogFailure(string p0, string p1, string p2, string p3, EventProperties p4);
+		void SetContext(string name, int value, PiiKind piiKind = PiiKind.None);
 
-		void LogPageAction(PageActionData p0, EventProperties p1);
+		void SetContext(string name, byte value, PiiKind piiKind = PiiKind.None);
 
-		void LogPageAction(string p0, ActionType p1, EventProperties p2);
+		void SetContext(string name, ushort value, PiiKind piiKind = PiiKind.None);
 
-		void LogPageView(string p0, string p1, EventProperties p2);
+		void SetContext(string name, uint value, PiiKind piiKind = PiiKind.None);
 
-		void LogPageView(string p0, string p1, string p2, string p3, string p4, EventProperties p5);
+		void SetContext(string name, ulong value, PiiKind piiKind = PiiKind.None);
 
-		void LogSampledMetric(string p0, double p1, string p2, EventProperties p3);
+		void SetContext(string name, bool value, PiiKind piiKind = PiiKind.None);
 
-		void LogSampledMetric(string p0, double p1, string p2, string p3, string p4, string p5, EventProperties p6);
+		//void SetContext(string name, time_ticks_t value, PiiKind piiKind = PiiKind.None);
 
-		void LogSession(SessionState p0, EventProperties p1);
+		//void SetContext(string name, GUID_t value, PiiKind piiKind = PiiKind.None);
 
-		void LogTrace(TraceLevel p0, string p1, EventProperties p2);
+		void LogAppLifecycle(AppLifecycleState state, EventProperties properties);
 
-		void LogUserState(UserState p0, long p1, EventProperties p2);
+		void LogSession(SessionState state, EventProperties properties);
 
-		void SetContext(string p0, bool p1);
+		void LogEvent(string name);
 
-		void SetContext(string p0, bool p1, PiiKind p2);
+		void LogEvent(EventProperties properties);
 
-		void SetContext(string p0, double p1);
+		void LogFailure(string signature, string detail, EventProperties properties);
 
-		void SetContext(string p0, double p1, PiiKind p2);
+		void LogFailure(string signature, string detail, string category, string id, EventProperties properties);
 
-		void SetContext(string p0, int p1);
+		void LogPageView(string id, string pageName, EventProperties properties);
 
-		void SetContext(string p0, int p1, PiiKind p2);
+		void LogPageView(string id, string pageName, string category, string uri, string referrerUri, EventProperties properties);
 
-		void SetContext(string p0, string p1);
+		void LogPageAction(string pageViewId, ActionType actionType, EventProperties properties);
 
-		void SetContext(string p0, string p1, PiiKind p2);
+		void LogPageAction(PageActionData pageActionData, EventProperties properties);
 
-		//void SetContext(string p0, global::Java.Util.Date p1);
+		void LogSampledMetric(string name, double value, string units, EventProperties properties);
 
-		//void SetContext(string p0, global::Java.Util.Date p1, PiiKind p2);
+		void LogSampledMetric(string name, double value, string units, string instanceName, string objectClass, string objectId, EventProperties properties);
 
-		//void SetContext(string p0, global::Java.Util.UUID p1);
+        void LogAggregatedMetric(string name, long duration, long count, EventProperties properties);
 
-		//void SetContext(string p0, global::Java.Util.UUID p1, PiiKind p2);
+		void LogAggregatedMetric(AggregatedMetricData metricData, EventProperties properties);
 
-		void SetContext(string p0, long p1);
+		void LogTrace(TraceLevel level, string message, EventProperties properties);
 
-		void SetContext(string p0, long p1, PiiKind p2);
-
-		//void SetLevel(Events.DiagnosticLevel p0);
-
-		//void SetParentContext(Events.ISemanticContext p0);
+		void LogUserState(UserState state, long timeToLiveInMillis, EventProperties properties);
 	}
 }

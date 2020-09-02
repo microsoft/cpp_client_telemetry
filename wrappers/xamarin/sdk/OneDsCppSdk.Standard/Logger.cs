@@ -1,71 +1,118 @@
 ﻿namespace Microsoft.Applications.Events
 {
-	public class Logger : ILogger
-	{
-		public void SetContext(string p0, EventProperty p1) { }
+    public class Logger : ILogger
+    {
+        public ISemanticContext GetSemanticContext()
+        {
+            return default(ISemanticContext);
+        }
 
-		public void LogAggregatedMetric(AggregatedMetricData p0, EventProperties p1) { }
+        public void LogAggregatedMetric(string name, long duration, long count, EventProperties properties)
+        {
+        }
 
-		public void LogAggregatedMetric(string p0, long p1, long p2, EventProperties p3) { }
+        public void LogAggregatedMetric(AggregatedMetricData metricData, EventProperties properties)
+        {
+        }
 
-		public void LogAppLifecycle(AppLifecycleState p0, EventProperties p1) { }
+        public void LogAppLifecycle(AppLifecycleState state, EventProperties properties)
+        {
+        }
 
-		public void LogEvent(EventProperties p0) { }
+        public void LogEvent(string name)
+        {
+        }
 
-		public void LogEvent(string p0) { }
+        public void LogEvent(EventProperties properties)
+        {
+        }
 
-		public void LogFailure(string p0, string p1, EventProperties p2) { }
+        public void LogFailure(string signature, string detail, EventProperties properties)
+        {
+        }
 
-		public void LogFailure(string p0, string p1, string p2, string p3, EventProperties p4) { }
+        public void LogFailure(string signature, string detail, string category, string id, EventProperties properties)
+        {
+        }
 
-		public void LogPageAction(PageActionData p0, EventProperties p1) { }
+        public void LogPageAction(string pageViewId, ActionType actionType, EventProperties properties)
+        {
+        }
 
-		public void LogPageAction(string p0, ActionType p1, EventProperties p2) { }
+        public void LogPageAction(PageActionData pageActionData, EventProperties properties)
+        {
+        }
 
-		public void LogPageView(string p0, string p1, EventProperties p2) { }
+        public void LogPageView(string id, string pageName, EventProperties properties)
+        {
+        }
 
-		public void LogPageView(string p0, string p1, string p2, string p3, string p4, EventProperties p5) { }
+        public void LogPageView(string id, string pageName, string category, string uri, string referrerUri, EventProperties properties)
+        {
+        }
 
-		public void LogSampledMetric(string p0, double p1, string p2, EventProperties p3) { }
+        public void LogSampledMetric(string name, double value, string units, EventProperties properties)
+        {
+        }
 
-		public void LogSampledMetric(string p0, double p1, string p2, string p3, string p4, string p5, EventProperties p6) { }
+        public void LogSampledMetric(string name, double value, string units, string instanceName, string objectClass, string objectId, EventProperties properties)
+        {
+        }
 
-		public void LogSession(SessionState p0, EventProperties p1) { }
+        public void LogSession(SessionState state, EventProperties properties)
+        {
+        }
 
-		public void LogTrace(TraceLevel p0, string p1, EventProperties p2) { }
+        public void LogTrace(TraceLevel level, string message, EventProperties properties)
+        {
+        }
 
-		public void LogUserState(UserState p0, long p1, EventProperties p2) { }
+        public void LogUserState(UserState state, long timeToLiveInMillis, EventProperties properties)
+        {
+        }
 
-		public void SetContext(string p0, bool p1) { }
+        public void SetContext(string name, string value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, bool p1, PiiKind p2) { }
+        public void SetContext(string name, double value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, double p1) { }
+        public void SetContext(string name, long value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, double p1, PiiKind p2) { }
+        public void SetContext(string name, sbyte value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, int p1) { }
+        public void SetContext(string name, short value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, int p1, PiiKind p2) { }
+        public void SetContext(string name, int value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, string p1) { }
+        public void SetContext(string name, byte value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		public void SetContext(string p0, string p1, PiiKind p2) { }
+        public void SetContext(string name, ushort value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		//public void SetContext(string p0, global::Java.Util.Date p1) { }
+        public void SetContext(string name, uint value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		//public void SetContext(string p0, global::Java.Util.Date p1, PiiKind p2) { }
+        public void SetContext(string name, ulong value, PiiKind piiKind = PiiKind.None)
+        {
+        }
 
-		//public void SetContext(string p0, global::Java.Util.UUID p1) { }
-
-		//public void SetContext(string p0, global::Java.Util.UUID p1, PiiKind p2) { }
-
-		public void SetContext(string p0, long p1) { }
-
-		public void SetContext(string p0, long p1, PiiKind p2) { }
-
-		//public void SetLevel(Events.DiagnosticLevel p0) { }
-
-		//public void SetParentContext(Events.ISemanticContext p0) { }
-	}
+        public void SetContext(string name, bool value, PiiKind piiKind = PiiKind.None)
+        {
+        }
+    }
 }
