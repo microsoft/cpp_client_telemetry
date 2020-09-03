@@ -6,6 +6,9 @@
 cmake_minimum_required(VERSION 3.10.2)
 set(CMAKE_CXX_STANDARD 11)
 
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
+
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
 if (USE_CURL)
@@ -78,6 +81,11 @@ set(SRCS
         ${SDK_ROOT}/lib/utils/StringUtils.cpp
         ${SDK_ROOT}/lib/utils/Utils.cpp
 )
+
+# Support for Azure Monitor / Application Insights
+if (BUILD_AZMON)
+    include(${SDK_ROOT}/lib/modules/azmon/CMakeLists.txt OPTIONAL)
+endif()
 
 if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
         list(APPEND SRCS

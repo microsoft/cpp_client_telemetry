@@ -122,6 +122,12 @@ namespace MAT_NS_BEGIN
         /// <param name="deviceClass">Device class.</param>
         DECLARE_COMMONFIELD(DeviceClass, COMMONFIELDS_DEVICE_CLASS);
 
+          /// <summary>
+        /// Set the device orgId context information of telemetry event.
+        /// </summary>
+        /// <param name="deviceClass">Device orgId</param>
+        DECLARE_COMMONFIELD(DeviceOrgId, COMMONFIELDS_DEVICE_ORGID);
+
         /// <summary>
         /// Set the network cost context information of telemetry event.
         /// </summary>
