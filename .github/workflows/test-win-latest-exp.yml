@@ -1,4 +1,4 @@
-name: Build and Run Unit/Functional tests on Windows
+name: SDK with exp - Build and Run Unit/Functional tests on Windows
 
 on:
   push:
