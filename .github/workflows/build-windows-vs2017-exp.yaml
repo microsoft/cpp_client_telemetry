@@ -35,7 +35,3 @@ jobs:
     - name: ListOutput
       shell: cmd
       run: tree %CD%\Solutions\out
-
-    - name: Test
-      shell: cmd
-      run: test-all.cmd
