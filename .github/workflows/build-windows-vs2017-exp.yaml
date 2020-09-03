@@ -33,8 +33,13 @@ jobs:
       run: build-all.bat %CD%\Solutions\build.compact-exp.props
 
     - name: Test
-      shell: powershell
-      run: .\Solutions\out\Debug\Win32\UnitTests\UnitTests.exe ; .\Solutions\out\Debug\Win32\FuncTests\FuncTests.exe ; \
-           .\Solutions\out\Release\Win32\UnitTests\UnitTests.exe ; .\Solutions\out\Release\Win32\FuncTests\FuncTests.exe ; \
-           .\Solutions\out\Debug\x64\UnitTests\UnitTests.exe ; .\Solutions\out\Debug\x64\FuncTests\FuncTests.exe ; \
-           .\Solutions\out\Release\x64\UnitTests\UnitTests.exe ; .\Solutions\out\Release\x64\FuncTests\FuncTests.exe ;
+      shell: cmd
+      run: |
+        Solutions\out\Debug\Win32\UnitTests\UnitTests.exe
+        Solutions\out\Debug\Win32\FuncTests\FuncTests.exe
+        Solutions\out\Release\Win32\UnitTests\UnitTests.exe
+        Solutions\out\Release\Win32\FuncTests\FuncTests.exe
+        Solutions\out\Debug\x64\UnitTests\UnitTests.exe
+        Solutions\out\Debug\x64\FuncTests\FuncTests.exe
+        Solutions\out\Release\x64\UnitTests\UnitTests.exe
+        Solutions\out\Release\x64\FuncTests\FuncTests.exe
