@@ -19,6 +19,7 @@ namespace MAT_NS_BEGIN {
 
     protected:
         IRuntimeConfig& m_config;
+        int m_windowBits;
 
     public:
         RouteSource<EventsUploadContextPtr const&>                              compressionFailed;

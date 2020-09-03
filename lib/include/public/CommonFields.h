@@ -33,6 +33,7 @@
 #define COMMONFIELDS_DEVICE_MAKE                             "DeviceInfo.Make"
 #define COMMONFIELDS_DEVICE_MODEL                            "DeviceInfo.Model"
 #define COMMONFIELDS_DEVICE_CLASS                            "DeviceInfo.Class"
+#define COMMONFIELDS_DEVICE_ORGID                            "DeviceInfo.OrgId"
 
 #define COMMONFIELDS_NETWORK_PROVIDER                        "DeviceInfo.NetworkProvider"
 #define COMMONFIELDS_NETWORK_TYPE                            "DeviceInfo.NetworkType"
