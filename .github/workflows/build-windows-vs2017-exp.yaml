@@ -34,12 +34,4 @@ jobs:
 
     - name: Test
       shell: cmd
-      run: |
-        Solutions\out\Debug\Win32\UnitTests\UnitTests.exe
-        Solutions\out\Debug\Win32\FuncTests\FuncTests.exe
-        Solutions\out\Release\Win32\UnitTests\UnitTests.exe
-        Solutions\out\Release\Win32\FuncTests\FuncTests.exe
-        Solutions\out\Debug\x64\UnitTests\UnitTests.exe
-        Solutions\out\Debug\x64\FuncTests\FuncTests.exe
-        Solutions\out\Release\x64\UnitTests\UnitTests.exe
-        Solutions\out\Release\x64\FuncTests\FuncTests.exe
+      run: test-all.cmd
