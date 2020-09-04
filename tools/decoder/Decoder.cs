@@ -51,7 +51,7 @@ namespace CommonSchema
             }
             ClientId = requestHeaders["Client-Id"];
             ContentType = requestHeaders["Content-Type"];
-            ContentEncoding = requestHeaders["Content-Encoding"];
+            ContentEncoding = requestHeaders.ContainsKey("Content-Encoding") ? requestHeaders["Content-Encoding"] : "";
             RequestBody = requestBody ?? throw new ArgumentNullException(nameof(requestBody));
         }
 
@@ -297,10 +297,6 @@ namespace CommonSchema
                 else if (this.ContentEncoding == "deflate")
                 {
                     data = Inflate(data);
-                }
-                else
-                {
-                    throw new ArgumentException("Unknown Content-Encoding: " + this.ContentEncoding);
                 }
             }
 
