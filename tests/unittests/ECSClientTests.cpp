@@ -141,26 +141,4 @@ TEST(ECSClientTests, RemoveListener)
     ASSERT_EQ(ret, true);
 }
 
-TEST(ECSClientTests, FireClientEvent)
-{
-    auto client = GetInitializedECSClient();
-    bool receiveEvent = false;
-    auto callback = std::make_unique<ECSClientCallback>([&receiveEvent](){
-        receiveEvent = true;
-    });
-    auto ret = client->AddListener(callback.get());
-    ASSERT_EQ(ret, true);
-    ret = client->Start();
-    ASSERT_EQ(ret, true);
-    client->FireClientEvent(Microsoft::Applications::Experimentation::CommonClientEventType::ET_CONFIG_UPDATE_SUCCEEDED, true);
-
-    const int maxRetryTime = 5;
-    int retryTime = 0;
-    while(!receiveEvent && retryTime < maxRetryTime){
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        ++retryTime;
-    };
-    ASSERT_EQ(receiveEvent, true);
-}
-
 #endif
