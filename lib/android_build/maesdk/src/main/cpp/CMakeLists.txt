@@ -57,7 +57,7 @@ set(SRCS
         ${SDK_ROOT}/lib/jni/Utils_jni.cpp
         ${SDK_ROOT}/lib/offline/MemoryStorage.cpp
         ${SDK_ROOT}/lib/offline/LogSessionDataProvider.cpp
-	${SDK_ROOT}/lib/offline/OfflineStorageFactory.cpp
+        ${SDK_ROOT}/lib/offline/OfflineStorageFactory.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorageHandler.cpp
         ${SDK_ROOT}/lib/offline/StorageObserver.cpp
         ${SDK_ROOT}/lib/packager/BondSplicer.cpp
