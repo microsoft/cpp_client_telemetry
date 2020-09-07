@@ -5,7 +5,7 @@
 
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /// <summary>Add event listener for specific debug event type.</summary>
     void DebugEventSource::AddEventListener(DebugEventType type, DebugEventListener &listener)
@@ -79,4 +79,4 @@ namespace ARIASDK_NS_BEGIN {
         return (cascaded.erase(&other)!=0);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

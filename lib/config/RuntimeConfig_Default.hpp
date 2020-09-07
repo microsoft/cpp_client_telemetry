@@ -4,7 +4,7 @@
 #pragma once
 #include "api/IRuntimeConfig.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     static ILogConfiguration defaultRuntimeConfig{
         {CFG_INT_TRACE_LEVEL_MIN, ACTTraceLevel::ACTTraceLevel_Error},
@@ -49,6 +49,7 @@ namespace ARIASDK_NS_BEGIN
              {CFG_BOOL_HTTP_COMPRESSION, false}
 #endif
              ,
+             {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
              {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
         {CFG_MAP_TPM,
@@ -145,6 +146,11 @@ namespace ARIASDK_NS_BEGIN
             return config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION];
         }
 
+        virtual const std::string& GetHttpRequestContentEncoding() const override
+        {
+            return config[CFG_MAP_HTTP]["contentEncoding"];
+        }
+
         virtual unsigned GetMinimumUploadBandwidthBps() override
         {
             // FIXME: [MG] - add parameter for that
@@ -191,4 +197,4 @@ namespace ARIASDK_NS_BEGIN
     };
 
 }
-ARIASDK_NS_END
+MAT_NS_END

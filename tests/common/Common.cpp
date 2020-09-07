@@ -170,5 +170,25 @@ namespace testing {
         return false;
     }
 
+    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip)
+    {
+        z_stream zs;
+        memset(&zs, 0, sizeof(zs));
+        // -MAX_WBITS for no header
+        int windowBits = isGzip ? (MAX_WBITS | 16) : -MAX_WBITS;
+        EXPECT_EQ(inflateInit2(&zs, windowBits), Z_OK);
+        zs.next_in = (Bytef *)in.data();
+        zs.avail_in = (uInt)in.size();
+        int ret;
+        char outbuffer[32768] = { 0 };
+        do {
+            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
+            zs.avail_out = sizeof(outbuffer);
+            ret = inflate(&zs, Z_NO_FLUSH);
+            out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
+        } while (ret == Z_OK);
+        EXPECT_EQ(ret, Z_STREAM_END);
+        inflateEnd(&zs);
+    }
 
 } // namespace testing

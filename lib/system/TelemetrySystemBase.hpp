@@ -7,7 +7,7 @@
 #include "stats/Statistics.hpp"
 #include <functional>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     // typedef std::function<bool(void)>                       StateHandler;
 
@@ -149,6 +149,11 @@ namespace ARIASDK_NS_BEGIN {
             return m_logManager.GetSemanticContext();
         }
 
+        EventsUploadContextPtr createEventsUploadContext() override
+        {
+            return std::make_shared<EventsUploadContext>();
+        }
+
         virtual bool DispatchEvent(DebugEvent evt) override
         {
             return m_logManager.DispatchEvent(std::move(evt));
@@ -176,6 +181,6 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

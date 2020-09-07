@@ -10,7 +10,7 @@
 #include <numeric>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
@@ -634,6 +634,7 @@ namespace ARIASDK_NS_BEGIN {
                 if (initializeDatabase()) {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
+                    m_isOpened = true;
                     return true;
                 }
                 m_db->shutdown();
@@ -940,5 +941,5 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
     
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

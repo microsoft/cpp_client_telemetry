@@ -1,7 +1,7 @@
 #include "mat/config.h"
 #include "BaseDecorator.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     BaseDecorator::BaseDecorator(ILogManager& owner)
         :
@@ -43,7 +43,11 @@ namespace ARIASDK_NS_BEGIN {
 #else
         record.extSdk[0].libVer = PAL::getSdkVersion();
 #endif
-        record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
+        auto sessionData = m_owner.GetLogSessionData();
+        if (sessionData)
+        {
+            record.extSdk[0].installId = sessionData->getSessionSDKUid();
+        }
 
         //set Tickets
         if ((m_owner.GetAuthTokensController()) &&
@@ -68,4 +72,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

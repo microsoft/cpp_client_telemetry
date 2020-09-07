@@ -2,7 +2,7 @@
 
 #include "StorageObserver.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     StorageObserver::StorageObserver(ITelemetrySystem& system, IOfflineStorage& offlineStorage)
         :
@@ -211,4 +211,4 @@ namespace ARIASDK_NS_BEGIN {
         DispatchEvent(evt);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

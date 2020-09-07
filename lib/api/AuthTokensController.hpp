@@ -11,7 +11,7 @@
 #include <vector>
 
 // *INDENT-OFF*
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// This class is used to manage the Auth Tokens
@@ -78,6 +78,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

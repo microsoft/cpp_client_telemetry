@@ -9,7 +9,7 @@
 
 #include "ILogManager.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 #ifndef _WININET_
 typedef void* HINTERNET;
@@ -43,7 +43,7 @@ class HttpClient_WinInet : public IHttpClient {
     friend class WinInetRequestWrapper;
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
