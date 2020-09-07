@@ -35,6 +35,14 @@ else
 BUILD_TYPE="Debug"
 fi
 
+if [ "$1" == "arm64" ] || [ "$2" == "arm64" ]; then
+MAC_ARCH="arm64"
+elif [ "$1" == "universal" ] || [ "$2" == "universal" ]; then
+MAC_ARCH="universal"
+else
+MAC_ARCH="x86_64"
+fi
+
 # Set target MacOS minver
 export MACOSX_DEPLOYMENT_TARGET=10.10
 
@@ -85,7 +93,7 @@ set -e
 
 
 # TODO: pass custom build flags?
-cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
+cmake -DMAC_ARCH=$MAC_ARCH -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 # TODO: strip symbols to minimize (release-only)
 
 # Build all

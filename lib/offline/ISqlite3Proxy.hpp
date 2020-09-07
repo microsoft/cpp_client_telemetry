@@ -13,7 +13,7 @@ struct sqlite3_stmt;
 struct sqlite3_vfs;
 
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
 class ISqlite3Proxy {
@@ -57,5 +57,5 @@ class ISqlite3Proxy {
 extern ISqlite3Proxy* g_sqlite3Proxy;
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

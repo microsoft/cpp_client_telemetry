@@ -16,7 +16,7 @@
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
     {
@@ -92,4 +92,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

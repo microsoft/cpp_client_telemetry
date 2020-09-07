@@ -462,6 +462,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
     configuration[CFG_INT_STORAGE_FULL_PCT] = 1; // 1%
     configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 0; // 0ms
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 524288; // Requires default ram queue size otherwise skips events
 
     EventProperties eventToLog{ "foo1" };
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
@@ -531,6 +532,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     removeAllListeners(debugListener);
 }
 
+#ifdef _WIN32
 TEST(APITest, LogManager_UTCSingleEventSent) {
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
@@ -556,6 +558,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     logger->LogEvent(event);
     LogManager::FlushAndTeardown();
 }
+#endif
 
 TEST(APITest, LogManager_SemanticAPI)
 {
@@ -821,6 +824,7 @@ TEST(APITest, C_API_Test)
 }
 
 #ifdef HAVE_MAT_JSONHPP
+#if defined(_WIN32)
 TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
@@ -891,6 +895,7 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::FlushAndTeardown();
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
+#endif
 
 TEST(APITest, Pii_DROP_Test)
 {
@@ -1415,8 +1420,49 @@ public:
         // Ref: https://github.com/microsoft/CorrelationVector/blob/master/cV%20-%203.0.md
         record.cV = "A.PmvzQKgYek6Sdk/T5sWaqw.B";
 
+        // Iterate over Part C (custom) data.
+        forEachPartC(record);
+
         // Custom global decorator is invoked before sending event further for serialization.
         return true;
+    }
+
+    void forEachPartC(CsProtocol::Record& record)
+    {
+        printf("Event Name: %s\n", record.name.c_str());
+        if (record.data.size() == 1)
+        {
+            for (const auto& props : record.data[0].properties)
+            {
+                auto key = props.first.c_str();
+                auto val = props.second;
+                switch (val.type)
+                {
+
+                case CsProtocol::ValueKind::ValueString:
+                {
+                    // Print string values
+                    printf("- %s=%s\n", key, val.stringValue.c_str());
+                    break;
+                }
+
+                case CsProtocol::ValueKind::ValueGuid:
+                {
+                    // Extract from byte array and print GUID values as string
+                    uint8_t guidBytes[16];
+                    std::copy(val.guidValue[0].begin(), val.guidValue[0].end(), guidBytes);
+                    // We use GUID_t::to_string(...) converter to print string
+                    GUID_t guid(guidBytes);
+                    printf("- %s=%s\n", key, guid.to_string().c_str());
+                    break;
+                }
+
+                default:
+                    // Ignore all numeric types for now
+                    break;
+                }
+            }
+        }
     }
 
 };
@@ -1429,7 +1475,17 @@ TEST(APITest, Custom_Decorator)
     config.AddModule(CFG_MODULE_DECORATOR, std::make_shared<CustomDecorator>(myDecorator) );
     LogManager::Initialize(TEST_TOKEN, config);
     LogManager::GetLogger()->LogEvent("foobar");
+    EventProperties myEvent2("MyEvent.With.Props",
+    {
+        {"keyString", "Hello World!"},
+        {"keyGuid", GUID_t("{76ce7649-3a58-4861-8202-7d7fdfaed483}")}
+    });
+    LogManager::GetLogger()->LogEvent(myEvent2);
     LogManager::FlushAndTeardown();
+    // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
+    // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
+    // for non-existing module also returns nullptr.
+    config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

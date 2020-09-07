@@ -296,7 +296,7 @@ namespace CommonSchema
                 }
                 else if (this.ContentEncoding == "deflate")
                 {
-                    data = Deflate(data);
+                    data = Inflate(data);
                 }
                 else
                 {
@@ -374,7 +374,7 @@ namespace CommonSchema
         /// </summary>
         /// <param name="data">The compressed data</param>
         /// <returns>The gunzip'd data</returns>
-        private static byte[] Gunzip(byte[] data)
+        public static byte[] Gunzip(byte[] data)
         {
             if (data is null)
             {
@@ -394,7 +394,7 @@ namespace CommonSchema
         /// </summary>
         /// <param name="data">The compressed data</param>
         /// <returns>The delated data</returns>
-        private static byte[] Deflate(byte[] data)
+        public static byte[] Inflate(byte[] data)
         {
             if (data is null)
             {

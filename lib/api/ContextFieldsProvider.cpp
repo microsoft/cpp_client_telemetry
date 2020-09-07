@@ -6,7 +6,7 @@
 
 #include "utils/Utils.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     ContextFieldsProvider::ContextFieldsProvider()
@@ -217,6 +217,12 @@ namespace ARIASDK_NS_BEGIN
                     record.extDevice[0].localId = temp;
                 }
 
+                iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_ORGID);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extDevice[0].orgId = iter->second.as_string;
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_DEVICE_MAKE);
                 if (iter != m_commonContextFields.end())
                 {
@@ -270,12 +276,6 @@ namespace ARIASDK_NS_BEGIN
                 if (iter != m_commonContextFields.end())
                 {
                     record.extLoc[0].timezone = iter->second.as_string;
-                }
-
-                iter = m_commonContextFields.find(COMMONFIELDS_USER_MSAID);
-                if (iter != m_commonContextFields.end())
-                {
-                    record.extDevice[0].authSecId = iter->second.as_string;
                 }
 
                 iter = m_commonContextFields.find(COMMONFIELDS_NETWORK_COST);
@@ -463,4 +463,4 @@ namespace ARIASDK_NS_BEGIN
         return m_customContextFields;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

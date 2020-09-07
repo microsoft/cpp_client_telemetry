@@ -21,7 +21,7 @@ using namespace ::Windows::Web::Http;
 using namespace ::Windows::Web::Http::Filters;
 using namespace ::Windows::Web::Http::Headers;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class WinRtRequestWrapper;
 
@@ -47,7 +47,7 @@ class HttpClient_WinRt : public IHttpClient {
     friend class WinRtRequestWrapper;
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
