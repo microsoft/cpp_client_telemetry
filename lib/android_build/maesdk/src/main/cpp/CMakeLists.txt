@@ -84,7 +84,7 @@ set(SRCS
 
 # Support for Azure Monitor / Application Insights
 if (BUILD_AZMON)
-    include(${SDK_ROOT}/lib/modules/azmon/CMakeLists.txt)
+    include(${SDK_ROOT}/lib/modules/azmon/CMakeLists.txt OPTIONAL)
 endif()
 
 if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)

@@ -132,14 +132,14 @@ class AISendTests : public ::testing::Test,
         std::remove(fileName.c_str());
     }
 
-    virtual void Initialize(DebugEventListener& debugListener, std::string const& path)
+    virtual void Initialize(DebugEventListener& debugListener, std::string const& path, bool compression)
     {
         receivedRequests.clear();
         auto configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
         configuration[CFG_STR_COLLECTOR_URL] = (serverAddress + path).c_str();
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
-        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;  // disable compression for now
+        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = compression;
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
 #ifdef NDEBUG
@@ -230,7 +230,7 @@ class AISendTests : public ::testing::Test,
         return false;
     }
 
-    void waitForEvents(unsigned timeOutSec, unsigned expectedRequests)
+    void waitForEvents(unsigned timeOutSec, unsigned expectedRequests, bool compression)
     {
         size_t receivedEvents = 0;
         unsigned timeoutMs = 1000 * timeOutSec;
@@ -245,7 +245,21 @@ class AISendTests : public ::testing::Test,
                 if (receivedRequests.size())
                 {
                     auto request = receivedRequests.at(0);
-                    auto body = nlohmann::json::parse(request.content.begin(), request.content.end());
+                    nlohmann::json body;
+                    auto it = request.headers.find("Content-Encoding");
+                    if (it != request.headers.end())
+                    {
+                        EXPECT_TRUE(compression);
+                        std::vector<uint8_t> content(request.content.begin(), request.content.end());
+                        std::vector<uint8_t> inflated;
+                        testing::InflateVector(content, inflated, true);
+                        body = nlohmann::json::parse(inflated.begin(), inflated.end());
+                    }
+                    else
+                    {
+                        EXPECT_FALSE(compression);
+                        body = nlohmann::json::parse(request.content.begin(), request.content.end());
+                    }
                     EXPECT_TRUE(body.is_array());
                     receivedEvents += body.size();
                 }
@@ -271,7 +285,7 @@ class AISendTests : public ::testing::Test,
         ASSERT_EQ(receivedDebugEvents, expectedDebugEvents);
     }
 
-    void validateRequest(EventProperties const& expectedEvent)
+    void validateRequest(EventProperties const& expectedEvent, bool compressed)
     {
         HttpServer::Request request;
         {
@@ -279,7 +293,18 @@ class AISendTests : public ::testing::Test,
             request = receivedRequests.at(0);
         }
 
-        auto body = nlohmann::json::parse(request.content.begin(), request.content.end());
+        nlohmann::json body;
+        if (compressed)
+        {
+            std::vector<uint8_t> content(request.content.begin(), request.content.end());
+            std::vector<uint8_t> inflated;
+            testing::InflateVector(content, inflated, true);
+            body = nlohmann::json::parse(inflated.begin(), inflated.end());
+        }
+        else
+        {
+            body = nlohmann::json::parse(request.content.begin(), request.content.end());
+        }
         EXPECT_TRUE(body.is_array());
         nlohmann::json actualEvent = body[0];
         EXPECT_TRUE(actualEvent.is_object());
@@ -322,27 +347,29 @@ class AISendTests : public ::testing::Test,
 TEST_F(AISendTests, sendOneEvent)
 {
     AITestDebugEventListener debugListener;
+    bool compression = false;
 
     CleanStorage();
-    Initialize(debugListener, "");
+    Initialize(debugListener, "", compression);
 
     EventProperties event("ai_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
-    waitForEvents(5, 1);
+    waitForEvents(5, 1, compression);
     waitForResponse(5, 1, debugListener);
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
-    validateRequest(event);
+    validateRequest(event, compression);
     debugListener.expect(1, 0, 0, 0);
 }
 
 TEST_F(AISendTests, sendMultipleEvent)
 {
     AITestDebugEventListener debugListener;
+    bool compression = false;
 
     CleanStorage();
-    Initialize(debugListener, "");
+    Initialize(debugListener, "", compression);
 
     EventProperties event1("ai_event1");
     event1.SetProperty("property", "value1");
@@ -354,7 +381,7 @@ TEST_F(AISendTests, sendMultipleEvent)
     event1.SetProperty("property", "value3");
     logger->LogEvent(event3);
 
-    waitForEvents(5, 3);
+    waitForEvents(5, 3, compression);
     waitForResponse(5, 1, debugListener);
     FlushAndTeardown(debugListener);
 
@@ -365,58 +392,80 @@ TEST_F(AISendTests, sendMultipleEvent)
 TEST_F(AISendTests, receiveServerError)
 {
     AITestDebugEventListener debugListener;
+    bool compression = false;
 
     CleanStorage();
-    Initialize(debugListener, "/500/");
+    Initialize(debugListener, "/500/", compression);
 
     EventProperties event("ai_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
-    waitForEvents(5, 1);
+    waitForEvents(5, 1, compression);
     waitForResponse(5, 1, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
-    validateRequest(event);
+    validateRequest(event, compression);
     debugListener.expect(0, 1, 0, 0);
 }
 
 TEST_F(AISendTests, receivePartialSuccess)
 {
     AITestDebugEventListener debugListener;
+    bool compression = false;
 
     CleanStorage();
-    Initialize(debugListener, "/206/");
+    Initialize(debugListener, "/206/", compression);
 
     EventProperties event("ai_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
-    waitForEvents(5, 1);
+    waitForEvents(5, 1, compression);
     waitForResponse(5, 1, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
-    validateRequest(event);
+    validateRequest(event, compression);
     debugListener.expect(0, 0, 1, 0);
 }
 
 TEST_F(AISendTests, receiveServerRejected)
 {
     AITestDebugEventListener debugListener;
+    bool compression = false;
 
     CleanStorage();
-    Initialize(debugListener, "/400/");
+    Initialize(debugListener, "/400/", compression);
 
     EventProperties event("ai_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
-    waitForEvents(5, 1);
+    waitForEvents(5, 1, compression);
     waitForResponse(5, 1, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
-    validateRequest(event);
+    validateRequest(event, compression);
     debugListener.expect(0, 0, 0, 1);
+}
+
+TEST_F(AISendTests, sendCompressedEvent)
+{
+    AITestDebugEventListener debugListener;
+    bool compression = true;
+
+    CleanStorage();
+    Initialize(debugListener, "", compression);
+
+    EventProperties event("ai_event");
+    event.SetProperty("property", "value");
+    logger->LogEvent(event);
+    waitForEvents(5, 1, compression);
+    waitForResponse(5, 1, debugListener);
+    FlushAndTeardown(debugListener);
+    EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
+    validateRequest(event, compression);
+    debugListener.expect(1, 0, 0, 0);
 }
 
 #endif  // HAVE_MAT_AI

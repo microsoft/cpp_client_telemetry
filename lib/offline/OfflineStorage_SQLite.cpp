@@ -634,6 +634,7 @@ namespace MAT_NS_BEGIN {
                 if (initializeDatabase()) {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
+                    m_isOpened = true;
                     return true;
                 }
                 m_db->shutdown();
