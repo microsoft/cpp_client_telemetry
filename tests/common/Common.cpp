@@ -315,7 +315,8 @@ namespace testing {
 #endif        
 
     }
-	   void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip)
+
+    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip)
     {
         z_stream zs;
         memset(&zs, 0, sizeof(zs));
