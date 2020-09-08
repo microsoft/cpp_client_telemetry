@@ -6,28 +6,22 @@
 
 #include <limits>
 
-#define ABS64(a,b)    ((a>b)?(a-b):(b-a))
-
 namespace MAT_NS_BEGIN {
 
-    int const DEFAULT_DELAY_SEND_HTTP = 2 * 1000; // 2 sec
+    template<typename T>
+    constexpr T Abs64(const T& a, const T& b) noexcept
+    {
+        return (a > b) ? (a - b) : (b - a);
+    }
 
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class");
 
     TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
-        m_lock(),
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
-        m_bandwidthController(bandwidthController),
-        m_isPaused(true),
-        m_isUploadScheduled(false),
-        m_scheduledUploadTime(std::numeric_limits<uint64_t>::max()),
-        m_scheduledUploadAborted(false),
-        m_timerdelay(DEFAULT_DELAY_SEND_HTTP),
-        m_runningLatency(EventLatency_RealTime)
+        m_bandwidthController(bandwidthController)
     {
-        m_backoffConfig = "E,3000,300000,2,1";
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
@@ -64,34 +58,33 @@ namespace MAT_NS_BEGIN {
             m_backoff->reset();
     }
 
-    int TransmissionPolicyManager::increaseBackoff()
+    std::chrono::milliseconds TransmissionPolicyManager::increaseBackoff()
     {
-        int delayMs = 0;
         LOCKGUARD(m_backoffMutex);
         checkBackoffConfigUpdate();
-        if (m_backoff)
+        if (m_backoff == nullptr)
         {
-            delayMs = m_backoff->getValue();
-            m_backoff->increase();
+            return std::chrono::milliseconds{};
         }
-        return delayMs;
+
+        std::chrono::milliseconds delay{m_backoff->getValue()};
+        m_backoff->increase();
+        return delay;
     }
 
-    // TODO: consider changing int delayInMs to std::chrono::duration<> in millis.
     // If delayInMs is negative, do not schedule.
-    void TransmissionPolicyManager::scheduleUpload(int delayInMs, EventLatency latency, bool force)
+    void TransmissionPolicyManager::scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
         LOCKGUARD(m_scheduledUploadMutex);
-        if (delayInMs < 0 || m_timerdelay < 0) {
-            return; // profile: no upload allowed
+        if (delay.count() < 0 || m_timerdelay.count() < 0) 
+        {
+            LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
+            return;
         }
         if (m_scheduledUploadAborted)
         {
+            LOG_TRACE("Scheduled upload aborted, no upload.");
             return;
-        }
-        if (delayInMs < 0 || m_timerdelay < 0) {
-            LOG_TRACE("Negative delayInMs or m_timerdelay, no upload");
-            return; // transmission prohibited by profile
         }
         if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
         {
@@ -118,8 +111,8 @@ namespace MAT_NS_BEGIN {
                 m_runningLatency = latency;
             }
             auto now = PAL::getMonotonicTimeMs();
-            auto delta = ABS64(m_scheduledUploadTime, now);
-            if (delta <= static_cast<uint64_t>(delayInMs))
+            auto delta = Abs64(m_scheduledUploadTime, now);
+            if (delta <= static_cast<uint64_t>(delay.count()))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // m_isUploadScheduled check does not have to be strictly atomic because
@@ -131,7 +124,7 @@ namespace MAT_NS_BEGIN {
         }
 
         // Cancel upload if already scheduled.
-        if (force || delayInMs == 0)
+        if (force || delay.count() == 0)
         {
             if (!cancelUploadTask())
             {
@@ -142,10 +135,10 @@ namespace MAT_NS_BEGIN {
         // Schedule new upload
         if (!m_isUploadScheduled.exchange(true))
         {
-            m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delayInMs;
+            m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %d ms for lat=%d", delayInMs, m_runningLatency);
-            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, delayInMs, this, &TransmissionPolicyManager::uploadAsync, latency);
+            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency);
+            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
 
@@ -183,13 +176,13 @@ namespace MAT_NS_BEGIN {
         }
 #endif
 
-        auto ctx = std::make_shared<EventsUploadContext>();
+        auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);
     }
 
-    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, int nextUploadInMs)
+    void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload)
     {
         LOG_TRACE("HTTP upload finished for ctx=%p", ctx.get());
         if (!removeUpload(ctx))
@@ -199,11 +192,11 @@ namespace MAT_NS_BEGIN {
         }
 
         // Rescheduling upload
-        if (nextUploadInMs >= 0)
+        if (nextUpload.count() >= 0)
         {
-            LOG_TRACE("Scheduling upload in %d ms", nextUploadInMs);
+            LOG_TRACE("Scheduling upload in %d ms", nextUpload.count());
             EventLatency proposed = calculateNewPriority();
-            scheduleUpload(nextUploadInMs, proposed); // reschedule uploadAsync again
+            scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
         }
     }
 
@@ -224,7 +217,7 @@ namespace MAT_NS_BEGIN {
         // some customers require to be able to start in a paused (no telemetry) state.
         // We may avoid the issue if we schedule the first upload to happen 1 second
         // after start
-        scheduleUpload(1000, calculateNewPriority());
+        scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
     }
 
@@ -282,7 +275,7 @@ namespace MAT_NS_BEGIN {
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            auto ctx = std::make_shared<EventsUploadContext>();
+            auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);
@@ -294,11 +287,12 @@ namespace MAT_NS_BEGIN {
         {
             if (updateTimersIfNecessary())
             {
-                m_timerdelay = m_timers[1];
+                m_timerdelay = std::chrono::milliseconds { m_timers[1] };
                 forceTimerRestart = true;
             }
             EventLatency proposed = calculateNewPriority();
-            if (m_timerdelay >= 0) {
+            if (m_timerdelay.count() >= 0)
+            {
                 scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
             }
         }
@@ -335,7 +329,7 @@ namespace MAT_NS_BEGIN {
         resetBackoff();
         if (ctx->requestedMinLatency == EventLatency_Normal)
         {
-            finishUpload(ctx, -1);
+            finishUpload(ctx, std::chrono::milliseconds{ -1 });
         }
         else
         {
@@ -351,7 +345,7 @@ namespace MAT_NS_BEGIN {
     void TransmissionPolicyManager::handleEventsUploadSuccessful(EventsUploadContextPtr const& ctx)
     {
         resetBackoff();
-        finishUpload(ctx, 0);
+        finishUpload(ctx, std::chrono::milliseconds{});
     }
 
     void TransmissionPolicyManager::handleEventsUploadRejected(EventsUploadContextPtr const& ctx)
@@ -366,8 +360,68 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::handleEventsUploadAborted(EventsUploadContextPtr const& ctx)
     {
-        finishUpload(ctx, -1);
+        finishUpload(ctx, std::chrono::milliseconds{ -1 });
     }
 
+    void TransmissionPolicyManager::addUpload(EventsUploadContextPtr const& ctx)
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        m_activeUploads.insert(ctx);
+    }
+
+    bool TransmissionPolicyManager::removeUpload(EventsUploadContextPtr const& ctx)
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        auto it = m_activeUploads.find(ctx);
+        if (it != m_activeUploads.cend())
+        {
+            LOG_TRACE("HTTP removing from active uploads ctx=%p", ctx.get());
+            m_activeUploads.erase(it);
+            return true;
+        }
+        return false;
+    }
+
+    void TransmissionPolicyManager::pauseAllUploads()
+    {
+        m_isPaused = true;
+        cancelUploadTask();
+    }
+
+    std::chrono::milliseconds TransmissionPolicyManager::getCancelWaitTime() const noexcept
+    {
+       return (m_scheduledUploadAborted) ? DefaultTaskCancelTime : std::chrono::milliseconds {};
+    }
+
+    bool TransmissionPolicyManager::cancelUploadTask()
+    {
+        bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
+
+        // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
+        //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
+        //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        if (result)
+        {
+            m_isUploadScheduled.exchange(false);
+        }
+        return result;
+    }
+
+    size_t TransmissionPolicyManager::uploadCount() const noexcept
+    {
+        LOCKGUARD(m_activeUploads_lock);
+        return m_activeUploads.size();
+    }
+
+    bool TransmissionPolicyManager::isUploadInProgress() const noexcept
+    {
+        // unfinished uploads that haven't processed callbacks or pending upload task
+        return (uploadCount() > 0) || m_isUploadScheduled;
+    }
+
+    bool TransmissionPolicyManager::isPaused() const noexcept
+    {
+        return m_isPaused;
+    }
 
 } MAT_NS_END

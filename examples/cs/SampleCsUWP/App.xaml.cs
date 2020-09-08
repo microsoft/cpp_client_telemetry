@@ -98,8 +98,6 @@ namespace SampleCsUWP
             Logger.SetContext("TeamName", "ARIA");
             Logger.SetContext("AppID", "UAPCS");
 
-            // Set the semantic context. For example, an app will set this property after the user logs in.
-            Logger.SemanticContext.UserMsaId = "BCCA864D-1386-4D5A-9570-B129F6DD42B7";
 
             var missingProps = new EventProperties("SomeEventWithMissingProps");
             missingProps.SetProperty("MyMissingProp", "12345");

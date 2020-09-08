@@ -42,11 +42,17 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
+  offline/LogSessionDataProvider.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp
   pal/WorkerThread.cpp
 )
+
+# Support for Azure Monitor / Application Insights
+if(BUILD_AZMON)
+  include(modules/azmon/CMakeLists.txt OPTIONAL)
+endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   list(APPEND SRCS
@@ -80,7 +86,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     else()
       list(APPEND SRCS
-        pal/posix/sysinfo_utils_mac.cpp
+        pal/posix/sysinfo_utils_mac.mm
       )
     endif()
   endif()

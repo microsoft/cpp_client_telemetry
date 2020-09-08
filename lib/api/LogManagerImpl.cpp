@@ -7,6 +7,7 @@
 #include "mat/config.h"
 
 #include "offline/OfflineStorageHandler.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -28,6 +29,19 @@
 #include "modules/utc/UtcTelemetrySystem.hpp"
 #endif
 #endif
+
+#ifdef HAVE_MAT_AI
+#if defined __has_include
+#if __has_include("modules/azmon/AITelemetrySystem.hpp")
+#include "modules/azmon/AITelemetrySystem.hpp"
+#else
+/* Compiling without Azure Monitor support because Azure Monitor private header is unavailable */
+#undef HAVE_MAT_AI
+#endif
+#else
+#include "modules/azmon/AITelemetrySystem.hpp"
+#endif
+#endif // HAVE_MAT_AI
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
@@ -184,9 +198,6 @@ namespace MAT_NS_BEGIN
             }
         }
 
-        // TODO: [MG] - LogSessionData must utilize sqlite3 DB interface instead of filesystem
-        m_logSessionData.reset(new LogSessionData(cacheFilePath));
-
         m_context.SetCommonField(SESSION_ID_LEGACY, PAL::generateUuidString());
 
         if (m_dataViewer != nullptr)
@@ -207,6 +218,8 @@ namespace MAT_NS_BEGIN
             LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
+        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+
 #ifdef HAVE_MAT_UTC
         // UTC is not active
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
@@ -215,8 +228,10 @@ namespace MAT_NS_BEGIN
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
 
-        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
-        if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
+        if (
+            ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat) || (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema)) &&
+            isWindowsUtcClientRegistrationEnable
+           )
         {
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
@@ -272,7 +287,25 @@ namespace MAT_NS_BEGIN
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, m_bandwidthController));
+#if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
+#else
+         m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+#endif
+
+#ifdef HAVE_MAT_AI
+        if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
+        {
+            m_system.reset(new AITelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                                 *m_taskDispatcher, m_bandwidthController, *m_logSessionDataProvider));
+        }
+        else
+#endif
+        {
+            // Default mode is Common Schema - direct
+            m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                               *m_taskDispatcher, m_bandwidthController, *m_logSessionDataProvider));
+        }
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
@@ -675,7 +708,7 @@ namespace MAT_NS_BEGIN
 
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
-        return m_logSessionData.get();
+        return (m_logSessionDataProvider)?m_logSessionDataProvider->GetLogSessionData():nullptr;
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
