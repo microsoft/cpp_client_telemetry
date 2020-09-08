@@ -658,6 +658,7 @@ namespace MAT_NS_BEGIN {
             SqliteStatement(*m_db, tempPragma.str().c_str()).select();
             const char * result = sqlite3_temp_directory;
             LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+            UNREFERENCED_PARAMETER(result);
         }
 
         int openedDbVersion;
