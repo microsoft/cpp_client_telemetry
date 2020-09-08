@@ -1,4 +1,4 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <package>
     <metadata>
         <id>Microsoft.Applications.Events.Xamarin</id>
@@ -8,6 +8,10 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <copyright>Copyright 2020</copyright>
         <dependencies>
+            <group targetFramework=".NetStandard2.0">
+            </group>
+            <group targetFramework="Xamarin.iOS10">
+            </group>
             <group targetFramework="MonoAndroid8.1">
                 <dependency id="Xamarin.AndroidX.Room.Runtime" version="2.2.5.2" />
             </group>
