@@ -5,7 +5,7 @@
 
 #include "Common.hpp"
 #include "zlib.h"
-
+#include "utils/Utils.hpp"
 #ifdef _WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -14,12 +14,6 @@
 #elif defined(linux)
 #include <malloc.h>
 #include <unistd.h>
-#endif
-
-#ifdef _WIN32
-#define GET_CURRENT_PID  ::GetCurrentProcessId
-#else
-#define GET_CURRENT_PID getpid
 #endif
 
 namespace testing {
@@ -270,7 +264,7 @@ namespace testing {
 
 	std::string GetUniqueDBFileName()
 	{
-		std::string fname = std::to_string(GET_CURRENT_PID());
+		std::string fname = std::to_string(MAT::GetCurrentProcessId());
 		fname.insert(0, "file_");
 		fname.append(".db");
         return fname;
