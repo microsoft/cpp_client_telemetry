@@ -16,12 +16,6 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 
-#ifdef USE_ROOM
-#include "offline/OfflineStorage_Room.hpp"
-#else
-#include "offline/OfflineStorage_SQLite.hpp"
-#endif
-
 #endif // HAVE_MAT_STORAGE
 
 #endif  // HTTPCLIENTFACTORY_HPP
