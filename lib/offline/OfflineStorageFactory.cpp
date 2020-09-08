@@ -2,7 +2,7 @@
 #include "mat/config.h"
 #include "OfflineStorageFactory.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
     {
@@ -25,4 +25,4 @@ namespace ARIASDK_NS_BEGIN
 #endif //HAVE_MAT_STORAGE
     }
 }
-ARIASDK_NS_END
+MAT_NS_END

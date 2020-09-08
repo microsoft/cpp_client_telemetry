@@ -6,7 +6,7 @@
 #include "IOfflineStorage.hpp"
 #include "api/IRuntimeConfig.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class OfflineStorageFactory
     {
@@ -14,7 +14,7 @@ namespace ARIASDK_NS_BEGIN
         static std::shared_ptr<IOfflineStorage> Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
     };
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 #ifdef USE_ROOM
 #include "offline/OfflineStorage_Room.hpp"
