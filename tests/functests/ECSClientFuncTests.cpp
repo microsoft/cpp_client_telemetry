@@ -1,38 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include "mat/config.h"
-#ifdef HAVE_MAT_EXP
-#include <chrono>
-#include <thread>
-#include <iostream>
-#include <memory>
-#include <functional>
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#endif
-#include "common/Common.hpp"
-#include "common/HttpServer.hpp"
-#include "utils/Utils.hpp"
-#include "modules/exp/ecs/ecsclient/ECSClient.hpp"
-#include "json.hpp"
-#include "utils/StringUtils.hpp"
-using json = nlohmann::json;
+#include "ECSClientCommon.hpp"
 
-using namespace testing;
-using namespace MAT;
-using namespace Microsoft::Applications::Experimentation::ECS;
-using namespace Microsoft::Applications::Events;
+#ifdef HAVE_MAT_EXP
 
 namespace {
-    const int maxRetryTime = 10;
+    using namespace ECSClientCommon;
     int port = 8888;
-    const std::string jsonConfigString = "{\"ECSDemo\":{\"intArray\":[1,2],\"dblArray\":[1.1],\"strArray\":[\"hello\"],\"bool\":true,\"int\":123,\"double\":1.1,\"string\":\"str\",\"object\":{\"a\":\"b\",\"c\":\"d\"},\"null\":null},\"Headers\":{\"ETag\":\"\\\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\\\"\",\"Expires\":\"Fri, 14 Aug 2020 07:12:13 GMT\",\"CountryCode\":\"JP\",\"StatusCode\":\"200\"}}";
-    const std::string agent = "ECSDemo";
-    const std::string userIdHitString = "{\"hit\":\"userId\"}";
-    const std::string deviceIdHitString = "{\"hit\":\"clientId\"}";
-    const std::string filterHitString = "{\"hit\":\"filter\"}";
-    const std::string etagVal = "\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\"";
-    const std::string cacheFilePathName = "cacheFilePathName";
-    const std::string offlineStoragePath = ECSConfigCache::GetStoragePath(cacheFilePathName);
+    const char* const jsonConfigString = "{\"ECSDemo\":{\"intArray\":[1,2],\"dblArray\":[1.1],\"strArray\":[\"hello\"],\"bool\":true,\"int\":123,\"double\":1.1,\"string\":\"str\",\"object\":{\"a\":\"b\",\"c\":\"d\"},\"null\":null},\"Headers\":{\"ETag\":\"\\\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\\\"\",\"Expires\":\"Fri, 14 Aug 2020 07:12:13 GMT\",\"CountryCode\":\"JP\",\"StatusCode\":\"200\"}}";
+    const char* const agent = "ECSDemo";
+    const char* const userIdHitString = "{\"hit\":\"userId\"}";
+    const char* const deviceIdHitString = "{\"hit\":\"clientId\"}";
+    const char* const filterHitString = "{\"hit\":\"filter\"}";
+    const char* const etagVal = "\"kq49sHJi58LmvklHzjiuJ4UNE/VdiaeFjrYkErAZr1w=\"";
+    const char* const cacheFilePathName = "cacheFilePathName";
     class ECSServerCallback : public HttpServer::Callback
     {
         public:
@@ -88,34 +68,12 @@ namespace {
             }
     };
 
-    class ECSClientCallback : public IECSClientCallback
-    {
-        std::function<void()> callback;
-    public:
-        ECSClientCallback(std::function<void()> callback):callback(callback){ }
-
-        virtual void OnECSClientEvent(ECSClientEventType evtType, ECSClientEventContext evtContext)
-        {
-            if (evtType == ECSClientEventType::ET_CONFIG_UPDATE_SUCCEEDED)
-            {
-                callback();
-            }
-        }
-    };
-
     class ECSClientFuncTests : public ::testing::Test
     {
         protected:
             HttpServer server;
             ECSServerCallback callback;
-
-            static void SetUpTestSuite()
-            {
-            }
-
-            static void TearDownTestSuite()
-            {
-            }
+            const std::string offlineStoragePath = ECSConfigCache::GetStoragePath(cacheFilePathName);
 
             virtual void SetUp()
             {
@@ -136,179 +94,174 @@ namespace {
             }
     };
 
-    std::unique_ptr<ECSClient> GetInitilizedECSClient(std::function<void(ECSClient*)> callback = nullptr)
+    ECSClientConfiguration GetECSClientConfiguration()
     {
-        auto client = std::make_unique<ECSClient>();
         auto config = ECSClientConfiguration();
         config.clientName = "Test";
         config.clientVersion = "1.0";
         config.cacheFilePathName = cacheFilePathName;
         config.serverUrls.push_back("http://127.0.0.1:" + std::to_string(port) + "/config/v1");
-        client->Initialize(config);
-        if (callback)
-        {
-            callback(client.get());
-        }
-        return client;
-    }
-
-    void InitilizedAndStartECSClientThen(std::function<void(ECSClient*)> callback, std::function<void(ECSClient*)> initCallback = nullptr)
-    {
-        auto client = GetInitilizedECSClient();
-        if (initCallback)
-        {
-            initCallback(client.get());
-        }
-        auto ret = client->Start();
-        ASSERT_EQ(ret, true);
-        bool configUpdated = false;
-        auto onConfigUpdate = std::make_unique<ECSClientCallback>([&](){
-            configUpdated = true;
-        });
-        client->AddListener(onConfigUpdate.get());
-        int retryTime = 0;
-        while(!configUpdated && retryTime < maxRetryTime){
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            ++retryTime;
-        };
-        if(configUpdated)
-        {
-            callback(client.get());
-        }
-        else
-        {
-            throw std::runtime_error("Config should be updated");
-        }
+        return config;
     }
 
     TEST_F(ECSClientFuncTests, GetConfigs)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto configs = client->GetConfigs();
-            ASSERT_EQ(json::parse(configs), json::parse(jsonConfigString));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto configs = client->GetConfigs();
+                ASSERT_EQ(json::parse(configs), json::parse(jsonConfigString));
         });
     }
 
     TEST_F(ECSClientFuncTests, GetETag)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto etag = client->GetETag();
-            ASSERT_EQ(etag, etagVal);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto etag = client->GetETag();
+                ASSERT_EQ(etag, etagVal);
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSetting_Int)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSetting(agent, "int", 0);
-            ASSERT_EQ(ret, 123);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSetting(agent, "int", 0);
+                ASSERT_EQ(ret, 123);
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSetting_Bool)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSetting(agent, "bool", false);
-            ASSERT_EQ(ret, true);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSetting(agent, "bool", false);
+                ASSERT_EQ(ret, true);
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSetting_Double)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSetting(agent, "double", (double)0);
-            EXPECT_DOUBLE_EQ(ret, 1.1);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSetting(agent, "double", 0.0d);
+                EXPECT_DOUBLE_EQ(ret, 1.1);
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSetting_String)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSetting(agent, "string", std::string());
-            ASSERT_EQ(ret, std::string("str"));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSetting(agent, "string", std::string());
+                ASSERT_EQ(ret, std::string("str"));
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSettingsAsInts)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSettingsAsInts(agent, "intArray");
-            ASSERT_THAT(ret, ElementsAre(1, 2));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSettingsAsInts(agent, "intArray");
+                ASSERT_THAT(ret, ElementsAre(1, 2));
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSettings)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSettings(agent, "strArray");
-            ASSERT_THAT(ret, ElementsAre(std::string("hello")));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSettings(agent, "strArray");
+                ASSERT_THAT(ret, ElementsAre(std::string("hello")));
         });
     }
 
     TEST_F(ECSClientFuncTests, GetSettingsAsDbls)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetSettingsAsDbls(agent, "dblArray");
-            ASSERT_THAT(ret, ElementsAre(1.1));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetSettingsAsDbls(agent, "dblArray");
+                ASSERT_THAT(ret, ElementsAre(1.1));
         });
     }
 
     TEST_F(ECSClientFuncTests, TryGetSetting_String)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            std::string val = "";
-            auto ret = client->TryGetSetting(agent, "string", val);
-            ASSERT_EQ(ret, true);
-            ASSERT_EQ(val, "str");
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                std::string val;
+                auto ret = client->TryGetSetting(agent, "string", val);
+                ASSERT_EQ(ret, true);
+                ASSERT_EQ(val, "str");
         });
     }
 
     TEST_F(ECSClientFuncTests, TryGetSetting_Long)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            long val = 0;
-            auto ret = client->TryGetLongSetting(agent, "int", val);
-            ASSERT_EQ(ret, true);
-            ASSERT_EQ(val, 123);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                long val = 0;
+                auto ret = client->TryGetLongSetting(agent, "int", val);
+                ASSERT_EQ(ret, true);
+                ASSERT_EQ(val, 123);
         });
     }
 
     TEST_F(ECSClientFuncTests, TryGetSetting_Bool)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            bool val = 0;
-            auto ret = client->TryGetBoolSetting(agent, "bool", val);
-            ASSERT_EQ(ret, true);
-            ASSERT_EQ(val, true);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                bool val = 0;
+                auto ret = client->TryGetBoolSetting(agent, "bool", val);
+                ASSERT_EQ(ret, true);
+                ASSERT_EQ(val, true);
         });
     }
 
     TEST_F(ECSClientFuncTests, TryGetSetting_Int)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            int val = 0;
-            auto ret = client->TryGetIntSetting(agent, "int", val);
-            ASSERT_EQ(ret, true);
-            ASSERT_EQ(val, 123);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                int val = 0;
+                auto ret = client->TryGetIntSetting(agent, "int", val);
+                ASSERT_EQ(ret, true);
+                ASSERT_EQ(val, 123);
         });
     }
 
     TEST_F(ECSClientFuncTests, TryGetSetting_Double)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            double val = 0;
-            auto ret = client->TryGetDoubleSetting(agent, "double", val);
-            ASSERT_EQ(ret, true);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                double val = 0;
+                auto ret = client->TryGetDoubleSetting(agent, "double", val);
+                ASSERT_EQ(ret, true);
 
-            EXPECT_DOUBLE_EQ(val, (double)1.1);
+                EXPECT_DOUBLE_EQ(val, 1.1d);
         });
     }
 
     TEST_F(ECSClientFuncTests, GetKeys)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetKeys(agent, "");
-            ASSERT_THAT(ret, ElementsAre("bool", "dblArray", "double", "int", "intArray", "null", "object", "strArray", "string"));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetKeys(agent, "");
+                ASSERT_THAT(ret, ElementsAre("bool", "dblArray", "double", "int", "intArray", "null", "object", "strArray", "string"));
         });
     }
 
@@ -317,9 +270,11 @@ namespace {
         auto initCallback = [](ECSClient* client){
             client->SetUserId("hocai");
         };
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetConfigs();
-            ASSERT_EQ(ret, userIdHitString);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetConfigs();
+                ASSERT_EQ(ret, userIdHitString);
         }, initCallback);
     }
 
@@ -328,9 +283,11 @@ namespace {
         auto initCallback = [](ECSClient* client){
             client->SetDeviceId("hocaiDevice");
         };
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetConfigs();
-            ASSERT_EQ(ret, deviceIdHitString);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetConfigs();
+                ASSERT_EQ(ret, deviceIdHitString);
         }, initCallback);
     }
 
@@ -339,41 +296,47 @@ namespace {
         auto initCallback = [](ECSClient* client){
             client->SetRequestParameters(std::map<std::string, std::string>{{"customFilter","filterVal"}});
         };
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto ret = client->GetConfigs();
-            ASSERT_EQ(ret, filterHitString);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto ret = client->GetConfigs();
+                ASSERT_EQ(ret, filterHitString);
         }, initCallback);
     }
 
     TEST_F(ECSClientFuncTests, GetActiveConfigVariant_NotStarted)
     {
-        auto client = GetInitilizedECSClient();
+        auto client = GetInitilizedECSClient(GetECSClientConfiguration());
         auto configVariant = client->GetActiveConfigVariant();
         ASSERT_EQ(configVariant, json());
     }
 
     TEST_F(ECSClientFuncTests, GetActiveConfigVariant_Started)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto configVariant = client->GetActiveConfigVariant();
-            ASSERT_EQ(configVariant, json::parse(jsonConfigString));
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto configVariant = client->GetActiveConfigVariant();
+                ASSERT_EQ(configVariant, json::parse(jsonConfigString));
         });
     }
 
     TEST_F(ECSClientFuncTests, GetExpiryTimeInSec_NotStarted)
     {
-        auto client = GetInitilizedECSClient();
+        auto client = GetInitilizedECSClient(GetECSClientConfiguration());
         auto expiryTimeInSec = client->GetExpiryTimeInSec();
         ASSERT_EQ(expiryTimeInSec, DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN);
     }
 
     TEST_F(ECSClientFuncTests, GetExpiryTimeInSec_Started)
     {
-        InitilizedAndStartECSClientThen([](ECSClient* client){
-            auto expiryTimeInSec = client->GetExpiryTimeInSec();
-            // server return expriy time is zero, client will use DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN as expiry time
-            ASSERT_EQ(expiryTimeInSec > 0, true);
-            ASSERT_LE(expiryTimeInSec, DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN);
+        InitilizeAndStartECSClientThen(
+            GetECSClientConfiguration(),
+            [](ECSClient* client){
+                auto expiryTimeInSec = client->GetExpiryTimeInSec();
+                // server return expriy time is zero, client will use DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN as expiry time
+                ASSERT_EQ(expiryTimeInSec > 0, true);
+                ASSERT_LE(expiryTimeInSec, DEFAULT_EXPIRE_INTERVAL_IN_SECONDS_MIN);
         });
     }
 }

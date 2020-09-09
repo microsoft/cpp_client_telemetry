@@ -13,21 +13,19 @@ using namespace Microsoft::Applications::Experimentation::ECS;
 TEST(ECSConfigCacheTests, Constrcut_OK_RelativePath)
 {
     const std::string storagePath = "path";
-    auto c = new ECSConfigCache(storagePath);
-    delete c;
+    std::make_unique<ECSConfigCache>(storagePath);
 }
 
 TEST(ECSConfigCacheTests, Constrcut_OK_AbsolutePath)
 {    
     const std::string storagePath = std::string("parentfolder") + PATH_SEPARATOR_CHAR + "childfolder";
-    auto c = new ECSConfigCache(storagePath);
-    delete c;
+    std::make_unique<ECSConfigCache>(storagePath);
 }
 
 TEST(ECSConfigCacheTests, AddConfig)
 {
     const std::string storagePath = "path";
-    auto configCache = new ECSConfigCache(storagePath);
+    auto configCache = std::make_unique<ECSConfigCache>(storagePath);
     const std::string requestName = "requestName";
     ECSConfig config;
     config.requestName = requestName;
@@ -39,7 +37,7 @@ TEST(ECSConfigCacheTests, AddConfig)
 TEST(ECSConfigCacheTests, GetConfigByRequestName_NotExistConfig)
 {
     const std::string storagePath = "path";
-    auto configCache = new ECSConfigCache(storagePath);
+    auto configCache = std::make_unique<ECSConfigCache>(storagePath);
     ASSERT_EQ(NULL, configCache->GetConfigByRequestName("requestName"));
 }
 
