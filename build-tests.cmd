@@ -38,3 +38,7 @@ Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
 if errorLevel 1 goto end
 Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe
 :end
+if errorLevel 1 goto end
+start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
+start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
+:end
