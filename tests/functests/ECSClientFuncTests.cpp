@@ -149,7 +149,7 @@ namespace {
         InitilizeAndStartECSClientThen(
             GetECSClientConfiguration(),
             [](ECSClient* client){
-                auto ret = client->GetSetting(agent, "double", 0.0d);
+                auto ret = client->GetSetting(agent, "double", 0.0);
                 EXPECT_DOUBLE_EQ(ret, 1.1);
         });
     }
@@ -247,11 +247,11 @@ namespace {
         InitilizeAndStartECSClientThen(
             GetECSClientConfiguration(),
             [](ECSClient* client){
-                double val = 0;
+                double val = 0.0;
                 auto ret = client->TryGetDoubleSetting(agent, "double", val);
                 ASSERT_EQ(ret, true);
 
-                EXPECT_DOUBLE_EQ(val, 1.1d);
+                EXPECT_DOUBLE_EQ(val, 1.1);
         });
     }
 
