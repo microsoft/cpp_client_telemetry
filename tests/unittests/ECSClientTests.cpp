@@ -64,7 +64,7 @@ TEST(ECSClientTests, DestroyInstance_ArgsIsNullptr)
 
 TEST(ECSClientTests, Start_Failed_NotInitialized)
 {
-    auto client = new ECSClient();
+    auto client = std::make_unique<ECSClient>();    
     auto ret = client->Start();
     ASSERT_EQ(ret, false);
 }
@@ -118,7 +118,6 @@ TEST(ECSClientTests, Resume_OK)
     ret = client->Resume();
     ASSERT_EQ(ret, true);
 }
-
 
 TEST(ECSClientTests, AddListener)
 {

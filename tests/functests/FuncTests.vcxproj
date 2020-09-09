@@ -425,8 +425,9 @@
     <ClCompile Include="APITest.cpp" />
     <ClCompile Include="BondDecoderTests.cpp" />
     <ClCompile Include="EventDecoderListener.cpp" />
-    <ClCompile Include="LogSessionDataFuncTests.cpp" />    
+    <ClCompile Include="LogSessionDataFuncTests.cpp" />
     <ClCompile Include="ECSConfigCacheFuncTests.cpp" />
+    <ClInclude Include="ECSClientCommon.hpp" />
     <ClCompile Include="ECSClientFuncTests.cpp" />
     <ClCompile Include="ECSClientRealworldFuncTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />

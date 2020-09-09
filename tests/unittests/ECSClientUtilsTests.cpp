@@ -12,19 +12,19 @@ using namespace Microsoft::Applications::Experimentation::ECS;
 
 TEST(ECSClientUtilsTests, CreateServerUrl)
 {
-    const std::string serverUrl = "https://s2s.config.skype.com/config/v1";
+    const std::string serverUrl = "https://this.is.a.fake.endpoint.com/config/v1";
     const std::string clientName = "ATM";
     const std::string clientVersion = "1.0.0.0";
     const auto ret = CreateServerUrl(serverUrl, clientName, clientVersion);
-    ASSERT_EQ(ret, "https://s2s.config.skype.com/config/v1/ATM/1.0.0.0");
+    ASSERT_EQ(ret, "https://this.is.a.fake.endpoint.com/config/v1/ATM/1.0.0.0");
 }
 
 TEST(ECSClientUtilsTests, CreateServerUrl_EmptyClientVersion)
 {
-    const std::string serverUrl = "https://s2s.config.skype.com/config/v1";
+    const std::string serverUrl = "https://this.is.a.fake.endpoint.com/config/v1";
     const std::string clientName = "ATM";
     const std::string clientVersion = "";
     const auto ret = CreateServerUrl(serverUrl, clientName, clientVersion);
-    ASSERT_EQ(ret, "https://s2s.config.skype.com/config/v1/ATM");
+    ASSERT_EQ(ret, "https://this.is.a.fake.endpoint.com/config/v1/ATM");
 }
 #endif

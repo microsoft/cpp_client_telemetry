@@ -14,21 +14,20 @@ TEST(ECSConfigCacheTests, SaveConfig)
 {
     const std::string storagePath = "storagePath";
     const std::string requestName = "requestName";
-    auto configCache = new ECSConfigCache(storagePath);
+    auto configCache = std::make_unique<ECSConfigCache>(storagePath);
     ECSConfig config;
     config.requestName = requestName;
     config.etag = "etag";
     auto addedConfig = configCache->AddConfig(config);
     ASSERT_EQ(addedConfig->etag, configCache->GetConfigByRequestName(requestName)->etag);
     ASSERT_EQ(true, configCache->SaveConfig(config));
-    delete configCache;
 }
 
 TEST(ECSConfigCacheTests, LoadConfig)
 {
     const std::string storagePath = "storagePath";
     const std::string requestName = "requestName";
-    auto configCache = new ECSConfigCache(storagePath);
+    auto configCache = std::make_unique<ECSConfigCache>(storagePath);
     ECSConfig config;
     config.requestName = requestName;
     config.etag = "etag";
@@ -37,7 +36,6 @@ TEST(ECSConfigCacheTests, LoadConfig)
     ASSERT_EQ(true, configCache->SaveConfig(config));
 
     configCache->LoadConfig();
-    delete configCache;
 }
 
 #endif
