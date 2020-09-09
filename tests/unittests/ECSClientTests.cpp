@@ -37,18 +37,6 @@ public:
     }
 };
 
-
-TEST(ECSClientTests, Construct_OK)
-{
-    new ECSClient();
-}
-
-TEST(ECSClientTests, Deconstruct_OK)
-{
-    auto client = new ECSClient();
-    delete client;
-}
-
 TEST(ECSClientTests, CreateInstance_OK_DestroyInstance_OK)
 {
     auto client = IECSClient::CreateInstance();
@@ -71,7 +59,7 @@ TEST(ECSClientTests, Start_Failed_NotInitialized)
 
 TEST(ECSClientTests, Start_Failed_AlreadyStarted)
 {
-    auto client = new ECSClient();
+    auto client = std::make_shared<ECSClient>();
     auto config = ECSClientConfiguration();
     config.clientName = "Test";
     config.clientVersion = "1.0";
