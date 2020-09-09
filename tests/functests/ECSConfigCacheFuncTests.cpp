@@ -10,7 +10,7 @@ using namespace testing;
 using namespace MAT;
 using namespace Microsoft::Applications::Experimentation::ECS;
 
-TEST(ECSConfigCacheTests, SaveConfig)
+TEST(ECSConfigCacheFuncTests, SaveConfig)
 {
     const std::string storagePath = "storagePath";
     const std::string requestName = "requestName";
@@ -23,7 +23,7 @@ TEST(ECSConfigCacheTests, SaveConfig)
     ASSERT_EQ(true, configCache->SaveConfig(config));
 }
 
-TEST(ECSConfigCacheTests, LoadConfig)
+TEST(ECSConfigCacheFuncTests, LoadConfig)
 {
     const std::string storagePath = "storagePath";
     const std::string requestName = "requestName";
