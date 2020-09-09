@@ -58,6 +58,7 @@
     <EmbeddedNativeLibrary Include="lib\x86_64\libmaesdk.so" />
     <EmbeddedNativeLibrary Include="lib\x86\libc++_shared.so" />
     <EmbeddedNativeLibrary Include="lib\x86\libmaesdk.so" />
+    <LibraryProjectZip Include="Jars\maesdk-*.aar" />
   </ItemGroup>
   <ItemGroup>
     <TransformFile Include="Transforms\Metadata.xml" />
@@ -68,9 +69,6 @@
     <PackageReference Include="Xamarin.AndroidX.Room.Runtime">
       <Version>2.2.5.2</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <LibraryProjectZip Include="Jars\maesdk-release.aar" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.Bindings.targets" />
   <Target Name="AfterBuild">
