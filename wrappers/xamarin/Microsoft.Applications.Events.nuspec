@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0"?>
 <package>
     <metadata>
-        <id>Microsoft.Applications.Events</id>
-        <version>0.1.1.0</version>
+        <id>Microsoft.Applications.Events.Xamarin</id>
+        <version>3.4.253.1</version>
         <authors>Microsoft - One Observability</authors>
         <description>1DS C++ SDK Xamarin Bindings</description>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
