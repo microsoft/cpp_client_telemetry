@@ -1,0 +1,30 @@
+name: SDK with exp - C/C++ CI on Linux and Mac
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        config: [release, debug]
+        os: [ubuntu-latest, macOS-latest]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Test ${{ matrix.os }} ${{ matrix.config }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
+      run: ./build.sh ${{ matrix.config }} CUSTOM_BUILD_FLAGS="-DHAVE_MAT_EXP -DHAVE_MAT_FIFOSTORAGE" && ./out/tests/functests/FuncTests && ./out/tests/unittests/UnitTests
