@@ -634,6 +634,7 @@ namespace MAT_NS_BEGIN {
                 if (initializeDatabase()) {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
+                    m_isOpened = true;
                     return true;
                 }
                 m_db->shutdown();
@@ -655,8 +656,7 @@ namespace MAT_NS_BEGIN {
             std::ostringstream tempPragma;
             tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
             SqliteStatement(*m_db, tempPragma.str().c_str()).select();
-            const char * result = sqlite3_temp_directory;
-            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", sqlite3_temp_directory);
         }
 
         int openedDbVersion;

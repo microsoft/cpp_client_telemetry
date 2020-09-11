@@ -52,6 +52,9 @@
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
