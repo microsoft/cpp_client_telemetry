@@ -49,7 +49,7 @@ namespace MAT_NS_BEGIN
         Location = 12,                              // Data appears to specify a location in the real world
         InScopeIdentifier = 13,                     // EUPI. Any authenticated identifier of the same types used for DSR.
         InScopeIdentifierActiveUser = 14,           // The current users EUPI for DSR
-        IPAddress = 15,                             // Machine’s current IP address
+        IpAddress = 15,                             // Machine’s current IP address
         ExternalEmailAddress = 16,                  // SMTP not ending in <span>microsoft.com</span>
         UserName = 17,                              // Current user’s name or part of it.
         UserAlias = 18,                             // Current user’s alias
@@ -89,12 +89,12 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Collection of Machine ID such as SQM_ID, Client_ID, etc
         /// </summary>
-        std::vector<std::string> MachineID;
+        std::vector<std::string> MachineIds;
 
         /// <summary>
         /// IP Addresses for local network ports such as IPv4, IPv6, etc.
         /// </summary>
-        std::vector<std::string> IPAddress;
+        std::vector<std::string> IpAddresses;
     } CommonDataContexts;
 
     /// <summary>
