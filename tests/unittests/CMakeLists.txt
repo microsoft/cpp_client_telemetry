@@ -42,6 +42,9 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ECSClientTests.cpp
+  ECSClientUtilsTests.cpp
+  ECSConfigCacheTests.cpp
 )
 
 if (APPLE)
