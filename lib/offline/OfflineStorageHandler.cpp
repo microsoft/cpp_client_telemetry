@@ -357,6 +357,22 @@ namespace MAT_NS_BEGIN {
     }
 
     /**
+     * Delete all records locally".
+     */
+
+    void OfflineStorageHandler::DeleteAllRecords() 
+    {
+        for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
+        {
+            if (storagePtr != nullptr)
+            {
+                storagePtr->DeleteAllRecords();
+            }
+        }
+
+    }
+
+    /**
      * Perform scrub of both memory queue and offline storage.
      */
     /// <summary>

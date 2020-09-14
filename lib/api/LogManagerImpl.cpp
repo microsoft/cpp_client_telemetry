@@ -755,5 +755,10 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
+    void LogManagerImpl::DeleteData()
+    {
+        m_offlineStorage->DeleteAllRecords();
+    }
+
 }
 MAT_NS_END
