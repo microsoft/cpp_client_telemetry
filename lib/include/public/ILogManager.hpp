@@ -370,6 +370,12 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
+
+        /// <summary>
+        /// Performs the client-side  local cleanup.
+        /// </summary>
+        virtual void DeleteData() = 0;
+
     };
 
 }

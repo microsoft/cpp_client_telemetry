@@ -316,6 +316,9 @@ namespace MAT_NS_BEGIN {
 
         virtual void ReleaseAllRecords() {};
 
+        virtual void DeleteAllRecords() = 0;
+
+
     };
 
 
