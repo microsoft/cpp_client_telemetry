@@ -171,6 +171,12 @@ namespace MAT_NS_BEGIN
         s_context = env->NewGlobalRef(appContext);
     }
 
+    void OfflineStorage_Room::DeleteAllRecords()
+    {
+        MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
+    }
+
+
     /**
      * Delete records matching a set of WHERE equality conditions
      * 

@@ -376,6 +376,13 @@ namespace MAT_NS_BEGIN {
         return records;
     }
 
+    void OfflineStorage_SQLite::DeleteAllRecords()
+    {
+        std::string sql = "DELETE FROM "  TABLE_NAME_EVENTS ;
+        Execute(sql);
+
+    }
+
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
         UNREFERENCED_PARAMETER(whereFilter);
@@ -425,7 +432,7 @@ namespace MAT_NS_BEGIN {
                 }
                 return clause;
             };
-            std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE ";
+            std::string sql = "DELETE FROM "  TABLE_NAME_EVENTS  " WHERE ";
             Execute(sql + formatter(whereFilter));
         }
     }

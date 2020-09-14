@@ -70,7 +70,8 @@ namespace MAT_NS_BEGIN
         bool IsLastReadFromMemory() override;
         unsigned LastReadRecordCount() override;
 
-        void DeleteRecords(const std::map<std::string, std::string>& whereFilter) override;
+        void DeleteAllRecords() override;
+        void DeleteRecords(const std::map<std::string, std::string>& whereFilter = {}) override;
         void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders, bool&) override;
         void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders, bool&) override;
 
