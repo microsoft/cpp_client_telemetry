@@ -1,5 +1,4 @@
 ﻿namespace Microsoft.Applications.Events
 {
-    public abstract class AppLifecycleState
-	{ }
+    public abstract class AppLifecycleState {}
 }

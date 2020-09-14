@@ -1,7 +1,4 @@
 ﻿namespace Microsoft.Applications.Events
 {
-    public interface ISemanticContext
-    {
-
-    }
+    public interface ISemanticContext {}
 }

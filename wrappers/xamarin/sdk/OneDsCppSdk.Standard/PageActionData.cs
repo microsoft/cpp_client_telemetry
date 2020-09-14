@@ -1,5 +1,4 @@
 ﻿namespace Microsoft.Applications.Events
 {
-    public abstract class PageActionData
-	{ }
+    public abstract class PageActionData {}
 }
