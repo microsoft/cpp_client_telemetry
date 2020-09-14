@@ -241,6 +241,11 @@ namespace MAT_NS_BEGIN {
         virtual unsigned LastReadRecordCount() = 0;
 
         /// <summary>
+        /// Delete all records from storage
+        /// </summary>
+        virtual void DeleteAllRecords() = 0;
+
+        /// <summary>
         /// Bulk delete records using "where" clause.
         /// Specify condition using key-value pairs in the map.
         /// </summary>
@@ -332,9 +337,6 @@ namespace MAT_NS_BEGIN {
         virtual bool ResizeDb() = 0;
 
         virtual void ReleaseAllRecords() {};
-
-        virtual void DeleteAllRecords() = 0;
-
 
     };
 
