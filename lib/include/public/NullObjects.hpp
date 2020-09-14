@@ -376,6 +376,8 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
+        virtual void DeleteData() noexcept override {};
+
         private:
             NullDataViewerCollection nullDataViewerCollection;
             NullEventFilterCollection m_filters;

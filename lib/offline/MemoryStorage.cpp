@@ -194,6 +194,27 @@ namespace MAT_NS_BEGIN {
         return static_cast<unsigned>(m_lastReadCount);
     }
 
+    void MemoryStorage::DeleteAllRecords()
+    {
+        {
+            LOCKGUARD(m_reserved_lock);
+            if (m_reserved_records.size())
+            {
+                m_reserved_records.clear();
+            }
+        }
+        {
+            LOCKGUARD(m_records_lock);
+            for (unsigned latency = EventLatency_Off; (latency <= EventLatency_Max); latency++)
+            {
+                auto& records = m_records[latency];
+                if (records.size()) {
+                    records.clear();
+                }
+            }
+        }
+    }
+
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
         auto matcher = [&](const StorageRecord &r, const std::map<std::string, std::string> & whereFilter)
