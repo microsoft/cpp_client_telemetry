@@ -12,7 +12,11 @@ This means that the wrappers and bindings create the following layers:
 
 Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo. You will be prompted to enter your credentials to clone. Use your MSFT GitHub username and GitHub token.
 
-## 2. Build the Xamarin bindings
+## 2. Pre-requisites
+
+Add an environment variable called ANDROID_SDK_ROOT set to the path of the Android SDK
+
+## 3. Build the Xamarin bindings
 
 Build the C++ library and Xamaring bindings for Android and iOS with the following command
 
@@ -28,7 +32,7 @@ Build the C++ library and Xamaring bindings for Android and iOS with the followi
 
 For additional on additional options for building for database implementation options for Android, refer to [cpp-start-android.md](docs\cpp-start-android.md#2-build-all)
 
-## 3. Integrate the SDK into your Xamarin project
+## 4. Integrate the SDK into your Xamarin project
 
 ### Using SDK directly in Xamarin.Android or Xamarin.iOS project
 
@@ -64,7 +68,7 @@ public override bool FinishedLaunching(UIApplication application, NSDictionary l
 }
 ```
 
-## 4. Logging an event
+## 5. Logging an event
 
 Include the SDK's namespace
 

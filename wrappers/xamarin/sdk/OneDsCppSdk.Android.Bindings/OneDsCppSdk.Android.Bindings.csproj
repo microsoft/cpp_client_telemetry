@@ -48,8 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Jars\AboutJars.txt" />
-    <None Include="Additions\AboutAdditions.txt" />
     <EmbeddedNativeLibrary Include="lib\arm64-v8a\libc++_shared.so" />
     <EmbeddedNativeLibrary Include="lib\arm64-v8a\libmaesdk.so" />
     <EmbeddedNativeLibrary Include="lib\armeabi-v7a\libc++_shared.so" />

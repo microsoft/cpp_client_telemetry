@@ -12,12 +12,12 @@ using Foundation;
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("NativeLibrary")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("1DS C++ SDK Xamarin.iOS Bindings")]
+[assembly: AssemblyDescription("iOS Xamarin bindings for the 1DS C++ SDK")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("NativeLibrary")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("Copyright (c) 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
