@@ -57,6 +57,8 @@ namespace MAT_NS_BEGIN {
 
         virtual std::string GetSetting(std::string const& name) override;
 
+        virtual bool DeleteSetting(std::string const& name) override;
+
         virtual size_t GetSize() override;
 
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;

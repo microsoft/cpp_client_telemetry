@@ -21,9 +21,22 @@ namespace MAT_NS_BEGIN
         if (m_storageType == SessionStorageType::FileStore)
         {
             CreateLogSessionDataFromFile();
-        } else 
+        } 
+        else 
         {
             CreateLogSessionDataFromDB();
+        }
+    }
+
+    void LogSessionDataProvider::DeleteLogSessionData()
+    {
+        if (m_storageType == SessionStorageType::FileStore)
+        {
+            DeleteLogSessionDataFromFile();
+        } 
+        else
+        {
+            DeleteLogSessionDataFromDB();
         }
     }
 
@@ -54,6 +67,31 @@ namespace MAT_NS_BEGIN
             }
         }
         m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
+    }
+
+    void LogSessionDataProvider::DeleteLogSessionDataFromDB()
+    {
+        if (nullptr == m_offlineStorage) {
+            LOG_WARN(" offline storage not available. Session data won't be deleted");
+            return ;
+        }
+        if (!m_offlineStorage->DeleteSetting(sessionFirstLaunchTimeName))
+        {
+            LOG_WARN("Unable to delete session analytics from DB for %d", sessionFirstLaunchTimeName);
+        }
+        if (!m_offlineStorage->DeleteSetting(sessionSdkUidName))
+        {
+            LOG_WARN("Unable to delete session analytics from DB for %d", sessionSdkUidName);
+        }
+    }
+
+    void LogSessionDataProvider::DeleteLogSessionDataFromFile()
+    {
+        std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
+        if (!sessionPath.empty() && MAT::FileExists(sessionPath.c_str()))
+        {
+            MAT::FileDelete(sessionPath.c_str());
+        }
     }
 
     void LogSessionDataProvider::CreateLogSessionDataFromFile()
