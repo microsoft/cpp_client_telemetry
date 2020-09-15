@@ -40,10 +40,8 @@ namespace MAT_NS_BEGIN
         FieldNameImpliesLocation = 3,               // Field name sounds like location data
         InternalEmailAddress = 4,                   // SMTP ending with <span>microsoft.com</span>
         PIDKey = 5,                                 // Product key
-        OutOfScopeIdentifierTelemetryClientId = 6,  // Client Id for OXO telemetry from the registry
-        OutOfScopeIdentifierSusClientId = 7,        // Sus client guid from the registry <sup>1</sup>
-        OutOfScopeIdentifierSqmId = 8,              // SQM guid from the registry <sup>1</sup>
-        OutOfScopeIdentifierC2RInstallId = 9,       // C2R install guid from the registry <sup>1</sup>
+        OutOfScopeIdentifier = 6,                   // Client Id for OXO telemetry from the registry
+        /*Skipping 7, 8, 9 as they're used internally in Office for Office-specific values.*/
         MachineName = 10,                           // Machine name
         UserDomain = 11,                            // User/Machine domain
         Location = 12,                              // Data appears to specify a location in the real world
@@ -67,16 +65,6 @@ namespace MAT_NS_BEGIN
     typedef struct CommonDataContexts
     {
         /// <summary>
-        /// Unique UserName such as the log-in name
-        /// </summary>
-        std::string UserName;
-
-        /// <summary>
-        /// Unique User Alias, if different than UserName
-        /// </summary>
-        std::string UserAlias;
-
-        /// <summary>
         /// Domain Name for the current machine
         /// </summary>
         std::string DomainName;
@@ -87,14 +75,34 @@ namespace MAT_NS_BEGIN
         std::string MachineName;
 
         /// <summary>
-        /// Collection of Machine ID such as SQM_ID, Client_ID, etc
+        /// Unique UserName such as the log-in name
         /// </summary>
-        std::vector<std::string> MachineIds;
+        std::string UserName;
+
+        /// <summary>
+        /// Unique User Alias, if different than UserName
+        /// </summary>
+        std::string UserAlias;
 
         /// <summary>
         /// IP Addresses for local network ports such as IPv4, IPv6, etc.
         /// </summary>
         std::vector<std::string> IpAddresses;
+
+        /// <summary>
+        /// Collection of Language identifiers
+        /// </summary>
+        std::vector<std::string> LanguageIdentifiers;
+
+        /// <summary>
+        /// Collection of Machine ID such as Machine Name, Motherboard ID, MAC Address, etc.
+        /// </summary>
+        std::vector<std::string> MachineIds;
+
+        /// <summary>
+        /// Collection of OutOfScope Identifiers such as SQM_ID, Client_ID, etc.
+        /// </summary>
+        std::vector<std::string> OutOfScopeIdentifiers;
     } CommonDataContexts;
 
     /// <summary>
