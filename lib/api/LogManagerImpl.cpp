@@ -757,7 +757,15 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::DeleteData()
     {
-        m_offlineStorage->DeleteAllRecords();
+        // cleanup offline storage
+        if (m_offlineStorage) {
+            m_offlineStorage->DeleteAllRecords();
+        }
+        //cleanup log session ( UUID ).
+        if (m_logSessionDataProvider) 
+        {
+            m_logSessionDataProvider->DeleteLogSessionData();
+        }
     }
 
 }
