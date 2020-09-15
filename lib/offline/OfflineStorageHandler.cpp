@@ -507,6 +507,15 @@ namespace MAT_NS_BEGIN {
         return "";
     }
 
+    bool OfflineStorageHandler::DeleteSetting(std::string const& name)
+    {
+        if (nullptr != m_offlineStorageDisk)
+        {
+            return m_offlineStorageDisk->DeleteSetting(name);
+        }
+        return false;
+    }
+
     void OfflineStorageHandler::OnStorageOpened(std::string const& type)
     {
         m_observer->OnStorageOpened(type);
