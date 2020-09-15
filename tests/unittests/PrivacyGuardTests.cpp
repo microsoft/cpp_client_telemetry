@@ -19,6 +19,7 @@
 #include "NullObjects.hpp"
 
 #include <functional>
+#include <algorithm>
 
 using namespace testing;
 using namespace MAT;
@@ -84,36 +85,22 @@ class PrivacyGuardTests : public ::testing::Test
         const std::string& domainName,
         const std::string& machineName)
     {
-        auto cdc = std::make_unique<CommonDataContexts>();
+        auto cdc = std::make_unique<CommonDataContexts>(GenerateTestDataContexts());
         cdc->UserName = userName;
         cdc->UserAlias = userAlias;
         cdc->DomainName = domainName;
         cdc->MachineName = machineName;
-        cdc->IpAddresses.push_back("10.0.1.1");
-        cdc->IpAddresses.push_back(c_testIPv4);
-        cdc->IpAddresses.push_back(c_testIPv6);
-        cdc->MachineIds.push_back(c_c2rInstallId);
-        cdc->MachineIds.push_back(c_clientId);
-        cdc->MachineIds.push_back(c_sqmId);
-        cdc->MachineIds.push_back(c_susClientId);
 
         return std::make_shared<TestPrivacyGuard>(testLogger, std::move(cdc));
     }
 
     static std::shared_ptr<TestPrivacyGuard> GetPrivacyGuardForNumericTest(std::shared_ptr<ILogger> testLogger)
     {
-        auto cdc = std::make_unique<CommonDataContexts>();
+        auto cdc = std::make_unique<CommonDataContexts>(GenerateTestDataContexts());
         cdc->UserName = "";
         cdc->UserAlias = c_someNumbers;
         cdc->DomainName = c_someNumbers;
         cdc->MachineName = c_someNumbers;
-        cdc->IpAddresses.push_back("10.0.1.1");
-        cdc->IpAddresses.push_back(c_testIPv4);
-        cdc->IpAddresses.push_back(c_testIPv6);
-        cdc->MachineIds.push_back(c_c2rInstallId);
-        cdc->MachineIds.push_back(c_clientId);
-        cdc->MachineIds.push_back(c_sqmId);
-        cdc->MachineIds.push_back(c_susClientId);
 
         return std::make_shared<TestPrivacyGuard>(testLogger, std::move(cdc));
     }
@@ -128,10 +115,12 @@ class PrivacyGuardTests : public ::testing::Test
         cdc.IpAddresses.push_back("10.0.1.1");
         cdc.IpAddresses.push_back(c_testIPv4);
         cdc.IpAddresses.push_back(c_testIPv6);
+        cdc.LanguageIdentifiers.push_back(c_languageId);
+        cdc.LanguageIdentifiers.push_back(c_languageName);
         cdc.MachineIds.push_back(c_c2rInstallId);
-        cdc.MachineIds.push_back(c_clientId);
-        cdc.MachineIds.push_back(c_sqmId);
-        cdc.MachineIds.push_back(c_susClientId);
+        cdc.OutOfScopeIdentifiers.push_back(c_clientId);
+        cdc.OutOfScopeIdentifiers.push_back(c_sqmId);
+        cdc.OutOfScopeIdentifiers.push_back(c_susClientId);
         return cdc;
     }
 
@@ -161,6 +150,38 @@ class PrivacyGuardTests : public ::testing::Test
         return output;
     }
 
+    static std::string GenerateIdentifierVariant(const std::string& input, bool uppercase, bool removeDashes)
+    {
+        std::string value;
+
+        if (input.length() >= m_maxValueLength)
+            return input;
+        if (uppercase)
+        {
+            value = toUpper(input);
+        } else
+        {
+            value = input;
+        }
+
+        if (removeDashes)
+        {
+            value.erase(std::remove(value.begin(), value.end(), '-'), value.end());
+        }
+        return value;
+    }
+
+    static void ValidateOutOfScopeIdentifierIsFlagged(const std::shared_ptr<TestPrivacyGuard>& privacyGuardTestInstance, const std::string& identifier)
+    {
+        ASSERT_TRUE(identifier.length() < m_maxValueLength);
+        ASSERT_TRUE(IsExpectedDataConcern(privacyGuardTestInstance, identifier, DataConcernType::OutOfScopeIdentifier));
+
+        //Should find case insensitive and with or without dashes in GUIDs
+        ASSERT_TRUE(IsExpectedDataConcern(privacyGuardTestInstance, GenerateIdentifierVariant(identifier, true, false), DataConcernType::OutOfScopeIdentifier));
+        ASSERT_TRUE(IsExpectedDataConcern(privacyGuardTestInstance, GenerateIdentifierVariant(identifier, false, true), DataConcernType::OutOfScopeIdentifier));
+        ASSERT_TRUE(IsExpectedDataConcern(privacyGuardTestInstance, GenerateIdentifierVariant(identifier, true, true), DataConcernType::OutOfScopeIdentifier));
+    }
+
    protected:
     virtual void SetUp() override
     {
@@ -169,6 +190,9 @@ class PrivacyGuardTests : public ::testing::Test
     virtual void TearDown() override
     {
     }
+
+    private:
+    static const size_t m_maxValueLength{256};
 };
 
 TEST(PrivacyGuardTests, Constructor_LoggerInstanceNotProvided_LoggerInstanceThrowsInvalidArgument)
@@ -514,6 +538,16 @@ TEST(PrivacyGuardTests, GetAllConcerns_DemographicsMatching)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "The app is set to EN-US", DataConcernType::DemographicInfoLanguage));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Made in the United States", DataConcernType::DemographicInfoCountryRegion));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "The ancient tablet States: United the lost 8 pieces of sandwitch to achieve ultimate lunch!"));
+}
+
+TEST(PrivacyGuardTests, GetAllConcerns_OutOfScopeIdentifiersMatching)
+{
+    const auto& testPrivacyGuard = PrivacyGuardTests::GetPrivacyGuardForTest(std::make_shared<MockLogger>());
+    PrivacyGuardTests::ValidateOutOfScopeIdentifierIsFlagged(testPrivacyGuard, c_clientId);
+    PrivacyGuardTests::ValidateOutOfScopeIdentifierIsFlagged(testPrivacyGuard, c_sqmId);
+    PrivacyGuardTests::ValidateOutOfScopeIdentifierIsFlagged(testPrivacyGuard, c_susClientId);
+
+    ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "cbfd6749-165c-41c8-a85e-b9c8b8c1f9ce"));
 }
 
 #endif
