@@ -628,6 +628,32 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
+    bool OfflineStorage_SQLite::DeleteSetting(std::string const& name)
+    {
+        if (name.empty()) {
+            LOG_ERROR("Failed to delete setting \"%s\": Name cannot be empty", name.c_str());
+            return false;
+        }
+        if (!isOpen()) {
+            LOG_ERROR("Oddly closed");
+            return false;
+        }
+#ifdef ENABLE_LOCKING
+        DbTransaction transaction(m_db.get());
+        if (!transaction.locked)
+        {
+            LOG_WARN("Failed to delete setting \"%s\"", name.c_str());
+            return false;
+        }
+#endif
+        if(!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
+        {
+            LOG_ERROR("Failed to delete setting \"%s\": Database error occurred, recreating database", name.c_str());
+            return false;
+        }
+        return true;
+    }
+
 
     bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     {
