@@ -180,6 +180,25 @@ TEST(MemoryStorageTests, GetRecordsDeletesRecords)
     EXPECT_THAT(records.size(), num_iterations * 4); // 4 latencies
 }
 
+TEST(MemoryStorageTests, DeleteAllRecords)
+{
+    MemoryStorage storage(testLogManager, testConfig);
+
+    std::vector<StorageRecordId> ids;
+
+    // Add some events to storage
+    auto total_db_size = addEvents(storage);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+
+    // Retrieve those into records
+    storage.DeleteAllRecords();
+
+    // Storage size is "zero" because all records are fetched
+    EXPECT_THAT(storage.GetSize(), 0);
+    EXPECT_THAT(storage.GetRecordCount(), 0);
+    EXPECT_THAT(storage.GetReservedCount(), 0);
+}
+
 TEST(MemoryStorageTests, ReleaseRecords)
 {
     MemoryStorage storage(testLogManager, testConfig);
