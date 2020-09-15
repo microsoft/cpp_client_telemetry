@@ -212,7 +212,10 @@ namespace MAT_NS_BEGIN {
                     records.clear();
                 }
             }
+            m_size = 0;
+            m_lastReadCount = 0;
         }
+
     }
 
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
