@@ -302,6 +302,16 @@ namespace MAT_NS_BEGIN {
         virtual std::string GetSetting(std::string const& name) = 0;
 
         /// <summary>
+        /// Delete value of an auxiliary persistent configuration value
+        /// </summary>
+        /// <remarks>
+        /// If a setting with the specified name does not exist, success is returned.
+        /// </remarks>
+        /// <param name="name">Name of the setting to retrieve</param>
+        /// <returns>Status of operation</returns>
+        virtual bool DeleteSetting(std::string const& name) = 0;
+
+        /// <summary>
         /// Get size of the DB
         /// </summary>
         /// <remarks>

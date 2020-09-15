@@ -426,6 +426,19 @@ namespace MAT_NS_BEGIN {
     }
     
     /// <summary>
+    /// Deleting settings from RAM storage is not supported
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    bool MemoryStorage::DeleteSetting(std::string const & name)
+    {
+        UNREFERENCED_PARAMETER(name);
+
+        LOG_WARN("Not implemented!");
+        return false;
+    }
+    
+    /// <summary>
     /// Get size of the ram DB excluding reserved (in-flight) records.
     /// </summary>
     /// <returns>

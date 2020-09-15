@@ -171,11 +171,15 @@ namespace MAT_NS_BEGIN
         s_context = env->NewGlobalRef(appContext);
     }
 
+    /**
+     * Delete all records 
+     *
+     * Not Implemented 
+     */
     void OfflineStorage_Room::DeleteAllRecords()
     {
         MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
     }
-
 
     /**
      * Delete records matching a set of WHERE equality conditions
@@ -830,6 +834,7 @@ namespace MAT_NS_BEGIN
         }
         return result;
     }
+
 
     /**
      * @return The total size of the database in bytes
