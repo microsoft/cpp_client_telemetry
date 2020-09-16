@@ -105,36 +105,16 @@ TEST(DataViewerCollectionTests, RegisterViewer_DuplicateDataViewerRegistered_Thr
     TestDataViewerCollection dataViewerCollection { };
     ASSERT_NO_THROW(dataViewerCollection.RegisterViewer(viewer));
 
-    // TODO: [MG] - breaks on Mac
-    // UnitTests(50918,0x10751a5c0) malloc: can't allocate region
-    // *** mach_vm_map(size=18446744073709502464) failed (error code=3)
-    // UnitTests(50918,0x10751a5c0) malloc: *** set a breakpoint in malloc_error_break to debug
-    // /build/cpp_client_telemetry/tests/unittests/DataViewerCollectionTests.cpp:95: Failure
-    // Expected: dataViewerCollection.RegisterViewer(otherViewer) throws an exception of type std::invalid_argument.
     std::shared_ptr<IDataViewer> otherViewer = std::make_shared<MockIDataViewer>("sharedName", /*isTransmissionEnabled*/ false);
     CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection, &otherViewer]() { dataViewerCollection.RegisterViewer(otherViewer); });
 }
 
-// TODO: [MG] - this test is broken on Mac:
-// UnitTests(50918,0x10751a5c0) malloc: can't allocate region
-// *** mach_vm_map(size=18446744073709506560) failed (error code=3)
-// UnitTests(50918,0x10751a5c0) malloc: *** set a breakpoint in malloc_error_break to debug
-// /build/cpp_client_telemetry/tests/unittests/DataViewerCollectionTests.cpp:107: Failure
-// Expected: dataViewerCollection.UnregisterViewer("NotRegisteredViewer") throws an exception of type std::invalid_argument.
-//   Actual: it throws a different type.
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNullPtr_ThrowsInvalidArgumentException)
 {
     TestDataViewerCollection dataViewerCollection { };
     CheckForExceptionOrAbort<std::invalid_argument>([&dataViewerCollection]() { dataViewerCollection.UnregisterViewer(nullptr); });
 }
 
-// TODO: [MG] - this test is broken on Mac:
-// UnitTests(51202,0x1076055c0) malloc: can't allocate region
-// *** mach_vm_map(size=18446744073709506560) failed (error code=3)
-// UnitTests(51202,0x1076055c0) malloc: *** set a breakpoint in malloc_error_break to debug
-// /build/cpp_client_telemetry/tests/unittests/DataViewerCollectionTests.cpp:125: Failure
-// Expected: dataViewerCollection.UnregisterViewer("NotRegisteredViewer") throws an exception of type std::invalid_argument.
-//  Actual: it throws a different type.
 TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsNotRegistered_ThrowsInvalidArgumentException)
 {
     TestDataViewerCollection dataViewerCollection { };
