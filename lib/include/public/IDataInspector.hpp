@@ -18,7 +18,6 @@
 
 #include "EventProperty.hpp"
 #include "IDecorator.hpp"
-#include "EventProperty.hpp"
 #include "Version.hpp"
 #include "ctmacros.hpp"
 #include <functional>
@@ -32,31 +31,30 @@ namespace MAT_NS_BEGIN
     /// Enums identifying applicable Data Concerns
     /// Source: https://aka.ms/privacyguard/issuetypes
     /// </summary>
-    enum class DataConcernType : uint16_t
+    enum class DataConcernType
     {
-        None = 0,                                   // Unused
-        DemographicInfoLanguage = 1,                // The users language ID. Example: En-Us
-        DemographicInfoCountryRegion = 2,           // Country/region
-        FieldNameImpliesLocation = 3,               // Field name sounds like location data
-        InternalEmailAddress = 4,                   // SMTP ending with <span>microsoft.com</span>
-        PIDKey = 5,                                 // Product key
-        OutOfScopeIdentifier = 6,                   // Client Id for OXO telemetry from the registry
-        /*Skipping 7, 8, 9 as they're used internally in Office for Office-specific values.*/
-        MachineName = 10,                           // Machine name
-        UserDomain = 11,                            // User/Machine domain
-        Location = 12,                              // Data appears to specify a location in the real world
-        InScopeIdentifier = 13,                     // EUPI. Any authenticated identifier of the same types used for DSR.
-        InScopeIdentifierActiveUser = 14,           // The current users EUPI for DSR
-        IpAddress = 15,                             // Machine’s current IP address
-        ExternalEmailAddress = 16,                  // SMTP not ending in <span>microsoft.com</span>
-        UserName = 17,                              // Current user’s name or part of it.
-        UserAlias = 18,                             // Current user’s alias
-        Directory = 19,                             // Any directory or file share
-        Url = 20,                                   // Any URL
-        FileNameOrExtension = 21,                   // A file extension from the reportable list of extensions (ignores code files)
-        Content = 22,                               // Formatted text: HTML, MIME, RTF, Xml, etc.
-        FileSharingUrl = 23,                        // A URL referencing a common file-sharing site or service.
-        Security = 24,                              // A URL containing parameters “access_token”, “password”, etc.
+        None,                          // Unused
+        DemographicInfoLanguage,       // The users language ID. Example: En-Us
+        DemographicInfoCountryRegion,  // Country/region
+        FieldNameImpliesLocation,      // Field name sounds like location data
+        InternalEmailAddress,          // SMTP ending with <span>microsoft.com</span>
+        PIDKey,                        // Product key
+        OutOfScopeIdentifier,          // Client Id for OXO telemetry from the registry
+        MachineName,                   // Machine name
+        UserDomain,                    // User/Machine domain
+        Location,                      // Data appears to specify a location in the real world
+        InScopeIdentifier,             // EUPI. Any authenticated identifier of the same types used for DSR.
+        InScopeIdentifierActiveUser,   // The current users EUPI for DSR
+        IpAddress,                     // Machine’s current IP address
+        ExternalEmailAddress,          // SMTP not ending in <span>microsoft.com</span>
+        UserName,                      // Current user’s name or part of it.
+        UserAlias,                     // Current user’s alias
+        Directory,                     // Any directory or file share
+        Url,                           // Any URL
+        FileNameOrExtension,           // A file extension from the reportable list of extensions (ignores code files)
+        Content,                       // Formatted text: HTML, MIME, RTF, Xml, etc.
+        FileSharingUrl,                // A URL referencing a common file-sharing site or service.
+        Security,                      // A URL containing parameters “access_token”, “password”, etc.
     };
 
     /// <summary>

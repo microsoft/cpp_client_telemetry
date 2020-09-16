@@ -5,6 +5,7 @@
 
 #if defined __has_include
 #if __has_include("modules/PrivacyGuard/PrivacyGuard.hpp")
+#include "modules/PrivacyGuard/FileTypes.hpp"
 #include "modules/PrivacyGuard/PrivacyGuard.hpp"
 #else
 /* Compiling without Data Viewer */
@@ -18,8 +19,8 @@
 #include "ILogger.hpp"
 #include "NullObjects.hpp"
 
-#include <functional>
 #include <algorithm>
+#include <functional>
 
 using namespace testing;
 using namespace MAT;
@@ -51,6 +52,8 @@ class TestPrivacyGuard : public PrivacyGuard
     }
 
     using PrivacyGuard::GetAllPrivacyConcerns;
+    using PrivacyGuard::AddCustomGuidValueInspector;
+    using PrivacyGuard::AddCustomStringValueInspector;
 };
 
 static const std::string c_testEventName{"Office.TestEvent"};
@@ -69,6 +72,9 @@ static const std::string c_languageName{"English (United States)"};
 static const std::string c_testIPv4{"192.168.1.1"};
 static const std::string c_testIPv6{"1234:4578:9abc:def0:bea4:ca4:ca1:d0g"};
 static const std::string c_someNumbers{"12345.6"};
+static const std::string c_someEmail{"test.some@email.com"};
+static const std::string c_someAdalGuid{"197648AE-E0E1-4115-962E-29C97E5CD101_ADAL"};
+static const GUID_t c_someGuid = {0x197648ae, 0xe0e1, 0x4115, {0x96, 0x2e, 0x29, 0xc9, 0x7e, 0x5c, 0xd1, 0x1}};
 
 class PrivacyGuardTests : public ::testing::Test
 {
@@ -141,8 +147,8 @@ class PrivacyGuardTests : public ::testing::Test
 
     static std::string MakeNonIntuitiveString()
     {
-       // There are some functions for fetching Machine names that can generate
-       // weird string such as this. Testing for those as well.
+        // There are some functions for fetching Machine names that can generate
+        // weird string such as this. Testing for those as well.
         std::string output;
         output.resize(10, 'a');
         output[0] = '\0';
@@ -159,7 +165,8 @@ class PrivacyGuardTests : public ::testing::Test
         if (uppercase)
         {
             value = toUpper(input);
-        } else
+        }
+        else
         {
             value = input;
         }
@@ -169,6 +176,32 @@ class PrivacyGuardTests : public ::testing::Test
             value.erase(std::remove(value.begin(), value.end(), '-'), value.end());
         }
         return value;
+    }
+
+    static ::CsProtocol::Record GenerateTestRecord(const std::string& customPartCValue)
+    {
+        ::CsProtocol::Value testStringValue;
+        testStringValue.stringValue = customPartCValue;
+        testStringValue.type = ::CsProtocol::ValueKind::ValueString;
+
+        ::CsProtocol::Value testGuidValue;
+        uint8_t guidBytes[16];
+        c_someGuid.to_bytes(guidBytes);
+        std::vector<uint8_t> guidVector;
+        guidVector.insert(guidVector.begin(), std::begin(guidBytes), std::end(guidBytes));
+        testGuidValue.guidValue.push_back(guidVector);
+        testGuidValue.type = ::CsProtocol::ValueKind::ValueGuid;
+
+        ::CsProtocol::Data data;
+        data.properties.emplace(std::string{"Data.StringField"}, testStringValue);
+        data.properties.emplace(std::string{"Data.GuidField"}, testGuidValue);
+
+        ::CsProtocol::Record testRecord;
+        testRecord.data.push_back(data);
+        testRecord.name = c_testEventName;
+        testRecord.iKey = c_testTargetTenant;
+
+        return testRecord;
     }
 
     static void ValidateOutOfScopeIdentifierIsFlagged(const std::shared_ptr<TestPrivacyGuard>& privacyGuardTestInstance, const std::string& identifier)
@@ -182,16 +215,7 @@ class PrivacyGuardTests : public ::testing::Test
         ASSERT_TRUE(IsExpectedDataConcern(privacyGuardTestInstance, GenerateIdentifierVariant(identifier, true, true), DataConcernType::OutOfScopeIdentifier));
     }
 
-   protected:
-    virtual void SetUp() override
-    {
-    }
-
-    virtual void TearDown() override
-    {
-    }
-
-    private:
+   private:
     static const size_t m_maxValueLength{256};
 };
 
@@ -521,9 +545,9 @@ TEST(PrivacyGuardTests, GetAllConcerns_InScopeIdentifiers)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "adal, liveid, orgid, sspi"));
 
     const char* testGuidsz = "{197648AE-E0E1-4115-962E-29C97E5CD101}";
-    static const GUID testGuid = {0x197648ae, 0xe0e1, 0x4115, {0x96, 0x2e, 0x29, 0xc9, 0x7e, 0x5c, 0xd1, 0x1}};
+    
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "197648AE-E0E1-4115-962E-29C97E5CD101_ADAL", DataConcernType::InScopeIdentifier));
-    auto issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, testGuid, c_testTargetTenant);
+    auto issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_someGuid, c_testTargetTenant);
     auto issueMatch = std::find_if(issues.cbegin(), issues.cend(), [&](const PrivacyConcern& x) {
         return x.DataConcernType == DataConcernType::InScopeIdentifier && x.EventName == c_testEventName && x.FieldName == c_testFieldName && x.FieldValue == testGuidsz;
     });
@@ -548,6 +572,153 @@ TEST(PrivacyGuardTests, GetAllConcerns_OutOfScopeIdentifiersMatching)
     PrivacyGuardTests::ValidateOutOfScopeIdentifierIsFlagged(testPrivacyGuard, c_susClientId);
 
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "cbfd6749-165c-41c8-a85e-b9c8b8c1f9ce"));
+}
+
+TEST(PrivacyGuardTests, GetAllConcerns_CustomStringValueInspector_CalledCorrectly)
+{
+    TestPrivacyGuard pgInstance(std::make_shared<MockLogger>(), nullptr);
+
+    const std::string testValue{"Foo Test Value"};
+    auto customStringValueInspectorCalled = false;
+    auto expectedValue = false;
+    std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)> customStringInspector =
+        [&customStringValueInspectorCalled, &testValue, &expectedValue](const std::string& valueToInspect, const std::string& /*tenantToken*/) noexcept {
+            customStringValueInspectorCalled = true;
+            expectedValue = valueToInspect.compare(testValue) == 0;
+            return DataConcernType::Content;
+        };
+
+    pgInstance.AddCustomStringValueInspector(std::move(customStringInspector));
+    auto concerns = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, testValue, c_testTargetTenant);
+    ASSERT_TRUE(customStringValueInspectorCalled);
+    ASSERT_TRUE(expectedValue);
+    ASSERT_EQ(1, concerns.size());
+    ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
+}
+
+TEST(PrivacyGuardTests, GetAllConcerns_CustomGuidValueInspector_CalledCorrectly)
+{
+    TestPrivacyGuard pgInstance(std::make_shared<MockLogger>(), nullptr);
+
+    auto customGuidValueInspectorCalled = false;
+
+    std::function<DataConcernType(GUID_t valueToInspect, const std::string& tenantToken)> customGuidInspector =
+        [&customGuidValueInspectorCalled](GUID_t /*valueToInspect*/, const std::string& /*tenantToken*/) noexcept {
+            customGuidValueInspectorCalled = true;
+            return DataConcernType::Content;
+        };
+
+    pgInstance.AddCustomGuidValueInspector(std::move(customGuidInspector));
+    auto concerns = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_someGuid, c_testTargetTenant);
+    ASSERT_TRUE(customGuidValueInspectorCalled);
+    ASSERT_EQ(1, concerns.size());
+    ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
+}
+
+TEST(PrivacyGuardTests, FileTypes_IsRegisteredFileType)
+{
+    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".DOCX"));
+    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".PPTX"));
+    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".TXT"));
+    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".XLSX"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".AAA"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".ABC"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".ZYX"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType("TXT"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".Hit_Too_Long_To_Be_A_File_Case"));
+    ASSERT_FALSE(FileTypes::IsRegisteredFileType(""));
+}
+
+TEST(PrivacyGuardTests, FileTypes_FileTypeListIsValid)
+{
+    ASSERT_TRUE(FileTypes::IsFileListValid());
+}
+
+TEST(PrivacyGuardTests, InspectSemanticContext_CheckStringValue_NotifiesIssueCorrectly)
+{
+    auto mockLogger = std::make_shared<MockLogger>();
+    auto logEventCalled = false;
+    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
+        ASSERT_EQ(properties.GetName(), "PrivacyConcern");
+        auto props = properties.GetProperties();
+        auto type = props.find("TypeAsText");
+        ASSERT_NE(type, props.end());
+        ASSERT_EQ(type->second.as_string, PrivacyGuard::DataConcernTypeAsText(DataConcernType::ExternalEmailAddress));
+        logEventCalled = true;
+    };
+    PrivacyGuard pgInstance(mockLogger, nullptr);
+    pgInstance.InspectSemanticContext(c_testFieldName, c_someEmail, true, c_testTargetTenant);
+    ASSERT_TRUE(logEventCalled);
+}
+
+TEST(PrivacyGuardTests, InspectSemanticContext_CheckGuidValue_NotifiesIssueCorrectly)
+{
+    auto mockLogger = std::make_shared<MockLogger>();
+    auto logEventCalled = false;
+    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
+        ASSERT_EQ(properties.GetName(), "PrivacyConcern");
+        auto props = properties.GetProperties();
+        auto type = props.find("TypeAsText");
+        ASSERT_NE(type, props.end());
+        ASSERT_EQ(type->second.as_string, PrivacyGuard::DataConcernTypeAsText(DataConcernType::InScopeIdentifier));
+        logEventCalled = true;
+    };
+    PrivacyGuard pgInstance(mockLogger, nullptr);
+    pgInstance.InspectSemanticContext(c_testFieldName, c_someAdalGuid, true, c_testTargetTenant);
+    ASSERT_TRUE(logEventCalled);
+    logEventCalled = false;
+    pgInstance.InspectSemanticContext(c_testFieldName, c_someGuid, true, c_testTargetTenant);
+    ASSERT_TRUE(logEventCalled);
+}
+
+TEST(PrivacyGuardTests, InspectSemanticContext_IgnoredConcern_DoesNotNotifyIssue)
+{
+    auto mockLogger = std::make_shared<MockLogger>();
+    auto logEventCalled = false;
+    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& /*properties*/) noexcept {
+        logEventCalled = true;
+    };
+    TestPrivacyGuard pgInstance(mockLogger, nullptr);
+
+    std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcern;
+    ignoredConcern.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::InScopeIdentifier));
+
+    pgInstance.AddIgnoredConcern(ignoredConcern);
+    auto results = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_someAdalGuid, c_testTargetTenant);
+    ASSERT_FALSE(logEventCalled);
+    logEventCalled = false;
+    results = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_someAdalGuid, c_testTargetTenant);
+    pgInstance.InspectSemanticContext(c_testFieldName, c_someGuid, true, c_testTargetTenant);
+    ASSERT_FALSE(logEventCalled);
+}
+
+TEST(PrivacyGuardTests, Decorate_InspectStringAndGuidData)
+{
+    auto mockLogger = std::make_shared<MockLogger>();
+    auto logEventCalled = false;
+    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& /*properties*/) noexcept {
+        logEventCalled = true;
+    };
+    PrivacyGuard pgInstance(mockLogger, nullptr);
+
+    auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_someAdalGuid);
+    ASSERT_TRUE(pgInstance.decorate(testRecord));
+    ASSERT_TRUE(logEventCalled);
+}
+
+TEST(PrivacyGuardTests, Decorate_MultipleEventsAddInscopeIdentifier_InspectStringAndGuidData)
+{
+    auto mockLogger = std::make_shared<MockLogger>();
+    auto logEventCalled = false;
+    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& /*properties*/) noexcept {
+        logEventCalled = true;
+    };
+    PrivacyGuard pgInstance(mockLogger, nullptr);
+
+    auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_someAdalGuid);
+    ASSERT_TRUE(pgInstance.decorate(testRecord));
+    ASSERT_TRUE(pgInstance.decorate(testRecord));
+    ASSERT_TRUE(logEventCalled);
 }
 
 #endif
