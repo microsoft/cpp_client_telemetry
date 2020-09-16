@@ -63,6 +63,11 @@ namespace MAT_NS_BEGIN
     typedef struct CommonDataContexts
     {
         /// <summary>
+        /// Default virtual destructor
+        /// </summary>
+        virtual ~CommonDataContexts() = default;
+
+        /// <summary>
         /// Domain Name for the current machine
         /// </summary>
         std::string DomainName;

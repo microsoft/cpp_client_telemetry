@@ -291,7 +291,9 @@ namespace MAT_NS_BEGIN
 
         static size_t GetDeadLoggerCount();
 
-        virtual void InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts) override;
+        virtual void InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications) override;
+
+        virtual void InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts) override;
 
         virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept override;
 

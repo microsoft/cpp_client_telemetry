@@ -376,9 +376,16 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Initialize the PrivacyGuard Data Inspector
         /// </summary>
-        /// <param name="tenantToken">Tenant where any inspection notifications are sent</param>
+        /// <param name="tenantForNotifications">Tenant where any inspection notifications are sent</param>
         /// <param name="commonContexts">Common Data Contexts to inspect for</param>
-        virtual void InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts) = 0;
+        virtual void InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications) = 0;
+
+        /// <summary>
+        /// Initialize the PrivacyGuard Data Inspector
+        /// </summary>
+        /// <param name="tenantForNotifications">Tenant where any inspection notifications are sent</param>
+        /// <param name="commonContexts">Common Data Contexts to inspect for</param>
+        virtual void InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts) = 0;
 
         /// <summary>
         /// Override the current data inspector with the new data inspector.

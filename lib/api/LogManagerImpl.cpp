@@ -789,10 +789,23 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
-    void LogManagerImpl::InitializePrivacyGuardDataInspector(const std::string& tenantToken, std::unique_ptr<CommonDataContexts>&& commonContexts)
+    void LogManagerImpl::InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications)
     {
 #ifdef HAVE_MAT_PRIVACYGUARD
-        m_dataInspector = std::make_unique<PrivacyGuard>(std::shared_ptr<ILogger>(GetLogger(tenantToken)), std::move(commonContexts));
+        m_dataInspector= std::make_unique<PrivacyGuard>(tenantForNotifications);
+#else
+        // To resolve C4100 regarding unreferenced formal parameter
+        if (tenantToken.empty() || commonContexts == nullptr)
+        {
+            return;
+        }
+#endif
+    }
+
+    void LogManagerImpl::InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts)
+    {
+#ifdef HAVE_MAT_PRIVACYGUARD
+        m_dataInspector = std::make_unique<PrivacyGuard>(tenantForNotifications, std::move(commonContexts));
 #else
         // To resolve C4100 regarding unreferenced formal parameter
         if (tenantToken.empty() || commonContexts == nullptr)
@@ -804,7 +817,11 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept
     {
-        m_dataInspector = std::move(dataInspector);
+        m_dataInspector.reset();
+        if (dataInspector != nullptr)
+        {
+            m_dataInspector.swap(dataInspector);
+        }
     }
 
     void LogManagerImpl::SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept
