@@ -414,18 +414,6 @@ namespace MAT_NS_BEGIN
         virtual bool GetDataInspectorState() const noexcept = 0;
 
         /// <summary>
-        /// Custom inspector to validate wstrings for a given tenant.
-        /// </summary>
-        /// <param name="customInspector">Function to inspect the given string</param>
-        virtual void AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
-
-        /// <summary>
-        /// Custom inspector to validate GUIDs for a given tenant.
-        /// </summary>
-        /// <param name="customInspector">Function to inspect the given GUID</param>
-        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(const GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
-
-        /// <summary>
         /// Add known concerns for a given event and field pairs.
         /// If a concern is identified in this field for the same Privacy Issue Type,
         /// it is ignored.

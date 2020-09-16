@@ -828,22 +828,6 @@ namespace MAT_NS_BEGIN
         return m_dataInspector != nullptr && m_dataInspector->GetState();
     }
 
-    void LogManagerImpl::AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept
-    {
-        if (m_dataInspector != nullptr)
-        {
-            m_dataInspector->AddCustomStringValueInspector(std::move(customInspector));
-        }
-    }
-
-    void LogManagerImpl::AddCustomGuidValueInspector(std::function<DataConcernType(GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept
-    {
-        if (m_dataInspector != nullptr)
-        {
-            m_dataInspector->AddCustomGuidValueInspector(std::move(customInspector));
-        }
-    }
-
     void LogManagerImpl::AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
     {
         if (m_dataInspector != nullptr)
