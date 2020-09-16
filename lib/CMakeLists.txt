@@ -39,6 +39,7 @@ set(SRCS decorators/BaseDecorator.cpp
   stats/Statistics.cpp
   stats/MetaStats.cpp
   offline/StorageObserver.cpp
+  offline/OfflineStorageFactory.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
