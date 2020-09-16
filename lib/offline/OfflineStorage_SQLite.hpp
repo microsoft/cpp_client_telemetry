@@ -23,7 +23,7 @@ namespace MAT_NS_BEGIN {
     class OfflineStorage_SQLite : public IOfflineStorage
     {
     public:
-        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false);
+        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory=false);
 
         virtual ~OfflineStorage_SQLite() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
