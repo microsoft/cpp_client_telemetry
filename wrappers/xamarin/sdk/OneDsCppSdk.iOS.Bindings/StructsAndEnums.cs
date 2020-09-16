@@ -36,11 +36,11 @@ namespace Microsoft.Applications.Events
 	[Flags]
 	public enum PrivacyDataType : ulong
 	{
-		BrowsingHistory = 0x2,
-		DeviceConnectivityAndConfiguration = 0x800,
-		InkingTypingAndSpeechUtterance = 0x20000,
-		ProductAndServicePerformance = 0x1000000,
-		ProductAndServiceUsage = 0x2000000,
+		BrowsingHistory = 0x2L,
+		DeviceConnectivityAndConfiguration = 0x800L,
+		InkingTypingAndSpeechUtterance = 0x20000L,
+		ProductAndServicePerformance = 0x1000000L,
+		ProductAndServiceUsage = 0x2000000L,
 		SoftwareSetupAndInventory = 0x80000000L
 	}
 
