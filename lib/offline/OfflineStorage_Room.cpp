@@ -748,7 +748,7 @@ namespace MAT_NS_BEGIN
      * @param[in] name The key to delete from the database.
      */
 
-    void OfflineStorage_Room::DeleteSetting(std::string const& name)
+    void OfflineStorage_Room::DeleteSettingInternal(std::string const& name)
     {
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -768,11 +768,11 @@ namespace MAT_NS_BEGIN
      * @return true if we persisted the key-value pair.
      */
 
-    bool OfflineStorage_Room::StoreSetting(std::string const& name, std::string const& value)
+    bool OfflineStorage_Room::StoreSettingInternal(std::string const& name, std::string const& value)
     {
         if (value.size() == 0)
         {
-            DeleteSetting(name);
+            DeleteSettingInternal(name);
             return true;
         }
         ConnectedEnv env(s_vm);
@@ -791,6 +791,20 @@ namespace MAT_NS_BEGIN
         auto count = env->CallLongMethod(m_room, store_setting, java_name, java_value);
         ThrowRuntime(env, "Exception StoreSetting");
         return (count == 1);
+    }
+
+    /**
+     * Delete the setting given its name.
+     *
+     * @param[in] name Key.
+     * @return true if we persisted the key-value pair.
+     */
+
+    bool OfflineStorage_Room::DeleteSetting(std::string const& name)
+    {
+        DeleteSettingInternal(name);
+        return true;
+
     }
 
     /**
