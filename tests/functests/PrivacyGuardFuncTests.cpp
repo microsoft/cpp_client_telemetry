@@ -58,7 +58,6 @@ static const std::string c_testAdalGuid{"197648AE-E0E1-4115-962E-29C97E5CD101_AD
 static const GUID_t c_testGuid = {0x197648ae, 0xe0e1, 0x4115, {0x96, 0x2e, 0x29, 0xc9, 0x7e, 0x5c, 0xd1, 0x1}};
 #define TEST_TOKEN "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
 
-#if 0
 class PrivacyGuardFuncTests : public ::testing::Test
 {
    public:
@@ -564,7 +563,7 @@ TEST_F(PrivacyGuardFuncTests, GetAllConcerns_EmailMatching)
 //    pgInstance.InspectSemanticContext(c_testFieldName, c_testGuid, true, c_testTargetTenant);
 //    ASSERT_FALSE(logEventCalled);
 //}
-#endif
+
 #else
 
 #endif
