@@ -143,7 +143,7 @@ namespace MAT_NS_BEGIN {
 
 
 #if 0
-        // XXX: [MG] - debug only
+        // Debug only: uncomment to set a breakpoint - decode-verify the payload before sending it.
         CsProtocol::Record result;
         bond_lite::CompactBinaryProtocolReader reader(ctx->body);
         bond_lite::Deserialize(reader, result);

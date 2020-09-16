@@ -94,7 +94,7 @@ namespace MAT_NS_BEGIN
                 m_currentNetworkCost = _GetCurrentNetworkCost();
             }
             //******************************************************************************************************************************
-            // XXX: Bug in Visual Studio debug host:
+            // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
             //
             // onecoreuap\net\netprofiles\winrt\networkinformation\lib\handlemanager.cpp(132)\Windows.Networking.Connectivity.dll!0FBCFB9E:
             // (caller: 0FBCEE2C) ReturnHr(1) tid(4584) 80070426 The service has not been started.

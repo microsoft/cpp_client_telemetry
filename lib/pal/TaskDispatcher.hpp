@@ -21,7 +21,6 @@ namespace PAL_NS_BEGIN {
 
     namespace detail {
 
-        // TODO: [MG] - allow lambdas, std::function, functors, etc.
         template<typename TCall>
         class TaskCall : public Task
         {

@@ -122,7 +122,6 @@
 #define DIAG_LEVEL_DEFAULT_MAX                          DIAG_LEVEL_OPTIONAL
 #endif
 
-/* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
 #define SESSION_SDKUID                                  "DeviceInfo.SDKUid"
 
 #define SETTER_METHOD(NAME) Set ## NAME
