@@ -111,3 +111,15 @@ You're done! You can now compile and run your app, and it will send a telemetry 
 Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/SampleCppLogManagers) for a sample implementation.
 
 Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
+
+## 4. Device File Locations
+You may find these helpful for debugging. All device files will be found under the path `/data/data/`*app-name*`/` on the device, where *app-name* is the application’s name (such as `com.microsoft.applications.events.maesdktest`).
+
+### 1. Log Files
+`.../cache/mat-debug-10782.log`: one log file per session
+
+### 2. Database Files
+`.../cache/`*dbname*`.db`: database file (if using OfflineStorage_SQLite), where *dbname* is the database name.
+`.../databases/`*dbname*`.db`: database file (if using OfflineStorage_Room).
+
+One should be able to examine (or modify) the contents of these database files with SQLite on any platform, in theory (if anyone does this, please confirm whether or not it works).
