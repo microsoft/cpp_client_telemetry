@@ -12,6 +12,7 @@ set(SRCS
   ECSClientFuncTests.cpp
   ECSClientRealworldFuncTests.cpp
   ECSConfigCacheFuncTests.cpp
+  PrivacyGuardFuncTests.cpp
 )
 
 source_group(" "      REGULAR_EXPRESSION "")
