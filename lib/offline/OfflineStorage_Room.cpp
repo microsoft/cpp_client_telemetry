@@ -768,7 +768,7 @@ namespace MAT_NS_BEGIN
      * @return true if we persisted the key-value pair.
      */
 
-    bool OfflineStorage_Room::StoreSettingInternal(std::string const& name, std::string const& value)
+    bool OfflineStorage_Room::StoreSetting(std::string const& name, std::string const& value)
     {
         if (value.size() == 0)
         {
