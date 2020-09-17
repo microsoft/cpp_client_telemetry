@@ -7,7 +7,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        // TODO: [MG] - consider refactoring this to use a macro namespace
+        // TODO: [MG] - refactor this to use the macro namespace
         namespace Telemetry {
             namespace Windows
             {

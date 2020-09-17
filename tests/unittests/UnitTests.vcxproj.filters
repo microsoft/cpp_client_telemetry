@@ -55,6 +55,8 @@
     <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
