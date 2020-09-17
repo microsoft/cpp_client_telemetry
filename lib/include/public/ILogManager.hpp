@@ -427,7 +427,7 @@ namespace MAT_NS_BEGIN
         /// <b>Note:</b> If Data Inspector is not set, no operations occur.
         /// </summary>
         /// <param name="ignoredConcernsCollection"></param>
-        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept = 0;
+        virtual void AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept = 0;
     };
 
 }
