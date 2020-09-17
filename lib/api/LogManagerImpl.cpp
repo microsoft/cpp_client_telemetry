@@ -845,7 +845,7 @@ namespace MAT_NS_BEGIN
         return m_dataInspector != nullptr && m_dataInspector->GetState();
     }
 
-    void LogManagerImpl::AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
+    void LogManagerImpl::AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
     {
         if (m_dataInspector != nullptr)
         {

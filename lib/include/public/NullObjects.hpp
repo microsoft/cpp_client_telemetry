@@ -391,7 +391,7 @@ namespace MAT_NS_BEGIN
             return false;
         }
 
-        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& /*ignoredConcernsCollection*/) noexcept override  {}
+        virtual void AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& /*ignoredConcernsCollection*/) noexcept override  {}
 
         private:
             NullDataViewerCollection nullDataViewerCollection;
