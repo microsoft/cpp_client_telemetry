@@ -382,7 +382,7 @@ namespace MAT_NS_BEGIN
 
         virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& /*dataInspector*/) noexcept override {}
 
-        virtual void SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& /*commonDataContexts*/) noexcept override {}
+        virtual void AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& /*commonDataContexts*/) noexcept override {}
 
         virtual void SetDataInspectorState(bool /*isEnabled*/) noexcept override  {}
 

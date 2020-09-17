@@ -824,9 +824,9 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    void LogManagerImpl::SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept
+    void LogManagerImpl::AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept
     {
-        if (m_dataInspector != nullptr)
+        if (m_dataInspector != nullptr && commonDataContexts != nullptr)
         {
             m_dataInspector->AppendCommonDataContext(std::move(commonDataContexts));
         }
