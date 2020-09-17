@@ -1,6 +1,8 @@
 message("--- unittests")
 
 set(SRCS
+  AIJsonSerializerTests.cpp
+  AITelemetrySystemTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
