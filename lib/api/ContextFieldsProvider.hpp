@@ -14,7 +14,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    // TODO: [MG] - A/B EXP code has to be refactored into separate module
 
     class ContextFieldsProvider : public ISemanticContext
     {

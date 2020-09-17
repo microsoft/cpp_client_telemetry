@@ -1457,41 +1457,6 @@ TEST_F(BasicFuncTests, logManager_getLogManagerInstance_initializedReturnsNonnul
     LogManager::FlushAndTeardown();
 }
 
-#if 0   // XXX: [MG] - This test was never supposed to work! Because the URL is invalid, we won't get anything in receivedRequests
-
-TEST_F(BasicFuncTests, networkProblemsDoNotDropEvents)
-{
-    std::string badPortUrl;
-    badPortUrl.replace(0, badPortUrl.find('/', sizeof("http://")), "http://127.0.0.1:65535");
-
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_STR_COLLECTOR_URL] = badPortUrl.c_str();
-
-    {
-        Initialize();
-        EventProperties event("event");
-        event.SetProperty("property", "value");
-        logger->LogEvent(event);
-
-        // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry, wait 3 seconds, send 2nd retry.
-        // Stop waiting 1 second before the 2nd retry (which will use the good URL again) and check that nothing has been received yet.
-        PAL::sleep(2000 + 2 * 3000 - 1000);
-        ASSERT_THAT(receivedRequests, SizeIs(0));
-
-        // If the code works correctly, the event was not dropped (despite being retried twice)
-        // because the retry was caused by network connectivity failures only - validate it.
-        waitForEvents(2, 2);
-        if (receivedRequests.size() > 1)
-        {
-            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        }
-
-        FlushAndTeardown();
-    }
-    //    EXPECT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-}
-#endif
-
 #if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 {
