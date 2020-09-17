@@ -59,10 +59,22 @@ if [ "$BUILD_XAMARIN_ONLY" != true ]; then
     # Build for iOS
     echo "$GREEN ====== Building for iOS $NOCOLOR"
     if [ "$CLEAN_ALL" == true ]; then
-        ./build-ios.sh clean $BUILD_CONFIGURATION arm64
+        DO_CLEAN="clean"
     else
-        ./build-ios.sh $BUILD_CONFIGURATION arm64
+        DO_CLEAN=""
     fi
+
+    for arch in arm64 arm64e x86_64
+    do
+        ./build-ios.sh $DO_CLEAN $BUILD_CONFIGURATION $arch
+        mv ./out/lib/libmat.a ./out/lib/libmat.$arch.a
+
+        DO_CLEAN=""
+    done
+
+    pushd ./out/lib/
+    lipo -create -output libmat.a libmat.arm64.a libmat.arm64e.a libmat.x86_64.a
+    popd
 
     # Build for Android
     echo "$GREEN ====== Building for Android $NOCOLOR"
