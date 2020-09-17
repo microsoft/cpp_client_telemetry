@@ -38,6 +38,12 @@ class MockLogger : public NullLogger
     }
 };
 
+class FileTypesTest : public FileTypes
+{
+   public:
+    using FileTypes::IsFileListValid;
+};
+
 class TestPrivacyGuard : public PrivacyGuard
 {
    public:
@@ -714,7 +720,7 @@ TEST(PrivacyGuardTests, FileTypes_IsRegisteredFileType)
 
 TEST(PrivacyGuardTests, FileTypes_FileTypeListIsValid)
 {
-    ASSERT_TRUE(FileTypes::IsFileListValid());
+    ASSERT_TRUE(FileTypesTest::IsFileListValid());
 }
 
 TEST(PrivacyGuardTests, InspectSemanticContext_CheckStringValue_NotifiesIssueCorrectly)
