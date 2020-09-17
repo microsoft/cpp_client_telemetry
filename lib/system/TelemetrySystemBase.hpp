@@ -9,8 +9,6 @@
 
 namespace MAT_NS_BEGIN {
 
-    // typedef std::function<bool(void)>                       StateHandler;
-
     typedef std::function<IncomingEventContextPtr const&>   EventHandler;
 
     /// <summary>

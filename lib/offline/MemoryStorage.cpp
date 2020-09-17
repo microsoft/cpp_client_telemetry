@@ -459,10 +459,6 @@ namespace MAT_NS_BEGIN {
     /// <remarks>This method is not currently implemented</remarks>
     bool MemoryStorage::ResizeDb()
     {
-        // TODO: [MG] - consider implementing reduction of in-ram queue at runtime.
-        // Scenario for this is if we already run with 16MB buffer, but would like
-        // to switch to 8MB on Control Plane config update - we'd have to flush
-        // the queue and never grow above the newly provisioned limit.
         LOG_WARN("Not implemented!");
         return true;
     }
