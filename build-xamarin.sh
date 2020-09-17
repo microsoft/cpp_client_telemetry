@@ -82,9 +82,15 @@ if [ "$BUILD_XAMARIN_ONLY" != true ]; then
     if [ "$CLEAN_ALL" == true ]; then
         gradle clean
     fi
-    gradle build
-    popd
 
+    gradle build
+
+    # Generate javadocs
+    pushd ./maesdk/src/main/java
+    echo "$GREEN ====== Generating JavaDoc $NOCOLOR"
+    javadoc -protected -d ../../../../../../wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/JavaDoc -Xdoclint:none com.microsoft.applications.events
+    popd
+    popd
 fi
 
 echo "$GREEN ====== Copying build artifacts $NOCOLOR"
