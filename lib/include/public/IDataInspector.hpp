@@ -146,7 +146,7 @@ namespace MAT_NS_BEGIN
         /// will not be inspected.
         /// </summary>
         /// <param name="delayedCommonPrivacyContext">Unique Ptr for Common Privacy Contexts. If the param is nullptr, this method is no-op.</param>
-        virtual void DelaySetCommonPrivacyContext(std::unique_ptr<CommonDataContexts>&& delayedCommonPrivacyContext) noexcept = 0;
+        virtual void DelaySetCommonPrivacyContext(std::unique_ptr<CommonDataContexts>&& delayedCommonPrivacyContext) = 0;
 
         /// <summary>
         /// Inspect an ISemanticContext value.
