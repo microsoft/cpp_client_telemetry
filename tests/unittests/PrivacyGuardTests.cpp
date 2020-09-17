@@ -262,7 +262,7 @@ TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsNotProvid
 
     PrivacyGuard pg(mockLogger, std::move(commonDataContexts));
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
-    pg.DelaySetCommonPrivacyContext(nullptr);
+    pg.AppendCommonDataContext(nullptr);
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
 
     delete mockLogger;
@@ -275,7 +275,7 @@ TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsProvided_
 
     PrivacyGuard pg(mockLogger);
     ASSERT_FALSE(pg.AreCommonPrivacyContextSet());
-    pg.DelaySetCommonPrivacyContext(std::move(commonDataContexts));
+    pg.AppendCommonDataContext(std::move(commonDataContexts));
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
 
     delete mockLogger;

@@ -828,7 +828,7 @@ namespace MAT_NS_BEGIN
     {
         if (m_dataInspector != nullptr)
         {
-            m_dataInspector->DelaySetCommonPrivacyContext(std::move(commonDataContexts));
+            m_dataInspector->AppendCommonDataContext(std::move(commonDataContexts));
         }
     }
 
