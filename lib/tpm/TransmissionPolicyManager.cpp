@@ -213,10 +213,6 @@ namespace MAT_NS_BEGIN {
     bool TransmissionPolicyManager::handleStart()
     {
         m_isPaused = false;
-        // TODO: [MG] - this implies that start would force the immediate upload, but
-        // some customers require to be able to start in a paused (no telemetry) state.
-        // We may avoid the issue if we schedule the first upload to happen 1 second
-        // after start
         scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
     }

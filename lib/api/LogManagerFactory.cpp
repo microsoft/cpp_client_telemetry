@@ -153,8 +153,7 @@ namespace MAT_NS_BEGIN
             shared[host].names.insert(name);
         }
 
-        // TODO: [MG] - if there was no module configuration supplied
-        // explicitly, then do we treat the client as host or guest?
+        // If there was no module configuration supplied explicitly, then do we treat the client as host or guest?
         c[CFG_BOOL_HOST_MODE] = (name == host);
         return shared[host].instance;
     }
