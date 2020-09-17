@@ -787,7 +787,7 @@ namespace MAT_NS_BEGIN
         m_dataInspector= std::make_unique<PrivacyGuard>(tenantForNotifications);
 #else
         // To resolve C4100 regarding unreferenced formal parameter
-        if (tenantToken.empty() || commonContexts == nullptr)
+        if (tenantForNotifications == nullptr)
         {
             return;
         }
@@ -800,7 +800,7 @@ namespace MAT_NS_BEGIN
         m_dataInspector = std::make_unique<PrivacyGuard>(tenantForNotifications, std::move(commonContexts));
 #else
         // To resolve C4100 regarding unreferenced formal parameter
-        if (tenantToken.empty() || commonContexts == nullptr)
+        if (tenantForNotifications == nullptr || commonContexts == nullptr)
         {
             return;
         }
