@@ -404,7 +404,7 @@ namespace MAT_NS_BEGIN
         /// and the latest values will be used.
         /// </summary>
         /// <param name="commonDataContexts">Common Data Context value. If this is a nullptr, no operations occur.</param>
-        virtual void SetCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept = 0;
+        virtual void AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept = 0;
 
         /// <summary>
         /// Set the state for the current data inspector.

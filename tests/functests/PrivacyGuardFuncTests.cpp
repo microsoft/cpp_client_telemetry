@@ -185,7 +185,7 @@ TEST_F(PrivacyGuardFuncTests, SetCommonDataContexts)
     LogManager::Initialize();
     LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->SetCommonDataContextsForInspection(std::move(std::make_unique<CommonDataContexts>()));
+    LogManager::GetInstance()->AppendCommonDataContextsForInspection(std::move(std::make_unique<CommonDataContexts>()));
 
     delete mockLogger;
 }
