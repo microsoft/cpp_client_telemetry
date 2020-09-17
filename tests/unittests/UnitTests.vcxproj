@@ -466,6 +466,8 @@
     <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
