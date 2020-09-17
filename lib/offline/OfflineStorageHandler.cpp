@@ -31,7 +31,7 @@ namespace MAT_NS_BEGIN {
         m_queryDbSize(0),
         m_isStorageFullNotificationSend(false)
     {
-        // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
+        // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
         if (percentage > 0 && percentage <= 100)
@@ -213,18 +213,6 @@ namespace MAT_NS_BEGIN {
         {
             auto memDbSize = m_offlineStorageMemory->GetSize();
             {
-#if 0
-                //check if Application needs to be notified
-                if ((memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
-                {
-                    // TODO: [MG] - do we really need in-memory DB size limit notifications here?
-                    DebugEvent evt;
-                    evt.type = DebugEventType::EVT_STORAGE_FULL;
-                    evt.param1 = 1;
-                    m_logManager.DispatchEvent(evt);
-                    m_isStorageFullNotificationSend = true;
-                }
-#endif
                 // During flush, this will block on a mutex while records
                 // are selected and removed from the cache (but will
                 // not block for the subsequent handoff to persistent

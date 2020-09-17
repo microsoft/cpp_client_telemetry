@@ -559,7 +559,6 @@ namespace MAT_NS_BEGIN {
 
         IRuntimeConfig&                 m_config;
 
-        // TODO: [MG] - allow stats configuration provisioning via IRuntimeConfig above
         StatsConfig                     m_statsConfig;
         
         /// <summary>
