@@ -5,7 +5,7 @@
 [submodule "lib/modules"]
 	path = lib/modules
 	url = ../cpp_client_telemetry_modules.git
-	branch = master
+	branch = users/hocai/FixSegmentFault
 
 [submodule "third_party/krabsetw"]
 	path = third_party/krabsetw
