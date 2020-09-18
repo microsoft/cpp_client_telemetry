@@ -59,13 +59,13 @@
 #ifdef HAVE_MAT_PRIVACYGUARD
 #if defined __has_include
 #if __has_include("modules/privacyguard/privacyguard.hpp")
-#include "modules/PrivacyGuard/PrivacyGuard.hpp"
+#include "modules/privacyguard/PrivacyGuard.hpp"
 #else
 /* Compiling without Privacy Guard support because Privacy Guard private header is unavailable */
 #undef HAVE_MAT_PRIVACYGUARD
 #endif
 #else
-#include "modules/PrivacyGuard/PrivacyGuard.hpp"
+#include "modules/privacyguard/PrivacyGuard.hpp"
 #endif
 #endif
 
@@ -781,35 +781,19 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
-    void LogManagerImpl::InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications)
-    {
-#ifdef HAVE_MAT_PRIVACYGUARD
-        m_dataInspector= std::make_unique<PrivacyGuard>(tenantForNotifications);
-#else
-        // To resolve C4100 regarding unreferenced formal parameter
-        if (tenantForNotifications == nullptr)
-        {
-            return;
-        }
-#endif
-    }
-
     void LogManagerImpl::InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts)
     {
 #ifdef HAVE_MAT_PRIVACYGUARD
         m_dataInspector = std::make_unique<PrivacyGuard>(tenantForNotifications, std::move(commonContexts));
 #else
         // To resolve C4100 regarding unreferenced formal parameter
-        if (tenantForNotifications == nullptr || commonContexts == nullptr)
-        {
-            return;
-        }
+        (void)tenantForNotifications;
+        (void)commonContexts;
 #endif
     }
 
     void LogManagerImpl::OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept
     {
-        m_dataInspector.reset();
         if (dataInspector != nullptr)
         {
             m_dataInspector.swap(dataInspector);

@@ -376,8 +376,6 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
-        virtual void InitializePrivacyGuardDataInspector(ILogger* /*tenantForNotifications*/) override {}
-
         virtual void InitializePrivacyGuardDataInspector(ILogger* /*tenantForNotifications*/, std::unique_ptr<CommonDataContexts>&& /*commonContexts*/) override {}
 
         virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& /*dataInspector*/) noexcept override {}
