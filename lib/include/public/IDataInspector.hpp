@@ -31,42 +31,36 @@ namespace MAT_NS_BEGIN
     /// Enums identifying applicable Data Concerns
     /// Source: https://aka.ms/privacyguard/issuetypes
     /// </summary>
-    enum class DataConcernType
+    enum class DataConcernType : uint8_t
     {
-        None,                          // Unused
-        DemographicInfoLanguage,       // The users language ID. Example: En-Us
-        DemographicInfoCountryRegion,  // Country/region
-        FieldNameImpliesLocation,      // Field name sounds like location data
-        InternalEmailAddress,          // SMTP ending with <span>microsoft.com</span>
-        PIDKey,                        // Product key
-        OutOfScopeIdentifier,          // Client Id for OXO telemetry from the registry
-        MachineName,                   // Machine name
-        UserDomain,                    // User/Machine domain
-        Location,                      // Data appears to specify a location in the real world
-        InScopeIdentifier,             // EUPI. Any authenticated identifier of the same types used for DSR.
-        InScopeIdentifierActiveUser,   // The current users EUPI for DSR
-        IpAddress,                     // Machine’s current IP address
-        ExternalEmailAddress,          // SMTP not ending in <span>microsoft.com</span>
-        UserName,                      // Current user’s name or part of it.
-        UserAlias,                     // Current user’s alias
-        Directory,                     // Any directory or file share
-        Url,                           // Any URL
-        FileNameOrExtension,           // A file extension from the reportable list of extensions (ignores code files)
-        Content,                       // Formatted text: HTML, MIME, RTF, Xml, etc.
-        FileSharingUrl,                // A URL referencing a common file-sharing site or service.
-        Security,                      // A URL containing parameters “access_token”, “password”, etc.
+        DemographicInfoLanguage = 0,       // The users language ID. Example: En-Us
+        DemographicInfoCountryRegion = 1,  // Country/region
+        FieldNameImpliesLocation = 2,      // Field name sounds like location data
+        InternalEmailAddress = 3,          // SMTP ending with <span>microsoft.com</span>
+        PIDKey = 4,                        // Product key
+        OutOfScopeIdentifier = 5,          // Client Id for OXO telemetry from the registry
+        MachineName = 6,                   // Machine name
+        UserDomain = 7,                    // User/Machine domain
+        Location = 8,                      // Data appears to specify a location in the real world
+        InScopeIdentifier = 9,             // EUPI. Any authenticated identifier of the same types used for DSR.
+        InScopeIdentifierActiveUser = 10,  // The current users EUPI for DSR
+        IpAddress = 11,                    // Machine’s current IP address
+        ExternalEmailAddress = 12,         // SMTP not ending in <span>microsoft.com</span>
+        UserName = 13,                     // Current user’s name or part of it.
+        UserAlias = 14,                    // Current user’s alias
+        Directory = 15,                    // Any directory or file share
+        Url = 16,                          // Any URL
+        FileNameOrExtension = 17,          // A file extension from the reportable list of extensions (ignores code files)
+        Content = 18,                      // Formatted text: HTML, MIME, RTF, Xml, etc.
+        FileSharingUrl = 19,               // A URL referencing a common file-sharing site or service.
+        Security = 20                      // A URL containing parameters “access_token”, “password”, etc.
     };
 
     /// <summary>
     /// Common Privacy Contexts to inspect in the data
     /// </summary>
-    typedef struct CommonDataContexts
+    struct CommonDataContexts final
     {
-        /// <summary>
-        /// Default virtual destructor
-        /// </summary>
-        virtual ~CommonDataContexts() = default;
-
         /// <summary>
         /// Domain Name for the current machine
         /// </summary>
@@ -106,7 +100,7 @@ namespace MAT_NS_BEGIN
         /// Collection of OutOfScope Identifiers such as SQM_ID, Client_ID, etc.
         /// </summary>
         std::vector<std::string> OutOfScopeIdentifiers;
-    } CommonDataContexts;
+    };
 
     /// <summary>
     /// This interface allows SDK users to register a data inspector

@@ -4,8 +4,8 @@
 #define HAVE_MAT_DEFAULTDATAVIEWER
 
 #if defined __has_include
-#if __has_include("modules/PrivacyGuard/PrivacyGuard.hpp")
-#include "modules/PrivacyGuard/PrivacyGuard.hpp"
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
+#include "modules/privacyguard/PrivacyGuard.hpp"
 #else
 /* Compiling without Data Viewer */
 #undef HAVE_MAT_DEFAULTDATAVIEWER
@@ -132,32 +132,30 @@ class PrivacyGuardFuncTests : public ::testing::Test
 
 TEST_F(PrivacyGuardFuncTests, InitializePrivacyGuard)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     LogManager::Initialize();
     ASSERT_NO_THROW([&mockLogger]() {
         ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
         ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     });
     ASSERT_NO_THROW([&mockLogger]() {
         ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, nullptr);
+        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
         ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     });
     ASSERT_NO_THROW([&mockLogger]() {
         ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>()));
+        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>()));
         ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     });
-
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, SetDataInspectorState)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     LogManager::GetInstance()->SetDataInspectorState(/*isEnabled:*/ false);
     ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
@@ -165,56 +163,38 @@ TEST_F(PrivacyGuardFuncTests, SetDataInspectorState)
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 }
 
-TEST_F(PrivacyGuardFuncTests, OverrideDataInspector)
-{
-    auto mockLogger = new MockLogger();
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->OverrideDataInspector(nullptr);
-    ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-
-    delete mockLogger;
-}
-
 TEST_F(PrivacyGuardFuncTests, SetCommonDataContexts)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     LogManager::GetInstance()->AppendCommonDataContextsForInspection(std::move(std::make_unique<CommonDataContexts>()));
-
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, AddIgnoredDataConcern)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcerns;
     ignoredConcerns.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::InScopeIdentifier));
     LogManager::GetInstance()->AddIgnoredDataConcern(ignoredConcerns);
-
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyEmail_FoundEmail)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -228,21 +208,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyEmail_FoundEmail)
     props.SetProperty("Field8", "Some_one");
     logger->LogEvent(props);
     ASSERT_EQ(5, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUrl_FoundUrl)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -252,22 +231,21 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUrl_FoundUrl)
     props.SetProperty("Field4", "Download failed for domain https://wopi.dropbox.com");  //DataConcernType::Url
     logger->LogEvent(props);
     ASSERT_EQ(5, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFileSharingUrl_FoundFileSharingUrl)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
 
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -287,21 +265,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFileSharingUrl_FoundFileSharingUr
     props.SetProperty("Field9", "Download failed for domain https://wopi.dropbox.com");   //DataConcernType::Url
     logger->LogEvent(props);
     ASSERT_EQ(14, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_CheckForSecurity_SecurityChecked)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -313,21 +290,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_CheckForSecurity_SecurityChecked)
     props.SetProperty("Field5", "But talking about AWSAccessKey and Signature is not flagged.");
     logger->LogEvent(props);
     ASSERT_EQ(8, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyContentFormat_FoundContentFormat)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -351,42 +327,40 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyContentFormat_FoundContentFormat)
     props.SetProperty("Field6", "HTML rtf xml");
     logger->LogEvent(props);
     ASSERT_EQ(7, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPidKey_FoundPidKey)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "1A2B3-C4D5E-6F7H8-I9J0K-LMNOP");  //DataConcernType::PIDKey
     logger->LogEvent(props);
     ASSERT_EQ(1, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUser_FoundUser)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -400,21 +374,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUser_FoundUser)
     props.SetProperty("Field7", "lawesomeuser should not be flagged because the matched alias is part of a longer word");
     logger->LogEvent(props);
     ASSERT_EQ(4, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_FoundPrettyUser)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -433,14 +406,13 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_FoundPrettyUser)
     props.SetProperty("Field12", "Many names are commonly seen in word substrings. Like BUDdy, genERIC, etc. awesome username and AWESOME USERNAME shouldn't get flagged.");
     logger->LogEvent(props);
     ASSERT_EQ(9, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
@@ -454,7 +426,7 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
         c_testNumbers,
         c_testNumbers));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(cdc));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -463,14 +435,13 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
 
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NonIsolatedWordsNotMatched)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
@@ -484,7 +455,7 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NonIsolatedWordsNotMat
         c_testDomain,
         c_testComputerName));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(cdc));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -493,14 +464,13 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NonIsolatedWordsNotMat
 
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_ShortNamesNotMached)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
@@ -514,7 +484,7 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_ShortNamesNotMached)
         c_testDomain,
         c_testComputerName));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(cdc));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -522,21 +492,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_ShortNamesNotMached)
     props.SetProperty("Field2", "A person named Guy walks down the road.");
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineName_MachineNameFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -547,14 +516,13 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineName_MachineNameFound)
     props.SetProperty("Field5", "grandmotherboard should not be flagged because the matched name is part of a longer word.");
     logger->LogEvent(props);
     ASSERT_EQ(2, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineNameInNonIntuitiveStrings_MachineNameNotFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
@@ -568,28 +536,27 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineNameInNonIntuitiveStrings_
         c_testDomain,
         PrivacyGuardFuncTests::MakeNonIntuitiveString()));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(cdc));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Nothing to find here.");
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDomainName_DomainNameFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -598,21 +565,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDomainName_DomainNameFound)
 
     logger->LogEvent(props);
     ASSERT_EQ(2, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyBannedIdentityTypes_BannedIdentityTypesFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -633,21 +599,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyBannedIdentityTypes_BannedIdentit
 
     logger->LogEvent(props);
     ASSERT_EQ(8, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDirectory_FoundDirectory)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -662,21 +627,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDirectory_FoundDirectory)
 
     logger->LogEvent(props);
     ASSERT_EQ(5, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyExternalEmail_FoundExternalEmail)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -685,21 +649,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyExternalEmail_FoundExternalEmail)
 
     logger->LogEvent(props);
     ASSERT_EQ(2, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyLocation_FoundLocation)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -716,21 +679,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyLocation_FoundLocation)
 
     logger->LogEvent(props);
     ASSERT_EQ(8, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFiles_FoundFiles)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -747,21 +709,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFiles_FoundFiles)
 
     logger->LogEvent(props);
     ASSERT_EQ(6, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPostFixedFiles_FoundPostFixedFiles)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -782,21 +743,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPostFixedFiles_FoundPostFixedFile
 
     logger->LogEvent(props);
     ASSERT_EQ(8, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyInScopeIdentifiers_InScopeIdentifiersFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -822,21 +782,20 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyInScopeIdentifiers_InScopeIdentif
 
     logger->LogEvent(props2);
     ASSERT_EQ(1, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDemographics_FoundDemographics)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
@@ -846,7 +805,6 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDemographics_FoundDemographics)
     props.SetProperty("Field4", "The ancient tablet States: United the lost 8 pieces of sandwitch to achieve ultimate lunch!");
     logger->LogEvent(props);
     ASSERT_EQ(3, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 std::string GenerateIdentifierVariant(const std::string& input, bool uppercase, bool removeDashes)
@@ -889,16 +847,16 @@ void ValidateOutOfScopeIdentifierIsFlagged(ILogger* logger, const std::string& i
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyOutOfScopeIdentifiers_FoundOutOfScopeIdentifiers)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ValidateOutOfScopeIdentifierIsFlagged(logger, c_testClientId);
     ASSERT_EQ(4, privacyConcernLogCount);
     privacyConcernLogCount = 0;
@@ -908,42 +866,40 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyOutOfScopeIdentifiers_FoundOutOfS
     ValidateOutOfScopeIdentifierIsFlagged(logger, c_testSusClientId);
     ASSERT_EQ(4, privacyConcernLogCount);
     privacyConcernLogCount = 0;
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyOutOfScopeIdentifiers_RandmonGuidNotMatched)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCount++;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "cbfd6749-165c-41c8-a85e-b9c8b8c1f9ce");
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_CheckContextValues_NotifiesIssueCorrectly)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto logEventCalled = false;
-    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
+    mockLogger.m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             logEventCalled = true;
         }
     };
     LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
 
     LogManager::SetContext(c_testFieldName, c_testEmail);
@@ -953,21 +909,20 @@ TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_CheckContextValues_Notifies
     ASSERT_TRUE(logEventCalled);
     LogManager::SetContext(c_testFieldName, c_testGuid);
     ASSERT_TRUE(logEventCalled);
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_IgnoredConcern_NoNotificationFired)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto logEventCalled = false;
-    mockLogger->m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
+    mockLogger.m_logEventOverride = [&logEventCalled](const EventProperties& properties) noexcept {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             logEventCalled = true;
         }
     };
     LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcern;
     ignoredConcern.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::ExternalEmailAddress));
@@ -975,22 +930,20 @@ TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_IgnoredConcern_NoNotificati
 
     LogManager::SetContext(c_testFieldName, c_testEmail);
     ASSERT_FALSE(logEventCalled);
-
-    delete mockLogger;
 }
 
 TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
 {
-    auto mockLogger = new MockLogger();
+    MockLogger mockLogger;
     auto privacyConcernLogCalled = false;
-    mockLogger->m_logEventOverride = [&privacyConcernLogCalled](const EventProperties& properties) {
+    mockLogger.m_logEventOverride = [&privacyConcernLogCalled](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
         {
             privacyConcernLogCalled = true;
         }
     };
     auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(mockLogger);
+    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
     ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     LogManager::GetInstance()->SetDataInspectorState(false);
     ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
@@ -1006,7 +959,6 @@ TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
     props.SetProperty("Field8", "Some_one");
     logger->LogEvent(props);
     ASSERT_FALSE(privacyConcernLogCalled);
-    delete mockLogger;
 }
 
 #else
