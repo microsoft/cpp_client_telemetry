@@ -5,7 +5,6 @@
 
 #if defined __has_include
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
-#include "modules/privacyguard/FileTypes.hpp"
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #else
 /* Compiling without Data Viewer */
@@ -38,12 +37,6 @@ class MockLogger : public NullLogger
     }
 };
 
-class FileTypesTest : public FileTypes
-{
-   public:
-    using FileTypes::IsFileListValid;
-};
-
 class TestPrivacyGuard : public PrivacyGuard
 {
    public:
@@ -61,12 +54,46 @@ class TestPrivacyGuard : public PrivacyGuard
     {
         return PrivacyGuard::GetAllPrivacyConcerns(std::string{eventName}, std::string{fieldName}, fieldValue, std::string{targetTenant});
     }
-        
 
     virtual ~TestPrivacyGuard() = default;
 
     using PrivacyGuard::AddCustomGuidValueInspector;
     using PrivacyGuard::AddCustomStringValueInspector;
+    using PrivacyGuard::IsRegisteredFileType;
+
+    static bool IsFileListValid() noexcept
+    {
+        auto type = std::begin(c_registeredTypes);
+        auto index = std::begin(c_registeredTypes);
+        index++;
+        for (; index != std::end(c_registeredTypes); ++index)
+        {
+            if (strcmp(*type, *index) >= 0)
+            {
+                return false;
+            }
+
+            // Longer extensions have a higher confidence of actually being an extension. Helps with false positives.
+            size_t length = strlen(*type);
+            if ((length < 3) || (length >= c_LongestExtensionLength))
+                return false;
+
+            // Types that only contain numbers get flagged in floating point values like 1.386
+            auto foundAlphabeticalTypes = false;
+            for (auto c = 0; c < length; c++)
+            {
+                foundAlphabeticalTypes |= isalpha((*type)[c]) != 0;
+            }
+
+            if (!foundAlphabeticalTypes)
+            {
+                return false;
+            }
+            type = index;
+        }
+
+        return true;
+    }
 };
 
 static const char* const c_testEventName{"Office.TestEvent"};
@@ -148,10 +175,7 @@ class PrivacyGuardTests : public ::testing::Test
         auto issues = privacyGuardTestInstance->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, value, c_testTargetTenant);
 
         return std::find_if(issues.cbegin(), issues.cend(), [&](const PrivacyConcern& x) {
-                   return x.DataConcernType == type
-                      && strcmp(x.EventName.c_str(), c_testEventName) == 0
-                      && strcmp(x.FieldName.c_str(), c_testFieldName) == 0
-                      && strcmp(x.FieldValue.c_str(), value) == 0;
+                   return x.DataConcernType == type && strcmp(x.EventName.c_str(), c_testEventName) == 0 && strcmp(x.FieldName.c_str(), c_testFieldName) == 0 && strcmp(x.FieldValue.c_str(), value) == 0;
                }) != issues.cend();
     }
 
@@ -247,8 +271,6 @@ TEST(PrivacyGuardTests, Constructor_LoggerInstanceProvided_InitializedSuccessful
     PrivacyGuard pg(&mockLogger, nullptr);
     ASSERT_TRUE(pg.GetState());
     ASSERT_FALSE(pg.AreCommonPrivacyContextSet());
-
-    
 }
 
 TEST(PrivacyGuardTests, Constructor_CommonDataContextsProvided_CommonDataContextsSetSuccessfully)
@@ -259,8 +281,6 @@ TEST(PrivacyGuardTests, Constructor_CommonDataContextsProvided_CommonDataContext
     PrivacyGuard pg(&mockLogger, std::move(commonDataContexts));
     ASSERT_TRUE(pg.GetState());
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
-
-    
 }
 
 TEST(PrivacyGuardTests, SetState_SetStateToDisabled_StateUpdatedCorrectly)
@@ -270,8 +290,6 @@ TEST(PrivacyGuardTests, SetState_SetStateToDisabled_StateUpdatedCorrectly)
     ASSERT_TRUE(pg.GetState());
     pg.SetState(false);
     ASSERT_FALSE(pg.GetState());
-
-    
 }
 
 TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsNotProvided_CommonDataContextsNotChanged)
@@ -283,8 +301,6 @@ TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsNotProvid
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
     pg.AppendCommonDataContext(nullptr);
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
-
-    
 }
 
 TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsProvided_CommonDataContextsChanged)
@@ -296,8 +312,6 @@ TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsProvided_
     ASSERT_FALSE(pg.AreCommonPrivacyContextSet());
     pg.AppendCommonDataContext(std::move(commonDataContexts));
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_EmailMatching)
@@ -313,8 +327,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_EmailMatching)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Microsoft.com"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Exchange.Microsoft.com"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Some_one"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_UrlMatching)
@@ -325,8 +337,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_UrlMatching)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "HTTPS://www.microsoft.com", DataConcernType::Url));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "File://www.microsoft.com", DataConcernType::Url));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Download failed for domain https://wopi.dropbox.com", DataConcernType::Url));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_FileSharingUrlMatching)
@@ -345,8 +355,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_FileSharingUrlMatching)
     //Not file-sharing if just talking about the domain.
     ASSERT_FALSE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Download failed for domain https://wopi.dropbox.com/", DataConcernType::FileSharingUrl));
     ASSERT_FALSE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Download failed for domain https://wopi.dropbox.com", DataConcernType::FileSharingUrl));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_SecurityChecks)
@@ -359,8 +367,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_SecurityChecks)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "http://www.IMadeThisUp.com/OpenStuff.aspx&Access_token=abc", DataConcernType::Security));
 
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "But talking about AWSAccessKey and Signature is not flagged."));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_ContentFormatMatching)
@@ -374,8 +380,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_ContentFormatMatching)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "MIME-Version:1.0", DataConcernType::Content));
 
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "HTML rtf xml"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PidKeyMatching)
@@ -383,8 +387,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PidKeyMatching)
     MockLogger mockLogger;
     const auto& testPrivacyGuard = PrivacyGuardTests::GetPrivacyGuardForTest(&mockLogger);
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "1A2B3-C4D5E-6F7H8-I9J0K-LMNOP", DataConcernType::PIDKey));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_UserMatching)
@@ -399,8 +401,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_UserMatching)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Not expected to find awesome user when case is different to avoid false positives from 'names' in words"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "awesomeusers should not be flagged because the matched alias is part of a longer word"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "lawesomeuser should not be flagged because the matched alias is part of a longer word"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching)
@@ -420,8 +420,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching)
     ASSERT_FALSE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "FeatureAwesome", DataConcernType::UserName));
 
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Many names are commonly seen in word substrings. Like BUDdy, genERIC, etc. awesome username and AWESOME USERNAME shouldn't get flagged."));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_NumbersDoNotCount)
@@ -433,8 +431,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_NumbersDoNotCount)
 
     issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, "12345.6 stuff", c_testTargetTenant);
     ASSERT_EQ(0, issues.size());
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_NonIsolatedWordsNotMatched)
@@ -449,8 +445,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_NonIsolatedWordsNotMat
 
     auto issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, "Office has an Automation Client. It's Limited.", c_testTargetTenant);
     ASSERT_EQ(0, issues.size());
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_ShortNamesNotMached)
@@ -468,8 +462,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PrettyUserMatching_ShortNamesNotMached)
 
     issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, "A person named Guy walks down the road.", c_testTargetTenant);
     ASSERT_EQ(0, issues.size());
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_MachineName)
@@ -481,8 +473,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_MachineName)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Not expected to find awesome user when case is different to avoid false positives from 'names' in words"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "motherboarding should not be flagged because the matched name is part of a longer word."));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "grandmotherboard should not be flagged because the matched name is part of a longer word."));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_MachineName_NonIntuitiveStrings)
@@ -497,8 +487,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_MachineName_NonIntuitiveStrings)
 
     auto issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, "Nothing to find here.", c_testTargetTenant);
     ASSERT_EQ(0, issues.size());
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_DomainName)
@@ -507,8 +495,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_DomainName)
     const auto& testPrivacyGuard = PrivacyGuardTests::GetPrivacyGuardForTest(&mockLogger);
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "TEST.MICROSOFT.COM should be flagged.", DataConcernType::UserDomain));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "test.microsoft.com should be flagged too.", DataConcernType::UserDomain));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_BannedIdentityTypes)
@@ -529,8 +515,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_BannedIdentityTypes)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "email_microsoft.com_SSPI", DataConcernType::InternalEmailAddress));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "email_contoso.com_AD", DataConcernType::ExternalEmailAddress));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "email_microsoft.com_AD", DataConcernType::InternalEmailAddress));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_DirectoryMatching)
@@ -545,8 +529,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_DirectoryMatching)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "{UnicodeEscapeFalsePositive:\\u0027formulaODataFeeds\\u0027}"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Diagnostic Context:\\n    Info: 1234\\n"));  //Some warnings in Mac Outlook cause this false positive due to "t:\n".
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Failed to open key HKEY_LOCAL_MACHINE\\\\Software\\\\Microsoft\\\\Office\\\\16.0\\\\Common\\\\Feature"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_ExternalEmailMatching)
@@ -555,8 +537,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_ExternalEmailMatching)
     const auto& testPrivacyGuard = PrivacyGuardTests::GetPrivacyGuardForTest(&mockLogger);
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Using the seeing stones will send an email alert to Sauron@contoso.com", DataConcernType::ExternalEmailAddress));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "and also cc Saruman@contoso.com", DataConcernType::ExternalEmailAddress));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_LocationMatching)
@@ -573,8 +553,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_LocationMatching)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Geo: At the end of the rainbow", DataConcernType::Location));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "GeoID: Shelob's bed & breakfast", DataConcernType::Location));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Geometric: Shelob's bed & breakfast"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_FilesMatching)
@@ -591,8 +569,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_FilesMatching)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "MyAddin.dl"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "TheApp.exe"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Common.com"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_PostFixedFilesMatching)
@@ -613,8 +589,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_PostFixedFilesMatching)
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "...Common"));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Common..."));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "Common.________.Uncommon"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_InScopeIdentifiers)
@@ -641,8 +615,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_InScopeIdentifiers)
     });
 
     ASSERT_EQ(issues.cend(), issueMatch);
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_DemographicsMatching)
@@ -653,8 +625,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_DemographicsMatching)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "The app is set to EN-US", DataConcernType::DemographicInfoLanguage));
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "Made in the United States", DataConcernType::DemographicInfoCountryRegion));
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "The ancient tablet States: United the lost 8 pieces of sandwitch to achieve ultimate lunch!"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_OutOfScopeIdentifiersMatching)
@@ -666,8 +636,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_OutOfScopeIdentifiersMatching)
     PrivacyGuardTests::ValidateOutOfScopeIdentifierIsFlagged(testPrivacyGuard, c_testSusClientId);
 
     ASSERT_FALSE(PrivacyGuardTests::IdentifiedAnyDataConcerns(testPrivacyGuard, "cbfd6749-165c-41c8-a85e-b9c8b8c1f9ce"));
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_CustomStringValueInspector_CalledCorrectly)
@@ -675,7 +643,7 @@ TEST(PrivacyGuardTests, GetAllConcerns_CustomStringValueInspector_CalledCorrectl
     MockLogger mockLogger;
     TestPrivacyGuard pgInstance(&mockLogger, nullptr);
 
-    const char* const testValue ="Foo Test Value";
+    const char* const testValue = "Foo Test Value";
     auto customStringValueInspectorCalled = false;
     auto expectedValue = false;
     std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)> customStringInspector =
@@ -691,8 +659,6 @@ TEST(PrivacyGuardTests, GetAllConcerns_CustomStringValueInspector_CalledCorrectl
     ASSERT_TRUE(expectedValue);
     ASSERT_EQ(1, concerns.size());
     ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
-
-    
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_CustomGuidValueInspector_CalledCorrectly)
@@ -713,27 +679,25 @@ TEST(PrivacyGuardTests, GetAllConcerns_CustomGuidValueInspector_CalledCorrectly)
     ASSERT_TRUE(customGuidValueInspectorCalled);
     ASSERT_EQ(1, concerns.size());
     ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
-
-    
 }
 
 TEST(PrivacyGuardTests, FileTypes_IsRegisteredFileType)
 {
-    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".DOCX"));
-    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".PPTX"));
-    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".TXT"));
-    ASSERT_TRUE(FileTypes::IsRegisteredFileType(".XLSX"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".AAA"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".ABC"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".ZYX"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType("TXT"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType(".Hit_Too_Long_To_Be_A_File_Case"));
-    ASSERT_FALSE(FileTypes::IsRegisteredFileType(""));
+    ASSERT_TRUE(TestPrivacyGuard::IsRegisteredFileType(".DOCX"));
+    ASSERT_TRUE(TestPrivacyGuard::IsRegisteredFileType(".PPTX"));
+    ASSERT_TRUE(TestPrivacyGuard::IsRegisteredFileType(".TXT"));
+    ASSERT_TRUE(TestPrivacyGuard::IsRegisteredFileType(".XLSX"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType(".AAA"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType(".ABC"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType(".ZYX"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType("TXT"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType(".Hit_Too_Long_To_Be_A_File_Case"));
+    ASSERT_FALSE(TestPrivacyGuard::IsRegisteredFileType(""));
 }
 
 TEST(PrivacyGuardTests, FileTypes_FileTypeListIsValid)
 {
-    ASSERT_TRUE(FileTypesTest::IsFileListValid());
+    TestPrivacyGuard::IsFileListValid();
 }
 
 TEST(PrivacyGuardTests, InspectSemanticContext_CheckStringValue_NotifiesIssueCorrectly)
@@ -751,8 +715,6 @@ TEST(PrivacyGuardTests, InspectSemanticContext_CheckStringValue_NotifiesIssueCor
     PrivacyGuard pgInstance(&mockLogger, nullptr);
     pgInstance.InspectSemanticContext(std::string{c_testFieldName}, std::string{c_testEmail}, true, std::string{c_testTargetTenant});
     ASSERT_TRUE(logEventCalled);
-
-    
 }
 
 TEST(PrivacyGuardTests, InspectSemanticContext_CheckGuidValue_NotifiesIssueCorrectly)
@@ -773,8 +735,6 @@ TEST(PrivacyGuardTests, InspectSemanticContext_CheckGuidValue_NotifiesIssueCorre
     logEventCalled = false;
     pgInstance.InspectSemanticContext(std::string{c_testFieldName}, c_testGuid, true, std::string{c_testTargetTenant});
     ASSERT_TRUE(logEventCalled);
-
-    
 }
 
 TEST(PrivacyGuardTests, InspectSemanticContext_IgnoredConcern_DoesNotNotifyIssue)
@@ -796,8 +756,6 @@ TEST(PrivacyGuardTests, InspectSemanticContext_IgnoredConcern_DoesNotNotifyIssue
     results = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_testAdalGuid, c_testTargetTenant);
     pgInstance.InspectSemanticContext(c_testFieldName, c_testGuid, true, c_testTargetTenant);
     ASSERT_FALSE(logEventCalled);
-
-    
 }
 
 TEST(PrivacyGuardTests, Decorate_InspectStringAndGuidData)
@@ -812,8 +770,6 @@ TEST(PrivacyGuardTests, Decorate_InspectStringAndGuidData)
     auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_testAdalGuid);
     ASSERT_TRUE(pgInstance.decorate(testRecord));
     ASSERT_TRUE(logEventCalled);
-
-    
 }
 
 TEST(PrivacyGuardTests, Decorate_MultipleEventsAddInscopeIdentifier_InspectStringAndGuidData)
@@ -825,13 +781,10 @@ TEST(PrivacyGuardTests, Decorate_MultipleEventsAddInscopeIdentifier_InspectStrin
     };
     PrivacyGuard pgInstance(&mockLogger, nullptr);
 
-
     auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_testAdalGuid);
     ASSERT_TRUE(pgInstance.decorate(testRecord));
     ASSERT_TRUE(pgInstance.decorate(testRecord));
     ASSERT_TRUE(logEventCalled);
-
-    
 }
 
 #endif
