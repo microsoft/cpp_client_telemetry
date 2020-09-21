@@ -269,7 +269,7 @@ TEST(PrivacyGuardTests, Constructor_LoggerInstanceProvided_InitializedSuccessful
     MockLogger mockLogger;
 
     PrivacyGuard pg(&mockLogger, nullptr);
-    ASSERT_TRUE(pg.GetState());
+    ASSERT_TRUE(pg.IsEnabled());
     ASSERT_FALSE(pg.AreCommonPrivacyContextSet());
 }
 
@@ -279,7 +279,7 @@ TEST(PrivacyGuardTests, Constructor_CommonDataContextsProvided_CommonDataContext
     auto commonDataContexts = std::make_unique<CommonDataContexts>(PrivacyGuardTests::GenerateTestDataContexts());
 
     PrivacyGuard pg(&mockLogger, std::move(commonDataContexts));
-    ASSERT_TRUE(pg.GetState());
+    ASSERT_TRUE(pg.IsEnabled());
     ASSERT_TRUE(pg.AreCommonPrivacyContextSet());
 }
 
@@ -287,9 +287,9 @@ TEST(PrivacyGuardTests, SetState_SetStateToDisabled_StateUpdatedCorrectly)
 {
     MockLogger mockLogger;
     PrivacyGuard pg(&mockLogger, nullptr);
-    ASSERT_TRUE(pg.GetState());
-    pg.SetState(false);
-    ASSERT_FALSE(pg.GetState());
+    ASSERT_TRUE(pg.IsEnabled());
+    pg.SetEnabled(false);
+    ASSERT_FALSE(pg.IsEnabled());
 }
 
 TEST(PrivacyGuardTests, DelaySetCommonPrivacyContext_CommonDataContextsNotProvided_CommonDataContextsNotChanged)
