@@ -145,8 +145,7 @@ namespace MAT_NS_BEGIN
     LogManagerImpl::LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart) :
         m_logConfiguration(configuration),
         m_bandwidthController(nullptr),
-        m_offlineStorage(nullptr),
-        m_dataInspector(nullptr)
+        m_offlineStorage(nullptr)
     {
         m_httpClient = std::static_pointer_cast<IHttpClient>(configuration.GetModule(CFG_MODULE_HTTP_CLIENT));
         m_taskDispatcher = std::static_pointer_cast<ITaskDispatcher>(configuration.GetModule(CFG_MODULE_TASK_DISPATCHER));
@@ -695,9 +694,14 @@ namespace MAT_NS_BEGIN
             {
                 m_customDecorator->decorate(*(event->source));
             }
-            if (m_dataInspector)
+
             {
-                m_dataInspector->decorate(*(event->source));
+                LOCKGUARD(m_dataInspectorGuard);
+
+                if (m_dataInspector)
+                {
+                    m_dataInspector->decorate(*(event->source));
+                }
             }
             GetSystem()->sendEvent(event);
         }
@@ -782,6 +786,7 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
     {
+        LOCKGUARD(m_dataInspectorGuard);
         m_dataInspector = dataInspector;
     }
 

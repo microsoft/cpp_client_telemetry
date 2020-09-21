@@ -333,6 +333,7 @@ namespace MAT_NS_BEGIN
         std::vector<std::unique_ptr<IModule>> m_modules;
         DataViewerCollection m_dataViewerCollection;
         std::shared_ptr<IDataInspector> m_dataInspector;
+        std::mutex m_dataInspectorGuard;
     };
 
 }
