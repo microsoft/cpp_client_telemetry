@@ -812,13 +812,13 @@ namespace MAT_NS_BEGIN
     {
         if (m_dataInspector != nullptr)
         {
-            m_dataInspector->SetState(isEnabled);
+            m_dataInspector->SetEnabled(isEnabled);
         }
     }
 
     bool LogManagerImpl::GetDataInspectorState() const noexcept
     {
-        return m_dataInspector != nullptr && m_dataInspector->GetState();
+        return m_dataInspector != nullptr && m_dataInspector->IsEnabled();
     }
 
     void LogManagerImpl::AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
