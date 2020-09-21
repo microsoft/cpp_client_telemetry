@@ -21,7 +21,7 @@ See instructions below to build the SDK with additional Microsoft-proprietary mo
 ```
 cit clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
-vcpkg install --head --overlay-ports=%CD%\tools\ports
+vcpkg install --head --overlay-ports=%CD%\tools\ports mstelemetry
 ```
 
 ## POSIX (Linux and Mac) build with submodules
@@ -31,7 +31,7 @@ Shell commands:
 ```
 cit clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
-vcpkg install --head --overlay-ports=`pwd`/tools/ports
+vcpkg install --head --overlay-ports=`pwd`/tools/ports mstelemetry
 ```
 
 ## Using response files to specify dependencies
