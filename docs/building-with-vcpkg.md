@@ -58,4 +58,4 @@ In order to enable custom build flags - vcpkg triplets and custom environment va
 
 Response file for a custom build, e.g. `response_file_linux_PRODUCTNAME.txt` may specify a custom triplet. For example, custom triplet allows to specify if the library is built as static or dynamic.
 
-Default triplets may also be overriden with [custom triplets](https://vcpkg.readthedocs.io/en/latest/examples/overlay-triplets-linux-dynamic/#overlay-triplets-example). Custom triplets specific to various products must be maintained by product teams. Teams may integrate their triplets in the mainline repo as-needed.
+Default triplets may also be overridden with [custom triplets](https://vcpkg.readthedocs.io/en/latest/examples/overlay-triplets-linux-dynamic/#overlay-triplets-example). Custom triplets specific to various products must be maintained by product teams. Teams may integrate their triplets in the mainline repo as-needed.
