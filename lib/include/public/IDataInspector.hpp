@@ -33,27 +33,29 @@ namespace MAT_NS_BEGIN
     /// </summary>
     enum class DataConcernType : uint8_t
     {
-        DemographicInfoLanguage = 0,       // The users language ID. Example: En-Us
-        DemographicInfoCountryRegion = 1,  // Country/region
-        FieldNameImpliesLocation = 2,      // Field name sounds like location data
-        InternalEmailAddress = 3,          // SMTP ending with <span>microsoft.com</span>
-        PIDKey = 4,                        // Product key
-        OutOfScopeIdentifier = 5,          // Client Id for OXO telemetry from the registry
-        MachineName = 6,                   // Machine name
-        UserDomain = 7,                    // User/Machine domain
-        Location = 8,                      // Data appears to specify a location in the real world
+        None = 0,                          //DefaultValue
+
+        Content = 1,                       // Formatted text: HTML, MIME, RTF, Xml, etc.
+        DemographicInfoCountryRegion = 2,  // Country/region
+        DemographicInfoLanguage = 3,       // The users language ID. Example: En-Us
+        Directory = 4,                     // Any directory or file share
+        ExternalEmailAddress = 5,          // SMTP not ending in <span>microsoft.com</span>
+        FieldNameImpliesLocation = 6,      // Field name sounds like location data
+        FileNameOrExtension = 7,           // A file extension from the reportable list of extensions (ignores code files)
+        FileSharingUrl = 8,                // A URL referencing a common file-sharing site or service.
         InScopeIdentifier = 9,             // EUPI. Any authenticated identifier of the same types used for DSR.
         InScopeIdentifierActiveUser = 10,  // The current users EUPI for DSR
-        IpAddress = 11,                    // Machine’s current IP address
-        ExternalEmailAddress = 12,         // SMTP not ending in <span>microsoft.com</span>
-        UserName = 13,                     // Current user’s name or part of it.
-        UserAlias = 14,                    // Current user’s alias
-        Directory = 15,                    // Any directory or file share
-        Url = 16,                          // Any URL
-        FileNameOrExtension = 17,          // A file extension from the reportable list of extensions (ignores code files)
-        Content = 18,                      // Formatted text: HTML, MIME, RTF, Xml, etc.
-        FileSharingUrl = 19,               // A URL referencing a common file-sharing site or service.
-        Security = 20                      // A URL containing parameters “access_token”, “password”, etc.
+        InternalEmailAddress = 11,         // SMTP ending with <span>microsoft.com</span>
+        IpAddress = 12,                    // Machine's current IP address
+        Location = 13,                     // Data appears to specify a location in the real world
+        MachineName = 14,                  // Machine name
+        OutOfScopeIdentifier = 15,         // Client Id for OXO telemetry from the registry
+        PIDKey = 16,                       // Product key
+        Security = 17,                     // A URL containing parameters "access_token", "password", etc.
+        Url = 18,                          // Any URL
+        UserAlias = 19,                    // Current user's alias
+        UserDomain = 20,                   // User/Machine domain
+        UserName = 21                      // Current user's name or part of it.
     };
 
     /// <summary>
@@ -118,13 +120,13 @@ namespace MAT_NS_BEGIN
         /// Set the enabled state at runtime for the inspector.
         /// </summary>
         /// <param name="isEnabled">Boolean value to denote whether the inspector is enabled or not.</param>
-        virtual void SetState(bool isEnabled) noexcept = 0;
+        virtual void SetEnabled(bool isEnabled) noexcept = 0;
 
         /// <summary>
         /// Get the current state for the inspector.
         /// </summary>
         /// <returns>True if the data inspector is enabled, False otherwise.</returns>
-        virtual bool GetState() const noexcept = 0;
+        virtual bool IsEnabled() const noexcept = 0;
 
         /// <summary>
         /// Iterate and inspect the given record's Part-B and
