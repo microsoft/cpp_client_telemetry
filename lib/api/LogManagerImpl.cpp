@@ -6,8 +6,8 @@
 #include "LogManagerImpl.hpp"
 #include "mat/config.h"
 
-#include "offline/OfflineStorageHandler.hpp"
 #include "offline/LogSessionDataProvider.hpp"
+#include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -41,7 +41,7 @@
 #else
 #include "modules/azmon/AITelemetrySystem.hpp"
 #endif
-#endif // HAVE_MAT_AI
+#endif  // HAVE_MAT_AI
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
@@ -239,8 +239,7 @@ namespace MAT_NS_BEGIN
 
         if (
             ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat) || (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema)) &&
-            isWindowsUtcClientRegistrationEnable
-           )
+            isWindowsUtcClientRegistrationEnable)
         {
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
@@ -299,7 +298,7 @@ namespace MAT_NS_BEGIN
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
         m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
 #else
-         m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
 #endif
 
 #ifdef HAVE_MAT_AI
@@ -726,7 +725,7 @@ namespace MAT_NS_BEGIN
 
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
-        return (m_logSessionDataProvider)?m_logSessionDataProvider->GetLogSessionData():nullptr;
+        return (m_logSessionDataProvider) ? m_logSessionDataProvider->GetLogSessionData() : nullptr;
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
@@ -781,52 +780,14 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
-    void LogManagerImpl::InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts)
+    void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
     {
-#ifdef HAVE_MAT_PRIVACYGUARD
-        m_dataInspector = std::make_unique<PrivacyGuard>(tenantForNotifications, std::move(commonContexts));
-#else
-        // To resolve C4100 regarding unreferenced formal parameter
-        (void)tenantForNotifications;
-        (void)commonContexts;
-#endif
+        m_dataInspector = dataInspector;
     }
 
-    void LogManagerImpl::OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
     {
-        if (dataInspector != nullptr)
-        {
-            m_dataInspector.swap(dataInspector);
-        }
-    }
-
-    void LogManagerImpl::AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept
-    {
-        if (m_dataInspector != nullptr && commonDataContexts != nullptr)
-        {
-            m_dataInspector->AppendCommonDataContext(std::move(commonDataContexts));
-        }
-    }
-
-    void LogManagerImpl::SetDataInspectorState(bool isEnabled) noexcept
-    {
-        if (m_dataInspector != nullptr)
-        {
-            m_dataInspector->SetEnabled(isEnabled);
-        }
-    }
-
-    bool LogManagerImpl::GetDataInspectorState() const noexcept
-    {
-        return m_dataInspector != nullptr && m_dataInspector->IsEnabled();
-    }
-
-    void LogManagerImpl::AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept
-    {
-        if (m_dataInspector != nullptr)
-        {
-            m_dataInspector->AddIgnoredConcern(ignoredConcernsCollection);
-        }
+        return m_dataInspector;
     }
 
 }
