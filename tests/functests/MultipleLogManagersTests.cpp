@@ -217,12 +217,6 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     lm1->SetDataInspector(privacyGuard);
     lm2->SetDataInspector(privacyGuard);
 
-    lm1->SetContext("test1", "abc");
-
-    lm2->GetSemanticContext().SetAppId("123");
-
-    ILogger* l1a = lm1->GetLogger("aaa");
-
     ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("Field1", "http://www.microsoft.com");                             //DataConcernType::Url
@@ -234,6 +228,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
 
     privacyConcernLogCount = 0;
 
+    ILogger* l1a = lm1->GetLogger("aaa");
     EventProperties l1a1p("l1a1");
     l1a1p.SetProperty("Field1", "Some%2eone%40Microsoft%2ecom");     //ConcernType::InternalEmailAddress  //As happens in escaped URLs
     l1a1p.SetProperty("Field2", "Someone@Microsoft.com");            //ConcernType::InternalEmailAddress
