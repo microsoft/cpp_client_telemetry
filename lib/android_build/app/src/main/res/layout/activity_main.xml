@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/sendEvent"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   android:onClick="mwwClick"
@@ -10,10 +11,12 @@
     <Button
       android:id="@+id/mwwButton"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_height="48dp"
       android:layout_marginTop="24dp"
+      android:layout_marginBottom="24dp"
       android:onClick="mwwClick"
       android:text="@string/mww_caption"
+      app:layout_constraintBottom_toTopOf="@+id/button"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toBottomOf="@+id/button3" />
@@ -21,30 +24,59 @@
       android:id="@+id/button3"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="24dp"
       android:onClick="runUnitTests"
       android:text="@string/tests_button"
+      app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@+id/textProgress" />
+      app:layout_constraintTop_toTopOf="parent" />
+    <Button
+      android:id="@+id/button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="24dp"
+      android:onClick="sendEventClick"
+      android:text="@string/send_caption"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/mwwButton" />
     <ProgressBar
       android:id="@+id/textProgress"
       style="?android:attr/progressBarStyleHorizontal"
       android:layout_width="0dp"
-      android:layout_height="wrap_content"
+      android:layout_height="16dp"
+      android:layout_marginBottom="24dp"
       android:indeterminateOnly="true"
       android:visibility="invisible"
+      app:layout_constraintBottom_toTopOf="@+id/button3"
       app:layout_constraintEnd_toEndOf="@+id/sample_text"
-      app:layout_constraintStart_toStartOf="@+id/sample_text"
-      app:layout_constraintTop_toBottomOf="@+id/sample_text" />
+      app:layout_constraintStart_toStartOf="@+id/sample_text" />
     <TextView
       android:id="@+id/sample_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:text="Hello World!"
-      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintBottom_toTopOf="@+id/textProgress"
       app:layout_constraintLeft_toLeftOf="parent"
-      app:layout_constraintRight_toRightOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
+      app:layout_constraintRight_toRightOf="parent" />
+    <TextView
+      android:id="@+id/eventText"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="24dp"
+      android:text="@string/send_goof"
+      app:layout_constraintBottom_toTopOf="@+id/sample_text"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
+    <Switch
+      android:id="@+id/pairSwitch"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="24dp"
+      android:checked="false"
+      android:text="@string/pair_caption"
+      app:layout_constraintBottom_toTopOf="@+id/eventText"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

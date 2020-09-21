@@ -153,6 +153,30 @@ Java_com_microsoft_applications_events_maesdktest_SDKUnitNativeTest_nativeGetDat
     return static_cast<int>(property.dataCategory);
 }
 
+jlong nativeSample(size_t eventCount, ILogger * logger) {
+    auto then = std::chrono::steady_clock::now();
+    for (auto j = eventCount; j > 0; --j) {
+        logger->LogEvent("StatisticsTestEvent");
+    }
+    auto sample = std::chrono::steady_clock::now() - then;
+    return sample.count();
+}
+
+jlong javaSample(
+    JNIEnv *env,
+    size_t eventCount,
+    jclass generatorClass,
+    jmethodID logEventsId,
+    jobject javaLogger) {
+    auto then = std::chrono::steady_clock::now();
+    env->CallStaticVoidMethod(generatorClass,
+                              logEventsId,
+                              javaLogger,
+                              static_cast<jlong>(eventCount));
+    auto sample = std::chrono::steady_clock::now() - then;
+    return sample.count();
+}
+
 extern "C"
 JNIEXPORT jlongArray JNICALL
 Java_com_microsoft_applications_events_maesdktest_TestStub_00024CollectStats_generateStatistics(
@@ -177,26 +201,14 @@ Java_com_microsoft_applications_events_maesdktest_TestStub_00024CollectStats_gen
             logger->LogEvent("StatisticsTestEvent");
         }
         for (auto i = sampleCount; i > 0; --i) {
-            auto then = std::chrono::steady_clock::now();
-            for (auto j = eventCount; j > 0; --j) {
-                logger->LogEvent("StatisticsTestEvent");
-            }
-            auto sample = std::chrono::steady_clock::now() - then;
-            durations.push_back(sample.count());
-            total += sample.count();
+            auto n = nativeSample(eventCount, logger);
+            durations.push_back(n);
+            total += n;
             env->CallVoidMethod(thiz, statMethod, fromJava, 1 + sampleCount - i, sampleCount, total / durations.size());
             LogManager::Flush();
         }
     } else {
         jobject javaLogger = nullptr;
-        if (false) {
-            auto loggerClass = env->FindClass(
-                "com/microsoft/applications/events/Logger");
-            auto constructor = env->GetMethodID(loggerClass, "<init>", "(J)V");
-            auto javaLogger = env->NewObject(loggerClass,
-                                             constructor,
-                                             reinterpret_cast<jlong>(&logger));
-        }
         auto generatorClass = env->FindClass(
             "com/microsoft/applications/events/maesdktest/EventGenerator");
         auto logEventsId = env->GetStaticMethodID(generatorClass,
@@ -205,19 +217,58 @@ Java_com_microsoft_applications_events_maesdktest_TestStub_00024CollectStats_gen
         env->CallStaticVoidMethod(generatorClass, logEventsId, javaLogger,
                                   static_cast<jlong>(eventCount));
         for (auto i = sampleCount; i > 0; --i) {
-            auto then = std::chrono::steady_clock::now();
-            env->CallStaticVoidMethod(generatorClass,
-                                      logEventsId,
-                                      javaLogger,
-                                      static_cast<jlong>(eventCount));
-            auto sample = std::chrono::steady_clock::now() - then;
-            durations.push_back(sample.count());
-            total += sample.count();
+            auto n = javaSample(env, eventCount, generatorClass, logEventsId, javaLogger);
+            durations.push_back(n);
+            total += n;
             env->CallVoidMethod(thiz, statMethod, fromJava, 1 + sampleCount - i, sampleCount, total / durations.size());
             LogManager::Flush();
         }
     }
     auto results = env->NewLongArray(sampleCount);
     env->SetLongArrayRegion(results, 0, sampleCount, durations.data());
+    return results;
+}
+
+extern "C"
+JNIEXPORT jlongArray JNICALL
+Java_com_microsoft_applications_events_maesdktest_TestStub_00024CollectStats_generatePairedObservation(
+    JNIEnv *env,
+    jobject thiz) {
+    constexpr jlong sampleCount = 1000;
+    constexpr size_t eventCount = 5000;
+    jobject javaLogger = nullptr;
+
+    std::vector<jlong> nativeSamples;
+    std::vector<jlong> javaSamples;
+    nativeSamples.reserve(sampleCount);
+    javaSamples.reserve(sampleCount);
+    static ILogger *logger = nullptr;
+    if (!logger) {
+        logger = Microsoft::Applications::Events::LogManager::Initialize(
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
+    }
+
+    auto myClass = env->GetObjectClass(thiz);
+    auto statMethod = env->GetMethodID(myClass, "showIteration", "(ZJJD)V");
+    auto generatorClass = env->FindClass(
+        "com/microsoft/applications/events/maesdktest/EventGenerator");
+    auto logEventsId = env->GetStaticMethodID(generatorClass,
+                                              "logEvents",
+                                              "(Lcom/microsoft/applications/events/ILogger;J)V");
+    env->CallStaticVoidMethod(generatorClass, logEventsId, javaLogger,
+                              static_cast<jlong>(eventCount));
+    double total = 0.0;
+    for (size_t i = sampleCount; i > 0; --i) {
+        auto n = nativeSample(eventCount, logger);
+        auto j = javaSample(env, eventCount, generatorClass, logEventsId, javaLogger);
+        nativeSamples.push_back(n);
+        javaSamples.push_back(j);
+        total += n;
+        env->CallVoidMethod(thiz, statMethod, false, 1 + sampleCount - i, sampleCount, total / nativeSamples.size());
+        LogManager::Flush();
+    }
+    auto results = env->NewLongArray(2 * sampleCount);
+    env->SetLongArrayRegion(results, 0, sampleCount, nativeSamples.data());
+    env->SetLongArrayRegion(results, sampleCount, sampleCount, javaSamples.data());
     return results;
 }

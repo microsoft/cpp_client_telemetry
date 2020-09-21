@@ -2,4 +2,8 @@
     <string name="app_name">maesdktest</string>
     <string name="tests_button">Run Unit Tests</string>
     <string name="mww_caption">Mann-Whitney-Wilcoxon</string>
+    <string name="send_caption">Send Event</string>
+    <string name="send_goof">No events sent</string>
+    <string name="test_default">No tests started</string>
+    <string name="pair_caption">Paired observations</string>
 </resources>

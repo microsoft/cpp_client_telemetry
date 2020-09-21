@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">maesdktest</string>
+  <string name="mww_caption">fiat Mann-Whitney-Wilcoxon</string>
+  <string name="send_caption">mitte rem</string>
+  <string name="tests_button">ut probet haec</string>
+  <string name="send_goof">nihil mittum est</string>
+  <string name="test_default">nihil factum est</string>
+  <string name="pair_caption">paria temporibus</string>
+</resources>

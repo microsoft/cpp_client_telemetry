@@ -20,9 +20,11 @@ public class UnitTestViewModel extends ViewModel {
 
   private final MutableLiveData<String> testData = new MutableLiveData<String>();
   private final MutableLiveData<Boolean> runningData = new MutableLiveData<Boolean>();
+  private final MutableLiveData<String> sendEventData = new MutableLiveData<String>();
   private final TestStub stub = new TestStub();
   private Future<Integer> testFuture;
   private Future<Boolean> statsFuture;
+  private Future<Integer> sendFuture;
 
   public UnitTestViewModel() {
     setRunning(false);
@@ -36,6 +38,8 @@ public class UnitTestViewModel extends ViewModel {
     return runningData;
   }
 
+  public LiveData<String> getSendEventStatus() { return sendEventData; }
+
   public void setStatus(@Nullable String newStatus) {
     testData.postValue(newStatus);
   }
@@ -43,6 +47,8 @@ public class UnitTestViewModel extends ViewModel {
   public void setRunning(boolean running) {
     runningData.postValue(running);
   }
+
+  public void setEventStatus(@Nullable String newStatus) { sendEventData.postValue(newStatus); }
 
   public void doTest() {
     if (testFuture != null) {
@@ -59,13 +65,23 @@ public class UnitTestViewModel extends ViewModel {
     testFuture = stub.executorRun(dummyLogger, this);
   }
 
-  public void gatherStatistics(ContentResolver contentResolver, Uri uri) {
+  public void gatherStatistics(ContentResolver contentResolver, Uri uri, boolean pairedObservations) {
     if (statsFuture != null && !statsFuture.isDone()) {
       return;
     }
     statsFuture = null;
     testData.postValue("Gathering Statistics");
     runningData.postValue(true);
-    statsFuture = stub.collectStatistics(contentResolver, uri, this);
+    statsFuture = stub.collectStatistics(contentResolver, uri, this, pairedObservations);
+  }
+
+  public void sendAnEvent() {
+    if (sendFuture != null && !sendFuture.isDone()) {
+      return;
+    }
+    sendFuture = null;
+    sendEventData.postValue("Sending");
+    runningData.postValue(true);
+    sendFuture = stub.sendAnEvent(this);
   }
 }

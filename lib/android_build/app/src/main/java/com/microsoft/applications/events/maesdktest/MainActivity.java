@@ -28,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     createFile();
   }
 
+  public void sendEventClick(View view) {
+    unitTestViewModel.sendAnEvent();
+  }
+
   public void runUnitTests(View view) {
     unitTestViewModel.doTest();
   }
@@ -58,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
     }
     uri = data.getData();
     if (uri != null) {
-      unitTestViewModel.gatherStatistics(getContentResolver(), uri);
+      unitTestViewModel.gatherStatistics(getContentResolver(), uri,
+          binding.pairSwitch.isChecked());
     }
   }
 
@@ -122,6 +127,17 @@ public class MainActivity extends AppCompatActivity {
                 binding.textProgress.setVisibility(running ? View.VISIBLE : View.INVISIBLE);
               }
             });
+    unitTestViewModel
+        .getSendEventStatus()
+        .observe(
+            this,
+            new Observer<String>() {
+              @Override
+              public void onChanged(String status) {
+                binding.eventText.setText(status);
+              }
+            }
+        );
   }
 
   /**

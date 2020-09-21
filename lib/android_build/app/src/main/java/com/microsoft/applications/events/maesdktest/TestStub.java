@@ -2,6 +2,8 @@ package com.microsoft.applications.events.maesdktest;
 
 import android.content.ContentResolver;
 import android.net.Uri;
+import com.microsoft.applications.events.ILogger;
+import com.microsoft.applications.events.LogManager;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -11,6 +13,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 public class TestStub {
+  static Integer sendEventCount = 0;
+
+  enum StatisticsFlavor {
+    FROM_JAVA,
+    FROM_NATIVE,
+    PAIRED
+  }
+
   class CallTests implements Callable<Integer> {
     MaeUnitLogger logger;
     UnitTestViewModel unitTestViewModel;
@@ -35,17 +45,49 @@ public class TestStub {
     }
   }
 
+  class SendEvent implements Callable<Integer> {
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    UnitTestViewModel unitTestViewModel;
+    ILogger logger;
+
+    SendEvent(UnitTestViewModel unitTestViewModel) {
+      this.unitTestViewModel = unitTestViewModel;
+    }
+
+    public Integer call() {
+      unitTestViewModel.setEventStatus("Woo Hoo");
+      logger = LogManager.initialize(token);
+      logger.logEvent("testEvent");
+      Integer result;
+
+      synchronized (sendEventCount) {
+        result = (sendEventCount += 1);
+      }
+      unitTestViewModel.setEventStatus(String.format("Sent %d instances of testEvent", result));
+      unitTestViewModel.setRunning(false);
+      return result;
+    }
+  }
+
   class CollectStats implements Callable<Boolean> {
 
     OutputStream outputStream;
     ContentResolver contentResolver;
     Uri uri;
     UnitTestViewModel unitTestViewModel;
+    boolean pairObservations;
 
-    CollectStats(ContentResolver contentResolver, Uri uri, UnitTestViewModel unitTestViewModel) {
+    CollectStats(
+        ContentResolver contentResolver,
+        Uri uri,
+        UnitTestViewModel unitTestViewModel,
+        boolean pairObservations) {
       this.contentResolver = contentResolver;
       this.uri = uri;
       this.unitTestViewModel = unitTestViewModel;
+      this.pairObservations = pairObservations;
     }
 
     private double mean(long[] sample) {
@@ -75,42 +117,39 @@ public class TestStub {
         this.isNative = isNative;
       }
 
-
       /**
-       * Compares this object with the specified object for order.  Returns a negative integer,
-       * zero, or a positive integer as this object is less than, equal to, or greater than the
-       * specified object.
+       * Compares this object with the specified object for order. Returns a negative integer, zero,
+       * or a positive integer as this object is less than, equal to, or greater than the specified
+       * object.
        *
-       * <p>The implementor must ensure <tt>sgn(x.compareTo(y)) ==
-       * -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and <tt>y</tt>.  (This implies that
-       * <tt>x.compareTo(y)</tt> must throw an exception iff
-       * <tt>y.compareTo(x)</tt> throws an exception.)
+       * <p>The implementor must ensure <tt>sgn(x.compareTo(y)) == -sgn(y.compareTo(x))</tt> for all
+       * <tt>x</tt> and <tt>y</tt>. (This implies that <tt>x.compareTo(y)</tt> must throw an
+       * exception iff <tt>y.compareTo(x)</tt> throws an exception.)
        *
        * <p>The implementor must also ensure that the relation is transitive:
        * <tt>(x.compareTo(y)&gt;0 &amp;&amp; y.compareTo(z)&gt;0)</tt> implies
        * <tt>x.compareTo(z)&gt;0</tt>.
        *
-       * <p>Finally, the implementor must ensure that <tt>x.compareTo(y)==0</tt>
-       * implies that <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for all <tt>z</tt>.
+       * <p>Finally, the implementor must ensure that <tt>x.compareTo(y)==0</tt> implies that
+       * <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for all <tt>z</tt>.
        *
        * <p>It is strongly recommended, but <i>not</i> strictly required that
-       * <tt>(x.compareTo(y)==0) == (x.equals(y))</tt>.  Generally speaking, any
-       * class that implements the <tt>Comparable</tt> interface and violates this condition should
-       * clearly indicate this fact.  The recommended language is "Note: this class has a natural
-       * ordering that is inconsistent with equals."
+       * <tt>(x.compareTo(y)==0) == (x.equals(y))</tt>. Generally speaking, any class that
+       * implements the <tt>Comparable</tt> interface and violates this condition should clearly
+       * indicate this fact. The recommended language is "Note: this class has a natural ordering
+       * that is inconsistent with equals."
        *
-       * <p>In the foregoing description, the notation
-       * <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
-       * <i>signum</i> function, which is defined to return one of <tt>-1</tt>,
-       * <tt>0</tt>, or <tt>1</tt> according to whether the value of
-       * <i>expression</i> is negative, zero or positive.
+       * <p>In the foregoing description, the notation <tt>sgn(</tt><i>expression</i><tt>)</tt>
+       * designates the mathematical <i>signum</i> function, which is defined to return one of
+       * <tt>-1</tt>, <tt>0</tt>, or <tt>1</tt> according to whether the value of <i>expression</i>
+       * is negative, zero or positive.
        *
        * @param o the object to be compared.
        * @return a negative integer, zero, or a positive integer as this object is less than, equal
-       * to, or greater than the specified object.
+       *     to, or greater than the specified object.
        * @throws NullPointerException if the specified object is null
-       * @throws ClassCastException   if the specified object's type prevents it from being compared
-       *                              to this object.
+       * @throws ClassCastException if the specified object's type prevents it from being compared
+       *     to this object.
        */
       @Override
       public int compareTo(Ranky o) {
@@ -145,8 +184,17 @@ public class TestStub {
     @Override
     public Boolean call() throws Exception {
       PrintStream printStream = new PrintStream(contentResolver.openOutputStream(uri));
-      long[] javaStats = generateStatistics(true);
-      long[] nativeStats = generateStatistics(false);
+      long[] javaStats;
+      long[] nativeStats;
+      if (pairObservations) {
+        long[] pairedStats = generatePairedObservation();
+        int count = pairedStats.length >> 1;
+        nativeStats = Arrays.copyOfRange(pairedStats, 0, count);
+        javaStats = Arrays.copyOfRange(pairedStats, count, count + count);
+      } else {
+        javaStats = generateStatistics(true);
+        nativeStats = generateStatistics(false);
+      }
 
       unitTestViewModel.setStatus("Writing File");
       printStream.printf(",Native,Java\n");
@@ -172,11 +220,11 @@ public class TestStub {
       printStream.printf("nu,%g\n", nu);
       double u1 = uMannWhitneyWilcoxon(nativeStats, javaStats);
       printStream.printf("u1,%g\n", u1);
-      double mu = (nativeStats.length * javaStats.length)/2;
+      double mu = (nativeStats.length * javaStats.length) / 2;
       double n1 = nativeStats.length;
       double n2 = javaStats.length;
-      double su = Math.sqrt((n1 * n2 * (n1 + n2 + 1))/12.0);
-      printStream.printf("z1,%g\n", (u1 - mu)/su);
+      double su = Math.sqrt((n1 * n2 * (n1 + n2 + 1)) / 12.0);
+      printStream.printf("z1,%g\n", (u1 - mu) / su);
       boolean ruhRohRaggy = printStream.checkError();
       printStream.close();
       unitTestViewModel.setStatus("File Complete");
@@ -184,14 +232,28 @@ public class TestStub {
       return !ruhRohRaggy;
     }
 
-    private void showIteration(boolean fromJava, long iteration, long total, double mean) {
+    private void showIteration(StatisticsFlavor source, long iteration, long total, double mean) {
+      String flavorName = "Broken";
+      switch (source) {
+        case FROM_JAVA:
+          flavorName = "Java";
+          break;
+        case FROM_NATIVE:
+          flavorName = "Native";
+          break;
+        case PAIRED:
+          flavorName = "Paired";
+          break;
+      }
       unitTestViewModel.setStatus(
           String.format(
               "%s iteration %d of %d mean %g",
-              fromJava ? "Java" : "Native", iteration, total, mean));
+              flavorName, iteration, total, mean));
     }
 
     public native long[] generateStatistics(boolean fromJava);
+
+    public native long[] generatePairedObservation();
   }
 
   ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -204,11 +266,21 @@ public class TestStub {
   }
 
   public FutureTask<Boolean> collectStatistics(
-      ContentResolver contentResolver, Uri uri, UnitTestViewModel unitTestViewModel) {
+      ContentResolver contentResolver,
+      Uri uri,
+      UnitTestViewModel unitTestViewModel,
+      boolean pairedObservations) {
     FutureTask<Boolean> stats =
-        new FutureTask(new CollectStats(contentResolver, uri, unitTestViewModel));
+        new FutureTask(
+            new CollectStats(contentResolver, uri, unitTestViewModel, pairedObservations));
     executorService.execute(stats);
     return stats;
+  }
+
+  public FutureTask<Integer> sendAnEvent(UnitTestViewModel unitTestViewModel) {
+    FutureTask<Integer> sendEvent = new FutureTask(new SendEvent(unitTestViewModel));
+    executorService.execute(sendEvent);
+    return sendEvent;
   }
 
   public native int runNativeTests(MaeUnitLogger logger);

@@ -7,7 +7,7 @@
 #include "jni.h"
 #include "../include/public/Version.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
 class RunTests
@@ -16,5 +16,5 @@ class RunTests
   static int run_all_tests(JNIEnv* env, jobject logger);
   static JavaVM * javaVm;
 };
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif //EVENTSTEST_RUNTESTS_HPP
