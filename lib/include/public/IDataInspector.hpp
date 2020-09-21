@@ -108,7 +108,7 @@ namespace MAT_NS_BEGIN
     /// This interface allows SDK users to register a data inspector
     /// that will inspect the data being uploaded by the SDK.
     /// </summary>
-    class IDataInspector : public IDecorator, public IModule
+    class IDataInspector : public IDecorator
     {
        public:
         /// <summary>

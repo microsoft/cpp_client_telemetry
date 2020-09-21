@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "common/Common.hpp"
 
-#define HAVE_MAT_DEFAULTDATAVIEWER
+#define HAVE_MAT_PRIVACYGUARD
 
 #if defined __has_include
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #else
-/* Compiling without Data Viewer */
-#undef HAVE_MAT_DEFAULTDATAVIEWER
+/* Compiling without Privacy Guard */
+#undef HAVE_MAT_PRIVACYGUARD
 #endif
 #endif
 
-#ifdef HAVE_MAT_DEFAULTDATAVIEWER
+#ifdef HAVE_MAT_PRIVACYGUARD
 
 #include "NullObjects.hpp"
 #include <IDataInspector.hpp>
@@ -128,59 +128,68 @@ class PrivacyGuardFuncTests : public ::testing::Test
 
         return output;
     }
+
+    virtual void SetUp() override
+    {
+        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&m_mockLogger, nullptr);
+        LogManager::Initialize();
+        LogManager::GetInstance()->SetDataInspector(privacyGuard);
+    }
+
+    virtual void TearDown() override
+    {
+        LogManager::GetInstance()->SetDataInspector(nullptr);
+    }
+
+    static std::shared_ptr<IDataInspector> InitializePrivacyGuardWithCustomLoggerAndDataContext(ILogger* logger, std::unique_ptr<CommonDataContexts> context) noexcept
+    {
+        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(context));
+        LogManager::GetInstance()->SetDataInspector(privacyGuard);
+
+        return privacyGuard;
+    }
+
+    MockLogger m_mockLogger;
 };
 
 TEST_F(PrivacyGuardFuncTests, InitializePrivacyGuard)
 {
-    MockLogger mockLogger;
     LogManager::Initialize();
-    ASSERT_NO_THROW([&mockLogger]() {
-        ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-        ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    LogManager::GetInstance()->SetDataInspector(nullptr);
+    ASSERT_NO_THROW([]() {
+        MockLogger mockLogger;
+        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, nullptr);
+        LogManager::GetInstance()->SetDataInspector(privacyGuard);
+        ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector() != nullptr);
     });
-    ASSERT_NO_THROW([&mockLogger]() {
-        ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-        ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    });
-    ASSERT_NO_THROW([&mockLogger]() {
-        ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-        LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>()));
-        ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    ASSERT_NO_THROW([]() {
+        MockLogger mockLogger;
+        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, std::move(std::make_unique<CommonDataContexts>()));
+        LogManager::GetInstance()->SetDataInspector(privacyGuard);
+        ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector() != nullptr);
     });
 }
 
 TEST_F(PrivacyGuardFuncTests, SetDataInspectorState)
 {
-    MockLogger mockLogger;
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->SetDataInspectorState(/*isEnabled:*/ false);
-    ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->SetDataInspectorState(/*isEnabled:*/ true);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector()->IsEnabled());
+    LogManager::GetInstance()->GetDataInspector()->SetEnabled(/*isEnabled:*/ false);
+    ASSERT_FALSE(LogManager::GetInstance()->GetDataInspector()->IsEnabled());
+    LogManager::GetInstance()->GetDataInspector()->SetEnabled(/*isEnabled:*/ true);
+    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector()->IsEnabled());
 }
 
 TEST_F(PrivacyGuardFuncTests, SetCommonDataContexts)
 {
-    MockLogger mockLogger;
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->AppendCommonDataContextsForInspection(std::move(std::make_unique<CommonDataContexts>()));
+    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector()->IsEnabled());
+    LogManager::GetInstance()->GetDataInspector()->AppendCommonDataContext(std::move(std::make_unique<CommonDataContexts>()));
 }
 
 TEST_F(PrivacyGuardFuncTests, AddIgnoredDataConcern)
 {
-    MockLogger mockLogger;
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
     std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcerns;
     ignoredConcerns.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::InScopeIdentifier));
-    LogManager::GetInstance()->AddIgnoredDataConcern(ignoredConcerns);
+    LogManager::GetInstance()->GetDataInspector()->AddIgnoredConcern(ignoredConcerns);
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyEmail_FoundEmail)
@@ -193,9 +202,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyEmail_FoundEmail)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Some%2eone%40Microsoft%2ecom");     //ConcernType::InternalEmailAddress  //As happens in escaped URLs
@@ -220,9 +228,9 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUrl_FoundUrl)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "http://www.microsoft.com");                             //DataConcernType::Url
@@ -244,9 +252,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFileSharingUrl_FoundFileSharingUr
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "http://www.dropbox.com/aaaaa");     //DataConcernType::FileSharingUrl & DataConcernType::Url
@@ -277,9 +284,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_CheckForSecurity_SecurityChecked)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "http://www.dropbox.com/aaaaa");                                  //DataConcernType::FileSharingUrl & DataConcernType::URL
@@ -302,9 +308,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyContentFormat_FoundContentFormat)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "<HTML><P><Table>");  //DataConcernType::Content
@@ -339,9 +344,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPidKey_FoundPidKey)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "1A2B3-C4D5E-6F7H8-I9J0K-LMNOP");  //DataConcernType::PIDKey
@@ -359,9 +363,9 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyUser_FoundUser)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "This content brought to you by awesomeuser and theletterdee");                      //DataConcernType::UserAlias
@@ -386,9 +390,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_FoundPrettyUser)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "This content brought to you by Awesome Username and theletterdee");                      //DataConcernType::UserName
@@ -408,6 +411,30 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_FoundPrettyUser)
     ASSERT_EQ(9, privacyConcernLogCount);
 }
 
+TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineName_MachineNameFound)
+{
+    MockLogger mockLogger;
+    auto privacyConcernLogCount = 0;
+    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
+        if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
+        {
+            privacyConcernLogCount++;
+        }
+    };
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+
+    EventProperties props(c_testEventName);
+    props.SetProperty("Field1", "MOTHERBOARD should be flagged.");      //DataConcernType::MachineName
+    props.SetProperty("Field2", "motherboard should be flagged too.");  //DataConcernType::MachineName
+    props.SetProperty("Field3", "Not expected to find awesome user when case is different to avoid false positives from 'names' in words");
+    props.SetProperty("Field4", "motherboarding should not be flagged because the matched name is part of a longer word.");
+    props.SetProperty("Field5", "grandmotherboard should not be flagged because the matched name is part of a longer word.");
+    logger->LogEvent(props);
+    ASSERT_EQ(2, privacyConcernLogCount);
+}
+
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
 {
     MockLogger mockLogger;
@@ -418,7 +445,6 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
 
     auto cdc = std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts(
         "",
@@ -426,8 +452,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NumbersDoNotCount)
         c_testNumbers,
         c_testNumbers));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(cdc));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", c_testNumbers);
@@ -447,7 +473,6 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NonIsolatedWordsNotMat
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
 
     auto cdc = std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts(
         std::string{"Office Automation Limited Client"},
@@ -455,8 +480,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_NonIsolatedWordsNotMat
         c_testDomain,
         c_testComputerName));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(cdc));
 
     EventProperties props(c_testEventName);
 
@@ -476,7 +501,6 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_ShortNamesNotMached)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
 
     auto cdc = std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts(
         "A Guy",
@@ -484,38 +508,14 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPrettyUser_ShortNamesNotMached)
         c_testDomain,
         c_testComputerName));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(cdc));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "His name is A Guy.");
     props.SetProperty("Field2", "A person named Guy walks down the road.");
     logger->LogEvent(props);
     ASSERT_EQ(0, privacyConcernLogCount);
-}
-
-TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineName_MachineNameFound)
-{
-    MockLogger mockLogger;
-    auto privacyConcernLogCount = 0;
-    mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
-        if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
-        {
-            privacyConcernLogCount++;
-        }
-    };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-
-    EventProperties props(c_testEventName);
-    props.SetProperty("Field1", "MOTHERBOARD should be flagged.");      //DataConcernType::MachineName
-    props.SetProperty("Field2", "motherboard should be flagged too.");  //DataConcernType::MachineName
-    props.SetProperty("Field3", "Not expected to find awesome user when case is different to avoid false positives from 'names' in words");
-    props.SetProperty("Field4", "motherboarding should not be flagged because the matched name is part of a longer word.");
-    props.SetProperty("Field5", "grandmotherboard should not be flagged because the matched name is part of a longer word.");
-    logger->LogEvent(props);
-    ASSERT_EQ(2, privacyConcernLogCount);
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineNameInNonIntuitiveStrings_MachineNameNotFound)
@@ -528,7 +528,6 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineNameInNonIntuitiveStrings_
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
 
     auto cdc = std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts(
         c_testUserName,
@@ -536,8 +535,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyMachineNameInNonIntuitiveStrings_
         c_testDomain,
         PrivacyGuardFuncTests::MakeNonIntuitiveString()));
 
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(cdc));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(cdc));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Nothing to find here.");
@@ -555,9 +554,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDomainName_DomainNameFound)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "TEST.MICROSOFT.COM should be flagged.");      //DataConcernType::UserDomain
@@ -577,9 +575,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyBannedIdentityTypes_BannedIdentit
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "*_SSPI");
@@ -611,9 +608,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDirectory_FoundDirectory)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "C:\\Users\\sunshine\\AppData\\Loca");                                                                                                        //DataConcernType::Directory
@@ -639,9 +635,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyExternalEmail_FoundExternalEmail)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Using the seeing stones will send an email alert to Sauron@contoso.com");  //DataConcernType::ExternalEmailAddress
@@ -661,9 +656,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyLocation_FoundLocation)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Location: Moonbuggy");    //DataConcernType::Location
@@ -691,9 +685,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyFiles_FoundFiles)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "SuperSecretPlans.foo");
@@ -721,9 +714,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyPostFixedFiles_FoundPostFixedFile
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "SuperSecretPlans.docx.CustomCommand");          //DataConcernType::FileNameOrExtension
@@ -755,9 +747,8 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyInScopeIdentifiers_InScopeIdentif
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "12345678-90ab-cdef-fedc-ba9876543210_ADAL");                              //DataConcernType::InScopeIdentifier
@@ -794,9 +785,9 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyDemographics_FoundDemographics)
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "I English good speak");       //DataConcernType::DemographicInfoLanguage
@@ -831,8 +822,6 @@ std::string GenerateIdentifierVariant(const std::string& input, bool uppercase, 
 
 void ValidateOutOfScopeIdentifierIsFlagged(ILogger* logger, const std::string& identifier)
 {
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-
     EventProperties props(c_testEventName);
 
     ASSERT_TRUE(identifier.length() < 256);
@@ -855,8 +844,10 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyOutOfScopeIdentifiers_FoundOutOfS
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
+
     ValidateOutOfScopeIdentifierIsFlagged(logger, c_testClientId);
     ASSERT_EQ(4, privacyConcernLogCount);
     privacyConcernLogCount = 0;
@@ -878,9 +869,9 @@ TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyOutOfScopeIdentifiers_RandmonGuid
             privacyConcernLogCount++;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, std::move(std::make_unique<CommonDataContexts>(PrivacyGuardFuncTests::GenerateTestDataContexts())));
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "cbfd6749-165c-41c8-a85e-b9c8b8c1f9ce");
@@ -898,9 +889,8 @@ TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_CheckContextValues_Notifies
             logEventCalled = true;
         }
     };
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
 
     LogManager::SetContext(c_testFieldName, c_testEmail);
     ASSERT_TRUE(logEventCalled);
@@ -921,12 +911,12 @@ TEST_F(PrivacyGuardFuncTests, InspectSemanticContext_IgnoredConcern_NoNotificati
             logEventCalled = true;
         }
     };
-    LogManager::Initialize();
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
+
     std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcern;
     ignoredConcern.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::ExternalEmailAddress));
-    LogManager::GetInstance()->AddIgnoredDataConcern(ignoredConcern);
+    pg->AddIgnoredConcern(ignoredConcern);
 
     LogManager::SetContext(c_testFieldName, c_testEmail);
     ASSERT_FALSE(logEventCalled);
@@ -942,11 +932,11 @@ TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
             privacyConcernLogCalled = true;
         }
     };
-    auto logger = LogManager::Initialize(TEST_TOKEN);
-    LogManager::GetInstance()->InitializePrivacyGuardDataInspector(&mockLogger, nullptr);
-    ASSERT_TRUE(LogManager::GetInstance()->GetDataInspectorState());
-    LogManager::GetInstance()->SetDataInspectorState(false);
-    ASSERT_FALSE(LogManager::GetInstance()->GetDataInspectorState());
+
+    auto pg = PrivacyGuardFuncTests::InitializePrivacyGuardWithCustomLoggerAndDataContext(&mockLogger, nullptr);
+    auto logger = LogManager::GetLogger(TEST_TOKEN);
+    pg->SetEnabled(false);
+    ASSERT_FALSE(LogManager::GetInstance()->GetDataInspector()->IsEnabled());
 
     EventProperties props(c_testEventName);
     props.SetProperty("Field1", "Some%2eone%40Microsoft%2ecom");     //ConcernType::InternalEmailAddress  //As happens in escaped URLs
@@ -960,7 +950,6 @@ TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
     logger->LogEvent(props);
     ASSERT_FALSE(privacyConcernLogCalled);
 }
-
 #else
 
 #endif
