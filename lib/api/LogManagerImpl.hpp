@@ -26,8 +26,8 @@
 
 #include "AllowedLevelsCollection.hpp"
 
-#include "offline/LogSessionDataProvider.hpp"
 #include "IDataInspector.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include <mutex>
 #include <set>
@@ -291,17 +291,9 @@ namespace MAT_NS_BEGIN
 
         static size_t GetDeadLoggerCount();
 
-        virtual void InitializePrivacyGuardDataInspector(ILogger* tenantForNotifications, std::unique_ptr<CommonDataContexts>&& commonContexts) override;
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
 
-        virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& dataInspector) noexcept override;
-
-        virtual void AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& commonDataContexts) noexcept override;
-
-        virtual void SetDataInspectorState(bool isEnabled) noexcept override;
-
-        virtual bool GetDataInspectorState() const noexcept override;
-
-        virtual void AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept override;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
@@ -340,7 +332,7 @@ namespace MAT_NS_BEGIN
         EventFilterCollection m_filters;
         std::vector<std::unique_ptr<IModule>> m_modules;
         DataViewerCollection m_dataViewerCollection;
-        std::unique_ptr<IDataInspector> m_dataInspector;
+        std::shared_ptr<IDataInspector> m_dataInspector;
     };
 
 }

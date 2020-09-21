@@ -376,20 +376,13 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
-        virtual void InitializePrivacyGuardDataInspector(ILogger* /*tenantForNotifications*/, std::unique_ptr<CommonDataContexts>&& /*commonContexts*/) override {}
+        
+        void SetDataInspector(const std::shared_ptr<IDataInspector>& /*dataInspector*/) override {}
 
-        virtual void OverrideDataInspector(std::unique_ptr<IDataInspector>&& /*dataInspector*/) noexcept override {}
-
-        virtual void AppendCommonDataContextsForInspection(std::unique_ptr<CommonDataContexts>&& /*commonDataContexts*/) noexcept override {}
-
-        virtual void SetDataInspectorState(bool /*isEnabled*/) noexcept override  {}
-
-        virtual bool GetDataInspectorState() const noexcept override
+        std::shared_ptr<IDataInspector> GetDataInspector() noexcept
         {
-            return false;
+            return nullptr;
         }
-
-        virtual void AddIgnoredDataConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& /*ignoredConcernsCollection*/) noexcept override  {}
 
         private:
             NullDataViewerCollection nullDataViewerCollection;
