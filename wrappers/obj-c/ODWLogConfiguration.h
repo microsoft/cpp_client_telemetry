@@ -18,6 +18,12 @@
 +(void)setEnableTrace:(bool)enableTrace;
 
 /*!
+@brief Sets the internal SDK debugging trace level.
+@param one of the ACTTraceLevel values.
+*/
++(void)setTraceLevel:(int)TraceLevel;
+
+/*!
 @brief Returns true if tracing is enabled.
 */
 +(bool)enableTrace;

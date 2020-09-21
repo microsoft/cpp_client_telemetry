@@ -2,7 +2,7 @@
 
 #include "StorageObserver.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     StorageObserver::StorageObserver(ITelemetrySystem& system, IOfflineStorage& offlineStorage)
         :
@@ -46,7 +46,7 @@ namespace ARIASDK_NS_BEGIN {
             return wantMore;
         };
 
-        // TODO: [MG] - expose 120000 as a constant
+        // TODO: [MG] - expose 120000 as a configuration parameter
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
@@ -211,4 +211,4 @@ namespace ARIASDK_NS_BEGIN {
         DispatchEvent(evt);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

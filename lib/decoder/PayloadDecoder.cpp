@@ -494,8 +494,8 @@ namespace clienttelemetry {
                 z_stream zs;
                 memset(&zs, 0, sizeof(zs));
 
-                // [MG]: must call inflateInit2 with -9 because otherwise
-                // it'd be searching for non-existing gzip header...
+                // Must call inflateInit2 with -9 because otherwise
+                // it'd be searching for non-existing gzip header.
                 if (inflateInit2(&zs, -9) != Z_OK)
                 {
                     return false;
@@ -534,7 +534,7 @@ namespace clienttelemetry {
 
 using namespace clienttelemetry::data::v3;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     namespace exporters {
 
@@ -593,4 +593,4 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

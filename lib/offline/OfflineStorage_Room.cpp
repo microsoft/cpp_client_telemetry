@@ -3,7 +3,7 @@
 #include <exception>
 #include <jni.h>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /**
      * Java virtual machine
@@ -322,6 +322,9 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "Call getAndReserve");
         size_t index;
         size_t limit = env->GetArrayLength(selected);
+        if (limit == 0) {
+            return false;
+        }
         // we don't collect these here because GetObjectClass is
         // less fragile than FindClass
         jclass record_class = nullptr;
@@ -340,6 +343,7 @@ namespace ARIASDK_NS_BEGIN
         int persist_lb = static_cast<int>(EventPersistence_Normal);
         int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
+        size_t collected = 0;
         for (index = 0; index < limit; ++index)
         {
             env.pushLocalFrame(32);
@@ -403,6 +407,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 break;
             }
+            collected += 1;
         }
         if (index < limit)
         {
@@ -412,7 +417,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowRuntime(env, "call ru");
         }
         m_lastReadCount.store(std::min(index, static_cast<size_t>(INT32_MAX)));
-        return true;
+        return collected > 0;
     }
 
     /**
@@ -1022,7 +1027,7 @@ namespace ARIASDK_NS_BEGIN
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_Room, "EventsSDK.RoomStorage", "Offline Storage: Android Room database")
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(

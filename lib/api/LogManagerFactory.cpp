@@ -13,7 +13,7 @@
 
 #include <ctime>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // This mutex has to be recursive because we allow both
     // Destroy and destrutor to lock it. destructor could be
@@ -153,8 +153,7 @@ namespace ARIASDK_NS_BEGIN
             shared[host].names.insert(name);
         }
 
-        // TODO: [MG] - if there was no module configuration supplied
-        // explicitly, then do we treat the client as host or guest?
+        // If there was no module configuration supplied explicitly, then do we treat the client as host or guest?
         c[CFG_BOOL_HOST_MODE] = (name == host);
         return shared[host].instance;
     }
@@ -250,4 +249,4 @@ namespace ARIASDK_NS_BEGIN
     }
 
 }
-ARIASDK_NS_END
+MAT_NS_END

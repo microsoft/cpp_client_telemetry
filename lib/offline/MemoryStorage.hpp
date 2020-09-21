@@ -18,7 +18,7 @@
 #include <string>
 #include <unordered_set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class MemoryStorage : public IOfflineStorage
     {
@@ -92,5 +92,5 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

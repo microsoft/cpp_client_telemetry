@@ -16,14 +16,14 @@
 
 #define ENABLE_LOCKING      // Enable DB locking for flush
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class SqliteDB;
 
     class OfflineStorage_SQLite : public IOfflineStorage
     {
     public:
-        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false);
+        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory=false);
 
         virtual ~OfflineStorage_SQLite() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
@@ -114,5 +114,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

@@ -7,7 +7,7 @@
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     Statistics::Statistics(ITelemetrySystem& telemetrySystem, ITaskDispatcher& taskDispatcher) :
         m_metaStats(telemetrySystem.getConfig()),
@@ -269,4 +269,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

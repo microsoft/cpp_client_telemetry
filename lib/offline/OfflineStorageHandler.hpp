@@ -16,7 +16,7 @@
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
     {
@@ -76,7 +76,7 @@ namespace ARIASDK_NS_BEGIN {
         PAL::Event                             m_flushComplete;
 
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;
@@ -92,4 +92,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

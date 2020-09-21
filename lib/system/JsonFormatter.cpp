@@ -4,7 +4,7 @@
 
 using json = nlohmann::json;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     JsonFormatter::JsonFormatter()
@@ -185,4 +185,4 @@ namespace ARIASDK_NS_BEGIN
         return ans.dump(4);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

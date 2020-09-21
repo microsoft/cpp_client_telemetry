@@ -40,7 +40,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClientManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpRequestEncoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.cpp" />
@@ -109,7 +111,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IDeviceInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IInformationProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\INetworkInformation.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IOfflineStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IPropertyChangedCallback.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\ISystemInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp" />
@@ -132,6 +133,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IOfflineStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IHttpClient.hpp" />
@@ -156,6 +158,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\ISqlite3Proxy.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
@@ -163,6 +166,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\ISplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.hpp" />
@@ -188,7 +192,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\system\TelemetrySystemBase.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\DeviceStateHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmissionPolicyManager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\tpm\TransmitProfilesStub.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />

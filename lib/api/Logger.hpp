@@ -21,7 +21,7 @@
 
 #include "filter/EventFilterCollection.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class BaseDecorator;
     class ILogManagerInternal;
@@ -284,6 +284,6 @@ namespace ARIASDK_NS_BEGIN
         friend class ActiveLoggerCall;
     };
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 #endif

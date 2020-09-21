@@ -11,7 +11,7 @@
 
 using namespace MAT;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class ActiveLoggerCall
     {
@@ -190,7 +190,7 @@ namespace ARIASDK_NS_BEGIN
         SetContext(k, EventProperty(v, pii));
     };
 
-    // TODO: [MG] - the goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
+    // The goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
     // rewire from the default parent (Host LogManager context) to guest's sandbox context, i.e. enabling scenario where
     // several guests are attached to one host, but each guest has their own 'local' LogManager semantic context sandbox.
@@ -773,9 +773,14 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
 
-        LogSessionData* logSessionData = m_logManager.GetLogSessionData();
-        std::string sessionSDKUid = logSessionData->getSessionSDKUid();
-        unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
+        auto logSessionData = m_logManager.GetLogSessionData();
+        std::string sessionSDKUid;
+        unsigned long long sessionFirstTime = 0;
+        if (logSessionData!=nullptr)
+        {
+            sessionSDKUid = logSessionData->getSessionSDKUid();
+            sessionFirstTime = logSessionData->getSessionFirstTime();
+        }
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {
@@ -929,4 +934,4 @@ namespace ARIASDK_NS_BEGIN
         }
     }
 }
-ARIASDK_NS_END
+MAT_NS_END

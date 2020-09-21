@@ -6,7 +6,7 @@
 #include <vector>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class ClockSkewManager
     {
@@ -89,5 +89,5 @@ namespace ARIASDK_NS_BEGIN {
         int64_t                 m_pingSendTime {};
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

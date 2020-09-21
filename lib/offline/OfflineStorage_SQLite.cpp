@@ -10,7 +10,7 @@
 #include <numeric>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
@@ -73,7 +73,6 @@ namespace ARIASDK_NS_BEGIN {
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
 
-        // TODO: [MG] - this needs to be moved into constant
         const char* skipSqliteInit = m_config["skipSqliteInitAndShutdown"];
         if (skipSqliteInit != nullptr)
         {
@@ -139,7 +138,6 @@ namespace ARIASDK_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
-        // TODO: [MG] - verify this codepath
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
@@ -260,7 +258,6 @@ namespace ARIASDK_NS_BEGIN {
 #endif
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
 
-            // FIXME: [MG] - add error checking here
             if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
                 LOG_ERROR("Failed to release expired reserved events: Database error occurred");
             else {
@@ -634,6 +631,7 @@ namespace ARIASDK_NS_BEGIN {
                 if (initializeDatabase()) {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
+                    m_isOpened = true;
                     return true;
                 }
                 m_db->shutdown();
@@ -655,8 +653,7 @@ namespace ARIASDK_NS_BEGIN {
             std::ostringstream tempPragma;
             tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
             SqliteStatement(*m_db, tempPragma.str().c_str()).select();
-            const char * result = sqlite3_temp_directory;
-            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", sqlite3_temp_directory);
         }
 
         int openedDbVersion;
@@ -685,7 +682,6 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        // FIXME: [MG] - migration code is missing for this scenario since we renamed property to latency!!!
         if (!SqliteStatement(*m_db,
             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
             "record_id"      " TEXT,"
@@ -940,5 +936,5 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
     
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

@@ -1,6 +1,8 @@
 message("--- unittests")
 
 set(SRCS
+  AIJsonSerializerTests.cpp
+  AITelemetrySystemTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
@@ -25,6 +27,7 @@ set(SRCS
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
+  LogSessionDataDBTests.cpp
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp
@@ -41,6 +44,9 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ECSClientTests.cpp
+  ECSClientUtilsTests.cpp
+  ECSConfigCacheTests.cpp
 )
 
 if (APPLE)

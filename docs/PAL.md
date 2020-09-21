@@ -11,7 +11,7 @@ Platform Abstraction Layer
 
 #### Lifetime
 
--   The whole ARIA client library must be initialized by the application
+-   The whole 1DS client library must be initialized by the application
     before the first call to any of its other API methods, and shut down
     after no more API calls can be performed.
 -   The PAL has similar lifetime scope -- `PAL::initialize()` will be

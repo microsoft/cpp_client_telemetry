@@ -2,7 +2,7 @@
 
 #include "AllowedLevelsCollection.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     AllowedLevelsCollection::AllowedLevelsCollection(std::initializer_list<uint8_t>&& allowedLevels) noexcept
         : m_allowedLevels(allowedLevels)
@@ -32,4 +32,4 @@ namespace ARIASDK_NS_BEGIN
         m_allowedLevels = levels;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
