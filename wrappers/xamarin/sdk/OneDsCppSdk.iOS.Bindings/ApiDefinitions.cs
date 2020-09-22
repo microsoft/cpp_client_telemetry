@@ -248,6 +248,62 @@ namespace Microsoft.Applications.Events
 		[Export ("logSessionWithState:eventProperties:")]
 		void LogSession (SessionState state, EventProperties properties);
 
+		// -(void)setContext:(NSString *)name withStringValue:(NSString*) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withStringValue:withPiiKind:")]
+		void SetContext(string name, string value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withStringValue:(NSString*) value;
+		[Export("setContext:withStringValue:")]
+		void SetContext (string name, string value);
+
+		// -(void)setContext:(NSString *)name withDoubleValue:(double) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withDoubleValue:withPiiKind:")]
+		void SetContext(string name, double value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withDoubleValue:(double) value;
+		[Export("setContext:withDoubleValue:")]
+		void SetContext(string name, double value);
+
+		// -(void)setContext:(NSString *)name withInt64Value:(int64_t) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withInt64Value:withPiiKind:")]
+		void SetContext(string name, long value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withInt64Value:(int64_t) value;
+		[Export("setContext:withInt64Value:")]
+		void SetContext(string name, long value);
+
+		// -(void)setContext:(NSString *)name withInt32Value:(int32_t) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withInt32Value:withPiiKind:")]
+		void SetContext(string name, int value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withInt32Value:(int32_t) value;
+		[Export("setContext:withInt32Value:")]
+		void SetContext(string name, int value);
+
+		// -(void)setContext:(NSString *)name withBoolValue:(BOOL) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withBoolValue:withPiiKind:")]
+		void SetContext(string name, bool value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withBoolValue:(BOOL) value;
+		[Export("setContext:withBoolValue:")]
+		void SetContext(string name, bool value);
+
+		// -(void)setContext:(NSString *)name withUUIDValue:(NSUUID *) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withUUIDValue:withPiiKind:")]
+		void SetContext(string name, Guid value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withUUIDValue:(NSUUID *) value;
+		[Export("setContext:withUUIDValue:")]
+		void SetContext(string name, Guid value);
+
+		// -(void)setContext:(NSString *)name withDateValue:(NSDate *) value withPiiKind:(PiiKind) piiKind;
+		[Export("setContext:withDateValue:withPiiKind:")]
+		void SetContext(string name, NSDate value, PiiKind piiKind);
+
+		// -(void)setContext:(NSString *)name withDateValue:(NSDate *) value;
+		[Export("setContext:withDateValue:")]
+		void SetContext(string name, NSDate value);
+
 		// @property (readonly, nonatomic, strong) ODWSemanticContext * _Nonnull semanticContext;
 		[Export ("semanticContext", ArgumentSemantic.Strong)]
 		SemanticContext SemanticContext { get; }

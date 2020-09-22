@@ -15,8 +15,6 @@
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logSampledMetric']" />
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logUserState']" />
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logUserState']" />
-    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='setContext']" />
-    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='setContext']" />
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='setLevel']" />
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='setLevel']" />
     <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='setParentContext']" />

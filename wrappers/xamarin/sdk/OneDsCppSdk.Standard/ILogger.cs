@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Applications.Events
+﻿using System;
+
+namespace Microsoft.Applications.Events
 {
     public interface ILogger
     {
@@ -19,5 +21,25 @@
         void LogSession(SessionState state, EventProperties properties);
 
         void LogTrace(TraceLevel level, string message, EventProperties properties);
+
+        void SetContext(string name, string value, PiiKind piiKind);
+
+        void SetContext(string name, string value);
+
+        void SetContext(string name, double value, PiiKind piiKind);
+
+        void SetContext(string name, double value);
+
+        void SetContext(string name, long value, PiiKind piiKind);
+
+        void SetContext(string name, long value);
+
+        void SetContext(string name, Guid value, PiiKind piiKind);
+
+        void SetContext(string name, Guid value);
+
+        void SetContext(string name, DateTime value, PiiKind piiKind);
+
+        void SetContext(string name, DateTime value);
     }
 }

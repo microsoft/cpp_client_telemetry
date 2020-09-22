@@ -85,7 +85,7 @@ if [ "$BUILD_XAMARIN_ONLY" != true ]; then
 
     gradle build
 
-    # Generate javadocs
+    # Generate javadocs to be referenced by Android Binding project to preserve paramaters names
     pushd ./maesdk/src/main/java
     echo "$GREEN ====== Generating JavaDoc $NOCOLOR"
     javadoc -protected -d ../../../../../../wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/JavaDoc -Xdoclint:none com.microsoft.applications.events
