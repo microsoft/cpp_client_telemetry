@@ -73,6 +73,7 @@ namespace MAT_NS_BEGIN {
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
 
+        // TODO: [MG] - this needs to be moved into constant
         const char* skipSqliteInit = m_config["skipSqliteInitAndShutdown"];
         if (skipSqliteInit != nullptr)
         {
@@ -138,6 +139,7 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
+        // TODO: [MG] - verify this codepath
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
@@ -258,6 +260,7 @@ namespace MAT_NS_BEGIN {
 #endif
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
 
+            // FIXME: [MG] - add error checking here
             if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
                 LOG_ERROR("Failed to release expired reserved events: Database error occurred");
             else {
@@ -715,6 +718,7 @@ namespace MAT_NS_BEGIN {
             }
         }
 
+        // FIXME: [MG] - migration code is missing for this scenario since we renamed property to latency!!!
         if (!SqliteStatement(*m_db,
             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
             "record_id"      " TEXT,"

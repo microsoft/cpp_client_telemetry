@@ -6,6 +6,7 @@
 using namespace testing;
 using namespace MAT;
 
+// TODO: [MG] - this test would benefit from uncommenting a bunch of lines that have been commented by someone before..
 TEST(ContextFieldsProviderTests, SetProperties)
 {
     ContextFieldsProvider ctx(nullptr);

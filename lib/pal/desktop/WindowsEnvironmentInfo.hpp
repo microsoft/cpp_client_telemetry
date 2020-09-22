@@ -42,8 +42,8 @@ namespace MAT_NS_BEGIN {
             }
             else
             {
-                // TODO: [MG] - ref. https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-gettimezoneinformation
-                // Need to handle the case when API return TIME_ZONE_ID_UNKNOWN. Otherwise we may be reporting invalid timeZone.Bias
+                // TODO: [MG] - fix this benign compiler warning
+                // Warning	C6102	Using 'timeZone' from failed function call at line '46'
                 return TimeZoneBiasToISO8601(timeZone.Bias + timeZone.StandardBias);
             }
         };

@@ -138,6 +138,7 @@ class AISendTests : public ::testing::Test,
         auto configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
         configuration[CFG_STR_COLLECTOR_URL] = (serverAddress + path).c_str();
+        configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = compression;
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;

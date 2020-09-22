@@ -190,7 +190,7 @@ namespace MAT_NS_BEGIN
         SetContext(k, EventProperty(v, pii));
     };
 
-    // The goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
+    // TODO: [MG] - the goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
     // rewire from the default parent (Host LogManager context) to guest's sandbox context, i.e. enabling scenario where
     // several guests are attached to one host, but each guest has their own 'local' LogManager semantic context sandbox.
