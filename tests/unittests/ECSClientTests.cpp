@@ -5,6 +5,7 @@
 #include "common/Common.hpp"
 #include "utils/Utils.hpp"
 #include "modules/exp/ecs/ecsclient/ECSClient.hpp"
+#include "pal/PAL.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -39,7 +40,10 @@ public:
 };
 
 TEST(ECSClientTests, CreateInstance_OK_DestroyInstance_OK)
-{
+{    
+    // someone forgot to shutdown, so background threading is still running
+    // so it will result in transient error in this tests
+    PAL::shutdown();
     auto client = IECSClient::CreateInstance();
     IECSClient::DestroyInstance(&client);
 }
