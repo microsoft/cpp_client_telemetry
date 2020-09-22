@@ -17,8 +17,8 @@
 #define IDATAINSPECTOR_HPP
 
 #include "EventProperty.hpp"
-#include "IDecorator.hpp"
 #include "Version.hpp"
+#include "CsProtocol_types.hpp"
 #include "ctmacros.hpp"
 #include <functional>
 #include <memory>
@@ -27,37 +27,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    /// <summary>
-    /// Enums identifying applicable Data Concerns
-    /// Source: https://aka.ms/privacyguard/issuetypes
-    /// </summary>
-    enum class DataConcernType : uint8_t
-    {
-        None = 0,                          //DefaultValue
-
-        Content = 1,                       // Formatted text: HTML, MIME, RTF, Xml, etc.
-        DemographicInfoCountryRegion = 2,  // Country/region
-        DemographicInfoLanguage = 3,       // The users language ID. Example: En-Us
-        Directory = 4,                     // Any directory or file share
-        ExternalEmailAddress = 5,          // SMTP not ending in <span>microsoft.com</span>
-        FieldNameImpliesLocation = 6,      // Field name sounds like location data
-        FileNameOrExtension = 7,           // A file extension from the reportable list of extensions (ignores code files)
-        FileSharingUrl = 8,                // A URL referencing a common file-sharing site or service.
-        InScopeIdentifier = 9,             // EUPI. Any authenticated identifier of the same types used for DSR.
-        InScopeIdentifierActiveUser = 10,  // The current users EUPI for DSR
-        InternalEmailAddress = 11,         // SMTP ending with <span>microsoft.com</span>
-        IpAddress = 12,                    // Machine's current IP address
-        Location = 13,                     // Data appears to specify a location in the real world
-        MachineName = 14,                  // Machine name
-        OutOfScopeIdentifier = 15,         // Client Id for OXO telemetry from the registry
-        PIDKey = 16,                       // Product key
-        Security = 17,                     // A URL containing parameters "access_token", "password", etc.
-        Url = 18,                          // Any URL
-        UserAlias = 19,                    // Current user's alias
-        UserDomain = 20,                   // User/Machine domain
-        UserName = 21                      // Current user's name or part of it.
-    };
-
     /// <summary>
     /// Common Privacy Contexts to inspect in the data
     /// </summary>
@@ -108,7 +77,7 @@ namespace MAT_NS_BEGIN
     /// This interface allows SDK users to register a data inspector
     /// that will inspect the data being uploaded by the SDK.
     /// </summary>
-    class IDataInspector : public IDecorator
+    class IDataInspector
     {
        public:
         /// <summary>
@@ -134,48 +103,33 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="record">Record to inspect</param>
         /// <returns>Always returns true.</returns>
-        virtual bool decorate(::CsProtocol::Record& record) noexcept override = 0;
+        virtual bool InspectRecord(::CsProtocol::Record& record) noexcept = 0;
 
         /// <summary>
-        /// Set Common Privacy Context after initialization.
+        /// Set Common Data Context after initialization.
         /// <b>Note:</b> Data that may have been sent before this method was called
         /// will not be inspected.
         /// </summary>
         /// <param name="freshCommonPrivacyContext">Unique Ptr for Common Privacy Contexts. If the param is nullptr, this method is no-op.</param>
-        virtual void AppendCommonDataContext(std::unique_ptr<CommonDataContexts>&& freshCommonPrivacyContext) = 0;
+        virtual void AppendCommonDataContext(std::unique_ptr<CommonDataContexts>&& freshCommonDataContext) = 0;
 
         /// <summary>
         /// Inspect an ISemanticContext value.
         /// </summary>
-        /// <param name="semanticContext">Semantic Context to inspect</param>
+        /// <param name="contextName">Name of the Context</param>
+        /// <param name="contextValue">Value of the Context</param>
+        /// <param name="isGlobalContext">Whether this is a global/logmanager Context or local ILogger context</param>
+        /// <param name="associatedTenant">(Optional) Tenant associated with the Context</param>
         virtual void InspectSemanticContext(const std::string& contextName, const std::string& contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
 
         /// <summary>
         /// Inspect an ISemanticContext value.
         /// </summary>
-        /// <param name="semanticContext">Semantic Context to inspect</param>
+        /// <param name="contextName">Name of the Context</param>
+        /// <param name="contextValue">Value of the Context</param>
+        /// <param name="isGlobalContext">Whether this is a global/logmanager Context or local ILogger context</param>
+        /// <param name="associatedTenant">(Optional) Tenant associated with the Context</param>
         virtual void InspectSemanticContext(const std::string& contextName, GUID_t contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
-
-        /// <summary>
-        /// Custom inspector to validate wstrings for a given tenant.
-        /// </summary>
-        /// <param name="customInspector">Function to inspect the given string</param>
-        virtual void AddCustomStringValueInspector(std::function<DataConcernType(const std::string& valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
-
-        /// <summary>
-        /// Custom inspector to validate GUIDs for a given tenant.
-        /// </summary>
-        /// <param name="customInspector">Function to inspect the given GUID</param>
-        virtual void AddCustomGuidValueInspector(std::function<DataConcernType(GUID_t valueToInspect, const std::string& tenantToken)>&& customInspector) noexcept = 0;
-
-        /// <summary>
-        /// Add known concerns for a given event and field pairs.
-        /// If a concern is identified in this field for the same Privacy Issue Type,
-        /// it is ignored
-        /// </summary>
-        /// <param name="ignoredConcernsCollection">Collection of ignored concerns</param>
-        /// <returns></returns>
-        virtual void AddIgnoredConcern(const std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>>& ignoredConcernsCollection) noexcept = 0;
     };
 
 }

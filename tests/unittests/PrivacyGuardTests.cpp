@@ -768,7 +768,7 @@ TEST(PrivacyGuardTests, Decorate_InspectStringAndGuidData)
     PrivacyGuard pgInstance(&mockLogger, nullptr);
 
     auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_testAdalGuid);
-    ASSERT_TRUE(pgInstance.decorate(testRecord));
+    ASSERT_TRUE(pgInstance.InspectRecord(testRecord));
     ASSERT_TRUE(logEventCalled);
 }
 
@@ -782,8 +782,8 @@ TEST(PrivacyGuardTests, Decorate_MultipleEventsAddInscopeIdentifier_InspectStrin
     PrivacyGuard pgInstance(&mockLogger, nullptr);
 
     auto testRecord = PrivacyGuardTests::GenerateTestRecord(c_testAdalGuid);
-    ASSERT_TRUE(pgInstance.decorate(testRecord));
-    ASSERT_TRUE(pgInstance.decorate(testRecord));
+    ASSERT_TRUE(pgInstance.InspectRecord(testRecord));
+    ASSERT_TRUE(pgInstance.InspectRecord(testRecord));
     ASSERT_TRUE(logEventCalled);
 }
 

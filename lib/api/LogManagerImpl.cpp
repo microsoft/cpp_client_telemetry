@@ -518,9 +518,12 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
-        if (m_dataInspector)
         {
-            m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
         }
         return STATUS_SUCCESS;
     }
@@ -592,9 +595,13 @@ namespace MAT_NS_BEGIN
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
-        if (m_dataInspector)
+        m_context.SetCustomField(name, prop);
         {
-            m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext:*/ true, std::string{});
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
         }
         return STATUS_SUCCESS;
     }
@@ -700,7 +707,7 @@ namespace MAT_NS_BEGIN
 
                 if (m_dataInspector)
                 {
-                    m_dataInspector->decorate(*(event->source));
+                    m_dataInspector->InspectRecord(*(event->source));
                 }
             }
             GetSystem()->sendEvent(event);
