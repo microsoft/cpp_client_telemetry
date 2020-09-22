@@ -1507,7 +1507,6 @@ TEST_F(BasicFuncTests, deleteEvents)
     }
 }
 
-
 #if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 {
