@@ -1,4 +1,5 @@
 #ifdef WIN10_CS
+// TODO: [MG] - move this file to pal/winrt project
 #include "pch.h"
 #include "PlatformHelpers.h"
 #include "IPlatformEventReceiver.h"

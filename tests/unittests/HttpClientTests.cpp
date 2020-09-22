@@ -99,6 +99,7 @@ class HttpClientTests : public ::testing::Test,
 
     /**
      * This method temporarily copies SimpleHttpResponse to a responses buffer.
+     * TODO: [MG] - ideally we should create a copy-constructor for that.
      */
     virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
     {

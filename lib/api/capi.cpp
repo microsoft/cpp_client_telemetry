@@ -277,6 +277,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     }
     else
     {
+        // TODO: [MG] - verify guest configuration and decide if we need to overwrite
         logger->SetParentContext(nullptr);
         logger->LogEvent(props);
         ctx->result = EOK;
@@ -394,7 +395,7 @@ extern "C" {
                 break;
 
             case EVT_OP_VERSION:
-                // TODO: add handling of ctx->data passed by caller inline stub :
+                // TODO: [MG] - add handling of ctx->data passed by caller inline stub.
                 // If there is API version mismatch between the stub and lib impl, then
                 // depending on version passed down to SDK - lib may need to figure out
                 // how to handle the mismatch. For now the onus of verifying for SDK

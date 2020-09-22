@@ -24,6 +24,7 @@ namespace PAL_NS_BEGIN {
     protected:
         std::thread           m_hThread;
 
+        // TODO: [MG] - investigate all the cases why we need recursive here
         std::recursive_mutex  m_lock;
         std::timed_mutex      m_execution_mutex;
 
@@ -60,7 +61,8 @@ namespace PAL_NS_BEGIN {
             }
             catch (...) {};
 
-            // TODO: [MG] - investigate if we ever drop work items on shutdown.
+            // TODO: [MG] - investigate how often that happens.
+            // Side-effect is that we have a queued work item discarded on shutdown.
             if (!m_queue.empty())
             {
                 LOG_WARN("m_queue is not empty!");
@@ -73,6 +75,7 @@ namespace PAL_NS_BEGIN {
 
         void Queue(MAT::Task* item) override
         {
+            // TODO: [MG] - show item type
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
             if (item->Type == MAT::Task::TimedCall) {

@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-#if 0
+#if 0 // TODO: [MG] - re-enable the tests
 #include "common/Common.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"

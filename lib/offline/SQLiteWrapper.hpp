@@ -346,6 +346,7 @@ namespace MAT_NS_BEGIN {
         // sqlite3 callback to translate result set into vector of vectors of string
         static int sqlite3_select_callback(void *p_data, int num_fields, char **p_fields, char **p_col_names)
         {
+            // TODO: [MG] - ideally we can return a map that uses column names as keys
             UNREFERENCED_PARAMETER(p_col_names);
             SQLRecords* records = static_cast<SQLRecords*>(p_data);
             try {
@@ -370,6 +371,7 @@ namespace MAT_NS_BEGIN {
             if (rc != SQLITE_OK) {
                 LOG_DEBUG("rc=%u: %s", rc, (zErrMsg != nullptr) ? zErrMsg : sqlite3_errmsg(m_db));
                 if (zErrMsg) {
+                    // TODO: [MG] - expose sqlite3_free via g_sqlite3Proxy
                     ::sqlite3_free(zErrMsg);
                 }
             }
@@ -381,6 +383,7 @@ namespace MAT_NS_BEGIN {
             char *errmsg = nullptr;
             int result = 0;
             LOG_DEBUG("%s", sql);
+            // TODO: [MG] - expose sqlite3_exec via g_sqlite3Proxy
             result = ::sqlite3_exec(m_db, sql, callback, arg, &errmsg);
             if (!isOK(result, errmsg))
             {
@@ -390,7 +393,7 @@ namespace MAT_NS_BEGIN {
         }
 
         bool trylock() {
-            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;")); 
+            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;")); // XXX: [MG] - ptr corruption in sqlite3DbMallocRawNN
         }
 
         /**

@@ -46,7 +46,7 @@ namespace MAT_NS_BEGIN {
             return wantMore;
         };
 
-        // TODO: [MG] - expose 120000 as a configuration parameter
+        // TODO: [MG] - expose 120000 as a constant
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();

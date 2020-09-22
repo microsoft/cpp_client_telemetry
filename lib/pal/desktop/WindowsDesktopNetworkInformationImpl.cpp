@@ -84,7 +84,7 @@ namespace PAL_NS_BEGIN {
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
         if (m_isNetDetectEnabled) {
-            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector());
+            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector()); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
             networkDetector->AddRef();
             networkDetector->Start();
         }

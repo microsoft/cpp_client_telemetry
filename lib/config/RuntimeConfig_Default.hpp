@@ -66,6 +66,8 @@ namespace MAT_NS_BEGIN
         {"sample",
          {{"rate", 0}}}};
 
+    // TODO: [MG] - add ability to re-Configure with new custom config on-demand
+
     /// <summary>
     /// This class overlays a custom configuration provided by the customer
     /// on top of default configuration above (defaultRuntimeConfig)
@@ -125,6 +127,7 @@ namespace MAT_NS_BEGIN
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {
+            // FIXME: [MG] - add parameter for that
             return 99;
         }
 
@@ -150,6 +153,7 @@ namespace MAT_NS_BEGIN
 
         virtual unsigned GetMinimumUploadBandwidthBps() override
         {
+            // FIXME: [MG] - add parameter for that
             return 0;
         }
 
@@ -160,6 +164,7 @@ namespace MAT_NS_BEGIN
 
         virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override
         {
+            // TODO: [MG] - currently we don't allow to override the event latency via ECS or runtime config tree
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             UNREFERENCED_PARAMETER(latency);
@@ -182,7 +187,7 @@ namespace MAT_NS_BEGIN
 
         virtual Variant& operator[](const char* key) override
         {
-            return config[key];
+            return config[key];  // FIXME: [MG] - Error #116: LEAK 32 bytes
         }
 
         virtual bool HasConfig(const char* key) override

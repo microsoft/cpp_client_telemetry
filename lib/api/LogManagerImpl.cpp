@@ -175,6 +175,7 @@ namespace MAT_NS_BEGIN
                 cacheFilePath += filename;
                 m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
             }
+            // TODO: [MG] - verify that cache file is writeable
         }
 
         if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
@@ -202,6 +203,10 @@ namespace MAT_NS_BEGIN
         if (m_dataViewer != nullptr)
         {
             m_dataViewerCollection.RegisterViewer(m_dataViewer);
+        }
+        else
+        {
+            // TODO: [MG] - register default data viewer implementation if enabled?
         }
 
         if (m_taskDispatcher == nullptr)
@@ -412,6 +417,7 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->upload();
         }
+        // FIXME: [MG] - make sure m_system->upload returns a status
         return STATUS_SUCCESS;
     }
 
@@ -423,6 +429,7 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->pause();
         }
+        // FIXME: [MG] - make sure m_system->pause returns a status
         return STATUS_SUCCESS;
     }
 
@@ -434,6 +441,7 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->resume();
         }
+        // FIXME: [MG] - make sure m_system->resume returns a status
         return STATUS_SUCCESS;
     }
 
