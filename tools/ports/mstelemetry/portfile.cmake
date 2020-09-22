@@ -24,14 +24,25 @@ endif()
 # TODO: it will be slightly cleaner to perform pure CMake or Ninja build, by describing all possible variable options
 # as separate triplets. Since we have a fairly non-trivial build logic in build.sh script - we use it as-is for now.
 # build.sh itself should check if we are building under vcpkg and avoid installing deps that are coming from vcpkg.
+if (UNIX)
 vcpkg_execute_build_process(
     COMMAND ${SOURCE_PATH}/build.sh noroot
     WORKING_DIRECTORY ${SOURCE_PATH}/
     LOGNAME build
 )
 
-# Copy header files
-file(COPY ${SOURCE_PATH}/lib/include/public DESTINATION ${CURRENT_PACKAGES_DIR} FILES_MATCHING PATTERN "*.*")
+vcpkg_execute_build_process(
+    COMMAND ${SOURCE_PATH}/install.sh ${CURRENT_PACKAGES_DIR}
+    WORKING_DIRECTORY ${SOURCE_PATH}/
+    LOGNAME install
+)
+else()
+# TODO: verify Windows build
+vcpkg_execute_build_process(
+    COMMAND ${SOURCE_PATH}/build-all.bat
+    WORKING_DIRECTORY ${SOURCE_PATH}/
+    LOGNAME build
+)
+endif()
 
-# Handle copyright
 file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)

@@ -400,6 +400,6 @@ zlib/contrib/vstudio/vc14/x64/
 *.xcworkspacedata
 *.xcuserstate
 
-# Visual Code
+# Visual Studio Code-generated files
 build/.cmake/api/v1/query/client-vscode/query.json
 *.code-workspace
