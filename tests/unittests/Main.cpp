@@ -4,6 +4,22 @@
 #include "config/RuntimeConfig_Default.hpp"
 #include "utils/Utils.hpp"
 
+#ifndef _WIN32
+#include <execinfo.h>
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+#endif
+
 #if defined(_DEBUG) && defined(_WIN32) && !defined(_INC_WINDOWS)
 extern "C" unsigned long __stdcall IsDebuggerPresent();
 #endif
@@ -31,6 +47,9 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
 
 int MAIN_CDECL main(int argc, char** argv)
 {
+    #ifndef WIN32
+    signal(SIGSEGV, handler);   // install handler to catch segmentation fault
+    #endif
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
 
