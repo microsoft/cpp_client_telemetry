@@ -1457,6 +1457,7 @@ TEST_F(BasicFuncTests, logManager_getLogManagerInstance_initializedReturnsNonnul
     LogManager::FlushAndTeardown();
 }
 
+#ifndef ANDROID
 TEST_F(BasicFuncTests, deleteEvents)
 {
     CleanStorage();
@@ -1506,6 +1507,7 @@ TEST_F(BasicFuncTests, deleteEvents)
         ASSERT_EQ(find(e.GetName()).name, "");
     }
 }
+#endif
 
 #if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
