@@ -376,6 +376,11 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
+		virtual status_t DeleteData() noexcept override 
+		{ 
+			return STATUS_ENOSYS;
+		}
+
         private:
             NullDataViewerCollection nullDataViewerCollection;
             NullEventFilterCollection m_filters;

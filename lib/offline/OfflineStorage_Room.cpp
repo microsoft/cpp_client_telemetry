@@ -172,6 +172,16 @@ namespace MAT_NS_BEGIN
     }
 
     /**
+     * Delete all records 
+     *
+     * Not Implemented 
+     */
+    void OfflineStorage_Room::DeleteAllRecords()
+    {
+        MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
+    }
+
+    /**
      * Delete records matching a set of WHERE equality conditions
      * 
      * Only implements equality-on-tenantToken.
@@ -738,7 +748,7 @@ namespace MAT_NS_BEGIN
      * @param[in] name The key to delete from the database.
      */
 
-    void OfflineStorage_Room::DeleteSetting(std::string const& name)
+    void OfflineStorage_Room::DeleteSettingInternal(std::string const& name)
     {
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -762,7 +772,7 @@ namespace MAT_NS_BEGIN
     {
         if (value.size() == 0)
         {
-            DeleteSetting(name);
+            DeleteSettingInternal(name);
             return true;
         }
         ConnectedEnv env(s_vm);
@@ -781,6 +791,19 @@ namespace MAT_NS_BEGIN
         auto count = env->CallLongMethod(m_room, store_setting, java_name, java_value);
         ThrowRuntime(env, "Exception StoreSetting");
         return (count == 1);
+    }
+
+    /**
+     * Delete the setting given its name.
+     *
+     * @param[in] name Key.
+     * @return true if we persisted the key-value pair.
+     */
+
+    bool OfflineStorage_Room::DeleteSetting(std::string const& name)
+    {
+        DeleteSettingInternal(name);
+        return true;
     }
 
     /**
