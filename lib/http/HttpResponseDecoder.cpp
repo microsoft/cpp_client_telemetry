@@ -36,7 +36,7 @@ namespace MAT_NS_BEGIN {
     void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
     {
 #ifndef NDEBUG
-        // Debug only for Visual Studio: check if accessing object that's been already freed
+        // XXX: [MG] - debug accessing object that's been already freed
         uint64_t ptr = (uint64_t)(ctx->httpResponse);
         assert(ptr != 0x00000000dddddddd);
         assert(ptr != 0xdddddddddddddddd);

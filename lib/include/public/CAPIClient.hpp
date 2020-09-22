@@ -65,6 +65,7 @@ namespace MAT_NS_BEGIN
             return evt_configure(handle, config);
         }
 
+        // TODO: [MG] - header-only EventProperties class?
         evt_status_t log(evt_prop* evt)
         {
             return evt_log(handle, evt);

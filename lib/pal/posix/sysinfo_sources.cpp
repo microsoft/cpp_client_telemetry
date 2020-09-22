@@ -231,6 +231,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 #endif
 
 #if defined(__APPLE__)
+    // FIXME: [MG] - This is not the most elegant way of obtaining it
     cache["devMake"] = "Apple";
     cache["devModel"] = GetDeviceModel();
     cache["osName"] = GetDeviceOsName();
@@ -274,7 +275,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 #ifndef __APPLE__
     add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
 #else
-    cache["appId"] = get_app_name();
+    cache["appId"] = get_app_name(); // TODO: [MG] - verify this path
 #endif
 
     if (!get("devId").compare(""))

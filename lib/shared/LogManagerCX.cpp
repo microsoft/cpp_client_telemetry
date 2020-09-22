@@ -175,7 +175,8 @@ namespace MATW_NS_BEGIN {
         if (!isInited)
         {
             transmitProfiles = json;
-            // Caller must ensure that the supplied JSON string is valid.
+            // [MG] - note that in this delay-loading scenario we cannot verify
+            // that the profile supplied by the customer is valid!
             return true;
         }
 
