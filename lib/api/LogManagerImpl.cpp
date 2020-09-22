@@ -755,7 +755,7 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
-    void LogManagerImpl::DeleteData()
+    status_t LogManagerImpl::DeleteData()
     {
         // cleanup offline storage
         if (m_offlineStorage) {
@@ -766,6 +766,7 @@ namespace MAT_NS_BEGIN
         {
             m_logSessionDataProvider->DeleteLogSessionData();
         }
+        return STATUS_SUCCESS;
     }
 
 }

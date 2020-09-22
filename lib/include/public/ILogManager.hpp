@@ -126,6 +126,11 @@ namespace MAT_NS_BEGIN
         /// Gets the name of the current transmit profile.
         /// </summary>
         virtual const std::string& GetTransmitProfileName() = 0;
+
+        /// <summary>
+        /// Delete storage
+        /// </summary>
+        virtual status_t DeleteData() = 0;
     };
 
     /// <summary>
@@ -370,11 +375,6 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
-
-        /// <summary>
-        /// Performs the client-side  local cleanup.
-        /// </summary>
-        virtual void DeleteData() = 0;
 
     };
 
