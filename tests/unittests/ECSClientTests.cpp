@@ -17,6 +17,7 @@ std::unique_ptr<ECSClient> GetInitializedECSClient()
     config.clientName = "Test";
     config.clientVersion = "1.0";
     config.cacheFilePathName = "cacheFilePathName";
+    config.serverUrls.push_back("https://fake.server.endpoint/config/v1/");
 
     client->Initialize(config);
     return client;
