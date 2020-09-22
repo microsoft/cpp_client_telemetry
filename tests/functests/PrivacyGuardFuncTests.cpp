@@ -131,7 +131,7 @@ class PrivacyGuardFuncTests : public ::testing::Test
 
     virtual void SetUp() override
     {
-        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&m_mockLogger, nullptr);
+        const auto privacyGuard = std::make_shared<PrivacyGuard>(&m_mockLogger, nullptr);
         LogManager::Initialize();
         LogManager::GetInstance()->SetDataInspector(privacyGuard);
     }
@@ -141,9 +141,9 @@ class PrivacyGuardFuncTests : public ::testing::Test
         LogManager::GetInstance()->SetDataInspector(nullptr);
     }
 
-    static std::shared_ptr<IDataInspector> InitializePrivacyGuardWithCustomLoggerAndDataContext(ILogger* logger, std::unique_ptr<CommonDataContexts> context) noexcept
+    static std::shared_ptr<PrivacyGuard> InitializePrivacyGuardWithCustomLoggerAndDataContext(ILogger* logger, std::unique_ptr<CommonDataContexts> context) noexcept
     {
-        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(context));
+        const auto privacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(context));
         LogManager::GetInstance()->SetDataInspector(privacyGuard);
 
         return privacyGuard;
@@ -158,13 +158,13 @@ TEST_F(PrivacyGuardFuncTests, InitializePrivacyGuard)
     LogManager::GetInstance()->SetDataInspector(nullptr);
     ASSERT_NO_THROW([]() {
         MockLogger mockLogger;
-        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, nullptr);
+        const auto privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, nullptr);
         LogManager::GetInstance()->SetDataInspector(privacyGuard);
         ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector() != nullptr);
     });
     ASSERT_NO_THROW([]() {
         MockLogger mockLogger;
-        const std::shared_ptr<IDataInspector> privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, std::move(std::make_unique<CommonDataContexts>()));
+        const auto privacyGuard = std::make_shared<PrivacyGuard>(&mockLogger, std::move(std::make_unique<CommonDataContexts>()));
         LogManager::GetInstance()->SetDataInspector(privacyGuard);
         ASSERT_TRUE(LogManager::GetInstance()->GetDataInspector() != nullptr);
     });
@@ -189,7 +189,10 @@ TEST_F(PrivacyGuardFuncTests, AddIgnoredDataConcern)
 {
     std::vector<std::tuple<std::string /*EventName*/, std::string /*FieldName*/, DataConcernType /*IgnoredConcern*/>> ignoredConcerns;
     ignoredConcerns.push_back(std::make_tuple(c_testEventName, c_testFieldName, DataConcernType::InScopeIdentifier));
-    LogManager::GetInstance()->GetDataInspector()->AddIgnoredConcern(ignoredConcerns);
+    const auto privacyGuard = std::make_shared<PrivacyGuard>(&m_mockLogger, nullptr);
+    LogManager::GetInstance()->SetDataInspector(privacyGuard);
+
+    privacyGuard->AddIgnoredConcern(ignoredConcerns);
 }
 
 TEST_F(PrivacyGuardFuncTests, LogEvent_IdentifyEmail_FoundEmail)
