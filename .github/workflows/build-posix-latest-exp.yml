@@ -23,8 +23,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: Test ${{ matrix.os }} ${{ matrix.config }}
+    - name: Build ${{ matrix.os }} ${{ matrix.config }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
-      run: ./build.sh ${{ matrix.config }} CUSTOM_BUILD_FLAGS="-DHAVE_MAT_EXP -DHAVE_MAT_FIFOSTORAGE" && ./out/tests/functests/FuncTests && ./out/tests/unittests/UnitTests
+      run: ./build.sh ${{ matrix.config }} CUSTOM_BUILD_FLAGS="-DHAVE_MAT_EXP -DHAVE_MAT_FIFOSTORAGE"
+    - name: Test with catchsegv
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: catchsegv ./out/tests/functests/FuncTests && catchsegv ./out/tests/unittests/UnitTests
+    - name: Test without catchsegv
+      if: ${{ matrix.os == 'macOS-latest' }}
+      run: ./out/tests/functests/FuncTests && ./out/tests/unittests/UnitTests
