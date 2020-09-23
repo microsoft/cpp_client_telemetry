@@ -80,7 +80,7 @@ class TestPrivacyGuard : public PrivacyGuard
 
             // Types that only contain numbers get flagged in floating point values like 1.386
             auto foundAlphabeticalTypes = false;
-            for (auto c = 0; c < length; c++)
+            for (size_t c = 0; c < length; c++)
             {
                 foundAlphabeticalTypes |= isalpha((*type)[c]) != 0;
             }
