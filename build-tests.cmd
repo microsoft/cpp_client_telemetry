@@ -6,6 +6,9 @@ call tools\gen-version.cmd
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
+  cd lib\modules
+  git checkout hocai/FixBuildErrorInWindows
+  cd ..\..
 )
 
 set PLATFORM=
