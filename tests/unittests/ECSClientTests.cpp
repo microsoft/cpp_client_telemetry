@@ -1,19 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 #include "mat/config.h"
 #ifdef HAVE_MAT_EXP
-#include <memory>
 #include "common/Common.hpp"
 #include "utils/Utils.hpp"
 #include "modules/exp/ecs/ecsclient/ECSClient.hpp"
-#include "pal/PAL.hpp"
 
 using namespace testing;
 using namespace MAT;
 using namespace Microsoft::Applications::Experimentation::ECS;
 
-std::unique_ptr<ECSClient> GetInitializedECSClient()
+std::shared_ptr<ECSClient> GetInitializedECSClient()
 {
-    auto client = std::make_unique<ECSClient>();
+    auto client = std::make_shared<ECSClient>();
     auto config = ECSClientConfiguration();
     config.clientName = "Test";
     config.clientVersion = "1.0";
