@@ -10,9 +10,6 @@ if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
   git config --system --list
   git config credential.helper store
   git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
-  cd lib/modules
-  git checkout users/hocai/FixSegmentFault
-  cd ../..
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
