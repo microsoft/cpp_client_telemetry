@@ -175,7 +175,7 @@ class PrivacyGuardTests : public ::testing::Test
         auto issues = privacyGuardTestInstance->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, value, c_testTargetTenant);
 
         return std::find_if(issues.cbegin(), issues.cend(), [&](const PrivacyConcern& x) {
-                   return x.DataConcernType == type && strcmp(x.EventName.c_str(), c_testEventName) == 0 && strcmp(x.FieldName.c_str(), c_testFieldName) == 0 && strcmp(x.FieldValue.c_str(), value) == 0;
+                   return x.Concern == type && strcmp(x.EventName.c_str(), c_testEventName) == 0 && strcmp(x.FieldName.c_str(), c_testFieldName) == 0 && strcmp(x.FieldValue.c_str(), value) == 0;
                }) != issues.cend();
     }
 
@@ -611,7 +611,7 @@ TEST(PrivacyGuardTests, GetAllConcerns_InScopeIdentifiers)
     ASSERT_TRUE(PrivacyGuardTests::IsExpectedDataConcern(testPrivacyGuard, "197648AE-E0E1-4115-962E-29C97E5CD101_ADAL", DataConcernType::InScopeIdentifier));
     auto issues = testPrivacyGuard->GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_testGuid, c_testTargetTenant);
     auto issueMatch = std::find_if(issues.cbegin(), issues.cend(), [&](const PrivacyConcern& x) {
-        return x.DataConcernType == DataConcernType::InScopeIdentifier && x.EventName == c_testEventName && x.FieldName == c_testFieldName && x.FieldValue == testGuidsz;
+        return x.Concern == DataConcernType::InScopeIdentifier && x.EventName == c_testEventName && x.FieldName == c_testFieldName && x.FieldValue == testGuidsz;
     });
 
     ASSERT_EQ(issues.cend(), issueMatch);
@@ -658,7 +658,7 @@ TEST(PrivacyGuardTests, GetAllConcerns_CustomStringValueInspector_CalledCorrectl
     ASSERT_TRUE(customStringValueInspectorCalled);
     ASSERT_TRUE(expectedValue);
     ASSERT_EQ(1, concerns.size());
-    ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
+    ASSERT_EQ(concerns[0].Concern, DataConcernType::Content);
 }
 
 TEST(PrivacyGuardTests, GetAllConcerns_CustomGuidValueInspector_CalledCorrectly)
@@ -678,7 +678,7 @@ TEST(PrivacyGuardTests, GetAllConcerns_CustomGuidValueInspector_CalledCorrectly)
     auto concerns = pgInstance.GetAllPrivacyConcerns(c_testEventName, c_testFieldName, c_testGuid, c_testTargetTenant);
     ASSERT_TRUE(customGuidValueInspectorCalled);
     ASSERT_EQ(1, concerns.size());
-    ASSERT_EQ(concerns[0].DataConcernType, DataConcernType::Content);
+    ASSERT_EQ(concerns[0].Concern, DataConcernType::Content);
 }
 
 TEST(PrivacyGuardTests, FileTypes_IsRegisteredFileType)
