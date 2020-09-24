@@ -11,6 +11,9 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 #set(CMAKE_CXX_FLAGS -m32)
 # End of i386 build
 
+# We ask for 14, but we may get C++11 on older gcc-4.x and gcc-5.x
+set(CMAKE_CXX_STANDARD 14)
+
 if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
@@ -210,7 +213,13 @@ option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+# TODO: currently PrivacyGuard requires regex features that are only avail under tr1/regex
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     NO)
+else()
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+endif()
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)

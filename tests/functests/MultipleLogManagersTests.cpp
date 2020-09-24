@@ -17,12 +17,10 @@
 
 #include "sqlite3.h"
 
-// Privacy Guard Includes
-#define HAVE_MAT_PRIVACYGUARD
-
-#if defined __has_include
-#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "NullObjects.hpp"
+
+#if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #include <IDataInspector.hpp>
 #else

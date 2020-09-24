@@ -77,6 +77,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
     modules/privacyguard/PrivacyGuard.cpp
     modules/privacyguard/RegisteredFileTypes.cpp

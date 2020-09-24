@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
-#include "common/Common.hpp"
+#include "mat/config.h"
 
-#define HAVE_MAT_PRIVACYGUARD
-
-#if defined __has_include
+#if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #else
@@ -13,6 +11,7 @@
 #endif
 
 #ifdef HAVE_MAT_PRIVACYGUARD
+#include "common/Common.hpp"
 
 #include "NullObjects.hpp"
 #include <IDataInspector.hpp>
@@ -953,6 +952,4 @@ TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
     logger->LogEvent(props);
     ASSERT_FALSE(privacyConcernLogCalled);
 }
-#else
-
 #endif
