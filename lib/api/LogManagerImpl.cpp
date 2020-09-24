@@ -58,7 +58,7 @@
 
 #ifdef HAVE_MAT_PRIVACYGUARD
 #if defined __has_include
-#if __has_include("modules/privacyguard/privacyguard.hpp")
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #else
 /* Compiling without Privacy Guard support because Privacy Guard private header is unavailable */
