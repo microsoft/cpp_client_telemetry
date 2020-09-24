@@ -191,11 +191,37 @@ endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
+  
+  # include(FindCURL)
+  # find_package(CURL REQUIRED)
+  # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+
+  # find_package(sqlite3 REQUIRED)
+
   add_library(mat SHARED ${SRCS})
-  add_library(sqlite3 SHARED IMPORTED GLOBAL)
-  add_library(z SHARED IMPORTED GLOBAL)
-  #target_link_libraries(mat PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
-  target_link_libraries(mat PUBLIC libsqlite3.so libz.so ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
+
+  # Add flags for obtaining system UUID via IOKit
+  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_SHARED_LINKER_FLAGS
+      "-framework CoreFoundation -framework IOKit -framework Foundation"
+    )
+  endif()
+
+  #
+  # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+  #
+  if (BUILD_STATIC_SQLITE STREQUAL "ON")
+    # Build dynamic library, but prefer statically linking sqlite3 and zlib
+    add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    add_library(z STATIC IMPORTED GLOBAL)
+    target_link_libraries(mat PRIVATE sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
+  else()
+    # Prefer shared libraries for sqlite3 and zlib
+    add_library(sqlite3 SHARED IMPORTED GLOBAL)
+    add_library(z SHARED IMPORTED GLOBAL)
+    target_link_libraries(mat PUBLIC sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
+  endif()
+
   # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
@@ -206,7 +232,9 @@ else()
   else()
     add_library(sqlite3 STATIC IMPORTED GLOBAL)
     add_library(z STATIC IMPORTED GLOBAL)
-    #target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${Tcmalloc_LIBRARIES}")
+    #
+    # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+    #
     target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
