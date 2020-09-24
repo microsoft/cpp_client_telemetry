@@ -1,0 +1,39 @@
+cmake_minimum_required(VERSION 3.1.0)
+project(LinuxSharedStorage)
+
+if(EXISTS "/usr/local/lib/libmat.a")
+# Use local libmat.a
+set(MAT_SDK_LIB	/usr/local/lib/)
+else()
+# Use architecture-specific libmat.a
+set(MAT_SDK_LIB	/usr/local/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+endif()
+
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
+
+find_package (Threads)
+
+set(MAT_SDK_INCLUDE	/usr/local/include/mat)
+
+# 1DS SDK to include dirs
+include_directories( . ${MAT_SDK_INCLUDE} )
+
+# Link main.cpp to executable
+add_executable(SharedStorage main.cpp)
+source_group(" " REGULAR_EXPRESSION "")
+
+# Prefer linking to more recent local sqlite3
+if(EXISTS "/usr/local/lib/libsqlite3.a")
+set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+else()
+set (SQLITE3_LIB "sqlite3")
+endif()
+
+set (PLATFORM_LIBS "")
+# Add flags for obtaining system UUID via IOKit
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
+endif()
+
+target_link_libraries(SharedStorage ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
