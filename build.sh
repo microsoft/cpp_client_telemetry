@@ -19,20 +19,40 @@ cd $DIR
 export NOROOT=$NOROOT
 
 if [ "$1" == "clean" ]; then
- rm -f CMakeCache.txt *.cmake
- rm -rf out
- rm -rf .buildtools
-# make clean
+  rm -f CMakeCache.txt *.cmake
+  rm -rf out
+  rm -rf .buildtools
+  # make clean
 fi
 
 if [ "$1" == "noroot" ] || [ "$2" == "noroot" ] || [ "$3" == "noroot" ]; then
-export NOROOT=true
+  export NOROOT=true
 fi
 
 if [ "$1" == "release" ] || [ "$2" == "release" ] || [ "$3" == "release" ]; then
   BUILD_TYPE="Release"
 else
   BUILD_TYPE="Debug"
+fi
+
+if [ "$1" == "arm64" ] || [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
+  MAC_ARCH="arm64"
+elif [ "$1" == "universal" ] || [ "$2" == "universal" ] || [ "$3" == "universal" ]; then
+  MAC_ARCH="universal"
+else
+  MAC_ARCH="x86_64"
+fi
+
+CUSTOM_CMAKE_CXX_FLAG=""
+if [[ $1 == CUSTOM_BUILD_FLAGS* ]] || [[ $2 == CUSTOM_BUILD_FLAGS* ]] || [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
+  if [[ $1 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${1:19:999}\""
+  elif [[ $2 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${2:19:999}\""
+  elif [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${3:19:999}\""
+  fi
+  echo "custom build flags="$CUSTOM_CMAKE_CXX_FLAG
 fi
 
 LINK_TYPE=
@@ -79,26 +99,6 @@ shift $((OPTIND -1))
 if [ "$LINK_TYPE" == "shared" ]; then
   CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SHARED_LIBS=ON"
 fi
-
-if [ "$1" == "arm64" ] || [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
-MAC_ARCH="arm64"
-elif [ "$1" == "universal" ] || [ "$2" == "universal" ] || [ "$3" == "universal" ]; then
-MAC_ARCH="universal"
-else
-MAC_ARCH="x86_64"
-fi
-
-CUSTOM_CMAKE_CXX_FLAG=""
-if [[ $1 == CUSTOM_BUILD_FLAGS* ]] || [[ $2 == CUSTOM_BUILD_FLAGS* ]] || [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
-  if [[ $1 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${1:19:999}\""
-  elif [[ $2 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${2:19:999}\""
-  elif [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${3:19:999}\""
-  fi
-fi
-echo "custom build flags="$CUSTOM_CMAKE_CXX_FLAG
 
 # Set target MacOS minver
 export MACOSX_DEPLOYMENT_TARGET=10.10
