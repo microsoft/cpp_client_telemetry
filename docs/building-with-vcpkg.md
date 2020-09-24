@@ -19,7 +19,7 @@ See instructions below to build the SDK with additional Microsoft-proprietary mo
 `cmd.exe` command line prompt commands:
 
 ```
-cit clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
+git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
 vcpkg install --head --overlay-ports=%CD%\tools\ports mstelemetry
 ```
@@ -29,7 +29,7 @@ vcpkg install --head --overlay-ports=%CD%\tools\ports mstelemetry
 Shell commands:
 
 ```
-cit clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
+git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
 vcpkg install --head --overlay-ports=`pwd`/tools/ports mstelemetry
 ```
@@ -53,3 +53,36 @@ vcpkg build log files are created in `${VCPKG_INSTALL_DIR}/buildtrees/mstelemetr
 ## Using triplets
 
 In order to enable custom build flags - vcpkg triplets and custom environment variables may be used. Please see [triplets instruction here](https://vcpkg.readthedocs.io/en/latest/users/triplets/). Response file for a custom build, e.g. `response_file_linux_PRODUCTNAME.txt` may specify a custom triplet. For example, custom triplet controls if the library is built as static or dynamic. Default triplets may also be overridden with [custom triplets](https://vcpkg.readthedocs.io/en/latest/examples/overlay-triplets-linux-dynamic/#overlay-triplets-example). Custom triplets specific to various products must be maintained by product teams. Product teams may optionally decide to integrate their triplets in the mainline 1DS C++ SDK repo as-needed.
+
+## Build with vcpkg dependencies
+
+This section needs to be updated with more detailed info. Default `CMakeLists.txt` in top-level directory utilize the following dependencies:
+- OS-provided `sqlite3` library.
+- OS-provided `zlib` library.
+- SDK-provided snapshot of `nlohmann-json` header-only library.
+
+It is possible to adjust the build system to use vcpkg-installed dependencies instead.
+
+### nlohmann-json
+
+The package `nlohmann-json` provides CMake targets:
+```
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+```
+
+### sqlite3
+
+The package `sqlite3` provides CMake targets:
+```
+    find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE unofficial::sqlite3::sqlite3)
+```
+
+### zlib
+
+The package zlib is compatible with built-in CMake targets:
+```
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(main PRIVATE ZLIB::ZLIB)
+```
