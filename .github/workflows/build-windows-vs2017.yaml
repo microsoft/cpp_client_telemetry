@@ -29,5 +29,6 @@ jobs:
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
+        SKIP_MT_BUILD: 1
       shell: cmd
       run: build-all.bat
