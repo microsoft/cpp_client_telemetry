@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "/lib/android_build/app/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
+# TODO: migrate this from ${SDK_ROOT}/googletest to ${SDK_ROOT}/third_party/googletest
 set (gmock_dir ${SDK_ROOT}/googletest/googlemock)
 set (gtest_dir ${SDK_ROOT}/googletest/googletest)
 

@@ -30,8 +30,16 @@
 
 #ifdef __clang__
 #define PACKED_STRUCT __attribute__((packed))
+#define PACK_PUSH
+#define PACK_POP
+#elif __GNUC__
+#define PACKED_STRUCT __attribute__((packed))
+#define PACK_PUSH
+#define PACK_POP
 #else
 #define PACKED_STRUCT
+#define PACK_PUSH     __pragma(pack(push, 1))
+#define PACK_POP      __pragma(pack(pop))
 #endif
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600)
@@ -138,11 +146,13 @@ extern "C" {
 
     typedef struct PACKED_STRUCT
     {
+PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
         void*           data;       /* In / Out */
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
+PACK_POP
     } evt_context_t;
 
     /**
@@ -204,10 +214,12 @@ extern "C" {
 
     typedef struct PACKED_STRUCT
     {
+PACK_PUSH
         const char*             name;
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;
+PACK_POP
     } evt_prop;
     
     /**
