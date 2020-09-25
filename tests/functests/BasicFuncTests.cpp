@@ -536,6 +536,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
 {
     CleanStorage();
     Initialize();
+    sleep(60000);
     EventProperties event("first_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
