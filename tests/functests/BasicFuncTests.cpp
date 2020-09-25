@@ -530,6 +530,10 @@ public:
 
 TEST_F(BasicFuncTests, doNothing)
 {
+    CleanStorage();
+    Initialize();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    FlushAndTeardown();
 }
 
 TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)

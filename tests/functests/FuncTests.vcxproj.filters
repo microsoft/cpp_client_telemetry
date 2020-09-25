@@ -20,6 +20,7 @@
     <ClCompile Include="ECSClientRealworldFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClCompile Include="AISendTests.cpp" />
+    <ClCompile Include="PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

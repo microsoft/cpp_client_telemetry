@@ -20,7 +20,7 @@
 
 #include "Enums.hpp"
 #include "CsProtocol_types.hpp"
-#include "ILogManager.hpp"
+#include "IModule.hpp"
 
 namespace MAT_NS_BEGIN {
 
@@ -46,6 +46,9 @@ namespace MAT_NS_BEGIN {
         virtual bool decorate(::CsProtocol::Record&) = 0;
 
     };
+
+    //Forward declaring to resolve circular dependencies
+    class ILogManager;
 
     /// <summary>
     /// Interface that allows to implement a custom decorator.

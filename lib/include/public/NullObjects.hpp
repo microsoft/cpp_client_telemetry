@@ -376,6 +376,14 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
+        
+        void SetDataInspector(const std::shared_ptr<IDataInspector>& /*dataInspector*/) override {}
+
+        std::shared_ptr<IDataInspector> GetDataInspector() noexcept override
+        {
+            return nullptr;
+        }
+
         private:
             NullDataViewerCollection nullDataViewerCollection;
             NullEventFilterCollection m_filters;
