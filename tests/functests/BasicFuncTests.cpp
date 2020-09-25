@@ -536,7 +536,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
 {
     CleanStorage();
     Initialize();
-    sleep(60000);
+    std::this_thread::sleep_for(std::chrono::seconds(60));
     EventProperties event("first_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
