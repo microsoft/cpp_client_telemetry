@@ -41,10 +41,12 @@ namespace MAT_NS_BEGIN
         uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionSDKUid = m_offlineStorage->GetSetting(sessionSdkUidName);
         sessionFirstTimeLaunch = convertStrToLong(m_offlineStorage->GetSetting(sessionFirstLaunchTimeName));
-        if ((sessionFirstTimeLaunch == 0) || sessionSDKUid.empty())
+        if ((sessionFirstTimeLaunch == 0) || (sessionSDKUid.empty() && !m_disableSdkUid)
+                  || (!sessionSDKUid.empty() && m_disableSdkUid))
         {
             sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-            sessionSDKUid = PAL::generateUuidString();
+            if (m_disableSdkUid)
+            sessionSDKUid = m_disableSdkUid ? "" : PAL::generateUuidString();
             if (!m_offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) 
             {
                 LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
@@ -69,13 +71,13 @@ namespace MAT_NS_BEGIN
                 if (!parse (content, sessionFirstTimeLaunch, sessionSDKUid)) 
                 {
                     sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                    sessionSDKUid = PAL::generateUuidString();
+                    sessionSDKUid = m_disableSdkUid ? "" : PAL::generateUuidString();
                     writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
                 }
             } else
             {
                 sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
-                sessionSDKUid = PAL::generateUuidString();
+                sessionSDKUid = m_disableSdkUid ? "" : PAL::generateUuidString();
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
         }
@@ -102,6 +104,10 @@ namespace MAT_NS_BEGIN
             return false;
         }
         sessionSDKUid =  v[1];
+        if ((sessionSDKUid.empty() && !m_disableSdkUid) || (!sessionSDKUid.empty() && m_disableSdkUid))
+        {
+            return false;
+        }
         return true;
     }
 

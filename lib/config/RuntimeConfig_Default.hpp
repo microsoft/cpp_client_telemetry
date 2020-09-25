@@ -24,6 +24,7 @@ namespace MAT_NS_BEGIN
         {CFG_INT_STORAGE_FULL_CHECK_TIME, 5000},
         {CFG_INT_RAMCACHE_FULL_PCT, 75},
         {CFG_BOOL_ENABLE_NET_DETECT, true},
+        {CFG_BOOL_DISABLE_EPOCH_INSTALLID, false},
         {CFG_MAP_METASTATS_CONFIG,
          {/* Parameter that allows to split stats events by tenant */
           {"split", false},
