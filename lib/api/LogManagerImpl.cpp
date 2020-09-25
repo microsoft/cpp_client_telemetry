@@ -398,6 +398,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
+            m_dataInspector = nullptr;
 
             m_filters.UnregisterAllFilters();
 
