@@ -6,8 +6,8 @@
 #include "LogManagerImpl.hpp"
 #include "mat/config.h"
 
-#include "offline/OfflineStorageHandler.hpp"
 #include "offline/LogSessionDataProvider.hpp"
+#include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -41,7 +41,7 @@
 #else
 #include "modules/azmon/AITelemetrySystem.hpp"
 #endif
-#endif // HAVE_MAT_AI
+#endif  // HAVE_MAT_AI
 
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
@@ -55,6 +55,19 @@
 #include "modules/filter/LevelChececkingEventFilter.hpp"
 #endif
 #endif  // HAVE_MAT_DEFAULT_FILTER
+
+#ifdef HAVE_MAT_PRIVACYGUARD
+#if defined __has_include
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#else
+/* Compiling without Privacy Guard support because Privacy Guard private header is unavailable */
+#undef HAVE_MAT_PRIVACYGUARD
+#endif
+#else
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#endif
+#endif
 
 namespace MAT_NS_BEGIN
 {
@@ -225,8 +238,7 @@ namespace MAT_NS_BEGIN
 
         if (
             ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat) || (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema)) &&
-            isWindowsUtcClientRegistrationEnable
-           )
+            isWindowsUtcClientRegistrationEnable)
         {
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
@@ -285,7 +297,7 @@ namespace MAT_NS_BEGIN
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
         m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
 #else
-         m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
 #endif
 
 #ifdef HAVE_MAT_AI
@@ -386,6 +398,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
+            m_dataInspector = nullptr;
 
             m_filters.UnregisterAllFilters();
 
@@ -506,6 +519,13 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
+        {
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
+        }
         return STATUS_SUCCESS;
     }
 
@@ -576,6 +596,14 @@ namespace MAT_NS_BEGIN
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
+        {
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
+        }
         return STATUS_SUCCESS;
     }
 
@@ -674,6 +702,15 @@ namespace MAT_NS_BEGIN
             {
                 m_customDecorator->decorate(*(event->source));
             }
+
+            {
+                LOCKGUARD(m_dataInspectorGuard);
+
+                if (m_dataInspector)
+                {
+                    m_dataInspector->InspectRecord(*(event->source));
+                }
+            }
             GetSystem()->sendEvent(event);
         }
     }
@@ -700,7 +737,7 @@ namespace MAT_NS_BEGIN
 
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
-        return (m_logSessionDataProvider)?m_logSessionDataProvider->GetLogSessionData():nullptr;
+        return (m_logSessionDataProvider) ? m_logSessionDataProvider->GetLogSessionData() : nullptr;
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
@@ -753,6 +790,17 @@ namespace MAT_NS_BEGIN
     IDataViewerCollection& LogManagerImpl::GetDataViewerCollection()
     {
         return m_dataViewerCollection;
+    }
+
+    void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        m_dataInspector = dataInspector;
+    }
+
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
+    {
+        return m_dataInspector;
     }
 
 }

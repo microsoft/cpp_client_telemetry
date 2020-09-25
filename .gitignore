@@ -402,4 +402,6 @@ zlib/contrib/vstudio/vc14/x64/
 
 # Visual Studio Code-generated files
 build/.cmake/api/v1/query/client-vscode/query.json
-*.code-workspace
+
+#Test files generated locally.
+*.ses
