@@ -1,3 +1,5 @@
 This code was obtained from https://github.com/google/googletest/pull/1029/commits/ba638689e40fc60c2e5194fc777bf30541deeff8
 
-It has been approved by CELA for Skype internal use. These bits are not used in production, for internal testing only.
+It has been approved by CELA for internal use. These bits are not used in production, for internal testing only.
+
+This code must be deprecated and removed, permanently replaced by git submodule located at `third_party/googletest`.

@@ -8,7 +8,7 @@ set(CPACK_RPM_PACKAGE_DESCRIPTION_SUMMARY "Microsoft Applications Telemetry SDK 
 set(CPACK_RPM_PACKAGE_CONTACT "1ds.sdk.cpp@service.microsoft.com")
 
 set(MAJOR_VERSION "3")
-set(MINOR_VERSION "3")
+set(MINOR_VERSION "4")
 string(TIMESTAMP DAYNUMBER "%j")
 set(PATCH_VERSION "${DAYNUMBER}")
 

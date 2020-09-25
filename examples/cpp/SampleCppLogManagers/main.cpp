@@ -10,10 +10,10 @@ using namespace MAT;
 // Define two instances for different LogManagers: A and B
 // This is how it's done with LOGMANAGER_INSTANCE macro to define the
 // default LogManager instance
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
     DEFINE_LOGMANAGER(LogManagerB, ModuleB);
     DEFINE_LOGMANAGER(LogManagerA, ModuleA);
-} ARIASDK_NS_END
+} MAT_NS_END
 
 void twoModules_LogManagerTest() 
 {
@@ -55,6 +55,7 @@ void twoModules_LogManagerTest()
     event2.SetProperty("secret", (double)5.6872);
     event2.SetProperty("seq", (uint64_t)4);
     event2.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    event2.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED);
 
     loggerB->LogEvent(event2);
 }
@@ -106,6 +107,7 @@ void provider_LogManagerTest()
     l2a1p.SetProperty("secret", (double)1.21872);
     l2a1p.SetProperty("seq", (uint64_t)4);
     l2a1p.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    l2a1p.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL);
     l2a->LogEvent(l2a1p);
 
     printf("Logging event through direct logger, source 1 ...\n");

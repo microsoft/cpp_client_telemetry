@@ -4,6 +4,8 @@
 
 #include <string>
 
+std::string get_sysctl_value(const char* key);
+
 std::string GetDeviceOsName();
 
 std::string GetDeviceOsVersion();

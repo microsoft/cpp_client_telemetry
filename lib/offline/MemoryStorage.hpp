@@ -18,7 +18,7 @@
 #include <string>
 #include <unordered_set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class MemoryStorage : public IOfflineStorage
     {
@@ -33,6 +33,8 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Flush() override;
 
         virtual bool StoreRecord(StorageRecord const& record) override;
+
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
 
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs,
             EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
@@ -90,5 +92,5 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

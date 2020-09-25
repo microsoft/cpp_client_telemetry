@@ -1,4 +1,18 @@
-/* Copyright (c) Microsoft. All rights reserved. */
+/*
+
+ Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+
+ This code is licensed under the MIT License (MIT).
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+*/
 #ifndef TELEMETRY_EVENTS_H
 #define TELEMETRY_EVENTS_H
 
@@ -6,7 +20,7 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION "3.3.0"
+#define TELEMETRY_EVENTS_VERSION "3.4.0"
 
 #include "ctmacros.hpp"
 
@@ -22,15 +36,15 @@
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600)
 /* Visual Studio 2010 */
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-typedef __int32 int32_t;
-typedef unsigned __int32 uint32_t;
-typedef __int16 int16_t;
-typedef unsigned __int16 uint16_t;
-typedef __int8 int8_t;
-typedef unsigned __int8 uint8_t;
-typedef int bool;
+typedef	__int64				int64_t;
+typedef unsigned __int64	uint64_t;
+typedef	__int32				int32_t;
+typedef unsigned __int32	uint32_t;
+typedef	__int16				int16_t;
+typedef unsigned __int16	uint16_t;
+typedef	__int8				int8_t;
+typedef unsigned __int8	    uint8_t;
+typedef int                 bool;
 #define inline
 #else
 /* Other compilers with C11 support */
@@ -39,14 +53,13 @@ typedef int bool;
 #endif
 
 #ifndef EVT_ARRAY_SIZE
-#define EVT_ARRAY_SIZE(a)         \
-    ((sizeof(a) / sizeof(*(a))) / \
-     (unsigned)(!(sizeof(a) % sizeof(*(a)))))
+#define EVT_ARRAY_SIZE(a)                               \
+  ((sizeof(a) / sizeof(*(a))) /                     \
+  (unsigned)(!(sizeof(a) % sizeof(*(a)))))
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
     typedef enum /* 32-bit */
@@ -116,20 +129,20 @@ extern "C"
          * The remaining six bytes contain the final 12 hexadecimal digits.
          * </summary>
          */
-        uint8_t Data4[8];
+        uint8_t  Data4[8];
     } evt_guid_t;
 
-    typedef int64_t evt_handle_t;
-    typedef int32_t evt_status_t;
-    typedef struct evt_event evt_event;
+    typedef int64_t  evt_handle_t;
+    typedef int32_t  evt_status_t;
+    typedef struct   evt_event evt_event;
 
     typedef struct PACKED_STRUCT
     {
-        evt_call_t call;     /* In       */
-        evt_handle_t handle; /* In / Out */
-        void* data;          /* In / Out */
-        evt_status_t result; /* Out      */
-        uint32_t size;       /* In / Out */
+        evt_call_t      call;       /* In       */
+        evt_handle_t    handle;     /* In / Out */
+        void*           data;       /* In / Out */
+        evt_status_t    result;     /* Out      */
+        uint32_t        size;       /* In / Out */
     } evt_context_t;
 
     /**
@@ -154,8 +167,8 @@ extern "C"
      */
     typedef struct
     {
-        evt_open_param_type_t type;
-        void* data;
+        evt_open_param_type_t   type;
+        void*                   data;
     } evt_open_param_t;
 
     /**
@@ -165,37 +178,38 @@ extern "C"
      */
     typedef struct
     {
-        const char* config;
+        const char*             config;
         const evt_open_param_t* params;
-        int32_t paramsCount;
+        int32_t                 paramsCount;
     } evt_open_with_params_data_t;
 
-    typedef union {
+    typedef union
+    {
         /* Basic types */
-        uint64_t as_uint64;
-        const char* as_string;
-        int64_t as_int64;
-        double as_double;
-        bool as_bool;
-        evt_guid_t* as_guid;
-        uint64_t as_time;
+        uint64_t            as_uint64;
+        const char*         as_string;
+        int64_t             as_int64;
+        double              as_double;
+        bool                as_bool;
+        evt_guid_t*         as_guid;
+        uint64_t            as_time;
         /* Array types are nullptr-terminated array of pointers */
-        char** as_arr_string;
-        int64_t** as_arr_int64;
-        bool** as_arr_bool;
-        double** as_arr_double;
-        evt_guid_t** as_arr_guid;
-        uint64_t** as_arr_time;
+        char**              as_arr_string;
+        int64_t**           as_arr_int64;
+        bool**              as_arr_bool;
+        double**            as_arr_double;
+        evt_guid_t**        as_arr_guid;
+        uint64_t**          as_arr_time;
     } evt_prop_v;
 
     typedef struct PACKED_STRUCT
     {
-        const char* name;
-        evt_prop_t type;
-        evt_prop_v value;
-        uint32_t piiKind;
+        const char*             name;
+        evt_prop_t              type;
+        evt_prop_v              value;
+        uint32_t                piiKind;
     } evt_prop;
-
+    
     /**
      * <summary>
      * Identifies HTTP request method type
@@ -227,8 +241,8 @@ extern "C"
      */
     typedef struct
     {
-        const char* name;
-        const char* value;
+        const char*             name;
+        const char*             value;
     } http_header_t;
 
     /**
@@ -238,13 +252,13 @@ extern "C"
      */
     typedef struct
     {
-        const char* id;
-        http_request_type_t type;
-        const char* url;
-        const uint8_t* body;
-        int32_t bodySize;
-        const http_header_t* headers;
-        int32_t headersCount;
+        const char*             id;
+        http_request_type_t     type;
+        const char*             url;
+        const uint8_t*          body;
+        int32_t                 bodySize;
+        const http_header_t*    headers;
+        int32_t                 headersCount;
     } http_request_t;
 
     /**
@@ -254,17 +268,17 @@ extern "C"
      */
     typedef struct
     {
-        int32_t statusCode;
-        const uint8_t* body;
-        int32_t bodySize;
-        const http_header_t* headers;
-        int32_t headersCount;
+        int32_t                 statusCode;
+        const uint8_t*          body;
+        int32_t                 bodySize;
+        const http_header_t*    headers;
+        int32_t                 headersCount;
     } http_response_t;
 
     /* HTTP callback function signatures */
-    typedef void(EVTSDK_LIBABI_CDECL* http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
-    typedef void(EVTSDK_LIBABI_CDECL* http_send_fn_t)(http_request_t*, http_complete_fn_t);
-    typedef void(EVTSDK_LIBABI_CDECL* http_cancel_fn_t)(const char* /*requestId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
+    typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
+    typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
 
     /**
      * <summary>
@@ -273,27 +287,21 @@ extern "C"
      */
     typedef struct
     {
-        const char* id;
-        int64_t delayMs;
-        const char* typeName;
+        const char*             id;
+        int64_t                 delayMs;
+        const char*             typeName;
     } evt_task_t;
 
     /* Async worker thread callback function signatures */
-    typedef void(EVTSDK_LIBABI_CDECL* task_callback_fn_t)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *task_callback_fn_t)(const char* /*taskId*/);
     typedef void(EVTSDK_LIBABI_CDECL* task_dispatcher_queue_fn_t)(evt_task_t*, task_callback_fn_t);
-    typedef bool(EVTSDK_LIBABI_CDECL* task_dispatcher_cancel_fn_t)(const char* /*taskId*/);
-    typedef void(EVTSDK_LIBABI_CDECL* task_dispatcher_join_fn_t)();
+    typedef bool (EVTSDK_LIBABI_CDECL *task_dispatcher_cancel_fn_t)(const char* /*taskId*/);
+    typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_join_fn_t)();
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */
-#define TELEMETRY_EVENT(...) \
-    {                        \
-        __VA_ARGS__,         \
-        {                    \
-            NULL, TYPE_NULL  \
-        }                    \
-    }
-    /* With C89-style initializers, structure members must be initialized in the order declared.
+#define TELEMETRY_EVENT(...)    { __VA_ARGS__ , { NULL, TYPE_NULL } }
+/* With C89-style initializers, structure members must be initialized in the order declared.
    ...and (!) - only the first member of a union can be initialized.
    Which means that we have to do the hack of C-style casting from value to char* ...
  */
@@ -305,14 +313,8 @@ extern "C"
         pv.as_double = val;
         return pv;
     };
-#define _DBL(key, val)                       \
-    {                                        \
-        key, TYPE_DOUBLE, _DBL2({NULL}, val) \
-    }
-#define PII_DBL(key, val, kind)                    \
-    {                                              \
-        key, TYPE_DOUBLE, _DBL2({NULL}, val), kind \
-    }
+#define _DBL(key, val)           { key, TYPE_DOUBLE,    _DBL2({ NULL }, val) }
+#define PII_DBL(key, val, kind)  { key, TYPE_DOUBLE,    _DBL2({ NULL }, val), kind }
 
 /*
     static inline evt_prop_v _TIME2(evt_prop_v pv, uint64_t val)
@@ -324,138 +326,55 @@ extern "C"
 #define PII_TIME(key, val, kind) { key, TYPE_TIME,      _TIME2({ NULL }, val), kind }
 */
 #else
-#pragma message "C89 compiler does not support passing DOUBLE and TIME values via C API"
+#pragma message ("C89 compiler does not support passing DOUBLE and TIME values via C API")
 #endif
 
-#define _STR(key, val)             \
-    {                              \
-        key, TYPE_STRING,          \
-        {                          \
-            (uint64_t)((char*)val) \
-        }                          \
-    }
-#define _INT(key, val)     \
-    {                      \
-        key, TYPE_INT64,   \
-        {                  \
-            (uint64_t) val \
-        }                  \
-    }
-#define _BOOL(key, val)    \
-    {                      \
-        key, TYPE_BOOLEAN, \
-        {                  \
-            (uint64_t) val \
-        }                  \
-    }
-#define _GUID(key, val)            \
-    {                              \
-        key, TYPE_GUID,            \
-        {                          \
-            (uint64_t)((char*)val) \
-        }                          \
-    }
-#define _TIME(key, val)    \
-    {                      \
-        key, TYPE_TIME,    \
-        {                  \
-            (uint64_t) val \
-        }                  \
-    }
+#define _STR(key, val)           { key, TYPE_STRING,    { (uint64_t)((char *)val) } }
+#define _INT(key, val)           { key, TYPE_INT64,     { (uint64_t)val } }
+#define _BOOL(key, val)          { key, TYPE_BOOLEAN,   { (uint64_t)val } }
+#define _GUID(key, val)          { key, TYPE_GUID,      { (uint64_t)((char *)val) } }
+#define _TIME(key, val)          { key, TYPE_TIME,      { (uint64_t)val } }
 
-#define PII_STR(key, val, kind)                          \
-    {                                                    \
-        key, TYPE_STRING, {(uint64_t)((char*)val)}, kind \
-    }
-#define PII_INT(key, val, kind)                \
-    {                                          \
-        key, TYPE_INT64, {(uint64_t)val}, kind \
-    }
-#define PII_BOOL(key, val, kind)                 \
-    {                                            \
-        key, TYPE_BOOLEAN, {(uint64_t)val}, kind \
-    }
-#define PII_GUID(key, val, kind)                       \
-    {                                                  \
-        key, TYPE_GUID, {(uint64_t)((char*)val)}, kind \
-    }
-#define PII_TIME(key, val, kind)              \
-    {                                         \
-        key, TYPE_TIME, {(uint64_t)val}, kind \
-    }
+#define PII_STR(key, val, kind)  { key, TYPE_STRING,    { (uint64_t)((char *)val) }, kind }
+#define PII_INT(key, val, kind)  { key, TYPE_INT64,     { (uint64_t)val }, kind }
+#define PII_BOOL(key, val, kind) { key, TYPE_BOOLEAN,   { (uint64_t)val }, kind }
+#define PII_GUID(key, val, kind) { key, TYPE_GUID,      { (uint64_t)((char *)val) }, kind }
+#define PII_TIME(key, val, kind) { key, TYPE_TIME,      { (uint64_t)val }, kind }
 
 #else
-/* Code to support any modern C99 compiler */
-#define TELEMETRY_EVENT(...)                                                        \
-    {                                                                               \
-        __VA_ARGS__,                                                                \
-        {                                                                           \
-            .name = NULL, .type = TYPE_NULL, .value = {.as_int64 = 0}, .piiKind = 0 \
-        }                                                                           \
-    }
+    /* Code to support any modern C99 compiler */
+#define TELEMETRY_EVENT(...)     { __VA_ARGS__ , { .name = NULL, .type = TYPE_NULL, .value = { .as_int64 = 0 }, .piiKind = 0 } }
 
-#define _STR(key, val)                                                              \
-    {                                                                               \
-        .name = key, .type = TYPE_STRING, .value = {.as_string = val}, .piiKind = 0 \
-    }
-#define _INT(key, val)                                                            \
-    {                                                                             \
-        .name = key, .type = TYPE_INT64, .value = {.as_int64 = val}, .piiKind = 0 \
-    }
-#define _DBL(key, val)                                                              \
-    {                                                                               \
-        .name = key, .type = TYPE_DOUBLE, .value = {.as_double = val}, .piiKind = 0 \
-    }
-#define _BOOL(key, val)                                                            \
-    {                                                                              \
-        .name = key, .type = TYPE_BOOLEAN, .value = {.as_bool = val}, .piiKind = 0 \
-    }
-#define _GUID(key, val)                                                           \
-    {                                                                             \
-        .name = key, .type = TYPE_GUID, .value = {.as_string = val}, .piiKind = 0 \
-    }
-#define _TIME(key, val)                                                         \
-    {                                                                           \
-        .name = key, .type = TYPE_TIME, .value = {.as_time = val}, .piiKind = 0 \
-    }
+#define _STR(key, val)           { .name = key, .type = TYPE_STRING,  .value = { .as_string = val }, .piiKind = 0 }
+#define _INT(key, val)           { .name = key, .type = TYPE_INT64,   .value = { .as_int64  = val }, .piiKind = 0 }
+#define _DBL(key, val)           { .name = key, .type = TYPE_DOUBLE,  .value = { .as_double = val }, .piiKind = 0 }
+#define _BOOL(key, val)          { .name = key, .type = TYPE_BOOLEAN, .value = { .as_bool   = val }, .piiKind = 0 }
+#define _GUID(key, val)          { .name = key, .type = TYPE_GUID,    .value = { .as_string = val }, .piiKind = 0 }
+#define _TIME(key, val)          { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = 0 }
 
-#define PII_STR(key, val, kind)                                                        \
-    {                                                                                  \
-        .name = key, .type = TYPE_STRING, .value = {.as_string = val}, .piiKind = kind \
-    }
-#define PII_INT(key, val, kind)                                                      \
-    {                                                                                \
-        .name = key, .type = TYPE_INT64, .value = {.as_int64 = val}, .piiKind = kind \
-    }
-#define PII_DBL(key, val, kind)                                                        \
-    {                                                                                  \
-        .name = key, .type = TYPE_DOUBLE, .value = {.as_double = val}, .piiKind = kind \
-    }
-#define PII_BOOL(key, val, kind)                                                      \
-    {                                                                                 \
-        .name = key, .type = TYPE_BOOLEAN, .value = {.as_bool = val}, .piiKind = kind \
-    }
-#define PII_GUID(key, val, kind)                                                     \
-    {                                                                                \
-        .name = key, .type = TYPE_GUID, .value = {.as_string = val}, .piiKind = kind \
-    }
-#define PII_TIME(key, val, kind)                                                   \
-    {                                                                              \
-        .name = key, .type = TYPE_TIME, .value = {.as_time = val}, .piiKind = kind \
-    }
+#define PII_STR(key,  val, kind) { .name = key, .type = TYPE_STRING,  .value = { .as_string = val }, .piiKind = kind }
+#define PII_INT(key,  val, kind) { .name = key, .type = TYPE_INT64,   .value = { .as_int64  = val }, .piiKind = kind }
+#define PII_DBL(key,  val, kind) { .name = key, .type = TYPE_DOUBLE,  .value = { .as_double = val }, .piiKind = kind }
+#define PII_BOOL(key, val, kind) { .name = key, .type = TYPE_BOOLEAN, .value = { .as_bool   = val }, .piiKind = kind }
+#define PII_GUID(key, val, kind) { .name = key, .type = TYPE_GUID,    .value = { .as_string = val }, .piiKind = kind }
+#define PII_TIME(key, val, kind) { .name = key, .type = TYPE_TIME,    .value = { .as_time   = val }, .piiKind = kind }
 
 #endif
 
-    typedef evt_status_t(EVTSDK_LIBABI_CDECL* evt_app_call_t)(evt_context_t*);
+    typedef evt_status_t(EVTSDK_LIBABI_CDECL *evt_app_call_t)(evt_context_t *);
 
+#ifdef HAVE_DYNAMIC_C_LIB
+#define evt_api_call_default NULL
+#else
     EVTSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t* ctx);
+#endif
 
 #ifdef _MSC_VER
     /* User of the library may delay-load the invocation of __impl_evt_api_call to assign their own implementation */
     __declspec(selectany) evt_app_call_t evt_api_call = evt_api_call_default;
 #else
-/* Implementation of evt_api_call can be provided by the executable module that includes this header */
-__attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
+    /* Implementation of evt_api_call can be provided by the executable module that includes this header */
+    __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
 #endif
 
     /**
@@ -478,17 +397,17 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         // Unable to load alternate implementation
         return -1;
 #else
-    /* TODO:
+        /* TODO:
          * - provide implementation for Linux and Mac
          * - consider accepting a library path rather than a library handle for dlopen
          */
-    evt_context_t ctx;
-    ctx.call = EVT_OP_LOAD;
-    ctx.handle = handle;
-    return evt_api_call(&ctx);
+        evt_context_t ctx;
+        ctx.call = EVT_OP_LOAD;
+        ctx.handle = handle;
+        return evt_api_call(&ctx);
 #endif
     }
-
+    
     /**
      * <summary>
      * Unloads SDK instance loaded with evt_load
@@ -505,7 +424,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+        
     /**
      * <summary>
      * Create or open existing SDK instance.
@@ -517,7 +436,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
     {
         evt_context_t ctx;
         ctx.call = EVT_OP_OPEN;
-        ctx.data = (void*)config;
+        ctx.data = (void *)config;
         evt_api_call(&ctx);
         return ctx.handle;
     }
@@ -544,7 +463,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         data.paramsCount = paramsCount;
 
         ctx.call = EVT_OP_OPEN_WITH_PARAMS;
-        ctx.data = (void*)(&data);
+        ctx.data = (void *)(&data);
         evt_api_call(&ctx);
         return ctx.handle;
     }
@@ -563,7 +482,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
     /**
      * <summary>
      * Configure SDK instance using configuration provided.
@@ -577,10 +496,10 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         evt_context_t ctx;
         ctx.call = EVT_OP_CONFIG;
         ctx.handle = handle;
-        ctx.data = (void*)config;
+        ctx.data = (void *)config;
         return evt_api_call(&ctx);
     }
-
+    
     /** 
      * <summary>
      * Logs a telemetry event (security-enhanced _s function)
@@ -595,7 +514,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         evt_context_t ctx;
         ctx.call = EVT_OP_LOG;
         ctx.handle = handle;
-        ctx.data = (void*)evt;
+        ctx.data = (void *)evt;
         ctx.size = size;
         return evt_api_call(&ctx);
     }
@@ -615,7 +534,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         evt_context_t ctx;
         ctx.call = EVT_OP_LOG;
         ctx.handle = handle;
-        ctx.data = (void*)evt;
+        ctx.data = (void *)evt;
         ctx.size = 0;
         return evt_api_call(&ctx);
     }
@@ -630,7 +549,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
 #define evt_log(handle, evt) evt_log_s(handle, EVT_ARRAY_SIZE(evt), evt)
 #endif
 #endif
-
+    
     /**
      * <summary>
      * Pauses transmission. In that mode events stay in ram or saved to disk, not sent.
@@ -645,7 +564,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
     /**
      * <summary>
      * Resumes transmission. Pending telemetry events should be attempted to be sent.
@@ -660,7 +579,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
     /** <summary>
      * Provide a hint to telemetry system to attempt force-upload of events
      * without waiting for the next batch timer interval. This API does not
@@ -676,7 +595,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
     /** <summary>
      * Save pending telemetry events to offline storage on disk.
      * </summary>
@@ -690,7 +609,7 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-
+    
     /** <summary>
      * Pass down SDK header version to SDK library. Needed for late binding version checking.
      * This method provides means of a handshake between library header and a library impl.
@@ -700,14 +619,14 @@ __attribute__((weak)) evt_app_call_t evt_api_call = evt_api_call_default;
      * <param name="libSemver">SDK header semver.</param>
      * <returns>SDK library semver</returns>
      */
-    static inline const char* evt_version()
+    static inline const char * evt_version()
     {
-        static const char* libSemver = TELEMETRY_EVENTS_VERSION;
+        static const char * libSemver = TELEMETRY_EVENTS_VERSION;
         evt_context_t ctx;
         ctx.call = EVT_OP_VERSION;
         ctx.data = (void*)libSemver;
         evt_api_call(&ctx);
-        return (const char*)(ctx.data);
+        return (const char *)(ctx.data);
     }
 
     /* New API calls to be added using evt_api_call(&ctx) for backwards-forward / ABI compat */

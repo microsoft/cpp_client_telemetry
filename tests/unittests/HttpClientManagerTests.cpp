@@ -47,7 +47,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
     SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
 
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     ctx->httpRequestId = req->GetId();
     ctx->httpRequest = req;
     ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
@@ -74,39 +74,3 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     EXPECT_THAT(ctx->httpResponse, rspRef);
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
-
-#if 0
-// TODO: [MG] - this test needs to be reworked because on Windows it makes sense
-// to cancel all pending requests rather than one-by-one. 
-TEST_F(HttpClientManagerTests, CancelAbortsRequests)
-{
-    SimpleHttpRequest* req = new SimpleHttpRequest("HttpClientManagerTests");
-
-    auto ctx = new EventsUploadContext();
-    ctx->httpRequestId = req->GetId();
-    ctx->httpRequest = req;
-    ctx->recordIdsAndTenantIds["r1"] = "t1"; ctx->recordIdsAndTenantIds["r2"] = "t1";
-    ctx->latency = EventLatency_Normal;
-    ctx->packageIds["tenant1-token"] = 0;
-
-    IHttpResponseCallback* callback = nullptr;
-    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
-        .WillOnce(SaveArg<1>(&callback));
-    hcm.sendRequest(ctx);
-    ASSERT_THAT(callback, NotNull());
-
-    EXPECT_CALL(httpClientMock, CancelRequestAsync(Eq("HttpClientManagerTests")))
-        .WillOnce(Return());
-    hcm.cancelAllRequests();
-
-    std::unique_ptr<SimpleHttpResponse> rsp(new SimpleHttpResponse("HttpClientManagerTests"));
-    rsp->m_result = HttpResult_Aborted;
-
-    EXPECT_CALL(*this, resultRequestDone(ctx))
-        .WillOnce(Return());
-    IHttpResponse* rspRef = rsp.get();
-    callback->OnHttpResponse(rsp.release());
-
-    EXPECT_THAT(ctx->httpResponse, rspRef);
-}
-#endif

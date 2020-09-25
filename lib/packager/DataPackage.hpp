@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #pragma once
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     struct DataPackage
     {
@@ -43,4 +43,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

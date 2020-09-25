@@ -11,6 +11,10 @@ You will ideally build the SDK using the same versions of the Android SDK, NDK, 
 
 The Gradle wrapper in ```android_build``` builds two modules, ```app``` and ```maesdk```. The ```maesdk``` module is the SDK packaged as an AAR, with both the Java and C++ components included. The AAR includes C++ shared libraries for four ABIs (two ARM ABIs for devices and two Intel ABIs for the emulator). Android Gradle (as usual) supports debug and release builds, and the Gradle task ```maesdk:assemble``` should build both flavors of AAR.
 
+On Android, there are two database implementations to choose from. By default (the master branch on Github), the SDK will use the Android-supported androidx.Room database package. This reduces APK size because we don't need to compile and link in a copy of SQLite in native code (SQLite is hundreds of kB per ABI of APK file size). Room does have a slight CPU performance disadvantage since database transactions cross the JNI boundary when native code uses it. If you wish to change from Room to the native SQLite implementation, you should change the two module ```build.gradle``` files (app and maesdk). In those files, you will see an argument to CMake to select Room: ```"-DUSE_ROOM=1"```. Change this to ```"-DUSE_ROOM=0``` to select the native SQLite.
+
+The Room database implementation adds one additional initialization requirement, since it needs a pointer to the JVM and an object reference to the application context. See below (4.5) for the required call to either ```connectContext``` (in Java) or ```ConnectJVM``` (in C++) to set this up.
+
 ## 3. Integrate the SDK into your C++ project
 
 If you use the lib/android_build Gradle files, they build the SDK into maesdk.aar in the output folders of the maesdk module in lib/android. You can package or consume this AAR in your applications modules, just as you would any other AAR.
@@ -19,64 +23,103 @@ For the curious: the app module is an Android application. The GitHub CI loop us
 
 ## 4. Instrument your code to send a telemetry event
 
-1. Include the main 1DS SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file.
+### 1. Include header
+Include the main 1DS SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file.
 
-	```
-    #include "LogManager.hpp"
-	```
+```
+#include "LogManager.hpp"
+```
     
-2. Use the namespace, either via using namespace or a namespace alias.
+### 2. Namespace
+Use the namespace, either via using namespace or a namespace alias.
 
-    1. Use namespace by adding the following statement after your include statements at the top of your app's implementation file.
+#### 1. Blanket using
+Use namespace by adding the following statement after your include statements at the top of your app's implementation file.
 
-    ```
-    using namespace Microsoft::Applications::Events; 
-    ```
+```
+using namespace Microsoft::Applications::Events; 
+```
 
-    2. Or if you prefer to avoid namespace collision, you can create a namespace alias instead:
+#### 2. Namespace alias
+If you prefer to avoid namespace collision, you can create a namespace alias instead:
 
-    ```
-    namespace MAE = Microsoft::Applications::Events;
-    ```
+```
+namespace MAE = Microsoft::Applications::Events;
+```
 
-    3. Or you can simply prefix all the SDK names with ```Microsoft::Application::Events```, as you prefer.
+#### 3. Verbose
+You can simply prefix all the SDK names with ```Microsoft::Application::Events```, as you prefer.
 
-3. Create the default LogManager instance for your project using the following macro in your main C++ file:
+### 3. Instantiate the log manager.
+Create the default LogManager instance for your project using the following macro in your main C++ file:
 
-	  ```
-    LOGMANAGER_INSTANCE
-    ```
+```
+LOGMANAGER_INSTANCE
+```
 
-4. Load the shared library from the maesdk AAR (or .so) file. In Java, you call ```System.load_library``` to load the shared object. Loading the dynamic library registers its JNI entry points and permits the Java component of the SDK to call into the C++ portion of the SDK. This is typically done in static initialization in the application:
+### 4. Load the native library.
+Load the shared library from the maesdk AAR (or .so) file. In Java, you call ```System.load_library``` to load the shared object. Loading the dynamic library registers its JNI entry points and permits the Java component of the SDK to call into the C++ portion of the SDK. This is typically done in static initialization in the application:
 
-    ```
-    static {
-      System.loadLibrary("maesdk");
-    }
-    ```
+```
+static {
+    System.loadLibrary("maesdk");
+}
+```
 
-5. Initialize the Java layer. Some part of the application must create a singleton instance of the Java class
+If you fail to do this, you will see errors in logcat at runtime when JNI is unable to link to the native methods in the SDK's Java classes.
+
+### 5. Initialize the Java layer.
+Some part of the application must create a singleton instance of the Java class
 ```com.microsoft.applications.events.HttpClient```. The constructor for this class takes one parameter, the application ```Context``` object. In most cases, it will be easiest to do this from Java:
 
-    ```
-    HttpClient client = new HttpClient(getApplicationContext());
-    ```
+```
+HttpClient client = new HttpClient(getApplicationContext());
+```
 
-  One could create this instance from C++ code if that code has the appropriate JNIEnv* or JavaVM* pointers (one can obtain JavaVM* from JNIEnv* or vice-versa) and a jobject reference to the application ```Context``` instance. This should occur before initialization of the C++ side of the SDK.
+One could create this instance from C++ code if that code has the appropriate JNIEnv* or JavaVM* pointers (one can obtain JavaVM* from JNIEnv* or vice-versa) and a jobject reference to the application ```Context``` instance. This should occur before initialization of the C++ side of the SDK.
 
-  The lifetime of the reference created here is unimportant; the C++ side of the SDK will take a global (static) reference on this singleton and keep it alive until it destructs. 
+The lifetime of the reference created here is unimportant; the C++ side of the SDK will take a global (static) reference on this singleton and keep it alive until it destructs.
 
-6. Initialize the SDK, create and send a telemetry event, and then flush the event queue and shut down the telemetry
+If you are using the (default) Room database implementation, you will need to call either a static method on the Java OfflineRoom class or on the native OfflineStorage_Room class. The Java call is:
+
+```
+OfflineRoom.connectContext(getApplicationContext()); // from an object that has getApplicationContext
+```
+
+On the native side, one would call:
+
+```
+JNIEnv *env; // the JNI pointer for this thread
+jobject context; // a jobject reference to the application context
+::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
+```
+
+### 6. Send some telemetry.
+Initialize the SDK, create and send a telemetry event, and then flush the event queue and shut down the telemetry
 logging system by adding the following statements to your main() function.
 
-    ```
-    // preface the references to the SDK symbols with MAE:: if you use that namespace alias declaration
-    ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
-    logger->LogEvent("My Telemetry Event");
-    ...
-    LogManager::FlushAndTeardown();
-    ```
+```
+// preface the references to the SDK symbols with MAE:: if you use that namespace alias declaration
+ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
+logger->LogEvent("My Telemetry Event");
+...
+LogManager::FlushAndTeardown();
+```
 
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
+Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/SampleCppLogManagers) for a sample implementation.
+
 Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
+
+## 4. Device File Locations
+You may find these helpful for debugging. All device files will be found under the path `/data/data/`*app-name*`/` on the device, where *app-name* is the application’s name (such as `com.microsoft.applications.events.maesdktest`).
+
+### 1. Log Files
+`.../cache/mat-debug-10782.log`: one log file per session
+
+### 2. Database Files
+`.../cache/`*dbname*`.db`: database file (if using OfflineStorage_SQLite), where *dbname* is the database name.
+`.../databases/`*dbname*`.db`: database file (if using OfflineStorage_Room).
+
+One should be able to examine (or modify) the contents of these database files with SQLite on any platform, in theory (if anyone does this, please confirm whether or not it works).

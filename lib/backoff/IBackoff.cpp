@@ -4,7 +4,7 @@
 #include "Backoff_ExponentialWithJitter.hpp"
 #include <sstream>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
 std::unique_ptr<IBackoff> IBackoff::createFromConfig(std::string const& config)
@@ -38,4 +38,4 @@ std::unique_ptr<IBackoff> IBackoff::createFromConfig(std::string const& config)
 }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

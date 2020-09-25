@@ -1,8 +1,9 @@
 # Contributing
 
-The 1DS C++ SDK community meets every **Tuesday at 1:00PM PST**. The meeting
-invitation is published to [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com)
-team calendar:
+The 1DS C++ SDK community meets every Tuesday, and the time of the meeting
+alternates between 9:00AM PST and 1:00PM PST. The meeting invitation is
+published to [1ds.sdk.cpp](mailto:1ds.sdk.cpp@service.microsoft.com) team
+calendar:
 
 * [Join Microsoft Teams Meeting](https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZmQ3MzhlYzMtNWVmNS00MmE3LWE3MTYtMWE1MWUyNmFiZWU5%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%2283ba88b7-f89d-4e39-86c5-39927960aca7%22%7d)
 * +1(425)616-0754, 63411756#   United States
@@ -16,16 +17,18 @@ or ping us on [Teams](https://teams.microsoft.com/l/channel/19%3a50d8ce341e12455
 ## How to build the SDK
 
 Platform specific build instructions:
-- [Windows](docs/cpp-start-windows.md)
-- [Windows/clang](build-cmake-clang.cmd)
-- [Mac](docs/cpp-start-macosx.md)
-- [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
-- [iOS/iPadOS](build-ios.sh)
-- [Android](docs/cpp-start-android.md)
+
+* [Windows](docs/cpp-start-windows.md)
+* [Windows/clang](build-cmake-clang.cmd)
+* [Mac](docs/cpp-start-macosx.md)
+* [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
+* [iOS/iPadOS](docs/cpp-start-ios.md)
+* [Android](docs/cpp-start-android.md)
 
 Other resources to learn how to setup the build system:
-- Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure
-- Check the build scripts located in workspace root
+
+* Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure.
+* Check the build scripts located in workspace root.
 
 ## Issues and Feature Requests
 
@@ -42,16 +45,16 @@ Please do not fork. Our CI is setup to accept PRs only from the main *microsoft/
 To create a new PR, clone the repo:
 
 ```sh
-$ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
+git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
 Check out a new branch, make modifications and push the branch:
 
 ```sh
-$ git checkout -b ${USERNAME}/feature_branch_name
+git checkout -b ${USERNAME}/feature_branch_name
 # edit files
-$ git commit -m "Description"
-$ git push ${USERNAME}/feature_branch_name
+git commit -m "Description"
+git push ${USERNAME}/feature_branch_name
 ```
 
 Then open a PR against the main `microsoft/cpp_client_telemetry` repo.
@@ -63,6 +66,7 @@ Then open a PR against the main `microsoft/cpp_client_telemetry` repo.
 * Make sure CLA is signed and CI is clear.
 
 ### Making Changes to Modules
+
 * Navigate to lib/modules
 * Check out a branch of [the modules repository.](https://github.com/microsoft/cpp_client_telemetry_modules/)
 * Create a PR from your branch to cpp_client_telemetry's master branch.
@@ -70,6 +74,7 @@ Then open a PR against the main `microsoft/cpp_client_telemetry` repo.
 ### How to Get PR Merged
 
 A PR is considered to be **ready to merge** when:
+
 * It has received at least one approval from Maintainers.
 * Major feedbacks are resolved.
 * It has been open for review for at least one working day. This gives people reasonable time to review.
@@ -96,6 +101,7 @@ There is a *.clang-format* file included in the repo. Please use your favourite 
 Collaborators have write access to the repo.
 
 To become a Collaborator:
+
 * Become an active Contributor by working on PRs.
 * Actively participate in the community meeting, design discussion, PR review and issue discussion.
 * Contact the Maintainers, express the willingness and commitment.
@@ -106,6 +112,7 @@ To become a Collaborator:
 Maintainers have admin access to the repo.
 
 To become a Maintainer:
+
 * Become a [member of client-telemetry-sdk organization](https://repos.opensource.microsoft.com/microsoft/teams/client-telemetry-sdk/join/).
 * Become a Collaborator.
 * Demonstrate the ability and commitment.

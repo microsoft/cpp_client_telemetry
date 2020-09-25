@@ -11,9 +11,6 @@ using namespace MAT;
 // Define it once per .exe or .dll in any compilation module
 LOGMANAGER_INSTANCE
 
-// Replace line below by your API key
-#define TOKEN "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-xxxx"
-
 // Read configuration and event file contents
 std::string readall(const std::string& path)
 {
@@ -24,7 +21,8 @@ std::string readall(const std::string& path)
 
 #define JSON_CONFIG(...)    ( #__VA_ARGS__ )
 
-// Default configuration
+// Default configuration in JSON format. Telemetry by default is sent to "1DSCppSdkTest" tenant.
+// Please change "primaryToken" parameter below to send telemetry to your subscription.
 const char* defaultConfig = static_cast<const char *> JSON_CONFIG
 (
     {
@@ -48,7 +46,7 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
         "maxTeardownUploadTimeInSec" : 1,
         "minimumTraceLevel" : 4,
         "multiTenantEnabled" : true,
-        "primaryToken" : "6d084bbf6a9644ef83f40a77c9e34580-c2d379e0-4408-4325-9b4d-2a7d78131e14-7322",
+        "primaryToken" : "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991",
         "sample" : {
             "rate": 0
         },
@@ -163,6 +161,7 @@ int main(int argc, char *argv[])
         {
             // Add privacy tags to avoid the event being dropped at UTC layer
             evt.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+            evt.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL);
         }
 
         if (std::string("My.Detailed.Event.PiiMark") == eventName)

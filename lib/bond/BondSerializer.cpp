@@ -7,7 +7,7 @@
 #include "bond/generated/CsProtocol_readers.hpp"
 #include "oacr.h"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     bool BondSerializer::handleSerialize(IncomingEventContextPtr const& ctx)
     {
@@ -25,4 +25,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

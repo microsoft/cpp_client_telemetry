@@ -1,8 +1,4 @@
 // Copyright (c) Microsoft. All rights reserved.
-// TODO: [MG]
-// - HttpServer needs to be implemented for Linux and Mac
-// - POSIX SDK uniquely identifies REQ-N and RESP-N which causes HttpClientTests to break.
-//   We need to adjust Windows behaviour and fix the test below.
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -103,7 +99,6 @@ class HttpClientTests : public ::testing::Test,
 
     /**
      * This method temporarily copies SimpleHttpResponse to a responses buffer.
-     * TODO: [MG] - ideally we should create a copy-constructor for that.
      */
     virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
     {
@@ -347,4 +342,4 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
     EXPECT_THAT(it, _countedRequests.end());
 
 }
-#endif // _WIN32
+#endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

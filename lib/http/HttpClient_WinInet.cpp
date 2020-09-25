@@ -17,7 +17,7 @@
 #include <vector>
 #include <oacr.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class WinInetRequestWrapper
 {
@@ -557,7 +557,7 @@ bool HttpClient_WinInet::IsMsRootCheckRequired()
     return m_msRootCheck;
 }
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #pragma warning(pop)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 // clang-format on

@@ -10,7 +10,7 @@
 #include <list>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
 class HttpClientManager
@@ -55,4 +55,4 @@ class HttpClientManager
         std::list<HttpCallback*>  m_httpCallbacks;
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END

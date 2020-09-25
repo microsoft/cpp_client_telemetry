@@ -10,7 +10,7 @@
 #include <vector>
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class EventFilterCollection : public IEventFilterCollection
     {
@@ -28,6 +28,6 @@ namespace ARIASDK_NS_BEGIN
         std::vector<std::unique_ptr<IEventFilter>> m_filters;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // EVENTFILTERCOLLECTION_HPP

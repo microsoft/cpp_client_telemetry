@@ -11,7 +11,7 @@
 //#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 
 #include <atomic>
 #include <cassert>
@@ -20,6 +20,7 @@
 #include "PayloadDecoder.hpp"
 
 #include "mat.h"
+#include "IDecorator.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
@@ -58,6 +59,7 @@ public:
     std::atomic<unsigned>   logLatMin;
     std::atomic<unsigned>   logLatMax;
     std::atomic<unsigned>   storageFullPct;
+    std::atomic<bool>       storageFailed;
 
     std::function<void(::CsProtocol::Record &)> OnLogX;
 
@@ -75,7 +77,8 @@ public:
         numFiltered(0),
         logLatMin(100),
         logLatMax(0),
-        storageFullPct(0)
+        storageFullPct(0),
+        storageFailed(false)
     {
         resetOnLogX();
     }
@@ -96,6 +99,7 @@ public:
         logLatMin = 100;
         logLatMax = 0;
         storageFullPct = 0;
+        storageFailed = false;
         resetOnLogX();
     }
 
@@ -157,6 +161,10 @@ public:
             storageFullPct = (unsigned int)evt.param1;
             break;
 
+        case EVT_STORAGE_FAILED:
+            storageFailed = true;
+            break;
+
         case EVT_CONN_FAILURE:
         case EVT_HTTP_FAILURE:
         case EVT_COMPRESS_FAILED:
@@ -201,93 +209,6 @@ public:
         std::cerr << "[          ] numFiltered  = " << numFiltered << std::endl;
     }
 };
-
-
-/// <summary>
-/// Create sample event of a given priority
-/// </summary>
-/// <param name="name">event name</param>
-/// <param name="prio">priority</param>
-/// <returns></returns>
-EventProperties CreateSampleEvent(const char *name, EventPriority prio)
-{
-#ifdef _WIN32
-    /* Test for Win32 GUID type, specific to Windows only */
-    GUID win_guid;
-    win_guid.Data1 = 0;
-    win_guid.Data2 = 1;
-    win_guid.Data3 = 2;
-
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        win_guid.Data4[i] = i;
-    }
-#endif
-
-    // GUID constructor from byte[16]
-    const uint8_t guid_b[16] = {
-        0x03, 0x02, 0x01, 0x00,
-        0x05, 0x04,
-        0x07, 0x06,
-        0x08, 0x09,
-        0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-
-    GUID_t guid_c(
-        0x00010203,
-        0x0405,
-        0x0607,
-        { 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-    );
-
-    const GUID_t guid_d;
-
-    // Prepare current time in UTC (seconds precision)
-    std::time_t t = std::time(nullptr);
-    std::gmtime(&t);
-
-    /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
-    EventProperties props(name,
-        {
-    #ifdef _MSC_VER
-            { "_MSC_VER", _MSC_VER },
-    #endif
-            { "piiKind.None",               EventProperty("jackfrost",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-            { "piiKind.GenericData",        EventProperty("jackfrost",  PiiKind_GenericData) },
-            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
-            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
-            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
-            { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
-            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-            { "piiKind.SipAddress",         EventProperty("sip:jackfrost@microsoft.com", PiiKind_SipAddress) },
-            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@microsoft.com>", PiiKind_SmtpAddress) },
-            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
-            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
-            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
-
-            { "strKey",   "hello" },
-            { "strKey2",  "hello2" },
-            { "int64Key", (int64_t)1L },
-            { "dblKey",   3.14 },
-            { "boolKey",  false },
-
-            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
-            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey2", GUID_t(guid_b) },
-            { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey4", GUID_t(guid_c) },
-
-            { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
-            { "timeKey2",  time_ticks_t(&t) }               // seconds precision
-        });
-#ifdef _WIN32
-    props.SetProperty("win_guid", GUID_t(win_guid));
-#endif
-    props.SetPriority(prio);
-    props.SetLevel(DIAG_LEVEL_REQUIRED);
-
-    return props;
-}
 
 /// <summary>
 /// Add all event listeners
@@ -395,7 +316,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
@@ -448,10 +369,13 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
+    configuration[CFG_INT_STORAGE_FULL_PCT] = 1; // 1%
+    configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 0; // 0ms
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 524288; // Requires default ram queue size otherwise skips events
 
     EventProperties eventToLog{ "foo1" };
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
@@ -521,13 +445,14 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     removeAllListeners(debugListener);
 }
 
+#ifdef _WIN32
 TEST(APITest, LogManager_UTCSingleEventSent) {
     auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-    configuration["stats"]["interval"] = 0; // avoid sending stats for this test
+    configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0; // avoid sending stats for this test
     configuration[CFG_INT_MAX_TEARDOWN_TIME] = 5;
 
     EventProperties event;
@@ -546,6 +471,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     logger->LogEvent(event);
     LogManager::FlushAndTeardown();
 }
+#endif
 
 TEST(APITest, LogManager_SemanticAPI)
 {
@@ -602,7 +528,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
     {
-        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
     }
     LogManager::FlushAndTeardown();
@@ -656,7 +582,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
                 t.detach();
             }
         };
-        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
         LogManager::FlushAndTeardown();
     }
@@ -811,6 +737,7 @@ TEST(APITest, C_API_Test)
 }
 
 #ifdef HAVE_MAT_JSONHPP
+#if defined(_WIN32)
 TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
@@ -881,6 +808,7 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::FlushAndTeardown();
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
+#endif
 
 TEST(APITest, Pii_DROP_Test)
 {
@@ -888,7 +816,7 @@ TEST(APITest, Pii_DROP_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -967,7 +895,7 @@ TEST(APITest, SemanticContext_Test)
 
     auto config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-    config["stats"]["interval"] = 0;        // avoid sending stats for this test
+    config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
@@ -1118,6 +1046,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
+    TestDebugEventListener debugListener;
     auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
     config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
@@ -1138,12 +1067,16 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
     for (const auto &path : paths)
     {
+        debugListener.storageFailed = false;
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
         EXPECT_EQ(true, (result != NULL));
         result->LogEvent("test");
         LogManager::Flush();
         LogManager::FlushAndTeardown();
+        LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
+        EXPECT_EQ(true, debugListener.storageFailed);
     }
 
 }
@@ -1167,9 +1100,9 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         CleanStorage();
 
         auto& config = LogManager::GetLogConfiguration();
-        config["stats"]["interval"] = 0;  // avoid sending stats for this test, just customer events
+        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
         config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config["http"]["msRootCheck"] = std::get<1>(params);  // MS root check depends on what URL we are sending to
+        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
         config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
         auto expectedHttpCount = std::get<2>(params);
@@ -1372,6 +1305,100 @@ TEST(APITest, Pii_Kind_E2E_Test)
     logger->LogEvent(detailed_event);
     LogManager::FlushAndTeardown();
     // Verify that contents get hashed by server
+}
+
+class CustomDecorator: public IDecoratorModule
+{
+public:
+    /***
+     * Note that C++ bond definition for extensions assumes that every extension is a vector,
+     * such as a record that may have 0 or 1 elements in that vector. Collector only respects
+     * the first item in extension vector, the others are discarded. Please do not try to
+     * populate the extX[1], as it would be effectively discarded.
+     */
+    virtual bool decorate(CsProtocol::Record& record) override
+    {
+        // App Environment
+        record.extApp[0].env = "insiders";
+
+        // UTC flags override for direct upload mode only.
+        // Resize with care: by default SDK does not populate that extension.
+        record.extUtc.resize(1);
+        record.extUtc[0].flags = 0x12345;
+
+        // Device Org Id, e.g. obtained via InTune API
+        record.extDevice[0].orgId = "00010203-0405-0607-0809-0A0B0C0D0E0F";
+
+        // App-specific Corellation Vector to track certain scenarios.
+        // Ref: https://github.com/microsoft/CorrelationVector/blob/master/cV%20-%203.0.md
+        record.cV = "A.PmvzQKgYek6Sdk/T5sWaqw.B";
+
+        // Iterate over Part C (custom) data.
+        forEachPartC(record);
+
+        // Custom global decorator is invoked before sending event further for serialization.
+        return true;
+    }
+
+    void forEachPartC(CsProtocol::Record& record)
+    {
+        printf("Event Name: %s\n", record.name.c_str());
+        if (record.data.size() == 1)
+        {
+            for (const auto& props : record.data[0].properties)
+            {
+                auto key = props.first.c_str();
+                auto val = props.second;
+                switch (val.type)
+                {
+
+                case CsProtocol::ValueKind::ValueString:
+                {
+                    // Print string values
+                    printf("- %s=%s\n", key, val.stringValue.c_str());
+                    break;
+                }
+
+                case CsProtocol::ValueKind::ValueGuid:
+                {
+                    // Extract from byte array and print GUID values as string
+                    uint8_t guidBytes[16];
+                    std::copy(val.guidValue[0].begin(), val.guidValue[0].end(), guidBytes);
+                    // We use GUID_t::to_string(...) converter to print string
+                    GUID_t guid(guidBytes);
+                    printf("- %s=%s\n", key, guid.to_string().c_str());
+                    break;
+                }
+
+                default:
+                    // Ignore all numeric types for now
+                    break;
+                }
+            }
+        }
+    }
+
+};
+
+CustomDecorator myDecorator;
+
+TEST(APITest, Custom_Decorator)
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config.AddModule(CFG_MODULE_DECORATOR, std::make_shared<CustomDecorator>(myDecorator) );
+    LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::GetLogger()->LogEvent("foobar");
+    EventProperties myEvent2("MyEvent.With.Props",
+    {
+        {"keyString", "Hello World!"},
+        {"keyGuid", GUID_t("{76ce7649-3a58-4861-8202-7d7fdfaed483}")}
+    });
+    LogManager::GetLogger()->LogEvent(myEvent2);
+    LogManager::FlushAndTeardown();
+    // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
+    // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
+    // for non-existing module also returns nullptr.
+    config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

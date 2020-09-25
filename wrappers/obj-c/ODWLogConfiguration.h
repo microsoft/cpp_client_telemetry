@@ -18,9 +18,26 @@
 +(void)setEnableTrace:(bool)enableTrace;
 
 /*!
+@brief Sets the internal SDK debugging trace level.
+@param one of the ACTTraceLevel values.
+*/
++(void)setTraceLevel:(int)TraceLevel;
+
+/*!
 @brief Returns true if tracing is enabled.
 */
 +(bool)enableTrace;
+
+/*!
+@brief Sets if inner C++ exceptions should be surfaced to Wrapper consumers.
+@param surfaceCppExceptions True if C++ exceptions should be surfaced.
+*/
++(void)setSurfaceCppExceptions:(bool)surfaceCppExceptions;
+
+/*!
+@brief Returns true if inner C++ exceptions are surfaced to Wrapper consumers.
+*/
++(bool)surfaceCppExceptions;
 
 @end
 

@@ -8,10 +8,50 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ODWSemanticContext : NSObject
 
 /*!
- @brief Specfies an application id to be included with every event
+ @brief Specifies an application id to be included with every event
  @param appId A string that contains an application identifier
  */
 -(void)setAppId:(NSString *)appId;
+
+/*!
+ @brief Specifies a unique user id to be included with every event
+ @param userId A string that contains the unique user identifier.
+ */
+-(void)setUserId:(nonnull NSString *)userId;
+
+/*!
+ @brief Specifies a unique user advertising id to be included with every event
+ @param userAdvertisingId AA string that contains the unique user advertising identifier.
+ */
+-(void)setUserAdvertisingId:(nonnull NSString *)userAdvertisingId;
+
+/*!
+ @brief Sets the experimentation IDs for determining the deployment configuration.
+ @param experimentIds A string that contains the experimentation IDs.
+ */
+-(void)setAppExperimentIds:(nonnull NSString*)experimentIds;
+
+/*!
+ @brief Sets the experimentation IDs for the specified telemetry event.
+ @param experimentIds A string that contains the experimentation IDs.
+ @param eventName A string that contains the name of the event.
+ */
+-(void)setAppExperimentIds:(nonnull NSString*)experimentIds
+                  forEvent:(nonnull NSString*)eventName;
+
+/*!
+ @brief Sets the experiment tag (experiment configuration) context information for telemetry events.
+ <b>Note:</b> This method removes any previously stored experiment IDs that were set using setAppExperimentETag.
+ @param eTag A string that contains the ETag which is a hash of the set of experiments.
+ */
+-(void)setAppExperimentETag:(nonnull NSString *)eTag;
+
+/*!
+ @brief Sets the impression ID (an identifier of the currently running flights) for an experiment.
+ @details Calling this method removes the previously stored experimentation IDs and flight IDs.
+ @param impressionId A string that contains the impression ID for the currently active configuration.
+ */
+-(void)setAppExperimentImpressionId:(nonnull NSString*)impressionId;
 
 @end
 

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <mutex>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class");
 
@@ -11,7 +11,7 @@ namespace ARIASDK_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         for(const auto& viewer : m_dataViewerCollection)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
@@ -26,9 +26,9 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for data viewer"));
         }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
 
-        if (IsViewerInCollection(dataViewer->GetName()))
+        if (GetViewerFromCollection(dataViewer->GetName()) != nullptr)
         {
             std::stringstream errorMessage;
             errorMessage << "Viewer: '" << dataViewer->GetName() << "' is already registered";
@@ -45,7 +45,7 @@ namespace ARIASDK_NS_BEGIN {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
                 return viewer->GetName() == viewerName;
@@ -63,28 +63,36 @@ namespace ARIASDK_NS_BEGIN {
 
     void DataViewerCollection::UnregisterAllViewers()
     {
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+        LOCKGUARD(m_dataViewerMapLock);
         m_dataViewerCollection.clear();
     }
 
     bool DataViewerCollection::IsViewerEnabled(const char* viewerName) const
     {
-        if (viewerName == nullptr)
-        {
-            MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
-        }
+        auto viewerFetched = GetViewerFromCollection(viewerName);
+        return viewerFetched != nullptr && viewerFetched->IsTransmissionEnabled();
+    }
 
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
+    bool DataViewerCollection::IsViewerEnabled() const noexcept
+    {
+        LOCKGUARD(m_dataViewerMapLock);
+        return !m_dataViewerCollection.empty() &&
+               std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
+    }
 
-        return IsViewerInCollection(viewerName);
+    bool DataViewerCollection::IsViewerRegistered(const char* viewerName) const
+    {
+        return GetViewerFromCollection(viewerName) != nullptr;
     }
     
-    bool DataViewerCollection::IsViewerInCollection(const char* viewerName) const
+    std::shared_ptr<IDataViewer> DataViewerCollection::GetViewerFromCollection(const char* viewerName) const
     {
         if (viewerName == nullptr)
         {
             MATSDK_THROW(std::invalid_argument("nullptr passed for viewer name"));
         }
+
+        LOCKGUARD(m_dataViewerMapLock);
 
         auto lookupResult = std::find_if(m_dataViewerCollection.begin(),
                                          m_dataViewerCollection.end(),
@@ -93,12 +101,11 @@ namespace ARIASDK_NS_BEGIN {
                                             return strcmp(viewer->GetName(), viewerName) == 0;
                                          });
 
-        return lookupResult != m_dataViewerCollection.end();
-    }
+        if (lookupResult != m_dataViewerCollection.end())
+        {
+            return *lookupResult;
+        }
 
-    bool DataViewerCollection::IsViewerEnabled() const noexcept
-    {
-        std::lock_guard<std::mutex> lock(m_dataViewerMapLock);
-        return !m_dataViewerCollection.empty();
+        return nullptr;
     }
-} ARIASDK_NS_END
+} MAT_NS_END

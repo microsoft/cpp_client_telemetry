@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
+#import "ODWLogConfiguration.h"
 #import "ODWLogManager.h"
 #import "ODWLogger_private.h"
+#include <stdexcept>
 #include "LogManager.hpp"
 
 using namespace MAT;
@@ -23,7 +25,20 @@ LOGMANAGER_INSTANCE
     
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
-    ILogger* logger = LogManager::GetLogger(strToken, strSource);
+    ILogger* logger = nullptr;
+    try
+    {
+        logger = LogManager::GetLogger(strToken, strSource);
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
+
     if(!logger) return nil;
 
     return [[ODWLogger alloc] initWithILogger: logger];
@@ -31,38 +46,58 @@ LOGMANAGER_INSTANCE
 
 +(BOOL)initializeLogManager:(nonnull NSString *)tenantToken
 {
-    // Turn off statistics
-    auto& config = LogManager::GetLogConfiguration();
-    config["stats"]["interval"] = 0;
+    ILogger* logger = nullptr;
 
-    // Initialize SDK Log Manager
-    std::string strToken = std::string([tenantToken UTF8String]);
-    ILogger* logger = LogManager::Initialize(strToken);
-    
-    // Obtain semantics values
-    NSBundle* bundle = [NSBundle mainBundle];
-    std::string strUserLocale = std::string([[[NSLocale currentLocale] localeIdentifier] UTF8String]);
-    NSString* bundleVersion = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-    std::string strBundleVersion = bundleVersion == nil ? std::string {} : std::string([bundleVersion UTF8String]);
-    NSArray<NSString *> *localizations = [bundle preferredLocalizations];
-    NSString* appLanguage;
-    if ((localizations != nil) && ([localizations count] > 0))
+    try
     {
-        appLanguage = [localizations firstObject];
-    }
-    else
-    {
-        appLanguage = [[NSLocale preferredLanguages] firstObject];
-    }
-    
-    NSString* appCountry = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
-    std::string strBundleLocale = std::string([[NSString stringWithFormat:@"%@-%@", appLanguage, appCountry] UTF8String]);
+        // Turn off statistics
+        auto& config = LogManager::GetLogConfiguration();
+        config[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
 
-    // Set semantics
-    ISemanticContext* semanticContext = LogManager::GetSemanticContext();
-    semanticContext->SetAppVersion(strBundleVersion);
-    semanticContext->SetAppLanguage(strBundleLocale);
-    semanticContext->SetUserLanguage(strUserLocale);
+        // Initialize SDK Log Manager
+        std::string strToken = std::string([tenantToken UTF8String]);
+        logger = LogManager::Initialize(strToken);
+    
+        // Obtain semantics values
+        NSBundle* bundle = [NSBundle mainBundle];
+        NSLocale* locale = [NSLocale currentLocale];
+        std::string strUserLocale = std::string([[locale languageCode] UTF8String]);
+        NSString* countryCode = [locale countryCode];
+        if ([countryCode length] != 0)
+        {
+            strUserLocale += [[NSString stringWithFormat:@"-%@", countryCode] UTF8String];
+        }
+
+        NSString* bundleVersion = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+        std::string strBundleVersion = bundleVersion == nil ? std::string {} : std::string([bundleVersion UTF8String]);
+        NSArray<NSString *> *localizations = [bundle preferredLocalizations];
+        NSString* appLanguage;
+        if ((localizations != nil) && ([localizations count] > 0))
+        {
+            appLanguage = [localizations firstObject];
+        }
+        else
+        {
+            appLanguage = [[NSLocale preferredLanguages] firstObject];
+        }
+
+        NSString* appCountry = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
+        std::string strBundleLocale = std::string([[NSString stringWithFormat:@"%@-%@", appLanguage, appCountry] UTF8String]);
+
+        // Set semantics
+        ISemanticContext* semanticContext = LogManager::GetSemanticContext();
+        semanticContext->SetAppVersion(strBundleVersion);
+        semanticContext->SetAppLanguage(strBundleLocale);
+        semanticContext->SetUserLanguage(strUserLocale);
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
     
     return logger != NULL;
 }
@@ -70,44 +105,71 @@ LOGMANAGER_INSTANCE
 +(nullable ODWLogger *)loggerForSource:(nonnull NSString *)source
 {
     std::string strSource = std::string([source UTF8String]);
-    ILogger* logger = LogManager::GetLogger(strSource);
+    ILogger* logger = nullptr;
+    try
+    {
+        logger = LogManager::GetLogger(strSource);
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
+
     if(!logger) return nil;
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
 +(void)uploadNow
 {
-    LogManager::UploadNow();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::UploadNow();
+    });
 }
 
 +(void)flush
 {
-    LogManager::Flush();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::Flush();
+    });
 }
 
 +(void)flushAndTeardown
 {
-    LogManager::FlushAndTeardown();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::FlushAndTeardown();
+    });
 }
 
 +(void)setTransmissionProfile:(ODWTransmissionProfile)profile
 {
-    LogManager::SetTransmitProfile((TransmitProfile)profile);
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::SetTransmitProfile((TransmitProfile)profile);
+    });
 }
 
 +(void)pauseTransmission
 {
-    LogManager::PauseTransmission();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::PauseTransmission();
+    });
 }
 
 +(void)resumeTransmission
 {
-    LogManager::ResumeTransmission();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::ResumeTransmission();
+    });
 }
 
 +(void)resetTransmitProfiles
 {
-    LogManager::ResetTransmitProfiles();
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::ResetTransmitProfiles();
+    });
 }
 
 @end

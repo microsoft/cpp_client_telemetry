@@ -27,7 +27,7 @@ using namespace concurrency;
 using namespace Platform;
 
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class WinRtRequestWrapper
     {
@@ -356,6 +356,6 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif //HAVE_MAT_DEFAULT_HTTP_CLIENT

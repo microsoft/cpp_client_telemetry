@@ -33,7 +33,7 @@
 #undef TRACE
 #define TRACE(...)	// printf
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /**
  * Curl-based HTTP client
@@ -131,18 +131,17 @@ public:
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
 
         // Specify our custom headers
-        struct curl_slist *chunk = NULL;
         for(auto &kv : this->requestHeaders)
         {
             std::string header = kv.first.c_str();
             header += ": ";
             header += kv.second.c_str();
-            chunk = curl_slist_append(chunk, header.c_str());
+            m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
-        if(chunk != NULL)
+        if(m_headersChunk != nullptr)
         {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
@@ -163,6 +162,7 @@ public:
         DispatchEvent(OnDestroy);
         res = CURLE_OK;
         curl_easy_cleanup(curl);
+        curl_slist_free_all(m_headersChunk);
         ReleaseResponse();
     }
 
@@ -414,6 +414,7 @@ protected:
     std::string m_url;
     const std::map<std::string, std::string>& requestHeaders;
     const std::vector<uint8_t>& requestBody;
+    struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
     std::vector<uint8_t>        respHeaders;
@@ -519,7 +520,7 @@ protected:
 
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 

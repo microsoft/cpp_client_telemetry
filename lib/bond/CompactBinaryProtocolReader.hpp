@@ -184,7 +184,7 @@ class CompactBinaryProtocolReader {
 
     bool ReadWString(std::string const& value)
     {
-		UNREFERENCED_PARAMETER(value);
+        UNREFERENCED_PARAMETER(value);
         uint32_t length;
         if (!ReadUInt32(length)) {
             return false;

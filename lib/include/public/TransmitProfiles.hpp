@@ -1,4 +1,18 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef TRANSMITPROFILES_HPP
 #define TRANSMITPROFILES_HPP
 
@@ -16,7 +30,7 @@
 
 /// @cond INTERNAL_DOCS
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -48,40 +62,61 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The network cost, as one of the MAT::NetworkCost enumeration values.
         /// </summary>
-        NetworkCost      netCost;         // any|unknown|low|high|restricted
+        NetworkCost      netCost = NetworkCost_Any;         // any|unknown|low|high|restricted
 
         /// <summary>
         /// The power state, as one of the MAT::PowerSource enumeration values.
         /// </summary>
-        PowerSource      powerState;      // any|unknown|battery|charging
+        PowerSource      powerState = PowerSource_Any;      // any|unknown|battery|charging
 
         /// <summary>
         /// The type of network, as one of the MAT::NetworkType enumeration values.
         /// <b>Note:</b> This member is reserved for future use.
         /// </summary>
-        NetworkType      netType;         // reserved for future use
+        NetworkType      netType = NetworkType_Any;         // reserved for future use
 
         /// <summary>
         /// The speed of the network.
         /// <b>Note:</b> This member is reserved for future use.
         /// </summary>
-        unsigned         netSpeed;        // reserved for future use
+        unsigned         netSpeed = 0;                      // reserved for future use
 
         /// <summary>
-        /// A vector on integers that contain per-priority transmission timers.
+        /// A vector of integers that contain per-priority transmission timers.
         /// </summary>
-        std::vector<int> timers;          // per-priority transmission timers
+        std::vector<int> timers;                            // per-priority transmission timers
 
         /// <summary>
         /// The TransmitProfileRule structure default constructor.
         /// </summary>
-        TransmitProfileRule() {
-            netCost = NetworkCost_Any;
-            netType = NetworkType_Any;
-            netSpeed = 0;
-            powerState = PowerSource_Any;
-            timers.clear();
-        }
+        TransmitProfileRule() noexcept = default;
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a collection of timers.
+        /// </summary>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(std::vector<int>&& timers)
+           : timers(std::move(timers)) { }
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , timers(std::move(timers)) { }
+
+        /// <summary>
+        /// TransmitProfileRule constructor taking a NetworkCost, PowerSource, and a collection of timers.
+        /// </summary>
+        /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
+        /// <param name="powerSource">The power state, as one of the MAT::PowerSource enumeration values.</param>
+        /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
+        TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers)
+           : netCost(networkCost)
+           , powerState(powerSource)
+           , timers(std::move(timers)) { }
 
     } TransmitProfileRule;
 
@@ -135,7 +170,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// A boolean value that indicates whether the timer was updated.
         /// </summary>
-        static std::atomic<bool> isTimerUpdated;
+        static bool isTimerUpdated;
 
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
@@ -152,7 +187,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The TransmitProfiles destructor.
         /// </summary>
-        virtual ~TransmitProfiles();
+        virtual ~TransmitProfiles() noexcept = default;
 
         /// <summary>
         /// Prints transmit profiles to the debug log.
@@ -248,7 +283,7 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 /// @endcond
 #endif

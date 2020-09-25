@@ -5,29 +5,35 @@
 #include "IDecorator.hpp"
 #include "api/ContextFieldsProvider.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
-    class SemanticContextDecorator : public DecoratorBase
+    class SemanticContextDecorator : public IDecorator
     {
 
     protected:
+        ILogManager&           m_owner;
         ContextFieldsProvider& provider;
 
     public:
         SemanticContextDecorator(ILogManager& owner) :
-            DecoratorBase(owner),
-            provider(static_cast<ContextFieldsProvider&>(m_owner.GetSemanticContext()))
+            m_owner(owner),
+            provider(static_cast<ContextFieldsProvider&>(owner.GetSemanticContext()))
         {
         }
 
         SemanticContextDecorator(ILogManager& owner, ContextFieldsProvider& context) :
-            DecoratorBase(owner),
+            m_owner(owner),
             provider(context)
         {
         }
 
-        bool decorate(::CsProtocol::Record& record, bool commonOnly = false)
+        bool decorate(::CsProtocol::Record& record) override
+        {
+            return decorate(record, false);
+        }
+
+        bool decorate(::CsProtocol::Record& record, bool commonOnly)
         {
             provider.writeToRecord(record, commonOnly);
             return true;
@@ -36,5 +42,5 @@ namespace ARIASDK_NS_BEGIN
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

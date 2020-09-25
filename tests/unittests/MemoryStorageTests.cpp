@@ -34,6 +34,10 @@ class TestObserver : public IOfflineStorageObserver
     {
         UNREFERENCED_PARAMETER(reason);
     }
+    virtual void OnStorageOpenFailed(std::string const & reason) override
+    {
+        UNREFERENCED_PARAMETER(reason);
+    }
     virtual void OnStorageTrimmed(std::map<std::string, size_t> const & numRecords) override
     {
         UNREFERENCED_PARAMETER(numRecords);
@@ -218,8 +222,32 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
+TEST(MemoryStorageTests, GetAndReserveSome)
+{
+    MemoryStorage storage(testLogManager, testConfig);
+    storage.Initialize(testObserver);
+    addEvents(storage);
+    auto totalCount = storage.GetRecordCount();
+    constexpr size_t howMany = 32;
+    std::vector<StorageRecord> someRecords;
+    storage.GetAndReserveRecords(
+        [&someRecords, howMany] (StorageRecord && record)->bool
+        {
+            if (someRecords.size() >= howMany) {
+                return false;
+            }
+            someRecords.emplace_back(std::move(record));
+            return true;
+        },
+        EventLatency_Normal
+    );
+    EXPECT_EQ(howMany, someRecords.size());
+    EXPECT_EQ(howMany, storage.LastReadRecordCount());
+    EXPECT_EQ(totalCount - howMany, storage.GetRecordCount());
+}
+
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, StoreSetting)
+TEST(MemoryStorageTests, StoreSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     bool result = storage.StoreSetting("not_implemented", "not_implemented");
@@ -227,7 +255,7 @@ TEST(MemoryStorage, StoreSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorage, GetSetting)
+TEST(MemoryStorageTests, GetSetting)
 {
     MemoryStorage storage(testLogManager, testConfig);
     auto result = storage.GetSetting("not_implemented");
@@ -235,7 +263,7 @@ TEST(MemoryStorage, GetSetting)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorag, ResizeDb)
+TEST(MemoryStorageTests, ResizeDb)
 {
     MemoryStorage storage(testLogManager, testConfig);
     EXPECT_THAT(storage.ResizeDb(), true);
@@ -246,7 +274,6 @@ constexpr size_t MAX_STRESS_THREADS = 20;
 TEST(MemoryStorageTests, MultiThreadPerfTest)
 {
     MemoryStorage storage(testLogManager, testConfig);
-    std::atomic<size_t> totalRecords(0);
 
     std::vector<std::thread> workers;
     std::atomic<size_t> threadCount(0);
@@ -274,9 +301,19 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
         }));
     }
 
-    while (threadCount.load()!=MAX_STRESS_THREADS)
+    // The issue here is that clang-libc++ Mac OS X runtime can schedule
+    // the main thread to continue running BEFORE propagating the spawned
+    // thread(s) into joinable state, i.e. the thread is created, but not
+    // assigned a native handle yet. What that in essence means that the
+    // logic that waits for completion of all workers may run into race
+    // condition with one of threads not being in joinable state YET...
+    // Means rather than waiting for completion - we actually skip a thread
+    // that is about to get scheduled!! Solution is to use the threadCount
+    // to yield until each thread is guaranteed spawned, assigned a native
+    // handle, after that we  can iterate and wait for completion.
+    while (threadCount.load() != MAX_STRESS_THREADS)
     {
-    std::this_thread::yield();
+        std::this_thread::yield();
     }
 
     // Wait for completion of all worker threads

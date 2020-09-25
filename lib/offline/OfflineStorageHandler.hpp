@@ -16,7 +16,7 @@
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
     {
@@ -27,6 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Shutdown() override;
         virtual void Flush() override;
         virtual bool StoreRecord(StorageRecord const& record) override;
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
 
         virtual bool IsLastReadFromMemory() override;
@@ -47,6 +48,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void OnStorageOpened(std::string const& type) override;
         virtual void OnStorageFailed(std::string const& reason) override;
+        virtual void OnStorageOpenFailed(std::string const& reason) override;
         virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;
@@ -74,7 +76,7 @@ namespace ARIASDK_NS_BEGIN {
         PAL::Event                             m_flushComplete;
 
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;
@@ -90,4 +92,4 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END

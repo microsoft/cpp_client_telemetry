@@ -12,7 +12,7 @@
 #include "bond/generated/CsProtocol_writers.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     HttpRequestEncoder::HttpRequestEncoder(ITelemetrySystem& system, IHttpClient& httpClient)
@@ -143,7 +143,7 @@ namespace ARIASDK_NS_BEGIN {
 
 
 #if 0
-        // XXX: [MG] - debug only
+        // Debug only: uncomment to set a breakpoint - decode-verify the payload before sending it.
         CsProtocol::Record result;
         bond_lite::CompactBinaryProtocolReader reader(ctx->body);
         bond_lite::Deserialize(reader, result);
@@ -160,4 +160,4 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

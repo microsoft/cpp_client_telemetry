@@ -55,19 +55,6 @@ namespace PAL_NS_BEGIN {
         virtual NetworkType GetNetworkType() override
         {
             m_type = NetworkType_Unknown;
-            DWORD flags;
-            DWORD reserved = 0;
-            if (::InternetGetConnectedState(&flags, reserved)) {
-                switch (flags) {
-                case INTERNET_CONNECTION_MODEM:
-                case INTERNET_CONNECTION_LAN:
-                    m_type = NetworkType_Wired;
-                    break;
-                default:
-                    m_type = NetworkType_Unknown;
-                    break;
-                }
-            }
             return m_type;
         }
 
@@ -97,7 +84,7 @@ namespace PAL_NS_BEGIN {
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
         if (m_isNetDetectEnabled) {
-            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector()); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
+            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector());
             networkDetector->AddRef();
             networkDetector->Start();
         }

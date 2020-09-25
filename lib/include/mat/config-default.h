@@ -1,6 +1,7 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
 #if defined(_WIN32) /* && defined(HAVE_PRIVATE_MODULES) */
 #define HAVE_MAT_UTC
+#define HAVE_MAT_AI
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
 #define HAVE_MAT_EXP
@@ -16,3 +17,5 @@
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
 #endif
+//#define HAVE_CS4
+//#define HAVE_CS4_FULL

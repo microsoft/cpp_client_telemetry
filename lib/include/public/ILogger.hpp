@@ -1,4 +1,18 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef MAT_ILOGGER_HPP
 #define MAT_ILOGGER_HPP
 
@@ -15,7 +29,7 @@
 #include <vector>
 #include <map>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
 /* Data Type Flags */
@@ -60,14 +74,6 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
 #define MICROSOFT_EVENTTAG_DROP_PII             0x02000000
 #define MICROSOFT_EVENTTAG_HASH_PII             0x04000000
 #define MICROSOFT_EVENTTAG_MARK_PII             0x08000000
-
-// Privacy Tags
-#define PDT_BrowsingHistory                     0x0000000000000002u
-#define PDT_DeviceConnectivityAndConfiguration  0x0000000000000800u
-#define PDT_InkingTypingAndSpeechUtterance      0x0000000000020000u
-#define PDT_ProductAndServicePerformance        0x0000000001000000u
-#define PDT_ProductAndServiceUsage              0x0000000002000000u
-#define PDT_SoftwareSetupAndInventory           0x0000000080000000u
 
 /// <summary>
 /// The PageActionData structure represents the data of a page action event.
@@ -629,6 +635,6 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

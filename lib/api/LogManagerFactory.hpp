@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     constexpr const char* ANYHOST = "*";
 
@@ -102,9 +102,9 @@ namespace ARIASDK_NS_BEGIN {
         {
             ILogConfiguration config = 
             {
-                { "name", module },
+                { CFG_STR_FACTORY_NAME, module },
                 { "version", "0.0.0" },
-                { "config", {  } }
+                { CFG_MAP_FACTORY_CONFIG, {  } }
             };
             auto result = instance().lease(config);
             status = (result != nullptr) ?
@@ -129,6 +129,6 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

@@ -50,7 +50,7 @@ namespace std
 #define EFAIL   -1
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     const char* getMATSDKLogComponent();
 
@@ -198,6 +198,6 @@ namespace ARIASDK_NS_BEGIN {
 
     unsigned hashCode(const char* str, int h = 0);
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

@@ -32,6 +32,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -100,7 +101,7 @@ public class EventsUnitTest {
 
     class Stubby extends HttpClient {
 
-        Stubby(Context context) throws java.io.IOException {
+        Stubby(Context context) {
             super(context);
         }
 
@@ -150,7 +151,7 @@ public class EventsUnitTest {
         }
 
         @Override
-        public URL newUrl(String url) throws java.net.MalformedURLException {
+        public URL newUrl(String url) {
             return mockUrl;
         }
 
@@ -174,7 +175,8 @@ public class EventsUnitTest {
             String app_version,
             String app_language,
             String os_major_version,
-            String os_full_version
+            String os_full_version,
+            String time_zone
         )
         {
             assertEquals("A:com.microsoft.nemotronics.doodad", app_id);
@@ -182,6 +184,7 @@ public class EventsUnitTest {
             assertEquals("foobar", app_language);
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
+            assertTrue(Pattern.matches("^([-+])\\d\\d:\\d\\d", time_zone));
         }
     }
 

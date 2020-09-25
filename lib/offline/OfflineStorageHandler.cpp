@@ -1,10 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 #include "OfflineStorageHandler.hpp"
-
-#ifdef HAVE_MAT_STORAGE
-#include "offline/OfflineStorage_SQLite.hpp"
-#endif
+#include "OfflineStorageFactory.hpp"
 
 #include "offline/MemoryStorage.hpp"
 
@@ -13,13 +10,13 @@
 #include <numeric>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
-    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher)
-        : m_logManager(logManager),
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
+        m_logManager(logManager),
         m_config(runtimeConfig),
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
@@ -34,7 +31,7 @@ namespace ARIASDK_NS_BEGIN {
         m_queryDbSize(0),
         m_isStorageFullNotificationSend(false)
     {
-        // FIXME: [MG] - this code seems redundant / suspicious because OfflineStorage_SQLite.cpp is doing the same thing...
+        // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
         if (percentage > 0 && percentage <= 100)
@@ -42,7 +39,8 @@ namespace ARIASDK_NS_BEGIN {
             m_memoryDbSizeNotificationLimit = (percentage * cacheMemorySizeLimitInBytes) / 100;
         }
         else
-        {// incase user has specified bad percentage, we stck to 75%
+        {
+            // In case if user has specified bad percentage, we stick to 75%
             m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheMemorySizeLimitInBytes) / 100;
         }
     }
@@ -83,13 +81,8 @@ namespace ARIASDK_NS_BEGIN {
         m_observer = &observer;
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-#ifndef HAVE_MAT_STORAGE
-        /* No storage configured */
-        m_offlineStorageDisk.reset(nullptr);
-#else
-        m_offlineStorageDisk.reset(new OfflineStorage_SQLite(m_logManager, m_config));
+        m_offlineStorageDisk = OfflineStorageFactory::Create(m_logManager, m_config);
         m_offlineStorageDisk->Initialize(*this);
-#endif
 
         // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
         // so that the Flush() op on memory storage leads to saving unflushed events to
@@ -168,22 +161,12 @@ namespace ARIASDK_NS_BEGIN {
             // StoreRecord() will then block until the move completes.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecordId> ids;
-            size_t totalSaved = 0;
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");
 
-            while (records.size())
-            {
-                if (records.back().persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
-                {
-                    ids.push_back(records.back().id);
-                    if (m_offlineStorageDisk->StoreRecord(std::move(records.back())))
-                        totalSaved++;
-                }
-                records.pop_back();
-            }
+            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
@@ -230,18 +213,6 @@ namespace ARIASDK_NS_BEGIN {
         {
             auto memDbSize = m_offlineStorageMemory->GetSize();
             {
-#if 0
-                //check if Application needs to be notified
-                if ((memDbSize > m_memoryDbSizeNotificationLimit) && !m_isStorageFullNotificationSend)
-                {
-                    // TODO: [MG] - do we really need in-memory DB size limit notifications here?
-                    DebugEvent evt;
-                    evt.type = DebugEventType::EVT_STORAGE_FULL;
-                    evt.param1 = 1;
-                    m_logManager.DispatchEvent(evt);
-                    m_isStorageFullNotificationSend = true;
-                }
-#endif
                 // During flush, this will block on a mutex while records
                 // are selected and removed from the cache (but will
                 // not block for the subsequent handoff to persistent
@@ -277,6 +248,19 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         return true;
+    }
+
+    size_t OfflineStorageHandler::StoreRecords(std::vector<StorageRecord>& records)
+    {
+        size_t stored = 0;
+        for (auto& i : records)
+        {
+            if (StoreRecord(i))
+            {
+                ++stored;
+            }
+        }
+        return stored;
     }
 
     bool OfflineStorageHandler::ResizeDb()
@@ -336,10 +320,9 @@ namespace ARIASDK_NS_BEGIN {
             }
         }
 
-        if (m_config.IsClockSkewEnabled()
-            && !m_clockSkewManager.GetResumeTransmissionAfterClockSkew()
+        if (m_config.IsClockSkewEnabled() && !m_clockSkewManager.GetResumeTransmissionAfterClockSkew()
             /* && !consumedIds.empty() */
-            )
+        )
         {
             m_clockSkewManager.GetDelta();
         }
@@ -364,29 +347,29 @@ namespace ARIASDK_NS_BEGIN {
      * invoked by HTTP callback thread. The scrubbing is done
      * async in context where the HTTP callback is running.
      */
-    void OfflineStorageHandler::DeleteRecordsByKeys(const std::list<std::string> & keys)
+    void OfflineStorageHandler::DeleteRecordsByKeys(const std::list<std::string>& keys)
     {
-        for (const auto & key : keys)
+        for (const auto& key : keys)
         {
             /* DELETE * FROM events WHERE tenant_token=${key} */
-            DeleteRecords({ { "tenant_token", key } });
+            DeleteRecords({{"tenant_token", key}});
         }
     }
 
     /**
      * Perform scrub of both memory queue and offline storage.
      */
-     /// <summary>
-     /// Perform scrub of underlying storage systems using 'where' clause
-     /// </summary>
-     /// <param name="whereFilter">The where filter.</param>
-     /// <remarks>
-     /// whereFilter contains the key-value pairs for the
-     /// WHERE [key0==value0 .. keyN==valueN] clause.
-     /// </remarks>
-    void OfflineStorageHandler::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
+    /// <summary>
+    /// Perform scrub of underlying storage systems using 'where' clause
+    /// </summary>
+    /// <param name="whereFilter">The where filter.</param>
+    /// <remarks>
+    /// whereFilter contains the key-value pairs for the
+    /// WHERE [key0==value0 .. keyN==valueN] clause.
+    /// </remarks>
+    void OfflineStorageHandler::DeleteRecords(const std::map<std::string, std::string>& whereFilter)
     {
-        for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
+        for (const auto storagePtr : {m_offlineStorageMemory.get(), m_offlineStorageDisk.get()})
         {
             if (storagePtr != nullptr)
             {
@@ -422,7 +405,7 @@ namespace ARIASDK_NS_BEGIN {
         }
 
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
-            static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
+                  static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
         if (fromMemory && nullptr != m_offlineStorageMemory)
         {
             m_offlineStorageMemory->DeleteRecords(ids, headers, fromMemory);
@@ -483,7 +466,6 @@ namespace ARIASDK_NS_BEGIN {
         return "";
     }
 
-
     void OfflineStorageHandler::OnStorageOpened(std::string const& type)
     {
         m_observer->OnStorageOpened(type);
@@ -491,7 +473,12 @@ namespace ARIASDK_NS_BEGIN {
 
     void OfflineStorageHandler::OnStorageFailed(std::string const& reason)
     {
-        m_observer->OnStorageFailed(reason);
+        m_observer->OnStorageOpenFailed(reason);
+    }
+
+    void OfflineStorageHandler::OnStorageOpenFailed(std::string const& reason)
+    {
+        m_observer->OnStorageOpenFailed(reason);
     }
 
     void OfflineStorageHandler::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)
@@ -514,4 +501,4 @@ namespace ARIASDK_NS_BEGIN {
         m_observer->OnStorageRecordsSaved(numRecords);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

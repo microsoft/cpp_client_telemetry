@@ -407,8 +407,6 @@ void run(ILogger* logger, int maxStressRuns) {
                 // Set the custom context to be sent with every telemetry event.
                 logger->SetContext("TeamName", "PIE");
                 logger->SetContext("AppID", VER1 VER2 "-" __DATE__ " " __TIME__);
-                // Set the semantic context. For example, an app will set this property after the user logs in.
-                logger->GetSemanticContext()->SetUserMsaId("BCCA864D-1386-4D5A-9570-B129F6DD42B7");
                 logger->SetContext("context.string.key", "boo");
 
                 long long_value = 12345L;

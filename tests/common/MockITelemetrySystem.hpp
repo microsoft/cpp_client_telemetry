@@ -34,6 +34,11 @@ namespace testing {
             static RuntimeConfig_Default testConfig(config);
             return testConfig;
         }
+        
+        EventsUploadContextPtr createEventsUploadContext() override
+        {
+            return std::make_shared<EventsUploadContext>();
+        }
 
         MOCK_METHOD0(getContext, ISemanticContext&());
         MOCK_METHOD1(DispatchEvent, bool(DebugEvent evt));

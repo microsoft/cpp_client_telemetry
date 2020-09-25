@@ -1,8 +1,13 @@
+plugins {
+    id 'maven-publish'
+    id 'net.linguica.maven-settings' version '0.5'
+}
+
 apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "29.0.3"
 
 
     defaultConfig {
@@ -16,13 +21,26 @@ android {
         externalNativeBuild {
             cmake {
                 // Passes optional arguments to CMake.
-                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1"
+                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1", "-DCMAKE_SHARED_LINKER_FLAGS=${project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ''}"
+            }
+        }
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "room.schemaLocation":"$projectDir/schemas".toString(),
+                        "room.incremental":"true",
+                        "room.expandProjection":"true"]
             }
         }
     }
 
     buildTypes {
         release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            jniDebuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -34,14 +52,23 @@ android {
             version "3.10.2"
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    testImplementation 'junit:junit:4.12'
+    def room_version = "2.2.5"
+
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    testImplementation 'junit:junit:4.13'
     testImplementation 'org.mockito:mockito-inline:3.2.4'
+    testImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
