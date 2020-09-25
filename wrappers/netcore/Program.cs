@@ -71,7 +71,7 @@ namespace EventSender
             Console.WriteLine("Event rate = {0} eps", (MAX_ITERATIONS/ts.TotalSeconds) );
             Console.WriteLine("Latency    = {0} ms", (ts.TotalMilliseconds/MAX_ITERATIONS) );
             Console.WriteLine("Mem used   = {0} bytes", total1-total0);
-            Console.WriteLine("Fragmented = {0} bytes", frag1-frag0);
+            // Console.WriteLine("Fragmented = {0} bytes", frag1-frag0);
 
             // FlushAndTeardown
             Console.WriteLine(">>> evt_close...");
